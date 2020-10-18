@@ -22,29 +22,51 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom;
+package io.github.mtrevisan.familylegacy.gedcom.models;
 
 
-/** The gedcom grammar file needs these keywords before the first structure. */
-enum FileHeaderKeywords{
+public class Association extends ExtensionContainer{
 
-	/** The version of the gedcom grammar. */
-	GEDCOM_VERSION("GEDCOM_VERSION"),
-	/** The source of the gedcom grammar (The website/file/book/...). */
-	GEDCOM_SOURCE("GEDCOM_SOURCE"),
-	/**
-	 * A description about the gedcom grammar file.
-	 * <p>List any modifications of the grammar structures here and give any additional information.<br>
-	 * The description can have multiple lines. Everything after the GRAMPS_DESCRIPTION keyword and the next keyword or the first
-	 * structure will be taken as description.</p>
-	 */
-	GEDCOM_DESCRIPTION("GEDCOM_DESCRIPTION");
+	private String ref;
+	private String type;
+	private String rela;
 
 
-	protected final String value;
-
-	FileHeaderKeywords(final String value){
-		this.value = value;
+	public String getRef(){
+		return ref;
 	}
+
+	public void setRef(final String ref){
+		this.ref = ref;
+	}
+
+	public Person getPerson(final Gedcom gedcom){
+		return gedcom.getPerson(ref);
+	}
+
+	public String getType(){
+		return type;
+	}
+
+	public void setType(final String type){
+		this.type = type;
+	}
+
+	public String getRelation(){
+		return rela;
+	}
+
+	public void setRelation(final String rela){
+		this.rela = rela;
+	}
+
+	//FIXME
+//	public void accept(final Visitor visitor){
+//		if(visitor.visit(this)){
+//			super.visitContainedObjects(visitor);
+//
+//			visitor.endVisit(this);
+//		}
+//	}
 
 }
