@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.mtrevisan.familylegacy.gedcom;
+package io.github.mtrevisan.familylegacy.gedcom2;
 
-import io.github.mtrevisan.familylegacy.gedcom.exceptions.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom2.exceptions.GedcomParseException;
 
 import java.util.List;
 
