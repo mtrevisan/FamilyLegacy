@@ -360,23 +360,23 @@ class GedcomStoreLine{
 	/**
 	 * Returns a list of all the xref names on this line.
 	 */
-	public Set<String> getXRefNames(){
-		return xrefNames;
-	}
+//	public Set<String> getXRefNames(){
+//		return xrefNames;
+//	}
 
 	/**
 	 * Returns a list of all the value names in this line.
 	 */
-	public Set<String> getValueNames(){
-		return valueNames;
-	}
+//	public Set<String> getValueNames(){
+//		return valueNames;
+//	}
 
 	/**
 	 * Returns all values which are possible for this line.
 	 */
-	public Set<String> getValuePossibilities(){
-		return valuePossibilities;
-	}
+//	public Set<String> getValuePossibilities(){
+//		return valuePossibilities;
+//	}
 
 	/**
 	 * Returns <code>true</code> if this line has at least one tag name.
@@ -388,30 +388,30 @@ class GedcomStoreLine{
 	/**
 	 * Returns <code>true</code> if the tag appears before the xref value on this line.
 	 */
-	public boolean hasTagBeforeXRef(){
-		return !tagNames1.isEmpty();
-	}
+//	public boolean hasTagBeforeXRef(){
+//		return !tagNames1.isEmpty();
+//	}
 
 	/**
 	 * Returns <code>true</code> if the tag appears after the xref value on this line.
 	 */
-	public boolean hasTagAfterXRef(){
-		return !tagNames2.isEmpty();
-	}
+//	public boolean hasTagAfterXRef(){
+//		return !tagNames2.isEmpty();
+//	}
 
 	/**
 	 * Returns <code>true</code> if this line has any xref names.
 	 */
-	public boolean hasXRefNames(){
-		return !xrefNames.isEmpty();
-	}
+//	public boolean hasXRefNames(){
+//		return !xrefNames.isEmpty();
+//	}
 
 	/**
 	 * Returns <code>true</code> if this line has any value names.
 	 */
-	public boolean hasValueNames(){
-		return (!valueNames.isEmpty() || !valuePossibilities.isEmpty());
-	}
+//	public boolean hasValueNames(){
+//		return (!valueNames.isEmpty() || !valuePossibilities.isEmpty());
+//	}
 
 //	/**
 //	 * Returns <code>true</code> if this line has more than one tag name possibilities.
@@ -432,9 +432,9 @@ class GedcomStoreLine{
 	/**
 	 * Returns the level of this line.
 	 */
-	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
-		return parentBlock.getLevel(parentStoreLine);
-	}
+//	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
+//		return parentBlock.getLevel(parentStoreLine);
+//	}
 
 //	/**
 //	 * Returns true if this line has sub-lines (with higher levels than this line)

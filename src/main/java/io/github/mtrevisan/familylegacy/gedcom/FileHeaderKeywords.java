@@ -41,7 +41,7 @@ enum FileHeaderKeywords{
 	GEDCOM_DESCRIPTION("GEDCOM_DESCRIPTION");
 
 
-	protected String value;
+	protected final String value;
 
 	FileHeaderKeywords(final String value){
 		this.value = value;

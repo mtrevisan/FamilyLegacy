@@ -393,9 +393,9 @@ class GedcomStoreBlock{
 	/**
 	 * Returns a list of all the store lines which are in this store block.
 	 */
-	public List<GedcomStoreLine> getStoreLines(){
-		return storeLines;
-	}
+//	public List<GedcomStoreLine> getStoreLines(){
+//		return storeLines;
+//	}
 
 	/**
 	 * Returns the line ID's (tag or structure names) of all the lines in this store block.
@@ -415,9 +415,9 @@ class GedcomStoreBlock{
 	/**
 	 * Returns the level of this block. The level of this block is one higher than the parent line of this block.
 	 */
-	public int getLevel(final GedcomStoreLine parentStoreLine){
-		return (parentStoreLine != null? parentStoreLine.getLevel(this, parentStoreLine) + 1: 0);
-	}
+//	public int getLevel(final GedcomStoreLine parentStoreLine){
+//		return (parentStoreLine != null? parentStoreLine.getLevel(this, parentStoreLine) + 1: 0);
+//	}
 
 //	/**
 //	 * Returns <code>true</code> if this block has one or more child lines.

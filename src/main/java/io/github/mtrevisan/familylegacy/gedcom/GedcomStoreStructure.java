@@ -80,9 +80,9 @@ class GedcomStoreStructure{
 	/**
 	 * Returns the name of this structure, like FAMILY_EVENT_STRUCTURE.
 	 */
-	public String getStructureName(){
-		return structureName;
-	}
+//	public String getStructureName(){
+//		return structureName;
+//	}
 
 //	@Override
 //	public String toString(){

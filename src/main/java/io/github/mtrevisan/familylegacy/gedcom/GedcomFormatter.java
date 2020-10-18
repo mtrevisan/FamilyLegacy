@@ -15,8 +15,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;

@@ -135,7 +135,7 @@ public class GedcomStore{
 		LOGGER.info("Parsing GEDCOM grammar objects...\n");
 
 		int lineCount = 0;
-		boolean firstStructureFound = false;
+		boolean processFileHeader = true;
 		boolean descriptionFound = false;
 		try(final BufferedReader br = new BufferedReader(new InputStreamReader(grammarFile))){
 			final List<String> block = new ArrayList<>();
@@ -145,7 +145,7 @@ public class GedcomStore{
 				lineCount ++;
 
 				//remove all leading and trailing extra stuff (spaces, tags, newlines, line feeds), and remove any excessive spaces
-				line = RegexHelper.replaceAll(line.trim(), SPACES_PATTERN, " ");
+				line = line.trim();
 
 				//skip empty lines and comment lines
 				if(line.isEmpty() || line.startsWith(COMMENT_START))
@@ -153,7 +153,7 @@ public class GedcomStore{
 
 				//as long as the first structure has not yet appeared and the current line is not the start of a structure, process the
 				//file header lines
-				if(!firstStructureFound){
+				if(processFileHeader){
 					if(!RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
 						final String[] components = line.split("=");
 						if(FileHeaderKeywords.GEDCOM_VERSION.value.equals(components[0]))
@@ -185,7 +185,7 @@ public class GedcomStore{
 						for(final String description : gedcomDescription)
 							LOGGER.trace(description);
 
-						firstStructureFound = true;
+						processFileHeader = false;
 					}
 				}
 
