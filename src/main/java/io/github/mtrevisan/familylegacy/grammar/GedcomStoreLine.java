@@ -360,9 +360,9 @@ class GedcomStoreLine{
 	/**
 	 * Returns a list of all the xref names on this line.
 	 */
-//	public Set<String> getXRefNames(){
-//		return xrefNames;
-//	}
+	public Set<String> getXRefNames(){
+		return xrefNames;
+	}
 
 	/**
 	 * Returns a list of all the value names in this line.

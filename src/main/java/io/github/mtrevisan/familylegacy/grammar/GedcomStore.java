@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.grammar;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomParseException;
+import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -52,7 +53,6 @@ public class GedcomStore{
 
 	public static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
-	private static final Pattern SPACES_PATTERN = RegexHelper.pattern("[ \t]+");
 	private static final String COMMENT_START = "/*";
 	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+[ ]?:[ ]?=");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces */
@@ -64,6 +64,8 @@ public class GedcomStore{
 	private static final Pattern SUB_BLOCK_DIVIDER = Pattern.compile("^[\\[\\]|]");
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z]+([_:]*[A-Z])+");
 
+	private static final String XREF = "XREF:";
+
 
 	private String gedcomVersion;
 	private String gedcomSource;
@@ -71,6 +73,8 @@ public class GedcomStore{
 
 	/** All structures in an ordered list in their parsed order. */
 	private final List<GedcomStoreStructure> structures = new ArrayList<>();
+	/** All structures mapped by tag. */
+	private final Map<String, GedcomStoreStructure> structureMap = new HashMap<>();
 	/**
 	 * This map contains all the available structure names and links them to the structures.
 	 * <p>If multiple variations of a structure are available, the variation can only be determined by the line ID of one of the
@@ -97,7 +101,7 @@ public class GedcomStore{
 //			GedcomTree tree = store.getGedcomTree("INDIVIDUAL_RECORD");
 //			System.out.println(tree);
 		}
-		catch(GedcomParseException e) {
+		catch(GedcomGrammarParseException e) {
 			e.printStackTrace();
 		}
 	}
@@ -107,16 +111,16 @@ public class GedcomStore{
 	 *
 	 * @param grammarFile	The grammar file.
 	 */
-	public static GedcomStore create(final String grammarFile) throws GedcomParseException{
+	public static GedcomStore create(final String grammarFile) throws GedcomGrammarParseException{
 		if(!grammarFile.endsWith("." + GEDCOM_FILENAME_EXTENSION))
-			throw new GedcomParseException("Invalid GEDCOM grammar file: only files with extension " + GEDCOM_FILENAME_EXTENSION
+			throw new GedcomGrammarParseException("Invalid GEDCOM grammar file: only files with extension " + GEDCOM_FILENAME_EXTENSION
 				+ " are supported");
 
 		try(final InputStream is = GedcomStore.class.getResourceAsStream(grammarFile)){
 			return create(is);
 		}
 		catch(final IOException e){
-			throw new GedcomParseException("File " + grammarFile + " not found!");
+			throw new GedcomGrammarParseException("File " + grammarFile + " not found!");
 		}
 	}
 
@@ -125,13 +129,13 @@ public class GedcomStore{
 	 *
 	 * @param grammarFile	The grammar file.
 	 */
-	public static GedcomStore create(final InputStream grammarFile) throws GedcomParseException{
+	public static GedcomStore create(final InputStream grammarFile) throws GedcomGrammarParseException{
 		final GedcomStore s = new GedcomStore();
 		s.parse(grammarFile);
 		return s;
 	}
 
-	private void parse(final InputStream grammarFile) throws GedcomParseException{
+	private void parse(final InputStream grammarFile) throws GedcomGrammarParseException{
 		LOGGER.info("Parsing GEDCOM grammar objects...\n");
 
 		int lineCount = 0;
@@ -170,13 +174,13 @@ public class GedcomStore{
 						else if(descriptionFound)
 							gedcomDescription.add(line);
 						else
-							throw new GedcomParseException("Unrecognized line '" + line + "' at index " + lineCount);
+							throw new GedcomGrammarParseException("Unrecognized line '" + line + "' at index " + lineCount);
 
 						continue;
 					}
 					else{
 						if(gedcomVersion == null || gedcomSource == null || gedcomDescription.isEmpty())
-							throw new GedcomParseException("Invalid gedcom grammar file format. "
+							throw new GedcomGrammarParseException("Invalid gedcom grammar file format. "
 								+ "The file needs a header with the following kewords: "
 								+ Arrays.toString(FileHeaderKeywords.values()));
 
@@ -222,7 +226,7 @@ public class GedcomStore{
 				parseBlock(block);
 		}
 		catch(final IOException e){
-			throw new GedcomParseException("Failed to read line " + lineCount);
+			throw new GedcomGrammarParseException("Failed to read line " + lineCount);
 		}
 
 		LOGGER.info("\nAdding objects done (" + structures.size() + " objects parsed)\n");
@@ -232,7 +236,7 @@ public class GedcomStore{
 	 * Parses a block, starting from the block name (like FAMILY_EVENT_DETAIL etc.) to the last line, just before a new block name begins.
 	 * <p>A block contains the block name on the first line, and might contain multiple block variations.</p>
 	 */
-	private void parseBlock(final List<String> block) throws GedcomParseException{
+	private void parseBlock(final List<String> block) throws GedcomGrammarParseException{
 		//the first line is the structure name
 		final String structureName = RegexHelper.getFirstMatching(block.get(0), ID_PATTERN);
 
@@ -258,12 +262,18 @@ public class GedcomStore{
 	}
 
 	/**
-	 * Processes a sub-block, which only contains gedcom lines (without
-	 * structure name and without variations)
+	 * Processes a sub-block, which only contains gedcom lines (without structure name and without variations).
 	 */
-	private void parseSubBlock(final String structureName, final List<String> subBlock) throws GedcomParseException{
+	private void parseSubBlock(final String structureName, final List<String> subBlock) throws GedcomGrammarParseException{
 		//parse the sub block and build the new structure
 		final GedcomStoreStructure storeStructure = GedcomStoreStructure.create(structureName, subBlock);
+
+		final List<GedcomStoreLine> storeLines = storeStructure.getStoreBlock().getStoreLines();
+		if(storeLines.size() == 1){
+			final Set<String> tagNames = storeLines.get(0).getTagNames();
+			if(tagNames.size() == 1)
+				structureMap.put(tagNames.iterator().next(), storeStructure);
+		}
 
 		//create a simple list of all the available structures
 		structures.add(storeStructure);
@@ -281,6 +291,10 @@ public class GedcomStore{
 		//create the list of all the variations:
 		variations.computeIfAbsent(structureName, k -> new ArrayList<>())
 			.add(storeStructure);
+	}
+
+	public Map<String, GedcomStoreStructure> getStructureMap(){
+		return structureMap;
 	}
 
 	/**

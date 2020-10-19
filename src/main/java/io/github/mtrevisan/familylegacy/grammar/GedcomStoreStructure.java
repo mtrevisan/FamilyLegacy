@@ -15,7 +15,7 @@
  */
 package io.github.mtrevisan.familylegacy.grammar;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomParseException;
+import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
 
 import java.util.List;
 
@@ -61,11 +61,11 @@ class GedcomStoreStructure{
 	private final GedcomStoreBlock storeBlock = new GedcomStoreBlock();
 
 
-	public static GedcomStoreStructure create(final String structureName, final List<String> block) throws GedcomParseException{
+	public static GedcomStoreStructure create(final String structureName, final List<String> block) throws GedcomGrammarParseException{
 		return new GedcomStoreStructure(structureName, block);
 	}
 
-	private GedcomStoreStructure(final String structureName, final List<String> block) throws GedcomParseException{
+	private GedcomStoreStructure(final String structureName, final List<String> block) throws GedcomGrammarParseException{
 		this.structureName = structureName;
 		storeBlock.parse(block);
 	}

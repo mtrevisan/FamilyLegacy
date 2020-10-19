@@ -15,7 +15,7 @@
  */
 package io.github.mtrevisan.familylegacy.grammar;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomParseException;
+import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ class GedcomStoreBlock{
 	/**
 	 * Parses the given block with all the lines.
 	 */
-	protected boolean parse(final List<String> block) throws GedcomParseException{
+	protected boolean parse(final List<String> block) throws GedcomGrammarParseException{
 		/* Example:
 		 * n TAG something
 		 *   +1 TAG something
@@ -76,7 +76,7 @@ class GedcomStoreBlock{
 		final String lineIndex = RegexHelper.getFirstMatching(block.get(0), LEVEL_PATTERN);
 		if(lineIndex == null)
 			//this error should already be captured by GedcomStore.parsingErrorCheck
-			throw new GedcomParseException("On line '" + block.get(0) + "'. The format of the line index is not valid. "
+			throw new GedcomGrammarParseException("On line '" + block.get(0) + "'. The format of the line index is not valid. "
 				+ "A index can either be 'n' or '+' followed by a positive number 1-99.");
 
 		final List<String> subBlock = new ArrayList<>();
@@ -107,7 +107,7 @@ class GedcomStoreBlock{
 	/**
 	 * Process a sub block.
 	 */
-	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomParseException{
+	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomGrammarParseException{
 		GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
 		if(!storeSubBlock.parse(subBlock))
 			return false;
@@ -393,9 +393,9 @@ class GedcomStoreBlock{
 	/**
 	 * Returns a list of all the store lines which are in this store block.
 	 */
-//	public List<GedcomStoreLine> getStoreLines(){
-//		return storeLines;
-//	}
+	public List<GedcomStoreLine> getStoreLines(){
+		return storeLines;
+	}
 
 	/**
 	 * Returns the line ID's (tag or structure names) of all the lines in this store block.
