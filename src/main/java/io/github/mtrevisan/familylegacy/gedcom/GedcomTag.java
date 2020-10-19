@@ -56,7 +56,6 @@ import io.github.mtrevisan.familylegacy.gedcom.models.SourceCitationContainer;
 import io.github.mtrevisan.familylegacy.gedcom.models.SpouseRef;
 import io.github.mtrevisan.familylegacy.gedcom.models.Submission;
 import io.github.mtrevisan.familylegacy.gedcom.models.Submitter;
-import jdk.jfr.Event;
 
 import java.util.function.Function;
 

@@ -38,7 +38,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -54,7 +53,7 @@ public class GedcomStore{
 	public static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
 	private static final String COMMENT_START = "/*";
-	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+[ ]?:[ ]?=");
+	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces */
 	private static final Pattern OR_PATTERN = RegexHelper.pattern("[ ]*\\|[ ]*");
 	/** Matches the [ bracket, with or without trailing spaces */
@@ -64,8 +63,6 @@ public class GedcomStore{
 	private static final Pattern SUB_BLOCK_DIVIDER = Pattern.compile("^[\\[\\]|]");
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z]+([_:]*[A-Z])+");
 
-	private static final String XREF = "XREF:";
-
 
 	private String gedcomVersion;
 	private String gedcomSource;
@@ -73,8 +70,6 @@ public class GedcomStore{
 
 	/** All structures in an ordered list in their parsed order. */
 	private final List<GedcomStoreStructure> structures = new ArrayList<>();
-	/** All structures mapped by tag. */
-	private final Map<String, GedcomStoreStructure> structureMap = new HashMap<>();
 	/**
 	 * This map contains all the available structure names and links them to the structures.
 	 * <p>If multiple variations of a structure are available, the variation can only be determined by the line ID of one of the
@@ -98,8 +93,6 @@ public class GedcomStore{
 		try{
 			GedcomStore store = GedcomStore.create("/gedg/gedcomobjects_5.5.1_test.gedg");
 			System.out.println(store);
-//			GedcomTree tree = store.getGedcomTree("INDIVIDUAL_RECORD");
-//			System.out.println(tree);
 		}
 		catch(GedcomGrammarParseException e) {
 			e.printStackTrace();
@@ -113,35 +106,35 @@ public class GedcomStore{
 	 */
 	public static GedcomStore create(final String grammarFile) throws GedcomGrammarParseException{
 		if(!grammarFile.endsWith("." + GEDCOM_FILENAME_EXTENSION))
-			throw new GedcomGrammarParseException("Invalid GEDCOM grammar file: only files with extension " + GEDCOM_FILENAME_EXTENSION
-				+ " are supported");
+			throw GedcomGrammarParseException.create("Invalid GEDCOM grammar file: only files with extension {} are supported",
+				GEDCOM_FILENAME_EXTENSION);
 
 		try(final InputStream is = GedcomStore.class.getResourceAsStream(grammarFile)){
 			return create(is);
 		}
 		catch(final IOException e){
-			throw new GedcomGrammarParseException("File " + grammarFile + " not found!");
+			throw GedcomGrammarParseException.create("File {} not found!", grammarFile);
 		}
 	}
 
 	/**
 	 * Parses the given lineage-linked grammar file and adds all the structures to this store.
 	 *
-	 * @param grammarFile	The grammar file.
+	 * @param is	The grammar file.
 	 */
-	public static GedcomStore create(final InputStream grammarFile) throws GedcomGrammarParseException{
-		final GedcomStore s = new GedcomStore();
-		s.parse(grammarFile);
-		return s;
+	public static GedcomStore create(final InputStream is) throws GedcomGrammarParseException{
+		final GedcomStore store = new GedcomStore();
+		store.parse(is);
+		return store;
 	}
 
-	private void parse(final InputStream grammarFile) throws GedcomGrammarParseException{
-		LOGGER.info("Parsing GEDCOM grammar objects...\n");
+	private void parse(final InputStream is) throws GedcomGrammarParseException{
+		LOGGER.info("Parsing GEDCOM grammar objects...");
 
 		int lineCount = 0;
 		boolean processFileHeader = true;
 		boolean descriptionFound = false;
-		try(final BufferedReader br = new BufferedReader(new InputStreamReader(grammarFile))){
+		try(final BufferedReader br = new BufferedReader(new InputStreamReader(is))){
 			final List<String> block = new ArrayList<>();
 
 			String line;
@@ -174,15 +167,14 @@ public class GedcomStore{
 						else if(descriptionFound)
 							gedcomDescription.add(line);
 						else
-							throw new GedcomGrammarParseException("Unrecognized line '" + line + "' at index " + lineCount);
+							throw GedcomGrammarParseException.create("Unrecognized line '{}' at index {}", line, lineCount);
 
 						continue;
 					}
 					else{
 						if(gedcomVersion == null || gedcomSource == null || gedcomDescription.isEmpty())
-							throw new GedcomGrammarParseException("Invalid gedcom grammar file format. "
-								+ "The file needs a header with the following kewords: "
-								+ Arrays.toString(FileHeaderKeywords.values()));
+							throw GedcomGrammarParseException.create("Invalid gedcom grammar file format. "
+								+ "The file needs a header with the following kewords: {}", Arrays.toString(FileHeaderKeywords.values()));
 
 						LOGGER.trace("Gedcom version: {}", gedcomVersion);
 						LOGGER.trace("Source of gedcom grammar: {}", gedcomSource);
@@ -204,10 +196,10 @@ public class GedcomStore{
 
 				if(RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
 					//a new structure starts:
-
 					if(!block.isEmpty()){
 						//process current block...
 						parseBlock(block);
+
 						//... and reset the block after processing
 						block.clear();
 					}
@@ -226,10 +218,10 @@ public class GedcomStore{
 				parseBlock(block);
 		}
 		catch(final IOException e){
-			throw new GedcomGrammarParseException("Failed to read line " + lineCount);
+			throw GedcomGrammarParseException.create("Failed to read line {}", lineCount);
 		}
 
-		LOGGER.info("\nAdding objects done (" + structures.size() + " objects parsed)\n");
+		LOGGER.info("Adding objects done (" + structures.size() + " objects parsed)");
 	}
 
 	/**
@@ -240,7 +232,7 @@ public class GedcomStore{
 		//the first line is the structure name
 		final String structureName = RegexHelper.getFirstMatching(block.get(0), ID_PATTERN);
 
-		LOGGER.trace("\n=== {} ===", structureName);
+		LOGGER.trace("=== {} ===", structureName);
 
 		//the second line defines if the block has variations or not
 		if(block.get(1).startsWith("[")){
@@ -268,13 +260,6 @@ public class GedcomStore{
 		//parse the sub block and build the new structure
 		final GedcomStoreStructure storeStructure = GedcomStoreStructure.create(structureName, subBlock);
 
-		final List<GedcomStoreLine> storeLines = storeStructure.getStoreBlock().getStoreLines();
-		if(storeLines.size() == 1){
-			final Set<String> tagNames = storeLines.get(0).getTagNames();
-			if(tagNames.size() == 1)
-				structureMap.put(tagNames.iterator().next(), storeStructure);
-		}
-
 		//create a simple list of all the available structures
 		structures.add(storeStructure);
 
@@ -282,9 +267,8 @@ public class GedcomStore{
 		if(!idToVariationsLinks.containsKey(structureName))
 			//add a new structure
 			idToVariationsLinks.put(structureName, new HashMap<>());
-
-		final List<String> allIds = storeStructure.getStoreBlock().getAllLineIDs();
-		for(final String id : allIds)
+		final List<String> ids = storeStructure.getStoreBlock().getAllLineIDs();
+		for(final String id : ids)
 			idToVariationsLinks.get(structureName).computeIfAbsent(id, k -> new ArrayList<>())
 				.add(storeStructure);
 
@@ -293,145 +277,47 @@ public class GedcomStore{
 			.add(storeStructure);
 	}
 
-	public Map<String, GedcomStoreStructure> getStructureMap(){
-		return structureMap;
-	}
-
 	/**
 	 * Returns <code>true</code> if this structure has multiple variations (the FAMILY_EVENT_STRUCTURE for example has the variations
 	 * [ANUL|CENS|DIV|DIVF], [ENGA|MARB|MARC], [MARR] etc.).
 	 */
-//	public boolean hasVariations(final String structureName){
-//		return (getVariations(structureName).size() > 1);
-//	}
+	public boolean hasVariations(final String structureName){
+		return (getVariations(structureName).size() > 1);
+	}
 
 	/**
 	 * Returns a map which contains all the variations for the structure with the given structure name.
 	 */
-//	protected List<GedcomStoreStructure> getVariations(final String structureName){
-//		return variations.get(structureName);
-//	}
+	protected List<GedcomStoreStructure> getVariations(final String structureName){
+		return variations.get(structureName);
+	}
 
-//	/**
-//	 * Checks if a structure with the given name is available.
-//	 */
-//	public boolean hasStructure(final String structureName){
-//		return idToVariationsLinks.containsKey(structureName);
-//	}
+	/**
+	 * Checks if a structure with the given name is available.
+	 */
+	public boolean hasStructure(final String structureName){
+		return idToVariationsLinks.containsKey(structureName);
+	}
 
-//	/**
-//	 * Returns a map with all the tags which are available to access the variations
-//	 * of the structure with the given structure name.
-//	 */
-//	public List<String> getVariationTags(final String structureName){
-//		return new ArrayList<>(idToVariationsLinks.get(structureName).keySet());
-//	}
+	/**
+	 * Returns a map with all the tags which are available to access the variations of the structure with the given structure name.
+	 */
+	public List<String> getVariationTags(final String structureName){
+		return new ArrayList<>(idToVariationsLinks.get(structureName).keySet());
+	}
 
-//	/**
-//	 * Returns <code>true</code> if the structure with the given name has more than one variations.
-//	 */
-//	public boolean structureHasVariations(final String structureName){
-//		return (getNumberOfStructureVariations(structureName) > 1);
-//	}
+	/**
+	 * Returns {@code true} if the structure with the given name has more than one variations.
+	 */
+	public boolean structureHasVariations(final String structureName){
+		return (getNumberOfStructureVariations(structureName) > 1);
+	}
 
-//	/**
-//	 * Returns the number of variations for the structure with the given name
-//	 *
-//	 * @param structureName
-//	 * @return
-//	 */
-//	public int getNumberOfStructureVariations(final String structureName){
-//		return (variations.containsKey(structureName)? variations.get(structureName).size(): 0);
-//	}
-
-
-//	/**
-//	 * Creates a {@link GedcomTree} with the given gedcom structure. This
-//	 * method only works if the structure does not have multiple variations.<br>
-//	 * If there the structure has multiple variations, use
-//	 * {@link #getGedcomTree(String, String)}
-//	 */
-//	public GedcomTree getGedcomTree(String structureName){
-//		return new GedcomTree(getGedcomStructure(structureName, null, false, false, false));
-//	}
-//
-//	/**
-//	 * Creates a {@link GedcomTree} with the given gedcom structure and
-//	 * the variation defined with the given tag.<br>
-//	 * Only works if each variation is defined with a different tag.
-//	 * If there are multiple variations with the same tag, which differ only by
-//	 * the presence of the xref/value fields, use
-//	 * {@link #getGedcomTree(String, String, boolean, boolean)}
-//	 */
-//	public GedcomTree getGedcomTree(String structureName, String tag){
-//		return new GedcomTree(getGedcomStructure(structureName, tag, false, false, false));
-//	}
-//
-//	/**
-//	 * Creates a {@link GedcomTree} with the given gedcom structure and
-//	 * the variation defined with the given tag and the xref/value fields.<br>
-//	 * This method searches through all available variations and returns the
-//	 * {@link GedcomTree} which matches the given xref/variable requirements.
-//	 */
-//	public GedcomTree getGedcomTree(String structureName, String tag, boolean withXRef, boolean withValue){
-//		return new GedcomTree(getGedcomStructure(structureName, tag, true, withXRef, withValue));
-//	}
-//
-//	/**
-//	 * <i>For internal use only!</i><br>
-//	 * <br>
-//	 * Creates a {@link Tree} with the given gedcom structure and variation.
-//	 */
-//	private StoreStructure getGedcomStructure(final String structureName, String tag, final boolean lookForXRefAndValueVariation,
-//			final boolean withXRef, final boolean withValue){
-//		if(!idToVariationsLinks.containsKey(structureName))
-//			throw new GedcomAccessError("Structure with name " + structureName + " does not exist");
-//
-//		if(tag == null){
-//			//the line ID can only be omitted if there is only one variation available
-//			if(variations.get(structureName).size() == 1)
-//				//there is only one variation available -> get the first line ID of the first variation
-//				tag = variations.get(structureName).get(0).getStoreBlock().getAllLineIDs().get(0);
-//			else
-//				throw new GedcomCreationError("Can not get structure " + structureName + " with only the structure name. "
-//					+ "This structure has multiple variations "
-//					+ GedcomFormatter.makeOrList(new ArrayList<>(idToVariationsLinks.get(structureName).keySet()), "", "")
-//					+ ".");
-//		}
-//
-//		if(!idToVariationsLinks.get(structureName).containsKey(tag))
-//			throw new GedcomAccessError("Structure " + structureName + " with line ID " + tag + " does not exist.");
-//
-//		int variation = 0;
-//		if(lookForXRefAndValueVariation){
-//			variation = lookForXRefAndValueVariation(idToVariationsLinks.get(structureName).get(tag), structureName, tag, withXRef, withValue);
-//			if(variation == -1)
-//				return null;
-//		}
-//
-//		return idToVariationsLinks.get(structureName).get(tag).get(variation);
-//	}
-//
-//	/**
-//	 * This method loops through the given list of variations and looks for a match of the given parameters withXRef and withValue.
-//	 */
-//	private int lookForXRefAndValueVariation(final List<StoreStructure> variations, final String structureName, final String lineId,
-//			final boolean withXRef, final boolean withValue){
-//		for(int i = 0; i < variations.size(); i ++){
-//			final StoreLine storeLine = variations.get(i).getStoreBlock().getStoreLine(lineId);
-//			if(storeLine.hasTags() && storeLine.hasXRefNames() == withXRef && storeLine.hasValueNames() == withValue)
-//				return i;
-//		}
-//
-//		String error = null;
-//		if(withXRef)
-//			error = " and XRef-field";
-//		if(withValue)
-//			error = " and value-field";
-//		if(error == null)
-//			error = " and no XRef/value-field";
-//
-//		throw new GedcomCreationError("Structure " + structureName + " with line ID " + lineId + error + " does not exist.");
-//	}
+	/**
+	 * Number of variations for the structure with the given name.
+	 */
+	public int getNumberOfStructureVariations(final String structureName){
+		return (variations.containsKey(structureName)? variations.get(structureName).size(): 0);
+	}
 
 }

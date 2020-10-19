@@ -76,8 +76,8 @@ class GedcomStoreBlock{
 		final String lineIndex = RegexHelper.getFirstMatching(block.get(0), LEVEL_PATTERN);
 		if(lineIndex == null)
 			//this error should already be captured by GedcomStore.parsingErrorCheck
-			throw new GedcomGrammarParseException("On line '" + block.get(0) + "'. The format of the line index is not valid. "
-				+ "A index can either be 'n' or '+' followed by a positive number 1-99.");
+			throw GedcomGrammarParseException.create("On line '{}'. The format of the line index is not valid. "
+				+ "A index can either be 'n' or '+' followed by a positive number 1-99.", block.get(0));
 
 		final List<String> subBlock = new ArrayList<>();
 		GedcomStoreLine lastStoreLine = null;

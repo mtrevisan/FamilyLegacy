@@ -24,6 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.grammar.exceptions;
 
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
+
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 
 /**
  * Exception that occurred when parsing the grammar linked file.
@@ -33,8 +39,22 @@ public class GedcomGrammarParseException extends Exception{
 	private static final long serialVersionUID = -9166944783238433522L;
 
 
-	public GedcomGrammarParseException(final String message){
+	public static GedcomGrammarParseException create(final String message, final Object... parameters){
+		return new GedcomGrammarParseException(JavaHelper.format(message, parameters));
+	}
+
+	private GedcomGrammarParseException(final String message){
 		super(message);
+	}
+
+	@SuppressWarnings("unused")
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
 	}
 
 }
