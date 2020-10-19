@@ -22,9 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom2;
+package io.github.mtrevisan.familylegacy.grammar;
 
-import io.github.mtrevisan.familylegacy.gedcom2.exceptions.GedcomParseException;
+import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

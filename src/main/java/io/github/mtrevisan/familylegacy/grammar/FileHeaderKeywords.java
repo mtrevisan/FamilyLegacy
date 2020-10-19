@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom2;
+package io.github.mtrevisan.familylegacy.grammar;
 
 
 /** The gedcom grammar file needs these keywords before the first structure. */
