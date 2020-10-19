@@ -127,7 +127,7 @@ public class Address extends ExtensionContainer{
 	}
 
 	public void setName(final String name){
-		this._name = name;
+		_name = name;
 	}
 
 	//FIXME

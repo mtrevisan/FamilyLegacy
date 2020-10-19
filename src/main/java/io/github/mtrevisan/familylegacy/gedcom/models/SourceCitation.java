@@ -29,7 +29,7 @@ public class SourceCitation extends MediaContainer{
 
 	public enum DataTagContents{DATE, TEXT, COMBINED, SEPARATE}
 
-	private String ref;
+	private final String ref;
 	private String value;
 	private String page;
 	private String date;
@@ -40,12 +40,12 @@ public class SourceCitation extends MediaContainer{
 	private DataTagContents dataTagContents;
 
 
-	public String getRef(){
-		return ref;
+	public SourceCitation(final String ref){
+		this.ref = ref;
 	}
 
-	public void setRef(final String ref){
-		this.ref = ref;
+	public String getRef(){
+		return ref;
 	}
 
 	public Source getSource(final Gedcom gedcom){
@@ -102,7 +102,7 @@ public class SourceCitation extends MediaContainer{
 	}
 
 	public DataTagContents getDataTagContents(){
-		return this.dataTagContents;
+		return dataTagContents;
 	}
 
 	public void setDataTagContents(final DataTagContents dataTagContents){

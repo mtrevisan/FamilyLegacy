@@ -34,11 +34,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 
+@SuppressWarnings("InjectedReferences")
 class GedcomHelper{
+
+	private static final String CHARSER_ANSEL = "ANSEL";
+
 
 	private GedcomHelper(){}
 
-	@SuppressWarnings("InjectedReferences")
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
@@ -53,7 +56,7 @@ class GedcomHelper{
 			charEncoding = readCorrectedCharsetName(br);
 			in.reset();
 
-			if(charEncoding.equals("UTF-16")){
+			if(charEncoding.equals(StandardCharsets.UTF_16.name())){
 				//skip over junk at the beginning of the file
 				InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_16);
 				int cnt = 0;
@@ -71,7 +74,7 @@ class GedcomHelper{
 
 		if(charEncoding.isEmpty())
 			//default
-			charEncoding = "ANSEL";
+			charEncoding = CHARSER_ANSEL;
 
 		//skip over junk at the beginning of the file
 		in.reset();
@@ -84,7 +87,7 @@ class GedcomHelper{
 		for(int i = 0; i < cnt; i ++)
 			in.read();
 
-		final InputStreamReader reader = (charEncoding.equals("ANSEL")?
+		final InputStreamReader reader = (charEncoding.equals(CHARSER_ANSEL)?
 			new AnselInputStreamReader(in): new InputStreamReader(in, charEncoding));
 
 		return new BufferedReader(reader);
@@ -134,26 +137,26 @@ class GedcomHelper{
 
 	private static String getCorrectedCharsetName(String generatorName, String encoding, String version){
 		//correct incorrectly-assigned encoding values
-		if("GeneWeb".equals(generatorName) && "ASCII".equals(encoding))
+		if("GeneWeb".equals(generatorName) && StandardCharsets.US_ASCII.name().equals(encoding))
 			//GeneWeb ASCII -> Cp1252 (ANSI)
 			encoding = "Cp1252";
 		else if("Geni.com".equals(generatorName) && "UNICODE".equals(encoding))
 			//Geni.com UNICODE -> UTF-8
-			encoding = "UTF-8";
-		else if("Geni.com".equals(generatorName) && "ANSEL".equals(encoding))
+			encoding = StandardCharsets.UTF_8.name();
+		else if("Geni.com".equals(generatorName) && CHARSER_ANSEL.equals(encoding))
 			//Geni.com ANSEL -> UTF-8
-			encoding = "UTF-8";
+			encoding = StandardCharsets.UTF_8.name();
 		else if("GENJ".equals(generatorName) && "UNICODE".equals(encoding))
 			//GENJ UNICODE -> UTF-8
-			encoding = "UTF-8";
+			encoding = StandardCharsets.UTF_8.name();
 		//make encoding value java-friendly
-		else if("ASCII".equals(encoding)){
+		else if(StandardCharsets.US_ASCII.name().equals(encoding)){
 			//ASCII followed by VERS MacOS Roman is MACINTOSH
 			if("MacOS Roman".equals(version))
 				encoding = "x-MacRoman";
 		}
 		else if("ATARIST_ASCII".equals(encoding))
-			encoding = "ASCII";
+			encoding = StandardCharsets.US_ASCII.name();
 		else if("MACROMAN".equals(encoding) || "MACINTOSH".equals(encoding))
 			encoding = "x-MacRoman";
 		else if("ANSI".equals(encoding) || "IBM WINDOWS".equals(encoding))

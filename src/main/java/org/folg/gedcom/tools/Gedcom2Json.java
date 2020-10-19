@@ -16,7 +16,7 @@
 package org.folg.gedcom.tools;
 
 import org.folg.gedcom.model.Gedcom;
-import org.folg.gedcom.model.GedcomTag;
+import org.folg.gedcom.model.GedcomNode;
 import org.folg.gedcom.parser.JsonParser;
 import org.folg.gedcom.parser.ModelParser;
 import org.folg.gedcom.parser.TreeParser;
@@ -49,8 +49,8 @@ public class Gedcom2Json{
 		JsonParser jsonParser = new JsonParser();
 		if(useTreeParser){
 			TreeParser treeParser = new TreeParser();
-			List<GedcomTag> gedcomTags = treeParser.parseGedcom(gedcomIn);
-			json = jsonParser.toJson(gedcomTags);
+			List<GedcomNode> gedcomNodes = treeParser.parseGedcom(gedcomIn);
+			json = jsonParser.toJson(gedcomNodes);
 		}
 		else{
 			ModelParser modelParser = new ModelParser();

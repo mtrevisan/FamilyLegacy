@@ -31,6 +31,8 @@ import java.util.Map;
 //FIXME
 public abstract class ExtensionContainer /*implements Visitable*/{
 
+	public static final String MORE_TAGS_EXTENSION_KEY = "fl.more_tags";
+
 	private Extensions extensions;
 
 

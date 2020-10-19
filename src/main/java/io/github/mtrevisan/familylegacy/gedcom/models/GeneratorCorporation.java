@@ -66,7 +66,7 @@ public class GeneratorCorporation extends ExtensionContainer{
 	}
 
 	public void setEmail(final String email){
-		this._email = email;
+		_email = email;
 	}
 
 	public String getEmailTag(){
@@ -90,7 +90,7 @@ public class GeneratorCorporation extends ExtensionContainer{
 	}
 
 	public void setWww(final String www){
-		this._www = www;
+		_www = www;
 	}
 
 	public String getWwwTag(){

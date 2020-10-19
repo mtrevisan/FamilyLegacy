@@ -54,7 +54,7 @@ public class SpouseRef extends ExtensionContainer{
 	}
 
 	public void setPreferred(final String pref){
-		this._pref = pref;
+		_pref = pref;
 	}
 
 	//FIXME

@@ -36,7 +36,7 @@ public class ChildRef extends SpouseRef{
 	}
 
 	public void setFatherRelationship(final ParentRelationship frel){
-		this._frel = frel;
+		_frel = frel;
 	}
 
 	public ParentRelationship getMotherRelationship(){
@@ -44,7 +44,7 @@ public class ChildRef extends SpouseRef{
 	}
 
 	public void setMotherRelationship(final ParentRelationship mrel){
-		this._mrel = mrel;
+		_mrel = mrel;
 	}
 
 	//FIXME

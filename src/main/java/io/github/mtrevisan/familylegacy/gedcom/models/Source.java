@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.models;
 
 public class Source extends MediaContainer{
 
-	private String id;
+	private final String id;
 	private String auth;
 	private String titl;
 	private String abbr;
@@ -48,12 +48,12 @@ public class Source extends MediaContainer{
 	private String date;
 
 
-	public String getId(){
-		return id;
+	public Source(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getAuthor(){
@@ -185,7 +185,7 @@ public class Source extends MediaContainer{
 	}
 
 	public void setParen(final String paren){
-		this._paren = paren;
+		_paren = paren;
 	}
 
 	public String getItalic(){
@@ -193,7 +193,7 @@ public class Source extends MediaContainer{
 	}
 
 	public void setItalic(final String italic){
-		this._italic = italic;
+		_italic = italic;
 	}
 
 	public String getDate(){

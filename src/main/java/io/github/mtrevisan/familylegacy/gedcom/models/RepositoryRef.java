@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.models;
 
 public class RepositoryRef extends NoteContainer{
 
-	private String ref;
+	private final String ref;
 	private String value;
 	private String caln;
 	private String medi;
@@ -35,12 +35,12 @@ public class RepositoryRef extends NoteContainer{
 	private String isMediUnderCalnTag;
 
 
-	public String getRef(){
-		return ref;
+	public RepositoryRef(final String ref){
+		this.ref = ref;
 	}
 
-	public void setRef(final String ref){
-		this.ref = ref;
+	public String getRef(){
+		return ref;
 	}
 
 	public String getValue(){
@@ -72,11 +72,11 @@ public class RepositoryRef extends NoteContainer{
 	}
 
 	public boolean isMediUnderCalnTag(){
-		return this.isMediUnderCalnTag != null;
+		return isMediUnderCalnTag != null;
 	}
 
 	public void setMediUnderCalnTag(final boolean mediUnderCalnTag){
-		this.isMediUnderCalnTag = (mediUnderCalnTag? "true": null);
+		isMediUnderCalnTag = (mediUnderCalnTag? "true": null);
 	}
 
 	//FIXME

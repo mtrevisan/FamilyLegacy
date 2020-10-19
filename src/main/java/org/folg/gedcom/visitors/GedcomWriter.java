@@ -142,9 +142,9 @@ public class GedcomWriter extends Visitor {
 
    private void writeFieldExtensions(String fieldName, ExtensionContainer ec) {
       @SuppressWarnings("unchecked")
-      List<GedcomTag> moreTags = (List<GedcomTag>)ec.getExtension(ModelParser.MORE_TAGS_EXTENSION_KEY);
+      List<GedcomNode> moreTags = (List<GedcomNode>)ec.getExtension(ModelParser.MORE_TAGS_EXTENSION_KEY);
       if (moreTags != null) {
-         for (GedcomTag tag : moreTags) {
+         for (GedcomNode tag : moreTags) {
             if (fieldName.equals(tag.getParentTagName())) {
                stack.push(new Object()); // placeholder
                writeGedcomTag(tag);
@@ -238,10 +238,10 @@ public class GedcomWriter extends Visitor {
       return true;
    }
 
-   private void writeGedcomTag(GedcomTag tag) {
+   private void writeGedcomTag(GedcomNode tag) {
       write(tag.getTag(), tag.getId(), tag.getRef(), tag.getValue());
       stack.push(tag);
-      for (GedcomTag child : tag.getChildren()) {
+      for (GedcomNode child : tag.getChildren()) {
          writeGedcomTag(child);
       }
       stack.pop();
@@ -251,8 +251,8 @@ public class GedcomWriter extends Visitor {
    public boolean visit(String extensionKey, Object extension) {
       if (ModelParser.MORE_TAGS_EXTENSION_KEY.equals(extensionKey)) {
          @SuppressWarnings("unchecked")
-         List<GedcomTag> moreTags = (List<GedcomTag>)extension;
-         for (GedcomTag tag : moreTags) {
+         List<GedcomNode> moreTags = (List<GedcomNode>)extension;
+         for (GedcomNode tag : moreTags) {
             if (tag.getParentTagName() == null) { // if field name is not null, the extension should have been written already
                writeGedcomTag(tag);
             }

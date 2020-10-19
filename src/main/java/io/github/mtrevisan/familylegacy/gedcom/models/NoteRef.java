@@ -34,16 +34,16 @@ import java.util.List;
  */
 public class NoteRef extends ExtensionContainer{
 
-	private String ref;
+	private final String ref;
 	private List<SourceCitation> sourceCitations;
 
 
-	public String getRef(){
-		return ref;
+	public NoteRef(final String ref){
+		this.ref = ref;
 	}
 
-	public void setRef(final String ref){
-		this.ref = ref;
+	public String getRef(){
+		return ref;
 	}
 
 	/**

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.models;
 
 public class Repository extends NoteContainer{
 
-	private String id;
+	private final String id;
 	private String value;
 	private String name;
 	private Address addr;
@@ -41,12 +41,12 @@ public class Repository extends NoteContainer{
 	private String wwwTag;
 
 
-	public String getId(){
-		return id;
+	public Repository(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getValue(){
@@ -110,7 +110,7 @@ public class Repository extends NoteContainer{
 	}
 
 	public void setEmail(final String email){
-		this._email = email;
+		_email = email;
 	}
 
 	public String getEmailTag(){
@@ -126,7 +126,7 @@ public class Repository extends NoteContainer{
 	}
 
 	public void setWww(final String www){
-		this._www = www;
+		_www = www;
 	}
 
 	public String getWwwTag(){

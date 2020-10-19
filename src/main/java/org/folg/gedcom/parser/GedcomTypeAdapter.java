@@ -20,7 +20,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.folg.gedcom.model.Extensions;
 import org.folg.gedcom.model.Gedcom;
-import org.folg.gedcom.model.GedcomTag;
+import org.folg.gedcom.model.GedcomNode;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -37,7 +37,7 @@ public class GedcomTypeAdapter implements JsonSerializer<Gedcom>, JsonDeserializ
    public GedcomTypeAdapter() {
       extensionsTypeAdapter = new ExtensionsTypeAdapter();
       // built-in extension
-      extensionsTypeAdapter.registerExtension(ModelParser.MORE_TAGS_EXTENSION_KEY, new TypeToken<List<GedcomTag>>(){}.getType());
+      extensionsTypeAdapter.registerExtension(ModelParser.MORE_TAGS_EXTENSION_KEY, new TypeToken<List<GedcomNode>>(){}.getType());
       gson = new GsonBuilder()
               .registerTypeAdapter(Extensions.class, extensionsTypeAdapter)
               .create();

@@ -282,7 +282,7 @@ public class EventFact extends SourceCitationContainer{
 	}
 
 	public void setUid(final String uid){
-		this._uid = uid;
+		_uid = uid;
 	}
 
 	public String getUidTag(){
@@ -298,7 +298,7 @@ public class EventFact extends SourceCitationContainer{
 	}
 
 	public void setEmail(final String email){
-		this._email = email;
+		_email = email;
 	}
 
 	public String getEmailTag(){
@@ -314,7 +314,7 @@ public class EventFact extends SourceCitationContainer{
 	}
 
 	public void setWww(final String www){
-		this._www = www;
+		_www = www;
 	}
 
 	public String getWwwTag(){

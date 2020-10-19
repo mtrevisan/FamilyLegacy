@@ -37,8 +37,6 @@ public class Extensions{
 	private Map<String, Object> extensions = new HashMap<>(0);
 
 
-	public Extensions(){}
-
 	public Map<String, Object> getExtensions(){
 		return extensions;
 	}

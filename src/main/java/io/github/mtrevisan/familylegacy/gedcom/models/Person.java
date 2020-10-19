@@ -25,13 +25,14 @@
 package io.github.mtrevisan.familylegacy.gedcom.models;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 
 public class Person extends PersonFamilyCommonContainer{
 
-	private String id;
+	private final String id;
 	private List<Name> names;
 	private List<ParentFamilyRef> famc;
 	private List<SpouseFamilyRef> fams;
@@ -48,12 +49,12 @@ public class Person extends PersonFamilyCommonContainer{
 	private String wwwTag;
 
 
-	public String getId(){
-		return id;
+	public Person(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public List<Name> getNames(){
@@ -71,7 +72,7 @@ public class Person extends PersonFamilyCommonContainer{
 		names.add(name);
 	}
 
-	private List<Family> getFamilies(final Gedcom gedcom, final List<? extends SpouseFamilyRef> familyRefs){
+	private List<Family> getFamilies(final Gedcom gedcom, final Collection<? extends SpouseFamilyRef> familyRefs){
 		final List<Family> families = new ArrayList<>(familyRefs.size());
 		for(final SpouseFamilyRef familyRef : familyRefs){
 			final Family family = familyRef.getFamily(gedcom);
@@ -215,7 +216,7 @@ public class Person extends PersonFamilyCommonContainer{
 	}
 
 	public void setWww(final String www){
-		this._www = www;
+		_www = www;
 	}
 
 	public String getWwwTag(){

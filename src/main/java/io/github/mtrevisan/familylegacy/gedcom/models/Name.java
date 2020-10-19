@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.models;
 
+import java.util.StringJoiner;
+
 
 public class Name extends SourceCitationContainer{
 
@@ -46,25 +48,17 @@ public class Name extends SourceCitationContainer{
 	private String marrnmTag;
 
 
-	private void appendValue(final StringBuilder buf, final String value){
-		if(value != null){
-			if(buf.length() > 0)
-				buf.append(' ');
-			buf.append(value);
-		}
-	}
-
 	public String getDisplayValue(){
 		if(value != null)
 			return value;
 
-		final StringBuilder buf = new StringBuilder();
-		appendValue(buf, npfx);
-		appendValue(buf, givn);
-		appendValue(buf, spfx);
-		appendValue(buf, surn);
-		appendValue(buf, nsfx);
-		return buf.toString();
+		return new StringJoiner(" ")
+			.add(npfx)
+			.add(givn)
+			.add(spfx)
+			.add(surn)
+			.add(nsfx)
+			.toString().trim();
 	}
 
 	public String getValue(){

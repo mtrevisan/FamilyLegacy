@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * User: Dallan
  * Date: 12/23/11
  */
-public class GedcomTag implements Comparable<GedcomTag> {
+public class GedcomNode implements Comparable<GedcomNode> {
    private static final Logger logger = LoggerFactory.getLogger("org.folg.gedcom.model");
 
    private String id;
@@ -35,9 +35,9 @@ public class GedcomTag implements Comparable<GedcomTag> {
    private String ref;
    private String value;
    private String parentTagName; // used by ModelParser to store tags under string fields
-   private List<GedcomTag> children;
+   private List<GedcomNode> children;
 
-   public GedcomTag(String id, String tag, String ref) {
+   public GedcomNode(String id, String tag, String ref) {
       this.id = id;
       this.tag = tag;
       this.ref = ref;
@@ -94,23 +94,23 @@ public class GedcomTag implements Comparable<GedcomTag> {
       }
    }
 
-   public List<GedcomTag> getChildren() {
-      return children != null ? children : Collections.<GedcomTag>emptyList();
+   public List<GedcomNode> getChildren() {
+      return children != null ? children : Collections.<GedcomNode>emptyList();
    }
 
-   public void setChildren(List<GedcomTag> children) {
+   public void setChildren(List<GedcomNode> children) {
       this.children = children;
    }
 
-   public void addChild(GedcomTag child) {
+   public void addChild(GedcomNode child) {
       if (children == null) {
-         children = new ArrayList<GedcomTag>();
+         children = new ArrayList<GedcomNode>();
       }
       children.add(child);
    }
 
-   private ArrayList<GedcomTag> getSortedChildren(List<GedcomTag> children) {
-      ArrayList<GedcomTag> sortedChildren = new ArrayList<GedcomTag>(children.size());
+   private ArrayList<GedcomNode> getSortedChildren(List<GedcomNode> children) {
+      ArrayList<GedcomNode> sortedChildren = new ArrayList<GedcomNode>(children.size());
       sortedChildren.addAll(children);
       Collections.sort(sortedChildren);
       return sortedChildren;
@@ -129,7 +129,7 @@ public class GedcomTag implements Comparable<GedcomTag> {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
-      GedcomTag gt = (GedcomTag) o;
+      GedcomNode gt = (GedcomNode) o;
 
       if (!(tag == null ? "" : tag).equals(gt.tag == null ? "" : gt.tag)) {
          return false;
@@ -152,8 +152,8 @@ public class GedcomTag implements Comparable<GedcomTag> {
 
       // this is horribly inefficient - if we're going to do this a lot during production we need to rewrite it
       // but as-is, it's convenient for debugging
-      ArrayList<GedcomTag> sortedChildren = getSortedChildren(getChildren());
-      ArrayList<GedcomTag> compareChildren = getSortedChildren(gt.getChildren());
+      ArrayList<GedcomNode> sortedChildren = getSortedChildren(getChildren());
+      ArrayList<GedcomNode> compareChildren = getSortedChildren(gt.getChildren());
 
       for (int indx = 0; indx < sortedChildren.size(); indx++) {
          if (!sortedChildren.get(indx).equals(compareChildren.get(indx))) {
@@ -175,7 +175,7 @@ public class GedcomTag implements Comparable<GedcomTag> {
       // Calculate the children hash code based on the actual value of each child hashcode
       // result = 31 * result + (children != null ? children.hashCode() : 0);
       if (children != null) {
-         for (GedcomTag child : getSortedChildren(children)) {
+         for (GedcomNode child : getSortedChildren(children)) {
             result = 31 * result + child.hashCode();
          }
       }
@@ -203,7 +203,7 @@ public class GedcomTag implements Comparable<GedcomTag> {
       }
       if (children != null) {
          buf.append(" [");
-         for (GedcomTag child : getSortedChildren(children)) {
+         for (GedcomNode child : getSortedChildren(children)) {
             buf.append(child.toString());
          }
          buf.append(" ]");
@@ -211,7 +211,7 @@ public class GedcomTag implements Comparable<GedcomTag> {
       return buf.toString();
    }
 
-   public int compareTo(GedcomTag tag) {
+   public int compareTo(GedcomNode tag) {
       int c = (getTag() == null ? "" : getTag()).compareTo(tag.getTag() == null ? "" : tag.getTag());
       if (c != 0) return c;
       c = (getId() == null ? "" : getId()).compareTo(tag.getId() == null ? "" : tag.getId());

@@ -40,12 +40,14 @@ public class Media extends NoteContainer{
 	private String _sshow;
 
 
-	public String getId(){
-		return id;
+	public Media(){}
+
+	public Media(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getFormat(){
@@ -101,7 +103,7 @@ public class Media extends NoteContainer{
 	}
 
 	public void setPrimary(final String primary){
-		this._primary = primary;
+		_primary = primary;
 	}
 
 	public String getType(){
@@ -109,7 +111,7 @@ public class Media extends NoteContainer{
 	}
 
 	public void setType(final String type){
-		this._type = type;
+		_type = type;
 	}
 
 	public String getScrapbook(){
@@ -117,7 +119,7 @@ public class Media extends NoteContainer{
 	}
 
 	public void setScrapbook(final String scbk){
-		this._scbk = scbk;
+		_scbk = scbk;
 	}
 
 	public String getSlideShow(){
@@ -125,7 +127,7 @@ public class Media extends NoteContainer{
 	}
 
 	public void setSlideShow(final String sshow){
-		this._sshow = sshow;
+		_sshow = sshow;
 	}
 
 	//FIXME

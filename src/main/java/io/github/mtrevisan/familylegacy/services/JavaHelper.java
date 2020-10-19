@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2020 Mauro Trevisan
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -9,10 +9,10 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,38 +22,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.models;
+package io.github.mtrevisan.familylegacy.services;
+
+import org.slf4j.helpers.MessageFormatter;
 
 
-public class MediaRef extends ExtensionContainer{
+public final class JavaHelper{
 
-	private final String ref;
-
-
-	public MediaRef(final String ref){
-		this.ref = ref;
+	static{
+		try{
+			//check whether an optional SLF4J binding is available
+			Class.forName("org.slf4j.impl.StaticLoggerBinder");
+		}
+		catch(final LinkageError | ClassNotFoundException ignored){
+			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
+		}
 	}
 
-	public String getRef(){
-		return ref;
-	}
 
-	/**
-	 * Convenience function to dereference media.
-	 *
-	 * @param gedcom	Gedcom
-	 * @return	Referenced media
-	 */
-	public Media getMedia(final Gedcom gedcom){
-		return gedcom.getMedia(ref);
-	}
+	private JavaHelper(){}
 
-	//FIXME
-//	public void accept(final Visitor visitor){
-//		if(visitor.visit(this)){
-//			super.visitContainedObjects(visitor);
-//			visitor.endVisit(this);
-//		}
-//	}
+	public static String format(final String message, final Object... parameters){
+		return MessageFormatter.arrayFormat(message, parameters)
+			.getMessage();
+	}
 
 }

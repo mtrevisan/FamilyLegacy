@@ -25,27 +25,29 @@
 package io.github.mtrevisan.familylegacy.gedcom.models;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 
 public class Family extends PersonFamilyCommonContainer{
 
-	private String id;
+	private final String id;
 	private List<SpouseRef> husbandRefs;
 	private List<SpouseRef> wifeRefs;
 	private List<ChildRef> childRefs;
 
 
+	public Family(final String id){
+		this.id = id;
+	}
+
 	public String getId(){
 		return id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
-	}
-
-	private List<Person> getFamilyMembers(final Gedcom gedcom, final List<? extends SpouseRef> memberRefs, final boolean preferredFirst){
+	private List<Person> getFamilyMembers(final Gedcom gedcom, final Collection<? extends SpouseRef> memberRefs,
+			final boolean preferredFirst){
 		final List<Person> members = new ArrayList<>(memberRefs.size());
 		for(final SpouseRef memberRef : memberRefs){
 			final Person member = memberRef.getPerson(gedcom);
@@ -65,7 +67,7 @@ public class Family extends PersonFamilyCommonContainer{
 	 * @param gedcom	Gedcom
 	 * @return	List of husbands (preferred in first position)
 	 */
-	public List<Person> getHusbands(Gedcom gedcom){
+	public List<Person> getHusbands(final Gedcom gedcom){
 		return getFamilyMembers(gedcom, getHusbandRefs(), true);
 	}
 
@@ -73,7 +75,7 @@ public class Family extends PersonFamilyCommonContainer{
 		return (husbandRefs != null? husbandRefs: Collections.emptyList());
 	}
 
-	public void setHusbandRefs(List<SpouseRef> husbandRefs){
+	public void setHusbandRefs(final List<SpouseRef> husbandRefs){
 		this.husbandRefs = husbandRefs;
 	}
 
@@ -90,7 +92,7 @@ public class Family extends PersonFamilyCommonContainer{
 	 * @param gedcom	Gedcom
 	 * @return	List of wives (preferred in first position)
 	 */
-	public List<Person> getWives(Gedcom gedcom){
+	public List<Person> getWives(final Gedcom gedcom){
 		return getFamilyMembers(gedcom, getWifeRefs(), true);
 	}
 

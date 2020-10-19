@@ -43,12 +43,14 @@ public class Note extends ExtensionContainer{
 	private boolean sourceCitationsUnderValue;
 
 
-	public String getId(){
-		return id;
+	public Note(){}
+
+	public Note(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getValue(){
@@ -95,7 +97,7 @@ public class Note extends ExtensionContainer{
 	}
 
 	public void setSourceCitationsUnderValue(final boolean sourceRefsUnderValue){
-		this.sourceCitationsUnderValue = sourceRefsUnderValue;
+		sourceCitationsUnderValue = sourceRefsUnderValue;
 	}
 
 	//FI§XME

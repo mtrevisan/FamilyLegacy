@@ -195,7 +195,7 @@ public class Gedcom{
 	}
 
 	public void setSubmitters(final List<Submitter> submitters){
-		this.subms = submitters;
+		subms = submitters;
 	}
 
 	public void addSubmitter(final Submitter submitter){
@@ -216,7 +216,7 @@ public class Gedcom{
 		return null;
 	}
 
-	public void setSubmission(Submission subn){
+	public void setSubmission(final Submission subn){
 		this.subn = subn;
 	}
 

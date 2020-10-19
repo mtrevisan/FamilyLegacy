@@ -44,7 +44,7 @@ public class ParentFamilyRef extends SpouseFamilyRef{
 	}
 
 	public void setPrimary(final String primary){
-		this._primary = primary;
+		_primary = primary;
 	}
 
 	//FIXME

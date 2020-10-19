@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.models;
 
 public class Submitter extends ExtensionContainer{
 
-	private String id;
+	private final String id;
 	private String value;
 	private Address addr;
 	private String phon;
@@ -42,12 +42,12 @@ public class Submitter extends ExtensionContainer{
 	private String emailTag;
 
 
-	public String getId(){
-		return id;
+	public Submitter(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getValue(){
@@ -119,7 +119,7 @@ public class Submitter extends ExtensionContainer{
 	}
 
 	public void setWww(final String www){
-		this._www = www;
+		_www = www;
 	}
 
 	public String getWwwTag(){
@@ -135,7 +135,7 @@ public class Submitter extends ExtensionContainer{
 	}
 
 	public void setEmail(final String email){
-		this._email = email;
+		_email = email;
 	}
 
 	public String getEmailTag(){

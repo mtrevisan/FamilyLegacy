@@ -106,7 +106,7 @@ public abstract class PersonFamilyCommonContainer extends SourceCitationContaine
 	}
 
 	public void setUid(final String uid){
-		this._uid = uid;
+		_uid = uid;
 	}
 
 	public String getUidTag(){

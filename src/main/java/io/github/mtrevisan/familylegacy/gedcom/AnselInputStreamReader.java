@@ -77,7 +77,7 @@ class AnselInputStreamReader extends InputStreamReader{
 		//try to match two ansel chars if it is possible
 		if(pending > 0 && ((b >= 0xE0 && b <= 0xFF) || (b >= 0xD7 && b <= 0xD9))){
 			final String chr = ANSEL_2BYTE.getProperty(String.format(FORMATTER_4BYTE, b * 256 + pending));
-			final int u = (chr != null? Integer.valueOf(chr): -1);
+			final int u = (chr != null? Integer.parseInt(chr): -1);
 			if(u > 0){
 				pending = input.read();
 				return u;
@@ -87,7 +87,7 @@ class AnselInputStreamReader extends InputStreamReader{
 		//else match one char
 		final String chr = ANSEL_1BYTE.getProperty(String.format(FORMATTER_2BYTE, b));
 		//if no match, use Unicode REPLACEMENT CHARACTER
-		return (chr != null? Integer.valueOf(chr): 0xFFFD);
+		return (chr != null? Integer.parseInt(chr): 0xFFFD);
 	}
 
 	/**

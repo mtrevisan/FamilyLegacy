@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.models.ExtensionContainer;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -53,7 +52,7 @@ public class GedcomNode{
 	private String xref;
 	private String value;
 
-	private ExtensionContainer extensionContainer;
+	private Object object;
 
 	private GedcomNode parent;
 	private List<GedcomNode> children;
@@ -76,12 +75,24 @@ public class GedcomNode{
 		return node;
 	}
 
+	GedcomNode(){}
+
+	GedcomNode(final String id, final String tag, final String xref){
+		this.id = id;
+		this.tag = tag;
+		this.xref = xref;
+	}
+
 	public void setLevel(final String level){
 		this.level = Integer.parseInt(level);
 	}
 
 	public int getLevel(){
 		return level;
+	}
+
+	public String getID(){
+		return id;
 	}
 
 	private void setID(final String id){
@@ -98,14 +109,37 @@ public class GedcomNode{
 			this.tag = tag.toUpperCase();
 	}
 
+	public String getXRef(){
+		return xref;
+	}
+
 	private void setXRef(final String xref){
 		if(xref != null && !xref.isEmpty())
 			this.xref = xref;
 	}
 
+	public String getValue(){
+		return value;
+	}
+
 	public void setValue(final String value){
 		if(value != null && !value.isEmpty())
 			this.value = value;
+	}
+
+	public void appendValue(final String value){
+		if(this.value == null)
+			this.value = value;
+		else
+			this.value += value;
+	}
+
+	public Object getObject(){
+		return object;
+	}
+
+	public void setObject(final Object object){
+		this.object = object;
 	}
 
 	public GedcomNode getParent(){
@@ -179,7 +213,7 @@ public class GedcomNode{
 			builder.append(builder.length() > 0? ", ": "").append("value: ").append(value);
 		if(parent != null){
 			final StringBuilder parentBuilder = new StringBuilder();
-			parentBuilder.append(builder.length() > 0? ", ": "").append("parent: {");
+			builder.append(builder.length() > 0? ", ": "").append("parent: {");
 			if(parent.id != null)
 				parentBuilder.append("id: ").append(parent.id);
 			if(parent.tag != null)

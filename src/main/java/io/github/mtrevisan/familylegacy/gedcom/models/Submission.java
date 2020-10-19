@@ -32,12 +32,14 @@ public class Submission extends ExtensionContainer{
 	private String ordi;
 
 
-	public String getId(){
-		return id;
+	public Submission(){}
+
+	public Submission(final String id){
+		this.id = id;
 	}
 
-	public void setId(final String id){
-		this.id = id;
+	public String getId(){
+		return id;
 	}
 
 	public String getDescription(){

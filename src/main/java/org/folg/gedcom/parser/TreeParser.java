@@ -16,7 +16,7 @@
 
 package org.folg.gedcom.parser;
 
-import org.folg.gedcom.model.GedcomTag;
+import org.folg.gedcom.model.GedcomNode;
 import org.gedml.GedcomParser;
 import org.xml.sax.*;
 
@@ -38,8 +38,8 @@ public class TreeParser implements ContentHandler, org.xml.sax.ErrorHandler {
    private static final Logger logger = LoggerFactory.getLogger("org.folg.gedcom.parser");
 
    private Locator locator;
-   private GedcomTag tree;
-   private Stack<GedcomTag> nodeStack;
+   private GedcomNode tree;
+   private Stack<GedcomNode> nodeStack;
    private ErrorHandler errorHandler = null;
 
    @Override
@@ -50,7 +50,7 @@ public class TreeParser implements ContentHandler, org.xml.sax.ErrorHandler {
    @Override
    public void startDocument() throws SAXException {
       tree = null;
-      nodeStack = new Stack<GedcomTag>();
+      nodeStack = new Stack<GedcomNode>();
    }
 
    @Override
@@ -70,7 +70,7 @@ public class TreeParser implements ContentHandler, org.xml.sax.ErrorHandler {
 
    @Override
    public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-      GedcomTag node = new GedcomTag(atts.getValue("ID"), localName, atts.getValue("REF"));
+      GedcomNode node = new GedcomNode(atts.getValue("ID"), localName, atts.getValue("REF"));
       if (tree == null) {
          tree = node;
       }
@@ -88,7 +88,7 @@ public class TreeParser implements ContentHandler, org.xml.sax.ErrorHandler {
    @Override
    public void characters(char[] ch, int start, int length) throws SAXException {
       String s = new String(ch, start, length);
-      GedcomTag tos = nodeStack.peek();
+      GedcomNode tos = nodeStack.peek();
       tos.appendValue(s);
    }
 
@@ -141,19 +141,19 @@ public class TreeParser implements ContentHandler, org.xml.sax.ErrorHandler {
       this.errorHandler = errorHandler;
    }
 
-   public List<GedcomTag> parseGedcom(File gedcomFile) throws SAXParseException, IOException {
+   public List<GedcomNode> parseGedcom(File gedcomFile) throws SAXParseException, IOException {
       GedcomParser parser = gedcomParser();
       parser.parse(gedcomFile.toURI().toString());
       return tree.getChildren();
    }
 
-   public List<GedcomTag> parseGedcom(InputStream is) throws SAXParseException, IOException {
+   public List<GedcomNode> parseGedcom(InputStream is) throws SAXParseException, IOException {
       GedcomParser parser = gedcomParser();
       parser.parse(is);
       return tree.getChildren();
    }
 
-   public List<GedcomTag> parseGedcom(Reader reader) throws SAXParseException, IOException {
+   public List<GedcomNode> parseGedcom(Reader reader) throws SAXParseException, IOException {
       GedcomParser parser = gedcomParser();
       parser.parse(reader);
       return tree.getChildren();

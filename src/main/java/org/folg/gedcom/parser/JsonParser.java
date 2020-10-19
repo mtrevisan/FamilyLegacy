@@ -18,7 +18,7 @@ package org.folg.gedcom.parser;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.folg.gedcom.model.Gedcom;
-import org.folg.gedcom.model.GedcomTag;
+import org.folg.gedcom.model.GedcomNode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,11 +88,11 @@ public class JsonParser{
 	/**
 	 * Convert output of TreeParser to json
 	 *
-	 * @param gedcomTags output of TreeParser
+	 * @param gedcomNodes output of TreeParser
 	 * @return json-encoded string
 	 */
-	public String toJson(List<GedcomTag> gedcomTags){
-		return gson.toJson(gedcomTags);
+	public String toJson(List<GedcomNode> gedcomNodes){
+		return gson.toJson(gedcomNodes);
 	}
 
 	/**
@@ -121,23 +121,23 @@ public class JsonParser{
 	/**
 	 * Write Gedcom Tags from TreeParser to json character stream
 	 *
-	 * @param gedcomTags Gedcom tags
+	 * @param gedcomNodes Gedcom tags
 	 * @param writer     json output writer
 	 */
-	public void write(List<GedcomTag> gedcomTags, Writer writer){
-		gson.toJson(gedcomTags, writer);
+	public void write(List<GedcomNode> gedcomNodes, Writer writer){
+		gson.toJson(gedcomNodes, writer);
 		close(writer);
 	}
 
 	/**
 	 * Write Gedcom Tags from TreeParser to json byte stream
 	 *
-	 * @param gedcomTags Gedcom tags
+	 * @param gedcomNodes Gedcom tags
 	 * @param os         json output stream
 	 */
-	public void write(List<GedcomTag> gedcomTags, OutputStream os){
+	public void write(List<GedcomNode> gedcomNodes, OutputStream os){
 		OutputStreamWriter writer = new OutputStreamWriter(os, Charset.forName("UTF-8"));
-		gson.toJson(gedcomTags, writer);
+		gson.toJson(gedcomNodes, writer);
 		close(writer);
 	}
 
