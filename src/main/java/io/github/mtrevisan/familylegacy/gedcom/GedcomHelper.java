@@ -30,9 +30,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Pattern;
 
 
-class GedcomHelper{
+final class GedcomHelper{
+
+	private static final Pattern PATTERN_SPACES = Pattern.compile("\\s+");
+
 
 	private GedcomHelper(){}
 
@@ -51,7 +55,7 @@ class GedcomHelper{
 			charEncoding = readCorrectedCharsetName(br);
 			in.reset();
 
-			if(charEncoding.equals("UTF-16")){
+			if("UTF-16".equals(charEncoding)){
 				//skip over junk at the beginning of the file
 				InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_16);
 				int cnt = 0;
@@ -82,7 +86,7 @@ class GedcomHelper{
 		for(int i = 0; i < cnt; i ++)
 			in.read();
 
-		final InputStreamReader reader = (charEncoding.equals("ANSEL")?
+		final InputStreamReader reader = ("ANSEL".equals(charEncoding)?
 			new AnselInputStreamReader(in): new InputStreamReader(in, charEncoding));
 
 		return new BufferedReader(reader);
@@ -102,21 +106,21 @@ class GedcomHelper{
 		for(int i = 0; i < 100; i ++){
 			line = in.readLine();
 			if(line != null){
-				String[] split = line.trim().split("\\s+", 3);
+				String[] split = PATTERN_SPACES.split(line.trim(), 3);
 				if(split.length == 3){
-					final boolean level1 = split[0].equals("1");
+					final boolean level1 = "1".equals(split[0]);
 					if(level1){
 						final String id = split[1];
-						if(generatorName == null && id.equals("SOUR"))
+						if(generatorName == null && "SOUR".equals(id))
 							generatorName = split[2];
-						else if(id.equals("CHAR") || id.equals("CHARACTER")){
+						else if("CHAR".equals(id) || "CHARACTER".equals(id)){
 							//get encoding
 							encoding = split[2].toUpperCase();
 							//look for version
 							line = in.readLine();
 							if(line != null){
-								split = line.trim().split("\\s+", 3);
-								if(split.length == 3 && split[0].equals("2") && split[1].equals("VERS"))
+								split = PATTERN_SPACES.split(line.trim(), 3);
+								if(split.length == 3 && "2".equals(split[0]) && "VERS".equals(split[1]))
 									version = split[2];
 							}
 						}
@@ -130,7 +134,7 @@ class GedcomHelper{
 		return getCorrectedCharsetName(generatorName, encoding, version);
 	}
 
-	private static String getCorrectedCharsetName(String generatorName, String encoding, String version){
+	private static String getCorrectedCharsetName(final String generatorName, String encoding, final String version){
 		//correct incorrectly-assigned encoding values
 		if("GeneWeb".equals(generatorName) && "ASCII".equals(encoding))
 			//GeneWeb ASCII -> Cp1252 (ANSI)

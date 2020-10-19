@@ -59,7 +59,7 @@ public class GedcomNode{
 	private List<GedcomNode> children;
 
 
-	public static GedcomNode parse(final String line){
+	public static GedcomNode parse(final CharSequence line){
 		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())
 			return null;
@@ -179,8 +179,7 @@ public class GedcomNode{
 			builder.append(builder.length() > 0? ", ": "").append("value: ").append(value);
 		if(parent != null){
 			final StringBuilder parentBuilder = new StringBuilder();
-			if(parent.id != null)
-				parentBuilder.append(builder.length() > 0? ", ": "").append("parent: {");
+			parentBuilder.append(builder.length() > 0? ", ": "").append("parent: {");
 			if(parent.id != null)
 				parentBuilder.append("id: ").append(parent.id);
 			if(parent.tag != null)
@@ -193,11 +192,13 @@ public class GedcomNode{
 			builder.append(parentBuilder);
 		}
 		if(children != null){
+			final StringBuilder childBuilder = new StringBuilder();
+
 			builder.append(builder.length() > 0? ", ": "").append("children: [");
 			final int size = children.size();
 			for(int i = 0; i < size; i ++){
 				final GedcomNode child = children.get(i);
-				final StringBuilder childBuilder = new StringBuilder();
+				childBuilder.setLength(0);
 				childBuilder.append('{');
 				if(child.id != null)
 					childBuilder.append("id: ").append(child.id);
