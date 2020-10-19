@@ -71,18 +71,18 @@ class GedcomStoreStructure{
 	}
 
 	/**
-	 * Returns the starting store block of this structure.
+	 * @return	Starting store block of this structure.
 	 */
 	public GedcomStoreBlock getStoreBlock(){
 		return storeBlock;
 	}
 
 	/**
-	 * Returns the name of this structure, like FAMILY_EVENT_STRUCTURE.
+	 * @return	Name of this structure.
 	 */
-//	public String getStructureName(){
-//		return structureName;
-//	}
+	public String getStructureName(){
+		return structureName;
+	}
 
 //	@Override
 //	public String toString(){

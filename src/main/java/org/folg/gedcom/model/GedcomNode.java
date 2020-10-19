@@ -121,7 +121,7 @@ public class GedcomNode implements Comparable<GedcomNode> {
              (ref == null || ref.length() == 0) &&
              (parentTagName == null || parentTagName.length() == 0) &&
              (value == null || value.length() == 0) &&
-             (children == null || children.size() == 0);
+             (children == null || children.isEmpty());
    }
 
    @Override

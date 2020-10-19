@@ -16,6 +16,7 @@
 package io.github.mtrevisan.familylegacy.grammar;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +28,10 @@ import java.util.regex.Pattern;
 
 /**
  * A store line contains all the parsed information of one single line.
- * <p>A line could be a tag line or a structure line. A tag line has a tag, a tag ID (in brackets < and >) and min/max values, whereas
- * a structure line has a structure ID (in double brackets << and >>) and min/max values. A tag line can also have a value (enclosed
- * in < and >) or xref (enclosed in @< and >@) field and it can have multiple tag possibilities (enclosed in [ and ] and separated by
- * |).<br>
+ * <p>A line could be a tag line or a structure line. A tag line has a tag, a tag ID (in brackets {@code <} and {@code >}) and min/max
+ * values, whereas a structure line has a structure ID (in double brackets {@code <<} and {@code >>}) and min/max values. A tag line
+ * can also have a value (enclosed in {@code <} and {@code >}) or xref (enclosed in {@code @<} and {@code >@}) field and it can have
+ * multiple tag possibilities (enclosed in {@code [} and {@code ]} and separated by {@code |}).<br>
  * <br>
  * The class {@link GedcomStoreStructure} has more information about the hierarchy of structures, blocks and lines.</p>
  */
@@ -66,29 +67,24 @@ class GedcomStoreLine{
 
 	private final Set<String> xrefNames = new HashSet<>();
 	private final Set<String> valueNames = new HashSet<>();
+	//tag before xref
 	private final Set<String> tagNames1 = new HashSet<>();
+	//tag after xref
 	private final Set<String> tagNames2 = new HashSet<>();
 	private final Set<String> valuePossibilities = new HashSet<>();
 
 	private String structureName;
-	private String originalGedcomDefinitionLine;
+	private String originalDefinitionLine;
 
 	private GedcomStoreBlock childBlock;
 
-
-	/**
-	 * Sets a child block for this gedcom store line.
-	 */
-	protected void setChildBlock(final GedcomStoreBlock childBlock){
-		this.childBlock = childBlock;
-	}
 
 	/**
 	 * Parses the given lineage linked grammar line.
 	 */
 	protected static GedcomStoreLine parse(String gedcomDefinitionLine){
 		final GedcomStoreLine sl = new GedcomStoreLine();
-		sl.originalGedcomDefinitionLine = gedcomDefinitionLine;
+		sl.originalDefinitionLine = gedcomDefinitionLine;
 
 		//clean the line from all unnecessary stuff
 		gedcomDefinitionLine = RegexHelper.removeAll(gedcomDefinitionLine, COMMENT_PATTERN);
@@ -97,7 +93,7 @@ class GedcomStoreLine{
 		gedcomDefinitionLine = gedcomDefinitionLine.trim();
 
 		//split for each space
-		final String[] components = gedcomDefinitionLine.split(" ");
+		final String[] components = StringUtils.split(gedcomDefinitionLine, ' ');
 		//check if line could be valid
 		if(components.length < 1 || components.length > 4){
 			LOGGER.error("[ERROR] Failed to parse line '{}'. Number of items not in the range.", gedcomDefinitionLine);
@@ -150,11 +146,9 @@ class GedcomStoreLine{
 				//Multiple TAG ([ABC|DEF|GHI...])
 				final String[] tags = RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, "").split("\\|");
 				for(final String tag : tags){
-					if(sl.xrefNames.size() == 0)
-						//Tag before xref
+					if(sl.xrefNames.isEmpty())
 						sl.tagNames1.add(tag);
 					else
-						//Tag after xref
 						sl.tagNames2.add(tag);
 				}
 
@@ -163,36 +157,38 @@ class GedcomStoreLine{
 			else if(tagIndex != - 1 && i == tagIndex + 1 && RegexHelper.contains(components[i], MULTIPLE_VALUE_POSSIBILITIES)){
 				//Value possibilities. They can only appear right after the tag
 				//Example: DEAT [Y|<NULL>]
-				final String[] possibilities = RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, "")
-					.split("\\|");
+				final String[] possibilities = StringUtils.split(
+					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, ""), '|');
 				for(String possibility : possibilities)
 					sl.valuePossibilities.add(!possibility.toUpperCase().equals("NULL")? possibility: null);
 			}
 			else
-				LOGGER.info("Did not process {} in {} under "
-					//FIXME
-					/*+ storeStructure.getStructureName()*/, components[i], sl.getId());
+				LOGGER.info("Did not process {} in {} under {}", components[i], sl.getId(), sl.structureName);
 		}
-
-		//FIXME
-//		LOGGER.trace("  parsed: {}", GedcomStorePrinter.preparePrint(this));
 
 		return sl;
 	}
 
 	/**
-	 * Returns the position of this store line in the block.
+	 * @return	Position of this store line in the block.
 	 */
-//	public int getPos(final GedcomStoreBlock parentBlock){
-//		return parentBlock.getStoreLines().indexOf(this);
-//	}
+	public int getPosition(final GedcomStoreBlock parentBlock){
+		return parentBlock.getStoreLines().indexOf(this);
+	}
 
-//	/**
-//	 * Returns the child block of this store line.
-//	 */
-//	public StoreBlock getChildBlock(){
-//		return childBlock;
-//	}
+	/**
+	 * @return	Child block of this store line.
+	 */
+	public GedcomStoreBlock getChildBlock(){
+		return childBlock;
+	}
+
+	/**
+	 * Sets a child block for this gedcom store line.
+	 */
+	protected void setChildBlock(final GedcomStoreBlock childBlock){
+		this.childBlock = childBlock;
+	}
 
 //	/**
 //	 * Returns the store structure if there is one. <code>NULL</code> is returned
@@ -220,117 +216,33 @@ class GedcomStoreLine{
 //		if(structureName == null)
 //			return false;
 //
-//		return store.getVariations(structureName).size() > 1;
+//		return (store.getVariations(structureName).size() > 1);
 //	}
 
-//	protected String getOriginalGedcomDefinitionLine(){
-//		return originalGedcomDefinitionLine;
-//	}
-
-//	/**
-//	 * Creates a new instance of a {@link GedcomLine}<br>
-//	 * The returned line can be a {@link GedcomStructureLine} if a structure name
-//	 * is set, or a {@link GedcomTagLine} if no structure name is set and the
-//	 * given tag is valid.<br>
-//	 * <br>
-//	 * This method can be used if only one tag name for this line exists. If there
-//	 * are multiple tag names, null is returned.
-//	 *
-//	 * @param parentLine The line which should be the parent of the returned
-//	 * line
-//	 * @return
-//	 */
-//	public GedcomLine getLineInstance(GedcomLine parentLine, int copyMode) {
-//
-//		if (structureName != null) {
-//			return new GedcomStructureLine(this, parentLine, copyMode);
-//		} else {
-//			LinkedHashSet<String> tagNames = getTagNames();
-//
-//			if (tagNames.size() != 1) {
-//				return null;
-//			}
-//
-//			return new GedcomTagLine(this, parentLine,
-//					tagNames.toArray(new String[tagNames.size()])[0], copyMode);
-//		}
-//	}
-//
-//	/**
-//	 * Creates a new instance of a {@link GedcomLine}<br>
-//	 * The returned line can be a {@link GedcomStructureLine} if a structure name
-//	 * is set, or a {@link GedcomTagLine} if no structure name is set and the
-//	 * given tag is valid.<br>
-//	 * <br>
-//	 * This method has to be used if multiple variations for this line exists.
-//	 *
-//	 * @param parentLine The line which should be the parent of the returned
-//	 * line
-//	 * @param tag
-//	 * @return
-//	 */
-//	public GedcomLine getLineInstance(GedcomLine parentLine, String tag, int copyMode) {
-//
-//		if (structureName != null) {
-//			return new GedcomStructureLine(this, parentLine, tag, copyMode);
-//		} else {
-//			if (!hasTag(tag)) {
-//				return null;
-//			}
-//
-//			return new GedcomTagLine(this, parentLine, tag, copyMode);
-//		}
-//	}
-//
-//	/**
-//	 * Creates a new instance of a {@link GedcomLine}<br>
-//	 * The returned line can be a {@link GedcomStructureLine} if a structure name
-//	 * is set, or a {@link GedcomTagLine} if no structure name is set and the
-//	 * given tag is valid.<br>
-//	 * <br>
-//	 * This method has to be used if multiple variations for this line exists.
-//	 *
-//	 * @param parentLine The line which should be the parent of the returned
-//	 * line
-//	 * @param tag
-//	 * @param withXRef
-//	 * @param withValue
-//	 * @return
-//	 */
-//	public GedcomLine getLineInstance(GedcomLine parentLine, String tag,
-//			boolean withXRef, boolean withValue, int copyMode) {
-//
-//		if (structureName != null) {
-//			return new GedcomStructureLine(this, parentLine, tag, withXRef, withValue, copyMode);
-//		} else {
-//			if (!hasTag(tag)) {
-//				return null;
-//			}
-//
-//			return new GedcomTagLine(this, parentLine, tag, copyMode);
-//		}
-//	}
+	protected String getOriginalDefinitionLine(){
+		return originalDefinitionLine;
+	}
 
 	/**
-	 * Returns the minimum number of lines which are required in one block.
+	 * @return	Minimum number of lines which are required in one block.
 	 */
 	public int getMin(){
 		return min;
 	}
 
-//	/**
-//	 * Returns the maximum number of lines which are allowed in one block.
-//	 */
-//	public int getMax(){
-//		return max;
-//	}
+	/**
+	 * @return	Maximum number of lines which are allowed in one block.
+	 */
+	public int getMax(){
+		return max;
+	}
 
-//	/**
-//	 * Returns <code>true</code> if this is a mandatory line (with a minimum number of lines >= 1).
-//	 */
-//	public boolean isMandatory(){
-//		return (min >= 1);
-//	}
+	/**
+	 * @return	Whether this is a mandatory line (with a minimum number of lines {@code >= 1}).
+	 */
+	public boolean isMandatory(){
+		return (min >= 1);
+	}
 
 	/**
 	 * Returns the structure name if there is one. If there is a structure name
@@ -351,74 +263,74 @@ class GedcomStoreLine{
 	}
 
 	/**
-	 * Returns all the possible tag names.
+	 * @return	All the possible tag names.
 	 */
 	public Set<String> getTagNames(){
 		return (!tagNames1.isEmpty()? tagNames1: tagNames2);
 	}
 
 	/**
-	 * Returns a list of all the xref names on this line.
+	 * @return	List of all the xref names on this line.
 	 */
 	public Set<String> getXRefNames(){
 		return xrefNames;
 	}
 
 	/**
-	 * Returns a list of all the value names in this line.
+	 * @return	List of all the value names in this line.
 	 */
-//	public Set<String> getValueNames(){
-//		return valueNames;
-//	}
+	public Set<String> getValueNames(){
+		return valueNames;
+	}
 
 	/**
 	 * Returns all values which are possible for this line.
 	 */
-//	public Set<String> getValuePossibilities(){
-//		return valuePossibilities;
-//	}
+	public Set<String> getValuePossibilities(){
+		return valuePossibilities;
+	}
 
 	/**
-	 * Returns <code>true</code> if this line has at least one tag name.
+	 * @return	Whether this line has at least one tag name.
 	 */
-//	public boolean hasTags(){
-//		return !getTagNames().isEmpty();
-//	}
+	public boolean hasTags(){
+		return !getTagNames().isEmpty();
+	}
 
 	/**
-	 * Returns <code>true</code> if the tag appears before the xref value on this line.
+	 * @return	Whether the tag appears before the {@code xref} value on this line.
 	 */
-//	public boolean hasTagBeforeXRef(){
-//		return !tagNames1.isEmpty();
-//	}
+	public boolean hasTagBeforeXRef(){
+		return !tagNames1.isEmpty();
+	}
 
 	/**
-	 * Returns <code>true</code> if the tag appears after the xref value on this line.
+	 * @return	Whether the tag appears after the {@code xref} value on this line.
 	 */
-//	public boolean hasTagAfterXRef(){
-//		return !tagNames2.isEmpty();
-//	}
+	public boolean hasTagAfterXRef(){
+		return !tagNames2.isEmpty();
+	}
 
 	/**
-	 * Returns <code>true</code> if this line has any xref names.
+	 * @return	Whether this line has any xref names.
 	 */
-//	public boolean hasXRefNames(){
-//		return !xrefNames.isEmpty();
-//	}
+	public boolean hasXRefNames(){
+		return !xrefNames.isEmpty();
+	}
 
 	/**
-	 * Returns <code>true</code> if this line has any value names.
+	 * @return	Whether this line has any value names.
 	 */
-//	public boolean hasValueNames(){
-//		return (!valueNames.isEmpty() || !valuePossibilities.isEmpty());
-//	}
+	public boolean hasValueNames(){
+		return (!valueNames.isEmpty() || !valuePossibilities.isEmpty());
+	}
 
-//	/**
-//	 * Returns <code>true</code> if this line has more than one tag name possibilities.
-//	 */
-//	public boolean hasMultipleTagNames(){
-//		return (getTagNames().size() > 1);
-//	}
+	/**
+	 * @return	Whether this line has more than one tag name possibilities.
+	 */
+	public boolean hasMultipleTagNames(){
+		return (getTagNames().size() > 1);
+	}
 
 	/**
 	 * Returns <code>true</code> if this line has a structure name instead of
@@ -436,20 +348,20 @@ class GedcomStoreLine{
 //		return parentBlock.getLevel(parentStoreLine);
 //	}
 
-//	/**
-//	 * Returns true if this line has sub-lines (with higher levels than this line)
-//	 * and therefore has a child block which contains all the sub-lines.
-//	 */
-//	public boolean hasChildBlock(){
-//		return (childBlock != null);
-//	}
+	/**
+	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains
+	 * 	all the sub-lines.
+	 */
+	public boolean hasChildBlock(){
+		return (childBlock != null);
+	}
 
-//	/**
-//	 * Returns <code>true</code> if the given tag name is a possible tag name for this line.
-//	 */
-//	public boolean hasTag(final String tag){
-//		return getTagNames().contains(tag);
-//	}
+	/**
+	 * @return	Whether the given tag name is a possible tag name for this line.
+	 */
+	public boolean hasTag(final String tag){
+		return getTagNames().contains(tag);
+	}
 
 //	@Override
 //	public String toString(){

@@ -278,17 +278,9 @@ public class GedcomStore{
 	}
 
 	/**
-	 * Returns <code>true</code> if this structure has multiple variations (the FAMILY_EVENT_STRUCTURE for example has the variations
-	 * [ANUL|CENS|DIV|DIVF], [ENGA|MARB|MARC], [MARR] etc.).
-	 */
-	public boolean hasVariations(final String structureName){
-		return (getVariations(structureName).size() > 1);
-	}
-
-	/**
 	 * Returns a map which contains all the variations for the structure with the given structure name.
 	 */
-	protected List<GedcomStoreStructure> getVariations(final String structureName){
+	public List<GedcomStoreStructure> getVariations(final String structureName){
 		return variations.get(structureName);
 	}
 
@@ -304,20 +296,6 @@ public class GedcomStore{
 	 */
 	public List<String> getVariationTags(final String structureName){
 		return new ArrayList<>(idToVariationsLinks.get(structureName).keySet());
-	}
-
-	/**
-	 * Returns {@code true} if the structure with the given name has more than one variations.
-	 */
-	public boolean structureHasVariations(final String structureName){
-		return (getNumberOfStructureVariations(structureName) > 1);
-	}
-
-	/**
-	 * Number of variations for the structure with the given name.
-	 */
-	public int getNumberOfStructureVariations(final String structureName){
-		return (variations.containsKey(structureName)? variations.get(structureName).size(): 0);
 	}
 
 }
