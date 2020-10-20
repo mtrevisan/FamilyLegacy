@@ -81,7 +81,7 @@ class GedcomStoreLine{
 	private final Set<String> valuePossibilities = new HashSet<>();
 
 	private String structureName;
-//	private String originalDefinitionLine;
+	private String originalDefinitionLine;
 
 	private GedcomStoreBlock childBlock;
 
@@ -91,7 +91,7 @@ class GedcomStoreLine{
 	 */
 	public static GedcomStoreLine parse(String gedcomDefinitionLine){
 		final GedcomStoreLine sl = new GedcomStoreLine();
-//		sl.originalDefinitionLine = gedcomDefinitionLine;
+		sl.originalDefinitionLine = gedcomDefinitionLine;
 
 		//clean the line from all unnecessary stuff
 		gedcomDefinitionLine = RegexHelper.removeAll(gedcomDefinitionLine, COMMENT_PATTERN);
@@ -196,9 +196,9 @@ class GedcomStoreLine{
 		this.childBlock = childBlock;
 	}
 
-//	public String getOriginalDefinitionLine(){
-//		return originalDefinitionLine;
-//	}
+	public String getOriginalDefinitionLine(){
+		return originalDefinitionLine;
+	}
 
 	/**
 	 * @return	Minimum number of lines which are required in one block.

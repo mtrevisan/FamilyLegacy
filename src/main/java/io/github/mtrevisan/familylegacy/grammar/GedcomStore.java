@@ -44,11 +44,11 @@ import java.util.regex.Pattern;
 
 
 /**
- * The {@link GedcomStore} has the functionality to parse a lineage-linked grammar file and to retrieve the parsed structures from it.
+ * Parse a lineage-linked grammar file and to retrieve the parsed structures from it.
  *
- * https://github.com/daleathan/GedcomStore
+ * @see <a href="https://github.com/daleathan/GedcomStore">GedcomStore</a>
  */
-public class GedcomStore{
+class GedcomStore{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GedcomStore.class);
 
@@ -193,8 +193,6 @@ public class GedcomStore{
 				line = RegexHelper.replaceAll(line, BRACKET_OPEN, "[");
 				//no spaces around closing brackets
 				line = RegexHelper.replaceAll(line, BRACKET_CLOSE, "]");
-
-//				parsingErrorCheck(line);
 
 				if(RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
 					//a new structure starts:

@@ -51,7 +51,7 @@ class GedcomStoreBlock{
 	private final List<GedcomStoreLine> storeLines = new ArrayList<>();
 	/**
 	 * The line ID's (tag or structure names) linked to their lines.
-	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears  multiple times, once for every tag.</p>
+	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears multiple times, once for every tag.</p>
 	 */
 	private final Map<String, GedcomStoreLine> idToLineLinks = new HashMap<>();
 	/** The line which this block is located under. */
@@ -97,7 +97,6 @@ class GedcomStoreBlock{
 					return false;
 
 				final GedcomStoreLine storeLine = GedcomStoreLine.parse(line);
-				//FIXME manages null storeLine
 				addLine(storeLine);
 
 				lastStoreLine = storeLine;
