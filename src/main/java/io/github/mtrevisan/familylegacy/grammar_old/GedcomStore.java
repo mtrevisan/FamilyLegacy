@@ -22,9 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.grammar;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
+import io.github.mtrevisan.familylegacy.grammar_old.exceptions.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -93,7 +93,7 @@ public class GedcomStore{
 
 	public static void main(String[] args){
 		try{
-			GedcomStore store = create("/gedg/gedcomobjects_5.5.1.gedg");
+			GedcomStore store = create("/gedg/gedcomobjects_5.5.1_test.gedg");
 			System.out.println(store);
 		}
 		catch(GedcomGrammarParseException e){

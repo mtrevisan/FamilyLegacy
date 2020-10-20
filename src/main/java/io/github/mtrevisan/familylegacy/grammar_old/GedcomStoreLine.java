@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.mtrevisan.familylegacy.grammar;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -187,6 +187,35 @@ class GedcomStoreLine{
 		this.childBlock = childBlock;
 	}
 
+//	/**
+//	 * Returns the store structure if there is one. <code>NULL</code> is returned
+//	 * if there is no store structure or if multiple variations are available.<br>
+//	 * <b>Note: </b>Only if this is a structure line the store structure can be retrieved.
+//	 */
+//	public StoreStructure getStoreStructure(final Store store){
+//		if(structureName == null)
+//			return null;
+//
+//		final List<StoreStructure> storeStructures = store.getVariations(structureName);
+//		if(storeStructures == null || storeStructures.size() > 1 || storeStructures.size() == 0)
+//			//No variations or multiple variations available
+//			return null;
+//
+//		//Only one variation available
+//		return storeStructures.get(0);
+//	}
+
+//	/**
+//	 * Returns <code>true</code> if this store line has multiple variations.<br>
+//	 * <b>Note: </b>Only a structure line can have variations.
+//	 */
+//	public boolean hasVariations(final Store store){
+//		if(structureName == null)
+//			return false;
+//
+//		return (store.getVariations(structureName).size() > 1);
+//	}
+
 //	protected String getOriginalDefinitionLine(){
 //		return originalDefinitionLine;
 //	}
@@ -312,9 +341,9 @@ class GedcomStoreLine{
 	/**
 	 * Returns the level of this line.
 	 */
-	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
-		return parentBlock.getLevel(parentStoreLine);
-	}
+//	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
+//		return parentBlock.getLevel(parentStoreLine);
+//	}
 
 	/**
 	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains
@@ -330,5 +359,10 @@ class GedcomStoreLine{
 	public boolean hasTag(final String tag){
 		return getTagNames().contains(tag);
 	}
+
+//	@Override
+//	public String toString(){
+//		return GedcomStorePrinter.preparePrint(this).toString();
+//	}
 
 }

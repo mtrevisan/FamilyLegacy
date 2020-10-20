@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.github.mtrevisan.familylegacy.grammar;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
+import io.github.mtrevisan.familylegacy.grammar_old.exceptions.GedcomGrammarParseException;
 
 import java.util.List;
 
@@ -83,5 +83,10 @@ final class GedcomStoreStructure{
 	public String getStructureName(){
 		return structureName;
 	}
+
+//	@Override
+//	public String toString(){
+//		return GedcomStorePrinter.preparePrint(storeBlock, 1, false).toString();
+//	}
 
 }
