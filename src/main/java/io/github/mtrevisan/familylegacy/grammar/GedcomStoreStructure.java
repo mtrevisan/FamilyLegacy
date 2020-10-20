@@ -53,7 +53,7 @@ import java.util.List;
  * |---------------------------------------------------|
  * </code></pre>
  */
-class GedcomStoreStructure{
+final class GedcomStoreStructure{
 
 	/** The name of this structure, like FAMILY_EVENT_STRUCTURE etc. **/
 	private final String structureName;

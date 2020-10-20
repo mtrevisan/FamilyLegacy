@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.grammar;
 
 import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +68,7 @@ public class GedcomStore{
 
 	private String gedcomVersion;
 	private String gedcomSource;
-	private final List<String> gedcomDescription = new ArrayList<>();
+	private final Collection<String> gedcomDescription = new ArrayList<>();
 
 	/** All structures in an ordered list in their parsed order. */
 	private final List<GedcomStoreStructure> structures = new ArrayList<>();
@@ -91,10 +93,10 @@ public class GedcomStore{
 
 	public static void main(String[] args){
 		try{
-			GedcomStore store = GedcomStore.create("/gedg/gedcomobjects_5.5.1_test.gedg");
+			GedcomStore store = create("/gedg/gedcomobjects_5.5.1_test.gedg");
 			System.out.println(store);
 		}
-		catch(GedcomGrammarParseException e) {
+		catch(GedcomGrammarParseException e){
 			e.printStackTrace();
 		}
 	}
@@ -152,7 +154,7 @@ public class GedcomStore{
 				//file header lines
 				if(processFileHeader){
 					if(!RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
-						final String[] components = line.split("=");
+						final String[] components = StringUtils.split(line, '=');
 						if(FileHeaderKeywords.GEDCOM_VERSION.value.equals(components[0]))
 							gedcomVersion = components[1];
 						else if(FileHeaderKeywords.GEDCOM_SOURCE.value.equals(components[0]))
@@ -221,7 +223,7 @@ public class GedcomStore{
 			throw GedcomGrammarParseException.create("Failed to read line {}", lineCount);
 		}
 
-		LOGGER.info("Adding objects done (" + structures.size() + " objects parsed)");
+		LOGGER.info("Adding objects done ({} objects parsed)", structures.size());
 	}
 
 	/**

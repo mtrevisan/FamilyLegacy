@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 
 
 @SuppressWarnings("InjectedReferences")
-class GedcomHelper{
+final class GedcomHelper{
 
 	private static final String CHARSER_ANSEL = "ANSEL";
 

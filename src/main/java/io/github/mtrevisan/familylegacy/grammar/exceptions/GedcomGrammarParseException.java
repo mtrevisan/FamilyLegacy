@@ -34,7 +34,7 @@ import java.io.ObjectOutputStream;
 /**
  * Exception that occurred when parsing the grammar linked file.
  */
-public class GedcomGrammarParseException extends Exception{
+public final class GedcomGrammarParseException extends Exception{
 
 	private static final long serialVersionUID = -9166944783238433522L;
 

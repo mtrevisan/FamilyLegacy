@@ -40,8 +40,6 @@ class GedcomStoreBlock{
 
 	/** All the lines of this block which are defined in the lineage-linked grammar in their parsing order. */
 	private final List<GedcomStoreLine> storeLines = new ArrayList<>();
-	/** A sublist of the {@link #storeLines} which only contains the mandatory lines. */
-	private final List<GedcomStoreLine> mandatoryLines = new ArrayList<>();
 	/**
 	 * The line ID's (tag or structure names) linked to their lines.
 	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears  multiple times, once for every tag.</p>
@@ -108,7 +106,7 @@ class GedcomStoreBlock{
 	 * Process a sub block.
 	 */
 	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomGrammarParseException{
-		GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
+		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
 		if(!storeSubBlock.parse(subBlock))
 			return false;
 
@@ -126,17 +124,14 @@ class GedcomStoreBlock{
 	private void addLine(final GedcomStoreLine newLine){
 		storeLines.add(newLine);
 
-		if(newLine.getMin() > 0)
-			mandatoryLines.add(newLine);
-
 		if(newLine.hasStructureName()){
-			//Link the structure name to the new line
+			//link the structure name to the new line
 			final String id = newLine.getStructureName();
 
 			idToLineLinks.put(id, newLine);
 		}
 		else{
-			//Link each tag to the new line
+			//link each tag to the new line
 			final Set<String> allTags = newLine.getTagNames();
 			for(final String tag : allTags)
 				idToLineLinks.put(tag, newLine);
@@ -386,9 +381,9 @@ class GedcomStoreBlock{
 	/**
 	 * Returns the line from this block which has the given tag or structure name.
 	 */
-//	public GedcomStoreLine getStoreLine(final String tagOrStructureName){
-//		return idToLineLinks.get(tagOrStructureName);
-//	}
+	public GedcomStoreLine getStoreLine(final String tagOrStructureName){
+		return idToLineLinks.get(tagOrStructureName);
+	}
 
 	/**
 	 * Returns a list of all the store lines which are in this store block.
@@ -404,13 +399,17 @@ class GedcomStoreBlock{
 		return new ArrayList<>(idToLineLinks.keySet());
 	}
 
-//	/**
-//	 * Returns a list of all the mandatory lines in this block.
-//	 */
-//	public List<StoreLine> getMandatoryLines(){
-//		return mandatoryLines;
-//	}
-
+	/**
+	 * Returns a list of all the mandatory lines in this block.
+	 */
+	public List<GedcomStoreLine> getMandatoryLines(){
+		/** A sublist of the {@link #storeLines} which only contains the mandatory lines. */
+		final List<GedcomStoreLine> mandatoryLines = new ArrayList<>(storeLines);
+		for(final GedcomStoreLine line : storeLines)
+			if(line.getMin() > 0)
+				mandatoryLines.add(line);
+		return mandatoryLines;
+	}
 
 	/**
 	 * Returns the level of this block. The level of this block is one higher than the parent line of this block.
@@ -419,26 +418,29 @@ class GedcomStoreBlock{
 //		return (parentStoreLine != null? parentStoreLine.getLevel(this, parentStoreLine) + 1: 0);
 //	}
 
-//	/**
-//	 * Returns <code>true</code> if this block has one or more child lines.
-//	 */
-//	public boolean hasChildLines(){
-//		return !storeLines.isEmpty();
-//	}
+	/**
+	 * Returns <code>true</code> if this block has one or more child lines.
+	 */
+	public boolean hasChildLines(){
+		return !storeLines.isEmpty();
+	}
 
-//	/**
-//	 * Returns <code>true</code> if this block has one or more mandatory lines.
-//	 */
-//	public boolean hasMandatoryLines(){
-//		return !mandatoryLines.isEmpty();
-//	}
+	/**
+	 * Returns <code>true</code> if this block has one or more mandatory lines.
+	 */
+	public boolean hasMandatoryLines(){
+		for(final GedcomStoreLine line : storeLines)
+			if(line.getMin() > 0)
+				return true;
+		return false;
+	}
 
-//	/**
-//	 * Returns <code>true</code> if this block has a line with the given line ID (tag or structure name).
-//	 */
-//	public boolean hasStoreLine(final String lineId){
-//		return idToLineLinks.containsKey(lineId);
-//	}
+	/**
+	 * Returns <code>true</code> if this block has a line with the given line ID (tag or structure name).
+	 */
+	public boolean hasStoreLine(final String lineId){
+		return idToLineLinks.containsKey(lineId);
+	}
 
 //	@Override
 //	public String toString(){

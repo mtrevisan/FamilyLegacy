@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  * <br />
  * All the methods are synchronized for thread save access since many objects (like the date formats) are shared.
  */
-class GedcomFormatter{
+final class GedcomFormatter{
 
 	public static final String INSET = "  ";
 
@@ -59,6 +59,8 @@ class GedcomFormatter{
 		TIME.setCalendar(CALENDAR);
 	}
 
+
+	private GedcomFormatter(){}
 
 //	/**
 //	 * Returns today date in the format needed for gedcom files.
@@ -387,32 +389,32 @@ class GedcomFormatter{
 	 * or with prefix &lt; and suffix &gt;:<br>
 	 * [&lt;ITEM1&gt;|&lt;ITEM2&gt;|&lt;ITEM3&gt;]
 	 */
-	public synchronized static StringBuilder makeOrList(Collection<String> list, String itemPrefix, String itemSuffix){
+	public static synchronized StringBuilder makeOrList(final Collection<String> list, final String itemPrefix, final String itemSuffix){
 		return makeStringList(list, "|", itemPrefix, itemSuffix, true, null, true);
 	}
 
-	public synchronized static StringBuilder makeStringList(Collection<String> list, String separator, String itemPrefix, String itemSuffix, boolean includeNullAndEmpty, String replaceNullWith, boolean addBrackets){
-		StringBuilder sb = new StringBuilder();
+	public static synchronized StringBuilder makeStringList(final Collection<String> list, final String separator, final String itemPrefix, final String itemSuffix, final boolean includeNullAndEmpty, final String replaceNullWith, final boolean addBrackets){
+		final StringBuilder sb = new StringBuilder();
 
 
 		for(String item : list){
 			if(item == null)
 				item = replaceNullWith;
 
-			if(!includeNullAndEmpty && (item == null || item.length() == 0))
+			if(!includeNullAndEmpty && (item == null || item.isEmpty()))
 				continue;
 
 			if(sb.length() > 0 && separator != null)
 				sb.append(separator);
 
-			if(item == null || item.equals("NULL"))
+			if(item == null || "NULL".equals(item))
 				sb.append("<");
 			else if(itemPrefix != null)
 				sb.append(itemPrefix);
 
 			sb.append(item);
 
-			if(item == null || item.equals("NULL"))
+			if(item == null || "NULL".equals(item))
 				sb.append(">");
 			else if(itemSuffix != null)
 				sb.append(itemSuffix);

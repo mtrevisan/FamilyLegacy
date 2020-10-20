@@ -43,13 +43,13 @@ class GedcomStoreLine{
 	private static final Pattern LEVEL_PATTERN = Pattern.compile("^(n|\\+[1-9]|\\+[1-9][0-9]) ");
 	private static final Pattern SPACES_PATTERN = Pattern.compile("[ \t]+");
 	private static final Pattern XREF_PATTERN = Pattern.compile("@<.*>@");
-	private static final Pattern XREF_TAG_REPLACE = Pattern.compile("[@<|>@]");
+	private static final Pattern XREF_TAG_REPLACE = Pattern.compile("[@<|>]");
 	private static final Pattern MULTIPLE_X_REFS = Pattern.compile("([\\[|]@?<[A-Z_:]+>@?\\|?)+\\]");
 	private static final Pattern MULTIPLE_X_REFS_REPLACE = Pattern.compile("[\\[\\] <>@]");
 	private static final Pattern MIN_MAX_PATTERN = Pattern.compile("\\{\\d:[\\d|M]\\*?\\}\\*?");
-	private static final Pattern MIN_MAX_REPLACE = Pattern.compile("[{|}|*]");
+	private static final Pattern MIN_MAX_REPLACE = Pattern.compile("[{|}*]");
 	private static final Pattern STRUCTURE_PATTERN = Pattern.compile("<<.*>>");
-	private static final Pattern STRUCTURE_REPLACE = Pattern.compile("[<<|>>]");
+	private static final Pattern STRUCTURE_REPLACE = Pattern.compile("[<|>]");
 	private static final Pattern VALUE_PATTERN = Pattern.compile("<.*>");
 	private static final Pattern VALUE_REPLACE = Pattern.compile("[<|>]");
 	/** Matches [&lt;EVENT_DESCRIPTOR&gt;|&lt;NULL&gt;] etc */
@@ -67,14 +67,12 @@ class GedcomStoreLine{
 
 	private final Set<String> xrefNames = new HashSet<>();
 	private final Set<String> valueNames = new HashSet<>();
-	//tag before xref
-	private final Set<String> tagNames1 = new HashSet<>();
-	//tag after xref
-	private final Set<String> tagNames2 = new HashSet<>();
+	private final Set<String> tagNamesBeforeXRef = new HashSet<>();
+	private final Set<String> tagNamesAfterXRef = new HashSet<>();
 	private final Set<String> valuePossibilities = new HashSet<>();
 
 	private String structureName;
-	private String originalDefinitionLine;
+//	private String originalDefinitionLine;
 
 	private GedcomStoreBlock childBlock;
 
@@ -84,7 +82,7 @@ class GedcomStoreLine{
 	 */
 	protected static GedcomStoreLine parse(String gedcomDefinitionLine){
 		final GedcomStoreLine sl = new GedcomStoreLine();
-		sl.originalDefinitionLine = gedcomDefinitionLine;
+//		sl.originalDefinitionLine = gedcomDefinitionLine;
 
 		//clean the line from all unnecessary stuff
 		gedcomDefinitionLine = RegexHelper.removeAll(gedcomDefinitionLine, COMMENT_PATTERN);
@@ -108,17 +106,16 @@ class GedcomStoreLine{
 			else if(components[i].contains("@") && RegexHelper.matches(components[i], MULTIPLE_X_REFS)){
 				//Multiple XREF ([@<XREF>@|@<XREF>@|<NULL>...])
 				//At least one @ has to be present
-				final String[] values = RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, "").split("\\|");
+				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, ""), '|');
 				Collections.addAll(sl.xrefNames, values);
 			}
 			else if(RegexHelper.matches(components[i], MIN_MAX_PATTERN)){
 				//{MIN:MAX}
 				//{MIN:MAX*}
 				//{MIN:MAX}*
-				final String[] minmax = RegexHelper.removeAll(components[i], MIN_MAX_REPLACE).split(":");
+				final String[] minmax = StringUtils.split(RegexHelper.removeAll(components[i], MIN_MAX_REPLACE), ':');
 				sl.min = Integer.parseInt(minmax[0]);
-				if(!minmax[1].equals("M"))
-					sl.max = Integer.parseInt(minmax[1]);
+				sl.max = ("M".equals(minmax[1])? Integer.MAX_VALUE: Integer.parseInt(minmax[1]));
 			}
 			else if(RegexHelper.matches(components[i], STRUCTURE_PATTERN))
 				//<<STRUCTURE>>
@@ -128,28 +125,28 @@ class GedcomStoreLine{
 				sl.valueNames.add(RegexHelper.removeAll(components[i], VALUE_REPLACE));
 			else if(RegexHelper.matches(components[i], MULTIPLE_VALUES)){
 				//Multiple VALUE ([<ABC>|<DEF>|<GHI>...])
-				final String[] values = RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, "").split("\\|");
+				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, ""), '|');
 				Collections.addAll(sl.valueNames, values);
 			}
 			else if(RegexHelper.matches(components[i], TAG_PATTERN)){
 				//TAG
 				if(sl.xrefNames.isEmpty())
 					//tag before xref
-					sl.tagNames1.add(components[i]);
+					sl.tagNamesBeforeXRef.add(components[i]);
 				else
 					//tag after xref
-					sl.tagNames2.add(components[1]);
+					sl.tagNamesAfterXRef.add(components[1]);
 
 				tagIndex = i;
 			}
 			else if(RegexHelper.contains(components[i], MULTIPLE_TAGS)){
 				//Multiple TAG ([ABC|DEF|GHI...])
-				final String[] tags = RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, "").split("\\|");
+				final String[] tags = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, ""), '|');
 				for(final String tag : tags){
 					if(sl.xrefNames.isEmpty())
-						sl.tagNames1.add(tag);
+						sl.tagNamesBeforeXRef.add(tag);
 					else
-						sl.tagNames2.add(tag);
+						sl.tagNamesAfterXRef.add(tag);
 				}
 
 				tagIndex = i;
@@ -159,8 +156,8 @@ class GedcomStoreLine{
 				//Example: DEAT [Y|<NULL>]
 				final String[] possibilities = StringUtils.split(
 					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, ""), '|');
-				for(String possibility : possibilities)
-					sl.valuePossibilities.add(!possibility.toUpperCase().equals("NULL")? possibility: null);
+				for(final String possibility : possibilities)
+					sl.valuePossibilities.add(!"NULL".equals(possibility.toUpperCase())? possibility: null);
 			}
 			else
 				LOGGER.info("Did not process {} in {} under {}", components[i], sl.getId(), sl.structureName);
@@ -219,9 +216,9 @@ class GedcomStoreLine{
 //		return (store.getVariations(structureName).size() > 1);
 //	}
 
-	protected String getOriginalDefinitionLine(){
-		return originalDefinitionLine;
-	}
+//	protected String getOriginalDefinitionLine(){
+//		return originalDefinitionLine;
+//	}
 
 	/**
 	 * @return	Minimum number of lines which are required in one block.
@@ -266,7 +263,7 @@ class GedcomStoreLine{
 	 * @return	All the possible tag names.
 	 */
 	public Set<String> getTagNames(){
-		return (!tagNames1.isEmpty()? tagNames1: tagNames2);
+		return (!tagNamesBeforeXRef.isEmpty()? tagNamesBeforeXRef: tagNamesAfterXRef);
 	}
 
 	/**
@@ -301,14 +298,14 @@ class GedcomStoreLine{
 	 * @return	Whether the tag appears before the {@code xref} value on this line.
 	 */
 	public boolean hasTagBeforeXRef(){
-		return !tagNames1.isEmpty();
+		return !tagNamesBeforeXRef.isEmpty();
 	}
 
 	/**
 	 * @return	Whether the tag appears after the {@code xref} value on this line.
 	 */
 	public boolean hasTagAfterXRef(){
-		return !tagNames2.isEmpty();
+		return !tagNamesAfterXRef.isEmpty();
 	}
 
 	/**

@@ -89,30 +89,30 @@ class GedcomStoreTest{
 
 		System.out.println("\n\n--------------------------------------\n");
 
-		//		GedcomStorePrinter.showLevelLineIndex(true);
+//		GedcomStorePrinter.showLevelLineIndex(true);
 
 		GedcomTree header = store.getGedcomTree("HEADER");
 
 		GedcomNode header1 = header.addChildLine("HEAD");
 		header1.addAllChildLines(true);
-		//		header1.addMandatoryChildLines(true);
-		//		header1.newLine();
-		//
-		//		GedcomNode header11 = header1.addChildLine("SOUR");
-		//		GedcomNode header12 = header1.addChildLine("GEDC");
-		//
-		//		GedcomNode header111 = header11.addChildLine("VERS");
-		//		header11.addChildLine("NAME");
-		//		header11.addChildLine("CORP");
-		//
-		//		header111.setTagLineValue("version");
+//		header1.addMandatoryChildLines(true);
+//		header1.newLine();
+//
+//		GedcomNode header11 = header1.addChildLine("SOUR");
+//		GedcomNode header12 = header1.addChildLine("GEDC");
+//
+//		GedcomNode header111 = header11.addChildLine("VERS");
+//		header11.addChildLine("NAME");
+//		header11.addChildLine("CORP");
+//
+//		header111.setTagLineValue("version");
 
 		GedcomStructureTextPrinter textPrinter = new GedcomStructureTextPrinter(false);
 		GedcomStructureTreePrinter structureTreePrinter = new GedcomStructureTreePrinter();
-		//		GedcomStructureHTMLPrinter htmlPrinter = new GedcomStructureHTMLPrinter(true);
+//		GedcomStructureHTMLPrinter htmlPrinter = new GedcomStructureHTMLPrinter(true);
 
-		//		System.out.println(textPrinter.print(header));
-		//		System.out.println(structureTreePrinter.print(header));
+//		System.out.println(textPrinter.print(header));
+//		System.out.println(structureTreePrinter.print(header));
 
 		String structureName = store.getStructureNameForTag("INDI");
 		System.out.println("structureName=" + structureName);
@@ -120,8 +120,8 @@ class GedcomStoreTest{
 		GedcomTree indi = store.getGedcomTree("INDIVIDUAL_RECORD");
 
 		GedcomNode indi1 = indi.addChildLine("INDI");
-		//		indi1.addAllChildLines();
-		//		indi1.addMandatoryChildLines();
+//		indi1.addAllChildLines();
+//		indi1.addMandatoryChildLines();
 
 		indi1.setTagLineXRef("I987");
 
@@ -130,8 +130,8 @@ class GedcomStoreTest{
 		System.out.println("Path: INDI->INDIVIDUAL_EVENT_STRUCTURE;BIRT=" + indi1.getStoreBlock().getPathToStoreLine("INDIVIDUAL_EVENT_STRUCTURE", "BIRT"));
 
 		GedcomNode indi121 = indi1.createPath(pathBirt.toArray(new String[pathBirt.size()]));
-		//		GedcomNode indi12 = indi1.addChildLine("INDIVIDUAL_EVENT_STRUCTURE", "BIRT");
-		//		GedcomNode indi121 = indi12.addChildLine("BIRT");
+//		GedcomNode indi12 = indi1.addChildLine("INDIVIDUAL_EVENT_STRUCTURE", "BIRT");
+//		GedcomNode indi121 = indi12.addChildLine("BIRT");
 		indi121.setTagLineValue("Y");
 
 		LinkedList<String> pathDate = indi121.getStoreBlock().getPathToStoreLine("DATE");
@@ -139,7 +139,7 @@ class GedcomStoreTest{
 
 		GedcomNode indi1211 = indi121.createPath(pathDate.toArray(new String[pathBirt.size()]));
 		indi1211.setTagLineValue("birth date");
-		//		indi121.addChildLine("INDIVIDUAL_EVENT_DETAIL").addChildLine("EVENT_DETAIL").addChildLine("DATE").setTagLineValue("birth date");
+//		indi121.addChildLine("INDIVIDUAL_EVENT_DETAIL").addChildLine("EVENT_DETAIL").addChildLine("DATE").setTagLineValue("birth date");
 
 
 		indi1.addChildLine("INDIVIDUAL_EVENT_STRUCTURE", "DEAT").addChildLine("DEAT").addChildLine("INDIVIDUAL_EVENT_DETAIL").addChildLine("EVENT_DETAIL").addChildLine("DATE").setTagLineValue("death date");
@@ -158,11 +158,11 @@ class GedcomStoreTest{
 		indi1411.setTagLineValue("date");
 		indi141.addChildLine("NOTE_STRUCTURE", "NOTE", false, true).addChildLine("NOTE").setTagLineValue("abc");
 
-		//		indi1.removePath("SEX");
-		//		indi141.removePathEnd("DATE");
-		//		indi141.branchCleanup();
+//		indi1.removePath("SEX");
+//		indi141.removePathEnd("DATE");
+//		indi141.branchCleanup();
 
-		//		indi1411.removeLine(true);
+//		indi1411.removeLine(true);
 
 
 		indi1.addChildLine("CHILD_TO_FAMILY_LINK").addChildLine("FAMC").setTagLineXRef("famclink");
