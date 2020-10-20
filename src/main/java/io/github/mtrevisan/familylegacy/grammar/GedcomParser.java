@@ -51,7 +51,7 @@ public class GedcomParser{
 
 	private final GedcomNode root = new GedcomNode();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
-	private final Deque<GedcomStoreBlock> storeBlockStack = new ArrayDeque<>();
+	private final Deque<GedcomStoreLine> storeLineStack = new ArrayDeque<>();
 
 
 	public static void main(String[] args){
@@ -153,14 +153,13 @@ public class GedcomParser{
 	private void startDocument(final GedcomStore store){
 		nodeStack.clear();
 		nodeStack.push(root);
-		storeBlockStack.push(store.getStoreStructures("HEAD").get(0).getStoreBlock());
 
 		root.setObject(new HashMap<>());
 	}
 
 	private void startElement(final GedcomNode child, final GedcomStore store) throws NoSuchMethodException{
 		final GedcomNode parent = nodeStack.peek();
-		final GedcomStoreBlock parentStoreBlock = storeBlockStack.peek();
+		final GedcomStoreLine parentStoreLine = (!storeLineStack.isEmpty()? storeLineStack.peek(): null);
 
 		child.setParent(parent);
 		parent.addChild(child);
@@ -174,9 +173,8 @@ public class GedcomParser{
 			parent.setObject(parentObject);
 		}
 
-		//TODO
-		final GedcomStoreLine storeLine = parentStoreBlock.getStoreLine(child.getTag());
-
+		final GedcomStoreLine storeLine = (parentStoreLine != null? parentStoreLine.getChildBlock().getStoreLine(tag):
+			store.getStoreStructures("HEAD").get(0).getStoreBlock().getStoreLine("HEAD"));
 		if(storeLine == null){
 			//unexpected tag
 			final GedcomNode obj = new GedcomNode(id, tag, xref);
@@ -235,13 +233,12 @@ public class GedcomParser{
 		}
 
 		nodeStack.push(child);
-		//TODO
-		storeBlockStack.push(null);
+		storeLineStack.push(storeLine != null? storeLine: parentStoreLine);
 	}
 
 	private void endElement(){
 		nodeStack.pop();
-		storeBlockStack.pop();
+		storeLineStack.pop();
 	}
 
 }
