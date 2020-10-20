@@ -22,9 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.grammar;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
-import io.github.mtrevisan.familylegacy.grammar.exceptions.GedcomGrammarParseException;
+import io.github.mtrevisan.familylegacy.grammar_old.exceptions.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -44,11 +44,11 @@ import java.util.regex.Pattern;
 
 
 /**
- * Parse a lineage-linked grammar file and to retrieve the parsed structures from it.
+ * The {@link GedcomStore} has the functionality to parse a lineage-linked grammar file and to retrieve the parsed structures from it.
  *
- * @see <a href="https://github.com/daleathan/GedcomStore">GedcomStore</a>
+ * https://github.com/daleathan/GedcomStore
  */
-class GedcomStore{
+public class GedcomStore{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GedcomStore.class);
 
@@ -82,7 +82,6 @@ class GedcomStore{
 	 * &lt;Structure name &lt;Line ID &lt;List of structures&gt;&gt;&gt;
 	 */
 	private final Map<String, Map<String, List<GedcomStoreStructure>>> idToVariationsLinks = new HashMap<>();
-	private final Map<String, List<GedcomStoreStructure>> variationsLinksToId = new HashMap<>();
 	/**
 	 * This map holds a list for each structure.
 	 * <p>The list contains all the variations for that structure.<br>
@@ -195,6 +194,8 @@ class GedcomStore{
 				//no spaces around closing brackets
 				line = RegexHelper.replaceAll(line, BRACKET_CLOSE, "]");
 
+//				parsingErrorCheck(line);
+
 				if(RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
 					//a new structure starts:
 					if(!block.isEmpty()){
@@ -273,12 +274,6 @@ class GedcomStore{
 			idToVariationsLinks.get(structureName).computeIfAbsent(id, k -> new ArrayList<>())
 				.add(storeStructure);
 
-		for(final GedcomStoreLine gLine : storeStructure.getStoreBlock().getStoreLines())
-			if(gLine.hasTags())
-				for(final String tag : gLine.getTagNames())
-					variationsLinksToId.computeIfAbsent(tag, k -> new ArrayList<>())
-						.add(storeStructure);
-
 		//create the list of all the variations:
 		variations.computeIfAbsent(structureName, k -> new ArrayList<>())
 			.add(storeStructure);
@@ -296,10 +291,6 @@ class GedcomStore{
 	 */
 	public boolean hasStructure(final String structureName){
 		return idToVariationsLinks.containsKey(structureName);
-	}
-
-	public List<GedcomStoreStructure> getStoreStructures(final String tagName){
-		return variationsLinksToId.get(tagName);
 	}
 
 	/**

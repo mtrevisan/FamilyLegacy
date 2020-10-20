@@ -1,28 +1,19 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright 2013 Thomas Naeff (github.com/thnaeff)
  * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * http://www.apache.org/licenses/LICENSE-2.0
  * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-package io.github.mtrevisan.familylegacy.grammar;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -81,7 +72,7 @@ class GedcomStoreLine{
 	private final Set<String> valuePossibilities = new HashSet<>();
 
 	private String structureName;
-	private String originalDefinitionLine;
+//	private String originalDefinitionLine;
 
 	private GedcomStoreBlock childBlock;
 
@@ -89,9 +80,9 @@ class GedcomStoreLine{
 	/**
 	 * Parses the given lineage linked grammar line.
 	 */
-	public static GedcomStoreLine parse(String gedcomDefinitionLine){
+	protected static GedcomStoreLine parse(String gedcomDefinitionLine){
 		final GedcomStoreLine sl = new GedcomStoreLine();
-		sl.originalDefinitionLine = gedcomDefinitionLine;
+//		sl.originalDefinitionLine = gedcomDefinitionLine;
 
 		//clean the line from all unnecessary stuff
 		gedcomDefinitionLine = RegexHelper.removeAll(gedcomDefinitionLine, COMMENT_PATTERN);
@@ -192,13 +183,42 @@ class GedcomStoreLine{
 	/**
 	 * Sets a child block for this gedcom store line.
 	 */
-	public void setChildBlock(final GedcomStoreBlock childBlock){
+	protected void setChildBlock(final GedcomStoreBlock childBlock){
 		this.childBlock = childBlock;
 	}
 
-	public String getOriginalDefinitionLine(){
-		return originalDefinitionLine;
-	}
+//	/**
+//	 * Returns the store structure if there is one. <code>NULL</code> is returned
+//	 * if there is no store structure or if multiple variations are available.<br>
+//	 * <b>Note: </b>Only if this is a structure line the store structure can be retrieved.
+//	 */
+//	public StoreStructure getStoreStructure(final Store store){
+//		if(structureName == null)
+//			return null;
+//
+//		final List<StoreStructure> storeStructures = store.getVariations(structureName);
+//		if(storeStructures == null || storeStructures.size() > 1 || storeStructures.size() == 0)
+//			//No variations or multiple variations available
+//			return null;
+//
+//		//Only one variation available
+//		return storeStructures.get(0);
+//	}
+
+//	/**
+//	 * Returns <code>true</code> if this store line has multiple variations.<br>
+//	 * <b>Note: </b>Only a structure line can have variations.
+//	 */
+//	public boolean hasVariations(final Store store){
+//		if(structureName == null)
+//			return false;
+//
+//		return (store.getVariations(structureName).size() > 1);
+//	}
+
+//	protected String getOriginalDefinitionLine(){
+//		return originalDefinitionLine;
+//	}
 
 	/**
 	 * @return	Minimum number of lines which are required in one block.
@@ -236,7 +256,7 @@ class GedcomStoreLine{
 	 * is a tag line). This ID can be used to identify the store line.
 	 */
 	public String getId(){
-		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames()).toString());
+		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames(), "", "").toString());
 	}
 
 	/**
@@ -321,12 +341,8 @@ class GedcomStoreLine{
 	/**
 	 * Returns the level of this line.
 	 */
-//	public int getLevel(){
-//		return parentBlock.getLevel();
-//	}
-
-//	public GedcomStoreBlock getParentBlock(){
-//		return parentBlock;
+//	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
+//		return parentBlock.getLevel(parentStoreLine);
 //	}
 
 	/**
@@ -343,5 +359,10 @@ class GedcomStoreLine{
 	public boolean hasTag(final String tag){
 		return getTagNames().contains(tag);
 	}
+
+//	@Override
+//	public String toString(){
+//		return GedcomStorePrinter.preparePrint(this).toString();
+//	}
 
 }

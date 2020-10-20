@@ -22,44 +22,29 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.grammar;
-
-import java.util.Collection;
+package io.github.mtrevisan.familylegacy.grammar_old;
 
 
-/**
- * This class contains some static methods which help with formatting data to be used in gedcom files.<br />
- * <br />
- * All the methods are synchronized for thread save access since many objects (like the date formats) are shared.
- */
-final class GedcomFormatter{
+/** The gedcom grammar file needs these keywords before the first structure. */
+enum FileHeaderKeywords{
 
-	private GedcomFormatter(){}
-
+	/** The version of the gedcom grammar. */
+	GEDCOM_VERSION("GEDCOM_VERSION"),
+	/** The source of the gedcom grammar (The website/file/book/...). */
+	GEDCOM_SOURCE("GEDCOM_SOURCE"),
 	/**
-	 * Makes a or-list out of the given list, adding the given pre- and suffixes
-	 * to each or-item.<br>
-	 * A generated list could look like:<br>
-	 * [ITEM1|ITEM2|ITEM3]<br>
-	 * or with prefix &lt; and suffix &gt;:<br>
-	 * [&lt;ITEM1&gt;|&lt;ITEM2&gt;|&lt;ITEM3&gt;]
+	 * A description about the gedcom grammar file.
+	 * <p>List any modifications of the grammar structures here and give any additional information.<br>
+	 * The description can have multiple lines. Everything after the GRAMPS_DESCRIPTION keyword and the next keyword or the first
+	 * structure will be taken as description.</p>
 	 */
-	public static StringBuilder makeOrList(final Collection<String> list){
-		final StringBuilder sb = new StringBuilder();
-		for(final String item : list){
-			if(sb.length() > 0)
-				sb.append("|");
-			if(item == null || "NULL".equals(item))
-				sb.append("<");
-			sb.append(item);
-			if(item == null || "NULL".equals(item))
-				sb.append(">");
-		}
-		if(list.size() > 1)
-			sb.insert(0, "[");
-		if(list.size() > 1)
-			sb.append("]");
-		return sb;
+	GEDCOM_DESCRIPTION("GEDCOM_DESCRIPTION");
+
+
+	final String value;
+
+	FileHeaderKeywords(final String value){
+		this.value = value;
 	}
 
 }

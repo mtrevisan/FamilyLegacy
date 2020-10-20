@@ -1,17 +1,26 @@
 /**
- * Copyright 2013 Thomas Naeff (github.com/thnaeff)
+ * Copyright (c) 2020 Mauro Trevisan
  * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
  */
 package io.github.mtrevisan.familylegacy.grammar;
 
@@ -42,12 +51,23 @@ class GedcomStoreBlock{
 	private final List<GedcomStoreLine> storeLines = new ArrayList<>();
 	/**
 	 * The line ID's (tag or structure names) linked to their lines.
-	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears  multiple times, once for every tag.</p>
+	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears multiple times, once for every tag.</p>
 	 */
 	private final Map<String, GedcomStoreLine> idToLineLinks = new HashMap<>();
-	/** The line which this block is located under. */
-//	private final StoreLine parentStoreLine;
 
+	/** The structure which contains this block. The structure is the starting point which contains a block with all the structure lines. */
+//	private final GedcomStoreStructure storeStructure;
+	/** The line which this block is located under. */
+//	private final GedcomStoreLine parentStoreLine;
+
+
+	/**
+	 * Creates a new gedcom store block in the given store structure.
+	 */
+//	GedcomStoreBlock(/*final GedcomStoreStructure storeStructure,*/ final GedcomStoreLine parentStoreLine){
+//		this.storeStructure = storeStructure;
+//		this.parentStoreLine = parentStoreLine;
+//	}
 
 	/**
 	 * Parses the given block with all the lines.
@@ -88,7 +108,6 @@ class GedcomStoreBlock{
 					return false;
 
 				final GedcomStoreLine storeLine = GedcomStoreLine.parse(line);
-				//FIXME manages null storeLine
 				addLine(storeLine);
 
 				lastStoreLine = storeLine;
@@ -106,6 +125,7 @@ class GedcomStoreBlock{
 	 * Process a sub block.
 	 */
 	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomGrammarParseException{
+//		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock(/*storeStructure,*/ parentStoreLine);
 		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
 		if(!storeSubBlock.parse(subBlock))
 			return false;
@@ -138,246 +158,6 @@ class GedcomStoreBlock{
 		}
 	}
 
-//	/**
-//	 * Searches through the gedcom grammar structure and returns the path
-//	 * to the child line with the given tag.
-//	 * For example the INDIVIDUAL_RECORD structure:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   1 SEX
-//	 *   ...
-//	 *   1 CHAN
-//	 *     2 DATE
-//	 *       3 TIME
-//	 * </code></pre>
-//	 * CHAN is a child line of INDI. However, it is defined in the gedcom grammar
-//	 * as follows with a structure in between:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   +1 SEX
-//	 *   ...
-//	 *   CHANGE_DATE
-//	 *   +1 CHAN
-//	 *     +2 DATE
-//	 *       +3 TIME
-//	 * </code></pre>
-//	 *
-//	 * This means that if this method is executed on the INDI block for example
-//	 * with the parameter tag="CHAN", it returns [CHANGE_DATE, CHAN]. It only works
-//	 * with immediate child lines, thus it is not possible to execute it for "DATE"
-//	 * on the INDI block since it would be impossible to determine if the CHAN
-//	 * DATE is needed or some other DATE tag in another structure.
-//	 */
-//	public List<String> getPathToStoreLine(final Store store, final String tagOrStructureName){
-//		return getPathToStoreLine(store, tagOrStructureName, null, false, false, false);
-//	}
-
-//	/**
-//	 * Searches through the gedcom grammar structure and returns the path
-//	 * to the child line with the given tag.
-//	 * For example the INDIVIDUAL_RECORD structure:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   1 SEX
-//	 *   ...
-//	 *   1 CHAN
-//	 *     2 DATE
-//	 *       3 TIME
-//	 * </code></pre>
-//	 * CHAN is a child line of INDI. However, it is defined in the gedcom grammar
-//	 * as follows with a structure in between:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   +1 SEX
-//	 *   ...
-//	 *   CHANGE_DATE
-//	 *   +1 CHAN
-//	 *     +2 DATE
-//	 *       +3 TIME
-//	 * </code></pre>
-//	 *
-//	 * This means that if this method is executed on the INDI block for example
-//	 * with the parameter tag="CHAN", it returns [CHANGE_DATE, CHAN]. It only works
-//	 * with immediate child lines, thus it is not possible to execute it for "DATE"
-//	 * on the INDI block since it would be impossible to determine if the CHAN
-//	 * DATE is needed or some other DATE tag in another structure.
-//	 */
-//	public List<String> getPathToStoreLine(final Store store, final String tagOrStructureName, final String tag){
-//		return getPathToStoreLine(store, tagOrStructureName, tag, false, false, false);
-//	}
-
-//	/**
-//	 * Searches through the gedcom grammar structure and returns the path
-//	 * to the child line with the given tag.
-//	 * For example the INDIVIDUAL_RECORD structure:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   1 SEX
-//	 *   ...
-//	 *   1 CHAN
-//	 *     2 DATE
-//	 *       3 TIME
-//	 * </code></pre>
-//	 * CHAN is a child line of INDI. However, it is defined in the gedcom grammar
-//	 * as follows with a structure in between:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   +1 SEX
-//	 *   ...
-//	 *   CHANGE_DATE
-//	 *   +1 CHAN
-//	 *     +2 DATE
-//	 *       +3 TIME
-//	 * </code></pre>
-//	 *
-//	 * This means that if this method is executed on the INDI block for example
-//	 * with the parameter tag="CHAN", it returns [CHANGE_DATE, CHAN]. It only works
-//	 * with immediate child lines, thus it is not possible to execute it for "DATE"
-//	 * on the INDI block since it would be impossible to determine if the CHAN
-//	 * DATE is needed or some other DATE tag in another structure.
-//	 */
-//	public List<String> getPathToStoreLine(final Store store, final String tagOrStructureName, final String tag, final boolean withXRef, final boolean withValue){
-//		return getPathToStoreLine(store, tagOrStructureName, tag, true, withXRef, withValue);
-//	}
-
-//	/**
-//	 * Searches through the gedcom grammar structure and returns the path
-//	 * to the child line with the given tag.
-//	 * For example the INDIVIDUAL_RECORD structure:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   1 SEX
-//	 *   ...
-//	 *   1 CHAN
-//	 *     2 DATE
-//	 *       3 TIME
-//	 * </code></pre>
-//	 * CHAN is a child line of INDI. However, it is defined in the gedcom grammar
-//	 * as follows with a structure in between:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   +1 SEX
-//	 *   ...
-//	 *   CHANGE_DATE
-//	 *   +1 CHAN
-//	 *     +2 DATE
-//	 *       +3 TIME
-//	 * </code></pre>
-//	 *
-//	 * This means that if this method is executed on the INDI block for example
-//	 * with the parameter tag="CHAN", it returns [CHANGE_DATE, CHAN]. It only works
-//	 * with immediate child lines, thus it is not possible to execute it for "DATE"
-//	 * on the INDI block since it would be impossible to determine if the CHAN
-//	 * DATE is needed or some other DATE tag in another structure.
-//	 */
-//	public List<String> getPathToStoreLine(final Store store, final String tagOrStructureName, final boolean withXRef, final boolean withValue){
-//		return getPathToStoreLine(store, tagOrStructureName, null, true, withXRef, withValue);
-//	}
-
-//	/**
-//	 * Searches through the gedcom grammar structure and returns the path
-//	 * to the child line with the given tag.
-//	 * For example the INDIVIDUAL_RECORD structure:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   1 SEX
-//	 *   ...
-//	 *   1 CHAN
-//	 *     2 DATE
-//	 *       3 TIME
-//	 * </code></pre>
-//	 * CHAN is a child line of INDI. However, it is defined in the gedcom grammar
-//	 * as follows with a structure in between:<br />
-//	 * <pre><code>
-//	 * 0 INDI
-//	 *   +1 SEX
-//	 *   ...
-//	 *   CHANGE_DATE
-//	 *   +1 CHAN
-//	 *     +2 DATE
-//	 *       +3 TIME
-//	 * </code></pre>
-//	 *
-//	 * This means that if this method is executed on the INDI block for example
-//	 * with the parameter tag="CHAN", it returns [CHANGE_DATE, CHAN]. It only works
-//	 * with immediate child lines, thus it is not possible to execute it for "DATE"
-//	 * on the INDI block since it would be impossible to determine if the CHAN
-//	 * DATE is needed or some other DATE tag in another structure.
-//	 */
-//	private List<String> getPathToStoreLine(final Store store, final String tagOrStructureName, String tag,
-//			final boolean lookForXRefAndValueVariation, final boolean withXRef, boolean withValue){
-//		final List<String> path = new LinkedList<>();
-//		if(tag == null)
-//			tag = tagOrStructureName;
-//
-//		if(hasStoreLine(tagOrStructureName)){
-//			String variation = "";
-//
-//			if(store.hasStructure(tagOrStructureName)){
-//				//It is a structure
-//				if(store.getVariationTags(tagOrStructureName).contains(tag)){
-//					//The structure has the given tag variation
-//					variation = ";" + tag;
-//
-//					if(lookForXRefAndValueVariation)
-//						variation = variation + ";" + withXRef + ";" + withValue;
-//				}
-//			}
-//			path.add(tagOrStructureName + variation);
-//			return path;
-//		}
-//		else{
-//			for(StoreLine storeLine : storeLines){
-//				//Only check structure lines
-//				if(!storeLine.hasStructureName())
-//					continue;
-//				else if(!store.hasStructure(storeLine.getStructureName()))
-//					continue;
-//
-//				StoreStructure structure;
-//				String variation = "";
-//
-//				try{
-//					if(store.structureHasVariations(storeLine.getStructureName())){
-//						structure = store.getGedcomStructure(storeLine.getStructureName(), tag, lookForXRefAndValueVariation, withXRef, withValue);
-//						variation = ";" + tagOrStructureName;
-//
-//						if(lookForXRefAndValueVariation)
-//							variation = variation + ";" + withXRef + ";" + withValue;
-//					}
-//					else
-//						structure = store.getGedcomStructure(storeLine.getStructureName(), null, false, false, false);
-//				}
-//				catch(final GedcomAccessError e){
-//					//structure and/or variation does not exist
-//					continue;
-//				}
-//
-//				if(structure != null){
-//					if(structure.getStoreBlock().hasStoreLine(tagOrStructureName)){
-//						//found it!
-//						path.add(storeLine.getStructureName() + variation);
-//						path.add(tagOrStructureName);
-//						return path;
-//					}
-//					else{
-//						List<String> path2 = structure.getStoreBlock().getPathToStoreLine(store, tagOrStructureName, tag, lookForXRefAndValueVariation, withXRef, withValue);
-//						if(path2 == null)
-//							//not found in the path
-//							continue;
-//
-//						path.add(storeLine.getStructureName() + variation);
-//						path.addAll(path2);
-//						return path;
-//					}
-//				}
-//				//else: not found in this path
-//			}
-//
-//			return null;
-//		}
-//	}
-
 	/**
 	 * Returns the line from this block which has the given tag or structure name.
 	 */
@@ -400,6 +180,13 @@ class GedcomStoreBlock{
 	}
 
 	/**
+	 * Returns the store line which is the parent of this block
+	 */
+//	public GedcomStoreLine getParentStoreLine(){
+//		return parentStoreLine;
+//	}
+
+	/**
 	 * Returns a list of all the mandatory lines in this block.
 	 */
 	public List<GedcomStoreLine> getMandatoryLines(){
@@ -414,8 +201,8 @@ class GedcomStoreBlock{
 	/**
 	 * Returns the level of this block. The level of this block is one higher than the parent line of this block.
 	 */
-//	public int getLevel(final GedcomStoreLine parentStoreLine){
-//		return (parentStoreLine != null? parentStoreLine.getLevel(this, parentStoreLine) + 1: 0);
+//	public int getLevel(){
+//		return (parentStoreLine != null? parentStoreLine.getLevel() + 1: 0);
 //	}
 
 	/**
@@ -441,10 +228,5 @@ class GedcomStoreBlock{
 	public boolean hasStoreLine(final String lineId){
 		return idToLineLinks.containsKey(lineId);
 	}
-
-//	@Override
-//	public String toString(){
-//		return GedcomStorePrinter.preparePrint(this, 1, false).toString();
-//	}
 
 }
