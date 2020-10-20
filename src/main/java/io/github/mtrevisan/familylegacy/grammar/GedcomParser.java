@@ -36,11 +36,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 public class GedcomParser{
@@ -54,6 +51,7 @@ public class GedcomParser{
 
 	private final GedcomNode root = new GedcomNode();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
+	private final Deque<GedcomStoreBlock> storeBlockStack = new ArrayDeque<>();
 
 
 	public static void main(String[] args){
@@ -98,7 +96,7 @@ public class GedcomParser{
 	private GedcomNode parseGedcom(final InputStream is, final GedcomStore store) throws GedcomParseException{
 		LOGGER.info("Parsing GEDCOM file...");
 
-		startDocument();
+		startDocument(store);
 
 		int lineCount = 0;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
@@ -152,15 +150,17 @@ public class GedcomParser{
 		return root;
 	}
 
-	private void startDocument(){
+	private void startDocument(final GedcomStore store){
 		nodeStack.clear();
 		nodeStack.push(root);
+		storeBlockStack.push(store.getStoreStructures("HEAD").get(0).getStoreBlock());
 
 		root.setObject(new HashMap<>());
 	}
 
 	private void startElement(final GedcomNode child, final GedcomStore store) throws NoSuchMethodException{
 		final GedcomNode parent = nodeStack.peek();
+		final GedcomStoreBlock parentStoreBlock = storeBlockStack.peek();
 
 		child.setParent(parent);
 		parent.addChild(child);
@@ -174,7 +174,8 @@ public class GedcomParser{
 			parent.setObject(parentObject);
 		}
 
-		final GedcomStoreLine storeLine = getGedcomStoreLine(store, child);
+		//TODO
+		final GedcomStoreLine storeLine = parentStoreBlock.getStoreLine(child.getTag());
 
 		if(storeLine == null){
 			//unexpected tag
@@ -234,61 +235,13 @@ public class GedcomParser{
 		}
 
 		nodeStack.push(child);
-	}
-
-	private GedcomStoreLine getGedcomStoreLine(final GedcomStore store, final GedcomNode child){
-		GedcomStoreLine lastStoreLine = null;
-		GedcomNode nextnext = null;
-		if(nodeStack.size() == 6)
-			System.out.println();
-		final Iterator<GedcomNode> itr = nodeStack.descendingIterator();
-		while(itr.hasNext()){
-			final GedcomNode next = (nextnext != null? nextnext: itr.next());
-			nextnext = (itr.hasNext()? itr.next(): child);
-
-			final List<GedcomNode> children = next.getChildren();
-			GedcomNode lastNode = children.get(0);
-			if(children.size() > 1){
-				GedcomNode found = null;
-				for(final GedcomNode c : children){
-//					try{
-						if(c.getTag().equals(nextnext.getTag())){
-							found = c;
-							break;
-						}
-//					}catch(Exception e){
-//						e.printStackTrace();
-//					}
-				}
-				lastNode = found;
-			}
-
-			if(lastStoreLine != null){
-//				try{
-					lastStoreLine = lastStoreLine.getChildBlock().getStoreLine(lastNode.getTag());
-					if(lastStoreLine == null){
-						//TODO search into <<...>> for storeLines that have structureName valued
-						store.getVariations("INDIVIDUAL_EVENT_STRUCTURE");
-					}
-//				}
-//				catch(Exception e){
-//					lastStoreLine = lastStoreLine.getChildBlock().getStoreLine(lastNode.getTag());
-//				}
-			}
-			else{
-				try{
-				lastStoreLine = store.getStoreStructures(lastNode.getTag())
-					.get(0).getStoreBlock().getStoreLines().get(0);
-				}catch(Exception e){
-					e.printStackTrace();
-				}
-			}
-		}
-		return lastStoreLine;
+		//TODO
+		storeBlockStack.push(null);
 	}
 
 	private void endElement(){
 		nodeStack.pop();
+		storeBlockStack.pop();
 	}
 
 }
