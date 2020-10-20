@@ -115,7 +115,7 @@ class GedcomStoreLine{
 				//{MIN:MAX}*
 				final String[] minmax = StringUtils.split(RegexHelper.removeAll(components[i], MIN_MAX_REPLACE), ':');
 				sl.min = Integer.parseInt(minmax[0]);
-				sl.max = ("M".equals(minmax[1])? Integer.MAX_VALUE: Integer.parseInt(minmax[1]));
+				sl.max = ("M".equals(minmax[1])? -1: Integer.parseInt(minmax[1]));
 			}
 			else if(RegexHelper.matches(components[i], STRUCTURE_PATTERN))
 				//<<STRUCTURE>>
