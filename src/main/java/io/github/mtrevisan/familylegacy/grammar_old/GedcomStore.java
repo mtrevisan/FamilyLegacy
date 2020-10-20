@@ -93,7 +93,7 @@ public class GedcomStore{
 
 	public static void main(String[] args){
 		try{
-			GedcomStore store = create("/gedg/gedcomobjects_5.5.1_test.gedg");
+			GedcomStore store = create("/gedg/gedcomobjects_5.5.1.gedg");
 			System.out.println(store);
 		}
 		catch(GedcomGrammarParseException e){

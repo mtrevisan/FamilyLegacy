@@ -24,7 +24,6 @@
  */
 package ch.thn.gedcom.store;
 
-import ch.thn.gedcom.GedcomFormatter;
 import ch.thn.gedcom.GedcomHelper;
 import ch.thn.StringUtil;
 import ch.thn.gedcom.data.GedcomAccessError;
@@ -486,8 +485,6 @@ public class GedcomStore{
 	/**
 	 * Creates a {@link GedcomTree} with the given gedcom structure. This
 	 * method only works if the structure does not have multiple variations.<br>
-	 * If there the structure has multiple variations, use
-	 * {@link #getGedcomTree(String, String, int)}
 	 *
 	 * @param structureName
 	 * @return
@@ -501,8 +498,6 @@ public class GedcomStore{
 	 * the variation defined with the given tag.<br>
 	 * Only works if each variation is defined with a different tag.
 	 * If there are multiple variations with the same tag, which differ only by
-	 * the presence of the xref/value fields, use
-	 * {@link #getGedcomLine(String, String, boolean, boolean, int)}
 	 *
 	 * @param structureName
 	 * @param tag
@@ -554,7 +549,9 @@ public class GedcomStore{
 				tag = variations.get(structureName).get(0).getStoreBlock().getAllLineIDs().get(0);
 			}
 			else{
-				throw new GedcomCreationError("Can not get structure " + structureName + " with only the structure name. " + "This structure has multiple variations " + GedcomFormatter.makeOrList(new LinkedList<String>(idToVariationsLinks.get(structureName).keySet()), "", "") + ".");
+				throw new GedcomCreationError("Can not get structure " + structureName + " with only the structure name. "
+					+ "This structure has multiple variations "
+					+ /*GedcomFormatter.makeOrList(new LinkedList<String>(idToVariationsLinks.get(structureName).keySet()), "", "") +*/ ".");
 			}
 		}
 
