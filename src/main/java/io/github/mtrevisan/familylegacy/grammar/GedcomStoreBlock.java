@@ -54,9 +54,20 @@ class GedcomStoreBlock{
 	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears multiple times, once for every tag.</p>
 	 */
 	private final Map<String, GedcomStoreLine> idToLineLinks = new HashMap<>();
-	/** The line which this block is located under. */
-//	private final StoreLine parentStoreLine;
 
+	/** The structure which contains this block. The structure is the starting point which contains a block with all the structure lines. */
+//	private final GedcomStoreStructure storeStructure;
+	/** The line which this block is located under. */
+//	private final GedcomStoreLine parentStoreLine;
+
+
+	/**
+	 * Creates a new gedcom store block in the given store structure.
+	 */
+//	GedcomStoreBlock(/*final GedcomStoreStructure storeStructure,*/ final GedcomStoreLine parentStoreLine){
+//		this.storeStructure = storeStructure;
+//		this.parentStoreLine = parentStoreLine;
+//	}
 
 	/**
 	 * Parses the given block with all the lines.
@@ -114,6 +125,7 @@ class GedcomStoreBlock{
 	 * Process a sub block.
 	 */
 	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomGrammarParseException{
+//		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock(/*storeStructure,*/ parentStoreLine);
 		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
 		if(!storeSubBlock.parse(subBlock))
 			return false;
@@ -168,6 +180,13 @@ class GedcomStoreBlock{
 	}
 
 	/**
+	 * Returns the store line which is the parent of this block
+	 */
+//	public GedcomStoreLine getParentStoreLine(){
+//		return parentStoreLine;
+//	}
+
+	/**
 	 * Returns a list of all the mandatory lines in this block.
 	 */
 	public List<GedcomStoreLine> getMandatoryLines(){
@@ -182,9 +201,9 @@ class GedcomStoreBlock{
 	/**
 	 * Returns the level of this block. The level of this block is one higher than the parent line of this block.
 	 */
-	public int getLevel(final GedcomStoreLine parentStoreLine){
-		return (parentStoreLine != null? parentStoreLine.getLevel(this, parentStoreLine) + 1: 0);
-	}
+//	public int getLevel(){
+//		return (parentStoreLine != null? parentStoreLine.getLevel() + 1: 0);
+//	}
 
 	/**
 	 * Returns <code>true</code> if this block has one or more child lines.

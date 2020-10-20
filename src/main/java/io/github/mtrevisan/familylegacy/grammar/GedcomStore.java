@@ -298,15 +298,15 @@ class GedcomStore{
 		return idToVariationsLinks.containsKey(structureName);
 	}
 
+	public List<GedcomStoreStructure> getStoreStructures(final String tagName){
+		return variationsLinksToId.get(tagName);
+	}
+
 	/**
 	 * Returns a map with all the tags which are available to access the variations of the structure with the given structure name.
 	 */
 	public List<String> getVariationTags(final String structureName){
 		return new ArrayList<>(idToVariationsLinks.get(structureName).keySet());
-	}
-
-	public List<GedcomStoreStructure> getVariationsLinksToId(final String tag){
-		return variationsLinksToId.get(tag);
 	}
 
 }

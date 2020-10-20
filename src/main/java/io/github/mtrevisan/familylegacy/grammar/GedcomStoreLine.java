@@ -321,9 +321,13 @@ class GedcomStoreLine{
 	/**
 	 * Returns the level of this line.
 	 */
-	public int getLevel(final GedcomStoreBlock parentBlock, final GedcomStoreLine parentStoreLine){
-		return parentBlock.getLevel(parentStoreLine);
-	}
+//	public int getLevel(){
+//		return parentBlock.getLevel();
+//	}
+
+//	public GedcomStoreBlock getParentBlock(){
+//		return parentBlock;
+//	}
 
 	/**
 	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains

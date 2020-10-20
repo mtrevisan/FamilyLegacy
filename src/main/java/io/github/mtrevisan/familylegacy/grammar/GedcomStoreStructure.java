@@ -76,6 +76,7 @@ final class GedcomStoreStructure{
 
 	private GedcomStoreStructure(final String structureName, final List<String> block) throws GedcomGrammarParseException{
 		this.structureName = structureName;
+//		storeBlock = new GedcomStoreBlock(/*this,*/ null);
 		storeBlock.parse(block);
 	}
 
