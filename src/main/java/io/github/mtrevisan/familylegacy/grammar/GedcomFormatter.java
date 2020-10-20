@@ -44,20 +44,16 @@ final class GedcomFormatter{
 	 * or with prefix &lt; and suffix &gt;:<br>
 	 * [&lt;ITEM1&gt;|&lt;ITEM2&gt;|&lt;ITEM3&gt;]
 	 */
-	public static StringBuilder makeOrList(final Collection<String> list, final String itemPrefix, final String itemSuffix){
+	public static StringBuilder makeOrList(final Collection<String> list){
 		final StringBuilder sb = new StringBuilder();
 		for(final String item : list){
 			if(sb.length() > 0)
 				sb.append("|");
 			if(item == null || "NULL".equals(item))
 				sb.append("<");
-			else if(itemPrefix != null)
-				sb.append(itemPrefix);
 			sb.append(item);
 			if(item == null || "NULL".equals(item))
 				sb.append(">");
-			else if(itemSuffix != null)
-				sb.append(itemSuffix);
 		}
 		if(list.size() > 1)
 			sb.insert(0, "[");

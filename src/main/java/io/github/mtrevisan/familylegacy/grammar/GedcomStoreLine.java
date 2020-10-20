@@ -236,7 +236,7 @@ class GedcomStoreLine{
 	 * is a tag line). This ID can be used to identify the store line.
 	 */
 	public String getId(){
-		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames(), "", "").toString());
+		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames()).toString());
 	}
 
 	/**

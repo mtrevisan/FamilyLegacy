@@ -82,6 +82,7 @@ class GedcomStore{
 	 * &lt;Structure name &lt;Line ID &lt;List of structures&gt;&gt;&gt;
 	 */
 	private final Map<String, Map<String, List<GedcomStoreStructure>>> idToVariationsLinks = new HashMap<>();
+	private final Map<String, List<GedcomStoreStructure>> variationsLinksToId = new HashMap<>();
 	/**
 	 * This map holds a list for each structure.
 	 * <p>The list contains all the variations for that structure.<br>
@@ -272,6 +273,12 @@ class GedcomStore{
 			idToVariationsLinks.get(structureName).computeIfAbsent(id, k -> new ArrayList<>())
 				.add(storeStructure);
 
+		for(final GedcomStoreLine gLine : storeStructure.getStoreBlock().getStoreLines())
+			if(gLine.hasTags())
+				for(final String tag : gLine.getTagNames())
+					variationsLinksToId.computeIfAbsent(tag, k -> new ArrayList<>())
+						.add(storeStructure);
+
 		//create the list of all the variations:
 		variations.computeIfAbsent(structureName, k -> new ArrayList<>())
 			.add(storeStructure);
@@ -296,6 +303,10 @@ class GedcomStore{
 	 */
 	public List<String> getVariationTags(final String structureName){
 		return new ArrayList<>(idToVariationsLinks.get(structureName).keySet());
+	}
+
+	public List<GedcomStoreStructure> getVariationsLinksToId(final String tag){
+		return variationsLinksToId.get(tag);
 	}
 
 }
