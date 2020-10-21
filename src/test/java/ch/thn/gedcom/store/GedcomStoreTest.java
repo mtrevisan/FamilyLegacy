@@ -78,7 +78,7 @@ class GedcomStoreTest{
 		store.setValidator(new TestGedcomDataValidator());
 
 		try{
-			store.parse(store.getClass().getResource("/gedg/gedcomobjects_5.5.1_test.gedg").getPath());
+			store.parse(store.getClass().getResource("/gedg/gedcomobjects_5.5.1.gedg").getPath());
 		}
 		catch(GedcomParseException e){
 			e.printStackTrace();

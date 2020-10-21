@@ -40,7 +40,7 @@ final class GedcomHelper{
 
 	private GedcomHelper(){}
 
-	@SuppressWarnings("InjectedReferences")
+	@SuppressWarnings({"InjectedReferences", "ResultOfMethodCallIgnored"})
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);

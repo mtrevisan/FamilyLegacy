@@ -1,18 +1,15 @@
 package ch.thn.datatree;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.Test;
 
 import ch.thn.datatree.core.CollectionTreeNodeInterface;
 import ch.thn.datatree.core.ListTreeNodeInterface;
 import ch.thn.datatree.core.MapTreeNodeInterface;
 import ch.thn.datatree.printer.TreeNodePlainTextPrinter;
 import ch.thn.datatree.printer.generic.PlainTextTreePrinter;
+import org.junit.jupiter.api.Test;
+
 
 public class TreeTest {
 	

@@ -24,23 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.Map;
 
 
-public class FieldRef{
+class FieldRef{
 
-	private final Object target;
-	private final String name;
+	private final Map<String, Object> target;
+	private final String fieldName;
 
 
-	public FieldRef(final Object target, final String name){
+	FieldRef(final Map<String, Object> target, final String fieldName){
 		this.target = target;
-		this.name = name;
-	}
-
-	public String getClassFieldName(){
-		return target.getClass().getName() + "." + name;
+		this.fieldName = fieldName;
 	}
 
 	public Object getTarget(){
@@ -48,47 +43,23 @@ public class FieldRef{
 	}
 
 	public String getFieldName(){
-		return name;
+		return fieldName;
 	}
 
-	public void setValue(final String value) throws NoSuchMethodException{
-		try{
-			final Method method = target.getClass().getMethod("set" + name, String.class);
-			method.invoke(target, value);
-		}
-		catch(final InvocationTargetException | IllegalAccessException e){
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+	public void setValue(final String value){
+		target.put(fieldName, value);
 	}
 
-	public String getValue() throws NoSuchMethodException{
-		try{
-			final Method method = target.getClass().getMethod("get" + name);
-			return (String) method.invoke(target);
-		}
-		catch(final InvocationTargetException | IllegalAccessException e){
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+	public Object getValue(){
+		return target.get(fieldName);
 	}
 
 	public void appendValue(final String value) throws NoSuchMethodException{
-		try{
-			final String currentValue = getValue();
-			setValue((currentValue == null? "": currentValue) + value);
-		}
-		catch(final NoSuchMethodException e){
-			//try "add"
-			try{
-				final Method method = target.getClass().getMethod("add" + name, String.class);
-				method.invoke(target, value);
-			}
-			catch(final InvocationTargetException | IllegalAccessException e1){
-				e1.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
+		final Object currentValue = getValue();
+		if(currentValue != null && !(currentValue instanceof String))
+			throw new NoSuchMethodException("Field '" + fieldName + "' is not a string, cannot append value " + value);
+
+		setValue((currentValue == null? "": currentValue) + value);
 	}
 
 }

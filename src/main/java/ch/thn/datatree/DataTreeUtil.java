@@ -16,6 +16,10 @@
  */
 package ch.thn.datatree;
 
+import ch.thn.datatree.core.CollectionTreeNodeInterface;
+import ch.thn.datatree.core.GenericKeySetTreeNode;
+import ch.thn.datatree.core.ListTreeNodeInterface;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -138,7 +142,7 @@ public class DataTreeUtil {
 	 * the two matching nodes.
 	 *
 	 * @param masterTree
-	 * @param slaveNode The tree to compare against
+	 * @param slaveTree The tree to compare against
 	 * @param processor The processor which defined equality and creates nodes of the
 	 * possible resulting tree
 	 * @param preventDuplicates If set to <code>true</code>, once a slave node is considered

@@ -16,6 +16,9 @@
  */
 package ch.thn.datatree.core;
 
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,14 +45,6 @@ implements MapTreeNodeInterface<K, V, N> {
 	private K key = null;
 
 
-	/**
-	 * 
-	 * 
-	 * @param childrenMap
-	 * @param childrenCollection
-	 * @param key
-	 * @param value
-	 */
 	public GenericMapTreeNode(LinkedListMultimap<K, N> childrenMap, K key, V value) {
 		super(null, value);
 		this.key = key;

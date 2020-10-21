@@ -34,7 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class GedcomNode{
+public final class GedcomNode{
 
 	/** NOTE: {@link Pattern#DOTALL} is for unicode line separator. */
 	private static final Pattern GEDCOM_LINE = Pattern.compile("^\\s*(\\d)\\s+(@([^@ ]+)@\\s+)?([a-zA-Z_0-9.]+)(\\s+@([^@ ]+)@)?(\\s(.*))?$",
@@ -54,12 +54,15 @@ public class GedcomNode{
 
 	private Object object;
 
-	private GedcomNode parent;
 	private List<GedcomNode> children;
 
 
-	public static GedcomNode parse(final CharSequence line){
-		final Matcher m = GEDCOM_LINE.matcher(line);
+	public static GedcomNode createEmpty(){
+		return new GedcomNode();
+	}
+
+	public static GedcomNode parse(final String line){
+		final Matcher m = GEDCOM_LINE.matcher(line.trim());
 		if(!m.find())
 			return null;
 
@@ -70,18 +73,10 @@ public class GedcomNode{
 		node.setXRef(m.group(GEDCOM_LINE_XREF));
 		node.setValue(m.group(GEDCOM_LINE_VALUE));
 
-		//TODO create extensionContainer
-
 		return node;
 	}
 
-	GedcomNode(){}
-
-	GedcomNode(final String id, final String tag, final String xref){
-		this.id = id;
-		this.tag = tag;
-		this.xref = xref;
-	}
+	private GedcomNode(){}
 
 	public void setLevel(final String level){
 		this.level = Integer.parseInt(level);
@@ -105,8 +100,8 @@ public class GedcomNode{
 	}
 
 	private void setTag(final String tag){
-		if(tag != null && !tag.isEmpty())
-			this.tag = tag.toUpperCase();
+		if(tag != null && !tag.trim().isEmpty())
+			this.tag = tag.trim().toUpperCase();
 	}
 
 	public String getXRef(){
@@ -142,14 +137,6 @@ public class GedcomNode{
 		this.object = object;
 	}
 
-	public GedcomNode getParent(){
-		return parent;
-	}
-
-	public void setParent(final GedcomNode parent){
-		this.parent = parent;
-	}
-
 	public List<GedcomNode> getChildren(){
 		return (children != null? children: Collections.emptyList());
 	}
@@ -159,6 +146,19 @@ public class GedcomNode{
 			children = new ArrayList<>();
 
 		children.add(child);
+	}
+
+	public List<GedcomNode> getChildrenWithTag(final String tag){
+		final List<GedcomNode> taggedChildren;
+		if(children != null){
+			taggedChildren = new ArrayList<>(0);
+			for(final GedcomNode child : children)
+				if(child.tag.equals(tag))
+					taggedChildren.add(child);
+		}
+		else
+			taggedChildren = Collections.emptyList();
+		return taggedChildren;
 	}
 
 	@Override
@@ -174,30 +174,19 @@ public class GedcomNode{
 			.append(tag, rhs.tag)
 			.append(xref, rhs.xref)
 			.append(value, rhs.value)
-			.append((parent != null), (rhs.parent != null))
 			.append(children, rhs.children);
-		if(parent != null)
-			builder.append(parent.id, rhs.parent.id)
-				.append(parent.tag, rhs.parent.tag)
-				.append(parent.xref, rhs.parent.xref)
-				.append(parent.value, rhs.parent.value);
 		return builder.isEquals();
 	}
 
 	@Override
 	public int hashCode(){
-		final HashCodeBuilder builder = new HashCodeBuilder()
+		return new HashCodeBuilder()
 			.append(id)
 			.append(tag)
 			.append(xref)
 			.append(value)
-			.append(children);
-		if(parent != null)
-			builder.append(parent.id)
-				.append(parent.tag)
-				.append(parent.xref)
-				.append(parent.value);
-		return builder.hashCode();
+			.append(children)
+			.hashCode();
 	}
 
 	@Override
@@ -211,20 +200,6 @@ public class GedcomNode{
 			builder.append(builder.length() > 0? ", ": "").append("ref: ").append(xref);
 		if(value != null)
 			builder.append(builder.length() > 0? ", ": "").append("value: ").append(value);
-		if(parent != null){
-			final StringBuilder parentBuilder = new StringBuilder();
-			builder.append(builder.length() > 0? ", ": "").append("parent: {");
-			if(parent.id != null)
-				parentBuilder.append("id: ").append(parent.id);
-			if(parent.tag != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("tag: ").append(parent.tag);
-			if(parent.xref != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("ref: ").append(parent.xref);
-			if(parent.value != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("value: ").append(parent.value);
-			parentBuilder.append("}");
-			builder.append(parentBuilder);
-		}
 		if(children != null){
 			final StringBuilder childBuilder = new StringBuilder();
 

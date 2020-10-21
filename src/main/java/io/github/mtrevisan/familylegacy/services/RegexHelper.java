@@ -100,9 +100,9 @@ public final class RegexHelper{
 	/**
 	 * Removes all occurrences of the matching pattern in the input string
 	 *
-	 * @param pattern The pattern to look for
-	 * @param input   The string to check against
-	 * @return The input string without any parts which matched the pattern
+	 * @param pattern	The pattern to look for
+	 * @param input	The string to check against
+	 * @return	The input string without any parts which matched the pattern
 	 */
 	public static String removeAll(final String input, final Pattern pattern){
 		return replaceAll(input, pattern, "");
@@ -115,9 +115,9 @@ public final class RegexHelper{
 	/**
 	 * Returns the first string in the input which match the given pattern.
 	 *
-	 * @param text   The string to check against.
-	 * @param pattern The pattern to look for.
-	 * @return The first match
+	 * @param text	The string to check against.
+	 * @param pattern	The pattern to look for.
+	 * @return	The first match
 	 */
 	public static String getFirstMatching(final String text, final Pattern pattern){
 		final Matcher m = pattern.matcher(text);
