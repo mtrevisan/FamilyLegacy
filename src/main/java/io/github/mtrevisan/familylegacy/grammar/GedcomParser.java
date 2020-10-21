@@ -34,10 +34,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class GedcomParser{
@@ -46,7 +47,7 @@ public class GedcomParser{
 
 	private static final String GEDCOM_EXTENSION = "ged";
 
-	private static final String CUSTOM_TAGS_EXTENSION_KEY = "fl.customTags";
+	private static final String CUSTOM_TAGS_EXTENSION_KEY = "fl.custom_tags";
 
 
 	private final GedcomNode root = new GedcomNode();
@@ -96,7 +97,7 @@ public class GedcomParser{
 	private GedcomNode parseGedcom(final InputStream is, final GedcomStore store) throws GedcomParseException{
 		LOGGER.info("Parsing GEDCOM file...");
 
-		startDocument(store);
+		startDocument();
 
 		int lineCount = 0;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
@@ -118,7 +119,7 @@ public class GedcomParser{
 						lineCount, line);
 
 				currentLevel = child.getLevel();
-				//if level is > prevlevel+1, ignore it until it comes back down
+				//if level is > previousLevel+1, ignore it until it comes back down
 				if(currentLevel > previousLevel + 1)
 					throw GedcomParseException.create("Level > prevLevel+1 @ {}", lineCount);
 				if(currentLevel < 0)
@@ -150,54 +151,57 @@ public class GedcomParser{
 		return root;
 	}
 
-	private void startDocument(final GedcomStore store){
+	private void startDocument(){
 		nodeStack.clear();
 		nodeStack.push(root);
 
 		root.setObject(new HashMap<>());
 	}
 
+	@SuppressWarnings({"unchecked", "ConstantConditions"})
 	private void startElement(final GedcomNode child, final GedcomStore store) throws NoSuchMethodException{
 		final GedcomNode parent = nodeStack.peek();
 		final GedcomStoreLine parentStoreLine = (!storeLineStack.isEmpty()? storeLineStack.peek(): null);
 
-		child.setParent(parent);
 		parent.addChild(child);
 
 		final String id = child.getID();
 		final String tag = child.getTag();
 		final String xref = child.getXRef();
+		final String value = child.getValue();
 		Object parentObject = parent.getObject();
 		if(parentObject == null){
 			parentObject = new HashMap<>();
 			parent.setObject(parentObject);
 		}
 
-		final GedcomStoreLine storeLine = (parentStoreLine != null? parentStoreLine.getChildBlock().getStoreLine(tag):
+		final GedcomStoreLine storeLine = (parentStoreLine != null?
+			parentStoreLine.getChildBlock().getStoreLine(tag):
+			//extract GEDCOM base structure
 			store.getStoreStructures("HEAD").get(0).getStoreBlock().getStoreLine("HEAD"));
-		if(storeLine == null){
-			//unexpected tag
+		if(storeLine != null){
+			final Set<String> valueNames = storeLine.getValueNames();
+			for(final String valueName : valueNames)
+				((Map<String, Object>)parentObject).put(valueName.toLowerCase(), value);
+		}
+		else if(value != null && tag.charAt(0) == '_'){
+			//unexpected tag:
 			final GedcomNode obj = new GedcomNode(id, tag, xref);
-			obj.setValue(child.getValue());
+			obj.setValue(value);
 			if(parentObject instanceof Map)
-				((List<GedcomNode>)((Map<String, Object>)parentObject).computeIfAbsent(CUSTOM_TAGS_EXTENSION_KEY, k -> new ArrayList<GedcomNode>()))
+				((Collection<Object>)((Map<String, Object>)parentObject).computeIfAbsent(CUSTOM_TAGS_EXTENSION_KEY,
+						k -> new ArrayList<GedcomNode>()))
 					.add(obj);
 			else if(parentObject instanceof FieldRef && ((FieldRef)parentObject).getTarget() instanceof Map){
-				obj.setParent(nodeStack.peek());
 				final Map<String, Object> extensionContainer = (Map<String, Object>)((FieldRef)parentObject).getTarget();
-				((List<GedcomNode>)extensionContainer.computeIfAbsent(CUSTOM_TAGS_EXTENSION_KEY, k -> new ArrayList<GedcomNode>()))
+				((Collection<Object>)extensionContainer.computeIfAbsent(CUSTOM_TAGS_EXTENSION_KEY, k -> new ArrayList<GedcomNode>()))
 					.add(obj);
 			}
 			else
 				LOGGER.error("Dropped tag {}", tag);
 		}
-		else{
-			//TODO parse store line
-			System.out.println();
-		}
 
 		//set value:
-		final String value = child.getValue();
 		if(value != null && !value.isEmpty()){
 			Object obj = child.getObject();
 			if(obj == null){
@@ -212,20 +216,17 @@ public class GedcomParser{
 					fieldRef = (FieldRef)obj;
 					fieldRef.appendValue(value);
 				}
-				else{
-					//FIXME what if not a map?
-					fieldRef = new FieldRef((Map<String, Object>)obj, "value");
-					fieldRef.setValue(value);
-				}
+				//otherwise do nothing, the `value` is already valued
 			}
 			catch(final Exception e){
-				if("value".equals(fieldRef.getFieldName()))
+				final String fieldName = (fieldRef != null? fieldRef.getFieldName(): null);
+				if("value".equals(fieldName))
 					//this object doesn't have a value field, so drop it
-					LOGGER.error("Value '{}' not stored for field '{}', parent '{}', and tag {}", value, fieldRef.getFieldName(),
-						(obj != null? obj.getClass().getSimpleName(): null), tag);
+					LOGGER.error("Value '{}' not stored for field '{}', parent '{}', and tag {}", value, fieldName,
+						obj.getClass().getSimpleName(), tag);
 				else{
 					//if the method does not exists, it's programmer error
-					LOGGER.error("Setter for value '{}' does not exists for tag {}, field is {}", value, tag, fieldRef.getFieldName());
+					LOGGER.error("Setter for value '{}' does not exists for tag {}, field is {}", value, tag, fieldName);
 
 					throw e;
 				}
@@ -233,6 +234,7 @@ public class GedcomParser{
 		}
 
 		nodeStack.push(child);
+		//NOTE: re-enqueue `parentStoreLine` if a custom tag is encountered (and therefore `storeLine` is null)
 		storeLineStack.push(storeLine != null? storeLine: parentStoreLine);
 	}
 

@@ -36,7 +36,7 @@ import java.util.Properties;
 
 /*
  * This class reads an input stream of bytes representing ANSEL-encoded characters, and delivers a stream of UNICODE characters.
- * Conversion tables based upon <a href="http://www.heiner-eichmann.de/gedcom/oldansset.htm">ANSEL to Unicode Convertion Table</a> and
+ * Conversion tables based upon <a href="http://www.heiner-eichmann.de/gedcom/oldansset.htm">ANSEL to Unicode Conversion Table</a> and
  * <a href="http://lcweb2.loc.gov/diglib/codetables/45.html">Code Table Extended Latin (ANSEL)</a>.
  */
 class AnselInputStreamReader extends InputStreamReader{

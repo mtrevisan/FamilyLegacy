@@ -176,13 +176,6 @@ class GedcomStoreLine{
 	}
 
 	/**
-	 * @return	Position of this store line in the block.
-	 */
-	public int getPosition(final GedcomStoreBlock parentBlock){
-		return parentBlock.getStoreLines().indexOf(this);
-	}
-
-	/**
 	 * @return	Child block of this store line.
 	 */
 	public GedcomStoreBlock getChildBlock(){
@@ -317,17 +310,6 @@ class GedcomStoreLine{
 	public boolean hasStructureName(){
 		return (structureName != null);
 	}
-
-	/**
-	 * Returns the level of this line.
-	 */
-//	public int getLevel(){
-//		return parentBlock.getLevel();
-//	}
-
-//	public GedcomStoreBlock getParentBlock(){
-//		return parentBlock;
-//	}
 
 	/**
 	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains

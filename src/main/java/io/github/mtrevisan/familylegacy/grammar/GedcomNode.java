@@ -54,7 +54,6 @@ public class GedcomNode{
 
 	private Object object;
 
-	private GedcomNode parent;
 	private List<GedcomNode> children;
 
 
@@ -140,14 +139,6 @@ public class GedcomNode{
 		this.object = object;
 	}
 
-	public GedcomNode getParent(){
-		return parent;
-	}
-
-	public void setParent(final GedcomNode parent){
-		this.parent = parent;
-	}
-
 	public List<GedcomNode> getChildren(){
 		return (children != null? children: Collections.emptyList());
 	}
@@ -172,30 +163,19 @@ public class GedcomNode{
 			.append(tag, rhs.tag)
 			.append(xref, rhs.xref)
 			.append(value, rhs.value)
-			.append((parent != null), (rhs.parent != null))
 			.append(children, rhs.children);
-		if(parent != null)
-			builder.append(parent.id, rhs.parent.id)
-				.append(parent.tag, rhs.parent.tag)
-				.append(parent.xref, rhs.parent.xref)
-				.append(parent.value, rhs.parent.value);
 		return builder.isEquals();
 	}
 
 	@Override
 	public int hashCode(){
-		final HashCodeBuilder builder = new HashCodeBuilder()
+		return new HashCodeBuilder()
 			.append(id)
 			.append(tag)
 			.append(xref)
 			.append(value)
-			.append(children);
-		if(parent != null)
-			builder.append(parent.id)
-				.append(parent.tag)
-				.append(parent.xref)
-				.append(parent.value);
-		return builder.hashCode();
+			.append(children)
+			.hashCode();
 	}
 
 	@Override
@@ -209,20 +189,6 @@ public class GedcomNode{
 			builder.append(builder.length() > 0? ", ": "").append("ref: ").append(xref);
 		if(value != null)
 			builder.append(builder.length() > 0? ", ": "").append("value: ").append(value);
-		if(parent != null){
-			final StringBuilder parentBuilder = new StringBuilder();
-			builder.append(builder.length() > 0? ", ": "").append("parent: {");
-			if(parent.id != null)
-				parentBuilder.append("id: ").append(parent.id);
-			if(parent.tag != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("tag: ").append(parent.tag);
-			if(parent.xref != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("ref: ").append(parent.xref);
-			if(parent.value != null)
-				parentBuilder.append(parentBuilder.length() > 0? ", ": "").append("value: ").append(parent.value);
-			parentBuilder.append("}");
-			builder.append(parentBuilder);
-		}
 		if(children != null){
 			final StringBuilder childBuilder = new StringBuilder();
 

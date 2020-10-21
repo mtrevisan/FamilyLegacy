@@ -55,19 +55,6 @@ class GedcomStoreBlock{
 	 */
 	private final Map<String, GedcomStoreLine> idToLineLinks = new HashMap<>();
 
-	/** The structure which contains this block. The structure is the starting point which contains a block with all the structure lines. */
-//	private final GedcomStoreStructure storeStructure;
-	/** The line which this block is located under. */
-//	private final GedcomStoreLine parentStoreLine;
-
-
-	/**
-	 * Creates a new gedcom store block in the given store structure.
-	 */
-//	GedcomStoreBlock(/*final GedcomStoreStructure storeStructure,*/ final GedcomStoreLine parentStoreLine){
-//		this.storeStructure = storeStructure;
-//		this.parentStoreLine = parentStoreLine;
-//	}
 
 	/**
 	 * Parses the given block with all the lines.
@@ -125,7 +112,6 @@ class GedcomStoreBlock{
 	 * Process a sub block.
 	 */
 	private boolean parseSubBlock(final List<String> subBlock, final GedcomStoreLine parentStoreLine) throws GedcomGrammarParseException{
-//		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock(/*storeStructure,*/ parentStoreLine);
 		final GedcomStoreBlock storeSubBlock = new GedcomStoreBlock();
 		if(!storeSubBlock.parse(subBlock))
 			return false;
@@ -180,13 +166,6 @@ class GedcomStoreBlock{
 	}
 
 	/**
-	 * Returns the store line which is the parent of this block
-	 */
-//	public GedcomStoreLine getParentStoreLine(){
-//		return parentStoreLine;
-//	}
-
-	/**
 	 * Returns a list of all the mandatory lines in this block.
 	 */
 	public List<GedcomStoreLine> getMandatoryLines(){
@@ -197,13 +176,6 @@ class GedcomStoreBlock{
 				mandatoryLines.add(line);
 		return mandatoryLines;
 	}
-
-	/**
-	 * Returns the level of this block. The level of this block is one higher than the parent line of this block.
-	 */
-//	public int getLevel(){
-//		return (parentStoreLine != null? parentStoreLine.getLevel() + 1: 0);
-//	}
 
 	/**
 	 * Returns <code>true</code> if this block has one or more child lines.
@@ -227,6 +199,13 @@ class GedcomStoreBlock{
 	 */
 	public boolean hasStoreLine(final String lineId){
 		return idToLineLinks.containsKey(lineId);
+	}
+
+	/**
+	 * @return	Position of the given store line in the block.
+	 */
+	public int getPosition(final GedcomStoreLine storeLine){
+		return storeLines.indexOf(storeLine);
 	}
 
 }

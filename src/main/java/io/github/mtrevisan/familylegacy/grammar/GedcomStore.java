@@ -52,7 +52,7 @@ class GedcomStore{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GedcomStore.class);
 
-	public static final String GEDCOM_FILENAME_EXTENSION = "gedg";
+	private static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
 	private static final String COMMENT_START = "/*";
 	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=");
@@ -91,16 +91,6 @@ class GedcomStore{
 	 */
 	private final Map<String, List<GedcomStoreStructure>> variations = new HashMap<>();
 
-
-	public static void main(String[] args){
-		try{
-			GedcomStore store = create("/gedg/gedcomobjects_5.5.1.gedg");
-			System.out.println(store);
-		}
-		catch(GedcomGrammarParseException e){
-			e.printStackTrace();
-		}
-	}
 
 	/**
 	 * Parses the given lineage-linked grammar file and adds all the structures to this store.
@@ -177,7 +167,7 @@ class GedcomStore{
 					else{
 						if(gedcomVersion == null || gedcomSource == null || gedcomDescription.isEmpty())
 							throw GedcomGrammarParseException.create("Invalid gedcom grammar file format. "
-								+ "The file needs a header with the following kewords: {}", Arrays.toString(FileHeaderKeywords.values()));
+								+ "The file needs a header with the following keywords: {}", Arrays.toString(FileHeaderKeywords.values()));
 
 						LOGGER.trace("Gedcom version: {}", gedcomVersion);
 						LOGGER.trace("Source of gedcom grammar: {}", gedcomSource);
@@ -244,22 +234,23 @@ class GedcomStore{
 
 				//process all sub-blocks one by one
 				if(RegexHelper.contains(line, SUB_BLOCK_DIVIDER)){
-					parseSubBlock(structureName, new ArrayList<>(block.subList(lastDivider, i)));
+					parseSubBlock(structureName, block.subList(lastDivider, i));
 					lastDivider = i + 1;
 				}
 			}
 		}
 		else
 			//no variations: process the whole block without the structure-ID
-			parseSubBlock(structureName, new ArrayList<>(block.subList(1, block.size())));
+			parseSubBlock(structureName, block.subList(1, block.size()));
 	}
 
 	/**
 	 * Processes a sub-block, which only contains gedcom lines (without structure name and without variations).
 	 */
-	private void parseSubBlock(final String structureName, final List<String> subBlock) throws GedcomGrammarParseException{
+	@SuppressWarnings("ObjectAllocationInLoop")
+	private void parseSubBlock(final String structureName, final List<String> subBlockView) throws GedcomGrammarParseException{
 		//parse the sub block and build the new structure
-		final GedcomStoreStructure storeStructure = GedcomStoreStructure.create(structureName, subBlock);
+		final GedcomStoreStructure storeStructure = GedcomStoreStructure.create(structureName, new ArrayList<>(subBlockView));
 
 		//create a simple list of all the available structures
 		structures.add(storeStructure);
