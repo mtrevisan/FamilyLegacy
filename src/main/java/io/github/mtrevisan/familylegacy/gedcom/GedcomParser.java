@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,6 +47,8 @@ class GedcomParser{
 
 	private static final String GEDCOM_EXTENSION = "ged";
 
+	private static final String TAG_HEAD = "HEAD";
+	private static final String TAG_TRLR = "TRLR";
 	private static final String CUSTOM_TAGS_EXTENSION_KEY = "fl.custom_tags";
 
 
@@ -121,7 +124,16 @@ class GedcomParser{
 
 			LOGGER.info("Parsing done");
 
+			final List<GedcomNode> children = root.getChildren();
+			if(!TAG_HEAD.equals(children.get(0).getTag()))
+				throw GedcomParseException.create("Malformed GEDCOM file: HEAD tag missing");
+			if(!TAG_TRLR.equals(children.get(children.size() - 1).getTag()))
+				throw GedcomParseException.create("Malformed GEDCOM file: TRLR tag missing");
+
 			return root;
+		}
+		catch(final GedcomParseException e){
+			throw e;
 		}
 		catch(final Exception e){
 			throw GedcomParseException.create("Failed to read line {}", lineCount);
@@ -143,7 +155,7 @@ class GedcomParser{
 		final GedcomGrammarLine grammarLine = (parentGrammarLine != null?
 			parentGrammarLine.getChildBlock().getGrammarLine(child.getTag()):
 			//extract GEDCOM base structure
-			grammar.getGrammarStructures("HEAD").get(0).getGrammarBlock().getGrammarLine("HEAD"));
+			grammar.getGrammarStructures(TAG_HEAD).get(0).getGrammarBlock().getGrammarLine(TAG_HEAD));
 		storeParameter(child, parent, grammarLine);
 
 		setValue(child);
