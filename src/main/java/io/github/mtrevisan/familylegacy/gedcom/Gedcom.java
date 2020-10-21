@@ -26,9 +26,13 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -41,9 +45,6 @@ import java.util.Map;
 
 
 public class Gedcom{
-
-	private static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
-
 
 	private GedcomNode root;
 
@@ -72,9 +73,9 @@ public class Gedcom{
 			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/complex.ged");
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/complex.ged");
 
-			OutputStream os = new FileOutputStream();
-//			gedcom.printWithIndentation(os);
-			gedcom.printFlat(os, StandardCharsets.UTF_8);
+			OutputStream os = new FileOutputStream(new File("/tmp.ged"));
+//			gedcom.writeWithIndentation(os);
+			gedcom.writeFlat(os);
 System.out.println(os.toString());
 		}
 		catch(final GedcomGrammarParseException | GedcomParseException | IOException e){
@@ -126,18 +127,24 @@ System.out.println(os.toString());
 	/**
 	 * Prints the GEDCOM file without indentation.
 	 */
-	public void printFlat(final OutputStream os, final Charset charset) throws IOException{
-		printWithIndentation(os, 0, charset);
+	public void writeFlat(final OutputStream os) throws IOException{
+		writeWithIndentation(os, 0);
 	}
 
 	/**
 	 * Prints the GEDCOM file using indentation.
 	 */
-	public void printWithIndentation(final OutputStream os, final int spaces, final Charset charset) throws IOException{
-		print(os, StringUtils.repeat(StringUtils.SPACE, spaces).getBytes(), charset);
+	public void writeWithIndentation(final OutputStream os, final int spaces) throws IOException{
+		write(os, StringUtils.repeat(StringUtils.SPACE, spaces));
 	}
 
-	private void print(final OutputStream os, final byte[] indentation, final Charset charset) throws IOException{
+	private void write(final OutputStream os, final String indentation) throws IOException{
+		final String charset = getCharsetName();
+		final String eol = (charset.equals("x-MacRoman")? "\r": "\n");
+		final OutputStreamWriter writer = (AnselInputStreamReader.CHARACTER_ENCODING.equals(charset)?
+			new AnselOutputStreamWriter(os): new OutputStreamWriter(os, charset));
+		final Writer out = new BufferedWriter(writer);
+
 		final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
 		//skip passed node and add its children
 		for(final GedcomNode child : root.getChildren())
@@ -148,38 +155,53 @@ System.out.println(os.toString());
 			for(int i = children.size() - 1; i >= 0; i --)
 				nodeStack.addFirst(children.get(i));
 
-			os.write(indentation);
-			os.write(Integer.toString(child.getLevel()).getBytes());
+			out.write(indentation);
+			out.write(child.getLevel());
 			if(child.getLevel() == 0){
-				appendID(os, child.getID(), charset);
-				appendTag(os, child.getTag(), charset);
+				appendID(out, child.getID());
+				appendTag(out, child.getTag());
 			}
 			else{
-				appendTag(os, child.getTag(), charset);
-				appendID(os, child.getXRef(), charset);
-				appendID(os, child.getID(), charset);
+				appendTag(out, child.getTag());
+				appendID(out, child.getXRef());
+				appendID(out, child.getID());
 			}
 			if(child.getValue() != null){
-				os.write(' ');
-				os.write(child.getValue().getBytes(charset));
+				out.write(' ');
+				out.write(child.getValue());
 			}
-			os.write(LINE_SEPARATOR);
+			out.write(eol);
 		}
-		os.flush();
+		out.flush();
 	}
 
-	private void appendID(final OutputStream os, final String id, final Charset charset) throws IOException{
+	private String getCharsetName(){
+		final GedcomNode header = getHeader();
+		final List<GedcomNode> source = header.getChildrenWithTag("SOUR");
+		final String generator = (!source.isEmpty()? source.get(0).getValue(): null);
+		final List<GedcomNode> characterSet = header.getChildrenWithTag("CHAR");
+		String charset = (!characterSet.isEmpty()? characterSet.get(0).getValue(): null);
+		final List<GedcomNode> characterSetVersion = (!characterSet.isEmpty()? characterSet.get(0).getChildren(): null);
+		final String version = (!characterSetVersion.isEmpty()? characterSetVersion.get(0).getValue(): null);
+		charset = GedcomHelper.getCorrectedCharsetName(generator, charset, version);
+		if(charset.isEmpty())
+			//default
+			charset = StandardCharsets.UTF_8.name();
+		return charset;
+	}
+
+	private void appendID(final Writer out, final String id) throws IOException{
 		if(id != null){
-			os.write(' ');
-			os.write('@');
-			os.write(id.getBytes(charset));
-			os.write('@');
+			out.write(' ');
+			out.write('@');
+			out.write(id);
+			out.write('@');
 		}
 	}
 
-	private void appendTag(final OutputStream os, final String tag, final Charset charset) throws IOException{
-		os.write(' ');
-		os.write(tag.getBytes(charset));
+	private void appendTag(final Writer out, final String tag) throws IOException{
+		out.write(' ');
+		out.write(tag);
 	}
 
 	private static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){

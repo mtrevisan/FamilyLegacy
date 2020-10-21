@@ -75,7 +75,7 @@ final class GedcomHelper{
 
 		if(charEncoding.isEmpty())
 			//default
-			charEncoding = "ANSEL";
+			charEncoding = AnselInputStreamReader.CHARACTER_ENCODING;
 
 		//skip over junk at the beginning of the file
 		in.reset();
@@ -88,7 +88,7 @@ final class GedcomHelper{
 		for(int i = 0; i < cnt; i ++)
 			in.read();
 
-		final InputStreamReader reader = ("ANSEL".equals(charEncoding)?
+		final InputStreamReader reader = (AnselInputStreamReader.CHARACTER_ENCODING.equals(charEncoding)?
 			new AnselInputStreamReader(in): new InputStreamReader(in, charEncoding));
 
 		return new BufferedReader(reader);
@@ -136,7 +136,7 @@ final class GedcomHelper{
 		return getCorrectedCharsetName(generatorName, encoding, version);
 	}
 
-	private static String getCorrectedCharsetName(final String generatorName, String encoding, final String version){
+	static String getCorrectedCharsetName(final String generatorName, String encoding, final String version){
 		//correct incorrectly-assigned encoding values
 		if("GeneWeb".equals(generatorName) && "ASCII".equals(encoding))
 			//GeneWeb ASCII -> Cp1252 (ANSI)
@@ -144,7 +144,7 @@ final class GedcomHelper{
 		else if("Geni.com".equals(generatorName) && "UNICODE".equals(encoding))
 			//Geni.com UNICODE -> UTF-8
 			encoding = "UTF-8";
-		else if("Geni.com".equals(generatorName) && "ANSEL".equals(encoding))
+		else if("Geni.com".equals(generatorName) && AnselInputStreamReader.CHARACTER_ENCODING.equals(encoding))
 			//Geni.com ANSEL -> UTF-8
 			encoding = "UTF-8";
 		else if("GENJ".equals(generatorName) && "UNICODE".equals(encoding))
