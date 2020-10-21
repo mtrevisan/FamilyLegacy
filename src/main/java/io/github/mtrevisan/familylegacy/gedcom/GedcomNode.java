@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -195,15 +196,15 @@ public final class GedcomNode{
 		if(id != null)
 			builder.append("id: ").append(id);
 		if(tag != null)
-			builder.append(builder.length() > 0? ", ": "").append("tag: ").append(tag);
+			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("tag: ").append(tag);
 		if(xref != null)
-			builder.append(builder.length() > 0? ", ": "").append("ref: ").append(xref);
+			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("ref: ").append(xref);
 		if(value != null)
-			builder.append(builder.length() > 0? ", ": "").append("value: ").append(value);
+			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("value: ").append(value);
 		if(children != null){
 			final StringBuilder childBuilder = new StringBuilder();
 
-			builder.append(builder.length() > 0? ", ": "").append("children: [");
+			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("children: [");
 			final int size = children.size();
 			for(int i = 0; i < size; i ++){
 				final GedcomNode child = children.get(i);
@@ -212,11 +213,11 @@ public final class GedcomNode{
 				if(child.id != null)
 					childBuilder.append("id: ").append(child.id);
 				if(child.tag != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": "").append("tag: ").append(child.tag);
+					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("tag: ").append(child.tag);
 				if(child.xref != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": "").append("ref: ").append(child.xref);
+					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("ref: ").append(child.xref);
 				if(child.value != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": "").append("value: ").append(child.value);
+					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("value: ").append(child.value);
 				childBuilder.append('}');
 				builder.append(childBuilder);
 				if(i < size - 1)

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -174,7 +176,7 @@ final class GedcomHelper{
 			encoding = "UnicodeBigUnmarked";
 		else if(encoding == null)
 			//not found
-			encoding = "";
+			encoding = StringUtils.EMPTY;
 		return encoding;
 	}
 

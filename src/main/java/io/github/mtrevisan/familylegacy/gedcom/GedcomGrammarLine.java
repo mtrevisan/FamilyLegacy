@@ -95,8 +95,8 @@ class GedcomGrammarLine{
 
 		//clean the line from all unnecessary stuff
 		gedcomDefinitionLine = RegexHelper.removeAll(gedcomDefinitionLine, COMMENT_PATTERN);
-		gedcomDefinitionLine = RegexHelper.replaceAll(gedcomDefinitionLine, LEVEL_PATTERN, "");
-		gedcomDefinitionLine = RegexHelper.replaceAll(gedcomDefinitionLine, SPACES_PATTERN, " ");
+		gedcomDefinitionLine = RegexHelper.replaceAll(gedcomDefinitionLine, LEVEL_PATTERN, StringUtils.EMPTY);
+		gedcomDefinitionLine = RegexHelper.replaceAll(gedcomDefinitionLine, SPACES_PATTERN, StringUtils.SPACE);
 		gedcomDefinitionLine = gedcomDefinitionLine.trim();
 
 		//split for each space
@@ -115,7 +115,7 @@ class GedcomGrammarLine{
 			else if(components[i].contains("@") && RegexHelper.matches(components[i], MULTIPLE_X_REFS)){
 				//Multiple XREF ([@<XREF>@|@<XREF>@|<NULL>...])
 				//At least one @ has to be present
-				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, ""), '|');
+				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, StringUtils.EMPTY), '|');
 				Collections.addAll(sl.xrefNames, values);
 			}
 			else if(RegexHelper.matches(components[i], MIN_MAX_PATTERN)){
@@ -134,7 +134,7 @@ class GedcomGrammarLine{
 				sl.valueNames.add(RegexHelper.removeAll(components[i], VALUE_REPLACE));
 			else if(RegexHelper.matches(components[i], MULTIPLE_VALUES)){
 				//Multiple VALUE ([<ABC>|<DEF>|<GHI>...])
-				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, ""), '|');
+				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
 				Collections.addAll(sl.valueNames, values);
 			}
 			else if(RegexHelper.matches(components[i], TAG_PATTERN)){
@@ -150,7 +150,7 @@ class GedcomGrammarLine{
 			}
 			else if(RegexHelper.contains(components[i], MULTIPLE_TAGS)){
 				//Multiple TAG ([ABC|DEF|GHI...])
-				final String[] tags = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, ""), '|');
+				final String[] tags = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, StringUtils.EMPTY), '|');
 				for(final String tag : tags){
 					if(sl.xrefNames.isEmpty())
 						sl.tagNamesBeforeXRef.add(tag);
@@ -164,7 +164,7 @@ class GedcomGrammarLine{
 				//Value possibilities. They can only appear right after the tag
 				//Example: DEAT [Y|<NULL>]
 				final String[] possibilities = StringUtils.split(
-					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, ""), '|');
+					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
 				for(final String possibility : possibilities)
 					sl.valuePossibilities.add(!"NULL".equals(possibility.toUpperCase())? possibility: null);
 			}

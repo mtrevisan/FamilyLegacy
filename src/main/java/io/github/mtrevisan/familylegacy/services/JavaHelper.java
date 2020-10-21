@@ -24,10 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 
 public final class JavaHelper{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHelper.class);
 
 	static{
 		try{
@@ -41,6 +51,20 @@ public final class JavaHelper{
 
 
 	private JavaHelper(){}
+
+	public static Properties getProperties(final String filename){
+		final Properties rulesProperties = new Properties();
+		final InputStream is = JavaHelper.class.getResourceAsStream(filename);
+		if(is != null){
+			try(final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)){
+				rulesProperties.load(isr);
+			}
+			catch(final IOException e){
+				LOGGER.error("Cannot load ANSEL table", e);
+			}
+		}
+		return rulesProperties;
+	}
 
 	public static String format(final String message, final Object... parameters){
 		return MessageFormatter.arrayFormat(message, parameters)

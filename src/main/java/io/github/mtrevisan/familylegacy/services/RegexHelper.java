@@ -105,7 +105,7 @@ public final class RegexHelper{
 	 * @return	The input string without any parts which matched the pattern
 	 */
 	public static String removeAll(final String input, final Pattern pattern){
-		return replaceAll(input, pattern, "");
+		return replaceAll(input, pattern, StringUtils.EMPTY);
 	}
 
 	public static String clear(final CharSequence text, final Pattern pattern){

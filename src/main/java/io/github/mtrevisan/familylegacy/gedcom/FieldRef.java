@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
 
 
@@ -59,7 +61,7 @@ class FieldRef{
 		if(currentValue != null && !(currentValue instanceof String))
 			throw new NoSuchMethodException("Field '" + fieldName + "' is not a string, cannot append value " + value);
 
-		setValue((currentValue == null? "": currentValue) + value);
+		setValue((currentValue == null? StringUtils.EMPTY: currentValue) + value);
 	}
 
 }

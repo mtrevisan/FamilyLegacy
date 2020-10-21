@@ -26,6 +26,11 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,8 +42,7 @@ import java.util.Map;
 
 public class Gedcom{
 
-	private static final String LINE_SEPARATOR = "\r\n";
-	private static final String INDENTATION = "  ";
+	private static final byte[] LINE_SEPARATOR = "\r\n".getBytes();
 
 
 	private GedcomNode root;
@@ -68,11 +72,12 @@ public class Gedcom{
 			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/complex.ged");
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/complex.ged");
 
-//			final StringBuilder sb = gedcom.printWithIndentation();
-			final StringBuilder sb = gedcom.printFlat();
-System.out.println(gedcom);
+			OutputStream os = new FileOutputStream();
+//			gedcom.printWithIndentation(os);
+			gedcom.printFlat(os, StandardCharsets.UTF_8);
+System.out.println(os.toString());
 		}
-		catch(final GedcomGrammarParseException | GedcomParseException e){
+		catch(final GedcomGrammarParseException | GedcomParseException | IOException e){
 			e.printStackTrace();
 		}
 	}
@@ -119,21 +124,20 @@ System.out.println(gedcom);
 	}
 
 	/**
-	 * Prints the GEDCOM file using indentation.
+	 * Prints the GEDCOM file without indentation.
 	 */
-	public StringBuilder printWithIndentation(){
-		return print(true);
+	public void printFlat(final OutputStream os, final Charset charset) throws IOException{
+		printWithIndentation(os, 0, charset);
 	}
 
 	/**
-	 * Prints the GEDCOM file without indentation.
+	 * Prints the GEDCOM file using indentation.
 	 */
-	public StringBuilder printFlat(){
-		return print(false);
+	public void printWithIndentation(final OutputStream os, final int spaces, final Charset charset) throws IOException{
+		print(os, StringUtils.repeat(StringUtils.SPACE, spaces).getBytes(), charset);
 	}
 
-	public StringBuilder print(final boolean indent){
-		final StringBuilder sb = new StringBuilder();
+	private void print(final OutputStream os, final byte[] indentation, final Charset charset) throws IOException{
 		final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
 		//skip passed node and add its children
 		for(final GedcomNode child : root.getChildren())
@@ -144,33 +148,38 @@ System.out.println(gedcom);
 			for(int i = children.size() - 1; i >= 0; i --)
 				nodeStack.addFirst(children.get(i));
 
-			if(indent)
-				sb.append(StringUtils.repeat(INDENTATION, child.getLevel()));
-			sb.append(child.getLevel());
+			os.write(indentation);
+			os.write(Integer.toString(child.getLevel()).getBytes());
 			if(child.getLevel() == 0){
-				appendID(sb, child.getID());
-				appendTag(sb, child.getTag());
+				appendID(os, child.getID(), charset);
+				appendTag(os, child.getTag(), charset);
 			}
 			else{
-				appendTag(sb, child.getTag());
-				appendID(sb, child.getXRef());
-				appendID(sb, child.getID());
+				appendTag(os, child.getTag(), charset);
+				appendID(os, child.getXRef(), charset);
+				appendID(os, child.getID(), charset);
 			}
-			if(child.getValue() != null)
-				sb.append(' ').append(child.getValue());
-			sb.append(LINE_SEPARATOR);
+			if(child.getValue() != null){
+				os.write(' ');
+				os.write(child.getValue().getBytes(charset));
+			}
+			os.write(LINE_SEPARATOR);
 		}
-
-		return sb;
+		os.flush();
 	}
 
-	private void appendID(final StringBuilder sb, final String id){
-		if(id != null)
-			sb.append(' ').append('@').append(id).append('@');
+	private void appendID(final OutputStream os, final String id, final Charset charset) throws IOException{
+		if(id != null){
+			os.write(' ');
+			os.write('@');
+			os.write(id.getBytes(charset));
+			os.write('@');
+		}
 	}
 
-	private void appendTag(final StringBuilder sb, final String tag){
-		sb.append(' ').append(tag);
+	private void appendTag(final OutputStream os, final String tag, final Charset charset) throws IOException{
+		os.write(' ');
+		os.write(tag.getBytes(charset));
 	}
 
 	private static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){

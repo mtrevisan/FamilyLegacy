@@ -24,31 +24,25 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 
 /*
- * This class reads an input stream of bytes representing ANSEL-encoded characters, and delivers a stream of UNICODE characters.
+ * Reads an input stream of bytes representing ANSEL-encoded characters, and delivers a stream of UNICODE characters.
  * Conversion tables based upon <a href="http://www.heiner-eichmann.de/gedcom/oldansset.htm">ANSEL to Unicode Conversion Table</a> and
  * <a href="http://lcweb2.loc.gov/diglib/codetables/45.html">Code Table Extended Latin (ANSEL)</a>.
  */
 class AnselInputStreamReader extends InputStreamReader{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AnselInputStreamReader.class);
+	static final String CHARACTER_ENCODING = "ANSEL";
+	static final String ANSEL_FORMATTER = "0x%04X";
 
-	private static final String CHARACTER_ENCODING = "ANSEL";
-	private static final String FORMATTER_2BYTE = "0x%02X";
-	private static final String FORMATTER_4BYTE = "0x%04X";
-
-	private static final Properties ANSEL_1BYTE = getProperties("/ansel1byte.properties");
-	private static final Properties ANSEL_2BYTE = getProperties("/ansel2byte.properties");
+	private static final Properties ANSEL = JavaHelper.getProperties("/ansel.properties");
 
 
 	private final InputStream input;
@@ -76,8 +70,8 @@ class AnselInputStreamReader extends InputStreamReader{
 
 		//try to match two ansel chars if it is possible
 		if(pending > 0 && ((b >= 0xE0 && b <= 0xFF) || (b >= 0xD7 && b <= 0xD9))){
-			final String chr = ANSEL_2BYTE.getProperty(String.format(FORMATTER_4BYTE, b * 256 + pending));
-			final int u = (chr != null? Integer.parseInt(chr): -1);
+			final String chr = ANSEL.getProperty(String.format(ANSEL_FORMATTER, b * 256 + pending));
+			final int u = (chr != null? Integer.parseInt(chr, 16): -1);
 			if(u > 0){
 				pending = input.read();
 				return u;
@@ -85,9 +79,9 @@ class AnselInputStreamReader extends InputStreamReader{
 		}
 
 		//else match one char
-		final String chr = ANSEL_1BYTE.getProperty(String.format(FORMATTER_2BYTE, b));
+		final String chr = ANSEL.getProperty(String.format(ANSEL_FORMATTER, b));
 		//if no match, use Unicode REPLACEMENT CHARACTER
-		return (chr != null? Integer.parseInt(chr): 0xFFFD);
+		return (chr != null? Integer.parseInt(chr, 16): 0xFFFD);
 	}
 
 	/**
@@ -110,20 +104,6 @@ class AnselInputStreamReader extends InputStreamReader{
 
 	public String getEncoding(){
 		return CHARACTER_ENCODING;
-	}
-
-	private static Properties getProperties(final String filename){
-		final Properties rulesProperties = new Properties();
-		final InputStream is = AnselInputStreamReader.class.getResourceAsStream(filename);
-		if(is != null){
-			try(final InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8)){
-				rulesProperties.load(isr);
-			}
-			catch(final IOException e){
-				LOGGER.error("Cannot load ANSEL table", e);
-			}
-		}
-		return rulesProperties;
 	}
 
 }
