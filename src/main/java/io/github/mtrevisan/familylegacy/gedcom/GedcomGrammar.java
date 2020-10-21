@@ -45,7 +45,9 @@ import java.util.regex.Pattern;
 /**
  * Parse a lineage-linked grammar file and to retrieve the parsed structures from it.
  *
- * @see <a href="https://github.com/daleathan/GedcomStore">GedcomStore</a>
+ * @see <a href="https://github.com/daleathan/GedcomStore">GedcomStore by Dale Athanasias</a>
+ * @see <a href="https://github.com/thnaeff/GedcomStore">GedcomStore by Thomas Naeff</a>
+ * @see <a href="https://github.com/FamilySearch/Gedcom">Gedcom</a>
  */
 final class GedcomGrammar{
 

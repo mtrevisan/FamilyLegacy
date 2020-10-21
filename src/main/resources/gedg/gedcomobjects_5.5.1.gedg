@@ -4,6 +4,7 @@ GEDCOM_DESCRIPTION=DRAFT Release 5.5.1
 http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gcch2.htm
 https://rdrr.io/github/jl5000/tidygedcom/
 https://fhiso.org/TR/elf-data-model.pdf
+https://github.com/FamilySearch/gedcomx/blob/master/specifications/conceptual-model-specification.md
 
 
 HEADER :=

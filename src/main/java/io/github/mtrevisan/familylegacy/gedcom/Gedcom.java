@@ -65,8 +65,8 @@ public class Gedcom{
 	public static void main(final String[] args){
 		try{
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/Case001-AddressStructure.ged");
-//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/complex.ged");
-			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/complex.ged");
+			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/complex.ged");
+//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/complex.ged");
 
 //			final StringBuilder sb = gedcom.printWithIndentation();
 			final StringBuilder sb = gedcom.printFlat();
