@@ -55,6 +55,7 @@ final class GedcomGrammar{
 
 	private static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
+	private static final String TAG_LINEAGE_LINKED_GEDCOM = "LINEAGE_LINKED_GEDCOM";
 	private static final String COMMENT_START = "/*";
 	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces */
@@ -283,6 +284,10 @@ final class GedcomGrammar{
 	 */
 	public List<GedcomGrammarStructure> getVariations(final String structureName){
 		return variations.get(structureName);
+	}
+
+	public GedcomGrammarStructure getRootStructure(){
+		return variations.get(TAG_LINEAGE_LINKED_GEDCOM).get(0);
 	}
 
 	/**

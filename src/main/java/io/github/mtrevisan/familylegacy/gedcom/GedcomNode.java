@@ -53,8 +53,6 @@ public final class GedcomNode{
 	private String xref;
 	private String value;
 
-	private Object object;
-
 	private List<GedcomNode> children;
 
 
@@ -63,7 +61,7 @@ public final class GedcomNode{
 	}
 
 	public static GedcomNode parse(final String line){
-		final Matcher m = GEDCOM_LINE.matcher(line.trim());
+		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())
 			return null;
 
@@ -101,8 +99,8 @@ public final class GedcomNode{
 	}
 
 	private void setTag(final String tag){
-		if(tag != null && !tag.trim().isEmpty())
-			this.tag = tag.trim().toUpperCase();
+		if(tag != null && !tag.isEmpty())
+			this.tag = tag.toUpperCase();
 	}
 
 	public String getXRef(){
@@ -128,14 +126,6 @@ public final class GedcomNode{
 			this.value = value;
 		else
 			this.value += value;
-	}
-
-	public Object getObject(){
-		return object;
-	}
-
-	public void setObject(final Object object){
-		this.object = object;
 	}
 
 	public List<GedcomNode> getChildren(){

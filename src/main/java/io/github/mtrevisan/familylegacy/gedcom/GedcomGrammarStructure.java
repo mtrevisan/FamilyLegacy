@@ -65,7 +65,7 @@ final class GedcomGrammarStructure{
 	/** The name of this structure, like FAMILY_EVENT_STRUCTURE etc. **/
 	private final String structureName;
 	/** The starting block in the structure. **/
-	private final GedcomGrammarBlock grammarBlock = new GedcomGrammarBlock();
+	private final GedcomGrammarBlock grammarBlock;
 
 
 	public static GedcomGrammarStructure create(final String structureName, final List<String> block) throws GedcomGrammarParseException{
@@ -74,6 +74,7 @@ final class GedcomGrammarStructure{
 
 	private GedcomGrammarStructure(final String structureName, final List<String> block) throws GedcomGrammarParseException{
 		this.structureName = structureName;
+		grammarBlock = new GedcomGrammarBlock();
 		grammarBlock.parse(block);
 	}
 

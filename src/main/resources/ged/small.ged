@@ -68,6 +68,7 @@
 2 STAE ZZ
 2 POST 99999
 2 CTRY United States
+1 _CUST custom-value
 1 PHON 866-000-0000
 1 EMAIL info@mycorporation.com
 1 FAX 866-111-1111
@@ -88,3 +89,4 @@
 1 EMAIL info@mycorporation.com
 1 FAX 866-111-1111
 1 WWW https://www.mycorporation.com/
+0 TRLR

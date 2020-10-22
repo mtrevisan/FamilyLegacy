@@ -169,7 +169,7 @@ class GedcomGrammarLine{
 					sl.valuePossibilities.add(!"NULL".equals(possibility.toUpperCase())? possibility: null);
 			}
 			else
-				LOGGER.info("Did not process {} in {} under {}", components[i], sl.getId(), sl.structureName);
+				LOGGER.info("Did not process {} in {} under {}", components[i], sl.getID(), sl.structureName);
 		}
 
 		return sl;
@@ -228,7 +228,7 @@ class GedcomGrammarLine{
 	 * this is a structure line) or a list of the possible tag names (if it
 	 * is a tag line). This ID can be used to identify the grammar line.
 	 */
-	public String getId(){
+	public String getID(){
 		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames()).toString());
 	}
 
