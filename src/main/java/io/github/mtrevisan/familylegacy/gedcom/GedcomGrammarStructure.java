@@ -33,31 +33,31 @@ import java.util.List;
  * <br>
  * Hierarchy:
  * <pre><code>
- * |---GrammarStructure--------------------------------|
- * |                                                   |
- * | A structure contains one block                    |
- * |                                                   |
- * | |---GrammarBlock-------------------------------|  |
- * | |                                              |  |
- * | |  A block contains multiple lines             |  |
- * | |                                              |  |
- * | |  |---GrammarLine-------------------------|   |  |
- * | |  |                                       |   |  |
- * | |  | A line may contain one sub block      |   |  |
- * | |  |                                       |   |  |
- * | |  | |---GrammarBlock-------------------|  |   |  |
- * | |  | | If a line has sub-lines (on a    |  |   |  |
- * | |  | | higher level), those lines are   |  |   |  |
- * | |  | | wrapped in a block.              |  |   |  |
- * | |  | |----------------------------------|  |   |  |
- * | |  |---------------------------------------|   |  |
- * | |                                              |  |
- * | |  |---GrammarLine-------------------------|   |  |
- * | |  | ...                                   |   |  |
- * | |  |---------------------------------------|   |  |
- * | |                                              |  |
- * | |----------------------------------------------|  |
- * |---------------------------------------------------|
+ * |---GrammarStructure---------------------------------|
+ * |                                                    |
+ * | A structure contains one block                     |
+ * |                                                    |
+ * | |---GrammarBlock--------------------------------|  |
+ * | |                                               |  |
+ * | |  A block contains multiple lines              |  |
+ * | |                                               |  |
+ * | |  |---GrammarLine--------------------------|   |  |
+ * | |  |                                        |   |  |
+ * | |  | A line may contain multiple sub blocks |   |  |
+ * | |  |                                        |   |  |
+ * | |  | |---GrammarBlock--------------------|  |   |  |
+ * | |  | | If a line has sub-lines (on a     |  |   |  |
+ * | |  | | higher level), those lines are    |  |   |  |
+ * | |  | | wrapped in a block.               |  |   |  |
+ * | |  | |-----------------------------------|  |   |  |
+ * | |  |----------------------------------------|   |  |
+ * | |                                               |  |
+ * | |  |---GrammarLine--------------------------|   |  |
+ * | |  | ...                                    |   |  |
+ * | |  |----------------------------------------|   |  |
+ * | |                                               |  |
+ * | |-----------------------------------------------|  |
+ * |----------------------------------------------------|
  * </code></pre>
  */
 final class GedcomGrammarStructure{
@@ -65,7 +65,7 @@ final class GedcomGrammarStructure{
 	/** The name of this structure, like FAMILY_EVENT_STRUCTURE etc. **/
 	private final String structureName;
 	/** The starting block in the structure. **/
-	private final GedcomGrammarBlock grammarBlock = new GedcomGrammarBlock();
+	private final GedcomGrammarBlock grammarBlock;
 
 
 	public static GedcomGrammarStructure create(final String structureName, final List<String> block) throws GedcomGrammarParseException{
@@ -74,6 +74,7 @@ final class GedcomGrammarStructure{
 
 	private GedcomGrammarStructure(final String structureName, final List<String> block) throws GedcomGrammarParseException{
 		this.structureName = structureName;
+		grammarBlock = new GedcomGrammarBlock();
 		grammarBlock.parse(block);
 	}
 

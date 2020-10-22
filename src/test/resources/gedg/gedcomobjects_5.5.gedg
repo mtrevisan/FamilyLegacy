@@ -3,8 +3,32 @@ GEDCOM_SOURCE=http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gctoc.ht
 GEDCOM_DESCRIPTION=Release 5.5
 
 
-ADDRESS_STRUCTURE: =
+LINEAGE_LINKED_GEDCOM :=
+n <<HEADER>>    {1:1}
+n <<SUBMISSION_RECORD>>    {0:1}
+n <<RECORD>>    {1:M}
+n <<END_OF_FILE>>    {1:1}
 
+
+RECORD :=
+[
+n <<FAMILY_RECORD>>    {1:1}
+|
+n <<INDIVIDUAL_RECORD>>    {1:1}
+|
+n <<MULTIMEDIA_RECORD>>    {1:1}
+|
+n <<NOTE_RECORD>>    {1:1}
+|
+n <<REPOSITORY_RECORD>>    {1:1}
+|
+n <<SOURCE_RECORD>>    {1:1}
+|
+n <<SUBMITTER_RECORD>>    {1:1}
+]
+
+
+ADDRESS_STRUCTURE :=
   n  ADDR <ADDRESS_LINE>  {0:1}
     +1 CONT <ADDRESS_LINE>  {0:M}
     +1 ADR1 <ADDRESS_LINE1>  {0:1}
@@ -16,8 +40,7 @@ ADDRESS_STRUCTURE: =
   n  PHON <PHONE_NUMBER>  {0:3}
   
 
-HEADER: =
-
+HEADER :=
   n HEAD          {1:1}
     +1 SOUR <APPROVED_SYSTEM_ID>  {1:1}
       +2 VERS <VERSION_NUMBER>  {0:1}
@@ -46,8 +69,7 @@ HEADER: =
       /* +2 [CONT|CONC] <GEDCOM_CONTENT_DESCRIPTION>  {0:M} */
 
 
-FAM_RECORD: =
-
+FAMILY_RECORD :=
   n @<XREF:FAM>@   FAM   {1:1}
     +1 <<FAMILY_EVENT_STRUCTURE>>  {0:M}
       +2 HUSB      {0:1}
@@ -71,8 +93,7 @@ FAM_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
 
     
-INDIVIDUAL_RECORD: =
-
+INDIVIDUAL_RECORD :=
 n @<XREF:INDI>@  INDI {1:1}
     +1 RESN <RESTRICTION_NOTICE>  {0:1}
     +1 <<PERSONAL_NAME_STRUCTURE>>  {0:M}
@@ -98,8 +119,7 @@ n @<XREF:INDI>@  INDI {1:1}
     +1 <<CHANGE_DATE>>  {0:1}
     
     
-MULTIMEDIA_RECORD: =
-
+MULTIMEDIA_RECORD :=
   n @<XREF:OBJE>@ OBJE  {1:1}
     +1 FORM <MULTIMEDIA_FORMAT>  {1:1}
     +1 TITL <DESCRIPTIVE_TITLE>  {0:1}
@@ -114,8 +134,7 @@ MULTIMEDIA_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
 
 
-NOTE_RECORD: =
-
+NOTE_RECORD :=
   n  @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>  {1:1}
     /* +1 [ CONC | CONT] <SUBMITTER_TEXT>  {0:M} */
     +1 <<SOURCE_CITATION>>  {0:M}
@@ -125,8 +144,7 @@ NOTE_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
 
     
-REPOSITORY_RECORD: =
-
+REPOSITORY_RECORD :=
   n  @<XREF:REPO>@ REPO  {1:1}
     +1 NAME <NAME_OF_REPOSITORY>   {0:1}
     +1 <<ADDRESS_STRUCTURE>>  {0:1}
@@ -137,8 +155,7 @@ REPOSITORY_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
 
     
-SOURCE_RECORD: =
-
+SOURCE_RECORD :=
   n  @<XREF:SOUR>@ SOUR  {1:1}
     +1 DATA        {0:1}
       +2 EVEN <EVENTS_RECORDED>  {0:M}
@@ -164,9 +181,8 @@ SOURCE_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
     
     
-SUBMISSION_RECORD: =
-
-  n  @<XREF:SUBN>@ SUBN  {1:1}		/* The closing bracket was ] in the original */
+SUBMISSION_RECORD :=
+  n  @<XREF:SUBN>@ SUBN  {1:1}
     +1 SUBM @<XREF:SUBM>@ {0:1}
     +1 FAMF <NAME_OF_FAMILY_FILE>  {0:1}
     +1 TEMP <TEMPLE_CODE>  {0:1}
@@ -176,8 +192,7 @@ SUBMISSION_RECORD: =
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     
     
-SUBMITTER_RECORD: =
-
+SUBMITTER_RECORD :=
   n  @<XREF:SUBM>@   SUBM {1:1}
     +1 NAME <SUBMITTER_NAME>  {1:1}
     +1 <<ADDRESS_STRUCTURE>>  {0:1}
@@ -188,31 +203,27 @@ SUBMITTER_RECORD: =
     +1 <<CHANGE_DATE>>  {0:1}
    
    
-ASSOCIATION_STRUCTURE: = 
- 
+ASSOCIATION_STRUCTURE := 
   n  ASSO @<XREF:INDI>@  {0:M}
     +1 RELA <RELATION_IS_DESCRIPTOR>  {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
     +1 <<SOURCE_CITATION>>  {0:M}
     
  
-CHANGE_DATE: =
-
+CHANGE_DATE :=
   n  CHAN          {1:1}
     +1 DATE <CHANGE_DATE>  {1:1}
       +2 TIME <TIME_VALUE>  {0:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
  
  
-CHILD_TO_FAMILY_LINK: =
-
+CHILD_TO_FAMILY_LINK :=
   n  FAMC @<XREF:FAM>@  {1:1}
     +1 PEDI <PEDIGREE_LINKAGE_TYPE>  {0:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
  
  
-EVENT_DETAIL: =
-
+EVENT_DETAIL :=
   n  TYPE <EVENT_DESCRIPTOR>  {0:1}
   n  DATE <DATE_VALUE>  {0:1}
   n  <<PLACE_STRUCTURE>>  {0:1}
@@ -227,8 +238,7 @@ EVENT_DETAIL: =
   n  <<NOTE_STRUCTURE>>  {0:M}
  
  
-FAMILY_EVENT_STRUCTURE: =
-
+FAMILY_EVENT_STRUCTURE :=
   [
   n [ ANUL | CENS | DIV | DIVF ] [Y|<NULL>]  {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
@@ -244,8 +254,7 @@ FAMILY_EVENT_STRUCTURE: =
   ]
  
  
-INDIVIDUAL_ATTRIBUTE_STRUCTURE: =
-
+INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
   [
   n  CAST <CASTE_NAME>   {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
@@ -289,8 +298,7 @@ INDIVIDUAL_ATTRIBUTE_STRUCTURE: =
  
  
 
-INDIVIDUAL_EVENT_STRUCTURE: =
-
+INDIVIDUAL_EVENT_STRUCTURE :=
   [
   n [ BIRT | CHR ] [Y|<NULL>]  {1:1}	/* The original grammar from the website did not have a space after the "n" */
     +1 <<EVENT_DETAIL>>  {0:1}
@@ -324,8 +332,7 @@ INDIVIDUAL_EVENT_STRUCTURE: =
     ]
  
  
-LDS_SPOUSE_SEALING: =
-
+LDS_SPOUSE_SEALING :=
   n  SLGS          {1:1}
     +1 STAT <LDS_SPOUSE_SEALING_DATE_STATUS>  {0:1}
     +1 DATE <DATE_LDS_ORD>  {0:1}
@@ -336,8 +343,7 @@ LDS_SPOUSE_SEALING: =
  
  
 
-MULTIMEDIA_LINK: =
-
+MULTIMEDIA_LINK :=
   [          /* embedded form*/
   n  OBJE @<XREF:OBJE>@  {1:1}
   |          /* linked form*/
@@ -350,8 +356,7 @@ MULTIMEDIA_LINK: =
  
   
 
-PERSONAL_NAME_STRUCTURE: =
-
+PERSONAL_NAME_STRUCTURE :=
   n  NAME <NAME_PERSONAL>  {1:1}
     +1 NPFX <NAME_PIECE_PREFIX>  {0:1}
     +1 GIVN <NAME_PIECE_GIVEN>  {0:1}
@@ -365,16 +370,14 @@ PERSONAL_NAME_STRUCTURE: =
     +1 <<NOTE_STRUCTURE>>  {0:M}
 
 
-PLACE_STRUCTURE: =
-
+PLACE_STRUCTURE :=
   n PLAC <PLACE_VALUE>  {1:1}
     +1 FORM <PLACE_HIERARCHY>  {0:1}
     +1 <<SOURCE_CITATION>>  {0:M}
     +1 <<NOTE_STRUCTURE>>  {0:M}
 
 
-NOTE_STRUCTURE: =
-
+NOTE_STRUCTURE :=
   [
   n  NOTE @<XREF:NOTE>@  {1:1}
     +1 SOUR @<XREF:SOUR>@  {0:M}
@@ -386,9 +389,8 @@ NOTE_STRUCTURE: =
 
 
     
-SOURCE_CITATION: =
-
-  [  
+SOURCE_CITATION :=
+  [
   n SOUR @<XREF:SOUR>@    /* pointer to source record */  {1:1}
     +1 PAGE <WHERE_WITHIN_SOURCE>  {0:1}
     +1 EVEN <EVENT_TYPE_CITED_FROM>  {0:1}
@@ -409,23 +411,20 @@ SOURCE_CITATION: =
   ]
     
     
-SOURCE_REPOSITORY_CITATION: =
-
+SOURCE_REPOSITORY_CITATION :=
   n  REPO @<XREF:REPO>@ {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
     +1 CALN <SOURCE_CALL_NUMBER>  {0:M}
        +2 MEDI <SOURCE_MEDIA_TYPE>  {0:1}
     
     
-SPOUSE_TO_FAMILY_LINK: =
-
+SPOUSE_TO_FAMILY_LINK :=
   n FAMS @<XREF:FAM>@  {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
     
     
     
-LDS_INDIVIDUAL_ORDINANCE: =
-
+LDS_INDIVIDUAL_ORDINANCE :=
   [
   n  [ BAPL | CONL ]  {1:1}
     +1 STAT <LDS_BAPTISM_DATE_STATUS>  {0:1}
@@ -456,4 +455,3 @@ LDS_INDIVIDUAL_ORDINANCE: =
   
 END_OF_FILE:=
 n TRLR    {1:1}
-

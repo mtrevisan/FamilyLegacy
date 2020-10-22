@@ -285,6 +285,10 @@ final class GedcomGrammar{
 		return variations.get(structureName);
 	}
 
+	public GedcomGrammarStructure getRootStructure(){
+		return structures.get(0);
+	}
+
 	/**
 	 * Checks if a structure with the given name is available.
 	 */

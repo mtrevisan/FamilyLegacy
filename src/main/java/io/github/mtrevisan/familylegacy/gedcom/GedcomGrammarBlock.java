@@ -118,7 +118,7 @@ class GedcomGrammarBlock{
 		subBlock.clear();
 
 		//add the new sub block as a child to its parent line
-		parentGrammarLine.setChildBlock(grammarSubBlock);
+		parentGrammarLine.addChildBlock(grammarSubBlock);
 
 		return true;
 	}
@@ -181,6 +181,15 @@ class GedcomGrammarBlock{
 	 */
 	public boolean hasChildLines(){
 		return !grammarLines.isEmpty();
+	}
+
+	public final GedcomGrammarLine getChildGrammarLine(final String tag, final GedcomGrammar grammar){
+		for(final GedcomGrammarLine line : grammarLines){
+			final GedcomGrammarLine childLine = line.getChildGrammarLine(tag, grammar);
+			if(childLine != null)
+				return childLine;
+		}
+		return null;
 	}
 
 	/**

@@ -63,7 +63,7 @@ public final class GedcomNode{
 	}
 
 	public static GedcomNode parse(final String line){
-		final Matcher m = GEDCOM_LINE.matcher(line.trim());
+		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())
 			return null;
 
@@ -101,8 +101,8 @@ public final class GedcomNode{
 	}
 
 	private void setTag(final String tag){
-		if(tag != null && !tag.trim().isEmpty())
-			this.tag = tag.trim().toUpperCase();
+		if(tag != null && !tag.isEmpty())
+			this.tag = tag.toUpperCase();
 	}
 
 	public String getXRef(){
