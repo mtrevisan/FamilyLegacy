@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,14 +46,14 @@ class GedcomParser{
 
 	private static final String GEDCOM_EXTENSION = "ged";
 
-	private static final String TAG_HEAD = "HEAD";
-	private static final String TAG_TRLR = "TRLR";
+	static final String TAG_HEAD = "HEAD";
 	private static final String CUSTOM_TAGS_EXTENSION_KEY = "fl.custom_tags";
 
 
 	private final GedcomNode root = GedcomNode.createEmpty();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
-	private final Deque<GedcomGrammarLine> grammarLineStack = new ArrayDeque<>();
+	/** Stacks of {@link GedcomGrammarBlock} or {@link GedcomGrammarLine} objects. */
+//	private final Deque<Object> grammarBlockLineStack = new ArrayDeque<>();
 
 
 	/**
@@ -80,7 +79,7 @@ class GedcomParser{
 
 		int lineCount = 0;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
-			startDocument();
+			startDocument(grammar);
 
 			String line;
 			int currentLevel;
@@ -88,10 +87,10 @@ class GedcomParser{
 			while((line = br.readLine()) != null){
 				lineCount ++;
 
-				line = line.trim();
 				//skip empty lines
-				if(line.isEmpty())
-					continue;
+				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+					throw GedcomParseException.create("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
+						lineCount);
 
 				//parse the line into five fields: level, ID, tag, xref, value
 				final GedcomNode child = GedcomNode.parse(line);
@@ -110,7 +109,7 @@ class GedcomParser{
 
 				//close pending levels
 				while(currentLevel <= previousLevel){
-					endElement();
+					endElement(grammar);
 
 					previousLevel --;
 				}
@@ -120,49 +119,48 @@ class GedcomParser{
 				previousLevel = currentLevel;
 			}
 
-			endElement();
+			endElement(grammar);
 
 			LOGGER.info("Parsing done");
-
-			final List<GedcomNode> children = root.getChildren();
-			if(!TAG_HEAD.equals(children.get(0).getTag()))
-				throw GedcomParseException.create("Malformed GEDCOM file: HEAD tag missing");
-			if(!TAG_TRLR.equals(children.get(children.size() - 1).getTag()))
-				throw GedcomParseException.create("Malformed GEDCOM file: TRLR tag missing");
 
 			return root;
 		}
 		catch(final GedcomParseException e){
-			throw e;
+			throw GedcomParseException.create(e.getMessage() + " on line {}", lineCount);
 		}
 		catch(final Exception e){
 			throw GedcomParseException.create("Failed to read line {}", lineCount);
 		}
 	}
 
-	private void startDocument(){
+	private void startDocument(final GedcomGrammar grammar){
 		nodeStack.clear();
 		nodeStack.push(root);
+
+//		grammarBlockLineStack.push(grammar.getRootStructure().getGrammarBlock());
 	}
 
 	@SuppressWarnings("ConstantConditions")
 	private void startElement(final GedcomNode child, final GedcomGrammar grammar) throws NoSuchMethodException{
 		final GedcomNode parent = nodeStack.peek();
-		final GedcomGrammarLine parentGrammarLine = (!grammarLineStack.isEmpty()? grammarLineStack.peek(): null);
+//		final Object parentGrammarBlockLine = grammarBlockLineStack.peek();
 
 		parent.addChild(child);
 
-		final GedcomGrammarLine grammarLine = (parentGrammarLine != null?
-			parentGrammarLine.getChildBlock().getGrammarLine(child.getTag()):
-			//extract GEDCOM base structure
-			grammar.getGrammarStructures(TAG_HEAD).get(0).getGrammarBlock().getGrammarLine(TAG_HEAD));
-		storeParameter(child, parent, grammarLine);
+//		final GedcomGrammarLine grammarLine = (parentGrammarBlockLine != null?
+//			(parentGrammarBlockLine instanceof GedcomGrammarBlock?
+//				((GedcomGrammarBlock)parentGrammarBlockLine).getGrammarLine(child.getTag()):
+//				((GedcomGrammarLine)parentGrammarBlockLine)):
+//			//extract GEDCOM base structure
+//			grammar.getGrammarStructures(TAG_HEAD).get(0).getGrammarBlock().getGrammarLine(TAG_HEAD));
+//		storeParameter(child, parent, grammarLine);
+		storeParameter(child, parent, null);
 
 		setValue(child);
 
 		nodeStack.push(child);
 		//NOTE: re-enqueue `parentGrammarLine` if a custom tag is encountered (and therefore `grammarLine` is null)
-		grammarLineStack.push(grammarLine != null? grammarLine: parentGrammarLine);
+//		grammarBlockLineStack.push(grammarLine != null? grammarLine: parentGrammarBlockLine);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -242,9 +240,16 @@ class GedcomParser{
 		}
 	}
 
-	private void endElement(){
-		nodeStack.pop();
-		grammarLineStack.pop();
+	private void endElement(final GedcomGrammar grammar) throws GedcomParseException{
+		final GedcomNode child = nodeStack.pop();
+//		final Object grammarLine = grammarBlockLineStack.pop();
+
+//		validate(child, grammar, grammarLine);
+		validate(child, grammar, null);
+	}
+
+	private void validate(final GedcomNode child, final GedcomGrammar grammar, final Object grammarLine) throws GedcomParseException{
+		//TODO
 	}
 
 }

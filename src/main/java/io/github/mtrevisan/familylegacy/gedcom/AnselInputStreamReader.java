@@ -42,7 +42,8 @@ class AnselInputStreamReader extends InputStreamReader{
 	static final String CHARACTER_ENCODING = "ANSEL";
 	static final String ANSEL_FORMATTER = "0x%04X";
 
-	private static final Properties ANSEL = JavaHelper.getProperties("/ansel.properties");
+	static final Properties ANSEL = JavaHelper.getProperties("/ansel.properties");
+	static final int UNICODE_REPLACEMENT_CHARACTER = 0xFFFD;
 
 
 	private final InputStream input;
@@ -80,8 +81,7 @@ class AnselInputStreamReader extends InputStreamReader{
 
 		//else match one char
 		final String chr = ANSEL.getProperty(String.format(ANSEL_FORMATTER, b));
-		//if no match, use Unicode REPLACEMENT CHARACTER
-		return (chr != null? Integer.parseInt(chr, 16): 0xFFFD);
+		return (chr != null? Integer.parseInt(chr, 16): UNICODE_REPLACEMENT_CHARACTER);
 	}
 
 	/**
