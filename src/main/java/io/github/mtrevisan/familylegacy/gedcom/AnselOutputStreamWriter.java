@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -37,11 +39,12 @@ import java.util.Properties;
  * Conversion tables based upon <a href="http://www.heiner-eichmann.de/gedcom/oldansset.htm">ANSEL to Unicode Conversion Table</a> and
  * <a href="http://lcweb2.loc.gov/diglib/codetables/45.html">Code Table Extended Latin (ANSEL)</a>.
  */
-class AnselOutputStreamWriter extends OutputStreamWriter{
+public class AnselOutputStreamWriter extends OutputStreamWriter{
 
 	private static final Properties ANSEL_REVERSED = new Properties();
 	static{
-		for(final Map.Entry<Object, Object> entry : AnselInputStreamReader.ANSEL.entrySet())
+		final Properties ansel = JavaHelper.getProperties("/ansel.properties");
+		for(final Map.Entry<Object, Object> entry : ansel.entrySet())
 			ANSEL_REVERSED.put(entry.getValue(), entry.getKey());
 	}
 
@@ -75,8 +78,8 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Write part of an array of UNICODE characters.
 	 */
-	public void write(final char[] buffer, final int offset, final int length) throws IOException{
-		for(int i = offset; i < offset + length; i ++)
+	public void write(final char[] buffer, final int offset, final int lenght) throws IOException{
+		for(int i = offset; i < offset + lenght; i ++)
 			write(buffer[i]);
 	}
 
@@ -101,7 +104,8 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	private int convert(final int unicode){
 		final String u = String.format(AnselInputStreamReader.ANSEL_FORMATTER, unicode);
 		final String chr = (String)ANSEL_REVERSED.get(u);
-		return (chr != null? Integer.parseInt(chr, 16): AnselInputStreamReader.UNICODE_REPLACEMENT_CHARACTER);
+		//if no match, use inverted '?'
+		return (chr != null? Integer.parseInt(chr, 16): 0xC5);
 	}
 
 }

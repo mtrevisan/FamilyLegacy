@@ -3,31 +3,6 @@ GEDCOM_SOURCE=http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gctoc.ht
 GEDCOM_DESCRIPTION=Release 5.5
 
 
-LINEAGE_LINKED_GEDCOM :=
-n <<HEADER>>    {1:1}
-n <<SUBMISSION_RECORD>>    {0:1}
-n <<RECORD>>    {1:M}
-n <<END_OF_FILE>>    {1:1}
-
-
-RECORD :=
-[
-n <<FAMILY_RECORD>>    {1:1}
-|
-n <<INDIVIDUAL_RECORD>>    {1:1}
-|
-n <<MULTIMEDIA_RECORD>>    {1:1}
-|
-n <<NOTE_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD>>    {1:1}
-|
-n <<SOURCE_RECORD>>    {1:1}
-|
-n <<SUBMITTER_RECORD>>    {1:1}
-]
-
-
 ADDRESS_STRUCTURE :=
   n  ADDR <ADDRESS_LINE>  {0:1}
     +1 CONT <ADDRESS_LINE>  {0:M}
@@ -69,7 +44,7 @@ HEADER :=
       /* +2 [CONT|CONC] <GEDCOM_CONTENT_DESCRIPTION>  {0:M} */
 
 
-FAMILY_RECORD :=
+FAM_RECORD :=
   n @<XREF:FAM>@   FAM   {1:1}
     +1 <<FAMILY_EVENT_STRUCTURE>>  {0:M}
       +2 HUSB      {0:1}

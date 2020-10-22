@@ -42,7 +42,7 @@ final class GedcomHelper{
 
 	private GedcomHelper(){}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
+	@SuppressWarnings({"InjectedReferences", "ResultOfMethodCallIgnored"})
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
@@ -108,7 +108,7 @@ final class GedcomHelper{
 		for(int i = 0; i < 100; i ++){
 			line = in.readLine();
 			if(line != null){
-				String[] split = PATTERN_SPACES.split(line, 3);
+				String[] split = PATTERN_SPACES.split(line.trim(), 3);
 				if(split.length == 3){
 					final boolean level1 = "1".equals(split[0]);
 					if(level1){
@@ -121,7 +121,7 @@ final class GedcomHelper{
 							//look for version
 							line = in.readLine();
 							if(line != null){
-								split = PATTERN_SPACES.split(line, 3);
+								split = PATTERN_SPACES.split(line.trim(), 3);
 								if(split.length == 3 && "2".equals(split[0]) && "VERS".equals(split[1]))
 									version = split[2];
 							}

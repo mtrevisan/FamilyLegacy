@@ -29,10 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -85,7 +83,7 @@ class GedcomGrammarLine{
 	private String structureName;
 	private String originalDefinitionLine;
 
-	private List<GedcomGrammarBlock> childrenBlock;
+	private GedcomGrammarBlock childBlock;
 
 
 	/**
@@ -180,82 +178,15 @@ class GedcomGrammarLine{
 	/**
 	 * @return	Child block of this grammar line.
 	 */
-	public GedcomGrammarLine getChildGrammarLine(final String tag, final GedcomGrammar grammar){
-		GedcomGrammarLine childLine = null;
-		//FIXME?
-		if(childrenBlock != null)
-			for(final GedcomGrammarBlock child : childrenBlock){
-				for(final String lineID : child.getAllLineIDs()){
-					final GedcomGrammarLine ggl = child.getGrammarLine(lineID);
-					if(ggl.childrenBlock != null)
-						for(final GedcomGrammarBlock cb : ggl.childrenBlock){
-							if(cb.getAllLineIDs().contains(tag)){
-								childLine = ggl;
-								break;
-							}
-						}
-				}
-				if(childLine == null)
-					childLine = child.getGrammarLine(tag);
-//				childLine = child.getChildGrammarLine(tag, grammar);
-				if(childLine == null)
-					for(final String linedID : child.getAllLineIDs()){
-						final GedcomGrammarLine childGrammarLine = child.getGrammarLine(linedID);
-						if(childGrammarLine.hasChildrenBlock())
-							//block already valued, extract line
-							childLine = childGrammarLine.getChildGrammarLine(tag, grammar);
-						else{
-							final List<GedcomGrammarStructure> variations = grammar.getVariations(linedID);
-							if(variations != null)
-								for(final GedcomGrammarStructure childGrammarStructure : variations){
-									final GedcomGrammarBlock childGrammarBlock = childGrammarStructure.getGrammarBlock();
-									if(childLine == null)
-										childLine = childGrammarBlock.getGrammarLine(tag);
-									childGrammarLine.addChildBlock(childGrammarBlock);
-								}
-						}
-						if(childLine != null)
-							break;
-					}
-			}
-		else if(structureName != null){
-			final List<GedcomGrammarStructure> variations = grammar.getVariations(structureName);
-			if(variations != null)
-				for(final GedcomGrammarStructure childGrammarStructure : variations){
-					final GedcomGrammarBlock childGrammarBlock = childGrammarStructure.getGrammarBlock();
-					if(childLine == null)
-						childLine = childGrammarBlock.getGrammarLine(tag);
-					addChildBlock(childGrammarBlock);
-				}
-		}
-		return childLine;
-	}
-
-	public Set<String> getMandatoryChildrenTags(final GedcomGrammar grammar){
-		final Set<String> mandatoryLines = new HashSet<>();
-		if(childrenBlock != null)
-			for(final GedcomGrammarBlock childBlock : childrenBlock){
-				for(final String lineID : childBlock.getAllLineIDs()){
-					final GedcomGrammarLine subChildGrammarLine = childBlock.getGrammarLine(lineID);
-					if(subChildGrammarLine != null && subChildGrammarLine.getMin() > 0)
-						mandatoryLines.addAll(subChildGrammarLine.getTagNames());
-				}
-			}
-		return mandatoryLines;
-	}
-
-	public GedcomGrammarBlock getChildBlock(final int tag){
-		return childrenBlock.get(tag);
+	public GedcomGrammarBlock getChildBlock(){
+		return childBlock;
 	}
 
 	/**
 	 * Sets a child block for this gedcom grammar line.
 	 */
-	public void addChildBlock(final GedcomGrammarBlock childBlock){
-		if(childrenBlock == null)
-			childrenBlock = new ArrayList<>();
-
-		childrenBlock.add(childBlock);
+	public void setChildBlock(final GedcomGrammarBlock childBlock){
+		this.childBlock = childBlock;
 	}
 
 	public String getOriginalDefinitionLine(){
@@ -384,8 +315,8 @@ class GedcomGrammarLine{
 	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains
 	 * 	all the sub-lines.
 	 */
-	public boolean hasChildrenBlock(){
-		return (childrenBlock != null && !childrenBlock.isEmpty());
+	public boolean hasChildBlock(){
+		return (childBlock != null);
 	}
 
 	/**

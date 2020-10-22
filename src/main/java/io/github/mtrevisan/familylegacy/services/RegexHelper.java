@@ -104,7 +104,7 @@ public final class RegexHelper{
 	 * @param input	The string to check against
 	 * @return	The input string without any parts which matched the pattern
 	 */
-	public static String removeAll(final CharSequence input, final Pattern pattern){
+	public static String removeAll(final String input, final Pattern pattern){
 		return replaceAll(input, pattern, StringUtils.EMPTY);
 	}
 
@@ -119,10 +119,10 @@ public final class RegexHelper{
 	 * @param pattern	The pattern to look for.
 	 * @return	The first match
 	 */
-	public static String getFirstMatching(final CharSequence text, final Pattern pattern){
+	public static String getFirstMatching(final String text, final Pattern pattern){
 		final Matcher m = pattern.matcher(text);
 		while(m.find()){
-			if(m.group().isEmpty())
+			if(m.group().length() == 0)
 				continue;
 
 			return m.group();

@@ -22,8 +22,8 @@ GEDCOM_SOURCE=http://www.phpgedview.net/ged551-5.pdf
 GEDCOM_VERSION=5.5.1
 
 
-LINEAGE_LINKED_GEDCOM :=    ....this is where the first GEDCOM structure starts
-n <<HEADER>>    {1:1}
-n <<SUBMISSION_RECORD>>    {0:1}
-n <<RECORD>>    {1:M}
-n <<END_OF_FILE>>    {1:1}
+HEADER:=    ....this is where the first GEDCOM structure starts
+n HEAD    {1:1}
+  +1 SOUR <APPROVED_SYSTEM_ID>    {1:1}
+  
+

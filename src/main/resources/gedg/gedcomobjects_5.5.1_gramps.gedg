@@ -8,31 +8,6 @@ With additional tags for the Gramps-software (http://gramps-project.org)
 Additional Tags:
 EMAIL in INDIVIDUAL_RECORD
 
-
-LINEAGE_LINKED_GEDCOM :=
-n <<HEADER>>    {1:1}
-n <<SUBMISSION_RECORD>>    {0:1}
-n <<RECORD>>    {1:M}
-n <<END_OF_FILE>>    {1:1}
-
-
-RECORD :=
-[
-n <<FAMILY_RECORD>>    {1:1}
-|
-n <<INDIVIDUAL_RECORD>>    {1:1}
-|
-n <<MULTIMEDIA_RECORD>>    {1:1}
-|
-n <<NOTE_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD>>    {1:1}
-|
-n <<SOURCE_RECORD>>    {1:1}
-|
-n <<SUBMITTER_RECORD>>    {1:1}
-]
-
 HEADER :=
 n HEAD    {1:1}
   +1 SOUR <APPROVED_SYSTEM_ID>    {1:1}
@@ -63,7 +38,7 @@ n HEAD    {1:1}
     +2 [CONC|CONT] <GEDCOM_CONTENT_DESCRIPTION>    {0:M}
 
 
-FAMILY_RECORD :=
+FAM_RECORD :=
 n @<XREF:FAM>@ FAM    {1:1}
   +1 RESN <RESTRICTION_NOTICE>    {0:1}
   +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}
