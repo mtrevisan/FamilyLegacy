@@ -140,7 +140,7 @@ class GedcomParser{
 
 		parent.addChild(child);
 
-if("ADDR".equals(child.getTag()))
+if("I1".equals(child.getID()))
 	System.out.println();
 		final List<GedcomGrammarLine> grammarLines = (parentGrammarBlockOrLine instanceof GedcomGrammarBlock?
 			((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines():
@@ -148,15 +148,18 @@ if("ADDR".equals(child.getTag()))
 				((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock().getGrammarLines():
 				Arrays.asList((GedcomGrammarLine)parentGrammarBlockOrLine)));
 		GedcomGrammarLine addedGrammarLine = null;
-		outer:
 		for(final GedcomGrammarLine grammarLine : grammarLines){
 			if(grammarLine.getTagNames().contains(child.getTag())){
 				//tag found
 				addedGrammarLine = grammarLine;
-				break outer;
+				break;
 			}
 
-			addedGrammarLine = search(child, grammarLine.getStructureName(), grammar);
+			if(grammarLine.getStructureName() != null){
+				addedGrammarLine = search(child, grammarLine.getStructureName(), grammar);
+				if(addedGrammarLine != null)
+					break;
+			}
 		}
 		if(addedGrammarLine == null)
 			throw GedcomParseException.create("Unknown error");
@@ -186,7 +189,7 @@ if("ADDR".equals(child.getTag()))
 					addedGrammarLine = gLine;
 					break outer;
 				}
-				else{
+				else if(gLine.getStructureName() != null){
 					final GedcomGrammarLine line = search(child, gLine.getStructureName(), grammar);
 					if(line != null){
 						addedGrammarLine = gLine;
