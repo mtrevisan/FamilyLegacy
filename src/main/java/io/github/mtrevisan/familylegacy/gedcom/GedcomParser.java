@@ -162,20 +162,10 @@ if("I1".equals(child.getID()))
 			}
 		}
 		if(addedGrammarLine == null)
-			throw GedcomParseException.create("Unknown error");
-		grammarBlockOrLineStack.push(addedGrammarLine);
-
-//		final GedcomGrammarLine grammarLine = (parentGrammarBlockLine != null?
-//			(parentGrammarBlockLine instanceof GedcomGrammarBlock?
-//				((GedcomGrammarBlock)parentGrammarBlockLine).getGrammarLine(child.getTag()):
-//				((GedcomGrammarLine)parentGrammarBlockLine)):
-//			//extract GEDCOM base structure
-//			grammar.getGrammarStructures(TAG_HEAD).get(0).getGrammarBlock().getGrammarLine(TAG_HEAD));
+			throw GedcomParseException.create("Cannot extract rule for tag {}", child.getTag());
 
 		nodeStack.push(child);
-		//NOTE: re-enqueue `parentGrammarBlockOrLine` if a custom tag is encountered (and therefore `grammarLine` is null)
-//		grammarBlockOrLineStack.push(grammarLine != null? grammarLine: parentGrammarBlockOrLine);
-//grammarBlockOrLineStack.push(parentGrammarBlockOrLine);
+		grammarBlockOrLineStack.push(addedGrammarLine);
 	}
 
 	private GedcomGrammarLine search(final GedcomNode child, final String grammarLineStructureName, final GedcomGrammar grammar){
