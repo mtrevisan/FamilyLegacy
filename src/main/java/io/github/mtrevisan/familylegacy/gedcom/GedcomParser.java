@@ -42,8 +42,6 @@ class GedcomParser{
 
 	private static final String GEDCOM_EXTENSION = "ged";
 
-	static final String TAG_HEAD = "HEAD";
-
 
 	private final GedcomNode root = GedcomNode.createEmpty();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
@@ -142,6 +140,8 @@ class GedcomParser{
 
 		parent.addChild(child);
 
+if("ADDR".equals(child.getTag()))
+	System.out.println();
 		final List<GedcomGrammarLine> grammarLines = (parentGrammarBlockOrLine instanceof GedcomGrammarBlock?
 			((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines():
 			(((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock() != null?
@@ -156,15 +156,7 @@ class GedcomParser{
 				break outer;
 			}
 
-			final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLine.getStructureName());
-			if(variations != null)
-				for(final GedcomGrammarStructure variation : variations)
-					for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines())
-						if(gLine.hasTag(child.getTag())){
-							//tag found
-							addedGrammarLine = gLine;
-							break outer;
-						}
+			addedGrammarLine = search(child, grammarLine.getStructureName(), grammar);
 		}
 		if(addedGrammarLine == null)
 			throw GedcomParseException.create("Unknown error");
@@ -181,6 +173,28 @@ class GedcomParser{
 		//NOTE: re-enqueue `parentGrammarBlockOrLine` if a custom tag is encountered (and therefore `grammarLine` is null)
 //		grammarBlockOrLineStack.push(grammarLine != null? grammarLine: parentGrammarBlockOrLine);
 //grammarBlockOrLineStack.push(parentGrammarBlockOrLine);
+	}
+
+	private GedcomGrammarLine search(final GedcomNode child, final String grammarLineStructureName, final GedcomGrammar grammar){
+		GedcomGrammarLine addedGrammarLine = null;
+		final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLineStructureName);
+		outer:
+		for(final GedcomGrammarStructure variation : variations)
+			for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines()){
+				if(gLine.hasTag(child.getTag())){
+					//tag found
+					addedGrammarLine = gLine;
+					break outer;
+				}
+				else{
+					final GedcomGrammarLine line = search(child, gLine.getStructureName(), grammar);
+					if(line != null){
+						addedGrammarLine = gLine;
+						break outer;
+					}
+				}
+			}
+		return addedGrammarLine;
 	}
 
 	private void endElement(final GedcomGrammar grammar) throws GedcomParseException{

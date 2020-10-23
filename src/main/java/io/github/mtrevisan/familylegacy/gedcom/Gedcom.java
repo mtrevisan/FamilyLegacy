@@ -47,6 +47,7 @@ public class Gedcom{
 
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
+	private static final String TAG_HEAD = "HEAD";
 
 
 	private GedcomNode root;
@@ -96,7 +97,7 @@ System.out.println(os);
 	private static Gedcom create(final GedcomNode root) throws GedcomParseException{
 		final Gedcom g = new Gedcom();
 		g.root = root;
-		final List<GedcomNode> heads = root.getChildrenWithTag(GedcomParser.TAG_HEAD);
+		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEAD);
 		if(heads.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
 		g.head = heads.get(0);
