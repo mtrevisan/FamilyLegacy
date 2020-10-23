@@ -36,12 +36,13 @@ import java.util.Deque;
 import java.util.List;
 
 
-class GedcomParser{
+final class GedcomParser{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GedcomParser.class);
 
 	private static final String GEDCOM_EXTENSION = "ged";
 
+	private final GedcomGrammar grammar;
 
 	private final GedcomNode root = GedcomNode.createEmpty();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
@@ -59,20 +60,24 @@ class GedcomParser{
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
 		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
-			final GedcomParser parser = new GedcomParser();
-			return parser.parseGedcom(is, grammar);
+			final GedcomParser parser = new GedcomParser(grammar);
+			return parser.parseGedcom(is);
 		}
 		catch(final IOException e){
 			throw GedcomParseException.create("File {} not found!", gedcomFile);
 		}
 	}
 
-	private GedcomNode parseGedcom(final InputStream is, final GedcomGrammar grammar) throws GedcomParseException{
+	private GedcomParser(final GedcomGrammar grammar){
+		this.grammar = grammar;
+	}
+
+	private GedcomNode parseGedcom(final InputStream is) throws GedcomParseException{
 		LOGGER.info("Parsing GEDCOM file...");
 
 		int lineCount = 0;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
-			startDocument(grammar);
+			startDocument();
 
 			String line;
 			int currentLevel;
@@ -102,17 +107,17 @@ class GedcomParser{
 
 				//close pending levels
 				while(currentLevel <= previousLevel){
-					endElement(grammar);
+					endElement();
 
 					previousLevel --;
 				}
 
-				startElement(child, grammar);
+				startElement(child);
 
 				previousLevel = currentLevel;
 			}
 
-			endElement(grammar);
+			endElement();
 
 			LOGGER.info("Parsing done");
 
@@ -126,7 +131,7 @@ class GedcomParser{
 		}
 	}
 
-	private void startDocument(final GedcomGrammar grammar){
+	private void startDocument(){
 		nodeStack.clear();
 		nodeStack.push(root);
 
@@ -134,7 +139,7 @@ class GedcomParser{
 	}
 
 	@SuppressWarnings("ConstantConditions")
-	private void startElement(final GedcomNode child, final GedcomGrammar grammar) throws NoSuchMethodException, GedcomParseException{
+	private void startElement(final GedcomNode child) throws NoSuchMethodException, GedcomParseException{
 		final GedcomNode parent = nodeStack.peek();
 		final Object parentGrammarBlockOrLine = grammarBlockOrLineStack.peek();
 
@@ -156,7 +161,7 @@ if("I1".equals(child.getID()))
 			}
 
 			if(grammarLine.getStructureName() != null){
-				addedGrammarLine = search(child, grammarLine.getStructureName(), grammar);
+				addedGrammarLine = search(child, grammarLine.getStructureName());
 				if(addedGrammarLine != null)
 					break;
 			}
@@ -168,7 +173,7 @@ if("I1".equals(child.getID()))
 		grammarBlockOrLineStack.push(addedGrammarLine);
 	}
 
-	private GedcomGrammarLine search(final GedcomNode child, final String grammarLineStructureName, final GedcomGrammar grammar){
+	private GedcomGrammarLine search(final GedcomNode child, final String grammarLineStructureName){
 		GedcomGrammarLine addedGrammarLine = null;
 		final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLineStructureName);
 		outer:
@@ -180,7 +185,7 @@ if("I1".equals(child.getID()))
 					break outer;
 				}
 				else if(gLine.getStructureName() != null){
-					final GedcomGrammarLine line = search(child, gLine.getStructureName(), grammar);
+					final GedcomGrammarLine line = search(child, gLine.getStructureName());
 					if(line != null){
 						addedGrammarLine = gLine;
 						break outer;
@@ -190,14 +195,14 @@ if("I1".equals(child.getID()))
 		return addedGrammarLine;
 	}
 
-	private void endElement(final GedcomGrammar grammar) throws GedcomParseException{
+	private void endElement() throws GedcomParseException{
 		final GedcomNode child = nodeStack.pop();
 		final Object grammarBlockOrLine = grammarBlockOrLineStack.pop();
 
-		validate(child, grammar, grammarBlockOrLine);
+		validate(child, grammarBlockOrLine);
 	}
 
-	private void validate(final GedcomNode child, final GedcomGrammar grammar, final Object grammarBlockOrLine) throws GedcomParseException{
+	private void validate(final GedcomNode child, final Object grammarBlockOrLine) throws GedcomParseException{
 		//TODO
 	}
 
