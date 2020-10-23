@@ -56,7 +56,6 @@ final class GedcomGrammar{
 	private static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
 	private static final String TAG_LINEAGE_LINKED_GEDCOM = "LINEAGE_LINKED_GEDCOM";
-	private static final String COMMENT_START = "/*";
 	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces */
 	private static final Pattern OR_PATTERN = RegexHelper.pattern("[ ]*\\|[ ]*");
@@ -142,7 +141,7 @@ final class GedcomGrammar{
 				line = line.trim();
 
 				//skip empty lines and comment lines
-				if(line.isEmpty() || line.startsWith(COMMENT_START))
+				if(line.isEmpty() || line.trim().startsWith(GedcomGrammarLine.COMMENT_START))
 					continue;
 
 				//as long as the first structure has not yet appeared and the current line is not the start of a structure, process the

@@ -48,6 +48,8 @@ class GedcomGrammarLine{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GedcomGrammarLine.class);
 
+	static final String COMMENT_START = "/*";
+
 	private static final Pattern COMMENT_PATTERN = Pattern.compile("/\\*.*\\*/");
 	private static final Pattern LEVEL_PATTERN = Pattern.compile("^(n|\\+[1-9]|\\+[1-9][0-9]) ");
 	private static final Pattern SPACES_PATTERN = Pattern.compile("[ \t]+");
@@ -324,6 +326,12 @@ class GedcomGrammarLine{
 	 */
 	public boolean hasTag(final String tag){
 		return getTagNames().contains(tag);
+	}
+
+	@Override
+	public String toString(){
+		final int commentStartIndex = originalDefinitionLine.indexOf(COMMENT_START);
+		return (commentStartIndex >= 0? originalDefinitionLine.substring(0, commentStartIndex).trim(): originalDefinitionLine);
 	}
 
 }

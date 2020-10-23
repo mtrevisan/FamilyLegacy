@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -143,7 +144,9 @@ class GedcomParser{
 
 		final List<GedcomGrammarLine> grammarLines = (parentGrammarBlockOrLine instanceof GedcomGrammarBlock?
 			((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines():
-			((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock().getGrammarLines());
+			(((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock() != null?
+				((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock().getGrammarLines():
+				Arrays.asList((GedcomGrammarLine)parentGrammarBlockOrLine)));
 		GedcomGrammarLine addedGrammarLine = null;
 		outer:
 		for(final GedcomGrammarLine grammarLine : grammarLines){
@@ -153,18 +156,15 @@ class GedcomParser{
 				break outer;
 			}
 
-			final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLine.getID());
+			final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLine.getStructureName());
 			if(variations != null)
 				for(final GedcomGrammarStructure variation : variations)
-					for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines()){
+					for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines())
 						if(gLine.hasTag(child.getTag())){
 							//tag found
 							addedGrammarLine = gLine;
 							break outer;
 						}
-						if(gLine.getMin() > 0)
-							throw GedcomParseException.create("Mandatory tag missing");
-					}
 		}
 		if(addedGrammarLine == null)
 			throw GedcomParseException.create("Unknown error");
