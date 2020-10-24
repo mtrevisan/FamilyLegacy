@@ -74,7 +74,7 @@ class GedcomGrammarLine{
 
 
 	private int min;
-	private int max;
+	private int max = -1;
 
 	private final Set<String> xrefNames = new HashSet<>();
 	private final Set<String> valueNames = new HashSet<>();

@@ -25,9 +25,6 @@
 package io.github.mtrevisan.familylegacy.gedcom;
 
 
-import org.apache.commons.lang3.StringUtils;
-
-
 class GedcomGrammarLineCustom extends GedcomGrammarLine{
 
 	private static final String TO_STRING = "-- custom tag grammar line --";

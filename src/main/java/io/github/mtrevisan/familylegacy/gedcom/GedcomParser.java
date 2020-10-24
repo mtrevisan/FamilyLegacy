@@ -118,6 +118,11 @@ final class GedcomParser{
 			}
 
 			endElement();
+			//end document
+			endElement();
+
+			if(!nodeStack.isEmpty() || nodeStack.size() != grammarBlockOrLineStack.size())
+				throw GedcomParseException.create("Badly formatted GEDCOM, tags are not properly closed");
 
 			LOGGER.info("Parsing done");
 
@@ -148,11 +153,11 @@ final class GedcomParser{
 		GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, parentGrammarBlockOrLine);
 		if(addedGrammarLine == null){
 			//consider as custom tag
-			if(parentGrammarBlockOrLine instanceof GedcomGrammarBlock)
+			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine)
+				addedGrammarLine = GedcomGrammarLineCustom.getInstance();
+			else
 				throw GedcomParseException.create("Cannot have custom tag {} here, inside block of {}", child.getTag(),
 					parentGrammarBlockOrLine.toString());
-			else
-				addedGrammarLine = GedcomGrammarLineCustom.getInstance();
 		}
 
 		nodeStack.push(child);
@@ -162,14 +167,14 @@ final class GedcomParser{
 	private GedcomGrammarLine selectAddedGrammarLine(final GedcomNode child, final Object parentGrammarBlockOrLine){
 		if(!child.isCustomTag()){
 			final List<GedcomGrammarLine> grammarLines;
-			if(parentGrammarBlockOrLine instanceof GedcomGrammarBlock)
-				grammarLines = ((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines();
-			else{
+			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine){
 				final GedcomGrammarBlock childBlock = ((GedcomGrammarLine)parentGrammarBlockOrLine).getChildBlock();
 				grammarLines = (childBlock != null?
 					childBlock.getGrammarLines():
 					Collections.singletonList((GedcomGrammarLine)parentGrammarBlockOrLine));
 			}
+			else
+				grammarLines = ((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines();
 			for(final GedcomGrammarLine grammarLine : grammarLines){
 				if(grammarLine.getTagNames().contains(child.getTag()))
 					return grammarLine;
@@ -208,7 +213,21 @@ final class GedcomParser{
 	}
 
 	private void validate(final GedcomNode child, final Object grammarBlockOrLine) throws GedcomParseException{
-		//TODO
+		if(grammarBlockOrLine instanceof GedcomGrammarLine){
+			final GedcomGrammarLine grammarLine = (GedcomGrammarLine)grammarBlockOrLine;
+			final int min = grammarLine.getMin();
+			if(min > 1)
+				throw GedcomParseException.create("Minimum constraint violated, should have been at least {}, was 1", min);
+			final int max = grammarLine.getMax();
+			if(max != -1 && max < 1)
+				throw GedcomParseException.create("Maximum constraint violated, should have been at most {}, was 1", max);
+
+			//TODO validate children
+		}
+		else{
+			//TODO
+			System.out.println();
+		}
 	}
 
 }
