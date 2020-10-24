@@ -411,10 +411,10 @@ MULTIMEDIA_LINK :=
 n OBJE @<XREF:OBJE>@    {1:1}	/* An xref ID of a multimedia record. */
 |
 n OBJE    {1:1}
-  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
-    +2 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
-      +3 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
   +1 TITL <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
+  +1 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
+    +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
+  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
 ]
 
 

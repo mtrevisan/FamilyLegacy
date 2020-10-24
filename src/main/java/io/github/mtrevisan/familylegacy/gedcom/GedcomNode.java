@@ -54,6 +54,7 @@ public final class GedcomNode{
 	private String value;
 
 	private List<GedcomNode> children;
+	private boolean custom;
 
 
 	public static GedcomNode createEmpty(){
@@ -154,6 +155,14 @@ public final class GedcomNode{
 		else
 			taggedChildren = Collections.emptyList();
 		return taggedChildren;
+	}
+
+	public boolean isCustom(){
+		return custom;
+	}
+
+	public void setCustom(){
+		this.custom = true;
 	}
 
 	@Override

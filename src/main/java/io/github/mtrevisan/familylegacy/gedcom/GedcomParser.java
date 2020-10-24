@@ -31,9 +31,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 final class GedcomParser{
@@ -105,6 +108,8 @@ final class GedcomParser{
 				if(child.getTag() == null)
 					throw GedcomParseException.create("Tag not found at line {}", lineCount);
 
+if("1 EVEN Dorato /doˈrato/".equals(line))
+	System.out.println();
 				//close pending levels
 				while(currentLevel <= previousLevel){
 					endElement();
@@ -153,6 +158,7 @@ final class GedcomParser{
 		GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, parentGrammarBlockOrLine);
 		if(addedGrammarLine == null){
 			//consider as custom tag
+			child.setCustom();
 			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine)
 				addedGrammarLine = GedcomGrammarLineCustom.getInstance();
 			else
@@ -212,22 +218,93 @@ final class GedcomParser{
 		validate(child, grammarBlockOrLine);
 	}
 
-	private void validate(final GedcomNode child, final Object grammarBlockOrLine) throws GedcomParseException{
+	private void validate(final GedcomNode node, final Object grammarBlockOrLine) throws GedcomParseException{
 		if(grammarBlockOrLine instanceof GedcomGrammarLine){
 			final GedcomGrammarLine grammarLine = (GedcomGrammarLine)grammarBlockOrLine;
-			final int min = grammarLine.getMin();
-			if(min > 1)
-				throw GedcomParseException.create("Minimum constraint violated, should have been at least {}, was 1", min);
-			final int max = grammarLine.getMax();
-			if(max != -1 && max < 1)
-				throw GedcomParseException.create("Maximum constraint violated, should have been at most {}, was 1", max);
 
-			//TODO validate children
+			//validate min-max constraints:
+			final String tag = node.getTag();
+			checkConstraints(tag, Collections.singletonList(node.getValue()), 1, grammarLine);
+
+
+			//validate children:
+			//bucket children of nodes by tag
+			final Map<String, Integer> childrenTagBucket = new HashMap<>(node.getChildren().size());
+			final Map<String, List<String>> childrenValueBucket = new HashMap<>(node.getChildren().size());
+			for(final GedcomNode gedcomNode : node.getChildren())
+				//don't count custom tags
+				if(!gedcomNode.isCustom()){
+					childrenTagBucket.merge(gedcomNode.getTag(), 1, Integer::sum);
+					childrenValueBucket.computeIfAbsent(gedcomNode.getTag(), k -> new ArrayList<>(1))
+						.add(gedcomNode.getValue());
+				}
+			for(final Map.Entry<String, Integer> entry : childrenTagBucket.entrySet()){
+				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
+				if(childBlock == null)
+					throw GedcomParseException.create("Children of parent tag does not exists");
+
+				final String entryTag = entry.getKey();
+				final Integer entryCount = entry.getValue();
+				final List<String> entryValues = childrenValueBucket.get(entryTag);
+
+//--
+				//FIXME get(0)?
+				final GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(node.getChildrenWithTag(entryTag).get(0), childBlock);
+				if(addedGrammarLine == null)
+					checkConstraints(entryTag, entryValues, entryCount, addedGrammarLine);
+//---
+
+//				final List<GedcomGrammarLine> grammarLines = childBlock.getGrammarLines();
+//				//if no tag is found, then it's a custom tag and must be skipped
+//				boolean tagFound = false;
+//				for(final GedcomGrammarLine gLine : grammarLines){
+//					//search for tag
+//					if(gLine.getTagNames().contains(entryTag)){
+//						checkConstraints(entryTag, entryValues, entryCount, gLine);
+//
+//						tagFound = true;
+//						break;
+//					}
+//					else if(gLine.getStructureName() != null){
+//						//extract structure
+//						final List<GedcomGrammarStructure> variations = grammar.getVariations(gLine.getStructureName());
+//						for(final GedcomGrammarStructure variation : variations){
+//							//TODO foreach grammar line
+//							final GedcomGrammarLine gl = variation.getGrammarBlock().getGrammarLine(entryTag);
+//							//search for tag
+//							if(gl != null && gl.getTagNames().contains(entryTag)){
+//								checkConstraints(entryTag, entryValues, entryCount, gl);
+//
+//								tagFound = true;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//				if(!tagFound)
+//					//TODO may be custom?
+//					System.out.println();
+			}
 		}
 		else{
-			//TODO
+			//TODO validate children of root
 			System.out.println();
 		}
+	}
+
+	private void checkConstraints(final String tag, final List<String> values, final Integer count, final GedcomGrammarLine grammarLine)
+			throws GedcomParseException{
+		final int min = grammarLine.getMin();
+		if(count < min)
+			throw GedcomParseException.create("Minimum constraint violated on tag {}, should have been at least {}, was {}", tag,
+				min, count);
+		final int max = grammarLine.getMax();
+		if(max != -1 && max < count)
+			throw GedcomParseException.create("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
+				max, count);
+		if(!grammarLine.getValuePossibilities().isEmpty() && !grammarLine.getValuePossibilities().containsAll(values))
+			throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
+				grammarLine.getValuePossibilities().toString(), values.toString());
 	}
 
 }
