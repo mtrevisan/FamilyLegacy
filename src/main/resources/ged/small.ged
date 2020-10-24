@@ -8,7 +8,7 @@
 4 CONT United States
 4 ADR1 __ADR1_VALUE__
 4 ADR2 __ADR2_VALUE__
-4 ADR3 5000 MyCorpCampus Dr
+4 ADR3 5001 MyCorpCampus Dr
 4 CITY Hometown
 4 STAE ZZ
 4 POST 99999
@@ -43,29 +43,15 @@
 2 EMAIL info@arlingtoncemetery.mil
 2 FAX 877-111-1111
 2 WWW http://www.arlingtoncemetery.mil/
-1 ADDR 5000 MyCorpCampus Dr
-2 CONT Hometown, ZZ  99999
-2 CONT United States
-2 ADR1 __ADR1_VALUE__
-2 ADR2 __ADR2_VALUE__
-2 ADR3 5000 MyCorpCampus Dr
-2 CITY Hometown
-2 STAE ZZ
-2 POST 99999
-2 CTRY United States
 1 _CUST custom-value
-1 PHON 866-000-0000
-1 EMAIL info@mycorporation.com
-1 FAX 866-111-1111
-1 WWW http://www.mycorporation.org/
 0 @REPO3@ REPO
 1 NAME MyCorporation, Inc.
-1 ADDR 5000 MyCorpCampus Dr
+1 ADDR 5002 MyCorpCampus Dr
 2 CONT Hometown, ZZ  99999
 2 CONT United States
 2 ADR1 __ADR1_VALUE__
 2 ADR2 __ADR2_VALUE__
-2 ADR3 5000 MyCorpCampus Dr
+2 ADR3 5003 MyCorpCampus Dr
 2 CITY Hometown
 2 STAE ZZ
 2 POST 99999

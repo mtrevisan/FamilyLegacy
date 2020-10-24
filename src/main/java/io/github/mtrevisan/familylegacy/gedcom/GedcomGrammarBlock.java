@@ -47,12 +47,12 @@ class GedcomGrammarBlock{
 
 
 	/** All the lines of this block which are defined in the lineage-linked grammar in their parsing order. */
-	private final List<GedcomGrammarLine> grammarLines = new ArrayList<>();
+	private final List<GedcomGrammarLine> grammarLines = new ArrayList<>(0);
 	/**
 	 * The line ID's (tag or structure names) linked to their lines.
 	 * <p>If a line has multiple tag possibilities (like [ANUL|CENS|DIV|DIVF]), the line appears multiple times, once for every tag.</p>
 	 */
-	private final Map<String, GedcomGrammarLine> idToLineLinks = new HashMap<>();
+	private final Map<String, GedcomGrammarLine> idToLineLinks = new HashMap<>(0);
 
 
 	/**
@@ -82,7 +82,7 @@ class GedcomGrammarBlock{
 			throw GedcomGrammarParseException.create("On line '{}'. The format of the line index is not valid. "
 				+ "A index can either be 'n' or '+' followed by a positive number 1-99.", block.get(0));
 
-		final List<String> subBlock = new ArrayList<>();
+		final List<String> subBlock = new ArrayList<>(block.size());
 		GedcomGrammarLine lastGrammarLine = null;
 		for(final String line : block){
 			if(line.startsWith(lineIndex)){
@@ -205,6 +205,11 @@ class GedcomGrammarBlock{
 	 */
 	public int getPosition(final GedcomGrammarLine grammarLine){
 		return grammarLines.indexOf(grammarLine);
+	}
+
+	@Override
+	public String toString(){
+		return idToLineLinks.keySet().toString();
 	}
 
 }

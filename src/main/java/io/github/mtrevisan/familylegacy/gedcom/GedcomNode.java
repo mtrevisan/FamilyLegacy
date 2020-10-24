@@ -94,6 +94,10 @@ public final class GedcomNode{
 			this.id = id;
 	}
 
+	public boolean isCustomTag(){
+		return (tag.charAt(0) == '_');
+	}
+
 	public String getTag(){
 		return tag;
 	}
@@ -134,7 +138,7 @@ public final class GedcomNode{
 
 	public void addChild(final GedcomNode child){
 		if(children == null)
-			children = new ArrayList<>();
+			children = new ArrayList<>(1);
 
 		children.add(child);
 	}

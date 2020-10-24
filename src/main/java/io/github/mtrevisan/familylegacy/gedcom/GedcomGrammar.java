@@ -70,10 +70,10 @@ final class GedcomGrammar{
 
 	private String gedcomVersion;
 	private String gedcomSource;
-	private final Collection<String> gedcomDescription = new ArrayList<>();
+	private final Collection<String> gedcomDescription = new ArrayList<>(0);
 
 	/** All structures in an ordered list in their parsed order. */
-	private final List<GedcomGrammarStructure> structures = new ArrayList<>();
+	private final List<GedcomGrammarStructure> structures = new ArrayList<>(0);
 	/**
 	 * This map contains all the available structure names and links them to the structures.
 	 * <p>If multiple variations of a structure are available, the variation can only be determined by the line ID of one of the
@@ -83,15 +83,15 @@ final class GedcomGrammar{
 	 * </p>
 	 * &lt;Structure name &lt;Line ID &lt;List of structures&gt;&gt;&gt;
 	 */
-	private final Map<String, Map<String, List<GedcomGrammarStructure>>> idToVariationsLinks = new HashMap<>();
-	private final Map<String, List<GedcomGrammarStructure>> variationsLinksToId = new HashMap<>();
+	private final Map<String, Map<String, List<GedcomGrammarStructure>>> idToVariationsLinks = new HashMap<>(0);
+	private final Map<String, List<GedcomGrammarStructure>> variationsLinksToId = new HashMap<>(0);
 	/**
 	 * This map holds a list for each structure.
 	 * <p>The list contains all the variations for that structure.<br>
 	 * </p>
 	 * &lt;Structure name &lt;List of structures&gt;&gt;
 	 */
-	private final Map<String, List<GedcomGrammarStructure>> variations = new HashMap<>();
+	private final Map<String, List<GedcomGrammarStructure>> variations = new HashMap<>(0);
 
 
 	/**
@@ -132,7 +132,7 @@ final class GedcomGrammar{
 		boolean processFileHeader = true;
 		boolean descriptionFound = false;
 		try(final BufferedReader br = new BufferedReader(new InputStreamReader(is))){
-			final List<String> block = new ArrayList<>();
+			final List<String> block = new ArrayList<>(0);
 
 			String line;
 			while((line = br.readLine()) != null){
@@ -262,20 +262,20 @@ final class GedcomGrammar{
 		//link all the line ID's of the first block to their structure:
 		if(!idToVariationsLinks.containsKey(structureName))
 			//add a new structure
-			idToVariationsLinks.put(structureName, new HashMap<>());
+			idToVariationsLinks.put(structureName, new HashMap<>(1));
 		final List<String> ids = grammarStructure.getGrammarBlock().getAllLineIDs();
 		for(final String id : ids)
-			idToVariationsLinks.get(structureName).computeIfAbsent(id, k -> new ArrayList<>())
+			idToVariationsLinks.get(structureName).computeIfAbsent(id, k -> new ArrayList<>(1))
 				.add(grammarStructure);
 
 		for(final GedcomGrammarLine gLine : grammarStructure.getGrammarBlock().getGrammarLines())
 			if(gLine.hasTags())
 				for(final String tag : gLine.getTagNames())
-					variationsLinksToId.computeIfAbsent(tag, k -> new ArrayList<>())
+					variationsLinksToId.computeIfAbsent(tag, k -> new ArrayList<>(1))
 						.add(grammarStructure);
 
 		//create the list of all the variations:
-		variations.computeIfAbsent(structureName, k -> new ArrayList<>())
+		variations.computeIfAbsent(structureName, k -> new ArrayList<>(1))
 			.add(grammarStructure);
 	}
 

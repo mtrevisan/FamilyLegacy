@@ -79,7 +79,6 @@ public class Gedcom{
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
 			gedcom.write(os);
-System.out.println(os);
 		}
 		catch(final GedcomGrammarParseException | GedcomParseException | IOException e){
 			e.printStackTrace();

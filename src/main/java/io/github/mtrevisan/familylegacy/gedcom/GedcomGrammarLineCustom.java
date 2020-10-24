@@ -24,44 +24,27 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Map;
+
+class GedcomGrammarLineCustom extends GedcomGrammarLine{
+
+	private static final String TO_STRING = "-- custom tag grammar line --";
 
 
-class FieldRef{
-
-	private final Map<String, Object> target;
-	private final String fieldName;
-
-
-	FieldRef(final Map<String, Object> target, final String fieldName){
-		this.target = target;
-		this.fieldName = fieldName;
+	private static class SingletonHelper{
+		private static final GedcomGrammarLineCustom INSTANCE = new GedcomGrammarLineCustom();
 	}
 
-	public Object getTarget(){
-		return target;
+
+	public static GedcomGrammarLineCustom getInstance(){
+		return SingletonHelper.INSTANCE;
 	}
 
-	public String getFieldName(){
-		return fieldName;
-	}
-
-	public void setValue(final String value){
-		target.put(fieldName, value);
-	}
-
-	public Object getValue(){
-		return target.get(fieldName);
-	}
-
-	public void appendValue(final String value) throws NoSuchMethodException{
-		final Object currentValue = getValue();
-		if(currentValue != null && !(currentValue instanceof String))
-			throw new NoSuchMethodException("Field '" + fieldName + "' is not a string, cannot append value " + value);
-
-		setValue((currentValue == null? StringUtils.EMPTY: currentValue) + value);
+	@Override
+	public String toString(){
+		return TO_STRING;
 	}
 
 }

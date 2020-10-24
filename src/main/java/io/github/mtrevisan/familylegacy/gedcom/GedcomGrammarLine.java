@@ -330,6 +330,9 @@ class GedcomGrammarLine{
 
 	@Override
 	public String toString(){
+		if(originalDefinitionLine == null)
+			return StringUtils.EMPTY;
+
 		final int commentStartIndex = originalDefinitionLine.indexOf(COMMENT_START);
 		return (commentStartIndex >= 0? originalDefinitionLine.substring(0, commentStartIndex).trim(): originalDefinitionLine);
 	}
