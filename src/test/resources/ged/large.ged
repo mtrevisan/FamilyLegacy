@@ -10,13 +10,14 @@
 3 COPR
 1 SUBN @TCGB_SUBN@
 1 DEST GEDCOM551
-1 DATE 13 OCT 2020
-2 TIME 21:30:14
+1 DATE 25 OCT 2020
+2 TIME 11:35:53
 1 FILE Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso).ged
 1 COPR Mauro Trevisan
 1 GEDC
 2 VERS 5.5.1
 2 FORM LINEAGE-LINKED
+1 LANG English
 1 CHAR UTF-8
 2 VERS
 1 LANG English
@@ -1898,7 +1899,7 @@
 2 NOTE AFT 31 DEC 1907
 3 CONT https://www.oris.ch/
 2 NOTE Oris <oris@@interwatch.it>
-3 CONT date:	Sep 15, 2020, 4:38 PM
+3 CONT date: Sep 15, 2020, 4:38 PM
 3 CONT
 3 CONT Gentile Sig. Trevisan Buongiorno,
 3 CONT la Oris ci ha risposto che l'orologio da tasca è stato prodotto intorno al 1920/30 e che l’ultimo pr
@@ -5171,7 +5172,7 @@
 2 PLAC Merlengo di Ponzano Veneto, Treviso, Italy
 2 OBJE
 3 TITL L'Ordine 201501
-3 _DATE  JAN 2015
+3 _DATE JAN 2015
 3 FORM pdf
 3 FILE Photos\L'Ordine 201501.pdf
 3 _PUBL Y
@@ -5287,8 +5288,8 @@
 2 _CUT Y
 2 _CUTD 1392 1079 667 767
 1 CHAN
-2 DATE 15 AUG 2020
-3 TIME 20:12:06
+2 DATE 25 OCT 2020
+3 TIME 11:34:07
 1 RIN TCGB_I60
 0 @I61@ INDI
 1 NAME Bortolo /Gallinaro/
@@ -34061,7 +34062,7 @@
 1 BURI Y
 2 PLAC Prissé, Saône-et-Loire, France
 2 NOTE Quadrato: 7
-3 CONT Tomba: 	205
+3 CONT Tomba: 205
 1 CHAN
 2 DATE 27 DEC 2019
 3 TIME 20:42:32
@@ -84030,7 +84031,7 @@
 3 FORM jpg
 3 FILE Photos\births\birth Trevisan José Anibal 19571108.jpg
 3 _PUBL Y
-2 NOTE ore	12:15-03:00
+2 NOTE ore 12:15-03:00
 1 CHAN
 2 DATE 17 AUG 2020
 3 TIME 10:49:10
@@ -110190,7 +110191,7 @@
 1 CONT Ibiq[ue] constituta penes me not[ariu]m infrascriptum : et dictus
 1 CONT testes p[re]nominata D[omi]na D[omin]ica dicta Menega Relicta dicti q[uondam]
 1 CONT ser Andreæ Trivisani d[e] Scandolaria p[er] se et suos hæredes
-1 CONT laudavit . approbavit . et ratificavit sup[ra]scriptum  divisio=
+1 CONT laudavit . approbavit . et ratificavit sup[ra]scriptum divisio=
 1 CONT nis Instrume[n]tum ut supra factum p[er] sup[ra]scriptos fratres
 1 CONT de Trivisanis d[e] Scandolaria : et p[er] me not[ariu]m infrascriptu[m]
 1 CONT scriptum externa die in omnibus : et p[er] omnia p[ro] ut
@@ -110235,8 +110236,8 @@
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus05.jpg
 3 _PUBL Y
 1 CHAN
-2 DATE 9 OCT 2020
-3 TIME 16:20:44
+2 DATE 25 OCT 2020
+3 TIME 11:34:43
 1 RIN TCGB_N1389
 0 @N25@ NOTE nodaro Sermaza Cipriano
 1 CONT
@@ -114373,10 +114374,10 @@
 1 CONT Ibiq[ue] ser Bartholomeus et a[n]cilot[us] eius filius p[er] se : et he[re]des i[n] p[rese]ntia t[es
 1 CONC ]tium et mei not[arij[ ha[bu]erunt et recep[er]u[n]t ab vlc?sto e?t[er] Ibi? p[rese]nt[e] d[i]c[t]
 1 CONC e? p[ro] setet? suis he[re]dib[us] duc[atorum] vigi[n]tiquinq[ue] i[n] auris : et hoc i[n] anno et m
-1 CONC onetis p[er] p[ar]t[e] p[re]cij ?c al[i]t[er]? d[e] q[ui]b[us] sibi ant[onio] p[rese]nti fecit  fine
-1 CONC [m] ? : et declaratu[m] ? q[ue] i[n] p[re]? cit? d[i]c[t]o c[on]p[re]he[n]du[m] t? ?pe?s c?ta[m] c[i
-1 CONC r]ca et debere? p[rese]nte ei? q[ue] o[mn]ia at[iam]? per? ? q? ser barth[olom]eus q[uod]b? ad incip
-1 CONC ie[n]du[m] effe? ca? c[on]stitunt p[ro]cu[n]r? suu[m]?datu[m] a?s filiu[m] ?t[e] et anciloto? q? q
+1 CONC onetis p[er] p[ar]t[e] p[re]cij ?c al[i]t[er]? d[e] q[ui]b[us] sibi ant[onio] p[rese]nti fecit fine[
+1 CONC m] ? : et declaratu[m] ? q[ue] i[n] p[re]? cit? d[i]c[t]o c[on]p[re]he[n]du[m] t? ?pe?s c?ta[m] c[ir
+1 CONC ]ca et debere? p[rese]nte ei? q[ue] o[mn]ia at[iam]? per? ? q? ser barth[olom]eus q[uod]b? ad incipi
+1 CONC e[n]du[m] effe? ca? c[on]stitunt p[ro]cu[n]r? suu[m]?datu[m] a?s filiu[m] ?t[e] et anciloto? q? q
 1 CONC c? id? eut? bene? datum : ac presens esset?
 1 SOUR @S3@
 2 PAGE busta 432, carta 204
@@ -114402,8 +114403,8 @@
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
 1 CHAN
-2 DATE 8 OCT 2020
-3 TIME 16:51:12
+2 DATE 25 OCT 2020
+3 TIME 11:35:12
 1 RIN TCGB_N1670
 0 @N68@ NOTE nodaro da Noale Giovanni Michele da Rio San Martino
 1 CONT
@@ -114526,7 +114527,7 @@
 1 CONT pulsis omnibus de Camera inqua dictus testator iacebat in lecto Et postea inde
 1 CONT omnibus recessis int[er]rogatus fuit dictus testator p[er] me presb? Joanne[m] michae=
 1 CONT le[m] notariu[m] si volebat ut aliquis adesset du[m]? scriberetur dictu[m] testamentu[m] qui
-1 CONT respondit  q[ue] no[n] sed volebat q[ue] postop? scriptu[m] fuisset vocare[n]tur testes idonei et
+1 CONT respondit q[ue] no[n] sed volebat q[ue] postop? scriptu[m] fuisset vocare[n]tur testes idonei et
 1 CONT sufficie[n]tes: It[em] int[er]rogatus fuit dictus testator dictu[m] notariu[m] si udebat
 1 CONT hoc suu[m] testame[n]tu[m] lit[er]alit[er] an vulgarit[er] scribi. qui respondit velle vulgarit[er]
 1 CONT scribi. Deinde factis omnibus aliis int[er]rogationibus secu[n]du[m] forma[m] Ducaliu[m] p[ro]visio=
@@ -114601,8 +114602,8 @@
 3 FILE Photos\deeds\will 15201206 Trivisan Antonio02.psd
 3 _PUBL Y
 1 CHAN
-2 DATE 17 SEP 2020
-3 TIME 22:24:31
+2 DATE 25 OCT 2020
+3 TIME 11:35:36
 1 RIN TCGB_N1720
 0 @N54@ NOTE nodaro Spilimbergo Giovanni Matteo
 1 CONT
