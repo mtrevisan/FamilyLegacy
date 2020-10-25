@@ -17,11 +17,9 @@ n HEADER    {1:1}
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
       +3 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of a submitter record. */
-  +1 SUBMISSION @<XREF:SUBMISSION>@    {0:1}	/* An xref ID of a submission record. */
-  +1 FILE <FILE_NAME>    {0:1}	/* The name of the GEDCOM transmission file. If the file name includes a file extension it must be shown in the form (filename.ext). */
+  +1 FILE <FILE_NAME>    {1:1}	/* The name of the GEDCOM transmission file. If the file name includes a file extension it must be shown in the form (filename.ext). */
   +1 COPYRIGHT <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
-  +1 CHARSET <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is ANSEL, which includes ASCII as a subset. UNICODE is not widely supported by most operating systems; therefore, GEDCOM produced using the UNICODE character set will be limited in its interchangeability for a while but should eventually provide the international flexibility that is desired. Allowed values: "UTF-8", "ASCII". */
-    +2 VERSION <VERSION_NUMBER>    {0:1}
+  +1 CHARSET <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is UTF-8. Allowed values: "UTF-8", "ASCII". */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
   +1 <<CHANGE_DATE>>    {1:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
@@ -52,14 +50,14 @@ n EOF    {1:1}
 
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
-  +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
   +1 HUSBAND @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the husband. */
   +1 WIFE @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the wife. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
-  +1 NCHILDREN <COUNT_OF_CHILDREN>    {0:1}	/* The reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 CHILDREN_COUNT <COUNT_OF_CHILDREN>    {0:1}	/* The reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
+  +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -77,12 +75,10 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 <<SPOUSE_TO_FAMILY_LINK>>    {0:M}	/* A list of SPOUSE_TO_FAMILY_LINK() objects giving the details of families this individual is a spouse of. */
   +1 <<ASSOCIATION_STRUCTURE>>    {0:M}	/* A list of ASSOCIATION_STRUCTURE() objects giving the details of individuals this individual is associated with. */
   +1 ALIAS @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of individual aliases of this individual. */
-    +2 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects associated with the alias. */
-  +1 ANCESTOR_INTEREST @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters with an interest in ancestors of this individual. */
-  +1 DESCENDANT_INTEREST @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters with an interest in descendants of this individual. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the alias. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -90,10 +86,10 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
 
 MULTIMEDIA_RECORD :=
 n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a multimedia record. */
-  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
+  +1 FILE <MULTIMEDIA_FILE_REFERENCE>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
     +2 FORMAT <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
     +2 TITLE <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
@@ -102,7 +98,7 @@ n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a multimedia record. */
 
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE <SUBMITTER_TEXT>    {1:M}	/* Comments or opinions from the submitter. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
@@ -113,7 +109,7 @@ REPOSITORY_RECORD :=
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -126,37 +122,31 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
       +3 DATE <DATE_PERIOD>    {0:1}	/* A date_period() object associated with the period covered by the course. */
       +3 PLACE <SOURCE_JURISDICTION_PLACE>    {0:1}	/* The name of the lowest jurisdiction that encompasses all lower-level places named in this source. */
     +2 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
-    +2 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects associated with the data in this source. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the data in this source. */
   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
-  +1 ABBR <SOURCE_FILED_BY_ENTRY>    {0:1}	/* This entry is to provide a short title used for sorting, filing, and retrieving source records. */
-  +1 PUBL <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
+  +1 PUBLICATION <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
   +1 TEXT <TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_REPOSITORY_CITATION>>    {0:M}	/* A list of SOURCE_REPOSITORY_CITATION() objects. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
 
 
 SUBMITTER_RECORD :=
 n @<XREF:SUBMITTER>@ SUBMITTER    {1:1}	/* An xref ID of a submitter record. */
   +1 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 LANGUAGE <LANGUAGE_PREFERENCE>    {0:M}	/* The language in which a person prefers to communicate. Multiple language preference is shown by using multiple occurrences in order of priority. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-/* TODO */
 PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
-  +1 NAME <PLACE_NAME>    {1:1}	/* The name of the place formatted for display and address generation. */
-  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
-  +1 LANGUAGE <LANGUAGE_PREFERENCE>    {0:M}	/* The language in which a person prefers to communicate. Multiple language preference is shown by using multiple occurrences in order of priority. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
+  +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
+  +1 <<PLACE_STRUCTURE>>    {1:M}	/* A list of PLACE_STRUCTURE() objects. */
 
 
 PLACE_STRUCTURE :=
@@ -181,7 +171,8 @@ n PLACE <NAME>    {1:1}	/* The address lines usually contain the addressee’s s
   +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address. */
   +1 WEB <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address. */
     +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the address. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -189,23 +180,23 @@ n PLACE <NAME>    {1:1}	/* The address lines usually contain the addressee’s s
 
 ASSOCIATION_STRUCTURE :=
 n ASSOCIATION @<XREF:INDIVIDUAL>@    {1:1}	/* An xref ID of an individual record. */
-  +1 RELATION <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. */
+  +1 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 CHANGE_DATE :=
 n CHANGE    {1:1}
   +1 DATE <CHANGE_DATE>    {1:1}	/* A date_exact() object giving the date that this data was changed. */
     +2 TIME <TIME_VALUE>    {0:1}	/* The time of a specific event. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 CHILD_TO_FAMILY_LINK :=
-n FAMC @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
+n FAMILY_CHILD @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
   +1 PEDIGREE <PEDIGREE_LINKAGE_TYPE>    {0:1}	/* A code used to indicate the child to family relationship for pedigree navigation purposes. */
   +1 STATUS <CHILD_LINKAGE_STATUS>    {0:1}	/* A status code that allows passing on the users opinion of the status of a child to family link. "challenged": Linking this child to this family is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this child belongs to this family, but the linkage has been disproven. "proven" = There has been a claim by some that this child does not belongs to this family, but the linkage has been proven. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 EVENT_DETAIL :=
@@ -213,11 +204,10 @@ n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase u
   +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
-  +1 RELIGION <RELIGIOUS_AFFILIATION>    {0:1}	/* A name of the religion with which this person, event, or record was affiliated. */
   +1 CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
 
 
@@ -231,22 +221,13 @@ n <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the ev
 
 FAMILY_EVENT_STRUCTURE :=
 [
-n [ ANNULMENT | CENS | DIVORCE | DIVORCE_FILED ]    {1:1}	/* A code used to indicate the type of family event. */
-  +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
-|
-n [ ENGAGEMENT | MARB | MARC ]    {1:1}	/* A code used to indicate the type of family event. */
+n [ ANNULMENT | CENSUS | DIVORCE | DIVORCE_FILED | ENGAGEMENT | MARRIAGE_BANN | MARRIAGE_CONTRACT | MARRIAGE_LICENCE | MARRIAGE_SETTLEMENT | RESIDENCE ]    {1:1}	/* A code used to indicate the type of family event. */
   +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
 |
 n MARRIAGE [Y|<NULL>]    {1:1}	/* A code used to indicate the type of family event. */
   +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
 |
-n [ MARL | MARS ]    {1:1}	/* A code used to indicate the type of family event. */
-  +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
-|
-n RESIDENCE    {1:1}	/* A code used to indicate the type of family event. */
-  +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT [<EVENT_DESCRIPTOR> | <NULL>]    {1:1}	/* A code used to indicate the type of family event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVENT tag. The classification as to the difference between this specific event and other occurrences of the EVENt tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
+n EVENT [<EVENT_DESCRIPTOR>|<NULL>]    {1:1}	/* A code used to indicate the type of family event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVENT tag. The classification as to the difference between this specific event and other occurrences of the EVENt tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
   +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
 ]
 
@@ -262,16 +243,13 @@ n PHYSICAL_DESCRIPTION <PHYSICAL_DESCRIPTION>    {1:1}	/* An attribute which may
 n EDUCATION <SCHOLASTIC_ACHIEVEMENT>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the attribute. */
 |
-n IDNO <NATIONAL_ID_NUMBER>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
+n ORIGIN <NATIONAL_OR_TRIBAL_ORIGIN>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the attribute. */
 |
-n NATI <NATIONAL_OR_TRIBAL_ORIGIN>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
+n CHILDREN_COUNT <COUNT_OF_CHILDREN>    {1:1}	/* The known number of children of this individual from all marriages, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the attribute. */
 |
-n NCHILDREN <COUNT_OF_CHILDREN>    {1:1}	/* The known number of children of this individual from all marriages, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the attribute. */
-|
-n NMARRIAGES <COUNT_OF_MARRIAGES>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
+n MARRIAGES_COUNT <COUNT_OF_MARRIAGES>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the attribute. */
 |
 n OCCUPATION <OCCUPATION>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
@@ -304,31 +282,22 @@ n AGE <AGE_AT_EVENT>    {0:1}	/* A string that indicates the age in years, month
 
 INDIVIDUAL_EVENT_STRUCTURE :=
 [
-n [ BIRTH | CHR ] [Y|<NULL>]    {1:1}	/* A code used to indicate the type of individual event. */
+n BIRTH    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
-  +1 FAMC @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
+  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
 |
-n DEAT [Y|<NULL>]    {1:1}	/* A code used to indicate the type of individual event. */
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
-|
-n [ BURIAL | CREM ]    {1:1}	/* A code used to indicate the type of individual event. */
+n [ DEATH | BURIAL | CREMATION ]    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
 |
 n ADOPTION    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
-  +1 FAMC @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
-    +2 ADOP <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* A code which shows which parent in the associated family record adopted this person. Use "HUSB" for husband, "WIFE" for wife, or "BOTH" for both. */
-|
-n [ BAPM | BARM | BASM | BLES ]    {1:1}	/* A code used to indicate the type of individual event. */
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
-|
-n [ CHRA | CONF | FCOM | ORDN ]    {1:1}	/* A code used to indicate the type of individual event. */
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
+  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
+    +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* A code which shows which parent in the associated family record adopted this person. Use "HUSB" for husband, "WIFE" for wife, or "BOTH" for both. */
 |
 n [ NATURALIZATION | EMIGRATION | IMMIGRATION ]    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
 |
-n [ CENSUS | PROBATION | WILL]    {1:1}	/* A code used to indicate the type of individual event. */
+n [ CENSUS | PROBATE | WILL]    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
 |
 n [ GRADUATION | RETIREMENT ]    {1:1}	/* A code used to indicate the type of individual event. */
@@ -336,25 +305,6 @@ n [ GRADUATION | RETIREMENT ]    {1:1}	/* A code used to indicate the type of in
 |
 n EVENT    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
-]
-
-
-MULTIMEDIA_LINK :=
-[
-n DOCUMENT @<XREF:DOCUMENT>@    {1:1}	/* An xref ID of a multimedia record. */
-|
-n DOCUMENT    {1:1}
-  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
-    +2 FORMAT <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
-  +1 TITLE <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
-]
-
-
-NOTE_STRUCTURE :=
-[
-n NOTE @<XREF:NOTE>@    {1:1}	/* An xref ID of a note record. */
-|
-n NOTE [<SUBMITTER_TEXT> | <NULL>]    {1:1}	/* Comments or opinions from the submitter. */
 ]
 
 
@@ -373,7 +323,7 @@ n NAME <NAME_PIECE_GIVEN>    {0:1}	/* Given name or earned name. Different given
   +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name and surname parts. Different name suffix parts are separated by a comma. */
 n NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
 n <<SURNAME_STRUCTURE>>    {0:M}	/* A list of SURNAME_STRUCTURE() objects. */
-n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
@@ -383,32 +333,24 @@ n SURNAME <NAME_PIECE_SURNAME>    {1:1}	/* Surname or family name. Different sur
 
 
 SOURCE_CITATION :=
-[	/* pointer to source record (preferred) */
 n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
   +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. */
-  +1 EVENT <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRT regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
-    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person played in the event that is being cited in this context. */
+  +1 EVENT <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
+    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. */
   +1 DATA    {0:1}
     +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
     +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
-|	/* Systems not using source records */
-n SOURCE <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe the source from which information was obtained. This text block is used by those systems which cannot use a pointer to a source record. It must contain a descriptive title, who created the work, where and when it was created, and where the source data stored. */
-  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
-]
+  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 QUALITY <QUALITY_OF_DATA>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
 
 
 SOURCE_REPOSITORY_CITATION :=
-n REPOSITORY [ @<XREF:REPOSITORY>@ | <NULL>]    {1:1}	/* An xref ID of a repository record. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-   +1 CALN <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
+n REPOSITORY [@<XREF:REPOSITORY>@|<NULL>]    {1:1}	/* An xref ID of a repository record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 CALL_NUMBER <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
 
 
 SPOUSE_TO_FAMILY_LINK :=
-n FAMS @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+n FAMILY_SPOUSE @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
