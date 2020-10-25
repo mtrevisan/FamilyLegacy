@@ -165,6 +165,7 @@ final class GedcomParser{
 		grammarBlockOrLineStack.push(addedGrammarLine);
 	}
 
+	//FIXME ugliness
 	private GedcomGrammarLine[] selectAddedGrammarLine(final GedcomNode child, final Object parentGrammarBlockOrLine){
 		if(!child.isCustomTag()){
 			final List<GedcomGrammarLine> grammarLines;
@@ -181,7 +182,7 @@ final class GedcomParser{
 					return new GedcomGrammarLine[]{grammarLine, grammarLine};
 
 				if(grammarLine.getStructureName() != null){
-					final GedcomGrammarLine[] addedGrammarLine = selectAddedGrammarLine(child, grammarLine.getStructureName());
+					final GedcomGrammarLine[] addedGrammarLine = selectAddedGrammarLine(child, grammarLine);
 					if(addedGrammarLine[1] != null){
 						GedcomGrammarLine parentGrammarLine = addedGrammarLine[0];
 						if(parentGrammarLine == null)
@@ -195,7 +196,9 @@ final class GedcomParser{
 		return new GedcomGrammarLine[2];
 	}
 
-	private GedcomGrammarLine[] selectAddedGrammarLine(final GedcomNode child, final String grammarLineStructureName){
+	//FIXME ugliness
+	private GedcomGrammarLine[] selectAddedGrammarLine(final GedcomNode child, final GedcomGrammarLine grammarLine){
+		final String grammarLineStructureName = grammarLine.getStructureName();
 		final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLineStructureName);
 		for(final GedcomGrammarStructure variation : variations)
 			for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines()){
@@ -203,9 +206,9 @@ final class GedcomParser{
 					return new GedcomGrammarLine[]{null, gLine};
 
 				if(gLine.getStructureName() != null){
-					final GedcomGrammarLine[] line = selectAddedGrammarLine(child, gLine.getStructureName());
+					final GedcomGrammarLine[] line = selectAddedGrammarLine(child, gLine);
 					if(line[1] != null)
-						return new GedcomGrammarLine[]{(line[0] != null? line[0]: gLine), line[1]};
+						return new GedcomGrammarLine[]{(line[0] != null? line[0]: (variations.size() > 1? grammarLine: gLine)), line[1]};
 				}
 			}
 		return new GedcomGrammarLine[2];
@@ -218,6 +221,7 @@ final class GedcomParser{
 		validate(child, grammarBlockOrLine);
 	}
 
+	//FIXME ugliness
 	private void validate(final GedcomNode node, final Object grammarBlockOrLine) throws GedcomParseException{
 		if(grammarBlockOrLine instanceof GedcomGrammarLine){
 			final GedcomGrammarLine grammarLine = (GedcomGrammarLine)grammarBlockOrLine;
@@ -231,13 +235,7 @@ final class GedcomParser{
 
 
 			//validate children:
-			//bucket children of nodes by tag
-			final Map<String, List<String>> childrenValueBucket = new HashMap<>(node.getChildren().size());
-			for(final GedcomNode gedcomNode : node.getChildren())
-				//don't count custom tags
-				if(!gedcomNode.isCustom())
-					childrenValueBucket.computeIfAbsent(gedcomNode.getTag(), k -> new ArrayList<>(1))
-						.add(gedcomNode.getValue());
+			final Map<String, List<String>> childrenValueBucket = bucketByTag(node);
 			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
 				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
 				if(childBlock == null)
@@ -261,12 +259,39 @@ final class GedcomParser{
 		}
 		else{
 			//validate children of root:
-			if(!nodeStack.isEmpty() || nodeStack.size() != grammarBlockOrLineStack.size())
+			if(!nodeStack.isEmpty())
 				throw GedcomParseException.create("Badly formatted GEDCOM, tags are not properly closed");
 
-			//TODO validate children of root
-			System.out.println();
+			final GedcomGrammarBlock grammarBlock = (GedcomGrammarBlock)grammarBlockOrLine;
+			final Map<String, List<String>> childrenValueBucket = bucketByTag(node);
+			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
+				final String entryTag = entry.getKey();
+				final int entryCount = entry.getValue().size();
+				final List<String> entryValues = childrenValueBucket.get(entryTag);
+
+				final List<GedcomNode> childrenWithTag = node.getChildrenWithTag(entryTag);
+				for(final GedcomNode childWithTag : childrenWithTag){
+					final GedcomGrammarLine[] addedGrammarLine = selectAddedGrammarLine(childWithTag, grammarBlock);
+
+					checkConstraints(entryTag, entryCount, addedGrammarLine[0]);
+					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
+							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
+						throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", entryTag,
+							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
+				}
+			}
 		}
+	}
+
+	/** Bucket children of nodes by tag. */
+	private Map<String, List<String>> bucketByTag(final GedcomNode node){
+		final Map<String, List<String>> childrenValueBucket = new HashMap<>(node.getChildren().size());
+		for(final GedcomNode gedcomNode : node.getChildren())
+			//don't count custom tags
+			if(!gedcomNode.isCustom())
+				childrenValueBucket.computeIfAbsent(gedcomNode.getTag(), k -> new ArrayList<>(1))
+					.add(gedcomNode.getValue());
+		return childrenValueBucket;
 	}
 
 	private void checkConstraints(final String tag, final Integer count, final GedcomGrammarLine grammarLine)
