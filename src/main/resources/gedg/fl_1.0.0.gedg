@@ -50,10 +50,10 @@ n EOF    {1:1}
 
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
-  +1 HUSBAND @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the husband. */
-  +1 WIFE @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the wife. */
-  +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
+  +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse, usually the husband. */
+  +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse, usually the wife. */
   +1 CHILDREN_COUNT <COUNT_OF_CHILDREN>    {0:1}	/* The reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
+  +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
@@ -213,9 +213,9 @@ n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase u
 
 
 FAMILY_EVENT_DETAIL :=
-n HUSBAND    {0:1}
+n SPOUSE1    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
-n WIFE    {0:1}
+n SPOUSE2    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
 n <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
 
@@ -293,7 +293,7 @@ n [ DEATH | BURIAL | CREMATION ]    {1:1}	/* A code used to indicate the type of
 n ADOPTION    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
   +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
-    +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* A code which shows which parent in the associated family record adopted this person. Use "HUSB" for husband, "WIFE" for wife, or "BOTH" for both. */
+    +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* A code which shows which parent in the associated family record adopted this person. Use "SPOUSE1" for husband (usually), "SPOUSE2" for wife (usually), or "BOTH" for both. */
 |
 n [ NATURALIZATION | EMIGRATION | IMMIGRATION ]    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
@@ -335,12 +335,11 @@ n SURNAME <NAME_PIECE_SURNAME>    {1:1}	/* Surname or family name. Different sur
 
 SOURCE_CITATION :=
 n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
-  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. */
   +1 EVENT <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
     +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. */
-  +1 DATA    {0:1}
-    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
-    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
+  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 QUALITY <QUALITY_OF_DATA>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
