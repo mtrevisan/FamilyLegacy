@@ -55,7 +55,7 @@ n HEAD    {1:1}
     +2 FORM <GEDCOM_FORM>    {1:1}
   +1 CHAR <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is ANSEL, which includes ASCII as a subset. UNICODE is not widely supported by most operating systems; therefore, GEDCOM produced using the UNICODE character set will be limited in its interchangeability for a while but should eventually provide the international flexibility that is desired. Allowed values: "ANSEL", "UTF-8", "UNICODE", "ASCII" */
     +2 VERS <VERSION_NUMBER>    {0:1}
-  +1 LANG <LANGUAGE_OF_TEXT>    {0:1}	/* The human language in which the data in the transmission is normally read or written. It is used primarily by programs to select language-specific sorting sequences and phonetic name matching algorithms. */
+  +1 LANG <LANGUAGE_OF_TEXT>    {0:2}	/* The human language in which the data in the transmission is normally read or written. It is used primarily by programs to select language-specific sorting sequences and phonetic name matching algorithms. */
   +1 PLAC    {0:1}
     +2 FORM <PLACE_HIERARCHY>    {1:1}	/* This shows the jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. The jurisdictions are separated by commas, and any jurisdiction's name that is missing is still accounted for by a comma. */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */

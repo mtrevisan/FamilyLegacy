@@ -111,7 +111,7 @@ final class GedcomGrammar{
 			return create(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomGrammarParseException.create("File '{}' not found!", grammarFile);
+			throw GedcomGrammarParseException.create("Grammar file '{}' not found!", grammarFile);
 		}
 	}
 

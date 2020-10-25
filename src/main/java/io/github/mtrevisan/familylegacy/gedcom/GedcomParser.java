@@ -70,7 +70,7 @@ final class GedcomParser{
 			return parser.parseGedcom(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomParseException.create("File '{}' not found!", gedcomFile);
+			throw GedcomParseException.create("GEDCOM file '{}' not found!", gedcomFile);
 		}
 	}
 

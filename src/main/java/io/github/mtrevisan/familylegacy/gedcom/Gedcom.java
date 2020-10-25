@@ -73,9 +73,9 @@ public class Gedcom{
 
 	public static void main(final String[] args){
 		try{
-//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/complex.ged");
+//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/complex.ged");
+			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
 			gedcom.write(os);
