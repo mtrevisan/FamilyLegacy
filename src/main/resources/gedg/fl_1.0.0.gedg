@@ -15,7 +15,7 @@ n HEADER    {1:1}
     +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
-      +3 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
+      +3 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of a submitter record. */
   +1 FILE <FILE_NAME>    {1:1}	/* The name of the GEDCOM transmission file. If the file name includes a file extension it must be shown in the form (filename.ext). */
   +1 COPYRIGHT <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
@@ -108,8 +108,13 @@ n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
 REPOSITORY_RECORD :=
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
-  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
+  +1 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
+  +1 FAX <ADDRESS_FAX>    {0:M}	/* A FAX telephone number appropriate for sending data facsimiles. */
+  +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address. */
+  +1 WEB <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address. */
+    +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -136,7 +141,7 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
 SUBMITTER_RECORD :=
 n @<XREF:SUBMITTER>@ SUBMITTER    {1:1}	/* An xref ID of a submitter record. */
   +1 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
-  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
+  +1 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 LANGUAGE <LANGUAGE_PREFERENCE>    {0:M}	/* The language in which a person prefers to communicate. Multiple language preference is shown by using multiple occurrences in order of priority. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -144,13 +149,13 @@ n @<XREF:SUBMITTER>@ SUBMITTER    {1:1}	/* An xref ID of a submitter record. */
 
 
 PLACE_RECORD :=
-n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
+n @<XREF:PLACE_RECORD>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
   +1 <<PLACE_STRUCTURE>>    {1:M}	/* A list of PLACE_STRUCTURE() objects. */
 
 
 PLACE_STRUCTURE :=
-n PLACE <NAME>    {1:1}	/* The address lines usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
+n PLACE    {1:1}
   +1 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
   +1 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
   +1 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
@@ -166,11 +171,7 @@ n PLACE <NAME>    {1:1}	/* The address lines usually contain the addressee’s s
   +1 MAP    {0:1}
     +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944. */
     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944. */
-  +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
-  +1 FAX <ADDRESS_FAX>    {0:M}	/* A FAX telephone number appropriate for sending data facsimiles. */
-  +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address. */
-  +1 WEB <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address. */
-    +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
+  +1 SUBORDINATE @<XREF:PLACE_RECORD>@    {0:1}	/* A PLACE_STRUCTURE() object this place structure is subordinated to. */
   +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the address. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
@@ -202,7 +203,7 @@ n FAMILY_CHILD @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
 EVENT_DETAIL :=
 n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVENT or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
   +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
-  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
+  +1 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
   +1 CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -348,7 +349,6 @@ n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
 SOURCE_REPOSITORY_CITATION :=
 n REPOSITORY [@<XREF:REPOSITORY>@|<NULL>]    {1:1}	/* An xref ID of a repository record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 CALL_NUMBER <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
 
 
 SPOUSE_TO_FAMILY_LINK :=
