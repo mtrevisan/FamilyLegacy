@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -37,6 +38,8 @@ import java.util.regex.Pattern;
 
 public final class GedcomNode{
 
+	private static final char LF = '\n';
+
 	/** NOTE: {@link Pattern#DOTALL} is for unicode line separator. */
 	private static final Pattern GEDCOM_LINE = Pattern.compile("^\\s*(\\d)\\s+(@([^@ ]+)@\\s+)?([a-zA-Z_0-9.]+)(\\s+@([^@ ]+)@)?(\\s(.*))?$",
 		Pattern.DOTALL);
@@ -45,6 +48,9 @@ public final class GedcomNode{
 	private static final int GEDCOM_LINE_TAG = 4;
 	private static final int GEDCOM_LINE_XREF = 6;
 	private static final int GEDCOM_LINE_VALUE = 8;
+
+	private static final String TAG_CONTINUATION = "CONT";
+	private static final String TANG_CONCATENATION = "CONC";
 
 
 	private int level;
@@ -121,16 +127,57 @@ public final class GedcomNode{
 		return value;
 	}
 
+	/**
+	 * Returns the value associated with this node.
+	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
+	 */
+	public String getValueConcatenated(){
+		final List<GedcomNode> subChildren = getChildrenWithTag(TANG_CONCATENATION, TAG_CONTINUATION);
+		if(!subChildren.isEmpty()){
+			final StringBuilder sb = new StringBuilder();
+			sb.append(value);
+			for(final GedcomNode sc : subChildren){
+				if(sc.getTag().charAt(3) == 'T')
+					sb.append(LF);
+				sb.append(sc.getValue());
+			}
+			return sb.toString();
+		}
+		else
+			return value;
+	}
+
 	public void setValue(final String value){
 		if(value != null && !value.isEmpty())
 			this.value = value;
 	}
 
-	public void appendValue(final String value){
-		if(this.value == null)
+	public void setValueConcatenated(final String value){
+		if(value != null && !value.isEmpty()){
+			//split line into CONC|CONT if appliable
+			int remainingLength;
+			final int length = value.length();
+			for(int offset = 0; length > offset + (remainingLength = 253 - (level < 9? 2: 1) - tag.length()); offset += remainingLength){
+				final String newTag;
+				final int lineFeedIndex = value.indexOf(LF, offset);
+				if(lineFeedIndex < offset + remainingLength){
+					remainingLength = offset - lineFeedIndex - 1;
+					newTag = TAG_CONTINUATION;
+				}
+				else{
+					while(value.charAt(offset + remainingLength - 1) == ' ')
+						remainingLength --;
+					newTag = TANG_CONCATENATION;
+				}
+				final String newValue = value.substring(offset, offset + remainingLength);
+
+				final GedcomNode newNode = new GedcomNode();
+				newNode.setTag(newTag);
+				newNode.setValue(newValue);
+				addChild(newNode);
+			}
 			this.value = value;
-		else
-			this.value += value;
+		}
 	}
 
 	public List<GedcomNode> getChildren(){
@@ -144,12 +191,12 @@ public final class GedcomNode{
 		children.add(child);
 	}
 
-	public List<GedcomNode> getChildrenWithTag(final String tag){
+	public List<GedcomNode> getChildrenWithTag(final String... tags){
 		final List<GedcomNode> taggedChildren;
 		if(children != null){
 			taggedChildren = new ArrayList<>(0);
 			for(final GedcomNode child : children)
-				if(child.tag.equals(tag))
+				if(ArrayUtils.contains(tags, child.tag))
 					taggedChildren.add(child);
 		}
 		else

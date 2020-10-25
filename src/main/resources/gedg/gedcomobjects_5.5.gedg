@@ -38,7 +38,7 @@ ADDRESS_STRUCTURE :=
     +1 POST <ADDRESS_POSTAL_CODE>  {0:1}
     +1 CTRY <ADDRESS_COUNTRY>  {0:1}
   n  PHON <PHONE_NUMBER>  {0:3}
-  
+
 
 HEADER :=
   n HEAD          {1:1}
@@ -66,7 +66,7 @@ HEADER :=
     +1 PLAC        {0:1}
       +2 FORM <PLACE_HIERARCHY>  {1:1}
     +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>  {0:1}
-      /* +2 [CONT|CONC] <GEDCOM_CONTENT_DESCRIPTION>  {0:M} */
+      /* +2 [CONC|CONT] <GEDCOM_CONTENT_DESCRIPTION>  {0:M} */
 
 
 FAMILY_RECORD :=
@@ -92,7 +92,7 @@ FAMILY_RECORD :=
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
 
-    
+
 INDIVIDUAL_RECORD :=
 n @<XREF:INDI>@  INDI {1:1}
     +1 RESN <RESTRICTION_NOTICE>  {0:1}
@@ -117,8 +117,8 @@ n @<XREF:INDI>@  INDI {1:1}
       +2 TYPE <USER_REFERENCE_TYPE>  {0:1}
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
-    
-    
+
+
 MULTIMEDIA_RECORD :=
   n @<XREF:OBJE>@ OBJE  {1:1}
     +1 FORM <MULTIMEDIA_FORMAT>  {1:1}
@@ -143,7 +143,7 @@ NOTE_RECORD :=
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
 
-    
+
 REPOSITORY_RECORD :=
   n  @<XREF:REPO>@ REPO  {1:1}
     +1 NAME <NAME_OF_REPOSITORY>   {0:1}
@@ -154,7 +154,7 @@ REPOSITORY_RECORD :=
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
 
-    
+
 SOURCE_RECORD :=
   n  @<XREF:SOUR>@ SOUR  {1:1}
     +1 DATA        {0:1}
@@ -164,14 +164,14 @@ SOURCE_RECORD :=
       +2 AGNC <RESPONSIBLE_AGENCY>  {0:1}
       +2 <<NOTE_STRUCTURE>>  {0:M}
     +1 AUTH <SOURCE_ORIGINATOR>  {0:1}
-      /* +2 [CONT|CONC] <SOURCE_ORIGINATOR>  {0:M} */
+      /* +2 [CONC|CONT] <SOURCE_ORIGINATOR>  {0:M} */
     +1 TITL <SOURCE_DESCRIPTIVE_TITLE>  {0:1}
-      /* +2 [CONT|CONC] <SOURCE_DESCRIPTIVE_TITLE>  {0:M} */
+      /* +2 [CONC|CONT] <SOURCE_DESCRIPTIVE_TITLE>  {0:M} */
     +1 ABBR <SOURCE_FILED_BY_ENTRY>  {0:1}
     +1 PUBL <SOURCE_PUBLICATION_FACTS>  {0:1}
-      /* +2 [CONT|CONC] <SOURCE_PUBLICATION_FACTS>  {0:M} */
+      /* +2 [CONC|CONT] <SOURCE_PUBLICATION_FACTS>  {0:M} */
     +1 TEXT <TEXT_FROM_SOURCE>  {0:1}
-      /* +2 [CONT|CONC] <TEXT_FROM_SOURCE>  {0:M} */
+      /* +2 [CONC|CONT] <TEXT_FROM_SOURCE>  {0:M} */
     +1 <<SOURCE_REPOSITORY_CITATION>>  {0:1}
     +1 <<MULTIMEDIA_LINK>>  {0:M}
     +1 <<NOTE_STRUCTURE>>  {0:M}
@@ -179,8 +179,8 @@ SOURCE_RECORD :=
       +2 TYPE <USER_REFERENCE_TYPE>  {0:1}
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
-    
-    
+
+
 SUBMISSION_RECORD :=
   n  @<XREF:SUBN>@ SUBN  {1:1}
     +1 SUBM @<XREF:SUBM>@ {0:1}
@@ -190,8 +190,8 @@ SUBMISSION_RECORD :=
     +1 DESC <GENERATIONS_OF_DESCENDANTS>  {0:1}
     +1 ORDI <ORDINANCE_PROCESS_FLAG>  {0:1}
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
-    
-    
+
+
 SUBMITTER_RECORD :=
   n  @<XREF:SUBM>@   SUBM {1:1}
     +1 NAME <SUBMITTER_NAME>  {1:1}
@@ -201,28 +201,28 @@ SUBMITTER_RECORD :=
     +1 RFN <SUBMITTER_REGISTERED_RFN>  {0:1}
     +1 RIN <AUTOMATED_RECORD_ID>  {0:1}
     +1 <<CHANGE_DATE>>  {0:1}
-   
-   
-ASSOCIATION_STRUCTURE := 
+
+
+ASSOCIATION_STRUCTURE :=
   n  ASSO @<XREF:INDI>@  {0:M}
     +1 RELA <RELATION_IS_DESCRIPTOR>  {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
     +1 <<SOURCE_CITATION>>  {0:M}
-    
- 
+
+
 CHANGE_DATE :=
   n  CHAN          {1:1}
     +1 DATE <CHANGE_DATE>  {1:1}
       +2 TIME <TIME_VALUE>  {0:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
- 
- 
+
+
 CHILD_TO_FAMILY_LINK :=
   n  FAMC @<XREF:FAM>@  {1:1}
     +1 PEDI <PEDIGREE_LINKAGE_TYPE>  {0:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
- 
- 
+
+
 EVENT_DETAIL :=
   n  TYPE <EVENT_DESCRIPTOR>  {0:1}
   n  DATE <DATE_VALUE>  {0:1}
@@ -236,8 +236,8 @@ EVENT_DETAIL :=
     +1 <<MULTIMEDIA_LINK>>  {0:M}
   n  <<MULTIMEDIA_LINK>>  {0:M}
   n  <<NOTE_STRUCTURE>>  {0:M}
- 
- 
+
+
 FAMILY_EVENT_STRUCTURE :=
   [
   n [ ANUL | CENS | DIV | DIVF ] [Y|<NULL>]  {1:1}
@@ -252,8 +252,8 @@ FAMILY_EVENT_STRUCTURE :=
   n  EVEN          {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
   ]
- 
- 
+
+
 INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
   [
   n  CAST <CASTE_NAME>   {1:1}
@@ -286,7 +286,7 @@ INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
   n  RELI <RELIGIOUS_AFFILIATION>   {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
   |
-  n  RESI           {1:1}  
+  n  RESI           {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
   |
   n  SSN <SOCIAL_SECURITY_NUMBER>   {0:1}
@@ -295,8 +295,8 @@ INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
   n  TITL <NOBILITY_TYPE_TITLE>  {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
   ]
- 
- 
+
+
 
 INDIVIDUAL_EVENT_STRUCTURE :=
   [
@@ -330,8 +330,8 @@ INDIVIDUAL_EVENT_STRUCTURE :=
   n  EVEN          {1:1}
     +1 <<EVENT_DETAIL>>  {0:1}
     ]
- 
- 
+
+
 LDS_SPOUSE_SEALING :=
   n  SLGS          {1:1}
     +1 STAT <LDS_SPOUSE_SEALING_DATE_STATUS>  {0:1}
@@ -340,8 +340,8 @@ LDS_SPOUSE_SEALING :=
     +1 PLAC <PLACE_LIVING_ORDINANCE>  {0:1}
     +1 <<SOURCE_CITATION>>  {0:M}
     +1 <<NOTE_STRUCTURE>>  {0:M}
- 
- 
+
+
 
 MULTIMEDIA_LINK :=
   [          /* embedded form*/
@@ -353,8 +353,8 @@ MULTIMEDIA_LINK :=
     +1 FILE <MULTIMEDIA_FILE_REFERENCE>  {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
   ]
- 
-  
+
+
 
 PERSONAL_NAME_STRUCTURE :=
   n  NAME <NAME_PERSONAL>  {1:1}
@@ -388,7 +388,7 @@ NOTE_STRUCTURE :=
   ]
 
 
-    
+
 SOURCE_CITATION :=
   [
   n SOUR @<XREF:SOUR>@    /* pointer to source record */  {1:1}
@@ -409,21 +409,21 @@ SOURCE_CITATION :=
        /* +2 [CONC | CONT ] <TEXT_FROM_SOURCE>  {0:M} */
     +1 <<NOTE_STRUCTURE>>  {0:M}
   ]
-    
-    
+
+
 SOURCE_REPOSITORY_CITATION :=
   n  REPO @<XREF:REPO>@ {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
     +1 CALN <SOURCE_CALL_NUMBER>  {0:M}
        +2 MEDI <SOURCE_MEDIA_TYPE>  {0:1}
-    
-    
+
+
 SPOUSE_TO_FAMILY_LINK :=
   n FAMS @<XREF:FAM>@  {1:1}
     +1 <<NOTE_STRUCTURE>>  {0:M}
-    
-    
-    
+
+
+
 LDS_INDIVIDUAL_ORDINANCE :=
   [
   n  [ BAPL | CONL ]  {1:1}
@@ -451,7 +451,7 @@ LDS_INDIVIDUAL_ORDINANCE :=
     +1 <<SOURCE_CITATION>>  {0:M}
     +1 <<NOTE_STRUCTURE>>  {0:M}
   ]
-  
-  
+
+
 END_OF_FILE:=
 n TRLR    {1:1}

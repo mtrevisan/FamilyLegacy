@@ -71,8 +71,4 @@ public final class JavaHelper{
 			.getMessage();
 	}
 
-	public static <T> T nonNullOrDefault(final T obj, final T defaultObject){
-		return (obj != null? obj: defaultObject);
-	}
-
 }
