@@ -105,10 +105,13 @@ final class GedcomGrammar{
 				GEDCOM_FILENAME_EXTENSION);
 
 		try(final InputStream is = GedcomGrammar.class.getResourceAsStream(grammarFile)){
+			if(is == null)
+				throw new IllegalArgumentException();
+
 			return create(is);
 		}
-		catch(final IOException e){
-			throw GedcomGrammarParseException.create("File {} not found!", grammarFile);
+		catch(final IllegalArgumentException | IOException e){
+			throw GedcomGrammarParseException.create("File '{}' not found!", grammarFile);
 		}
 	}
 

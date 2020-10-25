@@ -63,6 +63,9 @@ final class GedcomParser{
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
 		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
+			if(is == null)
+				throw new IllegalArgumentException();
+
 			final GedcomParser parser = new GedcomParser(grammar);
 			return parser.parseGedcom(is);
 		}
