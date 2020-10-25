@@ -108,8 +108,6 @@ final class GedcomParser{
 				if(child.getTag() == null)
 					throw GedcomParseException.create("Tag not found at line {}", lineCount);
 
-if("1 EVEN Dorato /doˈrato/".equals(line))
-	System.out.println();
 				//close pending levels
 				while(currentLevel <= previousLevel){
 					endElement();
@@ -125,9 +123,6 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 			endElement();
 			//end document
 			endElement();
-
-			if(!nodeStack.isEmpty() || nodeStack.size() != grammarBlockOrLineStack.size())
-				throw GedcomParseException.create("Badly formatted GEDCOM, tags are not properly closed");
 
 			LOGGER.info("Parsing done");
 
@@ -155,7 +150,7 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 
 		parent.addChild(child);
 
-		GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, parentGrammarBlockOrLine);
+		GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, parentGrammarBlockOrLine)[1];
 		if(addedGrammarLine == null){
 			//consider as custom tag
 			child.setCustom();
@@ -170,7 +165,7 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 		grammarBlockOrLineStack.push(addedGrammarLine);
 	}
 
-	private GedcomGrammarLine selectAddedGrammarLine(final GedcomNode child, final Object parentGrammarBlockOrLine){
+	private GedcomGrammarLine[] selectAddedGrammarLine(final GedcomNode child, final Object parentGrammarBlockOrLine){
 		if(!child.isCustomTag()){
 			final List<GedcomGrammarLine> grammarLines;
 			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine){
@@ -183,32 +178,37 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 				grammarLines = ((GedcomGrammarBlock)parentGrammarBlockOrLine).getGrammarLines();
 			for(final GedcomGrammarLine grammarLine : grammarLines){
 				if(grammarLine.getTagNames().contains(child.getTag()))
-					return grammarLine;
+					return new GedcomGrammarLine[]{grammarLine, grammarLine};
 
 				if(grammarLine.getStructureName() != null){
-					final GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, grammarLine.getStructureName());
-					if(addedGrammarLine != null)
-						return addedGrammarLine;
+					final GedcomGrammarLine[] addedGrammarLine = selectAddedGrammarLine(child, grammarLine.getStructureName());
+					if(addedGrammarLine[1] != null){
+						GedcomGrammarLine parentGrammarLine = addedGrammarLine[0];
+						if(parentGrammarLine == null)
+							parentGrammarLine = (addedGrammarLine[1].getMin() == 1 && addedGrammarLine[1].getMax() == 1? grammarLine:
+								addedGrammarLine[1]);
+						return new GedcomGrammarLine[]{parentGrammarLine, addedGrammarLine[1]};
+					}
 				}
 			}
 		}
-		return null;
+		return new GedcomGrammarLine[2];
 	}
 
-	private GedcomGrammarLine selectAddedGrammarLine(final GedcomNode child, final String grammarLineStructureName){
+	private GedcomGrammarLine[] selectAddedGrammarLine(final GedcomNode child, final String grammarLineStructureName){
 		final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLineStructureName);
 		for(final GedcomGrammarStructure variation : variations)
 			for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines()){
 				if(gLine.hasTag(child.getTag()))
-					return gLine;
+					return new GedcomGrammarLine[]{null, gLine};
 
 				if(gLine.getStructureName() != null){
-					final GedcomGrammarLine line = selectAddedGrammarLine(child, gLine.getStructureName());
-					if(line != null)
-						return line;
+					final GedcomGrammarLine[] line = selectAddedGrammarLine(child, gLine.getStructureName());
+					if(line[1] != null)
+						return new GedcomGrammarLine[]{(line[0] != null? line[0]: gLine), line[1]};
 				}
 			}
-		return null;
+		return new GedcomGrammarLine[2];
 	}
 
 	private void endElement() throws GedcomParseException{
@@ -224,75 +224,52 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 
 			//validate min-max constraints:
 			final String tag = node.getTag();
-			checkConstraints(tag, Collections.singletonList(node.getValue()), 1, grammarLine);
+			checkConstraints(tag, 1, grammarLine);
+			if(!grammarLine.getValuePossibilities().isEmpty() && !grammarLine.getValuePossibilities().contains(node.getValue()))
+				throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
+					grammarLine.getValuePossibilities().toString(), node.getValue());
 
 
 			//validate children:
 			//bucket children of nodes by tag
-			final Map<String, Integer> childrenTagBucket = new HashMap<>(node.getChildren().size());
 			final Map<String, List<String>> childrenValueBucket = new HashMap<>(node.getChildren().size());
 			for(final GedcomNode gedcomNode : node.getChildren())
 				//don't count custom tags
-				if(!gedcomNode.isCustom()){
-					childrenTagBucket.merge(gedcomNode.getTag(), 1, Integer::sum);
+				if(!gedcomNode.isCustom())
 					childrenValueBucket.computeIfAbsent(gedcomNode.getTag(), k -> new ArrayList<>(1))
 						.add(gedcomNode.getValue());
-				}
-			for(final Map.Entry<String, Integer> entry : childrenTagBucket.entrySet()){
+			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
 				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
 				if(childBlock == null)
 					throw GedcomParseException.create("Children of parent tag does not exists");
 
 				final String entryTag = entry.getKey();
-				final Integer entryCount = entry.getValue();
+				final int entryCount = entry.getValue().size();
 				final List<String> entryValues = childrenValueBucket.get(entryTag);
 
-//--
-				//FIXME get(0)?
-				final GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(node.getChildrenWithTag(entryTag).get(0), childBlock);
-				if(addedGrammarLine == null)
-					checkConstraints(entryTag, entryValues, entryCount, addedGrammarLine);
-//---
+				final List<GedcomNode> childrenWithTag = node.getChildrenWithTag(entryTag);
+				for(final GedcomNode childWithTag : childrenWithTag){
+					final GedcomGrammarLine[] addedGrammarLine = selectAddedGrammarLine(childWithTag, childBlock);
 
-//				final List<GedcomGrammarLine> grammarLines = childBlock.getGrammarLines();
-//				//if no tag is found, then it's a custom tag and must be skipped
-//				boolean tagFound = false;
-//				for(final GedcomGrammarLine gLine : grammarLines){
-//					//search for tag
-//					if(gLine.getTagNames().contains(entryTag)){
-//						checkConstraints(entryTag, entryValues, entryCount, gLine);
-//
-//						tagFound = true;
-//						break;
-//					}
-//					else if(gLine.getStructureName() != null){
-//						//extract structure
-//						final List<GedcomGrammarStructure> variations = grammar.getVariations(gLine.getStructureName());
-//						for(final GedcomGrammarStructure variation : variations){
-//							//TODO foreach grammar line
-//							final GedcomGrammarLine gl = variation.getGrammarBlock().getGrammarLine(entryTag);
-//							//search for tag
-//							if(gl != null && gl.getTagNames().contains(entryTag)){
-//								checkConstraints(entryTag, entryValues, entryCount, gl);
-//
-//								tagFound = true;
-//								break;
-//							}
-//						}
-//					}
-//				}
-//				if(!tagFound)
-//					//TODO may be custom?
-//					System.out.println();
+					checkConstraints(entryTag, entryCount, (addedGrammarLine[0] != null? addedGrammarLine[0]: grammarLine));
+					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
+							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
+						throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
+							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
+				}
 			}
 		}
 		else{
+			//validate children of root:
+			if(!nodeStack.isEmpty() || nodeStack.size() != grammarBlockOrLineStack.size())
+				throw GedcomParseException.create("Badly formatted GEDCOM, tags are not properly closed");
+
 			//TODO validate children of root
 			System.out.println();
 		}
 	}
 
-	private void checkConstraints(final String tag, final List<String> values, final Integer count, final GedcomGrammarLine grammarLine)
+	private void checkConstraints(final String tag, final Integer count, final GedcomGrammarLine grammarLine)
 			throws GedcomParseException{
 		final int min = grammarLine.getMin();
 		if(count < min)
@@ -302,9 +279,6 @@ if("1 EVEN Dorato /doˈrato/".equals(line))
 		if(max != -1 && max < count)
 			throw GedcomParseException.create("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
 				max, count);
-		if(!grammarLine.getValuePossibilities().isEmpty() && !grammarLine.getValuePossibilities().containsAll(values))
-			throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
-				grammarLine.getValuePossibilities().toString(), values.toString());
 	}
 
 }
