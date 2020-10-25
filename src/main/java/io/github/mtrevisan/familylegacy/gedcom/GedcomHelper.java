@@ -44,6 +44,9 @@ final class GedcomHelper{
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
+		if(in == null)
+			throw new IllegalArgumentException("Cannot load file");
+
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
 		in.mark(Integer.MAX_VALUE);

@@ -40,11 +40,15 @@ public final class GedcomParseException extends Exception{
 
 
 	public static GedcomParseException create(final String message, final Object... parameters){
-		return new GedcomParseException(JavaHelper.format(message, parameters));
+		return new GedcomParseException(JavaHelper.format(message, parameters), null);
 	}
 
-	private GedcomParseException(final String message){
-		super(message);
+	public static GedcomParseException createWithCause(final String message, final Throwable cause, final Object... parameters){
+		return new GedcomParseException(JavaHelper.format(message, parameters), cause);
+	}
+
+	private GedcomParseException(final String message, final Throwable cause){
+		super(message, cause);
 	}
 
 	@SuppressWarnings("unused")

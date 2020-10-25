@@ -66,8 +66,8 @@ final class GedcomParser{
 			final GedcomParser parser = new GedcomParser(grammar);
 			return parser.parseGedcom(is);
 		}
-		catch(final IOException e){
-			throw GedcomParseException.create("File {} not found!", gedcomFile);
+		catch(final IllegalArgumentException | IOException e){
+			throw GedcomParseException.create("File '{}' not found!", gedcomFile);
 		}
 	}
 
@@ -78,8 +78,9 @@ final class GedcomParser{
 	private GedcomNode parseGedcom(final InputStream is) throws GedcomParseException{
 		LOGGER.info("Parsing GEDCOM file...");
 
-		int lineCount = 0;
+		int lineCount = -1;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
+			lineCount = 0;
 			startDocument();
 
 			String line;
@@ -128,10 +129,15 @@ final class GedcomParser{
 
 			return root;
 		}
+		catch(final IllegalArgumentException e){
+			throw e;
+		}
 		catch(final GedcomParseException e){
 			throw GedcomParseException.create(e.getMessage() + " on line {}", lineCount);
 		}
 		catch(final Exception e){
+			if(lineCount < 0)
+				throw GedcomParseException.create("Failed to read file", e);
 			throw GedcomParseException.create("Failed to read line {}", lineCount);
 		}
 	}
