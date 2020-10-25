@@ -50,7 +50,7 @@ n HEAD    {1:1}
   +1 SUBN @<XREF:SUBN>@    {0:1}	/* An xref ID of a submission record. */
   +1 FILE <FILE_NAME>    {0:1}	/* The name of the GEDCOM transmission file. If the file name includes a file extension it must be shown in the form (filename.ext). */
   +1 COPR <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
-  +1 GEDC    {1:1}
+  +1 GEDC    {1:1}	/* Information about the use of GEDCOM in a transmission. */
     +2 VERS <VERSION_NUMBER>    {1:1}
     +2 FORM <GEDCOM_FORM>    {1:1}
   +1 CHAR <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is ANSEL, which includes ASCII as a subset. UNICODE is not widely supported by most operating systems; therefore, GEDCOM produced using the UNICODE character set will be limited in its interchangeability for a while but should eventually provide the international flexibility that is desired. Allowed values: "ANSEL", "UTF-8", "UNICODE", "ASCII" */
