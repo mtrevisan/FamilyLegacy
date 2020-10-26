@@ -1,8 +1,8 @@
 ﻿0 HEAD
 1 SOURCE FLE
 2 NAME Family Legacy
-2 VERS 1.0.0
-2 CORP Mauro Trevisan Software
+2 VERSION 1.0.0
+2 CORPORATE Mauro Trevisan Software
 1 SUBMITTER @SUBM1@
 1 COPYRIGHT Copyright (c) 2020 Mauro Trevisan
 1 CHARSET UTF-8
@@ -133,7 +133,7 @@ TODO
 4 LATI N45.65056
 4 LONG E12.21333
 2 SOUR @S12@
-3 QUAY 3
+3 CREDIBILITY 3
 2 OBJE
 3 TITL marriage Trevisan Emilio Giovanni + Massuti Assunta Augusta 19530214 religious
 3 _DATE 14 FEB 1953
@@ -175,10 +175,6 @@ TODO
 3 FILE Photos\buildings\building via Pasubio 39, Sant'Angelo sul Sile, Treviso, Italy.jpg
 3 _PUBL Y
 3 NOTE via Pasubio 39, Sant'Angelo sul Sile, Treviso, Italy
-1 CHAN
-2 DATE 6 SEP 2019
-3 TIME 22:48:50
-1 RIN TCGB_F1
 0 @S15@ SOUR
 1 TITL Sant'Angelo sul Sile e Santa Maria del Sile nei 1200 anni di storia
 1 AUTH Mons. Sartoretto, Antonio; Cav. uff. Sottana, Ottorino
@@ -220,10 +216,6 @@ TODO
 2 FORM psd
 2 FILE Photos\Gallinaro Regina Elena 1975.psd
 2 _PUBL Y
-1 CHAN
-2 DATE 3 NOV 2017
-3 TIME 7:39:54
-1 RIN TCGB_S1
 0 @R1@ REPO
 1 NAME Archivio di Stato di Belluno, Italy
 1 ADDR
@@ -234,10 +226,6 @@ TODO
 2 CTRY Italy
 1 PHON as-bl@@beniculturali.it
 1 PLAC Belluno, Belluno 32100, Italy
-1 CHAN
-2 DATE 31 DEC 2018
-3 TIME 15:13:30
-1 RIN TCGB_R7
 1 EMAIL as-bl@beniculturali.it
 1 WWW www.archiviodistatobelluno.beniculturali.it/
 0 @T1@ NOTE 1853 - Corrispondenza della Deputazione comunali di Canizzano in occasione del seppellimento del pri
@@ -293,8 +281,5 @@ TODO
 1 CONT Un palmo di Treviso equivale a 1 piede, cioè 0.40810548 m.
 1 SOUR @S83@
 2 PAGE Busta 2823, Referato VII - Sanità
-2 QUAY 3
-1 CHAN
-2 DATE 5 OCT 2019
-3 TIME 10:39:47
+2 CREDIBILITY 3
 0 EOF
