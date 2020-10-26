@@ -65,10 +65,10 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
 
 INDIVIDUAL_RECORD :=
 n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record. */
-  +1 <<PERSONAL_NAME_STRUCTURE>>    {0:M}	/* A list of PERSONAL_NAME_STRUCTURE() objects giving the names associated with this individual. */
-  +1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sexual anatomy of the individual. */
-  +1 GENDER <GENDER_VALUE>    {0:1}	/* A code that indicates the gender of the individual. */
-  +1 SEXUAL_ORIENTATION <SEXUAL_ORIENTATION_VALUE>    {0:1}	/* A code that indicates the sexual orientation of the individual. */
+  +1 <<NAME_SURNAME_STRUCTURE>>    {0:M}	/* A list of NAME_SURNAME_STRUCTURE() objects giving the names associated with this individual. */
+  +1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE). */
+  +1 GENDER <GENDER_VALUE>    {0:1}	/* A code that indicates the gender of the individual (one of MALE, FEMALE, INTERSEX, UNKNOWN). */
+  +1 SEXUAL_ORIENTATION <SEXUAL_ORIENTATION_VALUE>    {0:1}	/* A code that indicates the sexual orientation of the individual (one of MALE, FEMALE, BOTH). */
   +1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_EVENT_STRUCTURE() objects giving the events associated with this individual. */
   +1 <<INDIVIDUAL_ATTRIBUTE_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_ATTRIBUTE_STRUCTURE() objects giving the attributes associated with this individual. */
   +1 <<CHILD_TO_FAMILY_LINK>>    {0:M}	/* A list of CHILD_TO_FAMILY_LINK() objects giving the details of families this individual is a child of. */
@@ -123,13 +123,13 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
 SOURCE_RECORD :=
 n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 DATA    {0:1}
-    +2 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as a parish register of births, deaths, and marriages would be BIRT, DEAT, MARR. These can be enumerated over more than one vector element. */
+    +2 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as a parish register of births, deaths, and marriages would be BIRTH, DEATH, MARRIAGE. These can be enumerated over more than one vector element. */
       +3 DATE <DATE_PERIOD>    {0:1}	/* A date_period() object associated with the period covered by the course. */
       +3 PLACE <SOURCE_JURISDICTION_PLACE>    {0:1}	/* The name of the lowest jurisdiction that encompasses all lower-level places named in this source. */
     +2 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the data in this source. */
-  +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
+  +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 PUBLICATION <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
   +1 TEXT <TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
@@ -144,6 +144,7 @@ n @<XREF:SUBMITTER>@ SUBMITTER    {1:1}	/* An xref ID of a submitter record. */
   +1 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 LANGUAGE <LANGUAGE_PREFERENCE>    {0:M}	/* The language in which a person prefers to communicate. Multiple language preference is shown by using multiple occurrences in order of priority. */
+  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
@@ -156,6 +157,7 @@ n @<XREF:PLACE_RECORD>@ PLACE    {1:1}	/* An xref ID of a place record. */
 
 PLACE_STRUCTURE :=
 n PLACE    {1:1}
+  +1 LOCALE <PLACE_LOCALE>    {0:1}    /* The locale identifier for the place form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
   +1 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
   +1 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
@@ -201,7 +203,7 @@ n FAMILY_CHILD @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
 
 
 EVENT_DETAIL :=
-n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVENT or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
+n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVENT or FACT tags are used. The value of this tag is responsible for classifying the generic event or fact being cited. */
   +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
   +1 PLACE @<XREF:PLACE_STRUCTURE>@    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
   +1 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
@@ -309,28 +311,26 @@ n EVENT    {1:1}	/* A code used to indicate the type of individual event. */
 ]
 
 
-PERSONAL_NAME_STRUCTURE :=
-n NAME <NAME_PERSONAL>    {1:1}	/* The surname of an individual, if known, is enclosed between two slash (/) characters. The order of the name parts should be the order that the person would, by custom of their culture, have used when giving it to a recorder. */
-  +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant */
-  +1 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A PERSONAL_NAME_PIECES() object giving the components of the name. */
-  +1 ROMANIZED <NAME_ROMANIZED_VARIATION>    {0:M}	 /* A character vector giving romanized variations of the name. */
-    +2 TYPE <ROMANIZED_TYPE>    {1:1}	 /* Indicates the method used in transforming the text to a romanized variation. */
-    +2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the romanized name variations. */
+NAME_SURNAME_STRUCTURE :=
+n NAME    {1:1}
+  +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant (one of BIRTH_NAME, MARRIAGE_NAME, NICKNAME, ALSO_KNOWN_AS, NICKNAME, FAMILY_NAME, ADOPTIVE_NAME, FORMAL_NAME, MAIDEN, RELIGIOUS_NAME -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md). */
+  +1 LOCALE <NAME_LOCALE>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 <<NAME_STRUCTURE>>    {0:M}	/* A list of NAME_STRUCTURE() objects. */
+  +1 <<SURNAME_STRUCTURE>>    {0:M}	/* A list of SURNAME_STRUCTURE() objects. */
+  +1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this name was recorded. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
-PERSONAL_NAME_PIECES :=
-n NAME <NAME_PIECE_GIVEN>    {0:1}	/* Given name or earned name. Different given names are separated by a comma. */
-  +1 NAME_PREFIX <NAME_PIECE_PREFIX>    {0:1}	/* Non indexing name piece that appears preceding the given name and surname parts. Different name prefix parts are separated by a comma. */
-  +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name and surname parts. Different name suffix parts are separated by a comma. */
-n NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
-n <<SURNAME_STRUCTURE>>    {0:M}	/* A list of SURNAME_STRUCTURE() objects. */
-n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+NAME_STRUCTURE :=
+n NAME <NAME_PIECE_NAME>    {1:1}	/* Given name. */
+  +1 NAME_PREFIX <NAME_PIECE_PREFIX>    {0:1}	/* Non-indexing name piece that appears preceding the given name parts. */
+  +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts. */
 
 
 SURNAME_STRUCTURE :=
-n SURNAME <NAME_PIECE_SURNAME>    {1:1}	/* Surname or family name. Different surnames are separated by a comma. */
-  +1 SURNAME_PREFIX <NAME_PIECE_SURNAME_PREFIX>    {0:1}	/* Surname prefix or article used in a family name. Different surname articles are separated by a comma, for example in the name "de la Cruz", this value would be "de, la". */
+n SURNAME <NAME_PIECE_SURNAME>    {1:1}	/* Surname or family name. */
+  +1 SURNAME_PREFIX <NAME_PIECE_SURNAME_PREFIX>    {0:1}	/* Surname prefix or article used in a family name. */
 
 
 SOURCE_CITATION :=
@@ -342,7 +342,7 @@ n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
   +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a multimedia record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 QUALITY <QUALITY_OF_DATA>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
+  +1 QUALITY <QUALITY_OF_DATA>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
 
 SOURCE_REPOSITORY_CITATION :=
