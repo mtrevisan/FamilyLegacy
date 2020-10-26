@@ -24,6 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Predicate;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -48,6 +56,12 @@ public class Gedcom{
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
 	private static final String TAG_HEAD = "HEAD";
+
+	private static final ObjectMapper OM = new ObjectMapper();
+	static{
+		OM.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+		OM.configure(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS, false);
+	}
 
 
 	private GedcomNode root;
@@ -74,13 +88,15 @@ public class Gedcom{
 	public static void main(final String[] args){
 		try{
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
+//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+
+			gedcom.transform();
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
 			gedcom.write(os);
 		}
-		catch(final GedcomGrammarParseException | GedcomParseException | IOException e){
+		catch(final Exception e){
 			e.printStackTrace();
 		}
 	}
@@ -161,6 +177,49 @@ public class Gedcom{
 			out.write(eol);
 		}
 		out.flush();
+	}
+
+	public GedcomNode transform() throws JsonProcessingException{
+//		final List<JsonPatchOperation> operations = new ArrayList<>(Arrays.asList(
+//			BaseTransformer.createMove("children[-1:].TRLR", "EOF")
+//			BaseTransformer.createAdd("evtType", "ACKNOWLEDGE"),
+//			BaseTransformer.createAdd("ackCommand", command),
+//			BaseTransformer.createCopy(ParsingLabels.KEY_DEVICE_NAME, "id"),
+//			BaseTransformer.createRemove(MessageData.KEY_DEVICE_TYPE_CODE),
+//			BaseTransformer.createMove(MessageData.KEY_DEVICE_TYPE_NAME, "deviceType"),
+//			BaseTransformer.createCopy(ParsingLabels.KEY_FIRMWARE_VERSION, "softwareVersion"),
+//			BaseTransformer.createRemove(ParsingLabels.KEY_EVENT_TIME),
+//			BaseTransformer.createAdd("eventTimestamp", DateTimeUtils.formatDateTimePlain(DateTimeUtils.parseDateTimeIso8601(eventTime))),
+//			BaseTransformer.createRemove(ParsingLabels.KEY_RECEPTION_TIME),
+//			BaseTransformer.createAdd("receptionTimestamp", DateTimeUtils.formatDateTimePlain(DateTimeUtils.parseDateTimeIso8601(receptionTime))),
+//			BaseTransformer.createReplace(ParsingLabels.KEY_CORRELATION_ID, String.format("%04X", correlationID)),
+//			BaseTransformer.createMove(ParsingLabels.KEY_CORRELATION_ID, "correlationID"),
+//			BaseTransformer.createAdd("messageID", BaseTransformer.getText(data, ParsingLabels.KEY_MESSAGE_ID)),
+//			BaseTransformer.createRemove(ParsingLabels.KEY_MESSAGE_ID)
+//		));
+
+		//https://github.com/json-path/JsonPath
+		//https://support.smartbear.com/alertsite/docs/monitors/api/endpoint/jsonpath.html
+		final String json = OM.writeValueAsString(root);
+		final DocumentContext parsed = JsonPath.parse(json);
+//		parsed.set("$.children[-1:].tag", "EOF");
+		Predicate filter = new Predicate(){
+			@Override
+			public boolean apply(PredicateContext ctx){
+				return false;
+			}
+		};
+//		parsed.set("$.children[*]", "EOF", filter);
+		final Map<String, Object> node = (Map<String, Object>)((JSONArray)parsed.read("$.children[?(@.tag=='TRLR')]")).get(0);
+		node.put("tag", "EOF");
+		final String transformedJson = parsed.jsonString();
+
+		//orignal data
+//		final JsonNode data = BaseTransformer.convertToJSON(root);
+//		final JsonPatch patch = new JsonPatch(operations);
+//		final JsonNode transformedData = patch.apply(data);
+//		return BaseTransformer.convertFromJSON(transformedData, GedcomNode.class);
+		return null;
 	}
 
 	private String getCharsetName(){
