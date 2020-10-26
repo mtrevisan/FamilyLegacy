@@ -1,10 +1,6 @@
 GEDCOM_VERSION=5.5.1
 GEDCOM_SOURCE=http://www.phpgedview.net/ged551-5.pdf
 GEDCOM_DESCRIPTION=DRAFT Release 5.5.1
-http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gcch2.htm
-field descriptions: https://rdrr.io/github/jl5000/tidygedcom/
-https://fhiso.org/TR/elf-data-model.pdf
-https://github.com/FamilySearch/gedcomx/blob/master/specifications/conceptual-model-specification.md
 
 
 LINEAGE_LINKED_GEDCOM :=
@@ -53,7 +49,7 @@ n HEAD    {1:1}
   +1 GEDC    {1:1}	/* Information about the use of GEDCOM in a transmission. */
     +2 VERS <VERSION_NUMBER>    {1:1}
     +2 FORM <GEDCOM_FORM>    {1:1}
-  +1 CHAR <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is ANSEL, which includes ASCII as a subset. UNICODE is not widely supported by most operating systems; therefore, GEDCOM produced using the UNICODE character set will be limited in its interchangeability for a while but should eventually provide the international flexibility that is desired. Allowed values: "ANSEL", "UTF-8", "UNICODE", "ASCII" */
+  +1 CHAR <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is ANSEL, which includes ASCII as a subset. UNICODE is not widely supported by most operating systems; therefore, GEDCOM produced using the UNICODE character set will be limited in its interchangeability for a while but should eventually provide the international flexibility that is desired. Allowed values: "ANSEL", "UTF-8", "UNICODE", "ASCII". */
     +2 VERS <VERSION_NUMBER>    {0:1}
   +1 LANG <LANGUAGE_OF_TEXT>    {0:2}	/* The human language in which the data in the transmission is normally read or written. It is used primarily by programs to select language-specific sorting sequences and phonetic name matching algorithms. */
   +1 PLAC    {0:1}
