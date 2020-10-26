@@ -128,6 +128,8 @@ final class GedcomParser{
 			//end document
 			endElement();
 
+			//TODO check referential integrity
+
 			LOGGER.info("Parsing done");
 
 			return root;

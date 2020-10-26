@@ -3,12 +3,13 @@
 2 NAME Family Legacy
 2 VERS 1.0.0
 2 CORP Mauro Trevisan Software
-TODO
 1 SUBMITTER @SUBM1@
 1 COPYRIGHT Copyright (c) 2020 Mauro Trevisan
 1 CHARSET UTF-8
 1 CHANGE
 2 DATE 26 OCT 2020
+1 @SUBM1@ SUBMITTER
+2 NAME Mauro Trevisan
 0 @D1@ DOCUMENT
 1 FILE Photos\births\birth Trevisan Emilio Giovanni 19261119 religious.jpg
 2 TITLE birth Trevisan Emilio Giovanni 19261119 religious
