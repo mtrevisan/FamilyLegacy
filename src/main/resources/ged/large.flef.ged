@@ -15,6 +15,15 @@
 2 TITLE birth Trevisan Emilio Giovanni 19261119 religious
 2 FORMAT jpg
 2 TYPE book
+1 DATE 19 NOV 1926
+0 @D2@ DOCUMENT
+1 FILE Photos\map Territorio trevigiano - Sagredo, Giovanni (1617-1682).psd
+1 TITLE map Territorio trevigiano - Sagredo, Giovanni (1617-1682)
+2 FORMAT psd
+1 DATE BET 1620 AND 1640
+1 NOTE @N1@
+0 @N1@ NOTE
+1 NOTE Publishing data: [Bologna: Fabio Magini, between 1620 and 1640]\nPublisher: Magini, Fabio, active 1620-1650.\nAuthor: Sagredo, Giovanni, 1617-1682.\n\nPadded with 56 x 64 cm paper.\nDecoration: Decorative cartouche in the upper left corner, in the lower left corner of the cartouche with editorial details, in the upper right corner decorative lettering cartouche, geographic coordinates in the map frame.
 0 @P1@ PLACE
 1 LOCALE it_IT
 1 CITY Treviso
@@ -29,6 +38,22 @@
 2 LONGITUDE 12.21333
 1 DATE 26 NOV 1926
 1 SUBORDINATE @P1@
+0 @P3@ PLACE
+1 LOCALE it_IT
+1 NUMBER 3
+1 STREET via santa Maria dei Battuti
+1 CITY Belluno
+1 COUNTRY Italy
+1 POSTAL_CODE 32100
+0 @S1@ SOURCE
+1 TITLE Archivio Storico Diocesano Treviso, Italy
+1 DOCUMENT @D2@
+1 REPOSITORY @R1@
+0 @R1@ REPOSITORY
+1 NAME Archivio di Stato di Belluno, Italy
+1 PLACE @P3@
+1 EMAIL as-bl@beniculturali.it
+1 WEB www.archiviodistatobelluno.beniculturali.it/
 0 @I1@ INDIVIDUAL
 1 NAME
 2 TYPE BIRTH_NAME
@@ -52,7 +77,6 @@ TODO
 2 TYPE religious
 2 DATE 19 NOV 1926 22:00+01:00
 2 PLACE @P2@
-TODO
 2 SOURCE @S1@
 2 DOCUMENT @D1@
 
