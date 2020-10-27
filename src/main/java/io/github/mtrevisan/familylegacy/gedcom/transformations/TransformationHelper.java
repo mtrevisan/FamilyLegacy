@@ -1,9 +1,11 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import com.jayway.jsonpath.DocumentContext;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 
 final class TransformationHelper{
@@ -47,6 +49,34 @@ final class TransformationHelper{
 
 		if(!elements.isEmpty()){
 			final Map<String, Object> address = (Map<String, Object>)elements.get(0);
+			final StringJoiner street = new StringJoiner(" - ");
+			String value = (String)address.get("value");
+			selector.append(".children[?(@.tag in ['ADDR','CONT','ADR1','ADR2','ADR3'])]");
+			for(final Object streetComponent : (List<Object>)context.read(selector.toString())){
+				value = (String)((Map<String, Object>)streetComponent).get("value");
+				if(value != null && !value.isEmpty())
+					street.add(value);
+			}
+			if(!street.toString().isEmpty())
+				value = street.toString();
+
+			final GedcomNode place = new GedcomNode(0, "PLACE");
+			//TODO calculate ID
+			place.setXRef("@P1@");
+			if(value != null && !value.isEmpty()){
+				final GedcomNode component = new GedcomNode(1, "STREET");
+				component.setValue(value);
+				place.addChild(component);
+			}
+			/*n STREET <ADDRESS_STREET>    {0:1}					n ADDR + +1 CONT + +1 ADR1 + +1 ADR2 + +1 ADR3
+			n CITY <ADDRESS_CITY>    {0:1}							+1 CITY <ADDRESS_CITY>    {0:1}
+			n STATE <ADDRESS_STATE>    {0:1}							+1 STAE <ADDRESS_STATE>    {0:1}
+			n POSTAL_CODE <ADDRESS_POSTAL_CODE>    {0:1}			+1 POST <ADDRESS_POSTAL_CODE>    {0:1}
+			n COUNTRY <ADDRESS_COUNTRY>    {0:1}					+1 CTRY <ADDRESS_COUNTRY>    {0:1}
+			n PHONE <PHONE_NUMBER>    {0:M}						n PHON <PHONE_NUMBER>    {0:3}
+			n FAX <ADDRESS_FAX>    {0:M}							n FAX <ADDRESS_FAX>    {0:3}
+			n EMAIL <ADDRESS_EMAIL>    {0:M}						n EMAIL <ADDRESS_EMAIL>    {0:3}
+			n WEB <ADDRESS_WEB_PAGE>    {0:M}					n WWW <ADDRESS_WEB_PAGE>    {0:3}*/
 
 //			final StringBuilder sb = new StringBuilder((String)address.get("value"));
 //			selector.append(".children[?(@.tag in ['CONC','CONT'])]");

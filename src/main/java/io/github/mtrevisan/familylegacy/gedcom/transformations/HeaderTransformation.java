@@ -10,7 +10,7 @@ public class HeaderTransformation implements Transformation{
 	@Override
 	public void to(final DocumentContext context){
 		TransformationHelper.moveValueOfKey("tag", "HEADER", context, "HEAD");
-		TransformationHelper.moveValueOfKey("tag", "SOURCE", context, "HEAD", "SOUR");
+		TransformationHelper.moveValueOfKey("tag", "SOURCE", context, "HEADER", "SOUR");
 		TransformationHelper.moveValueOfKey("tag", "VERSION", context, "HEADER", "SOURCE", "VERS");
 		TransformationHelper.moveValueOfKey("tag", "CORPORATE", context, "HEADER", "SOURCE", "CORP");
 		//TODO extract place from sourceCorporate

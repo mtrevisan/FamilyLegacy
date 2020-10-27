@@ -68,29 +68,39 @@ public final class GedcomNode{
 	private boolean custom;
 
 
+	private GedcomNode(){}
+
+	public GedcomNode(final int level, final String id){
+		if(level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero");
+		if(id == null || id.isEmpty())
+			throw new IllegalArgumentException("ID must be present");
+
+		this.level = level;
+		this.id = id;
+	}
+
 	public static GedcomNode createEmpty(){
 		return new GedcomNode();
 	}
 
-	public static GedcomNode parse(final String line){
+	public static GedcomNode parse(final CharSequence line){
 		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())
 			return null;
 
 		final GedcomNode node = new GedcomNode();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
-		node.setTag(m.group(GEDCOM_LINE_TAG));
 		node.setID(m.group(GEDCOM_LINE_ID));
+		node.setTag(m.group(GEDCOM_LINE_TAG));
 		node.setXRef(m.group(GEDCOM_LINE_XREF));
 		node.setValue(m.group(GEDCOM_LINE_VALUE));
 
 		return node;
 	}
 
-	private GedcomNode(){}
-
 	public void setLevel(final String level){
-		this.level = Integer.parseInt(level);
+		this.level = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
 	}
 
 	public int getLevel(){
@@ -123,7 +133,7 @@ public final class GedcomNode{
 		return xref;
 	}
 
-	private void setXRef(final String xref){
+	public void setXRef(final String xref){
 		if(xref != null && !xref.isEmpty())
 			this.xref = xref;
 	}
@@ -142,9 +152,9 @@ public final class GedcomNode{
 			final StringBuilder sb = new StringBuilder();
 			sb.append(value);
 			for(final GedcomNode sc : subChildren){
-				if(sc.getTag().charAt(3) == 'T')
+				if(sc.tag.charAt(3) == 'T')
 					sb.append(LF);
-				sb.append(sc.getValue());
+				sb.append(sc.value);
 			}
 			return sb.toString();
 		}
@@ -163,21 +173,20 @@ public final class GedcomNode{
 			int remainingLength;
 			final int length = value.length();
 			for(int offset = 0; length > offset + (remainingLength = 253 - (level < 9? 2: 1) - tag.length()); offset += remainingLength){
-				final String newTag;
+				final String newID;
 				final int lineFeedIndex = value.indexOf(LF, offset);
 				if(lineFeedIndex < offset + remainingLength){
 					remainingLength = offset - lineFeedIndex - 1;
-					newTag = TAG_CONTINUATION;
+					newID = TAG_CONTINUATION;
 				}
 				else{
 					while(value.charAt(offset + remainingLength - 1) == ' ')
 						remainingLength --;
-					newTag = TANG_CONCATENATION;
+					newID = TANG_CONCATENATION;
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = new GedcomNode();
-				newNode.setTag(newTag);
+				final GedcomNode newNode = new GedcomNode(level + 1, newID);
 				newNode.setValue(newValue);
 				addChild(newNode);
 			}
@@ -214,7 +223,7 @@ public final class GedcomNode{
 	}
 
 	public void setCustom(){
-		this.custom = true;
+		custom = true;
 	}
 
 	@Override
