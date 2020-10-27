@@ -50,23 +50,22 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Gedcom{
+public class Flef{
 
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
-	private static final String TAG_HEADER = "HEAD";
-	private static final String TAG_INDIVIDUAL = "INDI";
-	private static final String TAG_FAMILY = "FAM";
-	private static final String TAG_MEDIA = "OBJE";
+	private static final String TAG_HEADER = "HEADER";
+	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
+	private static final String TAG_FAMILY = "FAMILY";
+	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_REPOSITORY = "REPO";
-	private static final String TAG_SOURCE = "SOUR";
-	private static final String TAG_SUBMITTER = "SUBM";
-	private static final String TAG_SUBMISSION = "SUBN";
-	private static final String TAG_CHARSET = "CHAR";
+	private static final String TAG_REPOSITORY = "REPOSITORY";
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_SUBMITTER = "SUBMITTER";
+	private static final String TAG_CHARSET = "CHARSET";
 
 	private static final ObjectMapper OM = new ObjectMapper();
-
 	static{
 		OM.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 		OM.configure(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS, false);
@@ -78,16 +77,17 @@ public class Gedcom{
 	private GedcomNode header;
 	private List<GedcomNode> people;
 	private List<GedcomNode> families;
-	private List<GedcomNode> media;
+	private List<GedcomNode> places;
+	private List<GedcomNode> documents;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
 	private List<GedcomNode> submitters;
-	private GedcomNode submission;
 
 	private Map<String, GedcomNode> personIndex;
 	private Map<String, GedcomNode> familyIndex;
-	private Map<String, GedcomNode> mediaIndex;
+	private Map<String, GedcomNode> placeIndex;
+	private Map<String, GedcomNode> documentIndex;
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
@@ -96,21 +96,19 @@ public class Gedcom{
 
 	public static void main(final String[] args){
 		try{
-//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+			final Flef flef = load("/gedg/flef_0.0.1.gedg", "/ged/small.flef.ged");
 
-			gedcom.transform();
+			flef.transform();
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
-			gedcom.write(os);
+			flef.write(os);
 		}
 		catch(final Exception e){
 			e.printStackTrace();
 		}
 	}
 
-	public static Gedcom load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
+	public static Flef load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomGrammar grammar = GedcomGrammar.create(grammarFile);
 
 		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
@@ -118,31 +116,26 @@ public class Gedcom{
 		return create(root);
 	}
 
-	private static Gedcom create(final GedcomNode root) throws GedcomParseException{
-		final Gedcom g = new Gedcom();
+	private static Flef create(final GedcomNode root) throws GedcomParseException{
+		final Flef g = new Flef();
 		g.root = root;
-		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEADER);
-		if(heads.size() != 1)
+		final List<GedcomNode> headers = root.getChildrenWithTag(TAG_HEADER);
+		if(headers.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
-		g.header = heads.get(0);
+		g.header = headers.get(0);
 		g.people = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		g.families = root.getChildrenWithTag(TAG_FAMILY);
-		g.media = root.getChildrenWithTag(TAG_MEDIA);
+		g.places = root.getChildrenWithTag(TAG_PLACE);
+		g.documents = root.getChildrenWithTag(TAG_DOCUMENT);
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
 		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
 		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
-		List<GedcomNode> submissions = root.getChildrenWithTag(TAG_SUBMISSION);
-		if(submissions.isEmpty())
-			submissions = g.header.getChildrenWithTag(TAG_SUBMISSION);
-		if(submissions.size() > 1)
-			throw GedcomParseException.create("Required submission tag missing");
-		if(!submissions.isEmpty())
-			g.submission = submissions.get(0);
 
 		g.personIndex = generateIndexes(g.people);
 		g.familyIndex = generateIndexes(g.families);
-		g.mediaIndex = generateIndexes(g.media);
+		g.placeIndex = generateIndexes(g.places);
+		g.documentIndex = generateIndexes(g.documents);
 		g.noteIndex = generateIndexes(g.notes);
 		g.repositoryIndex = generateIndexes(g.repositories);
 		g.sourceIndex = generateIndexes(g.sources);
@@ -291,12 +284,20 @@ public class Gedcom{
 		return familyIndex.get(id);
 	}
 
-	public List<GedcomNode> getMedia(){
-		return media;
+	public List<GedcomNode> getPlaces(){
+		return places;
 	}
 
-	public GedcomNode getMedia(final String id){
-		return mediaIndex.get(id);
+	public GedcomNode getPlace(final String id){
+		return placeIndex.get(id);
+	}
+
+	public List<GedcomNode> getDocuments(){
+		return documents;
+	}
+
+	public GedcomNode getDocument(final String id){
+		return documentIndex.get(id);
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -329,10 +330,6 @@ public class Gedcom{
 
 	public GedcomNode getSubmitter(final String id){
 		return submitterIndex.get(id);
-	}
-
-	public GedcomNode getSubmission(){
-		return submission;
 	}
 
 }
