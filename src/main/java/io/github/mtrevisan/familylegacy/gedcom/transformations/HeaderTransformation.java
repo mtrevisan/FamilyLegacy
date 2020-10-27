@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import com.jayway.jsonpath.DocumentContext;
+import net.minidev.json.JSONArray;
 
 import java.util.Map;
 
@@ -17,6 +18,13 @@ public class HeaderTransformation implements Transformation{
 		final Map<String, Object> charset = (Map<String, Object>)TransformationHelper.getStructure(context, "HEAD", "CHAR");
 
 		header.put("tag", "HEADER");
+		source.put("tag", "SOURCE");
+		final Map<String, Object> sourceVersion = (Map<String, Object>)TransformationHelper.getStructure(context, "HEADER", "SOURCE", "VERS");
+		sourceVersion.put("tag", "VERSION");
+		final Map<String, Object> sourceCorporate = (Map<String, Object>)TransformationHelper.getStructure(context, "HEADER", "SOURCE", "CORP");
+		sourceCorporate.put("tag", "CORPORATE");
+		//TODO extract place from sourceCorporate
+		final Map<String, Object> sourceCorporatePlace = TransformationHelper.extractPlace(context, "HEADER", "SOURCE", "CORPORATE", "ADDR");
 		//remove destination
 		context.delete("$.children[?(@.tag=='DEST')]");
 		//remove date

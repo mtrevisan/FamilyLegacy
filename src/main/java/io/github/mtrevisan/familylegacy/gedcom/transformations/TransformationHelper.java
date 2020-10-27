@@ -24,6 +24,30 @@ final class TransformationHelper{
 	}
 
 	@SuppressWarnings("unchecked")
+	public static Map<String, Object> extractPlace(final DocumentContext context, final String... keys){
+		final StringBuilder selector = composeSelector(keys);
+		final List<Object> elements = context.read(selector.toString());
+		if(elements.size() > 1)
+			throw new IllegalArgumentException("Has to select at most one element, was selected " + elements.size());
+
+		if(!elements.isEmpty()){
+			final Map<String, Object> address = (Map<String, Object>)elements.get(0);
+
+//			final StringBuilder sb = new StringBuilder((String)address.get("value"));
+//			selector.append(".children[?(@.tag in ['CONC','CONT'])]");
+//			final List<Object> noteChildren = context.read(selector.toString());
+//			for(final Object noteChild : noteChildren){
+//				if(((CharSequence)((Map<String, Object>)noteChild).get("tag")).charAt(3) == 'T')
+//					sb.append("\\n");
+//				sb.append(((Map<String, Object>)noteChild).get("value"));
+//			}
+//			address.put("value", sb.toString());
+			context.delete(selector.toString());
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
 	public static void mergeNote(final DocumentContext context, final String... keys){
 		final StringBuilder selector = composeSelector(keys);
 		final List<Object> elements = context.read(selector.toString());
