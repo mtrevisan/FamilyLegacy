@@ -23,6 +23,21 @@ final class TransformationHelper{
 		return context.read(selector.toString());
 	}
 
+	public static void moveValueOfKey(final String key, final String value, final DocumentContext context, final String... keys){
+		final StringBuilder selector = composeSelector(keys);
+		final List<Object> elements = context.read(selector.toString());
+		if(elements.size() > 1)
+			throw new IllegalArgumentException("Has to select at most one element, was selected " + elements.size());
+
+		if(!elements.isEmpty())
+			((Map<String, Object>)elements.get(0)).put(key, value);
+	}
+
+	public static void deleteKey(final DocumentContext context, final String... keys){
+		final StringBuilder selector = composeSelector(keys);
+		context.delete(selector.toString());
+	}
+
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> extractPlace(final DocumentContext context, final String... keys){
 		final StringBuilder selector = composeSelector(keys);
