@@ -1,0 +1,61 @@
+0 HEAD
+1 SOURCE FLE
+2 NAME MyCorporation Gedcom Generator
+2 VERSION 5.2.18.0
+2 CORPORATE MyCorporation, Inc.
+3 PLACE @P1@
+1 PROTOCOL_VERSION 0.0.1
+1 CHARSET UTF-8
+0 @P1@ PLACE
+1 LOCALE en_US
+1 NUMBER 5000
+1 STREET MyCorpCampus Dr
+1 CITY Hometown
+1 COUNTRY United States
+1 POSTAL_CODE 99999
+1 STATE ZZ
+1 COUNTRY Italy
+1 PHONE 866-000-0000
+1 EMAIL info@mycorporation.com
+1 FAX 866-111-1111
+1 WEB http://www.mycorporation.org/
+0 @P2@ PLACE
+1 LOCALE en_US
+1 COMPANY Arlington National Cemetery
+1 STREET State Hwy 110 & Memorial Dr
+1 CITY Arlington
+1 COUNTRY United States
+1 POSTAL_CODE 22211
+1 STATE VA
+1 COUNTRY Italy
+1 PHONE 877-907-8585
+1 EMAIL info@arlingtoncemetery.mil
+1 FAX 877-111-1111
+1 WEB http://www.arlingtoncemetery.mil/
+0 @P3@ PLACE
+1 LOCALE en_US
+1 NUMBER 5002
+1 STREET MyCorpCampus Dr
+1 CITY Hometown
+1 COUNTRY United States
+1 POSTAL_CODE 99999
+1 STATE ZZ
+1 COUNTRY Italy
+1 PHONE 866-000-0000
+1 EMAIL info@mycorporation.com
+1 FAX 866-111-1111
+1 WEB https://www.mycorporation.com/
+0 @R3@ REPOSITORY
+1 NAME MyCorporation, Inc.
+1 PLACE @P3@
+0 @I1@ INDIVIDUAL
+1 NAME
+2 TYPE BIRTH_NAME
+2 LOCALE it_IT
+2 NAME MyGiven1 MyGiven2
+2 NAME_SUFFIX IV
+2 SURNAME MySurname
+1 BURIAL
+2 PLACE @P2@
+1 _CUSTOM custom-value
+0 EOF

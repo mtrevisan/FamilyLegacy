@@ -88,8 +88,9 @@ public class Gedcom{
 	public static void main(final String[] args){
 		try{
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
+//			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
 //			final Gedcom gedcom = load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+			final Gedcom gedcom = load("/gedg/flef_0.0.1.gedg", "/ged/small.flef.ged");
 
 			gedcom.transform();
 
