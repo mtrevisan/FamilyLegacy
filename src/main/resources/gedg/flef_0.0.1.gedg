@@ -16,7 +16,7 @@ n HEADER    {1:1}
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
       +3 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
-  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:M}	/* A vector of xref IDs of submitters of this record. */
+  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of the submitter of this file. */
   +1 COPYRIGHT <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
   +1 PROTOCOL_VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the FLEF protocol. */
   +1 CHARSET <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is UTF-8. Allowed values: "UTF-8", "ASCII". */

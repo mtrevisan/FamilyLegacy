@@ -31,7 +31,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.EndOfFileTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmissionRecordTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -118,7 +117,6 @@ public abstract class Store<T>{
 
 		final Iterable<Transformation> transformations = new ArrayList<>(Arrays.asList(
 			new HeaderTransformation(),
-			new SubmissionRecordTransformation(),
 			new EndOfFileTransformation()
 		));
 		for(final Transformation transformation : transformations)
