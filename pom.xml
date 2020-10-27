@@ -302,11 +302,11 @@
 
 		<!-- Jackson JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
-			<artifactId>jackson-databind</artifactId>
-			<version>${fasterxml.jackson-databind.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.fasterxml.jackson.core</groupId>-->
+<!--			<artifactId>jackson-databind</artifactId>-->
+<!--			<version>${fasterxml.jackson-databind.version}</version>-->
+<!--		</dependency>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
 <!--		<dependency>-->
 <!--			<groupId>com.github.fge</groupId>-->
@@ -318,11 +318,11 @@
 <!--			<artifactId>javax.json</artifactId>-->
 <!--			<version>1.1.4</version>-->
 <!--		</dependency>-->
-		<dependency>
-			<groupId>com.jayway.jsonpath</groupId>
-			<artifactId>json-path</artifactId>
-			<version>2.4.0</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.jayway.jsonpath</groupId>-->
+<!--			<artifactId>json-path</artifactId>-->
+<!--			<version>2.4.0</version>-->
+<!--		</dependency>-->
 
 		<!-- Logger -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->

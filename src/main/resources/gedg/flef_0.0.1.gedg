@@ -183,7 +183,7 @@ CONTACT_STRUCTURE :=
 n PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
 n FAX <ADDRESS_FAX>    {0:M}	/* A FAX telephone number appropriate for sending data facsimiles. */
 n EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
-n WEB <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
+n WWW <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
  +1 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
 
 

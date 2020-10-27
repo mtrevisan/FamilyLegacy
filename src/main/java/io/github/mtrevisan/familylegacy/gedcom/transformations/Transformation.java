@@ -1,12 +1,13 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import com.jayway.jsonpath.DocumentContext;
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 
 public interface Transformation{
 
-	void to(final DocumentContext context);
+	void to(final GedcomNode root, final Flef flef);
 
-	void from(final DocumentContext context);
+	void from(final GedcomNode root);
 
 }

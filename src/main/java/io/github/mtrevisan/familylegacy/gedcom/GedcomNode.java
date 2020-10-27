@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -38,9 +36,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-	isGetterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class GedcomNode{
 
 	private static final char LF = '\n';
@@ -55,7 +50,7 @@ public final class GedcomNode{
 	private static final int GEDCOM_LINE_VALUE = 8;
 
 	private static final String TAG_CONTINUATION = "CONT";
-	private static final String TANG_CONCATENATION = "CONC";
+	private static final String TAG_CONCATENATION = "CONC";
 
 
 	private int level;
@@ -68,20 +63,12 @@ public final class GedcomNode{
 	private boolean custom;
 
 
-	private GedcomNode(){}
-
-	public GedcomNode(final int level, final String id){
-		if(level < 0)
-			throw new IllegalArgumentException("Level must be greater than or equal to zero");
-		if(id == null || id.isEmpty())
-			throw new IllegalArgumentException("ID must be present");
-
-		this.level = level;
-		this.id = id;
-	}
-
 	public static GedcomNode createEmpty(){
 		return new GedcomNode();
+	}
+
+	public static GedcomNode create(final int level, final String tag){
+		return new GedcomNode(level, tag);
 	}
 
 	public static GedcomNode parse(final CharSequence line){
@@ -89,14 +76,30 @@ public final class GedcomNode{
 		if(!m.find())
 			return null;
 
-		final GedcomNode node = new GedcomNode();
+		final GedcomNode node = GedcomNode.createEmpty();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
-		node.setID(m.group(GEDCOM_LINE_ID));
+		node.withID(m.group(GEDCOM_LINE_ID));
 		node.setTag(m.group(GEDCOM_LINE_TAG));
 		node.setXRef(m.group(GEDCOM_LINE_XREF));
-		node.setValue(m.group(GEDCOM_LINE_VALUE));
+		node.withValue(m.group(GEDCOM_LINE_VALUE));
 
 		return node;
+	}
+
+	private GedcomNode(){}
+
+	private GedcomNode(final int level, final String tag){
+		if(level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero");
+		if(tag == null || tag.isEmpty())
+			throw new IllegalArgumentException("Tag must be present");
+
+		this.level = level;
+		this.tag = tag;
+	}
+
+	public boolean isEmpty(){
+		return (level == 0 && tag == null);
 	}
 
 	public void setLevel(final String level){
@@ -111,9 +114,10 @@ public final class GedcomNode{
 		return id;
 	}
 
-	private void setID(final String id){
+	public GedcomNode withID(final String id){
 		if(id != null && !id.isEmpty())
 			this.id = id;
+		return this;
 	}
 
 	public boolean isCustomTag(){
@@ -124,7 +128,7 @@ public final class GedcomNode{
 		return tag;
 	}
 
-	private void setTag(final String tag){
+	public void setTag(final String tag){
 		if(tag != null && !tag.isEmpty())
 			this.tag = tag.toUpperCase();
 	}
@@ -147,7 +151,7 @@ public final class GedcomNode{
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
 	 */
 	public String getValueConcatenated(){
-		final List<GedcomNode> subChildren = getChildrenWithTag(TANG_CONCATENATION, TAG_CONTINUATION);
+		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONCATENATION, TAG_CONTINUATION);
 		if(!subChildren.isEmpty()){
 			final StringBuilder sb = new StringBuilder();
 			sb.append(value);
@@ -162,9 +166,10 @@ public final class GedcomNode{
 			return value;
 	}
 
-	public void setValue(final String value){
+	public GedcomNode withValue(final String value){
 		if(value != null && !value.isEmpty())
 			this.value = value;
+		return this;
 	}
 
 	public void setValueConcatenated(final String value){
@@ -173,21 +178,21 @@ public final class GedcomNode{
 			int remainingLength;
 			final int length = value.length();
 			for(int offset = 0; length > offset + (remainingLength = 253 - (level < 9? 2: 1) - tag.length()); offset += remainingLength){
-				final String newID;
+				final String newTag;
 				final int lineFeedIndex = value.indexOf(LF, offset);
 				if(lineFeedIndex < offset + remainingLength){
 					remainingLength = offset - lineFeedIndex - 1;
-					newID = TAG_CONTINUATION;
+					newTag = TAG_CONTINUATION;
 				}
 				else{
 					while(value.charAt(offset + remainingLength - 1) == ' ')
 						remainingLength --;
-					newID = TANG_CONCATENATION;
+					newTag = TAG_CONCATENATION;
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = new GedcomNode(level + 1, newID);
-				newNode.setValue(newValue);
+				final GedcomNode newNode = GedcomNode.create(level + 1, newTag)
+					.withValue(newValue);
 				addChild(newNode);
 			}
 			this.value = value;
@@ -203,6 +208,15 @@ public final class GedcomNode{
 			children = new ArrayList<>(1);
 
 		children.add(child);
+	}
+
+	public void removeChild(final GedcomNode child){
+		if(children != null){
+			children.remove(child);
+
+			if(children.isEmpty())
+				children = null;
+		}
 	}
 
 	public List<GedcomNode> getChildrenWithTag(final String... tags){

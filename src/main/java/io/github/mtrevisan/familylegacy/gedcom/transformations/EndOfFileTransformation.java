@@ -1,32 +1,19 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import com.jayway.jsonpath.DocumentContext;
-
-import java.util.List;
-import java.util.Map;
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 
 public class EndOfFileTransformation implements Transformation{
 
 	@Override
-	public void to(final DocumentContext context){
-		final Map<String, Object> header = getEndOfFile(context, "TRLR");
-		header.put("tag", "EOF");
+	public void to(final GedcomNode root, final Flef flef){
+		TransformationHelper.moveTag("EOF", root, "TRLR");
 	}
 
 	@Override
-	public void from(final DocumentContext context){
-		final Map<String, Object> header = getEndOfFile(context, "EOF");
-		header.put("tag", "TRLR");
-	}
-
-	@SuppressWarnings("unchecked")
-	private Map<String, Object> getEndOfFile(final DocumentContext context, final String key){
-		final List<Object> elements = context.read("$.children[?(@.tag=='" + key + "')]");
-		if(elements.size() > 1)
-			throw new IllegalArgumentException("Selected has to select at most one element, was selected " + elements.size());
-
-		return (Map<String, Object>)elements.get(0);
+	public void from(final GedcomNode root){
+		TransformationHelper.moveTag("TRLR", root, "EOF");
 	}
 
 }

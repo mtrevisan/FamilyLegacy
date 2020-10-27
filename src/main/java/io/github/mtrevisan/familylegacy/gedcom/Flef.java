@@ -28,12 +28,23 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
 public class Flef extends Store<Flef>{
+
+	private static final String ID_INDIVIDUAL_PREFIX = "I";
+	private static final String ID_FAMILY_PREFIX = "F";
+	private static final String ID_PLACE_PREFIX = "P";
+	private static final String ID_DOCUMENT_PREFIX = "D";
+	private static final String ID_NOTE_PREFIX = "N";
+	private static final String ID_REPOSITORY_PREFIX = "R";
+	private static final String ID_SOURCE_PREFIX = "S";
+	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
@@ -138,6 +149,17 @@ public class Flef extends Store<Flef>{
 		return personIndex.get(id);
 	}
 
+	public GedcomNode addPerson(final GedcomNode person){
+		if(people == null){
+			people = new ArrayList<>(1);
+			personIndex = new HashMap<>(1);
+		}
+		person.setID(ID_INDIVIDUAL_PREFIX + (people.size() + 1));
+		people.add(person);
+		personIndex.put(person.getID(), person);
+		return person;
+	}
+
 	public List<GedcomNode> getFamilies(){
 		return families;
 	}
@@ -146,12 +168,34 @@ public class Flef extends Store<Flef>{
 		return familyIndex.get(id);
 	}
 
+	public GedcomNode addFamily(final GedcomNode family){
+		if(families == null){
+			families = new ArrayList<>(1);
+			familyIndex = new HashMap<>(1);
+		}
+		family.setID(ID_FAMILY_PREFIX + (families.size() + 1));
+		families.add(family);
+		familyIndex.put(family.getID(), family);
+		return family;
+	}
+
 	public List<GedcomNode> getPlaces(){
-		return places;
+		return (places != null? places: Collections.emptyList());
 	}
 
 	public GedcomNode getPlace(final String id){
 		return placeIndex.get(id);
+	}
+
+	public GedcomNode addPlace(final GedcomNode place){
+		if(places == null){
+			places = new ArrayList<>(1);
+			placeIndex = new HashMap<>(1);
+		}
+		place.setID(ID_PLACE_PREFIX + (places.size() + 1));
+		places.add(place);
+		placeIndex.put(place.getID(), place);
+		return place;
 	}
 
 	public List<GedcomNode> getDocuments(){
@@ -162,12 +206,34 @@ public class Flef extends Store<Flef>{
 		return documentIndex.get(id);
 	}
 
+	public GedcomNode addDocument(final GedcomNode document){
+		if(documents == null){
+			documents = new ArrayList<>(1);
+			documentIndex = new HashMap<>(1);
+		}
+		document.setID(ID_DOCUMENT_PREFIX + (documents.size() + 1));
+		documents.add(document);
+		documentIndex.put(document.getID(), document);
+		return document;
+	}
+
 	public List<GedcomNode> getNotes(){
 		return notes;
 	}
 
 	public GedcomNode getNote(final String id){
 		return noteIndex.get(id);
+	}
+
+	public GedcomNode addNote(final GedcomNode note){
+		if(notes == null){
+			notes = new ArrayList<>(1);
+			noteIndex = new HashMap<>(1);
+		}
+		note.setID(ID_NOTE_PREFIX + (notes.size() + 1));
+		notes.add(note);
+		noteIndex.put(note.getID(), note);
+		return note;
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -178,6 +244,17 @@ public class Flef extends Store<Flef>{
 		return repositoryIndex.get(id);
 	}
 
+	public GedcomNode addRepository(final GedcomNode repository){
+		if(repositories == null){
+			repositories = new ArrayList<>(1);
+			repositoryIndex = new HashMap<>(1);
+		}
+		repository.setID(ID_REPOSITORY_PREFIX + (repositories.size() + 1));
+		repositories.add(repository);
+		repositoryIndex.put(repository.getID(), repository);
+		return repository;
+	}
+
 	public List<GedcomNode> getSources(){
 		return sources;
 	}
@@ -186,12 +263,34 @@ public class Flef extends Store<Flef>{
 		return sourceIndex.get(id);
 	}
 
+	public GedcomNode addSource(final GedcomNode source){
+		if(sources == null){
+			sources = new ArrayList<>(1);
+			sourceIndex = new HashMap<>(1);
+		}
+		source.setID(ID_SOURCE_PREFIX + (sources.size() + 1));
+		sources.add(source);
+		sourceIndex.put(source.getID(), source);
+		return source;
+	}
+
 	public List<GedcomNode> getSubmitters(){
 		return submitters;
 	}
 
 	public GedcomNode getSubmitter(final String id){
 		return submitterIndex.get(id);
+	}
+
+	public GedcomNode addSubmitter(final GedcomNode submitter){
+		if(submitters == null){
+			submitters = new ArrayList<>(1);
+			submitterIndex = new HashMap<>(1);
+		}
+		submitter.setID(ID_SUBMITTER_PREFIX + (submitters.size() + 1));
+		submitters.add(submitter);
+		submitterIndex.put(submitter.getID(), submitter);
+		return submitter;
 	}
 
 }

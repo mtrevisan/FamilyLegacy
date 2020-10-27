@@ -24,11 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.EndOfFileTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
@@ -54,12 +49,6 @@ public abstract class Store<T>{
 
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
-
-	private static final ObjectMapper OM = new ObjectMapper();
-	static{
-		OM.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-		OM.configure(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS, false);
-	}
 
 
 	protected GedcomNode root;
@@ -109,20 +98,14 @@ public abstract class Store<T>{
 		out.flush();
 	}
 
-	public GedcomNode transform() throws JsonProcessingException{
-		//https://github.com/json-path/JsonPath
-		//https://support.smartbear.com/alertsite/docs/monitors/api/endpoint/jsonpath.html
-		final String json = OM.writeValueAsString(root);
-		final DocumentContext parsed = JsonPath.parse(json);
-
+	public void transform(){
+		final Flef flef = new Flef();
 		final Iterable<Transformation> transformations = new ArrayList<>(Arrays.asList(
 			new HeaderTransformation(),
 			new EndOfFileTransformation()
 		));
 		for(final Transformation transformation : transformations)
-			transformation.to(parsed);
-
-		return OM.readValue(parsed.jsonString(), GedcomNode.class);
+			transformation.to(root, flef);
 	}
 
 	protected abstract String getCharsetName();
