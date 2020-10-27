@@ -57,7 +57,7 @@ final class GedcomGrammar{
 	private static final String GEDCOM_FILENAME_EXTENSION = "gedg";
 
 	private static final String TAG_LINEAGE_LINKED_GEDCOM = "LINEAGE_LINKED_GEDCOM";
-	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=");
+	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=.*");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces */
 	private static final Pattern OR_PATTERN = RegexHelper.pattern("[ ]*\\|[ ]*");
 	/** Matches the [ bracket, with or without trailing spaces */

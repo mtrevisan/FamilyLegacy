@@ -1,4 +1,4 @@
-0 HEAD
+0 HEADER
 1 SOURCE FLE
 2 NAME MyCorporation Gedcom Generator
 2 VERSION 5.2.18.0
@@ -14,7 +14,6 @@
 1 COUNTRY United States
 1 POSTAL_CODE 99999
 1 STATE ZZ
-1 COUNTRY Italy
 1 PHONE 866-000-0000
 1 EMAIL info@mycorporation.com
 1 FAX 866-111-1111
@@ -27,7 +26,6 @@
 1 COUNTRY United States
 1 POSTAL_CODE 22211
 1 STATE VA
-1 COUNTRY Italy
 1 PHONE 877-907-8585
 1 EMAIL info@arlingtoncemetery.mil
 1 FAX 877-111-1111
@@ -40,7 +38,6 @@
 1 COUNTRY United States
 1 POSTAL_CODE 99999
 1 STATE ZZ
-1 COUNTRY Italy
 1 PHONE 866-000-0000
 1 EMAIL info@mycorporation.com
 1 FAX 866-111-1111
