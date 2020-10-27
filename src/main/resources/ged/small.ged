@@ -6,8 +6,6 @@
 3 ADDR 5000 MyCorpCampus Dr
 4 CONT Hometown, ZZ  99999
 4 CONT United States
-4 ADR1 __ADR1_VALUE__
-4 ADR2 __ADR2_VALUE__
 4 ADR3 5001 MyCorpCampus Dr
 4 CITY Hometown
 4 STAE ZZ
@@ -32,9 +30,6 @@
 3 CONT State Hwy 110 & Memorial Dr
 3 CONT Arlington, VA  22211
 3 CONT United States
-3 ADR1 __ADR1_VALUE__
-3 ADR2 __ADR2_VALUE__
-3 ADR3 __ADR3_VALUE__
 3 CITY Arlington
 3 STAE VA
 3 POST 22211
@@ -49,8 +44,6 @@
 1 ADDR 5002 MyCorpCampus Dr
 2 CONT Hometown, ZZ  99999
 2 CONT United States
-2 ADR1 __ADR1_VALUE__
-2 ADR2 __ADR2_VALUE__
 2 ADR3 5003 MyCorpCampus Dr
 2 CITY Hometown
 2 STAE ZZ

@@ -50,7 +50,7 @@ public final class GedcomNode{
 	private static final int GEDCOM_LINE_VALUE = 8;
 
 	private static final String TAG_CONTINUATION = "CONT";
-	private static final String TANG_CONCATENATION = "CONC";
+	private static final String TAG_CONCATENATION = "CONC";
 
 
 	private int level;
@@ -67,25 +67,43 @@ public final class GedcomNode{
 		return new GedcomNode();
 	}
 
-	public static GedcomNode parse(final String line){
+	public static GedcomNode create(final int level, final String tag){
+		return new GedcomNode(level, tag);
+	}
+
+	public static GedcomNode parse(final CharSequence line){
 		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())
 			return null;
 
-		final GedcomNode node = new GedcomNode();
+		final GedcomNode node = GedcomNode.createEmpty();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
+		node.withID(m.group(GEDCOM_LINE_ID));
 		node.setTag(m.group(GEDCOM_LINE_TAG));
-		node.setID(m.group(GEDCOM_LINE_ID));
 		node.setXRef(m.group(GEDCOM_LINE_XREF));
-		node.setValue(m.group(GEDCOM_LINE_VALUE));
+		node.withValue(m.group(GEDCOM_LINE_VALUE));
 
 		return node;
 	}
 
 	private GedcomNode(){}
 
+	private GedcomNode(final int level, final String tag){
+		if(level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero");
+		if(tag == null || tag.isEmpty())
+			throw new IllegalArgumentException("Tag must be present");
+
+		this.level = level;
+		this.tag = tag;
+	}
+
+	public boolean isEmpty(){
+		return (level == 0 && tag == null);
+	}
+
 	public void setLevel(final String level){
-		this.level = Integer.parseInt(level);
+		this.level = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
 	}
 
 	public int getLevel(){
@@ -96,9 +114,10 @@ public final class GedcomNode{
 		return id;
 	}
 
-	private void setID(final String id){
+	public GedcomNode withID(final String id){
 		if(id != null && !id.isEmpty())
 			this.id = id;
+		return this;
 	}
 
 	public boolean isCustomTag(){
@@ -109,7 +128,7 @@ public final class GedcomNode{
 		return tag;
 	}
 
-	private void setTag(final String tag){
+	public void setTag(final String tag){
 		if(tag != null && !tag.isEmpty())
 			this.tag = tag.toUpperCase();
 	}
@@ -118,7 +137,7 @@ public final class GedcomNode{
 		return xref;
 	}
 
-	private void setXRef(final String xref){
+	public void setXRef(final String xref){
 		if(xref != null && !xref.isEmpty())
 			this.xref = xref;
 	}
@@ -132,14 +151,14 @@ public final class GedcomNode{
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
 	 */
 	public String getValueConcatenated(){
-		final List<GedcomNode> subChildren = getChildrenWithTag(TANG_CONCATENATION, TAG_CONTINUATION);
+		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONCATENATION, TAG_CONTINUATION);
 		if(!subChildren.isEmpty()){
 			final StringBuilder sb = new StringBuilder();
 			sb.append(value);
 			for(final GedcomNode sc : subChildren){
-				if(sc.getTag().charAt(3) == 'T')
+				if(sc.tag.charAt(3) == 'T')
 					sb.append(LF);
-				sb.append(sc.getValue());
+				sb.append(sc.value);
 			}
 			return sb.toString();
 		}
@@ -147,9 +166,10 @@ public final class GedcomNode{
 			return value;
 	}
 
-	public void setValue(final String value){
+	public GedcomNode withValue(final String value){
 		if(value != null && !value.isEmpty())
 			this.value = value;
+		return this;
 	}
 
 	public void setValueConcatenated(final String value){
@@ -167,13 +187,12 @@ public final class GedcomNode{
 				else{
 					while(value.charAt(offset + remainingLength - 1) == ' ')
 						remainingLength --;
-					newTag = TANG_CONCATENATION;
+					newTag = TAG_CONCATENATION;
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = new GedcomNode();
-				newNode.setTag(newTag);
-				newNode.setValue(newValue);
+				final GedcomNode newNode = GedcomNode.create(level + 1, newTag)
+					.withValue(newValue);
 				addChild(newNode);
 			}
 			this.value = value;
@@ -189,6 +208,15 @@ public final class GedcomNode{
 			children = new ArrayList<>(1);
 
 		children.add(child);
+	}
+
+	public void removeChild(final GedcomNode child){
+		if(children != null){
+			children.remove(child);
+
+			if(children.isEmpty())
+				children = null;
+		}
 	}
 
 	public List<GedcomNode> getChildrenWithTag(final String... tags){
@@ -209,7 +237,7 @@ public final class GedcomNode{
 	}
 
 	public void setCustom(){
-		this.custom = true;
+		custom = true;
 	}
 
 	@Override

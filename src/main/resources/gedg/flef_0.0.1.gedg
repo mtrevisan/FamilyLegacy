@@ -1,6 +1,6 @@
 GEDCOM_VERSION=1.0.0
-GEDCOM_SOURCE=
-GEDCOM_DESCRIPTION=DRAFT Release 1.0.0
+GEDCOM_SOURCE=localhost
+GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.1
 
 
 LINEAGE_LINKED_GEDCOM :=
@@ -16,8 +16,9 @@ n HEADER    {1:1}
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
       +3 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
-  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:M}	/* A vector of xref IDs of submitters of this record. */
+  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of the submitter of this file. */
   +1 COPYRIGHT <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
+  +1 PROTOCOL_VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the FLEF protocol. */
   +1 CHARSET <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is UTF-8. Allowed values: "UTF-8", "ASCII". */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
   +1 <<CHANGE_DATE>>    {1:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -112,11 +113,6 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
-  +1 FAX <ADDRESS_FAX>    {0:M}	/* A FAX telephone number appropriate for sending data facsimiles. */
-  +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
-  +1 WEB <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
-    +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -155,32 +151,40 @@ PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
   +1 <<PLACE_STRUCTURE>>    {1:M}	/* A list of PLACE_STRUCTURE() objects. */
+  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to. */
 
 
 PLACE_STRUCTURE :=
-n PLACE    {1:1}
-  +1 LOCALE <PLACE_LOCALE>    {0:1}    /* The locale identifier for the place form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
-  +1 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
-  +1 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
-  +1 STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
-    +2 TYPE <ADDRESS_STREET_TYPE>    {1:1}	/* Indicates the street type (avenue, terrace, etc.). */
-  +1 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
-  +1 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
-  +1 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
-  +1 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department that pertains to the associated address. */
-  +1 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state used in the address. */
-  +1 POSTAL_CODE <ADDRESS_POSTAL_CODE>    {0:1}	/* The ZIP or postal code used by the various localities in handling of mail. */
-  +1 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. */
-  +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
-    +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
-    +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
-  +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the address. */
-  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to. */
-  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-  +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
+n LOCALE <PLACE_LOCALE>    {0:1}    /* The locale identifier for the place form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+n COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
+n APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
+n NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
+n STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
+ +1 TYPE <ADDRESS_STREET_TYPE>    {1:1}	/* Indicates the street type (avenue, terrace, etc.). */
+n DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
+n TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
+n CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
+n COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department that pertains to the associated address. */
+n STATE <ADDRESS_STATE>    {0:1}	/* The name of the state used in the address. */
+n POSTAL_CODE <ADDRESS_POSTAL_CODE>    {0:1}	/* The ZIP or postal code used by the various localities in handling of mail. */
+n COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. */
+n MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
+ +1 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
+ +1 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+n <CONTACT_STRUCTURE>    {0:1}
+n DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the address. */
+n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+n SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
+n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+n <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
+
+
+CONTACT_STRUCTURE :=
+n PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
+n FAX <ADDRESS_FAX>    {0:M}	/* A FAX telephone number appropriate for sending data facsimiles. */
+n EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
+n WWW <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
+ +1 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, etc.). */
 
 
 ASSOCIATION_STRUCTURE :=

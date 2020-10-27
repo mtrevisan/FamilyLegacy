@@ -10,24 +10,6 @@ n <<RECORD>>    {1:M}
 n <<END_OF_FILE>>    {1:1}
 
 
-RECORD :=
-[
-n <<FAMILY_RECORD>>    {1:1}
-|
-n <<INDIVIDUAL_RECORD>>    {1:1}
-|
-n <<MULTIMEDIA_RECORD>>    {1:1}
-|
-n <<NOTE_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD>>    {1:1}
-|
-n <<SOURCE_RECORD>>    {1:1}
-|
-n <<SUBMITTER_RECORD>>    {1:1}
-]
-
-
 HEADER :=
 n HEAD    {1:1}
   +1 SOUR <APPROVED_SYSTEM_ID>    {1:1}	/* A system identification name which was obtained through the GEDCOM registration process. This name must be unique from any other product. Spaces within the name must be substituted with an underscore. */
@@ -56,6 +38,24 @@ n HEAD    {1:1}
     +2 FORM <PLACE_HIERARCHY>    {1:1}	/* This shows the jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. The jurisdictions are separated by commas, and any jurisdiction's name that is missing is still accounted for by a comma. */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
     +2 [CONC|CONT] <GEDCOM_CONTENT_DESCRIPTION>    {0:M}
+
+
+RECORD :=
+[
+n <<FAMILY_RECORD>>    {1:1}
+|
+n <<INDIVIDUAL_RECORD>>    {1:1}
+|
+n <<MULTIMEDIA_RECORD>>    {1:1}
+|
+n <<NOTE_RECORD>>    {1:1}
+|
+n <<REPOSITORY_RECORD>>    {1:1}
+|
+n <<SOURCE_RECORD>>    {1:1}
+|
+n <<SUBMITTER_RECORD>>    {1:1}
+]
 
 
 FAMILY_RECORD :=
