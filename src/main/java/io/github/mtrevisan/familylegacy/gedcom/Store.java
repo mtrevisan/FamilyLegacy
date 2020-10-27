@@ -29,8 +29,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Predicate;
-import net.minidev.json.JSONArray;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.EndOfFileTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmissionRecordTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -39,6 +41,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
@@ -52,7 +56,7 @@ public abstract class Store<T>{
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
 
-	static final ObjectMapper OM = new ObjectMapper();
+	private static final ObjectMapper OM = new ObjectMapper();
 	static{
 		OM.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 		OM.configure(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS, false);
@@ -107,47 +111,20 @@ public abstract class Store<T>{
 	}
 
 	public GedcomNode transform() throws JsonProcessingException{
-//		final List<JsonPatchOperation> operations = new ArrayList<>(Arrays.asList(
-//			BaseTransformer.createMove("children[-1:].TRLR", "EOF")
-//			BaseTransformer.createAdd("evtType", "ACKNOWLEDGE"),
-//			BaseTransformer.createAdd("ackCommand", command),
-//			BaseTransformer.createCopy(ParsingLabels.KEY_DEVICE_NAME, "id"),
-//			BaseTransformer.createRemove(MessageData.KEY_DEVICE_TYPE_CODE),
-//			BaseTransformer.createMove(MessageData.KEY_DEVICE_TYPE_NAME, "deviceType"),
-//			BaseTransformer.createCopy(ParsingLabels.KEY_FIRMWARE_VERSION, "softwareVersion"),
-//			BaseTransformer.createRemove(ParsingLabels.KEY_EVENT_TIME),
-//			BaseTransformer.createAdd("eventTimestamp", DateTimeUtils.formatDateTimePlain(DateTimeUtils.parseDateTimeIso8601(eventTime))),
-//			BaseTransformer.createRemove(ParsingLabels.KEY_RECEPTION_TIME),
-//			BaseTransformer.createAdd("receptionTimestamp", DateTimeUtils.formatDateTimePlain(DateTimeUtils.parseDateTimeIso8601(receptionTime))),
-//			BaseTransformer.createReplace(ParsingLabels.KEY_CORRELATION_ID, String.format("%04X", correlationID)),
-//			BaseTransformer.createMove(ParsingLabels.KEY_CORRELATION_ID, "correlationID"),
-//			BaseTransformer.createAdd("messageID", BaseTransformer.getText(data, ParsingLabels.KEY_MESSAGE_ID)),
-//			BaseTransformer.createRemove(ParsingLabels.KEY_MESSAGE_ID)
-//		));
-
 		//https://github.com/json-path/JsonPath
 		//https://support.smartbear.com/alertsite/docs/monitors/api/endpoint/jsonpath.html
 		final String json = OM.writeValueAsString(root);
 		final DocumentContext parsed = JsonPath.parse(json);
-//		parsed.set("$.children[-1:].tag", "EOF");
-		Predicate filter = new Predicate(){
-			@Override
-			public boolean apply(PredicateContext ctx){
-				return false;
-			}
-		};
-//		parsed.set("$.children[*]", "EOF", filter);
-		@SuppressWarnings("unchecked")
-		final Map<String, Object> node = (Map<String, Object>)((JSONArray)parsed.read("$.children[?(@.tag=='TRLR')]")).get(0);
-		node.put("tag", "EOF");
-		final String transformedJson = parsed.jsonString();
 
-		//orignal data
-//		final JsonNode data = BaseTransformer.convertToJSON(root);
-//		final JsonPatch patch = new JsonPatch(operations);
-//		final JsonNode transformedData = patch.apply(data);
-//		return BaseTransformer.convertFromJSON(transformedData, GedcomNode.class);
-		return null;
+		final Iterable<Transformation> transformations = new ArrayList<>(Arrays.asList(
+			new HeaderTransformation(),
+			new SubmissionRecordTransformation(),
+			new EndOfFileTransformation()
+		));
+		for(final Transformation transformation : transformations)
+			transformation.to(parsed);
+
+		return OM.readValue(parsed.jsonString(), GedcomNode.class);
 	}
 
 	protected abstract String getCharsetName();
