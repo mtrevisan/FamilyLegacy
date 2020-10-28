@@ -240,6 +240,10 @@ public final class GedcomNode{
 		}
 	}
 
+	public void removeChildren(){
+		children = null;
+	}
+
 	public List<GedcomNode> getChildrenWithTag(final String... tags){
 		final List<GedcomNode> taggedChildren;
 		if(children != null){
@@ -301,24 +305,13 @@ public final class GedcomNode{
 		if(value != null)
 			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("value: ").append(value);
 		if(children != null){
-			final StringBuilder childBuilder = new StringBuilder();
-
 			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("children: [");
 			final int size = children.size();
 			for(int i = 0; i < size; i ++){
-				final GedcomNode child = children.get(i);
-				childBuilder.setLength(0);
-				childBuilder.append('{');
-				if(child.id != null)
-					childBuilder.append("id: ").append(child.id);
-				if(child.tag != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("tag: ").append(child.tag);
-				if(child.xref != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("ref: ").append(child.xref);
-				if(child.value != null)
-					childBuilder.append(childBuilder.length() > 1? ", ": StringUtils.EMPTY).append("value: ").append(child.value);
-				childBuilder.append('}');
-				builder.append(childBuilder);
+				builder.append('{')
+					.append(children.get(i))
+					.append('}');
+
 				if(i < size - 1)
 					builder.append(", ");
 			}

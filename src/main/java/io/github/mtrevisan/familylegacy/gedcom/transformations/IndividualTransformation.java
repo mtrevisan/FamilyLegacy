@@ -12,7 +12,7 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.mergeNote;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.splitNote;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValue;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
 
 public class IndividualTransformation implements Transformation{
@@ -70,7 +70,7 @@ public class IndividualTransformation implements Transformation{
 			.withValue("0.0.1");
 		addNode(protocolVersion, header);
 		deleteTag(header, "GEDC");
-		transferValue(header, "CHAR", header, "CHARSET", 1);
+		transferValues(header, "CHAR", header, "CHARSET", 1);
 		deleteTag(header, "LANG");
 		deleteTag(header, "PLACE");
 		mergeNote(header, "NOTE");
@@ -112,7 +112,7 @@ public class IndividualTransformation implements Transformation{
 		headerGedcomProtocolVersion.withValue("5.5.1");
 		headerGedcom.addChild(headerGedcomProtocolVersion);
 		addNode(headerGedcom, header);
-		transferValue(header, "CHARSET", header, "CHAR", 1);
+		transferValues(header, "CHARSET", header, "CHAR", 1);
 		splitNote(header, "NOTE");
 	}
 

@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringJoiner;
 
 
@@ -40,17 +41,19 @@ final class TransformationHelper{
 		if(!currentContext.isEmpty())
 			currentContext.getChildren()
 				.removeIf(gedcomNode -> lastTag.equals(gedcomNode.getTag()));
+		if(currentContext.getChildren().isEmpty())
+			currentContext.removeChildren();
 	}
 
-	public static void transferValue(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag,
-		final int destinationLevel){
-		final GedcomNode componentContext = extractSubStructure(context, tag);
-		if(!componentContext.isEmpty()){
+	public static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag,
+			final int destinationLevel){
+		final List<GedcomNode> componentContext = context.getChildrenWithTag(tag);
+		for(final GedcomNode child : componentContext){
 			final GedcomNode component = GedcomNode.create(destinationLevel, destinationTag)
-				.withValue(componentContext.getValue());
+				.withValue(child.getValue());
 			destination.addChild(component);
 
-			context.removeChild(componentContext);
+			context.removeChild(child);
 		}
 	}
 
@@ -69,9 +72,9 @@ final class TransformationHelper{
 			while(itr.hasNext()){
 				final GedcomNode child = itr.next();
 				if(ADDRESS_TAGS.contains(child.getTag())){
-					value = child.getValue();
-					if(value != null && ! value.isEmpty())
-						street.add(value);
+					final String component = child.getValue();
+					if(component != null && ! component.isEmpty())
+						street.add(component);
 
 					itr.remove();
 				}
@@ -80,20 +83,18 @@ final class TransformationHelper{
 				value = street.toString();
 
 			place = GedcomNode.create(0, "PLACE");
-			if(value != null && !value.isEmpty()){
-				final GedcomNode component = GedcomNode.create(1, "STREET")
-					.withValue(value);
-				place.addChild(component);
-			}
-			transferValue(placeContext, "CITY", place, "CITY", 1);
-			transferValue(placeContext, "STAE", place, "STATE", 1);
-			transferValue(placeContext, "POST", place, "POSTAL_CODE", 1);
-			transferValue(placeContext, "CTRY", place, "COUNTRY", 1);
+			if(value != null && !value.isEmpty())
+				place.addChild(GedcomNode.create(1, "STREET")
+					.withValue(value));
+			transferValues(placeContext, "CITY", place, "CITY", 1);
+			transferValues(placeContext, "STAE", place, "STATE", 1);
+			transferValues(placeContext, "POST", place, "POSTAL_CODE", 1);
+			transferValues(placeContext, "CTRY", place, "COUNTRY", 1);
 
-			transferValue(parentContext, "PHON", place, "PHONE", 1);
-			transferValue(parentContext, "FAX", place, "FAX", 1);
-			transferValue(parentContext, "EMAIL", place, "EMAIL", 1);
-			transferValue(parentContext, "WWW", place, "WWW", 1);
+			transferValues(parentContext, "PHON", place, "PHONE", 1);
+			transferValues(parentContext, "FAX", place, "FAX", 1);
+			transferValues(parentContext, "EMAIL", place, "EMAIL", 1);
+			transferValues(parentContext, "WWW", place, "WWW", 1);
 		}
 		return place;
 	}
@@ -128,15 +129,15 @@ final class TransformationHelper{
 					.withValue(value);
 				place.addChild(component);
 			}
-			transferValue(noteContext, "CITY", place, "CITY", 1);
-			transferValue(noteContext, "STAE", place, "STATE", 1);
-			transferValue(noteContext, "POST", place, "POSTAL_CODE", 1);
-			transferValue(noteContext, "CTRY", place, "COUNTRY", 1);
+			transferValues(noteContext, "CITY", place, "CITY", 1);
+			transferValues(noteContext, "STAE", place, "STATE", 1);
+			transferValues(noteContext, "POST", place, "POSTAL_CODE", 1);
+			transferValues(noteContext, "CTRY", place, "COUNTRY", 1);
 
-			transferValue(parentContext, "PHON", place, "PHONE", 1);
-			transferValue(parentContext, "FAX", place, "FAX", 1);
-			transferValue(parentContext, "EMAIL", place, "EMAIL", 1);
-			transferValue(parentContext, "WWW", place, "WWW", 1);
+			transferValues(parentContext, "PHON", place, "PHONE", 1);
+			transferValues(parentContext, "FAX", place, "FAX", 1);
+			transferValues(parentContext, "EMAIL", place, "EMAIL", 1);
+			transferValues(parentContext, "WWW", place, "WWW", 1);
 		}
 		return place;
 	}

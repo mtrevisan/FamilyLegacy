@@ -16,6 +16,7 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode headerSource = moveTag("SOURCE", header, "SOUR");
 		moveTag("VERSION", headerSource, "VERS");
 		moveTag("CORPORATE", headerSource, "CORP");
+		deleteTag(headerSource, "DATA");
 		final GedcomNode sourceCorporatePlace = extractPlace(headerSource, "CORPORATE");
 		sourceCorporatePlace.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
 		root.addChild(sourceCorporatePlace, 1);
@@ -33,9 +34,10 @@ public class HeaderTransformation implements Transformation{
 		addNode(protocolVersion, header);
 		deleteTag(header, "GEDC");
 		moveTag("CHARSET", header, "CHAR");
+		deleteTag(header, "CHARSET", "VERS");
 		deleteTag(header, "LANG");
 		deleteTag(header, "PLAC");
-		final GedcomNode headerNote = extractNote(header, "NOTE")
+		final GedcomNode headerNote = extractNote(header)
 			.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 		root.addChild(headerNote, 1);
 		deleteTag(header, "NOTE");
@@ -74,7 +76,7 @@ public class HeaderTransformation implements Transformation{
 		headerGedcomProtocolVersion.withValue("5.5.1");
 		headerGedcom.addChild(headerGedcomProtocolVersion);
 		addNode(headerGedcom, header);
-		transferValue(header, "CHARSET", header, "CHAR", 1);
+		transferValues(header, "CHARSET", header, "CHAR", 1);
 		//TODO
 		splitNote(header, "NOTE");
 	}
