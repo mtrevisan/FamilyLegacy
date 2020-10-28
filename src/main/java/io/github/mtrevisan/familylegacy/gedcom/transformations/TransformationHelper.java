@@ -105,41 +105,12 @@ final class TransformationHelper{
 		final GedcomNode noteContext = extractSubStructure(parentContext, "NOTE");
 		parentContext.removeChild(noteContext);
 
-		GedcomNode place = GedcomNode.createEmpty();
+		GedcomNode note = GedcomNode.createEmpty();
 		if(!noteContext.isEmpty()){
-			final StringJoiner street = new StringJoiner(" - ");
-			String value = noteContext.getValue();
-			final Iterator<GedcomNode> itr = noteContext.getChildren().iterator();
-			while(itr.hasNext()){
-				final GedcomNode child = itr.next();
-				if(ADDRESS_TAGS.contains(child.getTag())){
-					value = child.getValue();
-					if(value != null && ! value.isEmpty())
-						street.add(value);
-
-					itr.remove();
-				}
-			}
-			if(street.length() > 0)
-				value = street.toString();
-
-			place = GedcomNode.create(0, "PLACE");
-			if(value != null && !value.isEmpty()){
-				final GedcomNode component = GedcomNode.create(1, "STREET")
-					.withValue(value);
-				place.addChild(component);
-			}
-			transferValues(noteContext, "CITY", place, "CITY", 1);
-			transferValues(noteContext, "STAE", place, "STATE", 1);
-			transferValues(noteContext, "POST", place, "POSTAL_CODE", 1);
-			transferValues(noteContext, "CTRY", place, "COUNTRY", 1);
-
-			transferValues(parentContext, "PHON", place, "PHONE", 1);
-			transferValues(parentContext, "FAX", place, "FAX", 1);
-			transferValues(parentContext, "EMAIL", place, "EMAIL", 1);
-			transferValues(parentContext, "WWW", place, "WWW", 1);
+			note = GedcomNode.create(0, "NOTE");
+			note.withValue(noteContext.getValueConcatenated());
 		}
-		return place;
+		return note;
 	}
 
 	public static void mergeNote(final GedcomNode context, final String... keys){
