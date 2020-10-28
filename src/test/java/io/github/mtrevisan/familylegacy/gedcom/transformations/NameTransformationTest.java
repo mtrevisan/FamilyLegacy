@@ -34,6 +34,26 @@ class NameTransformationTest{
 			.withValue("NAME_PERSONAL /SURNAME_PERSONAL/");
 		name.addChild(GedcomNode.create(1, "TYPE")
 			.withValue("NAME_TYPE"));
+		createPersonalNamePieces(name);
+
+		GedcomNode phone = GedcomNode.create(1, "FONE")
+			.withValue("NAME_PHONETIC_VARIATION1");
+		phone.addChild(GedcomNode.create(1, "TYPE")
+			.withValue("PHONETIC_TYPE"));
+		createPersonalNamePieces(phone);
+
+		GedcomNode romanized = GedcomNode.create(1, "ROMN")
+			.withValue("NAME_ROMANIZED_VARIATION1");
+		romanized.addChild(GedcomNode.create(1, "TYPE")
+			.withValue("ROMANIZED_TYPE"));
+		createPersonalNamePieces(romanized);
+
+		addNode(name, parent);
+
+		return parent;
+	}
+
+	private void createPersonalNamePieces(GedcomNode name){
 		name.addChild(GedcomNode.create(1, "NPFX")
 			.withValue("NAME_PIECE_PREFIX"));
 		name.addChild(GedcomNode.create(1, "GIVN")
@@ -70,12 +90,11 @@ class NameTransformationTest{
 			.withValue("TEXT_FROM_SOURCE"));
 		sourceData.addChild(sourceDataText);
 		source.addChild(sourceData);
-//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
-//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+		//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+		//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 		source.addChild(GedcomNode.create(2, "QUAY")
 			.withValue("CERTAINTY_ASSESSMENT"));
 		name.addChild(source);
-
 		source = GedcomNode.create(1, "SOUR")
 			.withValue("SOURCE_DESCRIPTION");
 		source.addChild(GedcomNode.create(2, "CONC")
@@ -85,37 +104,11 @@ class NameTransformationTest{
 		sourceText.addChild(GedcomNode.create(3, "CONC")
 			.withValue("TEXT_FROM_SOURCE"));
 		source.addChild(sourceText);
-//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
-//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+		//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+		//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 		source.addChild(GedcomNode.create(2, "QUAY")
 			.withValue("CERTAINTY_ASSESSMENT"));
-
-		GedcomNode phone = GedcomNode.create(1, "FONE")
-			.withValue("NAME_PHONETIC_VARIATION1");
-		//TODO			+2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the phonetic name variations.
-		phone.addChild(GedcomNode.create(2, "TYPE"));
-		name.addChild(phone);
-		phone = GedcomNode.create(1, "FONE")
-			.withValue("NAME_PHONETIC_VARIATION1");
-		//TODO			+2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the phonetic name variations.
-		phone.addChild(GedcomNode.create(2, "TYPE"));
-		name.addChild(phone);
-
-		GedcomNode romanized = GedcomNode.create(1, "FONE")
-			.withValue("NAME_ROMANIZED_VARIATION");
-		//TODO			+2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the phonetic name variations.
-		romanized.addChild(GedcomNode.create(2, "TYPE"));
-		name.addChild(romanized);
-		romanized = GedcomNode.create(1, "FONE")
-			.withValue("NAME_ROMANIZED_VARIATION");
-		//TODO			+2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the phonetic name variations.
-		romanized.addChild(GedcomNode.create(2, "TYPE"));
-		name.addChild(romanized);
 		name.addChild(source);
-
-		addNode(name, parent);
-
-		return parent;
 	}
 
 }
