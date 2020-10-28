@@ -130,6 +130,10 @@ public final class GedcomNode{
 		return this;
 	}
 
+	public void removeID(){
+		id = null;
+	}
+
 	public boolean isCustomTag(){
 		return (tag.charAt(0) == '_');
 	}
@@ -218,6 +222,13 @@ public final class GedcomNode{
 			children = new ArrayList<>(1);
 
 		children.add(child);
+	}
+
+	public void addChild(final GedcomNode child, final int index){
+		if(children == null)
+			children = new ArrayList<>(1);
+
+		children.add(index, child);
 	}
 
 	public void removeChild(final GedcomNode child){

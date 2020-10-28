@@ -154,10 +154,14 @@ public class Flef extends Store<Flef>{
 			people = new ArrayList<>(1);
 			personIndex = new HashMap<>(1);
 		}
-		person.withID(ID_INDIVIDUAL_PREFIX + (people.size() + 1));
+		person.withID(getNextPersonID(people.size()));
 		people.add(person);
 		personIndex.put(person.getID(), person);
 		return person;
+	}
+
+	public static String getNextPersonID(final int peopleCount){
+		return ID_INDIVIDUAL_PREFIX + (peopleCount + 1);
 	}
 
 	public List<GedcomNode> getFamilies(){
@@ -173,10 +177,14 @@ public class Flef extends Store<Flef>{
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
-		family.withID(ID_FAMILY_PREFIX + (families.size() + 1));
+		family.withID(getNextFamilyID(families.size()));
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 		return family;
+	}
+
+	public static String getNextFamilyID(final int familiesCount){
+		return ID_FAMILY_PREFIX + (familiesCount + 1);
 	}
 
 	public List<GedcomNode> getPlaces(){
@@ -192,10 +200,14 @@ public class Flef extends Store<Flef>{
 			places = new ArrayList<>(1);
 			placeIndex = new HashMap<>(1);
 		}
-		place.withID(ID_PLACE_PREFIX + (places.size() + 1));
+		place.withID(getNextPlaceID(places.size()));
 		places.add(place);
 		placeIndex.put(place.getID(), place);
 		return place;
+	}
+
+	public static String getNextPlaceID(final int placesCount){
+		return ID_PLACE_PREFIX + (placesCount + 1);
 	}
 
 	public List<GedcomNode> getDocuments(){
@@ -211,10 +223,14 @@ public class Flef extends Store<Flef>{
 			documents = new ArrayList<>(1);
 			documentIndex = new HashMap<>(1);
 		}
-		document.withID(ID_DOCUMENT_PREFIX + (documents.size() + 1));
+		document.withID(getNextDocumentID(documents.size()));
 		documents.add(document);
 		documentIndex.put(document.getID(), document);
 		return document;
+	}
+
+	public static String getNextDocumentID(final int documentCount){
+		return ID_DOCUMENT_PREFIX + (documentCount + 1);
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -230,10 +246,14 @@ public class Flef extends Store<Flef>{
 			notes = new ArrayList<>(1);
 			noteIndex = new HashMap<>(1);
 		}
-		note.withID(ID_NOTE_PREFIX + (notes.size() + 1));
+		note.withID(getNextNoteID(notes.size()));
 		notes.add(note);
 		noteIndex.put(note.getID(), note);
 		return note;
+	}
+
+	public static String getNextNoteID(final int noteCount){
+		return ID_NOTE_PREFIX + (noteCount + 1);
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -249,10 +269,14 @@ public class Flef extends Store<Flef>{
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
-		repository.withID(ID_REPOSITORY_PREFIX + (repositories.size() + 1));
+		repository.withID(getNextRepositoryID(repositories.size()));
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
 		return repository;
+	}
+
+	public static String getNextRepositoryID(final int repositoryCount){
+		return ID_REPOSITORY_PREFIX + (repositoryCount + 1);
 	}
 
 	public List<GedcomNode> getSources(){
@@ -268,10 +292,14 @@ public class Flef extends Store<Flef>{
 			sources = new ArrayList<>(1);
 			sourceIndex = new HashMap<>(1);
 		}
-		source.withID(ID_SOURCE_PREFIX + (sources.size() + 1));
+		source.withID(getNextSourceID(sources.size()));
 		sources.add(source);
 		sourceIndex.put(source.getID(), source);
 		return source;
+	}
+
+	public static String getNextSourceID(final int sourceCount){
+		return ID_SOURCE_PREFIX + (sourceCount + 1);
 	}
 
 	public List<GedcomNode> getSubmitters(){
@@ -287,10 +315,14 @@ public class Flef extends Store<Flef>{
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
-		submitter.withID(ID_SUBMITTER_PREFIX + (submitters.size() + 1));
+		submitter.withID(getNextSubmitterID(submitters.size()));
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
 		return submitter;
+	}
+
+	public static String getNextSubmitterID(final int submitterCount){
+		return ID_SUBMITTER_PREFIX + (submitterCount + 1);
 	}
 
 }

@@ -105,9 +105,10 @@ public abstract class Store<T>{
 			new EndOfFileTransformation()
 		));
 		for(final Transformation transformation : transformations)
-			transformation.to(root, flef);
+			transformation.to(root);
 
-		new HeaderTransformation().from(root, (Gedcom)this);
+		for(final Transformation transformation : transformations)
+			transformation.from(root);
 	}
 
 	protected abstract String getCharsetName();
