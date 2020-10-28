@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.*;
@@ -36,17 +37,25 @@ public class HeaderTransformation implements Transformation{
 	}
 
 	@Override
-	public void from(final GedcomNode root){
-		moveTag("HEAD", root, "HEADER");
-//		final Map<String, Object> source = (Map<String, Object>)getStructure(root, "HEAD", "SOURCE");
-//		final Map<String, Object> submitter = (Map<String, Object>)getStructure(root, "HEAD", "SUBMITTER");
-//		final Map<String, Object> copyright = (Map<String, Object>)getStructure(root, "HEAD", "COPYRIGHT");
-//		final Map<String, Object> protocolVersion = (Map<String, Object>)getStructure(root, "HEAD", "PROTOCOL_VERSION");
-//		final Map<String, Object> charset = (Map<String, Object>)getStructure(root, "HEAD", "CHARSET");
-//		final Map<String, Object> note = (Map<String, Object>)getStructure(root, "HEAD", "NOTE");
-
-		//remove place
-		deleteTag(root, "CHANGE");
+	public void from(final GedcomNode root, final Gedcom gedcom){
+		final GedcomNode header = moveTag("HEAD", root, "HEADER");
+		final GedcomNode headerSource = moveTag("SOUR", header, "SOURCE");
+		moveTag("VERS", headerSource, "VERSION");
+		final GedcomNode headerCorporate = moveTag("CORP", headerSource, "CORPORATE");
+		final GedcomNode sourceCorporatePlace = extractSubStructure(header, "CORP");
+		sourceCorporatePlace.setLevel(sourceCorporatePlace.getLevel() + 1);
+		headerCorporate.addChild(sourceCorporatePlace);
+		moveTag("SUBM", header, "SUBMITTER");
+		moveTag("COPR", header, "COPYRIGHT");
+		transferValue(header, "PROTOCOL_VERSION", header, "CHARSET", 1);
+		final GedcomNode headerProtocolVersion = extractSubStructure(header, "PROTOCOL_VERSION");
+		final GedcomNode headerGedcom = GedcomNode.create(1, "GEDC");
+		final GedcomNode headerGedcomProtocolVersion = GedcomNode.create(2, "VERS");
+		headerGedcomProtocolVersion.withValue(headerProtocolVersion.getValue());
+		headerGedcom.addChild(headerGedcomProtocolVersion);
+		addNode(headerGedcom, header);
+		transferValue(header, "CHARSET", header, "CHAR", 1);
+		splitNote(header, "NOTE");
 	}
 
 }

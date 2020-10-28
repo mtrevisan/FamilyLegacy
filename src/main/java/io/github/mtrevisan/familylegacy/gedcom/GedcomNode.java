@@ -76,7 +76,7 @@ public final class GedcomNode{
 		if(!m.find())
 			return null;
 
-		final GedcomNode node = GedcomNode.createEmpty();
+		final GedcomNode node = createEmpty();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
 		node.withID(m.group(GEDCOM_LINE_ID));
 		node.setTag(m.group(GEDCOM_LINE_TAG));
@@ -90,7 +90,7 @@ public final class GedcomNode{
 
 	private GedcomNode(final int level, final String tag){
 		if(level < 0)
-			throw new IllegalArgumentException("Level must be greater than or equal to zero");
+			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
 		if(tag == null || tag.isEmpty())
 			throw new IllegalArgumentException("Tag must be present");
 
@@ -102,8 +102,18 @@ public final class GedcomNode{
 		return (level == 0 && tag == null);
 	}
 
+	public void setLevel(final int level){
+		if(level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
+
+		this.level = level;
+	}
+
 	public void setLevel(final String level){
 		this.level = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
+
+		if(this.level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + this.level);
 	}
 
 	public int getLevel(){
@@ -191,7 +201,7 @@ public final class GedcomNode{
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = GedcomNode.create(level + 1, newTag)
+				final GedcomNode newNode = create(level + 1, newTag)
 					.withValue(newValue);
 				addChild(newNode);
 			}

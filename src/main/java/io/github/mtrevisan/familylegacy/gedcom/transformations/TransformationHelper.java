@@ -120,6 +120,13 @@ final class TransformationHelper{
 		}
 	}
 
+	public static void splitNote(final GedcomNode context, final String... keys){
+		final GedcomNode currentContext = extractSubStructure(context, keys);
+
+		if(!currentContext.isEmpty())
+			currentContext.setValueConcatenated(currentContext.getValue());
+	}
+
 
 	public static GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
 		GedcomNode current = context;

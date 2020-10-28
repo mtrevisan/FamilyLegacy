@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 
@@ -12,7 +13,7 @@ public class EndOfFileTransformation implements Transformation{
 	}
 
 	@Override
-	public void from(final GedcomNode root){
+	public void from(final GedcomNode root, final Gedcom gedcom){
 		TransformationHelper.moveTag("TRLR", root, "EOF");
 	}
 

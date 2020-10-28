@@ -154,7 +154,7 @@ public class Flef extends Store<Flef>{
 			people = new ArrayList<>(1);
 			personIndex = new HashMap<>(1);
 		}
-		person.setID(ID_INDIVIDUAL_PREFIX + (people.size() + 1));
+		person.withID(ID_INDIVIDUAL_PREFIX + (people.size() + 1));
 		people.add(person);
 		personIndex.put(person.getID(), person);
 		return person;
@@ -173,7 +173,7 @@ public class Flef extends Store<Flef>{
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
-		family.setID(ID_FAMILY_PREFIX + (families.size() + 1));
+		family.withID(ID_FAMILY_PREFIX + (families.size() + 1));
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 		return family;
@@ -192,7 +192,7 @@ public class Flef extends Store<Flef>{
 			places = new ArrayList<>(1);
 			placeIndex = new HashMap<>(1);
 		}
-		place.setID(ID_PLACE_PREFIX + (places.size() + 1));
+		place.withID(ID_PLACE_PREFIX + (places.size() + 1));
 		places.add(place);
 		placeIndex.put(place.getID(), place);
 		return place;
@@ -211,7 +211,7 @@ public class Flef extends Store<Flef>{
 			documents = new ArrayList<>(1);
 			documentIndex = new HashMap<>(1);
 		}
-		document.setID(ID_DOCUMENT_PREFIX + (documents.size() + 1));
+		document.withID(ID_DOCUMENT_PREFIX + (documents.size() + 1));
 		documents.add(document);
 		documentIndex.put(document.getID(), document);
 		return document;
@@ -230,7 +230,7 @@ public class Flef extends Store<Flef>{
 			notes = new ArrayList<>(1);
 			noteIndex = new HashMap<>(1);
 		}
-		note.setID(ID_NOTE_PREFIX + (notes.size() + 1));
+		note.withID(ID_NOTE_PREFIX + (notes.size() + 1));
 		notes.add(note);
 		noteIndex.put(note.getID(), note);
 		return note;
@@ -249,7 +249,7 @@ public class Flef extends Store<Flef>{
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
-		repository.setID(ID_REPOSITORY_PREFIX + (repositories.size() + 1));
+		repository.withID(ID_REPOSITORY_PREFIX + (repositories.size() + 1));
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
 		return repository;
@@ -268,7 +268,7 @@ public class Flef extends Store<Flef>{
 			sources = new ArrayList<>(1);
 			sourceIndex = new HashMap<>(1);
 		}
-		source.setID(ID_SOURCE_PREFIX + (sources.size() + 1));
+		source.withID(ID_SOURCE_PREFIX + (sources.size() + 1));
 		sources.add(source);
 		sourceIndex.put(source.getID(), source);
 		return source;
@@ -287,7 +287,7 @@ public class Flef extends Store<Flef>{
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
-		submitter.setID(ID_SUBMITTER_PREFIX + (submitters.size() + 1));
+		submitter.withID(ID_SUBMITTER_PREFIX + (submitters.size() + 1));
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
 		return submitter;
