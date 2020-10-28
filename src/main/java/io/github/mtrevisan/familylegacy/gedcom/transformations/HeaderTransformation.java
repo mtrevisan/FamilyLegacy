@@ -5,7 +5,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.*;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addNode;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractNote;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlace;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
 
 public class HeaderTransformation implements Transformation{
