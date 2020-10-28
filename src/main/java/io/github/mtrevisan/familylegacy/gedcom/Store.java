@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import io.github.mtrevisan.familylegacy.gedcom.transformations.EndOfFileTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import org.apache.commons.lang3.StringUtils;
 
@@ -99,16 +100,19 @@ public abstract class Store<T>{
 	}
 
 	public void transform(){
-		final Flef flef = new Flef();
-		final Iterable<Transformation> transformations = new ArrayList<>(Arrays.asList(
-			new HeaderTransformation(),
-			new EndOfFileTransformation()
-		));
-		for(final Transformation transformation : transformations)
-			transformation.to(root);
+		final Transformation headerTransf = new HeaderTransformation();
+		final Transformation personTransf = new IndividualTransformation();
+		final Transformation eofTransf = new EndOfFileTransformation();
+		headerTransf.to(root);
+		final List<GedcomNode> people = root.getChildrenWithTag("INDIVIDUAL");
+		for(final GedcomNode person : people)
+			personTransf.to(person);
+		eofTransf.to(root);
 
-		for(final Transformation transformation : transformations)
-			transformation.from(root);
+headerTransf.from(root);
+for(final GedcomNode person : people)
+	personTransf.from(person);
+eofTransf.from(root);
 	}
 
 	protected abstract String getCharsetName();

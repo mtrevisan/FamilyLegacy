@@ -4,15 +4,15 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 import java.util.StringJoiner;
 
 
 final class TransformationHelper{
 
-	private static final Set<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("ADDR", "CONT", "ADR1", "ADR2", "ADR3"));
+	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("ADDR", "CONT", "ADR1", "ADR2", "ADR3"));
 
 
 	private TransformationHelper(){}
@@ -89,6 +89,49 @@ final class TransformationHelper{
 			transferValue(placeContext, "STAE", place, "STATE", 1);
 			transferValue(placeContext, "POST", place, "POSTAL_CODE", 1);
 			transferValue(placeContext, "CTRY", place, "COUNTRY", 1);
+
+			transferValue(parentContext, "PHON", place, "PHONE", 1);
+			transferValue(parentContext, "FAX", place, "FAX", 1);
+			transferValue(parentContext, "EMAIL", place, "EMAIL", 1);
+			transferValue(parentContext, "WWW", place, "WWW", 1);
+		}
+		return place;
+	}
+
+	/** NOTE: remember to set xref! */
+	public static GedcomNode extractNote(final GedcomNode context, final String... tags){
+		final GedcomNode parentContext = extractSubStructure(context, tags);
+		final GedcomNode noteContext = extractSubStructure(parentContext, "NOTE");
+		parentContext.removeChild(noteContext);
+
+		GedcomNode place = GedcomNode.createEmpty();
+		if(!noteContext.isEmpty()){
+			final StringJoiner street = new StringJoiner(" - ");
+			String value = noteContext.getValue();
+			final Iterator<GedcomNode> itr = noteContext.getChildren().iterator();
+			while(itr.hasNext()){
+				final GedcomNode child = itr.next();
+				if(ADDRESS_TAGS.contains(child.getTag())){
+					value = child.getValue();
+					if(value != null && ! value.isEmpty())
+						street.add(value);
+
+					itr.remove();
+				}
+			}
+			if(street.length() > 0)
+				value = street.toString();
+
+			place = GedcomNode.create(0, "PLACE");
+			if(value != null && !value.isEmpty()){
+				final GedcomNode component = GedcomNode.create(1, "STREET")
+					.withValue(value);
+				place.addChild(component);
+			}
+			transferValue(noteContext, "CITY", place, "CITY", 1);
+			transferValue(noteContext, "STAE", place, "STATE", 1);
+			transferValue(noteContext, "POST", place, "POSTAL_CODE", 1);
+			transferValue(noteContext, "CTRY", place, "COUNTRY", 1);
 
 			transferValue(parentContext, "PHON", place, "PHONE", 1);
 			transferValue(parentContext, "FAX", place, "FAX", 1);
