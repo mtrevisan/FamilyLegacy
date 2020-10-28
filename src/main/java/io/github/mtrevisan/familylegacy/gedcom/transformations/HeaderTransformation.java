@@ -3,6 +3,9 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addNode;
@@ -14,6 +17,9 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 
 
 public class HeaderTransformation implements Transformation{
+
+	private static final Collection<String> GEDCOM_ALLOWED_CHARSETS = new HashSet<>(Arrays.asList("ANSEL", "UTF-8", "UNICODE", "ASCII"));
+
 
 	@Override
 	public void to(final GedcomNode root){
@@ -106,7 +112,9 @@ public class HeaderTransformation implements Transformation{
 		gedcom.addChild(GedcomNode.create(2, "FORM")
 			.withValue("LINEAGE-LINKED"));
 		addNode(gedcom, header);
-		moveTag("CHAR", header, "CHARSET");
+		final GedcomNode headerCharset = moveTag("CHAR", header, "CHARSET");
+		if(!GEDCOM_ALLOWED_CHARSETS.contains(headerCharset.getValue()))
+			throw new IllegalArgumentException("Unallowed value for charset: " + headerCharset.getValue());
 		final List<GedcomNode> headerNotes = header.getChildrenWithTag("NOTE");
 		if(headerNotes.size() == 1){
 			final GedcomNode headerNote = headerNotes.get(0);

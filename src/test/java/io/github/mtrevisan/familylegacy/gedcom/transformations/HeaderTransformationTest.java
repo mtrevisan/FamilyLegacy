@@ -11,7 +11,7 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 class HeaderTransformationTest{
 
 	@Test
-	void to(){
+	void toFrom(){
 		final GedcomNode header = composeGedcomHeader();
 		final GedcomNode root = GedcomNode.createEmpty();
 		root.addChild(header);
