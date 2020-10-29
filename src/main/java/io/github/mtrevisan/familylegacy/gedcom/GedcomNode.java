@@ -187,7 +187,7 @@ public final class GedcomNode{
 				if(sc.value != null)
 					sb.append(sc.value);
 			}
-			return sb.toString();
+			return (sb.length() > 0? sb.toString(): null);
 		}
 		else
 			return value;
@@ -231,6 +231,9 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addChild(final GedcomNode child){
+		if(child.isEmpty())
+			return this;
+
 		if(children == null)
 			children = new ArrayList<>(1);
 

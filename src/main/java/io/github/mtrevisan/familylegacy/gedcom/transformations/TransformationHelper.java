@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -126,43 +127,59 @@ final class TransformationHelper{
 	}
 
 	/** NOTE: remember to set xref! */
-	public static GedcomNode extractSource(final GedcomNode context, final GedcomNode parent){
-		GedcomNode note = GedcomNode.createEmpty();
+	public static GedcomNode extractSource(final GedcomNode context, final GedcomNode root){
+		GedcomNode source = GedcomNode.createEmpty();
 		if(!context.isEmpty()){
-			context.setTag("SOURCE");
-			final List<GedcomNode> children = context.removeChildren();
+			source.setTag("SOURCE");
 			final String sourceID = context.getID();
 			if(sourceID != null){
-				final GedcomNode sourcePage = extractSubStructure(context, "PAGE");
+				source.addChild(extractSubStructure(context, "PAGE"));
 				final GedcomNode sourceEvent = extractSubStructure(context, "EVEN");
-/*
-			+2 EVEN <EVENT_TYPE_CITED_FROM>    {0:1}
-				+3 ROLE <ROLE_IN_EVENT>    {0:1}
-			+2 DATA    {0:1}
-				+3 DATE <ENTRY_RECORDING_DATE>    {0:1}
-				+3 TEXT <TEXT_FROM_SOURCE>    {0:M}
-					+4 [CONC|CONT] <TEXT_FROM_SOURCE>    {0:M}
-*/
+				sourceEvent.setTag("EVENT");
+				source.addChild(sourceEvent);
+				source.addChild(extractSubStructure(context, "DATA", "DATE"));
+				final String text = extractSubStructure(context, "DATA", "TEXT")
+					.getValueConcatenated();
+				if(text != null){
+					final GedcomNode sourceNote = GedcomNode.create("NOTE")
+						.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
+						.withValue(text);
+					root.addChild(sourceNote, 1);
+					source.addChild(GedcomNode.create("NOTE")
+						.withID(sourceNote.getID()));
+				}
 			}
 			else{
+				String text = context.getValueConcatenated();
+				if(text != null){
+					final GedcomNode sourceNote = GedcomNode.create("NOTE")
+						.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
+						.withValue(text);
+					root.addChild(sourceNote, 1);
+					source.addChild(GedcomNode.create("NOTE")
+						.withID(sourceNote.getID()));
+				}
 				final List<GedcomNode> sourceTexts = context.getChildrenWithTag("TEXT");
 				for(final GedcomNode sourceText : sourceTexts){
-					final String text = sourceText.getValueConcatenated();
-					//TODO
+					text = sourceText.getValueConcatenated();
+					if(text != null){
+						final GedcomNode sourceNote = GedcomNode.create("NOTE")
+							.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
+							.withValue(text);
+						root.addChild(sourceNote, 1);
+						source.addChild(GedcomNode.create("NOTE")
+							.withID(sourceNote.getID()));
+					}
 				}
-
-				note = GedcomNode.create("SOUR")
-					.withValue(context.getValueConcatenated());
 			}
-/*
+
+/*TODO
 			+2 <<MULTIMEDIA_LINK>>    {0:M}
 			+2 <<NOTE_STRUCTURE>>    {0:M}
 			+2 QUAY <CERTAINTY_ASSESSMENT>    {0:1}
 */
-			context.clear();
-			context.withID(sourceID);
 		}
-		return note;
+		return source;
 	}
 
 	public static void mergeNote(final GedcomNode context, final String... keys){

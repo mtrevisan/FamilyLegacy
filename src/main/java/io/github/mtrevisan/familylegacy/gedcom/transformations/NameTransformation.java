@@ -64,7 +64,7 @@ public class NameTransformation implements Transformation{
 		}
 		final List<GedcomNode> sources = name.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
-			final GedcomNode s = extractSource(source, name);
+			final GedcomNode s = extractSource(source, root);
 			if(!s.isEmpty()){
 				s.withID(Flef.getNextSourceID(root.getChildrenWithTag("SOURCE").size()));
 				root.addChild(s, 1);

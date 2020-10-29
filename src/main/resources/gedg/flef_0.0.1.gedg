@@ -54,7 +54,7 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife or mother. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
@@ -76,7 +76,7 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_EVENT_STRUCTURE() objects giving the events associated with this individual. */
   +1 <<INDIVIDUAL_ATTRIBUTE_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_ATTRIBUTE_STRUCTURE() objects giving the attributes associated with this individual. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
@@ -92,7 +92,7 @@ n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a document record. */
     +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and botton-right coordinates of the enclosing box inside an image. */
   +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the document. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -101,7 +101,7 @@ n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a document record. */
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
   +1 NOTE <SUBMITTER_TEXT>    {1:M}	/* Comments or opinions from the submitter. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
@@ -190,7 +190,7 @@ ASSOCIATION_STRUCTURE :=
 n ASSOCIATION @<XREF:STRUCTURE>@    {1:1}	/* An xref ID of a family/individual/source/repository/note/document/submitter record. */
   +1 TYPE <ASSOCIATION_TYPE>    {1:1}	/* The type of the reference, one of FAMILY, INDIVIDUAL, SOURCE, REPOSITORY, NOTE, DOCUMENT, SUBMITTER. */
   +1 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. If the payload text is R, the person described by the record pointed to by the payload of the superstructure is P, and the person described by the superstructure of the superstructure is Q then this payload means “P is Q’s R”.*/
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
@@ -373,7 +373,7 @@ n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase u
   +1 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
   +1 CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 CREDIBILITY <CREDIBILITY>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
@@ -394,7 +394,7 @@ n NAME    {1:1}
   +1 SURNAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
   +1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this name was recorded. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 CREDIBILITY <CREDIBILITY>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
 
