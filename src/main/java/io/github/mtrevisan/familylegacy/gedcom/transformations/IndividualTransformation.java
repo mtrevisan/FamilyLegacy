@@ -6,7 +6,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlace;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlaceStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.mergeNote;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
@@ -53,7 +53,7 @@ public class IndividualTransformation implements Transformation{
 		final GedcomNode headerSource = moveTag("SOURCE", header, "SOUR");
 		moveTag("VERSION", headerSource, "VERS");
 		final GedcomNode headerSourceCorporate = moveTag("CORPORATE", headerSource, "CORP");
-		final GedcomNode sourceCorporatePlace = extractPlace(headerSource, "CORPORATE")
+		final GedcomNode sourceCorporatePlace = extractPlaceStructure(headerSource, "CORPORATE")
 			.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
 		root.addChild(sourceCorporatePlace, 1);
 		headerSourceCorporate.addChild(GedcomNode.create("PLACE")

@@ -81,7 +81,7 @@ public final class GedcomNode{
 		final GedcomNode node = new GedcomNode();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
 		node.withID(m.group(GEDCOM_LINE_ID));
-		node.setTag(m.group(GEDCOM_LINE_TAG));
+		node.withTag(m.group(GEDCOM_LINE_TAG));
 		node.setXRef(m.group(GEDCOM_LINE_XREF));
 		node.withValue(m.group(GEDCOM_LINE_VALUE));
 
@@ -153,9 +153,10 @@ public final class GedcomNode{
 		return tag;
 	}
 
-	public void setTag(final String tag){
+	public GedcomNode withTag(final String tag){
 		if(tag != null && !tag.isEmpty())
 			this.tag = tag.toUpperCase();
+		return this;
 	}
 
 	public String getXRef(){
@@ -197,6 +198,10 @@ public final class GedcomNode{
 		if(value != null && !value.isEmpty())
 			this.value = value;
 		return this;
+	}
+
+	public void removeValue(){
+		value = null;
 	}
 
 	public void setValueConcatenated(final String value){
@@ -295,6 +300,14 @@ public final class GedcomNode{
 		else
 			taggedChildren = Collections.emptyList();
 		return taggedChildren;
+	}
+
+	public GedcomNode getChildWithIDAndTag(final String id, final String... tags){
+		if(children != null)
+			for(final GedcomNode child : children)
+				if(ArrayUtils.contains(tags, child.tag) && id.equals(child.getID()))
+					return child;
+		return GedcomNode.createEmpty();
 	}
 
 	public boolean isCustom(){
