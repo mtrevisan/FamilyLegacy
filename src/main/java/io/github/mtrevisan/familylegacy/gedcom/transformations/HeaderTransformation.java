@@ -6,12 +6,11 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addNode;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractNote;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlainNote;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlace;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
@@ -31,30 +30,26 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode sourceCorporatePlace = extractPlace(headerCorporate);
 		sourceCorporatePlace.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
 		root.addChild(sourceCorporatePlace, 1);
-		final GedcomNode sourceCorporatePlacePlaceholder = GedcomNode.create("PLACE")
-			.withID(sourceCorporatePlace.getID());
-		addNode(sourceCorporatePlacePlaceholder, headerCorporate);
+		headerCorporate.addChild(GedcomNode.create("PLACE")
+			.withID(sourceCorporatePlace.getID()));
 		deleteTag(header, "DEST");
 		deleteTag(header, "DATE");
 		moveTag("SUBMITTER", header, "SUBM");
 		deleteTag(header, "SUBN");
 		deleteTag(header, "FILE");
 		moveTag("COPYRIGHT", header, "COPR");
-		final GedcomNode protocolVersion = GedcomNode.create("PROTOCOL_VERSION")
-			.withValue("0.0.1");
-		addNode(protocolVersion, header);
+		header.addChild(GedcomNode.create("PROTOCOL_VERSION")
+			.withValue("0.0.1"));
 		deleteTag(header, "GEDC");
 		moveTag("CHARSET", header, "CHAR");
 		deleteTag(header, "CHARSET", "VERS");
 		deleteTag(header, "LANG");
 		deleteTag(header, "PLAC");
-		final GedcomNode headerNote = extractNote(header)
+		final GedcomNode headerNote = extractPlainNote(header)
 			.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 		root.addChild(headerNote, 1);
-		deleteTag(header, "NOTE");
-		final GedcomNode headerNotePlaceholder = GedcomNode.create("NOTE")
-			.withID(headerNote.getID());
-		addNode(headerNotePlaceholder, header);
+		header.addChild(GedcomNode.create("NOTE")
+			.withID(headerNote.getID()));
 	}
 
 	@Override
@@ -63,32 +58,31 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode headerSource = moveTag("SOUR", header, "SOURCE");
 		moveTag("VERS", headerSource, "VERSION");
 		final GedcomNode headerCorporate = moveTag("CORP", headerSource, "CORPORATE");
-		final List<GedcomNode> headerCorporatePlaces = headerCorporate.getChildrenWithTag("PLACE");
-		if(headerCorporatePlaces.size() == 1){
-			final GedcomNode headerCorporatePlace = headerCorporatePlaces.get(0);
+		final GedcomNode headerCorporatePlace = extractSubStructure(headerCorporate, "PLACE");
+		if(!headerCorporatePlace.isEmpty()){
 			final String headerCorporatePlaceID = headerCorporatePlace.getID();
 			for(final GedcomNode child : root.getChildrenWithTag("PLACE"))
 				if(headerCorporatePlaceID.equals(child.getID())){
 					final GedcomNode addr = GedcomNode.create("ADDR");
-					List<GedcomNode> components = child.getChildrenWithTag("STREET");
-					if(components.size() == 1)
-						addr.withValue(components.get(0).getValue());
-					components = child.getChildrenWithTag("CITY");
-					if(components.size() == 1)
+					GedcomNode component = extractSubStructure(child, "STREET");
+					if(!component.isEmpty())
+						addr.withValue(component.getValue());
+					component = extractSubStructure(child, "CITY");
+					if(!component.isEmpty())
 						addr.addChild(GedcomNode.create("CITY")
-							.withValue(components.get(0).getValue()));
-					components = child.getChildrenWithTag("STATE");
-					if(components.size() == 1)
+							.withValue(component.getValue()));
+					component = extractSubStructure(child, "STATE");
+					if(!component.isEmpty())
 						addr.addChild(GedcomNode.create("STAE")
-							.withValue(components.get(0).getValue()));
-					components = child.getChildrenWithTag("POSTAL_CODE");
-					if(components.size() == 1)
+							.withValue(component.getValue()));
+					component = extractSubStructure(child, "POSTAL_CODE");
+					if(!component.isEmpty())
 						addr.addChild(GedcomNode.create("POST")
-							.withValue(components.get(0).getValue()));
-					components = child.getChildrenWithTag("COUNTRY");
-					if(components.size() == 1)
+							.withValue(component.getValue()));
+					component = extractSubStructure(child, "COUNTRY");
+					if(!component.isEmpty())
 						addr.addChild(GedcomNode.create("CTRY")
-							.withValue(components.get(0).getValue()));
+							.withValue(component.getValue()));
 
 					headerCorporate.removeChild(headerCorporatePlace);
 					headerCorporate.addChild(addr);
@@ -106,18 +100,16 @@ public class HeaderTransformation implements Transformation{
 		moveTag("SUBM", header, "SUBMITTER");
 		moveTag("COPR", header, "COPYRIGHT");
 		deleteTag(header, "PROTOCOL_VERSION");
-		final GedcomNode gedcom = GedcomNode.create("GEDC");
-		gedcom.addChild(GedcomNode.create("VERS")
-			.withValue("5.5.1"));
-		gedcom.addChild(GedcomNode.create("FORM")
-			.withValue("LINEAGE-LINKED"));
-		addNode(gedcom, header);
+		header.addChild(GedcomNode.create("GEDC")
+			.addChild(GedcomNode.create("VERS")
+				.withValue("5.5.1"))
+			.addChild(GedcomNode.create("FORM")
+				.withValue("LINEAGE-LINKED")));
 		final GedcomNode headerCharset = moveTag("CHAR", header, "CHARSET");
 		if(!GEDCOM_ALLOWED_CHARSETS.contains(headerCharset.getValue()))
 			throw new IllegalArgumentException("Unallowed value for charset: " + headerCharset.getValue());
-		final List<GedcomNode> headerNotes = header.getChildrenWithTag("NOTE");
-		if(headerNotes.size() == 1){
-			final GedcomNode headerNote = headerNotes.get(0);
+		final GedcomNode headerNote = extractSubStructure(header, "NOTE");
+		if(!headerNote.isEmpty()){
 			final String headerNoteID = headerNote.getID();
 			for(final GedcomNode child : root.getChildrenWithTag("NOTE"))
 				if(headerNoteID.equals(child.getID())){

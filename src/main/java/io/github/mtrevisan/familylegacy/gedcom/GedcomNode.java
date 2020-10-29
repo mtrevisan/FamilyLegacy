@@ -29,8 +29,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,8 +51,8 @@ public final class GedcomNode{
 	private static final int GEDCOM_LINE_XREF = 6;
 	private static final int GEDCOM_LINE_VALUE = 8;
 
-	private static final String TAG_CONTINUATION = "CONT";
 	private static final String TAG_CONCATENATION = "CONC";
+	private static final String TAG_CONTINUATION = "CONT";
 
 
 	private int level;
@@ -76,7 +78,7 @@ public final class GedcomNode{
 		if(!m.find())
 			return null;
 
-		final GedcomNode node = createEmpty();
+		final GedcomNode node = new GedcomNode();
 		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
 		node.withID(m.group(GEDCOM_LINE_ID));
 		node.setTag(m.group(GEDCOM_LINE_TAG));
@@ -93,6 +95,18 @@ public final class GedcomNode{
 			throw new IllegalArgumentException("Tag must be present");
 
 		this.tag = tag;
+	}
+
+	/**
+	 * NOTE: clear all the fields but the {@link #level} and the {@link #tag}.
+	 */
+	public void clear(){
+		id = null;
+		xref = null;
+		value = null;
+
+		children = null;
+		custom = false;
 	}
 
 	public boolean isEmpty(){
@@ -162,14 +176,16 @@ public final class GedcomNode{
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
 	 */
 	public String getValueConcatenated(){
-		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONCATENATION, TAG_CONTINUATION);
+		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONTINUATION, TAG_CONCATENATION);
 		if(!subChildren.isEmpty()){
 			final StringBuilder sb = new StringBuilder();
-			sb.append(value);
+			if(value != null)
+				sb.append(value);
 			for(final GedcomNode sc : subChildren){
 				if(sc.tag.charAt(3) == 'T')
 					sb.append(LF);
-				sb.append(sc.value);
+				if(sc.value != null)
+					sb.append(sc.value);
 			}
 			return sb.toString();
 		}
@@ -214,12 +230,33 @@ public final class GedcomNode{
 		return (children != null? children: Collections.emptyList());
 	}
 
-	public void addChild(final GedcomNode child){
+	public GedcomNode addChild(final GedcomNode child){
 		if(children == null)
 			children = new ArrayList<>(1);
 
-		child.setLevel(level + 1);
+		if(child.getLevel() != level + 1){
+			int currentLevel = level + 1;
+			child.setLevel(currentLevel ++);
+			final Deque<GedcomNode> stack = new ArrayDeque<>();
+			stack.push(child);
+			final Deque<GedcomNode> childrenStack = new ArrayDeque<>();
+			while(!stack.isEmpty()){
+				while(!stack.isEmpty()){
+					final GedcomNode node = stack.pop();
+					for(final GedcomNode c : node.getChildren()){
+						c.setLevel(currentLevel);
+						childrenStack.push(c);
+					}
+				}
+
+				while(!childrenStack.isEmpty())
+					stack.push(childrenStack.pop());
+
+				currentLevel ++;
+			}
+		}
 		children.add(child);
+		return this;
 	}
 
 	public void addChild(final GedcomNode child, final int index){
@@ -238,8 +275,10 @@ public final class GedcomNode{
 		}
 	}
 
-	public void removeChildren(){
+	public List<GedcomNode> removeChildren(){
+		final List<GedcomNode> originalChildren = children;
 		children = null;
+		return originalChildren;
 	}
 
 	public List<GedcomNode> getChildrenWithTag(final String... tags){

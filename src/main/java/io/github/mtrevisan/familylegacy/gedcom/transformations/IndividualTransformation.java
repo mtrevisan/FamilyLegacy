@@ -5,7 +5,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addNode;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlace;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
@@ -53,22 +52,20 @@ public class IndividualTransformation implements Transformation{
 		final GedcomNode header = moveTag("HEADER", root, "HEAD");
 		final GedcomNode headerSource = moveTag("SOURCE", header, "SOUR");
 		moveTag("VERSION", headerSource, "VERS");
-		moveTag("CORPORATE", headerSource, "CORP");
-		final GedcomNode sourceCorporatePlace = extractPlace(headerSource, "CORPORATE");
-		sourceCorporatePlace.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
+		final GedcomNode headerSourceCorporate = moveTag("CORPORATE", headerSource, "CORP");
+		final GedcomNode sourceCorporatePlace = extractPlace(headerSource, "CORPORATE")
+			.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
 		root.addChild(sourceCorporatePlace, 1);
-		final GedcomNode sourceCorporatePlacePlaceholder = GedcomNode.create("PLACE")
-			.withID(sourceCorporatePlace.getID());
-		addNode(sourceCorporatePlacePlaceholder, headerSource, "CORPORATE");
+		headerSourceCorporate.addChild(GedcomNode.create("PLACE")
+			.withID(sourceCorporatePlace.getID()));
 		deleteTag(header, "DEST");
 		deleteTag(header, "DATE");
 		moveTag("SUBMITTER", header, "SUBM");
 		deleteTag(header, "SUBN");
 		deleteTag(header, "FILE");
 		moveTag("COPYRIGHT", header, "COPR");
-		final GedcomNode protocolVersion = GedcomNode.create("PROTOCOL_VERSION")
-			.withValue("0.0.1");
-		addNode(protocolVersion, header);
+		header.addChild(GedcomNode.create("PROTOCOL_VERSION")
+			.withValue("0.0.1"));
 		deleteTag(header, "GEDC");
 		transferValues(header, "CHAR", header, "CHARSET");
 		deleteTag(header, "LANG");
@@ -107,11 +104,9 @@ public class IndividualTransformation implements Transformation{
 		moveTag("SUBM", header, "SUBMITTER");
 		moveTag("COPR", header, "COPYRIGHT");
 		deleteTag(header, "PROTOCOL_VERSION");
-		final GedcomNode headerGedcom = GedcomNode.create("GEDC");
-		final GedcomNode headerGedcomProtocolVersion = GedcomNode.create("VERS");
-		headerGedcomProtocolVersion.withValue("5.5.1");
-		headerGedcom.addChild(headerGedcomProtocolVersion);
-		addNode(headerGedcom, header);
+		header.addChild(GedcomNode.create("GEDC")
+			.addChild(GedcomNode.create("VERS")
+				.withValue("5.5.1")));
 		transferValues(header, "CHARSET", header, "CHAR");
 		splitNote(header, "NOTE");
 	}

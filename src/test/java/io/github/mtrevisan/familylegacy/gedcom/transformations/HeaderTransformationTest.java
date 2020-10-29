@@ -5,16 +5,13 @@ import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.api.Assertions;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addNode;
-
 
 class HeaderTransformationTest{
 
 	@Test
-	void toFrom(){
-		final GedcomNode header = composeGedcomHeader();
-		final GedcomNode root = GedcomNode.createEmpty();
-		root.addChild(header);
+	void toAndFrom(){
+		final GedcomNode root = GedcomNode.createEmpty()
+			.addChild(composeGedcomHeader());
 
 		Assertions.assertEquals("children: [{tag: HEAD, children: [{tag: SOUR, value: APPROVED_SYSTEM_ID, children: [{tag: VERS, value: VERSION_NUMBER}, {tag: NAME, value: NAME_OF_PRODUCT}, {tag: CORP, value: NAME_OF_BUSINESS, children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CONT, value: ADDRESS_LINE}, {tag: ADR1, value: ADDRESS_LINE1}, {tag: ADR2, value: ADDRESS_LINE2}, {tag: ADR3, value: ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: POST, value: ADDRESS_POSTAL_CODE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}, {tag: PHON, value: PHONE_NUMBER1}, {tag: PHON, value: PHONE_NUMBER2}, {tag: EMAIL, value: ADDRESS_EMAIL1}, {tag: EMAIL, value: ADDRESS_EMAIL2}, {tag: FAX, value: ADDRESS_FAX1}, {tag: FAX, value: ADDRESS_FAX2}, {tag: WWW, value: ADDRESS_WEB_PAGE1}, {tag: WWW, value: ADDRESS_WEB_PAGE2}]}, {tag: DATA, value: NAME_OF_SOURCE_DATA, children: [{tag: DATE, value: PUBLICATION_DATE}, {tag: COPR, value: COPYRIGHT_SOURCE_DATA, children: [{tag: CONC, value: COPYRIGHT_SOURCE_DATA}]}]}]}, {tag: DEST, value: RECEIVING_SYSTEM_NAME}, {tag: DATE, value: TRANSMISSION_DATE, children: [{tag: TIME, value: TIME_VALUE}]}, {id: SUBM1, tag: SUBM}, {id: SUBN1, tag: SUBN}, {tag: FILE, value: FILE_NAME}, {tag: COPR, value: COPYRIGHT_GEDCOM_FILE}, {tag: GEDC, children: [{tag: VERS, value: VERSION_NUMBER}, {tag: FORM, value: LINEAGE-LINKED}]}, {tag: CHAR, value: UTF-8, children: [{tag: VERS, value: VERSION_NUMBER}]}, {tag: LANG, value: LANGUAGE_OF_TEXT_1}, {tag: LANG, value: LANGUAGE_OF_TEXT_2}, {tag: PLAC, children: [{tag: FORM, value: PLACE_HIERARCHY}]}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION, children: [{tag: CONC, value: GEDCOM_CONTENT_DESCRIPTION}]}]}]", root.toString());
 
@@ -31,109 +28,90 @@ class HeaderTransformationTest{
 	private GedcomNode composeGedcomHeader(){
 		final GedcomNode header = GedcomNode.create("HEAD");
 
-		final GedcomNode source = GedcomNode.create("SOUR")
-			.withValue("APPROVED_SYSTEM_ID");
-		source.addChild(GedcomNode.create("VERS")
-			.withValue("VERSION_NUMBER"));
-		source.addChild(GedcomNode.create("NAME")
-			.withValue("NAME_OF_PRODUCT"));
-		final GedcomNode sourceCorporate = GedcomNode.create("CORP")
-			.withValue("NAME_OF_BUSINESS");
-		final GedcomNode sourceCorporateAddress = GedcomNode.create("ADDR")
-			.withValue("ADDRESS_LINE");
-		sourceCorporateAddress.addChild(GedcomNode.create("CONT")
-			.withValue("ADDRESS_LINE"));
-		sourceCorporateAddress.addChild(GedcomNode.create("ADR1")
-			.withValue("ADDRESS_LINE1"));
-		sourceCorporateAddress.addChild(GedcomNode.create("ADR2")
-			.withValue("ADDRESS_LINE2"));
-		sourceCorporateAddress.addChild(GedcomNode.create("ADR3")
-			.withValue("ADDRESS_LINE3"));
-		sourceCorporateAddress.addChild(GedcomNode.create("CITY")
-			.withValue("ADDRESS_CITY"));
-		sourceCorporateAddress.addChild(GedcomNode.create("STAE")
-			.withValue("ADDRESS_STATE"));
-		sourceCorporateAddress.addChild(GedcomNode.create("POST")
-			.withValue("ADDRESS_POSTAL_CODE"));
-		sourceCorporateAddress.addChild(GedcomNode.create("CTRY")
-			.withValue("ADDRESS_COUNTRY"));
-		sourceCorporate.addChild(sourceCorporateAddress);
-		sourceCorporate.addChild(GedcomNode.create("PHON")
-			.withValue("PHONE_NUMBER1"));
-		sourceCorporate.addChild(GedcomNode.create("PHON")
-			.withValue("PHONE_NUMBER2"));
-		sourceCorporate.addChild(GedcomNode.create("EMAIL")
-			.withValue("ADDRESS_EMAIL1"));
-		sourceCorporate.addChild(GedcomNode.create("EMAIL")
-			.withValue("ADDRESS_EMAIL2"));
-		sourceCorporate.addChild(GedcomNode.create("FAX")
-			.withValue("ADDRESS_FAX1"));
-		sourceCorporate.addChild(GedcomNode.create("FAX")
-			.withValue("ADDRESS_FAX2"));
-		sourceCorporate.addChild(GedcomNode.create("WWW")
-			.withValue("ADDRESS_WEB_PAGE1"));
-		sourceCorporate.addChild(GedcomNode.create("WWW")
-			.withValue("ADDRESS_WEB_PAGE2"));
-		source.addChild(sourceCorporate);
-		final GedcomNode sourceData = GedcomNode.create("DATA")
-			.withValue("NAME_OF_SOURCE_DATA");
-		sourceData.addChild(GedcomNode.create("DATE")
-			.withValue("PUBLICATION_DATE"));
-		final GedcomNode sourceDataCopyright = GedcomNode.create("COPR")
-			.withValue("COPYRIGHT_SOURCE_DATA");
-		sourceDataCopyright.addChild(GedcomNode.create("CONC")
-			.withValue("COPYRIGHT_SOURCE_DATA"));
-		sourceData.addChild(sourceDataCopyright);
-		source.addChild(sourceData);
-		final GedcomNode destination = GedcomNode.create("DEST")
-			.withValue("RECEIVING_SYSTEM_NAME");
-		final GedcomNode date = GedcomNode.create("DATE")
-			.withValue("TRANSMISSION_DATE");
-		final GedcomNode dateTime = GedcomNode.create("TIME")
-			.withValue("TIME_VALUE");
-		date.addChild(dateTime);
-		final GedcomNode submitter = GedcomNode.create("SUBM")
-			.withID("SUBM1");
-		final GedcomNode submission = GedcomNode.create("SUBN")
-			.withID("SUBN1");
-		final GedcomNode file = GedcomNode.create("FILE")
-			.withValue("FILE_NAME");
-		final GedcomNode copyright = GedcomNode.create("COPR")
-			.withValue("COPYRIGHT_GEDCOM_FILE");
-		final GedcomNode gedcom = GedcomNode.create("GEDC");
-		gedcom.addChild(GedcomNode.create("VERS")
-			.withValue("VERSION_NUMBER"));
-		gedcom.addChild(GedcomNode.create("FORM")
-			.withValue("LINEAGE-LINKED"));
-		final GedcomNode charset = GedcomNode.create("CHAR")
-			.withValue("UTF-8");
-		charset.addChild(GedcomNode.create("VERS")
-			.withValue("VERSION_NUMBER"));
-		final GedcomNode language1 = GedcomNode.create("LANG")
-			.withValue("LANGUAGE_OF_TEXT_1");
-		final GedcomNode language2 = GedcomNode.create("LANG")
-			.withValue("LANGUAGE_OF_TEXT_2");
-		final GedcomNode place = GedcomNode.create("PLAC");
-		place.addChild(GedcomNode.create("FORM")
-			.withValue("PLACE_HIERARCHY"));
-		final GedcomNode note = GedcomNode.create("NOTE")
-			.withValue("GEDCOM_CONTENT_DESCRIPTION");
-		note.addChild(GedcomNode.create("CONC")
-			.withValue("GEDCOM_CONTENT_DESCRIPTION"));
-
-		addNode(source, header);
-		addNode(destination, header);
-		addNode(date, header);
-		addNode(submitter, header);
-		addNode(submission, header);
-		addNode(file, header);
-		addNode(copyright, header);
-		addNode(gedcom, header);
-		addNode(charset, header);
-		addNode(language1, header);
-		addNode(language2, header);
-		addNode(place, header);
-		addNode(note, header);
+		header.addChild(GedcomNode.create("SOUR")
+			.withValue("APPROVED_SYSTEM_ID")
+			.addChild(GedcomNode.create("VERS")
+				.withValue("VERSION_NUMBER"))
+			.addChild(GedcomNode.create("NAME")
+				.withValue("NAME_OF_PRODUCT"))
+			.addChild(GedcomNode.create("CORP")
+				.withValue("NAME_OF_BUSINESS")
+				.addChild(GedcomNode.create("ADDR")
+					.withValue("ADDRESS_LINE")
+					.addChild(GedcomNode.create("CONT")
+						.withValue("ADDRESS_LINE"))
+					.addChild(GedcomNode.create("ADR1")
+						.withValue("ADDRESS_LINE1"))
+					.addChild(GedcomNode.create("ADR2")
+						.withValue("ADDRESS_LINE2"))
+					.addChild(GedcomNode.create("ADR3")
+						.withValue("ADDRESS_LINE3"))
+					.addChild(GedcomNode.create("CITY")
+						.withValue("ADDRESS_CITY"))
+					.addChild(GedcomNode.create("STAE")
+						.withValue("ADDRESS_STATE"))
+					.addChild(GedcomNode.create("POST")
+						.withValue("ADDRESS_POSTAL_CODE"))
+					.addChild(GedcomNode.create("CTRY")
+						.withValue("ADDRESS_COUNTRY")))
+				.addChild(GedcomNode.create("PHON")
+					.withValue("PHONE_NUMBER1"))
+				.addChild(GedcomNode.create("PHON")
+					.withValue("PHONE_NUMBER2"))
+				.addChild(GedcomNode.create("EMAIL")
+					.withValue("ADDRESS_EMAIL1"))
+				.addChild(GedcomNode.create("EMAIL")
+					.withValue("ADDRESS_EMAIL2"))
+				.addChild(GedcomNode.create("FAX")
+					.withValue("ADDRESS_FAX1"))
+				.addChild(GedcomNode.create("FAX")
+					.withValue("ADDRESS_FAX2"))
+				.addChild(GedcomNode.create("WWW")
+					.withValue("ADDRESS_WEB_PAGE1"))
+				.addChild(GedcomNode.create("WWW")
+					.withValue("ADDRESS_WEB_PAGE2")))
+			.addChild(GedcomNode.create("DATA")
+				.withValue("NAME_OF_SOURCE_DATA")
+				.addChild(GedcomNode.create("DATE")
+					.withValue("PUBLICATION_DATE"))
+				.addChild(GedcomNode.create("COPR")
+					.withValue("COPYRIGHT_SOURCE_DATA")
+					.addChild(GedcomNode.create("CONC")
+						.withValue("COPYRIGHT_SOURCE_DATA")))));
+		header.addChild(GedcomNode.create("DEST")
+			.withValue("RECEIVING_SYSTEM_NAME"));
+		header.addChild(GedcomNode.create("DATE")
+			.withValue("TRANSMISSION_DATE")
+			.addChild(GedcomNode.create("TIME")
+				.withValue("TIME_VALUE")));
+		header.addChild(GedcomNode.create("SUBM")
+			.withID("SUBM1"));
+		header.addChild(GedcomNode.create("SUBN")
+			.withID("SUBN1"));
+		header.addChild(GedcomNode.create("FILE")
+			.withValue("FILE_NAME"));
+		header.addChild(GedcomNode.create("COPR")
+			.withValue("COPYRIGHT_GEDCOM_FILE"));
+		header.addChild(GedcomNode.create("GEDC")
+			.addChild(GedcomNode.create("VERS")
+				.withValue("VERSION_NUMBER"))
+			.addChild(GedcomNode.create("FORM")
+				.withValue("LINEAGE-LINKED")));
+		header.addChild(GedcomNode.create("CHAR")
+			.withValue("UTF-8")
+			.addChild(GedcomNode.create("VERS")
+				.withValue("VERSION_NUMBER")));
+		header.addChild(GedcomNode.create("LANG")
+			.withValue("LANGUAGE_OF_TEXT_1"));
+		header.addChild(GedcomNode.create("LANG")
+			.withValue("LANGUAGE_OF_TEXT_2"));
+		header.addChild(GedcomNode.create("PLAC")
+			.addChild(GedcomNode.create("FORM")
+				.withValue("PLACE_HIERARCHY")));
+		header.addChild(GedcomNode.create("NOTE")
+			.withValue("GEDCOM_CONTENT_DESCRIPTION")
+			.addChild(GedcomNode.create("CONC")
+				.withValue("GEDCOM_CONTENT_DESCRIPTION")));
 
 		return header;
 	}
