@@ -28,23 +28,23 @@ class NameTransformationTest{
 	}
 
 	private GedcomNode composeGedcomName(){
-		final GedcomNode parent = GedcomNode.createEmpty();
+		final GedcomNode parent = GedcomNode.create("PARENT");
 
-		final GedcomNode name = GedcomNode.create(1, "NAME")
+		final GedcomNode name = GedcomNode.create("NAME")
 			.withValue("NAME_PERSONAL /SURNAME_PERSONAL/");
-		name.addChild(GedcomNode.create(1, "TYPE")
+		name.addChild(GedcomNode.create("TYPE")
 			.withValue("NAME_TYPE"));
 		createPersonalNamePieces(name);
 
-		GedcomNode phone = GedcomNode.create(1, "FONE")
+		GedcomNode phone = GedcomNode.create("FONE")
 			.withValue("NAME_PHONETIC_VARIATION1");
-		phone.addChild(GedcomNode.create(1, "TYPE")
+		phone.addChild(GedcomNode.create("TYPE")
 			.withValue("PHONETIC_TYPE"));
 		createPersonalNamePieces(phone);
 
-		GedcomNode romanized = GedcomNode.create(1, "ROMN")
+		GedcomNode romanized = GedcomNode.create("ROMN")
 			.withValue("NAME_ROMANIZED_VARIATION1");
-		romanized.addChild(GedcomNode.create(1, "TYPE")
+		romanized.addChild(GedcomNode.create("TYPE")
 			.withValue("ROMANIZED_TYPE"));
 		createPersonalNamePieces(romanized);
 
@@ -53,60 +53,62 @@ class NameTransformationTest{
 		return parent;
 	}
 
-	private void createPersonalNamePieces(GedcomNode name){
-		name.addChild(GedcomNode.create(1, "NPFX")
+	private void createPersonalNamePieces(final GedcomNode name){
+		name.addChild(GedcomNode.create("NPFX")
 			.withValue("NAME_PIECE_PREFIX"));
-		name.addChild(GedcomNode.create(1, "GIVN")
+		name.addChild(GedcomNode.create("GIVN")
 			.withValue("NAME_PIECE_GIVEN"));
-		name.addChild(GedcomNode.create(1, "NICK")
+		name.addChild(GedcomNode.create("NICK")
 			.withValue("NAME_PIECE_NICKNAME"));
-		name.addChild(GedcomNode.create(1, "SPFX")
+		name.addChild(GedcomNode.create("SPFX")
 			.withValue("NAME_PIECE_SURNAME_PREFIX"));
-		name.addChild(GedcomNode.create(1, "SURN")
+		name.addChild(GedcomNode.create("SURN")
 			.withValue("NAME_PIECE_SURNAME"));
-		name.addChild(GedcomNode.create(1, "NSFX")
+		name.addChild(GedcomNode.create("NSFX")
 			.withValue("NAME_PIECE_SUFFIX"));
-		name.addChild(GedcomNode.create(1, "NOTE")
-			.withID("N1"));
-		final GedcomNode note = GedcomNode.create(1, "NOTE")
+		GedcomNode note = GedcomNode.create("NOTE")
+			.withID("N1");
+		name.addChild(note);
+		note = GedcomNode.create("NOTE")
 			.withValue("SUBMITTER_TEXT");
-		note.addChild(GedcomNode.create(2, "CONC")
+		note.addChild(GedcomNode.create("CONC")
 			.withValue("SUBMITTER_TEXT1"));
 		name.addChild(note);
-		GedcomNode source = GedcomNode.create(1, "SOUR")
+		GedcomNode source = GedcomNode.create("SOUR")
 			.withID("S1");
-		source.addChild(GedcomNode.create(2, "PAGE")
+		source.addChild(GedcomNode.create("PAGE")
 			.withValue("WHERE_WITHIN_SOURCE"));
-		source.addChild(GedcomNode.create(2, "EVEN")
-			.withValue("EVENT_TYPE_CITED_FROM"));
-		source.addChild(GedcomNode.create(2, "ROLE")
+		final GedcomNode event = GedcomNode.create("EVEN")
+			.withValue("EVENT_TYPE_CITED_FROM");
+		event.addChild(GedcomNode.create("ROLE")
 			.withValue("ROLE_IN_EVENT"));
-		GedcomNode sourceData = GedcomNode.create(2, "DATA");
-		sourceData.addChild(GedcomNode.create(3, "DATE")
+		source.addChild(event);
+		GedcomNode sourceData = GedcomNode.create("DATA");
+		sourceData.addChild(GedcomNode.create("DATE")
 			.withValue("ENTRY_RECORDING_DATE"));
-		GedcomNode sourceDataText = GedcomNode.create(2, "TEXT")
+		GedcomNode sourceDataText = GedcomNode.create("TEXT")
 			.withValue("TEXT_FROM_SOURCE");
-		sourceDataText.addChild(GedcomNode.create(3, "CONC")
+		sourceDataText.addChild(GedcomNode.create("CONC")
 			.withValue("TEXT_FROM_SOURCE"));
 		sourceData.addChild(sourceDataText);
 		source.addChild(sourceData);
 		//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
 		//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-		source.addChild(GedcomNode.create(2, "QUAY")
+		source.addChild(GedcomNode.create("QUAY")
 			.withValue("CERTAINTY_ASSESSMENT"));
 		name.addChild(source);
-		source = GedcomNode.create(1, "SOUR")
+		source = GedcomNode.create("SOUR")
 			.withValue("SOURCE_DESCRIPTION");
-		source.addChild(GedcomNode.create(2, "CONC")
+		source.addChild(GedcomNode.create("CONC")
 			.withValue("SOURCE_DESCRIPTION"));
-		GedcomNode sourceText = GedcomNode.create(2, "TEXT")
+		GedcomNode sourceText = GedcomNode.create("TEXT")
 			.withValue("TEXT_FROM_SOURCE");
-		sourceText.addChild(GedcomNode.create(3, "CONC")
+		sourceText.addChild(GedcomNode.create("CONC")
 			.withValue("TEXT_FROM_SOURCE"));
 		source.addChild(sourceText);
 		//TODO		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
 		//TODO		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-		source.addChild(GedcomNode.create(2, "QUAY")
+		source.addChild(GedcomNode.create("QUAY")
 			.withValue("CERTAINTY_ASSESSMENT"));
 		name.addChild(source);
 	}

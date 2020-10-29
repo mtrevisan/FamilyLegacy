@@ -31,14 +31,14 @@ public class NameTransformation implements Transformation{
 				sj.add(surnameSuffix.getValue());
 			if(!surname.isEmpty())
 				sj.add(surname.getValue());
-			final GedcomNode anotherSurname = GedcomNode.create(name.getLevel(), "SURNAME")
+			final GedcomNode anotherSurname = GedcomNode.create("SURNAME")
 				.withValue(sj.toString());
 			addNode(anotherSurname, name);
 		}
 		deleteTag(name, "SPFX");
 		final GedcomNode nameNickname = extractSubStructure(name, "NICK");
 		if(!nameNickname.isEmpty()){
-			final GedcomNode anotherNameNickname = GedcomNode.create(name.getLevel(), "NAME")
+			final GedcomNode anotherNameNickname = GedcomNode.create("NAME")
 				.withValue(nameNickname.getValue());
 			addNode(anotherNameNickname, root);
 		}

@@ -67,8 +67,8 @@ public final class GedcomNode{
 		return new GedcomNode();
 	}
 
-	public static GedcomNode create(final int level, final String tag){
-		return new GedcomNode(level, tag);
+	public static GedcomNode create(final String tag){
+		return new GedcomNode(tag);
 	}
 
 	public static GedcomNode parse(final CharSequence line){
@@ -88,13 +88,10 @@ public final class GedcomNode{
 
 	private GedcomNode(){}
 
-	private GedcomNode(final int level, final String tag){
-		if(level < 0)
-			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
+	private GedcomNode(final String tag){
 		if(tag == null || tag.isEmpty())
 			throw new IllegalArgumentException("Tag must be present");
 
-		this.level = level;
 		this.tag = tag;
 	}
 
@@ -205,7 +202,7 @@ public final class GedcomNode{
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = create(level + 1, newTag)
+				final GedcomNode newNode = create(newTag)
 					.withValue(newValue);
 				addChild(newNode);
 			}
@@ -221,6 +218,7 @@ public final class GedcomNode{
 		if(children == null)
 			children = new ArrayList<>(1);
 
+		child.setLevel(level + 1);
 		children.add(child);
 	}
 

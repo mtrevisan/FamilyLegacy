@@ -31,7 +31,7 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode sourceCorporatePlace = extractPlace(headerCorporate);
 		sourceCorporatePlace.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
 		root.addChild(sourceCorporatePlace, 1);
-		final GedcomNode sourceCorporatePlacePlaceholder = GedcomNode.create(3, "PLACE")
+		final GedcomNode sourceCorporatePlacePlaceholder = GedcomNode.create("PLACE")
 			.withID(sourceCorporatePlace.getID());
 		addNode(sourceCorporatePlacePlaceholder, headerCorporate);
 		deleteTag(header, "DEST");
@@ -40,7 +40,7 @@ public class HeaderTransformation implements Transformation{
 		deleteTag(header, "SUBN");
 		deleteTag(header, "FILE");
 		moveTag("COPYRIGHT", header, "COPR");
-		final GedcomNode protocolVersion = GedcomNode.create(1, "PROTOCOL_VERSION")
+		final GedcomNode protocolVersion = GedcomNode.create("PROTOCOL_VERSION")
 			.withValue("0.0.1");
 		addNode(protocolVersion, header);
 		deleteTag(header, "GEDC");
@@ -52,7 +52,7 @@ public class HeaderTransformation implements Transformation{
 			.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 		root.addChild(headerNote, 1);
 		deleteTag(header, "NOTE");
-		final GedcomNode headerNotePlaceholder = GedcomNode.create(1, "NOTE")
+		final GedcomNode headerNotePlaceholder = GedcomNode.create("NOTE")
 			.withID(headerNote.getID());
 		addNode(headerNotePlaceholder, header);
 	}
@@ -69,34 +69,34 @@ public class HeaderTransformation implements Transformation{
 			final String headerCorporatePlaceID = headerCorporatePlace.getID();
 			for(final GedcomNode child : root.getChildrenWithTag("PLACE"))
 				if(headerCorporatePlaceID.equals(child.getID())){
-					final GedcomNode addr = GedcomNode.create(3, "ADDR");
+					final GedcomNode addr = GedcomNode.create("ADDR");
 					List<GedcomNode> components = child.getChildrenWithTag("STREET");
 					if(components.size() == 1)
 						addr.withValue(components.get(0).getValue());
 					components = child.getChildrenWithTag("CITY");
 					if(components.size() == 1)
-						addr.addChild(GedcomNode.create(4, "CITY")
+						addr.addChild(GedcomNode.create("CITY")
 							.withValue(components.get(0).getValue()));
 					components = child.getChildrenWithTag("STATE");
 					if(components.size() == 1)
-						addr.addChild(GedcomNode.create(4, "STAE")
+						addr.addChild(GedcomNode.create("STAE")
 							.withValue(components.get(0).getValue()));
 					components = child.getChildrenWithTag("POSTAL_CODE");
 					if(components.size() == 1)
-						addr.addChild(GedcomNode.create(4, "POST")
+						addr.addChild(GedcomNode.create("POST")
 							.withValue(components.get(0).getValue()));
 					components = child.getChildrenWithTag("COUNTRY");
 					if(components.size() == 1)
-						addr.addChild(GedcomNode.create(4, "CTRY")
+						addr.addChild(GedcomNode.create("CTRY")
 							.withValue(components.get(0).getValue()));
 
 					headerCorporate.removeChild(headerCorporatePlace);
 					headerCorporate.addChild(addr);
 
-					transferValues(child, "PHONE", headerCorporate, "PHON", 1);
-					transferValues(child, "FAX", headerCorporate, "FAX", 1);
-					transferValues(child, "EMAIL", headerCorporate, "EMAIL", 1);
-					transferValues(child, "WWW", headerCorporate, "WWW", 1);
+					transferValues(child, "PHONE", headerCorporate, "PHON");
+					transferValues(child, "FAX", headerCorporate, "FAX");
+					transferValues(child, "EMAIL", headerCorporate, "EMAIL");
+					transferValues(child, "WWW", headerCorporate, "WWW");
 
 					root.removeChild(child);
 
@@ -106,10 +106,10 @@ public class HeaderTransformation implements Transformation{
 		moveTag("SUBM", header, "SUBMITTER");
 		moveTag("COPR", header, "COPYRIGHT");
 		deleteTag(header, "PROTOCOL_VERSION");
-		final GedcomNode gedcom = GedcomNode.create(1, "GEDC");
-		gedcom.addChild(GedcomNode.create(2, "VERS")
+		final GedcomNode gedcom = GedcomNode.create("GEDC");
+		gedcom.addChild(GedcomNode.create("VERS")
 			.withValue("5.5.1"));
-		gedcom.addChild(GedcomNode.create(2, "FORM")
+		gedcom.addChild(GedcomNode.create("FORM")
 			.withValue("LINEAGE-LINKED"));
 		addNode(gedcom, header);
 		final GedcomNode headerCharset = moveTag("CHAR", header, "CHARSET");
@@ -121,7 +121,7 @@ public class HeaderTransformation implements Transformation{
 			final String headerNoteID = headerNote.getID();
 			for(final GedcomNode child : root.getChildrenWithTag("NOTE"))
 				if(headerNoteID.equals(child.getID())){
-					final GedcomNode addr = GedcomNode.create(1, "NOTE")
+					final GedcomNode addr = GedcomNode.create("NOTE")
 						.withValue(child.getValue());
 
 					header.removeChild(headerNote);

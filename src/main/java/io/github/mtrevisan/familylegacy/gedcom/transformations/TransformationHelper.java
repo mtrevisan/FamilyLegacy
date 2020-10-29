@@ -45,11 +45,10 @@ final class TransformationHelper{
 			currentContext.removeChildren();
 	}
 
-	public static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag,
-			final int destinationLevel){
+	public static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag){
 		final List<GedcomNode> componentContext = context.getChildrenWithTag(tag);
 		for(final GedcomNode child : componentContext){
-			final GedcomNode component = GedcomNode.create(destinationLevel, destinationTag)
+			final GedcomNode component = GedcomNode.create(destinationTag)
 				.withValue(child.getValue());
 			destination.addChild(component);
 
@@ -82,19 +81,19 @@ final class TransformationHelper{
 			if(street.length() > 0)
 				value = street.toString();
 
-			place = GedcomNode.create(0, "PLACE");
+			place = GedcomNode.create("PLACE");
 			if(value != null && !value.isEmpty())
-				place.addChild(GedcomNode.create(1, "STREET")
+				place.addChild(GedcomNode.create("STREET")
 					.withValue(value));
-			transferValues(placeContext, "CITY", place, "CITY", 1);
-			transferValues(placeContext, "STAE", place, "STATE", 1);
-			transferValues(placeContext, "POST", place, "POSTAL_CODE", 1);
-			transferValues(placeContext, "CTRY", place, "COUNTRY", 1);
+			transferValues(placeContext, "CITY", place, "CITY");
+			transferValues(placeContext, "STAE", place, "STATE");
+			transferValues(placeContext, "POST", place, "POSTAL_CODE");
+			transferValues(placeContext, "CTRY", place, "COUNTRY");
 
-			transferValues(parentContext, "PHON", place, "PHONE", 1);
-			transferValues(parentContext, "FAX", place, "FAX", 1);
-			transferValues(parentContext, "EMAIL", place, "EMAIL", 1);
-			transferValues(parentContext, "WWW", place, "WWW", 1);
+			transferValues(parentContext, "PHON", place, "PHONE");
+			transferValues(parentContext, "FAX", place, "FAX");
+			transferValues(parentContext, "EMAIL", place, "EMAIL");
+			transferValues(parentContext, "WWW", place, "WWW");
 		}
 		return place;
 	}
@@ -107,7 +106,7 @@ final class TransformationHelper{
 
 		GedcomNode note = GedcomNode.createEmpty();
 		if(!noteContext.isEmpty()){
-			note = GedcomNode.create(0, "NOTE");
+			note = GedcomNode.create("NOTE");
 			note.withValue(noteContext.getValueConcatenated());
 		}
 		return note;
