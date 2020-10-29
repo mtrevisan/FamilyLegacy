@@ -30,7 +30,7 @@ final class TransformationHelper{
 		final GedcomNode currentContext = extractSubStructure(context, tags);
 
 		if(!currentContext.isEmpty())
-			currentContext.setTag(value);
+			currentContext.withTag(value);
 		return currentContext;
 	}
 
@@ -58,7 +58,7 @@ final class TransformationHelper{
 
 
 	/** NOTE: remember to set xref! */
-	public static GedcomNode extractPlace(final GedcomNode context, final String... tags){
+	public static GedcomNode extractPlaceStructure(final GedcomNode context, final String... tags){
 		final GedcomNode parentContext = extractSubStructure(context, tags);
 		final GedcomNode placeContext = extractSubStructure(parentContext, "ADDR");
 
@@ -100,42 +100,24 @@ final class TransformationHelper{
 	}
 
 	/** NOTE: remember to set xref! */
-	public static GedcomNode extractNote(final GedcomNode context, final GedcomNode parent){
+	public static GedcomNode extractNote(final GedcomNode context){
 		GedcomNode note = GedcomNode.createEmpty();
-		if(!context.isEmpty() && context.getID() == null){
+		if(!context.isEmpty() && context.getID() == null)
 			note = GedcomNode.create("NOTE")
 				.withValue(context.getValueConcatenated());
-
-			parent.removeChild(context);
-		}
 		return note;
 	}
 
 	/** NOTE: remember to set xref! */
-	public static GedcomNode extractPlainNote(final GedcomNode context, final String... tags){
-		final GedcomNode parentContext = extractSubStructure(context, tags);
-		final GedcomNode noteContext = extractSubStructure(parentContext, "NOTE");
-
-		GedcomNode note = GedcomNode.createEmpty();
-		if(!noteContext.isEmpty()){
-			note = GedcomNode.create("NOTE")
-				.withValue(noteContext.getValueConcatenated());
-
-			parentContext.removeChild(noteContext);
-		}
-		return note;
-	}
-
-	/** NOTE: remember to set xref! */
-	public static GedcomNode extractSource(final GedcomNode context, final GedcomNode root){
+	public static GedcomNode extractSourceCitation(final GedcomNode context, final GedcomNode root){
 		GedcomNode source = GedcomNode.createEmpty();
 		if(!context.isEmpty()){
-			source.setTag("SOURCE");
+			source.withTag("SOURCE");
 			final String sourceID = context.getID();
 			if(sourceID != null){
 				source.addChild(extractSubStructure(context, "PAGE"));
 				final GedcomNode sourceEvent = extractSubStructure(context, "EVEN");
-				sourceEvent.setTag("EVENT");
+				sourceEvent.withTag("EVENT");
 				source.addChild(sourceEvent);
 				source.addChild(extractSubStructure(context, "DATA", "DATE"));
 				final String text = extractSubStructure(context, "DATA", "TEXT")
@@ -172,14 +154,41 @@ final class TransformationHelper{
 					}
 				}
 			}
+			final List<GedcomNode> sourceDocuments = context.getChildrenWithTag("OBJE");
+			for(final GedcomNode sourceDocument : sourceDocuments){
+				final GedcomNode n = extractDocument(sourceDocument, root);
+				if(n.getID() == null){
+					n.withID(Flef.getNextDocumentID(root.getChildrenWithTag("DOCUMENT").size()));
+					root.addChild(n, 1);
+					source.addChild(GedcomNode.create("NOTE")
+						.withID(n.getID()));
+				}
+				else
+					source.addChild(n);
+			}
 
 /*TODO
-			+2 <<MULTIMEDIA_LINK>>    {0:M}
 			+2 <<NOTE_STRUCTURE>>    {0:M}
 			+2 QUAY <CERTAINTY_ASSESSMENT>    {0:1}
 */
 		}
 		return source;
+	}
+
+	/** NOTE: remember to set xref! */
+	public static GedcomNode extractDocument(final GedcomNode context, final GedcomNode root){
+		if(!context.isEmpty()){
+			context.withTag("DOCUMENT");
+			if(context.getID() == null){
+				final List<GedcomNode> docFiles = context.getChildrenWithTag("FILE");
+				for(final GedcomNode docFile : docFiles){
+					final GedcomNode format = moveTag("FORMAT", docFile, "FORM");
+					deleteTag(format, "MEDI");
+				}
+				moveTag("TITLE", context, "TITL");
+			}
+		}
+		return context;
 	}
 
 	public static void mergeNote(final GedcomNode context, final String... keys){

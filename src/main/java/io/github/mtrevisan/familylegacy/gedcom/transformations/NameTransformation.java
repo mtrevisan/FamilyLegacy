@@ -8,7 +8,7 @@ import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractNote;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSource;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSourceCitation;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
@@ -26,15 +26,15 @@ public class NameTransformation implements Transformation{
 		moveTag("NAME_PREFIX", name, "NPFX");
 		final GedcomNode nameName = moveTag("NAME", name, "GIVN");
 		if(nameName.isEmpty())
-			name.addChild(GedcomNode.create("NAME")
+			name.addChild(nameName.withTag("NAME")
 				.withValue(nameComponent));
 		final GedcomNode nickname = extractSubStructure(name, "NICK");
 		if(!nickname.isEmpty()){
+			nickname.withTag("NAME");
 			root.addChild(GedcomNode.create("NAME")
 				.addChild(GedcomNode.create("TYPE")
 					.withValue("INDIVIDUAL_NICKNAME"))
-				.addChild(GedcomNode.create("NAME")
-					.withValue(nickname.getValue())));
+				.addChild(nickname));
 			deleteTag(name, "NICK");
 		}
 		final GedcomNode nameSurname = moveTag("SURNAME", name, "SURN");
@@ -54,17 +54,21 @@ public class NameTransformation implements Transformation{
 		moveTag("NAME_SUFFIX", name, "NSFX");
 		final List<GedcomNode> notes = name.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
-			final GedcomNode n = extractNote(note, name);
+			final GedcomNode n = extractNote(note);
 			if(!n.isEmpty()){
 				n.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 				root.addChild(n, 1);
 				name.addChild(GedcomNode.create("NOTE")
 					.withID(n.getID()));
+
+				name.removeChild(n);
 			}
+			else
+				name.addChild(n);
 		}
 		final List<GedcomNode> sources = name.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
-			final GedcomNode s = extractSource(source, root);
+			final GedcomNode s = extractSourceCitation(source, root);
 			if(!s.isEmpty()){
 				s.withID(Flef.getNextSourceID(root.getChildrenWithTag("SOURCE").size()));
 				root.addChild(s, 1);
