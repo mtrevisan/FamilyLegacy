@@ -46,15 +46,7 @@ public class NameTransformation implements Transformation{
 		moveTag("NAME_SUFFIX", name, "NSFX");
 		final List<GedcomNode> notes = name.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
-			if(note.getID() == null){
-				note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
-				root.addChild(GedcomNode.create("NOTE")
-					.withID(note.getID())
-					.withValue(note.getValueConcatenated()), 1);
-				note.removeValue();
-				deleteTag(note, "CONC");
-				deleteTag(note, "CONT");
-			}
+			TransformationHelper.transferNote(note, root);
 		final List<GedcomNode> sources = name.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
 			final GedcomNode s = extractSourceCitation(source, root);

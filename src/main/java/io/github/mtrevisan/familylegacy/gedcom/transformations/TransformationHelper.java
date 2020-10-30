@@ -105,6 +105,18 @@ final class TransformationHelper{
 			GedcomNode.create("NOTE").withValue(context.getValueConcatenated()));
 	}
 
+	public static void transferNote(final GedcomNode note, final GedcomNode root){
+		if(note.getID() == null){
+			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
+			root.addChild(GedcomNode.create("NOTE")
+				.withID(note.getID())
+				.withValue(note.getValueConcatenated()));
+			note.removeValue();
+			deleteTag(note, "CONC");
+			deleteTag(note, "CONT");
+		}
+	}
+
 	/** NOTE: remember to set xref! */
 	public static GedcomNode extractSourceCitation(final GedcomNode context, final GedcomNode root){
 		GedcomNode source = GedcomNode.createEmpty();

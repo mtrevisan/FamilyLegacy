@@ -45,15 +45,7 @@ public class HeaderTransformation implements Transformation{
 		deleteTag(header, "LANG");
 		deleteTag(header, "PLAC");
 		final GedcomNode noteContext = extractSubStructure(header, "NOTE");
-		if(noteContext.getID() == null){
-			noteContext.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
-			root.addChild(GedcomNode.create("NOTE")
-				.withID(noteContext.getID())
-				.withValue(noteContext.getValueConcatenated()));
-			noteContext.removeValue();
-			deleteTag(noteContext, "CONC");
-			deleteTag(noteContext, "CONT");
-		}
+		TransformationHelper.transferNote(noteContext, root);
 	}
 
 	@Override
