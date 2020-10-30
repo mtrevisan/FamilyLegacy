@@ -45,15 +45,14 @@ public class HeaderTransformation implements Transformation{
 		deleteTag(header, "LANG");
 		deleteTag(header, "PLAC");
 		final GedcomNode noteContext = extractSubStructure(header, "NOTE");
-		if(!noteContext.isEmpty()){
-			final GedcomNode headerNote = GedcomNode.create("NOTE")
-				.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
-				.withValue(noteContext.getValueConcatenated());
-			root.addChild(headerNote, 1);
-			header.removeChild(noteContext);
-			noteContext.clear();
-			noteContext.withID(headerNote.getID());
-			header.addChild(noteContext);
+		if(noteContext.getID() == null){
+			noteContext.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
+			root.addChild(GedcomNode.create("NOTE")
+				.withID(noteContext.getID())
+				.withValue(noteContext.getValueConcatenated()));
+			noteContext.removeValue();
+			deleteTag(noteContext, "CONC");
+			deleteTag(noteContext, "CONT");
 		}
 	}
 
@@ -113,10 +112,8 @@ public class HeaderTransformation implements Transformation{
 		if(!headerNote.isEmpty()){
 			final GedcomNode child = root.getChildWithIDAndTag(headerNote.getID(), "NOTE");
 			if(!child.isEmpty()){
-				header.removeChild(headerNote);
-				header.addChild(GedcomNode.create("NOTE")
-					.withValue(child.getValue()));
-				root.removeChild(child);
+				headerNote.removeID();
+				headerNote.setValueConcatenated(child.getValue());
 			}
 		}
 	}
