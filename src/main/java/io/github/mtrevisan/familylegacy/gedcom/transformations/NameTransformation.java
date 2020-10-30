@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSourceCitation;
@@ -24,19 +25,19 @@ public class NameTransformation implements Transformation{
 			nameValue.substring(nameValue.indexOf('/') + 1, nameValue.length() - 1): null);
 		moveTag("NAME_PREFIX", node, "NPFX");
 		final GedcomNode nameName = moveTag("NAME", node, "GIVN");
-		if(nameName.isEmpty())
+		if(nameName.isEmpty() && nameComponent != null)
 			node.addChild(nameName.withTag("NAME")
 				.withValue(nameComponent));
 		moveTag("NICKNAME", node, "NICK");
 		final GedcomNode nameSurname = moveTag("SURNAME", node, "SURN");
-		if(nameSurname.isEmpty())
-			node.addChild(GedcomNode.create("SURNAME")
+		if(nameSurname.isEmpty() && surnameComponent != null)
+			node.addChild(nameSurname.withTag("SURNAME")
 				.withValue(surnameComponent));
 		final GedcomNode surnamePrefix = extractSubStructure(node, "SPFX");
 		if(!surnamePrefix.isEmpty()){
 			final String nameSurnamePrefix = surnamePrefix.getValue();
-			if(nameSurname.isEmpty())
-				node.addChild(GedcomNode.create("SURNAME")
+			if(nameSurname.getTag() == null)
+				node.addChild(nameSurname.withTag("SURNAME")
 					.withValue(nameSurnamePrefix));
 			else
 				nameSurname.withValue(nameSurnamePrefix + StringUtils.SPACE + nameSurname.getValue());
@@ -61,9 +62,16 @@ public class NameTransformation implements Transformation{
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
 		moveTag("NPFX", node, "NAME_PREFIX");
-		moveTag("GIVN", node, "NAME");
+		final GedcomNode nameName = moveTag("GIVN", node, "NAME");
+		final GedcomNode surnameName = moveTag("SURN", node, "SURNAME");
+		final StringJoiner ns = new StringJoiner(StringUtils.SPACE);
+		if(nameName.getValue() != null)
+			ns.add(nameName.getValue());
+		if(surnameName.getValue() != null)
+			ns.add(surnameName.getValue());
+		if(ns.length() > 0)
+			node.withValue(ns.toString());
 		moveTag("NICK", node, "NICKNAME");
-		moveTag("SURN", node, "SURNAME");
 		moveTag("NSFX", node, "NAME_SUFFIX");
 		//TODO
 		deleteTag(node, "LOCALE");
