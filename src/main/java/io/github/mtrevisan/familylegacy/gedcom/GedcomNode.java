@@ -274,6 +274,12 @@ public final class GedcomNode{
 		children.add(index, child);
 	}
 
+	public GedcomNode withChildren(final List<GedcomNode> children){
+		if(children != null && !children.isEmpty())
+			this.children = children;
+		return this;
+	}
+
 	public void removeChild(final GedcomNode child){
 		if(children != null){
 			children.remove(child);

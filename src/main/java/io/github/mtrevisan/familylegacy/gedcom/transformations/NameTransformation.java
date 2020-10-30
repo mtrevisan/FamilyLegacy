@@ -50,14 +50,12 @@ public class NameTransformation implements Transformation{
 		final List<GedcomNode> sources = name.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
 			final GedcomNode s = extractSourceCitation(source, root);
-			if(s.getID() == null){
+			if(source.getID() == null){
 				s.withID(Flef.getNextSourceID(root.getChildrenWithTag("SOURCE").size()));
-				root.addChild(s, 1);
-				//FIXME make this line works
-				name.removeChild(s);
-				name.addChild(GedcomNode.create("SOURCE")
-					.withID(s.getID()));
+				source.withID(s.getID());
 			}
+			root.addChild(s);
+			source.removeChildren();
 		}
 		//TODO
 
