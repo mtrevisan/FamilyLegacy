@@ -8,13 +8,13 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 public class EndOfFileTransformation implements Transformation{
 
 	@Override
-	public void to(final GedcomNode root){
-		moveTag("EOF", root, "TRLR");
+	public void to(final GedcomNode node, final GedcomNode root){
+		node.withTag("EOF");
 	}
 
 	@Override
-	public void from(final GedcomNode root){
-		moveTag("TRLR", root, "EOF");
+	public void from(final GedcomNode node, final GedcomNode root){
+		node.withTag("TRLR");
 	}
 
 }

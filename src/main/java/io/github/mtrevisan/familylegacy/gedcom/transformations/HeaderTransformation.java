@@ -20,9 +20,9 @@ public class HeaderTransformation implements Transformation{
 
 
 	@Override
-	public void to(final GedcomNode root){
-		final GedcomNode header = moveTag("HEADER", root, "HEAD");
-		final GedcomNode headerSource = moveTag("SOURCE", header, "SOUR");
+	public void to(final GedcomNode node, final GedcomNode root){
+		node.withTag("HEADER");
+		final GedcomNode headerSource = moveTag("SOURCE", node, "SOUR");
 		moveTag("VERSION", headerSource, "VERS");
 		final GedcomNode headerCorporate = moveTag("CORPORATE", headerSource, "CORP");
 		deleteTag(headerSource, "DATA");
@@ -31,27 +31,27 @@ public class HeaderTransformation implements Transformation{
 		root.addChild(sourceCorporatePlace, 1);
 		headerCorporate.addChild(GedcomNode.create("PLACE")
 			.withID(sourceCorporatePlace.getID()));
-		deleteTag(header, "DEST");
-		deleteTag(header, "DATE");
-		moveTag("SUBMITTER", header, "SUBM");
-		deleteTag(header, "SUBN");
-		deleteTag(header, "FILE");
-		moveTag("COPYRIGHT", header, "COPR");
-		header.addChild(GedcomNode.create("PROTOCOL_VERSION")
+		deleteTag(node, "DEST");
+		deleteTag(node, "DATE");
+		moveTag("SUBMITTER", node, "SUBM");
+		deleteTag(node, "SUBN");
+		deleteTag(node, "FILE");
+		moveTag("COPYRIGHT", node, "COPR");
+		node.addChild(GedcomNode.create("PROTOCOL_VERSION")
 			.withValue("0.0.1"));
-		deleteTag(header, "GEDC");
-		moveTag("CHARSET", header, "CHAR");
-		deleteTag(header, "CHARSET", "VERS");
-		deleteTag(header, "LANG");
-		deleteTag(header, "PLAC");
-		final GedcomNode noteContext = extractSubStructure(header, "NOTE");
+		deleteTag(node, "GEDC");
+		moveTag("CHARSET", node, "CHAR");
+		deleteTag(node, "CHARSET", "VERS");
+		deleteTag(node, "LANG");
+		deleteTag(node, "PLAC");
+		final GedcomNode noteContext = extractSubStructure(node, "NOTE");
 		TransformationHelper.transferNote(noteContext, root);
 	}
 
 	@Override
-	public void from(final GedcomNode root){
-		final GedcomNode header = moveTag("HEAD", root, "HEADER");
-		final GedcomNode headerSource = moveTag("SOUR", header, "SOURCE");
+	public void from(final GedcomNode node, final GedcomNode root){
+		node.withTag("HEAD");
+		final GedcomNode headerSource = moveTag("SOUR", node, "SOURCE");
 		moveTag("VERS", headerSource, "VERSION");
 		final GedcomNode headerCorporate = moveTag("CORP", headerSource, "CORPORATE");
 		final GedcomNode headerCorporatePlace = extractSubStructure(headerCorporate, "PLACE");
@@ -89,18 +89,18 @@ public class HeaderTransformation implements Transformation{
 					break;
 				}
 		}
-		moveTag("SUBM", header, "SUBMITTER");
-		moveTag("COPR", header, "COPYRIGHT");
-		deleteTag(header, "PROTOCOL_VERSION");
-		header.addChild(GedcomNode.create("GEDC")
+		moveTag("SUBM", node, "SUBMITTER");
+		moveTag("COPR", node, "COPYRIGHT");
+		deleteTag(node, "PROTOCOL_VERSION");
+		node.addChild(GedcomNode.create("GEDC")
 			.addChild(GedcomNode.create("VERS")
 				.withValue("5.5.1"))
 			.addChild(GedcomNode.create("FORM")
 				.withValue("LINEAGE-LINKED")));
-		final GedcomNode headerCharset = moveTag("CHAR", header, "CHARSET");
+		final GedcomNode headerCharset = moveTag("CHAR", node, "CHARSET");
 		if(!GEDCOM_ALLOWED_CHARSETS.contains(headerCharset.getValue()))
 			throw new IllegalArgumentException("Unallowed value for charset: " + headerCharset.getValue());
-		final GedcomNode headerNote = extractSubStructure(header, "NOTE");
+		final GedcomNode headerNote = extractSubStructure(node, "NOTE");
 		if(!headerNote.isEmpty()){
 			final GedcomNode child = root.getChildWithIDAndTag(headerNote.getID(), "NOTE");
 			if(!child.isEmpty()){

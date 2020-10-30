@@ -5,8 +5,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 public interface Transformation{
 
-	void to(final GedcomNode root);
+	void to(final GedcomNode node, final GedcomNode root);
 
-	void from(final GedcomNode root);
+	void from(final GedcomNode node, final GedcomNode root);
 
 }

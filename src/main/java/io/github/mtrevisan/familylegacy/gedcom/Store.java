@@ -100,19 +100,20 @@ public abstract class Store<T>{
 	}
 
 	public void transform(){
-		final Transformation headerTransf = new HeaderTransformation();
-		final Transformation personTransf = new IndividualTransformation();
-		final Transformation eofTransf = new EndOfFileTransformation();
-		headerTransf.to(root);
-		final List<GedcomNode> people = root.getChildrenWithTag("INDIVIDUAL");
-		for(final GedcomNode person : people)
-			personTransf.to(person);
-		eofTransf.to(root);
-
-headerTransf.from(root);
-for(final GedcomNode person : people)
-	personTransf.from(person);
-eofTransf.from(root);
+		//TODO
+//		final Transformation headerTransf = new HeaderTransformation();
+//		final Transformation personTransf = new IndividualTransformation();
+//		final Transformation eofTransf = new EndOfFileTransformation();
+//		headerTransf.to(root);
+//		final List<GedcomNode> people = root.getChildrenWithTag("INDIVIDUAL");
+//		for(final GedcomNode person : people)
+//			personTransf.to(person);
+//		eofTransf.to(root);
+//
+//headerTransf.from(root);
+//for(final GedcomNode person : people)
+//	personTransf.from(person);
+//eofTransf.from(root);
 	}
 
 	protected abstract String getCharsetName();

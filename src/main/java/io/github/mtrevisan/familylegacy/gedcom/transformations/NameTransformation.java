@@ -15,39 +15,38 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 public class NameTransformation implements Transformation{
 
 	@Override
-	public void to(final GedcomNode root){
-		final GedcomNode name = extractSubStructure(root, "NAME");
-		final String nameValue = name.getValue();
-		name.removeValue();
+	public void to(final GedcomNode node, final GedcomNode root){
+		final String nameValue = node.getValue();
+		node.removeValue();
 		final String nameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
 			nameValue.substring(0, nameValue.indexOf('/') - 1): null);
 		final String surnameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
 			nameValue.substring(nameValue.indexOf('/') + 1, nameValue.length() - 1): null);
-		moveTag("NAME_PREFIX", name, "NPFX");
-		final GedcomNode nameName = moveTag("NAME", name, "GIVN");
+		moveTag("NAME_PREFIX", node, "NPFX");
+		final GedcomNode nameName = moveTag("NAME", node, "GIVN");
 		if(nameName.isEmpty())
-			name.addChild(nameName.withTag("NAME")
+			node.addChild(nameName.withTag("NAME")
 				.withValue(nameComponent));
-		moveTag("NICKNAME", name, "NICK");
-		final GedcomNode nameSurname = moveTag("SURNAME", name, "SURN");
+		moveTag("NICKNAME", node, "NICK");
+		final GedcomNode nameSurname = moveTag("SURNAME", node, "SURN");
 		if(nameSurname.isEmpty())
-			name.addChild(GedcomNode.create("SURNAME")
+			node.addChild(GedcomNode.create("SURNAME")
 				.withValue(surnameComponent));
-		final GedcomNode surnamePrefix = extractSubStructure(name, "SPFX");
+		final GedcomNode surnamePrefix = extractSubStructure(node, "SPFX");
 		if(!surnamePrefix.isEmpty()){
 			final String nameSurnamePrefix = surnamePrefix.getValue();
 			if(nameSurname.isEmpty())
-				name.addChild(GedcomNode.create("SURNAME")
+				node.addChild(GedcomNode.create("SURNAME")
 					.withValue(nameSurnamePrefix));
 			else
 				nameSurname.withValue(nameSurnamePrefix + StringUtils.SPACE + nameSurname.getValue());
-			deleteTag(name, "SPFX");
+			deleteTag(node, "SPFX");
 		}
-		moveTag("NAME_SUFFIX", name, "NSFX");
-		final List<GedcomNode> notes = name.getChildrenWithTag("NOTE");
+		moveTag("NAME_SUFFIX", node, "NSFX");
+		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			TransformationHelper.transferNote(note, root);
-		final List<GedcomNode> sources = name.getChildrenWithTag("SOUR");
+		final List<GedcomNode> sources = node.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
 			final GedcomNode s = extractSourceCitation(source, root);
 			if(source.getID() == null){
@@ -57,7 +56,16 @@ public class NameTransformation implements Transformation{
 			root.addChild(s);
 			source.removeChildren();
 		}
-		//TODO
+		final GedcomNode namePhonetic = extractSubStructure(root, "FONE");
+		if(!namePhonetic.isEmpty()){
+			to(namePhonetic, root);
+			//TODO
+		}
+		final GedcomNode nameRomanized = extractSubStructure(root, "ROMN");
+		if(!nameRomanized.isEmpty()){
+			to(nameRomanized, root);
+			//TODO
+		}
 
 /*
 		+1 FONE <NAME_PHONETIC_VARIATION>    {0:M}				add another name
@@ -72,7 +80,7 @@ public class NameTransformation implements Transformation{
 	}
 
 	@Override
-	public void from(final GedcomNode root){
+	public void from(final GedcomNode node, final GedcomNode root){
 		final List<GedcomNode> names = root.getChildrenWithTag("NAME");
 		for(final GedcomNode name : names){
 			if("INDIVIDUAL_NICKNAME".equals(extractSubStructure(name, "TYPE"))){
