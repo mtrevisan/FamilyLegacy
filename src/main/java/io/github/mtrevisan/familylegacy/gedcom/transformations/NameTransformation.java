@@ -60,12 +60,9 @@ public class NameTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		if("INDIVIDUAL_NICKNAME".equals(extractSubStructure(node, "TYPE").getValue())){
-			//TODO go back to previous name and add a NICK tag
-//		+1 NICK <NAME_PIECE_NICKNAME>    {0:1}
-		}
 		moveTag("NPFX", node, "NAME_PREFIX");
 		moveTag("GIVN", node, "NAME");
+		moveTag("NICK", node, "NICKNAME");
 		moveTag("SURN", node, "SURNAME");
 		moveTag("NSFX", node, "NAME_SUFFIX");
 		//TODO
