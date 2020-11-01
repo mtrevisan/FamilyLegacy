@@ -204,7 +204,7 @@ public final class GedcomNode{
 		value = null;
 	}
 
-	public void setValueConcatenated(final String value){
+	public GedcomNode withValueConcatenated(final String value){
 		if(value != null && !value.isEmpty()){
 			//split line into CONC|CONT if appliable
 			int remainingLength;
@@ -229,6 +229,7 @@ public final class GedcomNode{
 			}
 			this.value = value;
 		}
+		return this;
 	}
 
 	public List<GedcomNode> getChildren(){

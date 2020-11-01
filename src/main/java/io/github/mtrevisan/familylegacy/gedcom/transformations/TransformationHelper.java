@@ -237,7 +237,7 @@ final class TransformationHelper{
 		final GedcomNode currentContext = extractSubStructure(context, keys);
 
 		if(!currentContext.isEmpty())
-			currentContext.setValueConcatenated(currentContext.getValue());
+			currentContext.withValueConcatenated(currentContext.getValue());
 	}
 
 

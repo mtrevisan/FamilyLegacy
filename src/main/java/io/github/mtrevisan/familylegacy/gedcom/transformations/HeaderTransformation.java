@@ -105,7 +105,7 @@ public class HeaderTransformation implements Transformation{
 			final GedcomNode child = root.getChildWithIDAndTag(headerNote.getID(), "NOTE");
 			if(!child.isEmpty()){
 				headerNote.removeID();
-				headerNote.setValueConcatenated(child.getValue());
+				headerNote.withValueConcatenated(child.getValue());
 			}
 		}
 	}
