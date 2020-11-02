@@ -64,56 +64,45 @@ public class NameTransformation implements Transformation{
 		deleteTag(node, "LOCALE");
 		moveTag("NPFX", node, "NAME_PREFIX");
 		final GedcomNode nameName = moveTag("GIVN", node, "NAME");
-		final GedcomNode surnameName = moveTag("SURN", node, "SURNAME");
+		final List<GedcomNode> surnames = node.getChildrenWithTag("SURNAME");
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		for(final GedcomNode surname : surnames){
+			sj.add(surname.getValue());
+			node.removeChild(surname);
+		}
+		final GedcomNode surnameName = GedcomNode.create("SURN")
+			.withValue(sj.toString());
+		node.addChild(surnameName);
 		final StringJoiner ns = new StringJoiner(StringUtils.SPACE);
 		if(nameName.getValue() != null)
 			ns.add(nameName.getValue());
 		if(surnameName.getValue() != null)
-			ns.add(surnameName.getValue());
+			ns.add("/" + surnameName.getValue() + "/");
 		if(ns.length() > 0)
 			node.withValue(ns.toString());
 		moveTag("NICK", node, "NICKNAME");
 		moveTag("NSFX", node, "NAME_SUFFIX");
 		deleteTag(node, "FAMILY_NICKNAME");
-		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes)
-			if(!note.isEmpty()){
-				final GedcomNode child = root.getChildWithIDAndTag(note.getID(), "NOTE");
-				if(!child.isEmpty()){
-					note.removeID();
-					note.withValueConcatenated(child.getValue());
-				}
-			}
 		final List<GedcomNode> sources = node.getChildrenWithTag("SOURCE");
 		for(final GedcomNode source : sources)
 			if(!source.isEmpty()){
-				final GedcomNode child = root.getChildWithIDAndTag(source.getID(), "SOURCE");
-				if(!child.isEmpty()){
-					source.withTag("SOUR");
-					moveTag("EVEN", source, "EVENT");
-					final GedcomNode sourceDate = extractSubStructure(source, "DATE");
-					final GedcomNode sourceText = extractSubStructure(source, "TEXT");
-					final GedcomNode data = GedcomNode.create("DATA");
-					if(!sourceDate.isEmpty())
-						data.addChild(sourceDate);
-					if(!sourceText.isEmpty())
-						data.addChild(GedcomNode.createEmpty()
-							.withValueConcatenated(sourceText.getValue()));
-					child.addChild(data);
-					final List<GedcomNode> sourceDocuments = source.getChildrenWithTag("OBJE");
-					for(final GedcomNode sourceDocument : sourceDocuments)
-						sourceDocument.withTag("OBJE");
-					final List<GedcomNode> sourceNotes = source.getChildrenWithTag("NOTE");
-					for(final GedcomNode sourceNote : sourceNotes)
-						if(!sourceNote.isEmpty()){
-							final GedcomNode sourceNoteChild = root.getChildWithIDAndTag(sourceNote.getID(), "NOTE");
-							if(!sourceNoteChild.isEmpty()){
-								sourceNote.removeID();
-								sourceNote.withValueConcatenated(sourceNoteChild.getValue());
-							}
-						}
-					moveTag("QUAY", source, "CREDIBILITY");
-				}
+				source.withTag("SOUR");
+				moveTag("EVEN", source, "EVENT");
+				final GedcomNode sourceDate = extractSubStructure(source, "DATE");
+				final GedcomNode sourceText = extractSubStructure(source, "TEXT");
+				final GedcomNode data = GedcomNode.create("DATA");
+				if(!sourceDate.isEmpty())
+					data.addChild(sourceDate);
+				if(!sourceText.isEmpty())
+					data.addChild(sourceText
+						.withValueConcatenated(sourceText.getValue()));
+				source.removeChild(sourceDate);
+				source.removeChild(sourceText);
+				source.addChild(data);
+				final List<GedcomNode> sourceDocuments = source.getChildrenWithTag("DOCUMENT");
+				for(final GedcomNode sourceDocument : sourceDocuments)
+					sourceDocument.withTag("OBJE");
+				moveTag("QUAY", source, "CREDIBILITY");
 			}
 	}
 
