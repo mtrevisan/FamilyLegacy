@@ -24,10 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.transformations.EndOfFileTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedWriter;
@@ -36,8 +32,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;

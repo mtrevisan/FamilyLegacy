@@ -5,6 +5,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
+
 
 public class SourceRepositoryCitationTransformation implements Transformation{
 
@@ -26,8 +28,10 @@ public class SourceRepositoryCitationTransformation implements Transformation{
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.to(note, root);
 		final List<GedcomNode> calns = node.getChildrenWithTag("CALN");
-		for(final GedcomNode caln : calns)
+		for(final GedcomNode caln : calns){
+			moveTag("_MEDI", caln, "MEDI");
 			caln.withTag("_CALN");
+		}
 	}
 
 	@Override
@@ -37,8 +41,10 @@ public class SourceRepositoryCitationTransformation implements Transformation{
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
 		final List<GedcomNode> calns = node.getChildrenWithTag("_CALN");
-		for(final GedcomNode caln : calns)
+		for(final GedcomNode caln : calns){
+			moveTag("MEDI", caln, "_MEDI");
 			caln.withTag("CALN");
+		}
 	}
 
 }

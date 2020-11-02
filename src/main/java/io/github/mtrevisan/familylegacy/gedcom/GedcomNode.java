@@ -282,8 +282,8 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode withChildren(final List<GedcomNode> children){
-		if(children != null && !children.isEmpty())
-			this.children = children;
+		for(final GedcomNode child : children)
+			addChild(child);
 		return this;
 	}
 

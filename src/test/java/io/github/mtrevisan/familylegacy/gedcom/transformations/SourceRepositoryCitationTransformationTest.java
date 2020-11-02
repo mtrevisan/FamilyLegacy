@@ -23,7 +23,7 @@ class SourceRepositoryCitationTransformationTest{
 		final Transformation t = new SourceRepositoryCitationTransformation();
 		t.to(extractSubStructure(root, "PARENT", "REPO"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{id: N1, tag: NOTE}, {tag: _CALN, value: SOURCE_CALL_NUMBER, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{id: N1, tag: NOTE}, {tag: _CALN, value: SOURCE_CALL_NUMBER, children: [{tag: _MEDI, value: SOURCE_MEDIA_TYPE}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}]", root.toString());
 	}
 
 	@Test
@@ -73,7 +73,7 @@ class SourceRepositoryCitationTransformationTest{
 		final Transformation t = new SourceRepositoryCitationTransformation();
 		t.to(extractSubStructure(root, "PARENT", "REPO"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{id: N1, tag: NOTE}, {tag: _CALN, value: SOURCE_CALL_NUMBER, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: R1, tag: REPOSITORY}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{id: N1, tag: NOTE}, {tag: _CALN, value: SOURCE_CALL_NUMBER, children: [{tag: _MEDI, value: SOURCE_MEDIA_TYPE}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: R1, tag: REPOSITORY}]", root.toString());
 	}
 
 	static GedcomNode composeSourceRepositoryCitationTo2(){
