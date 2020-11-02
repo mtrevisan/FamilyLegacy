@@ -12,7 +12,7 @@ class EndOfFileTransformationTest{
 	@Test
 	void toAndFrom(){
 		final GedcomNode root = GedcomNode.createEmpty()
-			.addChild(composeTRLR());
+			.addChild(GedcomNode.create("TRLR"));
 
 		Assertions.assertEquals("children: [{tag: TRLR}]", root.toString());
 
@@ -24,10 +24,6 @@ class EndOfFileTransformationTest{
 		t.from(extractSubStructure(root, "EOF"), root);
 
 		Assertions.assertEquals("children: [{tag: TRLR}]", root.toString());
-	}
-
-	private GedcomNode composeTRLR(){
-		return GedcomNode.create("TRLR");
 	}
 
 }

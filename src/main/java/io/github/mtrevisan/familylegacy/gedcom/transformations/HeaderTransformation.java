@@ -45,7 +45,7 @@ public class HeaderTransformation implements Transformation{
 		deleteTag(node, "LANG");
 		deleteTag(node, "PLAC");
 		final GedcomNode noteContext = extractSubStructure(node, "NOTE");
-		TransformationHelper.transferNote(noteContext, root);
+		TransformationHelper.transferNoteTo(noteContext, root);
 	}
 
 	@Override

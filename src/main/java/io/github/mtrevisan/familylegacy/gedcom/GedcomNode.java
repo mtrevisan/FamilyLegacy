@@ -187,6 +187,8 @@ public final class GedcomNode{
 					sb.append(LF);
 				if(sc.value != null)
 					sb.append(sc.value);
+
+				removeChild(sc);
 			}
 			return (sb.length() > 0? sb.toString(): null);
 		}
@@ -230,6 +232,10 @@ public final class GedcomNode{
 			this.value = value;
 		}
 		return this;
+	}
+
+	public boolean hasChildren(){
+		return (children != null && children.size() > 0);
 	}
 
 	public List<GedcomNode> getChildren(){
@@ -314,7 +320,7 @@ public final class GedcomNode{
 			for(final GedcomNode child : children)
 				if(ArrayUtils.contains(tags, child.tag) && id.equals(child.getID()))
 					return child;
-		return GedcomNode.createEmpty();
+		return createEmpty();
 	}
 
 	public boolean isCustom(){

@@ -105,91 +105,26 @@ final class TransformationHelper{
 			GedcomNode.create("NOTE").withValue(context.getValueConcatenated()));
 	}
 
-	public static void transferNote(final GedcomNode note, final GedcomNode root){
+	public static void transferNoteTo(final GedcomNode note, final GedcomNode root){
 		if(note.getID() == null){
+			//create a note in the root:
 			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 			root.addChild(GedcomNode.create("NOTE")
 				.withID(note.getID())
 				.withValue(note.getValueConcatenated()));
 			note.removeValue();
-			deleteTag(note, "CONC");
-			deleteTag(note, "CONT");
 		}
 	}
 
-	/** NOTE: remember to set xref! */
-	public static GedcomNode extractSourceCitation(final GedcomNode context, final GedcomNode root){
-		GedcomNode source = GedcomNode.createEmpty();
-		if(!context.isEmpty()){
-			source.withTag("SOURCE");
-			final String sourceID = context.getID();
-			if(sourceID != null){
-				source.addChild(extractSubStructure(context, "PAGE"));
-				final GedcomNode sourceEvent = extractSubStructure(context, "EVEN");
-				sourceEvent.withTag("EVENT");
-				source.addChild(sourceEvent);
-				source.addChild(extractSubStructure(context, "DATA", "DATE"));
-				final String text = extractSubStructure(context, "DATA", "TEXT")
-					.getValueConcatenated();
-				if(text != null){
-					final GedcomNode sourceNote = GedcomNode.create("NOTE")
-						.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
-						.withValue(text);
-					root.addChild(sourceNote, 1);
-					source.addChild(GedcomNode.create("NOTE")
-						.withID(sourceNote.getID()));
-				}
-			}
-			else{
-				String text = context.getValueConcatenated();
-				if(text != null){
-					final GedcomNode sourceNote = GedcomNode.create("NOTE")
-						.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
-						.withValue(text);
-					root.addChild(sourceNote, 1);
-					source.addChild(GedcomNode.create("NOTE")
-						.withID(sourceNote.getID()));
-				}
-				final List<GedcomNode> sourceTexts = context.getChildrenWithTag("TEXT");
-				for(final GedcomNode sourceText : sourceTexts){
-					text = sourceText.getValueConcatenated();
-					if(text != null){
-						final GedcomNode sourceNote = GedcomNode.create("NOTE")
-							.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()))
-							.withValue(text);
-						root.addChild(sourceNote, 1);
-						source.addChild(GedcomNode.create("NOTE")
-							.withID(sourceNote.getID()));
-					}
-				}
-			}
-			final List<GedcomNode> sourceDocuments = context.getChildrenWithTag("OBJE");
-			for(final GedcomNode sourceDocument : sourceDocuments){
-				final GedcomNode n = extractDocument(sourceDocument);
-				if(n.getID() == null){
-					n.withID(Flef.getNextDocumentID(root.getChildrenWithTag("DOCUMENT").size()));
-					root.addChild(n, 1);
-					source.addChild(GedcomNode.create("DOCUMENT")
-						.withID(n.getID()));
-				}
-				else
-					source.addChild(n);
-			}
-			final List<GedcomNode> notes = context.getChildrenWithTag("NOTE");
-			for(final GedcomNode note : notes){
-				final GedcomNode n = extractNote(note);
-				if(n.getID() == null){
-					n.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
-					root.addChild(n, 1);
-					source.addChild(GedcomNode.create("NOTE")
-						.withID(n.getID()));
-				}
-				else
-					source.addChild(n);
-			}
-			source.addChild(moveTag("CERTAINTY", context, "QUAY"));
+	public static void transferRepository(final GedcomNode repository, final GedcomNode root){
+		if(repository.getID() == null){
+			//create a repository in the root:
+			repository.withID(Flef.getNextRepositoryID(root.getChildrenWithTag("REPOSITORY").size()));
+			root.addChild(GedcomNode.create("REPOSITORY")
+				.withID(repository.getID())
+				.withValue(repository.getValueConcatenated()));
+			repository.removeValue();
 		}
-		return source;
 	}
 
 	/** NOTE: remember to set xref! */

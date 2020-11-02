@@ -1,6 +1,5 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.apache.commons.lang3.StringUtils;
 
@@ -8,9 +7,9 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSourceCitation;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferNoteTo;
 
 
 public class NameTransformation implements Transformation{
@@ -46,17 +45,11 @@ public class NameTransformation implements Transformation{
 		moveTag("NAME_SUFFIX", node, "NSFX");
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
-			TransformationHelper.transferNote(note, root);
+			transferNoteTo(note, root);
 		final List<GedcomNode> sources = node.getChildrenWithTag("SOUR");
-		for(final GedcomNode source : sources){
-			final GedcomNode s = extractSourceCitation(source, root);
-			if(source.getID() == null){
-				s.withID(Flef.getNextSourceID(root.getChildrenWithTag("SOURCE").size()));
-				source.withID(s.getID());
-			}
-			root.addChild(s);
-			source.removeChildren();
-		}
+		//FIXME
+//		for(final GedcomNode source : sources)
+//			transferSourceCitationTo(source, root);
 	}
 
 	@Override
