@@ -44,7 +44,7 @@ public class SourceCitationTransformation implements Transformation{
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
-		node.addChild(moveTag("CERTAINTY", node, "QUAY"));
+		moveTag("CREDIBILITY", node, "QUAY");
 	}
 
 	@Override
