@@ -35,6 +35,7 @@ public class IndividualTransformation implements Transformation{
 		Transformation nameTransformation = new NameTransformation();
 		nameTransformation.to(extractSubStructure(person, "NAME"), root);
 
+		//TODO
 /*
 		+1 <<PERSONAL_NAME_STRUCTURE>>    {0:M}			+1 <<NAME_STRUCTURE>>    {0:M}
 		+1 <<CHILD_TO_FAMILY_LINK>>    {0:M}				+1 <<CHILD_TO_FAMILY_LINK>>    {0:M}

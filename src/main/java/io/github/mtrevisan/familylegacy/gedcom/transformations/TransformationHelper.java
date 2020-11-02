@@ -116,33 +116,6 @@ final class TransformationHelper{
 		}
 	}
 
-	public static void transferRepository(final GedcomNode repository, final GedcomNode root){
-		if(repository.getID() == null){
-			//create a repository in the root:
-			repository.withID(Flef.getNextRepositoryID(root.getChildrenWithTag("REPOSITORY").size()));
-			root.addChild(GedcomNode.create("REPOSITORY")
-				.withID(repository.getID())
-				.withValue(repository.getValueConcatenated()));
-			repository.removeValue();
-		}
-	}
-
-	/** NOTE: remember to set xref! */
-	public static GedcomNode extractDocument(final GedcomNode context){
-		if(!context.isEmpty()){
-			context.withTag("DOCUMENT");
-			if(context.getID() == null){
-				final List<GedcomNode> docFiles = context.getChildrenWithTag("FILE");
-				for(final GedcomNode docFile : docFiles){
-					final GedcomNode format = moveTag("FORMAT", docFile, "FORM");
-					deleteTag(format, "MEDI");
-				}
-				moveTag("TITLE", context, "TITL");
-			}
-		}
-		return context;
-	}
-
 	public static void mergeNote(final GedcomNode context, final String... keys){
 		final GedcomNode currentContext = extractSubStructure(context, keys);
 

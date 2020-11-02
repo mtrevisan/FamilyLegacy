@@ -1,11 +1,8 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
-
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferNoteTo;
 
 
 public class ChangeDateTransformation implements Transformation{

@@ -1,15 +1,21 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferNoteTo;
 
 
 public class NoteStructureTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		transferNoteTo(node, root);
+		if(node.getID() == null){
+			//create a note in the root:
+			node.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
+			root.addChild(GedcomNode.create("NOTE")
+				.withID(node.getID())
+				.withValue(node.getValueConcatenated()));
+			node.removeValue();
+		}
 	}
 
 	@Override
