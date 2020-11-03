@@ -106,7 +106,7 @@ n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family bible. */
+REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
@@ -155,7 +155,7 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
 
 
 PLACE_STRUCTURE :=
-n DATA    {1:1}
+n DATA <ADDRESS_LINE>    {1:1}	/* The address lines usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
   +1 LOCALE <PLACE_LOCALE>    {0:1}    /* The locale identifier for the place form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
   +1 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
@@ -178,7 +178,6 @@ n DATA    {1:1}
     +2 TYPE <ADDRESS_EMAIL_TYPE>    {0:1}	/* Indicates the email type (blog, personal, social, work, etc.). */
   +1 WWW <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
     +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
-  +1 DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the address. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
