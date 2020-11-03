@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
@@ -14,8 +13,6 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 
 
 public class AddressStructureTransformation implements Transformation{
-
-	private static final Transformation NOTE_STRUCTURE_TRANSFORMATION = new NoteStructureTransformation();
 
 	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
 
@@ -68,31 +65,32 @@ public class AddressStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		final GedcomNode temporaryNode = extractSubStructure(root, "!PLACE_STRUCTURE");
-
-		moveTag("FORM", node, "PLACE_NAME")
-			.withValue(extractSubStructure(temporaryNode, "PLACE_NAME")
-				.getValue());
-		final GedcomNode phoneticNode = extractSubStructure(node, "_FONE");
-		if(!phoneticNode.isEmpty()){
-			phoneticNode.withTag("FONE");
-			moveTag("TYPE", phoneticNode, "_TYPE");
+		final GedcomNode addr = extractSubStructure(node, "DATA");
+		addr.withTag("ADDR");
+		addr.withValueConcatenated(addr.getValueConcatenated());
+		moveTag("STAE", addr, "STATE");
+		moveTag("POST", addr, "POSTAL_CODE");
+		moveTag("CTRY", addr, "COUNTRY");
+		final GedcomNode phon = extractSubStructure(addr, "PHONE");
+		if(!phon.isEmpty()){
+			addr.removeChild(phon);
+			node.addChild(phon.withTag("PHON"));
 		}
-		final GedcomNode romanizedNode = extractSubStructure(node, "_ROMN");
-		if(!romanizedNode.isEmpty()){
-			romanizedNode.withTag("ROMN");
-			moveTag("TYPE", romanizedNode, "_TYPE");
+		final GedcomNode fax = extractSubStructure(addr, "FAX");
+		if(!fax.isEmpty()){
+			addr.removeChild(fax);
+			node.addChild(fax);
 		}
-		final GedcomNode temporaryMapNode = extractSubStructure(temporaryNode, "MAP");
-		final GedcomNode mapNode = extractSubStructure(node, "MAP");
-		if(!temporaryMapNode.isEmpty())
-			node.addChild(GedcomNode.create("MAP")
-				.withChildren(mapNode.getChildren()));
-		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes)
-			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
-
-		root.removeChild(temporaryNode);
+		final GedcomNode email = extractSubStructure(addr, "EMAIL");
+		if(!email.isEmpty()){
+			addr.removeChild(email);
+			node.addChild(email);
+		}
+		final GedcomNode www = extractSubStructure(addr, "WWW");
+		if(!www.isEmpty()){
+			addr.removeChild(www);
+			node.addChild(www);
+		}
 	}
 
 }
