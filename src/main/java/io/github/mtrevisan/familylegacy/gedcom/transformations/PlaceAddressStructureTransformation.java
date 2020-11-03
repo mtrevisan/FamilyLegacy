@@ -143,6 +143,8 @@ public class PlaceAddressStructureTransformation implements Transformation{
 				place.addChild(note);
 				itr.remove();
 			}
+			if(place.hasChildren())
+				node.addChild(place);
 		}
 
 
@@ -161,6 +163,7 @@ public class PlaceAddressStructureTransformation implements Transformation{
 		moveTag("_DISTRICT", addr, "DISTRICT");
 		moveTag("_TOWN", addr, "TOWN");
 		moveTag("_CITY", addr, "CITY");
+		moveTag("_COUNTY", addr, "COUNTY");
 		moveTag("STAE", addr, "STATE");
 		moveTag("POST", addr, "POSTAL_CODE");
 		moveTag("CTRY", addr, "COUNTRY");
