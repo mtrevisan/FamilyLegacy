@@ -16,6 +16,9 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 
 public class IndividualTransformation implements Transformation{
 
+	private static final Transformation PERSONAL_NAME_TRANSFORMATION = new PersonalNameStructureTransformation();
+
+
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
 		final GedcomNode person = moveTag("INDIVIDUAL", root, "INDI");
@@ -32,8 +35,7 @@ public class IndividualTransformation implements Transformation{
 		deleteTag(person, "CONL");
 		deleteTag(person, "ENDL");
 		deleteTag(person, "SLGC");
-		Transformation nameTransformation = new NameTransformation();
-		nameTransformation.to(extractSubStructure(person, "NAME"), root);
+		PERSONAL_NAME_TRANSFORMATION.to(extractSubStructure(person, "NAME"), root);
 
 		//TODO
 /*

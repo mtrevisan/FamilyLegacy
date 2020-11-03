@@ -9,7 +9,6 @@ import java.util.StringJoiner;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferNoteTo;
 
 
 public class PersonalNameStructureTransformation implements Transformation{
@@ -20,6 +19,7 @@ public class PersonalNameStructureTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
+		node.withTag("NAME");
 		final String nameValue = node.getValue();
 		node.removeValue();
 		final String nameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
@@ -57,49 +57,33 @@ public class PersonalNameStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-//		deleteTag(node, "LOCALE");
-//		moveTag("NPFX", node, "NAME_PREFIX");
-//		final GedcomNode nameName = moveTag("GIVN", node, "NAME");
-//		final List<GedcomNode> surnames = node.getChildrenWithTag("SURNAME");
-//		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-//		for(final GedcomNode surname : surnames){
-//			sj.add(surname.getValue());
-//			node.removeChild(surname);
-//		}
-//		final GedcomNode surnameName = GedcomNode.create("SURN")
-//			.withValue(sj.toString());
-//		node.addChild(surnameName);
-//		final StringJoiner ns = new StringJoiner(StringUtils.SPACE);
-//		if(nameName.getValue() != null)
-//			ns.add(nameName.getValue());
-//		if(surnameName.getValue() != null)
-//			ns.add("/" + surnameName.getValue() + "/");
-//		if(ns.length() > 0)
-//			node.withValue(ns.toString());
-//		moveTag("NICK", node, "NICKNAME");
-//		moveTag("NSFX", node, "NAME_SUFFIX");
-//		deleteTag(node, "FAMILY_NICKNAME");
-//		final List<GedcomNode> sources = node.getChildrenWithTag("SOURCE");
-//		for(final GedcomNode source : sources)
-//			if(!source.isEmpty()){
-//				source.withTag("SOUR");
-//				moveTag("EVEN", source, "EVENT");
-//				final GedcomNode sourceDate = extractSubStructure(source, "DATE");
-//				final GedcomNode sourceText = extractSubStructure(source, "TEXT");
-//				final GedcomNode data = GedcomNode.create("DATA");
-//				if(!sourceDate.isEmpty())
-//					data.addChild(sourceDate);
-//				if(!sourceText.isEmpty())
-//					data.addChild(sourceText
-//						.withValueConcatenated(sourceText.getValue()));
-//				source.removeChild(sourceDate);
-//				source.removeChild(sourceText);
-//				source.addChild(data);
-//				final List<GedcomNode> sourceDocuments = source.getChildrenWithTag("DOCUMENT");
-//				for(final GedcomNode sourceDocument : sourceDocuments)
-//					sourceDocument.withTag("OBJE");
-//				moveTag("QUAY", source, "CREDIBILITY");
-//			}
+		final String nameType = extractSubStructure(node, "TYPE")
+			.getValue();
+		moveTag("_LOCALE", node, "LOCALE");
+		if("NAME_PHONETIC_VARIATION".equals(nameType))
+			node.withTag("FONE");
+		else if("NAME_ROMANIZED_VARIATION".equals(nameType))
+			node.withTag("ROMN");
+		final GedcomNode namePrefix = moveTag("NPFX", node, "NAME_PREFIX");
+		final GedcomNode nameGiven = moveTag("GIVN", node, "NAME");
+		moveTag("NSFX", node, "NAME_SUFFIX");
+		moveTag("NICK", node, "NICKNAME");
+		final GedcomNode nameSurname = moveTag("SURN", node, "SURNAME");
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		if(!namePrefix.isEmpty() && namePrefix.getValue() != null)
+			sj.add(namePrefix.getValue());
+		if(!nameGiven.isEmpty() && nameGiven.getValue() != null)
+			sj.add(nameGiven.getValue());
+		if(!nameSurname.isEmpty() && nameSurname.getValue() != null)
+			sj.add("/" + StringUtils.replace(nameSurname.getValue(), ",", StringUtils.SPACE) + "/");
+		if(sj.length() > 0)
+			node.withValue(sj.toString());
+		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
+		final List<GedcomNode> sources = node.getChildrenWithTag("SOURCE");
+		for(final GedcomNode source : sources)
+			SOURCE_CITATION_TRANSFORMATION.from(source, root);
 	}
 
 }
