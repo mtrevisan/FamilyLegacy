@@ -14,7 +14,7 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
 
-public class IndividualTransformation implements Transformation{
+public class IndividualRecordTransformation implements Transformation{
 
 	private static final Transformation PERSONAL_NAME_TRANSFORMATION = new PersonalNameStructureTransformation();
 

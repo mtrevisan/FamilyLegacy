@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 public final class GedcomNode{
 
-	private static final char LF = '\n';
+	private static final String LF = "\\n";
 
 	/** NOTE: {@link Pattern#DOTALL} is for unicode line separator. */
 	private static final Pattern GEDCOM_LINE = Pattern.compile("^\\s*(\\d)\\s+(@([^@ ]+)@\\s+)?([a-zA-Z_0-9.]+)(\\s+@([^@ ]+)@)?(\\s(.*))?$",

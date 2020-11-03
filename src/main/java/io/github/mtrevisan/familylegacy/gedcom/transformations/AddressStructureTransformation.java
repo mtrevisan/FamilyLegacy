@@ -28,7 +28,7 @@ public class AddressStructureTransformation implements Transformation{
 		final String addrConcatenated = addr.getValueConcatenated();
 		if(addrConcatenated != null)
 			address.add(addrConcatenated);
-		final Iterator<GedcomNode> itr = node.getChildren().iterator();
+		final Iterator<GedcomNode> itr = addr.getChildren().iterator();
 		while(itr.hasNext()){
 			final GedcomNode child = itr.next();
 			if(ADDRESS_TAGS.contains(child.getTag())){
