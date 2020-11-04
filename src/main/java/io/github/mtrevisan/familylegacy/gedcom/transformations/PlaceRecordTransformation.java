@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
 public class PlaceRecordTransformation implements Transformation{
@@ -32,6 +33,7 @@ public class PlaceRecordTransformation implements Transformation{
 	public void from(final GedcomNode node, final GedcomNode root){
 		//read place record
 		final GedcomNode address = extractSubStructure(node, "PLACE");
+		moveTag("_CREDIBILITY", address, "CREDIBILITY");
 		final GedcomNode place = root.getChildWithIDAndTag(address.getID(), "PLACE");
 		if(place.isEmpty())
 			throw new IllegalArgumentException("Cannot find PLACE with ID " + address.getID());

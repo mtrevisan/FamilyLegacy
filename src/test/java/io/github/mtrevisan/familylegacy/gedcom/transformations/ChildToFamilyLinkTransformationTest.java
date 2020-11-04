@@ -41,7 +41,8 @@ class ChildToFamilyLinkTransformationTest{
 			.addChild(GedcomNode.create("PARENT")
 				.addChild(GedcomNode.create("FAMILY_CHILD")
 					.withID("F1")
-					.addChild(NoteStructureTransformationTest.composeNoteStructureFrom1())))
+					.addChild(GedcomNode.create("NOTE")
+						.withID("N1"))))
 			.addChild(GedcomNode.create("NOTE")
 				.withID("N1")
 				.withValue("SUBMITTER_TEXT"));

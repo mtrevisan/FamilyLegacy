@@ -43,7 +43,8 @@ class SpouseToFamilyLinkTransformationTest{
 			.addChild(GedcomNode.create("PARENT")
 				.addChild(GedcomNode.create("FAMILY_SPOUSE")
 					.withID("F1")
-					.addChild(NoteStructureTransformationTest.composeNoteStructureFrom1())))
+					.addChild(GedcomNode.create("NOTE")
+						.withID("N1"))))
 			.addChild(GedcomNode.create("NOTE")
 				.withID("N1")
 				.withValue("SUBMITTER_TEXT"));
