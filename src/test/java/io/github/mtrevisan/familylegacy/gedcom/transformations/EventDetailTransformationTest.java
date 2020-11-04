@@ -49,13 +49,36 @@ class EventDetailTransformationTest{
 	void from(){
 		final GedcomNode root = GedcomNode.createEmpty()
 			.addChild(GedcomNode.create("PARENT")
-				.addChild(GedcomNode.create("NOTE")
-					.withID("N1")))
-			.addChild(GedcomNode.create("NOTE")
-				.withID("N1")
-				.withValue("SUBMITTER_TEXT"));
+				.addChild(GedcomNode.create("TYPE")
+					.withValue("EVENT_OR_FACT_CLASSIFICATION")
+					.addChild(GedcomNode.create("DATE")
+						.withValue("DATE_TIME_VALUE")
+						.addChild(GedcomNode.create("CREDIBILITY")
+							.withValue("CREDIBILITY_ASSESSMENT")))
+					.addChild(GedcomNode.create("PLACE")
+						.withID("P1")
+						.addChild(GedcomNode.create("CREDIBILITY")
+							.withValue("CREDIBILITY_ASSESSMENT")))
+					.addChild(GedcomNode.create("AGENCY")
+						.withValue("RESPONSIBLE_AGENCY"))
+					.addChild(GedcomNode.create("CAUSE")
+						.withValue("CAUSE_OF_EVENT")
+						.addChild(GedcomNode.create("CREDIBILITY")
+							.withValue("CREDIBILITY_ASSESSMENT")))
+					.addChild(GedcomNode.create("NOTE")
+						.withID("N1"))
+					.addChild(GedcomNode.create("SOURCE")
+						.withID("S1"))
+					.addChild(GedcomNode.create("CREDIBILITY")
+						.withValue("CREDIBILITY_ASSESSMENT"))
+					.addChild(GedcomNode.create("DOCUMENT")
+						.withID("D1"))
+					.addChild(GedcomNode.create("RESTRICTION")
+						.withID("RESTRICTION_NOTICE"))
+				)
+			);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION, children: [{tag: DATE, value: DATE_TIME_VALUE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: P1, tag: PLACE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGENCY, value: RESPONSIBLE_AGENCY}, {tag: CAUSE, value: CAUSE_OF_EVENT, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: D1, tag: DOCUMENT}, {id: RESTRICTION_NOTICE, tag: RESTRICTION}]}]}]", root.toString());
 
 		final Transformation t = new NoteStructureTransformation();
 		t.from(extractSubStructure(root, "PARENT", "NOTE"), root);
