@@ -19,6 +19,8 @@ public class NoteStructureTransformation implements Transformation{
 	}
 
 	@Override
-	public void from(final GedcomNode node, final GedcomNode root){}
+	public void from(final GedcomNode node, final GedcomNode root){
+		node.withValueConcatenated(node.getValueConcatenated());
+	}
 
 }

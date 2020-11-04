@@ -43,7 +43,7 @@ public class SourceCitationTransformation implements Transformation{
 			MULTIMEDIA_LINK_TRANSFORMATION.to(multimediaLink, root);
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
-			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
+			NOTE_STRUCTURE_TRANSFORMATION.to(note, root);
 		moveTag("CREDIBILITY", node, "QUAY");
 	}
 
@@ -63,9 +63,12 @@ public class SourceCitationTransformation implements Transformation{
 				.withValueConcatenated(sourceText.getValue()));
 		if(data.hasChildren())
 			node.addChild(data);
-		final List<GedcomNode> sourceDocuments = node.getChildrenWithTag("DOCUMENT");
-		for(final GedcomNode sourceDocument : sourceDocuments)
-			sourceDocument.withTag("OBJE");
+		final List<GedcomNode> multimediaLinks = node.getChildrenWithTag("DOCUMENT");
+		for(final GedcomNode multimediaLink : multimediaLinks)
+			MULTIMEDIA_LINK_TRANSFORMATION.from(multimediaLink, root);
+		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
 		moveTag("QUAY", node, "CREDIBILITY");
 	}
 
