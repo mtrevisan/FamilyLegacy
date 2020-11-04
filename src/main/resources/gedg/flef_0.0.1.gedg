@@ -98,8 +98,7 @@ n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a document record. */
 
 
 NOTE_RECORD :=
-n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
-  +1 NOTE <SUBMITTER_TEXT>    {1:M}	/* Comments or opinions from the submitter. */
+n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 SUBMITTER @<XREF:SUBMITTER>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */

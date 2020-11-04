@@ -207,14 +207,18 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode withValueConcatenated(final String value){
+		this.value = null;
 		if(value != null && !value.isEmpty()){
 			//split line into CONC|CONT if appliable
 			int remainingLength;
 			final int length = value.length();
-			for(int offset = 0; length > offset + (remainingLength = 253 - (level < 9? 2: 1) - tag.length()); offset += remainingLength){
+			int offset = 0;
+			do{
+				remainingLength = Math.min(255 - offset - (level < 9? 2: 1) - tag.length() - 2, length - offset);
+
 				final String newTag;
 				final int lineFeedIndex = value.indexOf(LF, offset);
-				if(lineFeedIndex < offset + remainingLength){
+				if(lineFeedIndex >= 0 && lineFeedIndex < offset + remainingLength){
 					remainingLength = offset - lineFeedIndex - 1;
 					newTag = TAG_CONTINUATION;
 				}
@@ -225,11 +229,14 @@ public final class GedcomNode{
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				final GedcomNode newNode = create(newTag)
-					.withValue(newValue);
-				addChild(newNode);
-			}
-			this.value = value;
+				if(this.value != null)
+					addChild(create(newTag)
+						.withValue(newValue));
+				else
+					this.value = newValue;
+
+				offset += remainingLength;
+			}while(offset + remainingLength < length);
 		}
 		return this;
 	}
