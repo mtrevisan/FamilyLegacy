@@ -103,10 +103,11 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode headerNote = extractSubStructure(node, "NOTE");
 		if(!headerNote.isEmpty()){
 			final GedcomNode child = root.getChildWithIDAndTag(headerNote.getID(), "NOTE");
-			if(!child.isEmpty()){
-				headerNote.removeID();
-				headerNote.withValueConcatenated(child.getValue());
-			}
+			if(child.isEmpty())
+				throw new IllegalArgumentException("Cannot find NOTE with ID " + headerNote.getID());
+
+			headerNote.removeID();
+			headerNote.withValueConcatenated(child.getValue());
 		}
 	}
 

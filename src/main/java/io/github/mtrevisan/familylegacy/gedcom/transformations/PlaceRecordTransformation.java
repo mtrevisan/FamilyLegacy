@@ -33,6 +33,8 @@ public class PlaceRecordTransformation implements Transformation{
 		//read place record
 		final GedcomNode address = extractSubStructure(node, "PLACE");
 		final GedcomNode place = root.getChildWithIDAndTag(address.getID(), "PLACE");
+		if(place.isEmpty())
+			throw new IllegalArgumentException("Cannot find PLACE with ID " + address.getID());
 
 		//substitute PLACE with ADDRESS
 		address.cloneFrom(place)
