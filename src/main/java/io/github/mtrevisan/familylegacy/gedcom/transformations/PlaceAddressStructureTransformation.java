@@ -109,6 +109,17 @@ public class PlaceAddressStructureTransformation implements Transformation{
 			if(noteNodes != null)
 				addr.withChildren(noteNodes);
 		}
+		else if(!place.isEmpty()){
+			addr.withTag("ADDRESS")
+				.withValue(place.getValue());
+			mapNode = extractSubStructure(place, "MAP");
+			if(mapNode != null)
+				addr.addChild(mapNode);
+			if(noteNodes != null)
+				addr.withChildren(noteNodes);
+
+			node.addChild(addr);
+		}
 	}
 
 	@Override

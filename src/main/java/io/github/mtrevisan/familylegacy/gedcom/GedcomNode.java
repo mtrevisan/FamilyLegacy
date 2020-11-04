@@ -310,13 +310,14 @@ public final class GedcomNode{
 		return this;
 	}
 
-	public void removeChild(final GedcomNode child){
-		if(children != null){
+	public GedcomNode removeChild(final GedcomNode child){
+		if(children != null && child.getTag() != null){
 			children.remove(child);
 
 			if(children.isEmpty())
 				children = null;
 		}
+		return this;
 	}
 
 	public List<GedcomNode> removeChildren(){

@@ -10,8 +10,7 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 
 public class RepositoryRecordTransformation implements Transformation{
 
-	//FIXME replace with PlaceRecordTransformation
-	private static final Transformation ADDRESS_STRUCTURE_TRANSFORMATION = new PlaceAddressStructureTransformation();
+	private static final Transformation PLACE_RECORD_TRANSFORMATION = new PlaceRecordTransformation();
 	private static final Transformation NOTE_STRUCTURE_TRANSFORMATION = new NoteStructureTransformation();
 	private static final Transformation CHANGE_DATE_TRANSFORMATION = new ChangeDateTransformation();
 
@@ -19,7 +18,7 @@ public class RepositoryRecordTransformation implements Transformation{
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
 		node.withTag("REPOSITORY");
-		ADDRESS_STRUCTURE_TRANSFORMATION.to(node, root);
+		PLACE_RECORD_TRANSFORMATION.to(node, root);
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.to(note, root);
@@ -34,7 +33,7 @@ public class RepositoryRecordTransformation implements Transformation{
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
 		node.withTag("REPO");
-		ADDRESS_STRUCTURE_TRANSFORMATION.from(node, root);
+		PLACE_RECORD_TRANSFORMATION.from(node, root);
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
