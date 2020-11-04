@@ -31,9 +31,13 @@ public class PlaceRecordTransformation implements Transformation{
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
 		//read place record
-		final GedcomNode place = root.getChildWithIDAndTag(node.getID(), "PLACE");
+		final GedcomNode address = extractSubStructure(node, "PLACE");
+		final GedcomNode place = root.getChildWithIDAndTag(address.getID(), "PLACE");
 
-		//TODO add ADDRESS
+		//substitute PLACE with ADDRESS
+		address.cloneFrom(place)
+			.withTag("ADDRESS")
+			.removeID();
 
 		PLACE_ADDRESS_STRUCTURE_TRANSFORMATION.from(node, root);
 	}

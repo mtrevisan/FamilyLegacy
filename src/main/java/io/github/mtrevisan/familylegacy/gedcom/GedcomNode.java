@@ -97,20 +97,24 @@ public final class GedcomNode{
 		this.tag = tag;
 	}
 
-	public GedcomNode clone(){
-		final GedcomNode cloned = createEmpty();
-		cloned.level = level;
-		cloned.id = id;
-		cloned.tag = tag;
-		cloned.xref = xref;
-		cloned.value = value;
-		if(children != null){
-			cloned.children = new ArrayList<>(children.size());
-			for(final GedcomNode child : children)
-				cloned.children.add(child.clone());
+	public GedcomNode cloneFrom(final GedcomNode node){
+		level = node.level;
+		id = node.id;
+		tag = node.tag;
+		xref = node.xref;
+		value = node.value;
+		if(node.children != null){
+			children = new ArrayList<>(node.children.size());
+			for(final GedcomNode child : node.children)
+				children.add(child.clone());
 		}
-		cloned.custom = custom;
-		return cloned;
+		custom = node.custom;
+		return this;
+	}
+
+	public GedcomNode clone(){
+		return createEmpty()
+			.cloneFrom(this);
 	}
 
 	/**
