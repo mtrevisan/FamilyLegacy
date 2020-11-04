@@ -15,7 +15,12 @@ class SpouseToFamilyLinkTransformationTest{
 	void to(){
 		final GedcomNode root = GedcomNode.createEmpty()
 			.addChild(GedcomNode.create("PARENT")
-				.addChild(composeSpouseToFamilyLinkTo()))
+				.addChild(GedcomNode.create("FAMS")
+					.withID("F1")
+					.addChild(GedcomNode.create("NOTE")
+						.withID("N1"))
+					.addChild(GedcomNode.create("NOTE")
+						.withID("N2"))))
 			.addChild(GedcomNode.create("NOTE")
 				.withID("N1")
 				.withValue("SUBMITTER_TEXT1"))
@@ -31,21 +36,14 @@ class SpouseToFamilyLinkTransformationTest{
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: F1, tag: FAMILY_SPOUSE, children: [{id: N1, tag: NOTE}, {id: N2, tag: NOTE}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT1}, {id: N2, tag: NOTE, value: SUBMITTER_TEXT2}]", root.toString());
 	}
 
-	static GedcomNode composeSpouseToFamilyLinkTo(){
-		return GedcomNode.create("FAMS")
-			.withID("F1")
-			.addChild(GedcomNode.create("NOTE")
-				.withID("N1"))
-			.addChild(GedcomNode.create("NOTE")
-				.withID("N2"));
-	}
-
 
 	@Test
 	void from(){
 		final GedcomNode root = GedcomNode.createEmpty()
 			.addChild(GedcomNode.create("PARENT")
-				.addChild(composeSpouseToFamilyLinkFrom()))
+				.addChild(GedcomNode.create("FAMILY_SPOUSE")
+					.withID("F1")
+					.addChild(NoteStructureTransformationTest.composeNoteStructureFrom1())))
 			.addChild(GedcomNode.create("NOTE")
 				.withID("N1")
 				.withValue("SUBMITTER_TEXT"));
@@ -59,12 +57,6 @@ class SpouseToFamilyLinkTransformationTest{
 			t.from(name, root);
 
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: F1, tag: FAMILY_SPOUSE, children: [{id: N1, tag: NOTE}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}]", root.toString());
-	}
-
-	static GedcomNode composeSpouseToFamilyLinkFrom(){
-		return GedcomNode.create("FAMILY_SPOUSE")
-			.withID("F1")
-			.addChild(NoteStructureTransformationTest.composeNoteStructureFrom1());
 	}
 
 }
