@@ -97,6 +97,22 @@ public final class GedcomNode{
 		this.tag = tag;
 	}
 
+	public GedcomNode clone(){
+		final GedcomNode cloned = createEmpty();
+		cloned.level = level;
+		cloned.id = id;
+		cloned.tag = tag;
+		cloned.xref = xref;
+		cloned.value = value;
+		if(children != null){
+			cloned.children = new ArrayList<>(children.size());
+			for(final GedcomNode child : children)
+				cloned.children.add(child.clone());
+		}
+		cloned.custom = custom;
+		return cloned;
+	}
+
 	/**
 	 * NOTE: clear all the fields but the {@link #level} and the {@link #tag}.
 	 */
@@ -110,7 +126,7 @@ public final class GedcomNode{
 	}
 
 	public boolean isEmpty(){
-		return (level == 0 && tag == null);
+		return (tag == null);
 	}
 
 	public void setLevel(final int level){
