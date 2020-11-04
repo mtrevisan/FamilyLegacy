@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
@@ -30,8 +31,8 @@ public class EventDetailTransformation implements Transformation{
 			node.removeChild(agency);
 			type.addChild(agency);
 		}
-//TODO add fact
-//n RELI <RELIGIOUS_AFFILIATION>    {0:1}
+		//who cares RELI here?
+		deleteTag(node, "RELI");
 		final GedcomNode cause = moveTag("CAUSE", node, "CAUS");
 		if(!cause.isEmpty()){
 			node.removeChild(cause);
@@ -68,8 +69,6 @@ public class EventDetailTransformation implements Transformation{
 			type.removeChild(agency);
 			node.addChild(agency);
 		}
-		//TODO search fact and link
-		//n RELI <RELIGIOUS_AFFILIATION>    {0:1}
 		final GedcomNode cause = moveTag("CAUS", type, "CAUSE");
 		if(!cause.isEmpty()){
 			moveTag("_CREDIBILITY", cause, "CREDIBILITY");
