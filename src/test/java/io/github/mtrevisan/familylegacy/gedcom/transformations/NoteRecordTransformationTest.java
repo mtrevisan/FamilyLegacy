@@ -37,7 +37,7 @@ class NoteRecordTransformationTest{
 		final Transformation t = new NoteRecordTransformation();
 		t.to(extractSubStructure(root, "PARENT", "NOTE"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXTSUBMITTER_TEXT, children: [{tag: _REFN, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {tag: SOURCE, value: S1}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXTSUBMITTER_TEXT, children: [{tag: SUBMITTER, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {tag: SOURCE, value: S1}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
 	}
 
 	@Test
@@ -64,7 +64,7 @@ class NoteRecordTransformationTest{
 		final Transformation t = new NoteRecordTransformation();
 		t.from(extractSubStructure(root, "PARENT", "NOTE"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NOTE, value: SUBMITTER_TEXT, children: [{id: S1, tag: SOUR}, {id: SUBM1, tag: _SUBMITTER}, {tag: _RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOURCE}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NOTE, value: SUBMITTER_TEXT, children: [{id: S1, tag: SOUR}, {id: SUBM1, tag: REFN}, {tag: _RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOURCE}]", root.toString());
 	}
 
 }

@@ -36,7 +36,7 @@ class RepositoryRecordTransformationTest{
 		final Transformation t = new RepositoryRecordTransformation();
 		t.to(extractSubStructure(root, "PARENT", "REPO"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: N1, tag: NOTE}, {tag: _REFN, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}, {id: P1, tag: PLACE}]}]}, {id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: N1, tag: NOTE}, {tag: _SUBMITTER, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}, {id: P1, tag: PLACE}]}]}, {id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]}]", root.toString());
 	}
 
 	@Test

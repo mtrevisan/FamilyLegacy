@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
@@ -46,8 +47,8 @@ public class AssociationStructureTransformation implements Transformation{
 			node.withTag(isIndividual? "ASSO": "_ASSOCIATION");
 			moveTag("_TYPE", node, "TYPE");
 			moveTag("_RELATIONSHIP", node, "RELATIONSHIP");
-			moveTag("_SOURCE", node, "SOURCE");
-			moveTag("_NOTE", node, "NOTE");
+			moveMultipleTag("_SOURCE", node, "SOURCE");
+			moveMultipleTag("_NOTE", node, "NOTE");
 		}
 	}
 

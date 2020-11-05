@@ -9,11 +9,13 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlaceStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.mergeNote;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.splitNote;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
 
+//TODO
 public class IndividualRecordTransformation implements Transformation{
 
 	private static final Transformation PERSONAL_NAME_TRANSFORMATION = new PersonalNameStructureTransformation();
@@ -22,9 +24,9 @@ public class IndividualRecordTransformation implements Transformation{
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
 		final GedcomNode person = moveTag("INDIVIDUAL", root, "INDI");
-		moveTag("RESTRICTION", person, "RESN");
-		moveTag("ALIAS", person, "ALIA");
-		moveTag("SUBMITTER", person, "SUBM");
+		moveMultipleTag("RESTRICTION", person, "RESN");
+		moveMultipleTag("ALIAS", person, "ALIA");
+		moveMultipleTag("SUBMITTER", person, "SUBM");
 		deleteTag(person, "ANCI");
 		deleteTag(person, "DESI");
 		deleteTag(person, "RFN");
@@ -53,20 +55,20 @@ public class IndividualRecordTransformation implements Transformation{
 */
 
 		final GedcomNode header = moveTag("HEADER", root, "HEAD");
-		final GedcomNode headerSource = moveTag("SOURCE", header, "SOUR");
-		moveTag("VERSION", headerSource, "VERS");
-		final GedcomNode headerSourceCorporate = moveTag("CORPORATE", headerSource, "CORP");
-		final GedcomNode sourceCorporatePlace = extractPlaceStructure(headerSource, "CORPORATE")
-			.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
-		root.addChild(sourceCorporatePlace, 1);
-		headerSourceCorporate.addChild(GedcomNode.create("PLACE")
-			.withID(sourceCorporatePlace.getID()));
+//		final GedcomNode headerSource = moveMultipleTag("SOURCE", header, "SOUR");
+//		moveMultipleTag("VERSION", headerSource, "VERS");
+//		final GedcomNode headerSourceCorporate = moveMultipleTag("CORPORATE", headerSource, "CORP");
+//		final GedcomNode sourceCorporatePlace = extractPlaceStructure(headerSource, "CORPORATE")
+//			.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
+//		root.addChild(sourceCorporatePlace, 1);
+//		headerSourceCorporate.addChild(GedcomNode.create("PLACE")
+//			.withID(sourceCorporatePlace.getID()));
 		deleteTag(header, "DEST");
 		deleteTag(header, "DATE");
-		moveTag("SUBMITTER", header, "SUBM");
+		moveMultipleTag("SUBMITTER", header, "SUBM");
 		deleteTag(header, "SUBN");
 		deleteTag(header, "FILE");
-		moveTag("COPYRIGHT", header, "COPR");
+		moveMultipleTag("COPYRIGHT", header, "COPR");
 		header.addChild(GedcomNode.create("PROTOCOL_VERSION")
 			.withValue("0.0.1"));
 		deleteTag(header, "GEDC");
@@ -84,34 +86,34 @@ public class IndividualRecordTransformation implements Transformation{
 
 
 
-		final GedcomNode header = moveTag("HEAD", root, "HEADER");
-		final GedcomNode headerSource = moveTag("SOUR", header, "SOURCE");
-		moveTag("VERS", headerSource, "VERSION");
-		final GedcomNode headerCorporate = moveTag("CORP", headerSource, "CORPORATE");
-		final GedcomNode sourceCorporatePlace = extractSubStructure(headerCorporate, "PLACE");
-		if(!sourceCorporatePlace.isEmpty()){
-			GedcomNode place = null;
-			final List<GedcomNode> places = root.getChildrenWithTag("PLACE");
-			for(final GedcomNode p : places)
-				if(p.getID().equals(sourceCorporatePlace.getID())){
-					place = p;
-					break;
-				}
-			if(place == null)
-				throw new IllegalArgumentException("Cannot find place with ID " + sourceCorporatePlace.getID());
-
-			place.removeID();
-			deleteTag(headerCorporate, "PLACE");
-			headerCorporate.addChild(place);
-		}
-		moveTag("SUBM", header, "SUBMITTER");
-		moveTag("COPR", header, "COPYRIGHT");
-		deleteTag(header, "PROTOCOL_VERSION");
-		header.addChild(GedcomNode.create("GEDC")
-			.addChild(GedcomNode.create("VERS")
-				.withValue("5.5.1")));
-		transferValues(header, "CHARSET", header, "CHAR");
-		splitNote(header, "NOTE");
+//		final GedcomNode header = moveTag("HEAD", root, "HEADER");
+//		final GedcomNode headerSource = moveMultipleTag("SOUR", header, "SOURCE");
+//		moveMultipleTag("VERS", headerSource, "VERSION");
+//		final GedcomNode headerCorporate = moveMultipleTag("CORP", headerSource, "CORPORATE");
+//		final GedcomNode sourceCorporatePlace = extractSubStructure(headerCorporate, "PLACE");
+//		if(!sourceCorporatePlace.isEmpty()){
+//			GedcomNode place = null;
+//			final List<GedcomNode> places = root.getChildrenWithTag("PLACE");
+//			for(final GedcomNode p : places)
+//				if(p.getID().equals(sourceCorporatePlace.getID())){
+//					place = p;
+//					break;
+//				}
+//			if(place == null)
+//				throw new IllegalArgumentException("Cannot find place with ID " + sourceCorporatePlace.getID());
+//
+//			place.removeID();
+//			deleteTag(headerCorporate, "PLACE");
+//			headerCorporate.addChild(place);
+//		}
+//		moveMultipleTag("SUBM", header, "SUBMITTER");
+//		moveMultipleTag("COPR", header, "COPYRIGHT");
+//		deleteTag(header, "PROTOCOL_VERSION");
+//		header.addChild(GedcomNode.create("GEDC")
+//			.addChild(GedcomNode.create("VERS")
+//				.withValue("5.5.1")));
+//		transferValues(header, "CHARSET", header, "CHAR");
+//		splitNote(header, "NOTE");
 	}
 
 }

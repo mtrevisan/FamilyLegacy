@@ -6,6 +6,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -32,6 +33,23 @@ final class TransformationHelper{
 		if(!currentContext.isEmpty())
 			currentContext.withTag(value);
 		return currentContext;
+	}
+
+	public static List<GedcomNode> moveMultipleTag(final String value, final GedcomNode context, final String... tags){
+		GedcomNode current = context;
+		for(int i = 0; i < tags.length - 1; i ++){
+			final String tag = tags[i];
+			final List<GedcomNode> childrenWithTag = current.getChildrenWithTag(tag);
+			if(childrenWithTag.size() != 1)
+				return Collections.emptyList();
+
+			current = childrenWithTag.get(0);
+		}
+
+		final List<GedcomNode> currentContexts = current.getChildrenWithTag(tags[tags.length - 1]);
+		for(final GedcomNode currentContext : currentContexts)
+			currentContext.withTag(value);
+		return currentContexts;
 	}
 
 	public static void deleteTag(final GedcomNode context, final String... tags){

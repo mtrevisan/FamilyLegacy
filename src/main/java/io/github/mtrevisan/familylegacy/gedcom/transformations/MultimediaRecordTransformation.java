@@ -6,6 +6,7 @@ import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
@@ -28,7 +29,7 @@ public class MultimediaRecordTransformation implements Transformation{
 			moveTag("TITLE", file, "TITL");
 		}
 		moveTag("_TYPE", node, "REFN", "TYPE");
-		moveTag("SUBMITTER", node, "REFN");
+		moveMultipleTag("SUBMITTER", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
@@ -54,7 +55,7 @@ public class MultimediaRecordTransformation implements Transformation{
 			moveTag("TITL", file, "TITLE");
 			moveTag("_CUT", file, "CUT");
 		}
-		moveTag("REFN", node, "SUBMITTER");
+		moveMultipleTag("REFN", node, "SUBMITTER");
 		moveTag("RIN", node, "_RIN");
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
