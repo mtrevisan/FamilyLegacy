@@ -12,7 +12,7 @@ public class IndividualEventStructureTransformation implements Transformation{
 		BURI("BURIAL"), CREM("CREMATION"), BAPM("_BAPM"), BARM("_BARM"), BASM("_BASM"), BLES("_BLES"),
 		CHRA("_CHRA"), CONF("_CONF"), FCOM("_FCOM"), ORDN("_ORDNM"), NATU("NATURALIZATION"),
 		EMIG("EMIGRATION"), IMMI("IMMIGRATION"), CENS("CENSUS"), PROB("PROBATE"), WILL("WILL"),
-		GRAD("GRADUATION"), RETI("RETIREMENT"), EVEN("EVENT");
+		GRAD("GRADUATION"), RETI("RETIREMENT");
 
 		private final String code;
 
@@ -111,6 +111,10 @@ public class IndividualEventStructureTransformation implements Transformation{
 				moveTag("ADOPTED_BY", child, "FAMC", "ADOP");
 				moveTag("FAMILY_CHILD", child, "FAMC");
 			}
+			else if(child.getTag().equals("EVEN")){
+				child.withTag("EVENT");
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
+			}
 		}
 	}
 
@@ -138,6 +142,10 @@ public class IndividualEventStructureTransformation implements Transformation{
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
 				moveTag("FAMC", child, "FAMILY_CHILD");
 				moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
+			}
+			else if(child.getTag().equals("EVENT")){
+				child.withTag("EVEN");
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
 			}
 		}
 	}

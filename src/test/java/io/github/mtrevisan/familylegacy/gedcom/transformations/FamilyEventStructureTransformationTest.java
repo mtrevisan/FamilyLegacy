@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 
 
-class IndividualEventStructureTransformationTest{
+class FamilyEventStructureTransformationTest{
 
 	@Test
 	void to(){

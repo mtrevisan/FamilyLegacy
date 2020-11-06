@@ -101,19 +101,6 @@ n @<XREF:FAM>@ FAM    {1:1}
 	+1 <<CHANGE_DATE>>    {0:1}
 
 
-	FAMILY_EVENT_STRUCTURE :=
-	[
-	n [ ANUL | CENS | DIV | DIVF | ENGA | MARB | MARC | MARL | MARS | RESI ]    {1:1}
-	+1 <<FAMILY_EVENT_DETAIL>>    {0:1}
-	|
-	n MARR [Y|<NULL>]    {1:1}
-	+1 <<FAMILY_EVENT_DETAIL>>    {0:1}
-	|
-	n EVEN [<EVENT_DESCRIPTOR> | <NULL>]    {1:1}
-	+1 <<FAMILY_EVENT_DETAIL>>    {0:1}
-	]
-
-
 	INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
 	[
 	n CAST <CASTE_NAME>    {1:1}

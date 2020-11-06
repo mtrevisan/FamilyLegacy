@@ -207,40 +207,41 @@ n FAMILY_CHILD @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
 
 FAMILY_EVENT_STRUCTURE :=
 [
-n ANNULMENT    {1:1}	/* Declaring a marriage to be invalid, as though it had never occurred. */
+n EVENT [ ANNULMENT ]    {1:1}	/* Declaring a marriage to be invalid, as though it had never occurred. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n CENSUS    {1:1}	/* An inventory of persons or households in a population. */
+n EVENT [ CENSUS ]    {1:1}	/* An inventory of persons or households in a population. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n DIVORCE    {1:1}	/* The ending of a marriage between still-living individuals. */
+n EVENT [ DIVORCE ]    {1:1}	/* The ending of a marriage between still-living individuals. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n DIVORCE_FILED    {1:1}	/* The legal action expressing intent to divorce. */
+n EVENT [ DIVORCE_FILED ]    {1:1}	/* The legal action expressing intent to divorce. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n ENGAGEMENT    {1:1}	/* The agreement of a couple to enter into a marriage in the future. */
+n EVENT [ ENGAGEMENT ]    {1:1}	/* The agreement of a couple to enter into a marriage in the future. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n MARRIAGE_BANN    {1:1}	/* A public notice of an intent to marry. */
+n EVENT [ MARRIAGE_BANN ]    {1:1}	/* A public notice of an intent to marry. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n MARRIAGE_CONTRACT    {1:1}	/* A formal contractual agreement to marry. */
+n EVENT [ MARRIAGE_CONTRACT ]    {1:1}	/* A formal contractual agreement to marry. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n MARRIAGE    {1:1}	/* The creation of a family unit (via a legal, religious, customary, common-law, or other form of union). */
+n EVENT [ MARRIAGE ]    {1:1}	/* The creation of a family unit (via a legal, religious, customary, common-law, or other form of union). */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n MARRIAGE_LICENCE    {1:1}	/* Obtaining a legal license to marry. */
+n EVENT [ MARRIAGE_LICENCE ]    {1:1}	/* Obtaining a legal license to marry. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n MARRIAGE_SETTLEMENT    {1:1}	/* A legal arrangement to modify property rights upon marriage. */
+n EVENT [ MARRIAGE_SETTLEMENT ]    {1:1}	/* A legal arrangement to modify property rights upon marriage. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n RESIDENCE    {1:1}	/* A code used to indicate the type of family event. */
+n EVENT [ RESIDENCE ]    {1:1}	/* A code used to indicate the type of family event. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 |
-n CHILDREN_COUNT <COUNT_OF_CHILDREN>    {0:1}	/* The reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
+n EVENT [ CHILDREN_COUNT ]    {0:1}	/* The reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
+  +1 COUNT <COUNT_OF_CHILDREN>    {0:1}
   +1 CERTAINTY <CERTAINTY>    {0:1}	/* A string that assess if the value is EXACT, ABOUT, LESS_THAN, MORE_THAN. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
