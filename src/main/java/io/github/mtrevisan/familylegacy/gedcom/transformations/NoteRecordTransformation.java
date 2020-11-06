@@ -20,8 +20,7 @@ public class NoteRecordTransformation implements Transformation{
 	public void to(final GedcomNode node, final GedcomNode root){
 		node.withValue(node.getValueConcatenated());
 		deleteTag(node, "CONC", "CONT");
-		moveTag("_TYPE", node, "REFN", "TYPE");
-		moveMultipleTag("SUBMITTER", node, "REFN");
+		moveMultipleTag("_REFN", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final List<GedcomNode> sourceCitations = node.getChildrenWithTag("SOUR");
 		for(final GedcomNode sourceCitation : sourceCitations)
@@ -34,7 +33,7 @@ public class NoteRecordTransformation implements Transformation{
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
 		node.withValueConcatenated(node.getValue());
-		moveMultipleTag("REFN", node, "SUBMITTER");
+		moveMultipleTag("_SUBMITTER", node, "SUBMITTER");
 		moveTag("_RESTRICTION", node, "RESTRICTION");
 		final List<GedcomNode> sourceCitations = node.getChildrenWithTag("SOURCE");
 		for(final GedcomNode sourceCitation : sourceCitations)

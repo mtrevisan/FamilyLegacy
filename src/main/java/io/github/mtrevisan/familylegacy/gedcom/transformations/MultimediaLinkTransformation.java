@@ -50,7 +50,7 @@ public class MultimediaLinkTransformation implements Transformation{
 			moveTag("TITL", file, "TITLE");
 			moveTag("_CUT", file, "CUT");
 		}
-		moveTag("REFN", node, "SUBMITTER");
+		moveTag("_SUBMITTER", node, "SUBMITTER");
 		moveTag("RIN", node, "_RIN");
 	}
 

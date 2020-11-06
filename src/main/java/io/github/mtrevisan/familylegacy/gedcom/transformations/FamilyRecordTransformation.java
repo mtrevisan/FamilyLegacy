@@ -10,83 +10,11 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
-//TODO
-/*
-left to do
+public class FamilyRecordTransformation implements Transformation{
 
-LINEAGE_LINKED_GEDCOM :=
-n <<HEADER>>    {1:1}
-n <<SUBMISSION_RECORD>>    {0:1}
-n <<RECORD>>    {1:M}
-n <<END_OF_FILE>>    {1:1}
+	private static final Transformation FAMILY_EVENT_STRUCTURE_TRANSFORMATION = new FamilyEventStructureTransformation();
+	private static final Transformation SUBMITTER_RECORD_TRANSFORMATION = new SubmitterRecordTransformation();
 
-
-RECORD :=
-[
-n <<FAMILY_RECORD>>    {1:1}
-|
-n <<INDIVIDUAL_RECORD>>    {1:1}
-|
-n <<MULTIMEDIA_RECORD>>    {1:1}
-|
-n <<NOTE_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD>>    {1:1}
-|
-n <<SOURCE_RECORD>>    {1:1}
-|
-n <<SUBMITTER_RECORD>>    {1:1}
-]
-
-
-FAMILY_RECORD :=
-n @<XREF:FAM>@ FAM    {1:1}
-  +1 RESN <RESTRICTION_NOTICE>    {0:1}
-	+1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}
-	+1 HUSB @<XREF:INDI>@    {0:1}
-	+1 WIFE @<XREF:INDI>@    {0:1}
-	+1 CHIL @<XREF:INDI>@    {0:M}
-	+1 NCHI <COUNT_OF_CHILDREN>    {0:1}
-	+1 SUBM @<XREF:SUBM>@    {0:M}
-	+1 <<LDS_SPOUSE_SEALING>>    {0:M}
-	+1 REFN <USER_REFERENCE_NUMBER>    {0:M}
-		+2 TYPE <USER_REFERENCE_TYPE>    {0:1}
-	+1 RIN <AUTOMATED_RECORD_ID>    {0:1}
-	+1 <<CHANGE_DATE>>    {0:1}
-	+1 <<NOTE_STRUCTURE>>    {0:M}
-	+1 <<SOURCE_CITATION>>    {0:M}
-	+1 <<MULTIMEDIA_LINK>>    {0:M}
-
-
-	SOURCE_RECORD :=
-	n @<XREF:SOUR>@ SOUR    {1:1}
-	+1 DATA    {0:1}
-	+2 EVEN <EVENTS_RECORDED>    {0:M}
-	+3 DATE <DATE_PERIOD>    {0:1}
-	+3 PLAC <SOURCE_JURISDICTION_PLACE>    {0:1}
-	+2 AGNC <RESPONSIBLE_AGENCY>    {0:1}
-	+2 <<NOTE_STRUCTURE>>    {0:M}
-	+1 AUTH <SOURCE_ORIGINATOR>    {0:1}
-	+2 [CONC|CONT] <SOURCE_ORIGINATOR>    {0:M}
-	+1 TITL <SOURCE_DESCRIPTIVE_TITLE>    {0:1}
-	+2 [CONC|CONT] <SOURCE_DESCRIPTIVE_TITLE>    {0:M}
-	+1 ABBR <SOURCE_FILED_BY_ENTRY>    {0:1}
-	+1 PUBL <SOURCE_PUBLICATION_FACTS>    {0:1}
-	+2 [CONC|CONT] <SOURCE_PUBLICATION_FACTS>    {0:M}
-	+1 TEXT <TEXT_FROM_SOURCE>    {0:1}
-	+2 [CONC|CONT] <TEXT_FROM_SOURCE>    {0:M}
-	+1 <<SOURCE_REPOSITORY_CITATION>>    {0:M}
-	+1 REFN <USER_REFERENCE_NUMBER>    {0:M}
-		+2 TYPE <USER_REFERENCE_TYPE>    {0:1}
-	+1 RIN <AUTOMATED_RECORD_ID>    {0:1}
-	+1 <<CHANGE_DATE>>    {0:1}
-	+1 <<NOTE_STRUCTURE>>    {0:M}
-	+1 <<MULTIMEDIA_LINK>>    {0:M}
-*/
-public class IndividualRecordTransformation implements Transformation{
-
-	private static final Transformation PERSONAL_NAME_TRANSFORMATION = new PersonalNameStructureTransformation();
-	private static final Transformation INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION = new IndividualEventStructureTransformation();
 	private static final Transformation INDIVIDUAL_ATTRIBUTE_STRUCTURE_TRANSFORMATION = new IndividualAttributeStructureTransformation();
 	private static final Transformation LDS_INDIVIDUAL_ORDINANCE_TRANSFORMATION = new LDSIndividualOrdinanceTransformation();
 	private static final Transformation CHILD_TO_FAMILY_LINK_TRANSFORMATION = new ChildToFamilyLinkTransformation();
@@ -100,12 +28,29 @@ public class IndividualRecordTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		node.withTag("INDIVIDUAL");
+		node.withTag("FAMILY");
 		moveMultipleTag("RESTRICTION", node, "RESN");
-		final List<GedcomNode> names = node.getChildrenWithTag("NAME");
-		for(final GedcomNode name : names)
-			PERSONAL_NAME_TRANSFORMATION.to(name, root);
-		INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION.to(node, root);
+		FAMILY_EVENT_STRUCTURE_TRANSFORMATION.to(node, root);
+		moveTag("SPOUSE1", node, "HUSB");
+		moveTag("SPOUSE2", node, "WIFE");
+		moveMultipleTag("CHILD", node, "CHIL");
+		final List<GedcomNode> submitters = node.getChildrenWithTag("SUBM");
+		for(final GedcomNode submitter : submitters)
+			SUBMITTER_RECORD_TRANSFORMATION.to(submitter, root);
+//+1 NCHI <COUNT_OF_CHILDREN>    {0:1}
+
+/*
+	+1 SUBM @<XREF:SUBM>@    {0:M}
+	+1 <<LDS_SPOUSE_SEALING>>    {0:M}
+	+1 REFN <USER_REFERENCE_NUMBER>    {0:M}
+		+2 TYPE <USER_REFERENCE_TYPE>    {0:1}
+	+1 RIN <AUTOMATED_RECORD_ID>    {0:1}
+	+1 <<CHANGE_DATE>>    {0:1}
+	+1 <<NOTE_STRUCTURE>>    {0:M}
+	+1 <<SOURCE_CITATION>>    {0:M}
+	+1 <<MULTIMEDIA_LINK>>    {0:M}
+*/
+
 		INDIVIDUAL_ATTRIBUTE_STRUCTURE_TRANSFORMATION.to(node, root);
 		LDS_INDIVIDUAL_ORDINANCE_TRANSFORMATION.to(node, root);
 		final List<GedcomNode> childToFamilyLinks = node.getChildrenWithTag("FAMC");
@@ -140,7 +85,7 @@ public class IndividualRecordTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		node.withTag("INDI");
+		node.withTag("FAM");
 		final List<GedcomNode> names = node.getChildrenWithTag("NAME");
 		for(final GedcomNode name : names)
 			PERSONAL_NAME_TRANSFORMATION.from(name, root);

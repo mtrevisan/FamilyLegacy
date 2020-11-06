@@ -28,8 +28,7 @@ public class MultimediaRecordTransformation implements Transformation{
 			file.addChild(type);
 			moveTag("TITLE", file, "TITL");
 		}
-		moveTag("_TYPE", node, "REFN", "TYPE");
-		moveMultipleTag("SUBMITTER", node, "REFN");
+		moveMultipleTag("_REFN", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
@@ -55,7 +54,7 @@ public class MultimediaRecordTransformation implements Transformation{
 			moveTag("TITL", file, "TITLE");
 			moveTag("_CUT", file, "CUT");
 		}
-		moveMultipleTag("REFN", node, "SUBMITTER");
+		moveMultipleTag("_SUBMITTER", node, "SUBMITTER");
 		moveTag("RIN", node, "_RIN");
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)

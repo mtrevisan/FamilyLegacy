@@ -23,8 +23,7 @@ public class RepositoryRecordTransformation implements Transformation{
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.to(note, root);
-		moveTag("_TYPE", node, "REFN", "TYPE");
-		moveMultipleTag("_SUBMITTER", node, "REFN");
+		moveMultipleTag("_REFN", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final GedcomNode changeDate = extractSubStructure(node, "CHAN");
 		if(!changeDate.isEmpty())
