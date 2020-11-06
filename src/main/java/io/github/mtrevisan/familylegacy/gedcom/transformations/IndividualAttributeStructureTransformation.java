@@ -107,23 +107,29 @@ public class IndividualAttributeStructureTransformation implements Transformatio
 			final EventTagCount etc = EventTagCount.fromTag(tag);
 			if(et != null){
 				child.withTag("ATTRIBUTE");
-				child.addChild(GedcomNode.create("VALUE")
-					.withValue(child.getValue()));
+				final String value = child.getValue();
+				if(value != null)
+					child.addChild(GedcomNode.create("VALUE")
+						.withValue(value));
 				child.withValue(et.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}
 			else if(etpd != null){
 				child.withTag("ATTRIBUTE");
-				child.addChild(GedcomNode.create("VALUE")
-					.withValue(child.getValueConcatenated()));
+				final String value = child.getValueConcatenated();
+				if(value != null)
+					child.addChild(GedcomNode.create("VALUE")
+						.withValue(value));
 				deleteTag(child, "CONC", "CONT");
 				child.withValue(etpd.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}
 			else if(etc != null){
 				child.withTag("ATTRIBUTE");
-				child.addChild(GedcomNode.create("VALUE")
-					.withValue(child.getValue()));
+				final String value = child.getValueConcatenated();
+				if(value != null)
+					child.addChild(GedcomNode.create("VALUE")
+						.withValue(value));
 				child.withValue(etc.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}

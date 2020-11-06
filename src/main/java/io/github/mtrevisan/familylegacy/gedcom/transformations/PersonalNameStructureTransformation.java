@@ -27,9 +27,9 @@ public class PersonalNameStructureTransformation implements Transformation{
 		final String surnameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
 			nameValue.substring(nameValue.indexOf('/') + 1, nameValue.length() - 1): null);
 		moveTag("NAME_PREFIX", node, "NPFX");
-		final GedcomNode nameGiven = moveTag("NAME", node, "GIVN");
+		final GedcomNode nameGiven = moveTag("PERSONAL_NAME", node, "GIVN");
 		if(nameGiven.isEmpty() && nameComponent != null)
-			node.addChild(nameGiven.withTag("NAME")
+			node.addChild(nameGiven.withTag("PERSONAL_NAME")
 				.withValue(nameComponent));
 		moveTag("NICKNAME", node, "NICK");
 		final GedcomNode nameSurname = moveTag("SURNAME", node, "SURN");
@@ -65,7 +65,7 @@ public class PersonalNameStructureTransformation implements Transformation{
 		else if("NAME_ROMANIZED_VARIATION".equals(nameType))
 			node.withTag("ROMN");
 		final GedcomNode namePrefix = moveTag("NPFX", node, "NAME_PREFIX");
-		final GedcomNode nameGiven = moveTag("GIVN", node, "NAME");
+		final GedcomNode nameGiven = moveTag("GIVN", node, "PERSONAL_NAME");
 		moveTag("NSFX", node, "NAME_SUFFIX");
 		moveTag("NICK", node, "NICKNAME");
 		final GedcomNode nameSurname = moveTag("SURN", node, "SURNAME");

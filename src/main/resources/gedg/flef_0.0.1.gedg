@@ -69,7 +69,7 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 SEXUAL_ORIENTATION <SEXUAL_ORIENTATION_VALUE>    {0:1}	/* A code that indicates the sexual orientation of the individual (one of MALE, FEMALE, BOTH). */
   +1 <<CHILD_TO_FAMILY_LINK>>    {0:M}	/* A list of CHILD_TO_FAMILY_LINK() objects giving the details of families this individual is a child of. */
   +1 <<SPOUSE_TO_FAMILY_LINK>>    {0:M}	/* A list of SPOUSE_TO_FAMILY_LINK() objects giving the details of families this individual is a spouse of. */
-  +1 <<ASSOCIATION_STRUCTURE>>    {0:1}	/* A list of ASSOCIATION_STRUCTURE() objects giving the details of individuals or families this individual is associated with. */
+  +1 <<ASSOCIATION_STRUCTURE>>    {0:M}	/* A list of ASSOCIATION_STRUCTURE() objects giving the details of individuals or families this individual is associated with. */
   +1 ALIAS @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of individual aliases of this individual. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the alias. */
   +1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_EVENT_STRUCTURE() objects giving the events associated with this individual. */
@@ -384,7 +384,7 @@ NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant (one of BIRTH_NAME [name given at or near birth], MARRIAGE_NAME [name assumed at marriage], ALSO_KNOWN_AS [an unofficial pseudonym], ADOPTIVE_NAME, FORMAL_NAME, MAIDEN [name used prior to marriage], RELIGIOUS_NAME, IMMIGRANT [name assumed when immigrating] -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md). */
   +1 LOCALE <NAME_LOCALE>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
+  +1 PERSONAL_NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
   +1 NAME_PREFIX <NAME_PIECE_PREFIX>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
   +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
   +1 NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */

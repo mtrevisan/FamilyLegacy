@@ -113,29 +113,29 @@ public class IndividualRecordTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		final GedcomNode person = moveTag("INDIVIDUAL", root, "INDI");
-		moveMultipleTag("RESTRICTION", person, "RESN");
-		final List<GedcomNode> names = person.getChildrenWithTag("NAME");
+		node.withTag("INDIVIDUAL");
+		moveMultipleTag("RESTRICTION", node, "RESN");
+		final List<GedcomNode> names = node.getChildrenWithTag("NAME");
 		for(final GedcomNode name : names)
 			PERSONAL_NAME_TRANSFORMATION.to(name, root);
 		INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION.to(node, root);
 		INDIVIDUAL_ATTRIBUTE_STRUCTURE_TRANSFORMATION.to(node, root);
 		LDS_INDIVIDUAL_ORDINANCE_TRANSFORMATION.to(node, root);
-		final List<GedcomNode> childToFamilyLinks = person.getChildrenWithTag("FAMC");
+		final List<GedcomNode> childToFamilyLinks = node.getChildrenWithTag("FAMC");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks)
 			CHILD_TO_FAMILY_LINK_TRANSFORMATION.to(childToFamilyLink, root);
-		final List<GedcomNode> spouseToFamilyLinks = person.getChildrenWithTag("FAMS");
+		final List<GedcomNode> spouseToFamilyLinks = node.getChildrenWithTag("FAMS");
 		for(final GedcomNode spouseToFamilyLink : spouseToFamilyLinks)
 			SPOUSE_TO_FAMILY_LINK_TRANSFORMATION.to(spouseToFamilyLink, root);
-		moveMultipleTag("SUBMITTER", person, "REFN");
-		final List<GedcomNode> associationStructures = person.getChildrenWithTag("ASSO");
+		moveMultipleTag("SUBMITTER", node, "REFN");
+		final List<GedcomNode> associationStructures = node.getChildrenWithTag("ASSO");
 		for(final GedcomNode associationStructure : associationStructures)
 			ASSOCIATION_STRUCTURE_TRANSFORMATION.to(associationStructure, root);
-		moveMultipleTag("ALIAS", person, "ALIA");
-		deleteTag(person, "ANCI");
-		deleteTag(person, "DESI");
-		deleteTag(person, "RFN");
-		deleteTag(person, "AFN");
+		moveMultipleTag("ALIAS", node, "ALIA");
+		deleteTag(node, "ANCI");
+		deleteTag(node, "DESI");
+		deleteTag(node, "RFN");
+		deleteTag(node, "AFN");
 		moveTag("_RIN", node, "RIN");
 		final GedcomNode changeDate = extractSubStructure(node, "CHAN");
 		if(!changeDate.isEmpty())
@@ -153,10 +153,38 @@ public class IndividualRecordTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		final GedcomNode person = moveTag("INDI", root, "INDIVIDUAL");
-		moveTag("_GENDER", person, "GENDER");
-		moveTag("_SEXUAL_ORIENTATION", person, "SEXUAL_ORIENTATION");
-		//TODO
+		node.withTag("INDI");
+		final List<GedcomNode> names = node.getChildrenWithTag("NAME");
+		for(final GedcomNode name : names)
+			PERSONAL_NAME_TRANSFORMATION.from(name, root);
+		moveTag("_GENDER", node, "GENDER");
+		moveTag("_SEXUAL_ORIENTATION", node, "SEXUAL_ORIENTATION");
+		final List<GedcomNode> childToFamilyLinks = node.getChildrenWithTag("FAMILY_CHILD");
+		for(final GedcomNode childToFamilyLink : childToFamilyLinks)
+			CHILD_TO_FAMILY_LINK_TRANSFORMATION.from(childToFamilyLink, root);
+		final List<GedcomNode> spouseToFamilyLinks = node.getChildrenWithTag("FAMILY_SPOUSE");
+		for(final GedcomNode spouseToFamilyLink : spouseToFamilyLinks)
+			SPOUSE_TO_FAMILY_LINK_TRANSFORMATION.from(spouseToFamilyLink, root);
+		final List<GedcomNode> associationStructures = node.getChildrenWithTag("ASSOCIATION");
+		for(final GedcomNode associationStructure : associationStructures)
+			ASSOCIATION_STRUCTURE_TRANSFORMATION.from(associationStructure, root);
+		moveMultipleTag("ALIA", node, "ALIAS");
+		INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION.from(node, root);
+		INDIVIDUAL_ATTRIBUTE_STRUCTURE_TRANSFORMATION.from(node, root);
+		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
+		final List<GedcomNode> sourceCitations = node.getChildrenWithTag("SOURCE");
+		for(final GedcomNode sourceCitation : sourceCitations)
+			SOURCE_CITATION_TRANSFORMATION.from(sourceCitation, root);
+		final List<GedcomNode> multimediaLinks = node.getChildrenWithTag("DOCUMENT");
+		for(final GedcomNode multimediaLink : multimediaLinks)
+			MULTIMEDIA_LINK_TRANSFORMATION.from(multimediaLink, root);
+		moveMultipleTag("REFN", node, "SUBMITTER");
+		moveMultipleTag("RESN", node, "RESTRICTION");
+		final GedcomNode changeDate = extractSubStructure(node, "CHANGE");
+		if(!changeDate.isEmpty())
+			CHANGE_DATE_TRANSFORMATION.from(changeDate, root);
 	}
 
 }

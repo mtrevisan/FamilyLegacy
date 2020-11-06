@@ -93,7 +93,7 @@ class PersonalNameStructureTransformationTest{
 		t.to(node, root);
 		root.addChild(node);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}]}]}, {tag: NAME, children: [{tag: TYPE, value: PHONETIC_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N2, tag: NOTE}, {id: S2, tag: SOURCE}]}, {tag: NAME, children: [{tag: TYPE, value: ROMANIZED_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N3, tag: NOTE}, {id: S3, tag: SOURCE}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: PERSONAL_NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}]}]}, {tag: NAME, children: [{tag: TYPE, value: PHONETIC_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: PERSONAL_NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N2, tag: NOTE}, {id: S2, tag: SOURCE}]}, {tag: NAME, children: [{tag: TYPE, value: ROMANIZED_TYPE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: PERSONAL_NAME, value: NAME_PIECE_GIVEN}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {id: N3, tag: NOTE}, {id: S3, tag: SOURCE}]}]", root.toString());
 	}
 
 
@@ -107,7 +107,7 @@ class PersonalNameStructureTransformationTest{
 						.withValue("NAME_TYPE"))
 					.addChild(GedcomNode.create("LOCALE")
 						.withValue("en_US"))
-					.addChild(GedcomNode.create("NAME")
+					.addChild(GedcomNode.create("PERSONAL_NAME")
 						.withValue("NAME_PIECE"))
 					.addChild(GedcomNode.create("NAME_PREFIX")
 						.withValue("NAME_PIECE_PREFIX"))
@@ -129,7 +129,7 @@ class PersonalNameStructureTransformationTest{
 						.withValue("NAME_PHONETIC_VARIATION"))
 					.addChild(GedcomNode.create("LOCALE")
 						.withValue("en_US"))
-					.addChild(GedcomNode.create("NAME")
+					.addChild(GedcomNode.create("PERSONAL_NAME")
 						.withValue("NAME_PIECE"))
 					.addChild(GedcomNode.create("NAME_PREFIX")
 						.withValue("NAME_PIECE_PREFIX"))
@@ -151,7 +151,7 @@ class PersonalNameStructureTransformationTest{
 						.withValue("NAME_ROMANIZED_VARIATION"))
 					.addChild(GedcomNode.create("LOCALE")
 						.withValue("en_US"))
-					.addChild(GedcomNode.create("NAME")
+					.addChild(GedcomNode.create("PERSONAL_NAME")
 						.withValue("NAME_PIECE"))
 					.addChild(GedcomNode.create("NAME_PREFIX")
 						.withValue("NAME_PIECE_PREFIX"))
@@ -169,7 +169,7 @@ class PersonalNameStructureTransformationTest{
 						.withID("S3")))
 			);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_TYPE}, {tag: LOCALE, value: en_US}, {tag: NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}]}, {tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_PHONETIC_VARIATION}, {tag: LOCALE, value: en_US}, {tag: NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N2, tag: NOTE}, {id: S2, tag: SOUR}]}, {tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_ROMANIZED_VARIATION}, {tag: LOCALE, value: en_US}, {tag: NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N3, tag: NOTE}, {id: S3, tag: SOUR}]}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_TYPE}, {tag: LOCALE, value: en_US}, {tag: PERSONAL_NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}]}, {tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_PHONETIC_VARIATION}, {tag: LOCALE, value: en_US}, {tag: PERSONAL_NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N2, tag: NOTE}, {id: S2, tag: SOUR}]}, {tag: NAME, value: NAME_PERSONAL, children: [{tag: TYPE, value: NAME_ROMANIZED_VARIATION}, {tag: LOCALE, value: en_US}, {tag: PERSONAL_NAME, value: NAME_PIECE}, {tag: NAME_PREFIX, value: NAME_PIECE_PREFIX}, {tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: SURNAME, value: SURNAME_PIECE}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME}, {id: N3, tag: NOTE}, {id: S3, tag: SOUR}]}]}]", root.toString());
 
 		final Transformation t = new PersonalNameStructureTransformation();
 		final List<GedcomNode> names = extractSubStructure(root, "PARENT")
