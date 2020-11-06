@@ -44,7 +44,7 @@ public class AssociationStructureTransformation implements Transformation{
 				NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
 		}
 		else{
-			node.withTag(isIndividual? "ASSO": "_ASSOCIATION");
+			node.withTag("_ASSOCIATION");
 			moveTag("_TYPE", node, "TYPE");
 			moveTag("_RELATIONSHIP", node, "RELATIONSHIP");
 			moveMultipleTag("_SOURCE", node, "SOURCE");

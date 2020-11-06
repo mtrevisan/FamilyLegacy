@@ -76,7 +76,7 @@ public class FamilyEventStructureTransformation implements Transformation{
 				child.withValue(etynf.code);
 				FAMILY_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}
-			else if(child.getTag().equals("EVEN")){
+			else if("EVEN".equals(child.getTag())){
 				child.withTag("EVENT");
 				FAMILY_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}

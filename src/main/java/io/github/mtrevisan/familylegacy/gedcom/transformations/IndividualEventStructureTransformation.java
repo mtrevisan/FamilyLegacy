@@ -111,7 +111,7 @@ public class IndividualEventStructureTransformation implements Transformation{
 				moveTag("ADOPTED_BY", child, "FAMC", "ADOP");
 				moveTag("FAMILY_CHILD", child, "FAMC");
 			}
-			else if(child.getTag().equals("EVEN")){
+			else if("EVEN".equals(child.getTag())){
 				child.withTag("EVENT");
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}

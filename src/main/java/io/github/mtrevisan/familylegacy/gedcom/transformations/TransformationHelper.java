@@ -20,14 +20,19 @@ final class TransformationHelper{
 
 	private TransformationHelper(){}
 
-//	public static void addNode(final GedcomNode node, final GedcomNode context, final String... tags){
-//		final GedcomNode currentContext = extractSubStructure(context, tags);
-//
-//		if(!currentContext.isEmpty())
-//			currentContext.addChild(node);
-//	}
+	static GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
+		GedcomNode current = context;
+		for(final String tag : tags){
+			final List<GedcomNode> childrenWithTag = current.getChildrenWithTag(tag);
+			if(childrenWithTag.size() != 1)
+				return GedcomNode.createEmpty();
 
-	public static GedcomNode moveTag(final String value, final GedcomNode context, final String... tags){
+			current = childrenWithTag.get(0);
+		}
+		return current;
+	}
+
+	static GedcomNode moveTag(final String value, final GedcomNode context, final String... tags){
 		final GedcomNode currentContext = extractSubStructure(context, tags);
 
 		if(!currentContext.isEmpty())
@@ -35,7 +40,7 @@ final class TransformationHelper{
 		return currentContext;
 	}
 
-	public static List<GedcomNode> moveMultipleTag(final String value, final GedcomNode context, final String... tags){
+	static List<GedcomNode> moveMultipleTag(final String value, final GedcomNode context, final String... tags){
 		GedcomNode current = context;
 		for(int i = 0; i < tags.length - 1; i ++){
 			final String tag = tags[i];
@@ -52,7 +57,7 @@ final class TransformationHelper{
 		return currentContexts;
 	}
 
-	public static void deleteTag(final GedcomNode context, final String... tags){
+	static void deleteTag(final GedcomNode context, final String... tags){
 		final String lastTag = tags[tags.length - 1];
 		final String[] firstTags = ArrayUtils.remove(tags, tags.length - 1);
 		final GedcomNode currentContext = extractSubStructure(context, firstTags);
@@ -64,7 +69,7 @@ final class TransformationHelper{
 			currentContext.removeChildren();
 	}
 
-	public static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag){
+	static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag){
 		final List<GedcomNode> componentContext = context.getChildrenWithTag(tag);
 		for(final GedcomNode child : componentContext){
 			destination.addChild(GedcomNode.create(destinationTag)
@@ -75,8 +80,8 @@ final class TransformationHelper{
 	}
 
 
-	/** NOTE: remember to set xref! */
-	public static GedcomNode extractPlaceStructure(final GedcomNode context, final String... tags){
+	//FIXME to be removed
+	static GedcomNode extractPlaceStructure(final GedcomNode context, final String... tags){
 		final GedcomNode parentContext = extractSubStructure(context, tags);
 		final GedcomNode placeContext = extractSubStructure(parentContext, "ADDR");
 
@@ -117,13 +122,8 @@ final class TransformationHelper{
 		return place;
 	}
 
-	/** NOTE: remember to set xref! */
-	public static GedcomNode extractNote(final GedcomNode context){
-		return (context.isEmpty() || context.getID() != null? context:
-			GedcomNode.create("NOTE").withValue(context.getValueConcatenated()));
-	}
-
-	public static void transferNoteTo(final GedcomNode note, final GedcomNode root){
+	//FIXME to be removed
+	static void transferNoteTo(final GedcomNode note, final GedcomNode root){
 		if(note.getID() == null){
 			//create a note in the root:
 			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
@@ -132,51 +132,6 @@ final class TransformationHelper{
 				.withValue(note.getValueConcatenated()));
 			note.removeValue();
 		}
-	}
-
-	public static void mergeNote(final GedcomNode context, final String... keys){
-		final GedcomNode currentContext = extractSubStructure(context, keys);
-
-		if(!currentContext.isEmpty()){
-			currentContext.withValue(currentContext.getValueConcatenated());
-			deleteTag(currentContext, "CONC", "CONT");
-
-			final StringBuilder sb = new StringBuilder(currentContext.getValue());
-			final Iterator<GedcomNode> itr = currentContext.getChildren().iterator();
-			while(itr.hasNext()){
-				final GedcomNode child = itr.next();
-				if("CONC".equals(child.getTag())){
-					sb.append(child.getValue());
-					itr.remove();
-				}
-				else if("CONT".equals(child.getTag())){
-					sb.append("\\n");
-					sb.append(child.getValue());
-					itr.remove();
-				}
-			}
-			context.withValue(sb.toString());
-		}
-	}
-
-	public static void splitNote(final GedcomNode context, final String... keys){
-		final GedcomNode currentContext = extractSubStructure(context, keys);
-
-		if(!currentContext.isEmpty())
-			currentContext.withValueConcatenated(currentContext.getValue());
-	}
-
-
-	public static GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
-		GedcomNode current = context;
-		for(final String tag : tags){
-			final List<GedcomNode> childrenWithTag = current.getChildrenWithTag(tag);
-			if(childrenWithTag.size() != 1)
-				return GedcomNode.createEmpty();
-
-			current = childrenWithTag.get(0);
-		}
-		return current;
 	}
 
 }

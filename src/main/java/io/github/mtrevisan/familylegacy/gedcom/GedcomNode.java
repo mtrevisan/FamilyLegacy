@@ -262,7 +262,7 @@ public final class GedcomNode{
 	}
 
 	public boolean hasChildren(){
-		return (children != null && children.size() > 0);
+		return (children != null && !children.isEmpty());
 	}
 
 	public List<GedcomNode> getChildren(){
@@ -276,7 +276,7 @@ public final class GedcomNode{
 		if(children == null)
 			children = new ArrayList<>(1);
 
-		if(child.getLevel() != level + 1){
+		if(child.level != level + 1){
 			int currentLevel = level + 1;
 			child.setLevel(currentLevel ++);
 			final Deque<GedcomNode> stack = new ArrayDeque<>();
@@ -308,14 +308,14 @@ public final class GedcomNode{
 		children.add(index, child);
 	}
 
-	public GedcomNode withChildren(final List<GedcomNode> children){
+	public GedcomNode withChildren(final Iterable<GedcomNode> children){
 		for(final GedcomNode child : children)
 			addChild(child);
 		return this;
 	}
 
 	public GedcomNode removeChild(final GedcomNode child){
-		if(children != null && child.getTag() != null){
+		if(children != null && child.tag != null){
 			children.remove(child);
 
 			if(children.isEmpty())
@@ -346,7 +346,7 @@ public final class GedcomNode{
 	public GedcomNode getChildWithIDAndTag(final String id, final String... tags){
 		if(children != null)
 			for(final GedcomNode child : children)
-				if(ArrayUtils.contains(tags, child.tag) && id.equals(child.getID()))
+				if(ArrayUtils.contains(tags, child.tag) && id.equals(child.id))
 					return child;
 		return createEmpty();
 	}

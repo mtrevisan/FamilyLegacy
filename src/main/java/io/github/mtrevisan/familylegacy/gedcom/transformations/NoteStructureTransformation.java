@@ -3,8 +3,6 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
-
 
 public class NoteStructureTransformation implements Transformation{
 
