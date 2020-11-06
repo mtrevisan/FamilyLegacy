@@ -1,18 +1,12 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlaceStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.mergeNote;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.splitNote;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.transferValues;
 
 
 /*
@@ -189,7 +183,6 @@ n @<XREF:FAM>@ FAM    {1:1}
 	+2 DATE <CHANGE_DATE>    {1:1}
 	+1 <<NOTE_STRUCTURE>>    {0:M}
 	+1 <<SOURCE_CITATION>>    {0:M}
-
 */
 //TODO
 public class IndividualRecordTransformation implements Transformation{
@@ -199,6 +192,7 @@ public class IndividualRecordTransformation implements Transformation{
 	private static final Transformation SPOUSE_TO_FAMILY_LINK_TRANSFORMATION = new SpouseToFamilyLinkTransformation();
 	private static final Transformation ASSOCIATION_STRUCTURE_TRANSFORMATION = new AssociationStructureTransformation();
 	private static final Transformation NOTE_STRUCTURE_TRANSFORMATION = new NoteStructureTransformation();
+	private static final Transformation INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION = new IndividualEventStructureTransformation();
 
 
 	@Override
@@ -232,39 +226,16 @@ public class IndividualRecordTransformation implements Transformation{
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			NOTE_STRUCTURE_TRANSFORMATION.to(note, root);
+		INDIVIDUAL_EVENT_STRUCTURE_TRANSFORMATION.to(node, root);
 
 		//TODO
 /*
-		+1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}		+1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}
 		+1 <<INDIVIDUAL_ATTRIBUTE_STRUCTURE>>    {0:M}	+1 <<INDIVIDUAL_ATTRIBUTE_STRUCTURE>>    {0:M}
 		+1 <<SOURCE_CITATION>>    {0:M}						+1 SOURCE @<XREF:SOURCE>@    {0:M}
 		+1 <<MULTIMEDIA_LINK>>    {0:M}						+1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}
 		+2 TYPE <USER_REFERENCE_TYPE>    {0:1}
 		+1 <<CHANGE_DATE>>    {0:1}							+1 <<CHANGE_DATE>>    {0:1}
 */
-
-		final GedcomNode header = moveTag("HEADER", root, "HEAD");
-//		final GedcomNode headerSource = moveMultipleTag("SOURCE", header, "SOUR");
-//		moveMultipleTag("VERSION", headerSource, "VERS");
-//		final GedcomNode headerSourceCorporate = moveMultipleTag("CORPORATE", headerSource, "CORP");
-//		final GedcomNode sourceCorporatePlace = extractPlaceStructure(headerSource, "CORPORATE")
-//			.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
-//		root.addChild(sourceCorporatePlace, 1);
-//		headerSourceCorporate.addChild(GedcomNode.create("PLACE")
-//			.withID(sourceCorporatePlace.getID()));
-		deleteTag(header, "DEST");
-		deleteTag(header, "DATE");
-		moveMultipleTag("SUBMITTER", header, "SUBM");
-		deleteTag(header, "SUBN");
-		deleteTag(header, "FILE");
-		moveMultipleTag("COPYRIGHT", header, "COPR");
-		header.addChild(GedcomNode.create("PROTOCOL_VERSION")
-			.withValue("0.0.1"));
-		deleteTag(header, "GEDC");
-		transferValues(header, "CHAR", header, "CHARSET");
-		deleteTag(header, "LANG");
-		deleteTag(header, "PLACE");
-		mergeNote(header, "NOTE");
 	}
 
 	@Override
