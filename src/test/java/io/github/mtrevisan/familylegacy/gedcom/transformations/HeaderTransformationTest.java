@@ -1,9 +1,8 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 
