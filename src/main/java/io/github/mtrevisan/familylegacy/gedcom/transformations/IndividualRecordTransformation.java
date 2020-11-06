@@ -161,25 +161,6 @@ n @<XREF:FAM>@ FAM    {1:1}
 	]
 
 
-	INDIVIDUAL_EVENT_STRUCTURE :=
-	[
-	n [ BIRT | CHR ] [Y|<NULL>]    {1:1}
-	+1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-	+1 FAMC @<XREF:FAM>@    {0:1}
-	|
-	n DEAT [Y|<NULL>]    {1:1}
-	+1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-	|
-	n [ BURI | CREM | BAPM | BARM | BASM | BLES | CHRA | CONF | FCOM | ORDN | NATU | EMIG | IMMI | CENS | PROB | WILL | GRAD | RETI | EVEN ]    {1:1}
-	+1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-	|
-	n ADOP    {1:1}
-	+1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-	+1 FAMC @<XREF:FAM>@    {0:1}
-	+2 ADOP <ADOPTED_BY_WHICH_PARENT>    {0:1}
-	]
-
-
 	LDS_INDIVIDUAL_ORDINANCE :=
 	[
 	n [ BAPL | CONL ]    {1:1}

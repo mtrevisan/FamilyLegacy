@@ -2,40 +2,86 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
-/*
-INDIVIDUAL_EVENT_STRUCTURE :=
-[
-n [ BIRT | CHR ] [Y|<NULL>]    {1:1}
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-  +1 FAMC @<XREF:FAM>@    {0:1}
-|
-n DEAT [Y|<NULL>]    {1:1}
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-|
-n [ BURI | CREM | BAPM | BARM | BASM | BLES | CHRA | CONF | FCOM | ORDN | NATU | EMIG | IMMI | CENS | PROB | WILL | GRAD | RETI | EVEN ]    {1:1}
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-|
-n ADOP    {1:1}
-  +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}
-  +1 FAMC @<XREF:FAM>@    {0:1}
-    +2 ADOP <ADOPTED_BY_WHICH_PARENT>    {0:1}
-]
-
-*/
 public class IndividualEventStructureTransformation implements Transformation{
 
-	private static final Set<String> EVENTS_Y_NULL_FAMILY = new HashSet<>(Arrays.asList("BIRT", "CHR"));
-	private static final Set<String> EVENTS_Y_NULL = new HashSet<>(Arrays.asList("DEAT"));
-	private static final Set<String> EVENTS = new HashSet<>(Arrays.asList("BURI", "CREM", "BAPM", "BARM", "BASM", "BLES", "CHRA", "CONF",
-		"FCOM", "ORDN", "NATU", "EMIG", "IMMI", "CENS", "PROB", "WILL", "GRAD", "RETI", "EVEN"));
-	private static final Set<String> EVENTS_FAMILY = new HashSet<>(Arrays.asList("ADOP"));
+	private enum EventTag{
+		DEAT("DEATH"),
+		BURI("BURIAL"), CREM("CREMATION"), BAPM("_BAPM"), BARM("_BARM"), BASM("_BASM"), BLES("_BLES"),
+		CHRA("_CHRA"), CONF("_CONF"), FCOM("_FCOM"), ORDN("_ORDNM"), NATU("NATURALIZATION"),
+		EMIG("EMIGRATION"), IMMI("IMMIGRATION"), CENS("CENSUS"), PROB("PROBATE"), WILL("WILL"),
+		GRAD("GRADUATION"), RETI("RETIREMENT"), EVEN("EVENT");
+
+		private final String code;
+
+		static EventTag fromTag(final String tag){
+			for(final EventTag et : values())
+				if(et.toString().equals(tag))
+					return et;
+			return null;
+		}
+
+		static EventTag fromCode(final String code){
+			for(final EventTag et : values())
+				if(et.code.equals(code))
+					return et;
+			return null;
+		}
+
+		EventTag(final String code){
+			this.code = code;
+		}
+	}
+
+	private enum EventTagYNullFamily{
+		BIRT("BIRTH"), CHR("_CHR");
+
+		private final String code;
+
+		static EventTagYNullFamily fromTag(final String tag){
+			for(final EventTagYNullFamily etynf : values())
+				if(etynf.toString().equals(tag))
+					return etynf;
+			return null;
+		}
+
+		static EventTagYNullFamily fromCode(final String code){
+			for(final EventTagYNullFamily etynf : values())
+				if(etynf.code.equals(code))
+					return etynf;
+			return null;
+		}
+
+		EventTagYNullFamily(final String code){
+			this.code = code;
+		}
+	}
+
+	private enum EventFamilyTag{
+		ADOP("ADOPTION");
+
+		private final String code;
+
+		static EventFamilyTag fromTag(final String tag){
+			for(final EventFamilyTag eft : values())
+				if(eft.toString().equals(tag))
+					return eft;
+			return null;
+		}
+
+		static EventFamilyTag fromCode(final String code){
+			for(final EventFamilyTag eft : values())
+				if(eft.code.equals(code))
+					return eft;
+			return null;
+		}
+
+		EventFamilyTag(final String code){
+			this.code = code;
+		}
+	}
 
 	private static final Transformation INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION = new IndividualEventDetailTransformation();
 
@@ -44,22 +90,23 @@ public class IndividualEventStructureTransformation implements Transformation{
 	public void to(final GedcomNode node, final GedcomNode root){
 		for(final GedcomNode child : node.getChildren()){
 			final String tag = child.getTag();
-			if(EVENTS_Y_NULL_FAMILY.contains(tag)){
-				final String value = child.getValue();
-				child.withValue("BIRT".equals(value)? "BIRTH": "_CHR");
+			final EventTag et = EventTag.fromTag(tag);
+			final EventTagYNullFamily etynf = EventTagYNullFamily.fromTag(tag);
+			final EventFamilyTag eft = EventFamilyTag.fromTag(tag);
+			if(et != null){
+				child.withTag("EVENT");
+				child.withValue(et.code);
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
+			}
+			else if(etynf != null){
+				child.withTag("EVENT");
+				child.withValue(etynf.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 				moveTag("FAMILY_CHILD", child, "FAMC");
 			}
-			else if(EVENTS_Y_NULL.contains(tag)){
-				child.withValue("DEATH");
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
-			}
-			else if(EVENTS.contains(tag)){
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
-				//TODO
-			}
-			else if(EVENTS_FAMILY.contains(tag)){
-				child.withValue("ADOPTION");
+			else if(eft != null){
+				child.withTag("EVENT");
+				child.withValue(eft.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 				moveTag("ADOPTED_BY", child, "FAMC", "ADOP");
 				moveTag("FAMILY_CHILD", child, "FAMC");
@@ -69,7 +116,30 @@ public class IndividualEventStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		//TODO
+		for(final GedcomNode child : node.getChildren()){
+			final String tag = child.getValue();
+			final EventTag et = EventTag.fromCode(tag);
+			final EventTagYNullFamily etynf = EventTagYNullFamily.fromCode(tag);
+			final EventFamilyTag eft = EventFamilyTag.fromCode(tag);
+			if(et != null){
+				child.withTag(et.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+			}
+			else if(etynf != null){
+				child.withTag(etynf.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				moveTag("FAMILY_CHILD", child, "FAMC");
+			}
+			else if(eft != null){
+				child.withTag(eft.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				moveTag("FAMC", child, "FAMILY_CHILD");
+				moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
+			}
+		}
 	}
 
 }
