@@ -85,26 +85,27 @@ public class FamilyEventStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		for(final GedcomNode child : node.getChildren()){
-			final String tag = child.getValue();
-			final EventTag et = EventTag.fromCode(tag);
-			final EventTagYNull etynf = EventTagYNull.fromCode(tag);
-			if(et != null){
-				child.withTag(et.toString());
-				child.removeValue();
-				FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+		for(final GedcomNode child : node.getChildren())
+			if("EVENT".equals(child.getTag())){
+				final String code = child.getValue();
+				final EventTag et = EventTag.fromCode(code);
+				final EventTagYNull etynf = EventTagYNull.fromCode(code);
+				if(et != null){
+					child.withTag(et.toString());
+					child.removeValue();
+					FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				}
+				else if(etynf != null){
+					child.withTag(etynf.toString());
+					child.removeValue();
+					FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+					moveTag("FAMILY_CHILD", child, "FAMC");
+				}
+				else{
+					child.withTag("CHILDREN_COUNT".equals(child.getValue())? "_EVEN": "EVEN");
+					FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				}
 			}
-			else if(etynf != null){
-				child.withTag(etynf.toString());
-				child.removeValue();
-				FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-				moveTag("FAMILY_CHILD", child, "FAMC");
-			}
-			else if(child.getTag().equals("EVENT")){
-				child.withTag("CHILDREN_COUNT".equals(child.getValue())? "_EVEN": "EVEN");
-				FAMILY_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-			}
-		}
 	}
 
 }

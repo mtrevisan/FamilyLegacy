@@ -3,6 +3,8 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
+
 
 public class NoteStructureTransformation implements Transformation{
 
@@ -20,7 +22,7 @@ public class NoteStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		node.withValueConcatenated(node.getValueConcatenated());
+		node.withValueConcatenated(node.getValue());
 	}
 
 }

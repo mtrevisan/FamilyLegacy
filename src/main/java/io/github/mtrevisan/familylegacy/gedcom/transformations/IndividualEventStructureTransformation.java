@@ -59,26 +59,26 @@ public class IndividualEventStructureTransformation implements Transformation{
 		}
 	}
 
-	private enum EventFamilyTag{
+	private enum EventTagFamily{
 		ADOP("ADOPTION");
 
 		private final String code;
 
-		static EventFamilyTag fromTag(final String tag){
-			for(final EventFamilyTag eft : values())
-				if(eft.toString().equals(tag))
-					return eft;
+		static EventTagFamily fromTag(final String tag){
+			for(final EventTagFamily etf : values())
+				if(etf.toString().equals(tag))
+					return etf;
 			return null;
 		}
 
-		static EventFamilyTag fromCode(final String code){
-			for(final EventFamilyTag eft : values())
-				if(eft.code.equals(code))
-					return eft;
+		static EventTagFamily fromCode(final String code){
+			for(final EventTagFamily etf : values())
+				if(etf.code.equals(code))
+					return etf;
 			return null;
 		}
 
-		EventFamilyTag(final String code){
+		EventTagFamily(final String code){
 			this.code = code;
 		}
 	}
@@ -92,7 +92,7 @@ public class IndividualEventStructureTransformation implements Transformation{
 			final String tag = child.getTag();
 			final EventTag et = EventTag.fromTag(tag);
 			final EventTagYNullFamily etynf = EventTagYNullFamily.fromTag(tag);
-			final EventFamilyTag eft = EventFamilyTag.fromTag(tag);
+			final EventTagFamily eft = EventTagFamily.fromTag(tag);
 			if(et != null){
 				child.withTag("EVENT");
 				child.withValue(et.code);
@@ -120,34 +120,35 @@ public class IndividualEventStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		for(final GedcomNode child : node.getChildren()){
-			final String tag = child.getValue();
-			final EventTag et = EventTag.fromCode(tag);
-			final EventTagYNullFamily etynf = EventTagYNullFamily.fromCode(tag);
-			final EventFamilyTag eft = EventFamilyTag.fromCode(tag);
-			if(et != null){
-				child.withTag(et.toString());
-				child.removeValue();
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+		for(final GedcomNode child : node.getChildren())
+			if("EVENT".equals(child.getTag())){
+				final String code = child.getValue();
+				final EventTag et = EventTag.fromCode(code);
+				final EventTagYNullFamily etynf = EventTagYNullFamily.fromCode(code);
+				final EventTagFamily eft = EventTagFamily.fromCode(code);
+				if(et != null){
+					child.withTag(et.toString());
+					child.removeValue();
+					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				}
+				else if(etynf != null){
+					child.withTag(etynf.toString());
+					child.removeValue();
+					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+					moveTag("FAMILY_CHILD", child, "FAMC");
+				}
+				else if(eft != null){
+					child.withTag(eft.toString());
+					child.removeValue();
+					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+					moveTag("FAMC", child, "FAMILY_CHILD");
+					moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
+				}
+				else{
+					child.withTag("EVEN");
+					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				}
 			}
-			else if(etynf != null){
-				child.withTag(etynf.toString());
-				child.removeValue();
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-				moveTag("FAMILY_CHILD", child, "FAMC");
-			}
-			else if(eft != null){
-				child.withTag(eft.toString());
-				child.removeValue();
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-				moveTag("FAMC", child, "FAMILY_CHILD");
-				moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
-			}
-			else if(child.getTag().equals("EVENT")){
-				child.withTag("EVEN");
-				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-			}
-		}
 	}
 
 }

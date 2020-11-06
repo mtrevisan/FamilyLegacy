@@ -26,15 +26,18 @@ public class SourceCitationTransformation implements Transformation{
 			final GedcomNode dataText = extractSubStructure(node, "DATA", "TEXT");
 			if(!dataText.isEmpty()){
 				dataText.withValue(dataText.getValueConcatenated());
+				deleteTag(dataText, "CONC", "CONT");
 				node.addChild(dataText);
 			}
 			deleteTag(node, "DATA");
 		}
 		else{
 			node.withValue(node.getValueConcatenated());
+			deleteTag(node, "CONC", "CONT");
 			final GedcomNode dataText = extractSubStructure(node, "TEXT");
 			if(!dataText.isEmpty()){
 				dataText.withValue(dataText.getValueConcatenated());
+				deleteTag(dataText, "CONC", "CONT");
 				node.addChild(dataText);
 			}
 		}
