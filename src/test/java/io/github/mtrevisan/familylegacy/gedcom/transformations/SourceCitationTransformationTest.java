@@ -88,18 +88,18 @@ class SourceCitationTransformationTest{
 					.addChild(GedcomNode.create("PAGE")
 						.withValue("WHERE_WITHIN_SOURCE"))
 					.addChild(GedcomNode.create("DOCUMENT")
-						.withValue("D1"))
+						.withID("D1"))
 					.addChild(GedcomNode.create("NOTE")
-						.withValue("N1"))
+						.withID("N1"))
 					.addChild(GedcomNode.create("CREDIBILITY")
 						.withValue("CREDIBILITY_ASSESSMENT"))));
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: DOCUMENT, value: D1}, {tag: NOTE, value: N1}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: PAGE, value: WHERE_WITHIN_SOURCE}, {id: D1, tag: DOCUMENT}, {id: N1, tag: NOTE}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}]}]", root.toString());
 
 		final Transformation t = new SourceCitationTransformation();
 		t.from(extractSubStructure(root, "PARENT", "SOURCE"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: S1, tag: SOUR, children: [{tag: EVEN, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: OBJE, value: D1}, {tag: NOTE, value: N1}, {tag: QUAY, value: CREDIBILITY_ASSESSMENT}, {tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}]}]}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: S1, tag: SOUR, children: [{tag: EVEN, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: PAGE, value: WHERE_WITHIN_SOURCE}, {id: D1, tag: OBJE}, {id: N1, tag: NOTE}, {tag: QUAY, value: CREDIBILITY_ASSESSMENT}, {tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}]}]}]}]", root.toString());
 	}
 
 }

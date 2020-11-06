@@ -25,19 +25,19 @@ class NoteRecordTransformationTest{
 					.addChild(GedcomNode.create("RIN")
 						.withValue("AUTOMATED_RECORD_ID"))
 					.addChild(GedcomNode.create("SOUR")
-						.withValue("S1"))
+						.withID("S1"))
 					.addChild(GedcomNode.create("CHAN")
 						.addChild(GedcomNode.create("DATE")
 							.withValue("CHANGE_DATE")))))
 			.addChild(GedcomNode.create("SOUR")
 				.withID("S1"));
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXT, children: [{tag: CONC, value: SUBMITTER_TEXT}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: SOUR, value: S1}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXT, children: [{tag: CONC, value: SUBMITTER_TEXT}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {id: S1, tag: SOUR}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
 
 		final Transformation t = new NoteRecordTransformation();
 		t.to(extractSubStructure(root, "PARENT", "NOTE"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXTSUBMITTER_TEXT, children: [{tag: SUBMITTER, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {tag: SOURCE, value: S1}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: N1, tag: NOTE, value: SUBMITTER_TEXTSUBMITTER_TEXT, children: [{tag: SUBMITTER, value: USER_REFERENCE_NUMBER, children: [{tag: _TYPE, value: USER_REFERENCE_TYPE}]}, {tag: _RIN, value: AUTOMATED_RECORD_ID}, {id: S1, tag: SOURCE}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: S1, tag: SOUR}]", root.toString());
 	}
 
 	@Test
