@@ -54,7 +54,7 @@ class RepositoryRecordTransformationTest{
 					.addChild(GedcomNode.create("SUBMITTER")
 						.withID("SUBM1"))
 					.addChild(GedcomNode.create("RESTRICTION")
-						.withID("RESTRICTION_NOTICE"))
+						.withValue("RESTRICTION_NOTICE"))
 					.addChild(GedcomNode.create("CHANGE")
 						.addChild(GedcomNode.create("DATE")
 							.withValue("CHANGE_DATE")))
@@ -64,12 +64,12 @@ class RepositoryRecordTransformationTest{
 				.addChild(GedcomNode.create("NAME")
 					.withValue("PLACE_NAME")));
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: P1, tag: PLACE}, {id: N1, tag: NOTE}, {id: SUBM1, tag: SUBMITTER}, {id: RESTRICTION_NOTICE, tag: RESTRICTION}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: P1, tag: PLACE}, {id: N1, tag: NOTE}, {id: SUBM1, tag: SUBMITTER}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
 
 		final Transformation t = new RepositoryRecordTransformation();
 		t.from(extractSubStructure(root, "PARENT", "REPOSITORY"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, children: [{tag: NAME, value: PLACE_NAME}]}, {id: N1, tag: NOTE}, {id: SUBM1, tag: _SUBMITTER}, {id: RESTRICTION_NOTICE, tag: _RESTRICTION}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, children: [{tag: NAME, value: PLACE_NAME}]}, {id: N1, tag: NOTE}, {id: SUBM1, tag: _SUBMITTER}, {tag: _RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}]}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
 	}
 
 }

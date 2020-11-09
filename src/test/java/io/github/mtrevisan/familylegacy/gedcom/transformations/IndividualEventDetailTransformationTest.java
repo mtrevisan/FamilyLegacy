@@ -76,7 +76,7 @@ class IndividualEventDetailTransformationTest{
 					.addChild(GedcomNode.create("DOCUMENT")
 						.withID("D1"))
 					.addChild(GedcomNode.create("RESTRICTION")
-						.withID("RESTRICTION_NOTICE"))
+						.withValue("RESTRICTION_NOTICE"))
 				)
 			)
 			.addChild(GedcomNode.create("NOTE")
@@ -84,12 +84,12 @@ class IndividualEventDetailTransformationTest{
 			.addChild(GedcomNode.create("PLACE")
 				.withID("P1"));
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION, children: [{tag: DATE, value: DATE_TIME_VALUE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: P1, tag: PLACE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGENCY, value: RESPONSIBLE_AGENCY}, {tag: CAUSE, value: CAUSE_OF_EVENT, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: D1, tag: DOCUMENT}, {id: RESTRICTION_NOTICE, tag: RESTRICTION}]}]}, {id: N1, tag: NOTE}, {id: P1, tag: PLACE}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION, children: [{tag: DATE, value: DATE_TIME_VALUE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: P1, tag: PLACE, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGENCY, value: RESPONSIBLE_AGENCY}, {tag: CAUSE, value: CAUSE_OF_EVENT, children: [{tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: D1, tag: DOCUMENT}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]}]}, {id: N1, tag: NOTE}, {id: P1, tag: PLACE}]", root.toString());
 
 		final Transformation t = new IndividualEventDetailTransformation();
 		t.from(extractSubStructure(root, "PARENT"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION, children: [{tag: ADDR, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: D1, tag: OBJE}]}, {tag: DATE, value: DATE_TIME_VALUE, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: CAUS, value: CAUSE_OF_EVENT, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: RESTRICTION_NOTICE, tag: RESN}]}, {id: N1, tag: NOTE}, {id: P1, tag: PLACE}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION, children: [{tag: ADDR, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: D1, tag: OBJE}]}, {tag: DATE, value: DATE_TIME_VALUE, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: CAUS, value: CAUSE_OF_EVENT, children: [{tag: _CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: RESN, value: RESTRICTION_NOTICE}]}, {id: N1, tag: NOTE}, {id: P1, tag: PLACE}]", root.toString());
 	}
 
 }

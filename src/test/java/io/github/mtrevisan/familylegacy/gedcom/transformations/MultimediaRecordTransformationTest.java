@@ -78,7 +78,7 @@ class MultimediaRecordTransformationTest{
 					.addChild(GedcomNode.create("SUBMITTER")
 						.withID("SUBM1"))
 					.addChild(GedcomNode.create("RESTRICTION")
-						.withID("RESTRICTION_NOTICE"))
+						.withValue("RESTRICTION_NOTICE"))
 					.addChild(GedcomNode.create("CHANGE")
 						.addChild(GedcomNode.create("DATE")
 							.withValue("CHANGE_DATE")
@@ -93,12 +93,12 @@ class MultimediaRecordTransformationTest{
 			.addChild(GedcomNode.create("SUBMITTER")
 				.withID("SUBM1"));
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: D1, tag: DOCUMENT, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITLE, value: FILE_DESCRIPTIVE_TITLE}, {tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: TYPE, value: SOURCE_MEDIA_TYPE}, {tag: CUT, value: CUT_COORDINATES}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}, {id: RESTRICTION_NOTICE, tag: RESTRICTION}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE, children: [{tag: TIME, value: TIME_VALUE}]}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: D1, tag: DOCUMENT, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITLE, value: FILE_DESCRIPTIVE_TITLE}, {tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: TYPE, value: SOURCE_MEDIA_TYPE}, {tag: CUT, value: CUT_COORDINATES}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CHANGE, children: [{tag: DATE, value: CHANGE_DATE, children: [{tag: TIME, value: TIME_VALUE}]}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]", root.toString());
 
 		final Transformation t = new MultimediaRecordTransformation();
 		t.from(extractSubStructure(root, "PARENT", "DOCUMENT"), root);
 
-		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: D1, tag: OBJE, children: [{tag: _TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: FILE_DESCRIPTIVE_TITLE}, {tag: FORM, value: DOCUMENT_FORMAT, children: [{tag: TYPE, value: SOURCE_MEDIA_TYPE}]}, {tag: _CUT, value: CUT_COORDINATES}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {id: SUBM1, tag: _SUBMITTER}, {id: RESTRICTION_NOTICE, tag: _RESN}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE, children: [{tag: TIME, value: TIME_VALUE}]}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]", root.toString());
+		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: D1, tag: OBJE, children: [{tag: _TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: FILE_DESCRIPTIVE_TITLE}, {tag: FORM, value: DOCUMENT_FORMAT, children: [{tag: TYPE, value: SOURCE_MEDIA_TYPE}]}, {tag: _CUT, value: CUT_COORDINATES}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {id: SUBM1, tag: _SUBMITTER}, {tag: _RESN, value: RESTRICTION_NOTICE}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE, children: [{tag: TIME, value: TIME_VALUE}]}]}]}]}, {id: N1, tag: NOTE, value: SUBMITTER_TEXT}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]", root.toString());
 	}
 
 }

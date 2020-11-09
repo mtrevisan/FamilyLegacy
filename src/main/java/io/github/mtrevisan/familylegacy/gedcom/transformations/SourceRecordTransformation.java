@@ -15,6 +15,7 @@ public class SourceRecordTransformation implements Transformation{
 	private static final Transformation CHANGE_DATE_TRANSFORMATION = new ChangeDateTransformation();
 	private static final Transformation NOTE_STRUCTURE_TRANSFORMATION = new NoteStructureTransformation();
 	private static final Transformation MULTIMEDIA_LINK_TRANSFORMATION = new MultimediaLinkTransformation();
+	private static final Transformation SOURCE_REPOSITORY_CITATION = new SourceRepositoryCitationTransformation();
 
 
 	@Override
@@ -52,7 +53,9 @@ public class SourceRecordTransformation implements Transformation{
 			deleteMultipleTag(text, "CONC");
 			deleteMultipleTag(text, "CONT");
 		}
-		deleteMultipleTag(node, "REPO");
+		final List<GedcomNode> sourceRepositoryCitations = node.getChildrenWithTag("REPO");
+		for(final GedcomNode sourceRepositoryCitation : sourceRepositoryCitations)
+			SOURCE_REPOSITORY_CITATION.to(sourceRepositoryCitation, root);
 		moveMultipleTag("_REFN", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final GedcomNode changeDate = extractSubStructure(node, "CHAN");
@@ -69,12 +72,6 @@ public class SourceRecordTransformation implements Transformation{
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
 		node.withTag("SOUR");
-		moveMultipleTag("PLAC", node, "DATA", "EVENT", "PLACE");
-		moveMultipleTag("EVEN", node, "DATA", "EVENT");
-		moveMultipleTag("AGNC", node, "DATA", "AGENCY");
-		List<GedcomNode> notes = node.getChildrenWithTag("DATA", "NOTE");
-		for(final GedcomNode note : notes)
-			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
 		final GedcomNode title = extractSubStructure(node, "TITLE");
 		if(!title.isEmpty()){
 			title.withTag("TITL");
@@ -95,6 +92,19 @@ public class SourceRecordTransformation implements Transformation{
 		final GedcomNode text = extractSubStructure(node, "TEXT");
 		if(!text.isEmpty())
 			text.withValueConcatenated(text.getValue());
+		final List<GedcomNode> multimediaLinks = node.getChildrenWithTag("DOCUMENT");
+		for(final GedcomNode multimediaLink : multimediaLinks)
+			MULTIMEDIA_LINK_TRANSFORMATION.from(multimediaLink, root);
+		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			NOTE_STRUCTURE_TRANSFORMATION.from(note, root);
+		final List<GedcomNode> sourceRepositoryCitations = node.getChildrenWithTag("REPOSITORY");
+		for(final GedcomNode sourceRepositoryCitation : sourceRepositoryCitations)
+			SOURCE_REPOSITORY_CITATION.from(sourceRepositoryCitation, root);
+		moveMultipleTag("_RESTRICTION", node, "RESTRICTION");
+		final GedcomNode changeDate = extractSubStructure(node, "CHANGE");
+		if(!changeDate.isEmpty())
+			CHANGE_DATE_TRANSFORMATION.from(changeDate, root);
 	}
 
 }
