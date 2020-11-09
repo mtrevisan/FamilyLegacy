@@ -120,35 +120,34 @@ public class IndividualEventStructureTransformation implements Transformation{
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		for(final GedcomNode child : node.getChildren())
-			if("EVENT".equals(child.getTag())){
-				final String code = child.getValue();
-				final EventTag et = EventTag.fromCode(code);
-				final EventTagYNullFamily etynf = EventTagYNullFamily.fromCode(code);
-				final EventTagFamily eft = EventTagFamily.fromCode(code);
-				if(et != null){
-					child.withTag(et.toString());
-					child.removeValue();
-					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-				}
-				else if(etynf != null){
-					child.withTag(etynf.toString());
-					child.removeValue();
-					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-					moveTag("FAMILY_CHILD", child, "FAMC");
-				}
-				else if(eft != null){
-					child.withTag(eft.toString());
-					child.removeValue();
-					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-					moveTag("FAMC", child, "FAMILY_CHILD");
-					moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
-				}
-				else{
-					child.withTag("EVEN");
-					INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
-				}
+		for(final GedcomNode child : node.getChildrenWithTag("EVENT")){
+			final String code = child.getValue();
+			final EventTag et = EventTag.fromCode(code);
+			final EventTagYNullFamily etynf = EventTagYNullFamily.fromCode(code);
+			final EventTagFamily eft = EventTagFamily.fromCode(code);
+			if(et != null){
+				child.withTag(et.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
 			}
+			else if(etynf != null){
+				child.withTag(etynf.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				moveTag("FAMILY_CHILD", child, "FAMC");
+			}
+			else if(eft != null){
+				child.withTag(eft.toString());
+				child.removeValue();
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+				moveTag("FAMC", child, "FAMILY_CHILD");
+				moveTag("ADOP", child, "FAMC", "ADOPTED_BY");
+			}
+			else{
+				child.withTag("EVEN");
+				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.from(child, root);
+			}
+		}
 	}
 
 }
