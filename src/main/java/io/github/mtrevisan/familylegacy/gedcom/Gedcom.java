@@ -38,7 +38,7 @@ public class Gedcom extends Store<Gedcom>{
 	private static final String TAG_HEADER = "HEAD";
 	private static final String TAG_INDIVIDUAL = "INDI";
 	private static final String TAG_FAMILY = "FAM";
-	private static final String TAG_MEDIA = "OBJE";
+	private static final String TAG_DOCUMENT = "OBJE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPO";
 	private static final String TAG_SOURCE = "SOUR";
@@ -50,7 +50,7 @@ public class Gedcom extends Store<Gedcom>{
 	private GedcomNode header = GedcomNode.createEmpty();
 	private List<GedcomNode> people;
 	private List<GedcomNode> families;
-	private List<GedcomNode> media;
+	private List<GedcomNode> documents;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
@@ -59,7 +59,7 @@ public class Gedcom extends Store<Gedcom>{
 
 	private Map<String, GedcomNode> personIndex;
 	private Map<String, GedcomNode> familyIndex;
-	private Map<String, GedcomNode> mediaIndex;
+	private Map<String, GedcomNode> documentIndex;
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
@@ -93,7 +93,7 @@ public class Gedcom extends Store<Gedcom>{
 		g.header = heads.get(0);
 		g.people = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		g.families = root.getChildrenWithTag(TAG_FAMILY);
-		g.media = root.getChildrenWithTag(TAG_MEDIA);
+		g.documents = root.getChildrenWithTag(TAG_DOCUMENT);
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
 		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
@@ -108,7 +108,7 @@ public class Gedcom extends Store<Gedcom>{
 
 		g.personIndex = generateIndexes(g.people);
 		g.familyIndex = generateIndexes(g.families);
-		g.mediaIndex = generateIndexes(g.media);
+		g.documentIndex = generateIndexes(g.documents);
 		g.noteIndex = generateIndexes(g.notes);
 		g.repositoryIndex = generateIndexes(g.repositories);
 		g.sourceIndex = generateIndexes(g.sources);
@@ -152,12 +152,12 @@ public class Gedcom extends Store<Gedcom>{
 		return familyIndex.get(id);
 	}
 
-	public List<GedcomNode> getMedia(){
-		return media;
+	public List<GedcomNode> getDocuments(){
+		return documents;
 	}
 
-	public GedcomNode getMedia(final String id){
-		return mediaIndex.get(id);
+	public GedcomNode getDocument(final String id){
+		return documentIndex.get(id);
 	}
 
 	public List<GedcomNode> getNotes(){

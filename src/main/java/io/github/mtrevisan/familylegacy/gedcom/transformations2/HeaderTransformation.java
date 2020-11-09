@@ -48,7 +48,7 @@ public class HeaderTransformation implements Transformation<Gedcom, Flef>{
 		deleteTag(header, "PLAC");
 		final GedcomNode note = extractSubStructure(header, "NOTE");
 		if(!note.isEmpty())
-			note.withValue(note.getValueConcatenated());
+			note.withValue(note.extractValueConcatenated());
 
 		destination.getHeader()
 			.cloneFrom(header);

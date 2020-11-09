@@ -61,7 +61,7 @@ public class PlaceAddressStructureTransformation implements Transformation{
 		if(!addr.isEmpty()){
 			addr.withTag("ADDRESS");
 			final StringJoiner address = new StringJoiner(" - ");
-			final String addrConcatenated = addr.getValueConcatenated();
+			final String addrConcatenated = addr.extractValueConcatenated();
 			if(addrConcatenated != null)
 				address.add(addrConcatenated);
 			else if(place.getValue() != null)

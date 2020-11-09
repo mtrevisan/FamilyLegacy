@@ -55,7 +55,7 @@ public class HeaderTransformation implements Transformation{
 			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 			root.addChild(GedcomNode.create("NOTE")
 				.withID(note.getID())
-				.withValue(note.getValueConcatenated()));
+				.withValue(note.extractValueConcatenated()));
 			note.removeValue();
 		}
 	}

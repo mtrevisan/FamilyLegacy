@@ -18,7 +18,7 @@ public class NoteRecordTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		node.withValue(node.getValueConcatenated());
+		node.withValue(node.extractValueConcatenated());
 		deleteMultipleTag(node, "CONC");
 		deleteMultipleTag(node, "CONT");
 		moveMultipleTag("_REFN", node, "REFN");

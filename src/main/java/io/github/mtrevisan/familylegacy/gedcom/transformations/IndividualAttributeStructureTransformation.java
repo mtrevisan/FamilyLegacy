@@ -116,7 +116,7 @@ public class IndividualAttributeStructureTransformation implements Transformatio
 			}
 			else if(etpd != null){
 				child.withTag("ATTRIBUTE");
-				final String value = child.getValueConcatenated();
+				final String value = child.extractValueConcatenated();
 				if(value != null)
 					child.addChild(GedcomNode.create("VALUE")
 						.withValue(value));
@@ -127,7 +127,7 @@ public class IndividualAttributeStructureTransformation implements Transformatio
 			}
 			else if(etc != null){
 				child.withTag("ATTRIBUTE");
-				final String value = child.getValueConcatenated();
+				final String value = child.extractValueConcatenated();
 				if(value != null)
 					child.addChild(GedcomNode.create("VALUE")
 						.withValue(value));

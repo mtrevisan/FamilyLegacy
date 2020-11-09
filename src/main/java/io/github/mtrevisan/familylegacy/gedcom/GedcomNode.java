@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 public final class GedcomNode{
 
-	private static final String LF = "\\n";
+	private static final String NEW_LINE = "\\n";
 
 	/** NOTE: {@link Pattern#DOTALL} is for unicode line separator. */
 	private static final Pattern GEDCOM_LINE = Pattern.compile("^\\s*(\\d)\\s+(@([^@ ]+)@\\s+)?([a-zA-Z_0-9.]+)(\\s+@([^@ ]+)@)?(\\s(.*))?$",
@@ -198,15 +198,16 @@ public final class GedcomNode{
 	 * Returns the value associated with this node.
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned and the continuation tags are removed.</p>
 	 */
-	public String getValueConcatenated(){
+	public String extractValueConcatenated(){
 		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONTINUATION, TAG_CONCATENATION);
 		if(!subChildren.isEmpty()){
 			final StringBuilder sb = new StringBuilder();
 			if(value != null)
 				sb.append(value);
+			value = null;
 			for(final GedcomNode sc : subChildren){
 				if(sc.tag.charAt(3) == 'T')
-					sb.append(LF);
+					sb.append(NEW_LINE);
 				if(sc.value != null)
 					sb.append(sc.value);
 
@@ -239,7 +240,7 @@ public final class GedcomNode{
 				remainingLength = Math.min(255 - offset - (level < 9? 2: 1) - tag.length() - 2, length - offset);
 
 				final String newTag;
-				final int lineFeedIndex = value.indexOf(LF, offset);
+				final int lineFeedIndex = value.indexOf(NEW_LINE, offset);
 				if(lineFeedIndex >= 0 && lineFeedIndex < offset + remainingLength){
 					remainingLength = offset - lineFeedIndex - 1;
 					newTag = TAG_CONTINUATION;

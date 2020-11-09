@@ -42,17 +42,12 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 			deleteTag(personalName, "ROMN");
 
 			final List<GedcomNode> notes = personalName.getChildrenWithTag("NOTE");
-			for(final GedcomNode note : notes){
-				//TODO
-			}
+			for(final GedcomNode note : notes)
+				noteTo(note, origin, destination);
 			final List<GedcomNode> sourceCitations = personalName.getChildrenWithTag("SOUR");
-			for(final GedcomNode sourceCitation : sourceCitations){
-				//TODO
-			}
+			for(final GedcomNode sourceCitation : sourceCitations)
+				sourceCitationTo(sourceCitation, origin, destination);
 		}
-
-//		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-//		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 //		+1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sex of the individual. */
 //		+1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_EVENT_STRUCTURE() objects giving the events associated with this individual. */
@@ -74,9 +69,6 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 //		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 //		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 //		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
-
-//		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 //		+1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE). */
 //		+1 GENDER <GENDER_VALUE>    {0:1}	/* A code that indicates the gender of the individual (one of MALE, FEMALE, INTERSEX, UNKNOWN). */
@@ -115,10 +107,10 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 //		moveMultipleTag("ALIAS", node, "ALIA");
 //		deleteMultipleTag(node, "ANCI");
 //		deleteMultipleTag(node, "DESI");
-//		io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag(node, "RFN");
-//		io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag(node, "AFN");
-//		io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag("_RIN", node, "RIN");
-//		final GedcomNode changeDate = io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure(node, "CHAN");
+//		deleteTag(node, "RFN");
+//		deleteTag(node, "AFN");
+//		moveTag("_RIN", node, "RIN");
+//		final GedcomNode changeDate = extractSubStructure(node, "CHAN");
 //		if(!changeDate.isEmpty())
 //			CHANGE_DATE_TRANSFORMATION.to(changeDate, root);
 //		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");
@@ -165,6 +157,99 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 		personalName.addChild(nickname);
 		personalName.addChild(surname);
 	}
+
+	private void noteTo(final GedcomNode note, final Gedcom origin, final Flef destination){
+		if(note.getID() == null){
+			final String noteID = Flef.getNextNoteID(origin.getNotes().size());
+			final String noteValue = note.extractValueConcatenated();
+
+			note.withID(noteID);
+
+			destination.addNote(GedcomNode.create("NOTE")
+				.withID(noteID)
+				.withValue(noteValue));
+		}
+	}
+
+	private void sourceCitationTo(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination){
+		sourceCitation.withTag("SOURCE");
+		if(sourceCitation.getID() != null){
+			final GedcomNode page = extractSubStructure(sourceCitation, "PAGE");
+			sourceCitation.removeChild(page);
+			moveTag("EVENT", sourceCitation, "EVEN");
+			final GedcomNode data = extractSubStructure(sourceCitation, "DATA");
+			sourceCitation.removeChild(data);
+			final GedcomNode dataDate = extractSubStructure(data, "DATE");
+			final GedcomNode dataText = extractSubStructure(data, "TEXT");
+			dataText.withValue(dataText.extractValueConcatenated());
+			sourceCitation.addChild(dataDate);
+			sourceCitation.addChild(dataText);
+			sourceCitation.addChild(page);
+			deleteTag(sourceCitation, "OBJE");
+		}
+		else{
+			final String description = sourceCitation.extractValueConcatenated();
+			final GedcomNode text = extractSubStructure(sourceCitation, "TEXT");
+
+			//create a new source record
+			final String sourceRecordID = Flef.getNextSourceID(origin.getSources().size());
+			final GedcomNode sourceRecord = GedcomNode.create("SOURCE")
+				.withID(sourceRecordID)
+				.addChild(GedcomNode.create("TITLE")
+					.withValue(description))
+				.addChild(text);
+			final List<GedcomNode> documents = sourceCitation.getChildrenWithTag("OBJE");
+			for(final GedcomNode document : documents)
+				documentTo(document, origin, destination);
+		}
+		final List<GedcomNode> notes = sourceCitation.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			noteTo(note, origin, destination);
+		moveTag("CREDIBILITY", sourceCitation, "QUAY");
+	}
+
+	private void documentTo(final GedcomNode document, final Gedcom origin, final Flef destination){
+		//TODO
+		if(document.getID() == null){
+			final String documentID = Flef.getNextDocumentID(origin.getDocuments().size());
+			final GedcomNode title = extractSubStructure(document, "TITL");
+			if(!title.isEmpty())
+				title.withTag("TITLE");
+			final GedcomNode format = extractSubStructure(document, "FORM");
+			if(!format.isEmpty())
+				format.withTag("FORMAT");
+			format.removeChildren();
+			final GedcomNode formatMedia = extractSubStructure(document, "FORM", "MEDI");
+			final GedcomNode file = extractSubStructure(document, "FILE");
+			final GedcomNode cut = extractSubStructure(document, "_CUTD");
+			if(!cut.isEmpty()){
+				cut.withTag("CUT");
+				document.removeChild(cut);
+			}
+			file.addChild(format);
+			if(!formatMedia.isEmpty()){
+				formatMedia.withTag("MEDIA");
+				file.addChild(formatMedia)
+					.addChild(cut);
+			}
+
+			document.withID(documentID);
+			document.removeChildren();
+
+			destination.addDocument(GedcomNode.create("DOCUMENT")
+				.withID(documentID))
+				.addChild(title)
+				.addChild(file)
+				.addChild(notes)
+				.addChild(origin)
+				.addChild(individual)
+				.addChild(place)
+				.addChild(submitter)
+				.addChild(restriction)
+			;
+		}
+	}
+
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){

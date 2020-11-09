@@ -13,7 +13,7 @@ public class NoteStructureTransformation implements Transformation{
 			node.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 			root.addChild(GedcomNode.create("NOTE")
 				.withID(node.getID())
-				.withValue(node.getValueConcatenated()));
+				.withValue(node.extractValueConcatenated()));
 			node.removeValue();
 		}
 	}

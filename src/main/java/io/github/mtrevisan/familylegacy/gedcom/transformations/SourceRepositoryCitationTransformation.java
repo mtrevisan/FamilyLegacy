@@ -21,7 +21,7 @@ public class SourceRepositoryCitationTransformation implements Transformation{
 			node.withID(Flef.getNextRepositoryID(root.getChildrenWithTag("REPOSITORY").size()));
 			root.addChild(GedcomNode.create("REPOSITORY")
 				.withID(node.getID())
-				.withValue(node.getValueConcatenated()));
+				.withValue(node.extractValueConcatenated()));
 			node.removeValue();
 		}
 		final List<GedcomNode> notes = node.getChildrenWithTag("NOTE");

@@ -28,14 +28,14 @@ public class SourceRecordTransformation implements Transformation{
 		final GedcomNode author = extractSubStructure(node, "AUTH");
 		if(!author.isEmpty()){
 			author.withTag("AUTHOR");
-			author.withValue(author.getValueConcatenated());
+			author.withValue(author.extractValueConcatenated());
 			deleteMultipleTag(author, "CONC");
 			deleteMultipleTag(author, "CONT");
 		}
 		final GedcomNode title = extractSubStructure(node, "TITL");
 		if(!title.isEmpty()){
 			title.withTag("TITLE");
-			title.withValue(title.getValueConcatenated());
+			title.withValue(title.extractValueConcatenated());
 			deleteMultipleTag(title, "CONC");
 			deleteMultipleTag(title, "CONT");
 		}
@@ -43,13 +43,13 @@ public class SourceRecordTransformation implements Transformation{
 		final GedcomNode publication = extractSubStructure(node, "PUBL");
 		if(!publication.isEmpty()){
 			publication.withTag("PUBLICATION");
-			publication.withValue(publication.getValueConcatenated());
+			publication.withValue(publication.extractValueConcatenated());
 			deleteMultipleTag(publication, "CONC");
 			deleteMultipleTag(publication, "CONT");
 		}
 		final GedcomNode text = extractSubStructure(node, "TEXT");
 		if(!text.isEmpty()){
-			text.withValue(text.getValueConcatenated());
+			text.withValue(text.extractValueConcatenated());
 			deleteMultipleTag(text, "CONC");
 			deleteMultipleTag(text, "CONT");
 		}
