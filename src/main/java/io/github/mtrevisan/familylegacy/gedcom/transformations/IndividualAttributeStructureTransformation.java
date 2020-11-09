@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.StringJoiner;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
@@ -120,7 +121,8 @@ public class IndividualAttributeStructureTransformation implements Transformatio
 				if(value != null)
 					child.addChild(GedcomNode.create("VALUE")
 						.withValue(value));
-				deleteTag(child, "CONC", "CONT");
+				deleteMultipleTag(child, "CONC");
+				deleteMultipleTag(child, "CONT");
 				child.withValue(etpd.code);
 				INDIVIDUAL_EVENT_DETAIL_TRANSFORMATION.to(child, root);
 			}

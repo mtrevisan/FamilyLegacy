@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
@@ -25,7 +26,7 @@ public class MultimediaLinkTransformation implements Transformation{
 			format.withTag("FORMAT");
 			moveTag("_MEDI", format, "MEDI");
 			final List<GedcomNode> docFiles = node.getChildrenWithTag("FILE");
-			deleteTag(node, "FILE");
+			deleteMultipleTag(node, "FILE");
 			node.withID(Flef.getNextDocumentID(root.getChildrenWithTag("DOCUMENT").size()));
 			final GedcomNode doc = GedcomNode.create("DOCUMENT")
 				.withID(node.getID())

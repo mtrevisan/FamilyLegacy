@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
@@ -119,8 +120,8 @@ public class IndividualRecordTransformation implements Transformation{
 		for(final GedcomNode associationStructure : associationStructures)
 			ASSOCIATION_STRUCTURE_TRANSFORMATION.to(associationStructure, root);
 		moveMultipleTag("ALIAS", node, "ALIA");
-		deleteTag(node, "ANCI");
-		deleteTag(node, "DESI");
+		deleteMultipleTag(node, "ANCI");
+		deleteMultipleTag(node, "DESI");
 		deleteTag(node, "RFN");
 		deleteTag(node, "AFN");
 		moveTag("_RIN", node, "RIN");

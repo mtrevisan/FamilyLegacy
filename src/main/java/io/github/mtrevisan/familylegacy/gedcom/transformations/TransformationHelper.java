@@ -69,6 +69,25 @@ final class TransformationHelper{
 			currentContext.removeChildren();
 	}
 
+	static List<GedcomNode> deleteMultipleTag(final GedcomNode context, final String... tags){
+		GedcomNode current = context;
+		for(int i = 0; i < tags.length - 1; i ++){
+			final String tag = tags[i];
+			final List<GedcomNode> childrenWithTag = current.getChildrenWithTag(tag);
+			if(childrenWithTag.size() != 1)
+				return Collections.emptyList();
+
+			current = childrenWithTag.get(0);
+		}
+
+		final List<GedcomNode> currentContexts = current.getChildrenWithTag(tags[tags.length - 1]);
+		for(final GedcomNode currentContext : currentContexts)
+			current.removeChild(currentContext);
+		if(current.getChildren().isEmpty())
+			current.removeChildren();
+		return currentContexts;
+	}
+
 	static void transferValues(final GedcomNode context, final String tag, final GedcomNode destination, final String destinationTag){
 		final List<GedcomNode> componentContext = context.getChildrenWithTag(tag);
 		for(final GedcomNode child : componentContext){

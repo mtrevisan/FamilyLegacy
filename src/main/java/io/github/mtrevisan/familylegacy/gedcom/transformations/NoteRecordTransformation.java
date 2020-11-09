@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveMultipleTag;
@@ -19,7 +20,8 @@ public class NoteRecordTransformation implements Transformation{
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
 		node.withValue(node.getValueConcatenated());
-		deleteTag(node, "CONC", "CONT");
+		deleteMultipleTag(node, "CONC");
+		deleteMultipleTag(node, "CONT");
 		moveMultipleTag("_REFN", node, "REFN");
 		moveTag("_RIN", node, "RIN");
 		final List<GedcomNode> sourceCitations = node.getChildrenWithTag("SOUR");

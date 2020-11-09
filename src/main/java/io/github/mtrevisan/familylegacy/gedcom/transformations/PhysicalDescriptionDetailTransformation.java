@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.StringJoiner;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 
@@ -25,7 +26,7 @@ public class PhysicalDescriptionDetailTransformation implements Transformation{
 				if(!value.isEmpty())
 					sj.add(key.getValue() + StringUtils.SPACE + value.getValue());
 			}
-		deleteTag(node, "KEY");
+		deleteMultipleTag(node, "KEY");
 		if(sj.length() > 0)
 			node.withValue(sj.toString());
 	}

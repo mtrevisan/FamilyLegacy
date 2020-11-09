@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteMultipleTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractPlaceStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
@@ -42,7 +43,7 @@ public class HeaderTransformation implements Transformation{
 		deleteTag(node, "GEDC");
 		moveTag("CHARSET", node, "CHAR");
 		deleteTag(node, "CHARSET", "VERS");
-		deleteTag(node, "LANG");
+		deleteMultipleTag(node, "LANG");
 		deleteTag(node, "PLAC");
 		final GedcomNode noteContext = extractSubStructure(node, "NOTE");
 		TransformationHelper.transferNoteTo(noteContext, root);
