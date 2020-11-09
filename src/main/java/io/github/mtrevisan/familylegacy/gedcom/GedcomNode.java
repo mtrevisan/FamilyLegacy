@@ -132,7 +132,7 @@ public final class GedcomNode{
 	}
 
 	public boolean isEmpty(){
-		return (tag == null);
+		return (tag == null || id == null && value == null && (children == null || children.isEmpty()));
 	}
 
 	public void setLevel(final int level){
