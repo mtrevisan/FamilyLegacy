@@ -58,7 +58,7 @@ public class Flef extends Store<Flef>{
 	private static final String TAG_CHARSET = "CHARSET";
 
 
-	private GedcomNode header;
+	private GedcomNode header = GedcomNode.createEmpty();
 	private List<GedcomNode> people;
 	private List<GedcomNode> families;
 	private List<GedcomNode> places;

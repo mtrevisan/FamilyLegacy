@@ -120,13 +120,15 @@ public final class GedcomNode{
 	/**
 	 * NOTE: clear all the fields but the {@link #level} and the {@link #tag}.
 	 */
-	public void clear(){
+	public GedcomNode clear(){
 		id = null;
 		xref = null;
 		value = null;
 
 		children = null;
 		custom = false;
+
+		return this;
 	}
 
 	public boolean isEmpty(){
@@ -194,7 +196,7 @@ public final class GedcomNode{
 
 	/**
 	 * Returns the value associated with this node.
-	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
+	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned and the continuation tags are removed.</p>
 	 */
 	public String getValueConcatenated(){
 		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONTINUATION, TAG_CONCATENATION);
@@ -269,9 +271,8 @@ public final class GedcomNode{
 		return (children != null? children: Collections.emptyList());
 	}
 
-	//TODO add before EOF!
 	public GedcomNode addChild(final GedcomNode child){
-		if(child.isEmpty())
+		if(child.isEmpty() || child.getValue() == null && !child.hasChildren())
 			return this;
 
 		if(children == null)
@@ -302,11 +303,25 @@ public final class GedcomNode{
 		return this;
 	}
 
-	public void addChild(final GedcomNode child, final int index){
-		if(children == null)
-			children = new ArrayList<>(1);
-
-		children.add(index, child);
+	/**
+	 * Inserts a child after a given node.
+	 * <p>WARNING: THE NODE AFTER MUST BE PRESENT!!!</p>.
+	 * <p>WARNING: DOES NOT INSERTS AS FIRST ELEMENT!!!</p>.
+	 *
+	 * @param child	Node to add.
+	 * @param nodeAfter	Node that should be after the inserted node.
+	 */
+	public void addChildBefore(final GedcomNode child, final GedcomNode nodeAfter){
+		if(!child.isEmpty() && (child.getValue() != null || child.hasChildren())){
+			if(children == null){
+				children = new ArrayList<>(1);
+				children.add(child);
+			}
+			else{
+				final int index = children.indexOf(nodeAfter);
+				children.add(index, child);
+			}
+		}
 	}
 
 	public GedcomNode withChildren(final Iterable<GedcomNode> children){
@@ -316,7 +331,7 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode removeChild(final GedcomNode child){
-		if(children != null && child.tag != null){
+		if(children != null && !child.isEmpty()){
 			children.remove(child);
 
 			if(children.isEmpty())

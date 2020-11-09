@@ -47,7 +47,7 @@ public class Gedcom extends Store<Gedcom>{
 	private static final String TAG_CHARSET = "CHAR";
 
 
-	private GedcomNode header;
+	private GedcomNode header = GedcomNode.createEmpty();
 	private List<GedcomNode> people;
 	private List<GedcomNode> families;
 	private List<GedcomNode> media;

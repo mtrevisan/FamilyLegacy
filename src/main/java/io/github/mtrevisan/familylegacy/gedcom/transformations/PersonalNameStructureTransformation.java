@@ -19,7 +19,6 @@ public class PersonalNameStructureTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		node.withTag("NAME");
 		final String nameValue = node.getValue();
 		node.removeValue();
 		final String nameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?

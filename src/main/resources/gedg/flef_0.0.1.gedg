@@ -15,9 +15,9 @@ n HEADER    {1:1}
     +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
-      +3 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
-  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of the submitter of this file. */
+  +1 DATE <PUBLICATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was published or created. */
   +1 COPYRIGHT <COPYRIGHT_GEDCOM_FILE>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
+  +1 SUBMITTER @<XREF:SUBMITTER>@    {1:1}	/* An xref ID of the submitter of this file. */
   +1 PROTOCOL_VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the FLEF protocol. */
   +1 CHARSET <CHARACTER_SET>    {1:1}	/* A code value that represents the character set to be used to interpret this data. Currently, the preferred character set is UTF-8. Allowed values: "UTF-8", "ASCII". */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
@@ -49,7 +49,7 @@ n EOF    {1:1}
 
 INDIVIDUAL_RECORD :=	/* A representation of a historical individual, together with the facts and events believed to apply to that individual and the sources of those data. */
 n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record. */
-  +1 <<NAME_STRUCTURE>>    {0:M}	/* A list of NAME_STRUCTURE() objects giving the names associated with this individual. */
+  +1 <<PERSONAL_NAME_STRUCTURE>>    {0:M}	/* A list of PERSONAL_NAME_STRUCTURE() objects giving the names associated with this individual. */
   +1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE). */
   +1 GENDER <GENDER_VALUE>    {0:1}	/* A code that indicates the gender of the individual (one of MALE, FEMALE, INTERSEX, UNKNOWN). */
   +1 SEXUAL_ORIENTATION <SEXUAL_ORIENTATION_VALUE>    {0:1}	/* A code that indicates the sexual orientation of the individual (one of MALE, FEMALE, BOTH). */
@@ -68,18 +68,25 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-NAME_STRUCTURE :=
+PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant (one of BIRTH_NAME [name given at or near birth], MARRIAGE_NAME [name assumed at marriage], ALSO_KNOWN_AS [an unofficial pseudonym], ADOPTIVE_NAME, FORMAL_NAME, MAIDEN [name used prior to marriage], RELIGIOUS_NAME, IMMIGRANT [name assumed when immigrating] -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md). */
-  +1 LOCALE <NAME_LOCALE>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 PERSONAL_NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
-  +1 NAME_PREFIX <NAME_PIECE_PREFIX>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
-  +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
-  +1 NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
-  +1 SURNAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
-  +1 FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname */
+  +1 <<PERSONAL_NAME_PIECES>>    {1:1}	/* A PERSONAL_NAME_PIECES() object giving the components of the name. */
+  +1 PHONETIC    {0:1}
+    +2 TYPE <PHONETIC_TYPE>    {1:1}	/* Indicates the method used in transforming the text to the phonetic variation. */
+    +2 <<PERSONAL_NAME_PIECES>>    {1:1}	/* A PERSONAL_NAME_PIECES() object giving the phonetic components of the name. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+
+
+PERSONAL_NAME_PIECES :=
+n LOCALE <NAME_LOCALE>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+n NAME_PREFIX <NAME_PIECE_PREFIX>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
+n PERSONAL_NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
+n NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
+n NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
+n SURNAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
+n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname */
 
 
 CHILD_TO_FAMILY_LINK :=
