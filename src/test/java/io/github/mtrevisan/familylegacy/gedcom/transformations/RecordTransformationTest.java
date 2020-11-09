@@ -32,7 +32,9 @@ class RecordTransformationTest{
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: F1, tag: FAM}, {id: I1, tag: INDI}, {id: D1, tag: OBJE}, {id: N1, tag: NOTE}, {id: R1, tag: REPO}, {id: S1, tag: SOUR}, {id: SUBM1, tag: SUBM}]}]", root.toString());
 
 		final Transformation t = new RecordTransformation();
-		t.to(extractSubStructure(root, "PARENT"), root);
+		final GedcomNode parent = extractSubStructure(root, "PARENT");
+		for(final GedcomNode child : parent.getChildren())
+			t.to(child, root);
 
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: F1, tag: FAMILY}, {id: I1, tag: INDIVIDUAL}, {id: D1, tag: DOCUMENT}, {id: N1, tag: NOTE}, {id: R1, tag: REPOSITORY}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]}]", root.toString());
 	}
@@ -67,7 +69,9 @@ class RecordTransformationTest{
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: I1, tag: INDIVIDUAL}, {id: F1, tag: FAMILY}, {id: P1, tag: PLACE}, {id: D1, tag: DOCUMENT}, {id: N1, tag: NOTE}, {id: R1, tag: REPOSITORY}, {id: S1, tag: SOURCE}, {id: SUBM1, tag: SUBMITTER}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
 
 		final Transformation t = new RecordTransformation();
-		t.from(extractSubStructure(root, "PARENT"), root);
+		final GedcomNode parent = extractSubStructure(root, "PARENT");
+		for(final GedcomNode child : parent.getChildren())
+			t.from(child, root);
 
 		Assertions.assertEquals("children: [{tag: PARENT, children: [{id: I1, tag: INDI}, {id: F1, tag: FAM}, {id: P1, tag: PLACE}, {id: D1, tag: OBJE}, {id: N1, tag: NOTE}, {id: R1, tag: REPO}, {id: S1, tag: SOUR}, {id: SUBM1, tag: SUBM}]}, {id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}]}]", root.toString());
 	}

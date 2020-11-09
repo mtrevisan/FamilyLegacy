@@ -269,6 +269,7 @@ public final class GedcomNode{
 		return (children != null? children: Collections.emptyList());
 	}
 
+	//TODO add before EOF!
 	public GedcomNode addChild(final GedcomNode child){
 		if(child.isEmpty())
 			return this;

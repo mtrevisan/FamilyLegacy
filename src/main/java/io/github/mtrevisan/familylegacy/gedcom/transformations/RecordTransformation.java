@@ -16,44 +16,40 @@ public class RecordTransformation implements Transformation{
 
 	@Override
 	public void to(final GedcomNode node, final GedcomNode root){
-		for(final GedcomNode child : node.getChildren()){
-			final String tag = child.getTag();
-			if("FAM".equals(tag))
-				FAMILY_RECORD_TRANSFORMATION.to(child, root);
-			else if("INDI".equals(tag))
-				INDIVIDUAL_RECORD_TRANSFORMATION.to(child, root);
-			else if("OBJE".equals(tag))
-				MULTIMEDIA_RECORD_TRANSFORMATION.to(child, root);
-			else if("NOTE".equals(tag))
-				NOTE_RECORD_TRANSFORMATION.to(child, root);
-			else if("REPO".equals(tag))
-				REPOSITORY_RECORD_TRANSFORMATION.to(child, root);
-			else if("SOUR".equals(tag))
-				SOURCE_RECORD_TRANSFORMATION.to(child, root);
-			else if("SUBM".equals(tag))
-				SUBMITTER_RECORD_TRANSFORMATION.to(child, root);
-		}
+		final String tag = node.getTag();
+		if("FAM".equals(tag))
+			FAMILY_RECORD_TRANSFORMATION.to(node, root);
+		else if("INDI".equals(tag))
+			INDIVIDUAL_RECORD_TRANSFORMATION.to(node, root);
+		else if("OBJE".equals(tag))
+			MULTIMEDIA_RECORD_TRANSFORMATION.to(node, root);
+		else if("NOTE".equals(tag))
+			NOTE_RECORD_TRANSFORMATION.to(node, root);
+		else if("REPO".equals(tag))
+			REPOSITORY_RECORD_TRANSFORMATION.to(node, root);
+		else if("SOUR".equals(tag))
+			SOURCE_RECORD_TRANSFORMATION.to(node, root);
+		else if("SUBM".equals(tag))
+			SUBMITTER_RECORD_TRANSFORMATION.to(node, root);
 	}
 
 	@Override
 	public void from(final GedcomNode node, final GedcomNode root){
-		for(final GedcomNode child : node.getChildren()){
-			final String tag = child.getTag();
-			if("INDIVIDUAL".equals(tag))
-				INDIVIDUAL_RECORD_TRANSFORMATION.from(child, root);
-			else if("FAMILY".equals(tag))
-				FAMILY_RECORD_TRANSFORMATION.from(child, root);
-			else if("DOCUMENT".equals(tag))
-				MULTIMEDIA_RECORD_TRANSFORMATION.from(child, root);
-			else if("NOTE".equals(tag))
-				NOTE_RECORD_TRANSFORMATION.from(child, root);
-			else if("REPOSITORY".equals(tag))
-				REPOSITORY_RECORD_TRANSFORMATION.from(child, root);
-			else if("SOURCE".equals(tag))
-				SOURCE_RECORD_TRANSFORMATION.from(child, root);
-			else if("SUBMITTER".equals(tag))
-				SUBMITTER_RECORD_TRANSFORMATION.from(child, root);
-		}
+		final String tag = node.getTag();
+		if("INDIVIDUAL".equals(tag))
+			INDIVIDUAL_RECORD_TRANSFORMATION.from(node, root);
+		else if("FAMILY".equals(tag))
+			FAMILY_RECORD_TRANSFORMATION.from(node, root);
+		else if("DOCUMENT".equals(tag))
+			MULTIMEDIA_RECORD_TRANSFORMATION.from(node, root);
+		else if("NOTE".equals(tag))
+			NOTE_RECORD_TRANSFORMATION.from(node, root);
+		else if("REPOSITORY".equals(tag))
+			REPOSITORY_RECORD_TRANSFORMATION.from(node, root);
+		else if("SOURCE".equals(tag))
+			SOURCE_RECORD_TRANSFORMATION.from(node, root);
+		else if("SUBMITTER".equals(tag))
+			SUBMITTER_RECORD_TRANSFORMATION.from(node, root);
 	}
 
 }
