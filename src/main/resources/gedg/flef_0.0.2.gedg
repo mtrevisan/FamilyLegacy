@@ -329,7 +329,7 @@ n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
 
-/* ok, identical to SUBMITTER_RECORD */
+/* identical to SUBMITTER_RECORD */
 REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
@@ -350,7 +350,6 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
 
 
 /* https://www.evidenceexplained.com/content/sample-quickcheck-models */
-/* ok */
 SOURCE_RECORD :=
 n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 TYPE [ DIGITAL_ARCHIVE | MICROFILM | DATABASE | GRAVE_MARKER | <CUSTOM_TYPE> | <NULL> ]    {0:1}
