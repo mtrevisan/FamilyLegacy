@@ -338,7 +338,7 @@ n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
 /* ok, identical to SUBMITTER_RECORD */
 REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
-  +1 NAME <NAME_OF_REPOSITORY>    {0:1}	/* The official name of the archive in which the stated source material is stored. */
+  +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
   +1 <<CONTACT_STRUCTURE>>    {0:1}	/* A CONTACT_STRUCTURE() object giving the contacts of the repository. */

@@ -16,10 +16,10 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceTo(source, destination);
+			sourceRecordTo(source, destination);
 	}
 
-	private void sourceTo(final GedcomNode source, final Flef destination){
+	private void sourceRecordTo(final GedcomNode source, final Flef destination){
 		final GedcomNode title = extractSubStructure(source, "TITL");
 		final GedcomNode destinationSource = GedcomNode.create("SOURCE")
 			.withID(source.getID())
@@ -49,7 +49,7 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		}
 		documentsTo(source, destinationSource, destination);
 		notesTo(source, destinationSource, destination);
-		repositoriesTo(source, destinationSource, destination);
+		sourceRepositoryCitationTo(source, destinationSource, destination);
 		destination.addSource(destinationSource);
 	}
 
@@ -100,7 +100,7 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void repositoriesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
 			String repositoryID = repository.getID();
@@ -123,10 +123,10 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceFrom(source, destination);
+			sourceRecordFrom(source, destination);
 	}
 
-	private void sourceFrom(final GedcomNode source, final Gedcom destination){
+	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
 		final GedcomNode destinationSource = GedcomNode.create("SOUR")
 			.withID(source.getID());
 		final String date = extractSubStructure(source, "DATE")
@@ -142,13 +142,13 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		destinationSource.addChildValue("TITL", title.getValueConcatenated());
 		final GedcomNode text = extractSubStructure(source, "TEXT");
 		destinationSource.addChildValue("TEXT", text.getValueConcatenated());
-		repositoriesFrom(source, destinationSource);
+		sourceRepositoryCitationFrom(source, destinationSource);
 		notesFrom(source, destinationSource);
 		documentsFrom(source, destinationSource);
 		destination.addSource(destinationSource);
 	}
 
-	private void repositoriesFrom(final GedcomNode parent, final GedcomNode destinationNode){
+	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
 		for(final GedcomNode repository : repositories)
 			destinationNode.addChild(GedcomNode.create("REPO")

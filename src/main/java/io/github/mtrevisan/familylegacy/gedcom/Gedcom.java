@@ -187,6 +187,15 @@ public class Gedcom extends Store<Gedcom>{
 		return repositoryIndex.get(id);
 	}
 
+	public void addRepository(final GedcomNode repository){
+		if(repositories == null){
+			repositories = new ArrayList<>(1);
+			repositoryIndex = new HashMap<>(1);
+		}
+		repositories.add(repository);
+		repositoryIndex.put(repository.getID(), repository);
+	}
+
 	public List<GedcomNode> getSources(){
 		return sources;
 	}
