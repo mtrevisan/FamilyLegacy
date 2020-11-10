@@ -31,8 +31,6 @@ n <<FAMILY_RECORD>>    {1:1}
 |
 n <<PLACE_RECORD>>    {1:1}
 |
-n <<DOCUMENT_RECORD>>    {1:1}
-|
 n <<NOTE_RECORD>>    {1:1}
 |
 n <<REPOSITORY_RECORD>>    {1:1}
@@ -62,7 +60,6 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 <<INDIVIDUAL_ATTRIBUTE_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_ATTRIBUTE_STRUCTURE() objects giving the attributes associated with this individual. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
@@ -100,7 +97,7 @@ n FAMILY_SPOUSE @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record. */
 
 
 ASSOCIATION_STRUCTURE :=
-n ASSOCIATION @<XREF:STRUCTURE>@    {1:1}	/* An xref ID of a family/individual/source/repository/note/document record. */
+n ASSOCIATION @<XREF:STRUCTURE>@    {1:1}	/* An xref ID of a family/individual/source/repository/note record. */
   +1 TYPE <ASSOCIATION_TYPE>    {1:1}	/* The type of the reference, one of FAMILY, INDIVIDUAL. */
   +1 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. If the payload text is R, the person described by the record pointed to by the payload of the superstructure is P, and the person described by the superstructure of the superstructure is Q then this payload means “P is Q’s R”.*/
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
@@ -227,7 +224,6 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
@@ -290,7 +286,6 @@ n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase u
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
@@ -325,20 +320,6 @@ n ADDRESS <ADDRESS_LINE>    {1:1}	/* The address lines usually contain the addre
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
-DOCUMENT_RECORD :=
-n @<XREF:DOCUMENT>@ DOCUMENT    {1:1}	/* An xref ID of a document record. */
-  +1 TITLE <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
-  +1 FILE <DOCUMENT_FILE_REFERENCE>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +2 FORMAT <DOCUMENT_FORMAT>    {1:1}	/* Indicates the format of the document data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
-    +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
-    +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and botton-right coordinates of the enclosing box inside an image. */
-  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 ORIGIN <ORIGIN_TEXT>    {0:1}	/* From whom/where this document was collected. */
-  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree, who owns the document. */
-  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-
-
 /* ok */
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter. */
@@ -361,7 +342,7 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
   +1 <<CONTACT_STRUCTURE>>    {0:1}	/* A CONTACT_STRUCTURE() object giving the contacts of the repository. */
-  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
@@ -389,10 +370,13 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as the type of event which was responsible for the source entry being recorded (CASTE, EDUCATION, NATIONALITY, OCCUPATION, PROPERTY, RELIGION, RESIDENCE, TITLE, FACT, ANNULMENT, CENSUS, DIVORCE, DIVORCE_FILED, ENGAGEMENT, MARRIAGE, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, ADOPTION, BIRTH, BURIAL, CREMATION, DEATH, EMIGRATION, GRADUATION, IMMIGRATION, NATURALIZATION, RETIREMENT, DEED, PROBATE, WILL, EVENT, etc). For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
   +1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
   +1 TEXT <TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-  +1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
   +1 REPOSITORY @<XREF:REPOSITORY>@    {0:M}	/* A list of xref ID of repository records who owns this source. */
     +2 REPOSITORY_LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 FILE <DOCUMENT_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +2 FORMAT <DOCUMENT_FORMAT>    {1:1}	/* Indicates the format of the document data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
+    +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+    +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and botton-right coordinates of the enclosing box inside an image. */
   +1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */

@@ -28,7 +28,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -168,6 +170,15 @@ public class Gedcom extends Store<Gedcom>{
 		return noteIndex.get(id);
 	}
 
+	public void addNote(final GedcomNode note){
+		if(notes == null){
+			notes = new ArrayList<>(1);
+			noteIndex = new HashMap<>(1);
+		}
+		notes.add(note);
+		noteIndex.put(note.getID(), note);
+	}
+
 	public List<GedcomNode> getRepositories(){
 		return repositories;
 	}
@@ -182,6 +193,15 @@ public class Gedcom extends Store<Gedcom>{
 
 	public GedcomNode getSource(final String id){
 		return sourceIndex.get(id);
+	}
+
+	public void addSource(final GedcomNode source){
+		if(sources == null){
+			sources = new ArrayList<>(1);
+			sourceIndex = new HashMap<>(1);
+		}
+		sources.add(source);
+		sourceIndex.put(source.getID(), source);
 	}
 
 	public List<GedcomNode> getSubmitters(){

@@ -236,17 +236,17 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 			document.withID(documentID);
 			document.removeChildren();
 
-			destination.addDocument(GedcomNode.create("DOCUMENT")
-				.withID(documentID))
-				.addChild(title)
-				.addChild(file)
-				.addChild(notes)
-				.addChild(origin)
-				.addChild(individual)
-				.addChild(place)
-				.addChild(submitter)
-				.addChild(restriction)
-			;
+//			destination.addDocument(GedcomNode.create("DOCUMENT")
+//				.withID(documentID))
+//				.addChild(title)
+//				.addChild(file)
+//				.addChild(notes)
+//				.addChild(origin)
+//				.addChild(individual)
+//				.addChild(place)
+//				.addChild(submitter)
+//				.addChild(restriction)
+//			;
 		}
 	}
 

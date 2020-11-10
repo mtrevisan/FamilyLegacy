@@ -34,7 +34,7 @@ public class MultimediaLinkTransformation implements Transformation{
 			for(final GedcomNode docFile : docFiles)
 				doc.addChild(docFile
 					.addChild(format));
-			root.addChild(doc, 1);
+			root.addChild(doc);
 		}
 	}
 

@@ -31,7 +31,7 @@ public class HeaderTransformation implements Transformation{
 		if(!corporate.isEmpty()){
 			final GedcomNode corporatePlace = extractPlaceStructure(corporate);
 			corporatePlace.withID(Flef.getNextPlaceID(root.getChildrenWithTag("PLACE").size()));
-			root.addChild(corporatePlace, 1);
+			root.addChild(corporatePlace);
 			corporate.addChild(GedcomNode.create("PLACE")
 				.withID(corporatePlace.getID()));
 		}

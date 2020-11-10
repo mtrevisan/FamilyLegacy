@@ -31,6 +31,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
@@ -71,6 +72,12 @@ public final class GedcomNode{
 
 	public static GedcomNode create(final String tag){
 		return new GedcomNode(tag);
+	}
+
+	public static GedcomNode create(final String tag, final String id, final String value){
+		return new GedcomNode(tag)
+			.withID(id)
+			.withValue(value);
 	}
 
 	public static GedcomNode parse(final CharSequence line){
@@ -194,6 +201,33 @@ public final class GedcomNode{
 		return value;
 	}
 
+	private static final String[] CONTINUATION_TAGS = new String[]{TAG_CONTINUATION, TAG_CONCATENATION};
+	static{
+		Arrays.sort(CONTINUATION_TAGS);
+	}
+
+	/**
+	 * Returns the value associated with this node.
+	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
+	 */
+	public String getValueConcatenated(){
+		if(children != null){
+			final StringBuilder sb = new StringBuilder();
+			if(value != null)
+				sb.append(value);
+			for(final GedcomNode child : children)
+				if(Arrays.binarySearch(CONTINUATION_TAGS, child.tag) >= 0){
+					if(child.tag.charAt(3) == 'T')
+						sb.append(NEW_LINE);
+					if(child.value != null)
+						sb.append(child.value);
+				}
+			return (sb.length() > 0? sb.toString(): null);
+		}
+		else
+			return value;
+	}
+
 	/**
 	 * Returns the value associated with this node.
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned and the continuation tags are removed.</p>
@@ -270,6 +304,19 @@ public final class GedcomNode{
 
 	public List<GedcomNode> getChildren(){
 		return (children != null? children: Collections.emptyList());
+	}
+
+	public GedcomNode addChildReference(final String tag, final String id){
+		addChild(create(tag)
+			.withID(id));
+		return this;
+	}
+
+	public GedcomNode addChildValue(final String tag, final String value){
+		if(value != null)
+			addChild(create(tag)
+				.withValue(value));
+		return this;
 	}
 
 	public GedcomNode addChild(final GedcomNode child){

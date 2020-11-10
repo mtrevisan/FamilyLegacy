@@ -50,7 +50,6 @@ public class Flef extends Store<Flef>{
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_FAMILY = "FAMILY";
 	private static final String TAG_PLACE = "PLACE";
-	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 	private static final String TAG_SOURCE = "SOURCE";
@@ -62,7 +61,6 @@ public class Flef extends Store<Flef>{
 	private List<GedcomNode> people;
 	private List<GedcomNode> families;
 	private List<GedcomNode> places;
-	private List<GedcomNode> documents;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
@@ -71,7 +69,6 @@ public class Flef extends Store<Flef>{
 	private Map<String, GedcomNode> personIndex;
 	private Map<String, GedcomNode> familyIndex;
 	private Map<String, GedcomNode> placeIndex;
-	private Map<String, GedcomNode> documentIndex;
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
@@ -104,7 +101,6 @@ public class Flef extends Store<Flef>{
 		g.people = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		g.families = root.getChildrenWithTag(TAG_FAMILY);
 		g.places = root.getChildrenWithTag(TAG_PLACE);
-		g.documents = root.getChildrenWithTag(TAG_DOCUMENT);
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
 		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
@@ -113,7 +109,6 @@ public class Flef extends Store<Flef>{
 		g.personIndex = generateIndexes(g.people);
 		g.familyIndex = generateIndexes(g.families);
 		g.placeIndex = generateIndexes(g.places);
-		g.documentIndex = generateIndexes(g.documents);
 		g.noteIndex = generateIndexes(g.notes);
 		g.repositoryIndex = generateIndexes(g.repositories);
 		g.sourceIndex = generateIndexes(g.sources);
@@ -208,25 +203,6 @@ public class Flef extends Store<Flef>{
 
 	public static String getNextPlaceID(final int placesCount){
 		return ID_PLACE_PREFIX + (placesCount + 1);
-	}
-
-	public List<GedcomNode> getDocuments(){
-		return documents;
-	}
-
-	public GedcomNode getDocument(final String id){
-		return documentIndex.get(id);
-	}
-
-	public GedcomNode addDocument(final GedcomNode document){
-		if(documents == null){
-			documents = new ArrayList<>(1);
-			documentIndex = new HashMap<>(1);
-		}
-		document.withID(getNextDocumentID(documents.size()));
-		documents.add(document);
-		documentIndex.put(document.getID(), document);
-		return document;
 	}
 
 	public static String getNextDocumentID(final int documentCount){
