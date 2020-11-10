@@ -4,13 +4,19 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.joinIfNotNull;
 
 
 public class RepositoryRecordTransformation implements Transformation<Gedcom, Flef>{
+
+	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
+
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -26,7 +32,17 @@ public class RepositoryRecordTransformation implements Transformation<Gedcom, Fl
 //		+1 WWW <ADDRESS_WEB_PAGE>    {0:3}	/* The world wide web page address. */
 //		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
-//		+1 <<CONTACT_STRUCTURE>>    {0:1}	/* A CONTACT_STRUCTURE() object giving the contacts of the repository. */
+//		+1 CONTACT
+//			+2 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
+//				+3 TYPE <PHONE_NUMBER_TYPE>    {0:1}	/* Indicates the phone number type (blog, personal, social, work, etc.). */
+//				+3 CALLER_ID    {0:1}	/* Indicates the name of the person associated with this contact. */
+//				+3 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+//			+2 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
+//				+3 TYPE <ADDRESS_EMAIL_TYPE>    {0:1}	/* Indicates the email type (blog, personal, social, work, etc.). */
+//				+3 CALLER_ID    {0:1}	/* Indicates the name of the person associated with this contact. */
+//				+3 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+//			+2 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
+//				+3 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
 //		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 		final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY")
@@ -36,65 +52,34 @@ public class RepositoryRecordTransformation implements Transformation<Gedcom, Fl
 		destinationRepository.addChildValue("NAME", name);
 		addressStructureTo(repository, destinationRepository, destination);
 
+		//TODO
 
-
-
-		String date = null;
-		final List<GedcomNode> events = extractSubStructure(repository, "DATA")
-			.getChildrenWithTag("EVEN");
-		for(final GedcomNode event : events){
-			if(date == null)
-				date = extractSubStructure(event, "DATE")
-					.getValue();
-
-			destinationRepository.addChildValue("EVENT", event.getValue());
-		}
-		destinationRepository.addChildValue("DATE", date);
-		destinationRepository.addChildValue("TEXT", extractSubStructure(repository, "TEXT")
-			.getValueConcatenated());
-		final String author = extractSubStructure(repository, "AUTH")
-			.getValueConcatenated();
-		final String publication = extractSubStructure(repository, "PUBL")
-			.getValueConcatenated();
-		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
-		if(noteAuthorPublication != null){
-			final String noteID = destination.getNextNoteID();
-			destinationRepository.addChildReference("NOTE", noteID);
-			destination.addNote(GedcomNode.create("NOTE", noteID, noteAuthorPublication));
-		}
 		destination.addRepository(destinationRepository);
 	}
 
 	private void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-//		+1 <<ADDRESS_STRUCTURE>>    {0:1}	/* An ADDRESS_STRUCTURE() object giving details of the repository address. */
-//		+1 ADDR <ADDRESS_LINE>    {1:1}	/* The address lines usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-//			+" CONT <ADDRESS_LINE>    {0:3}
-//			+2 ADR1 <ADDRESS_LINE1>    {0:1}
-//			+2 ADR2 <ADDRESS_LINE2>    {0:1}
-//			+2 ADR3 <ADDRESS_LINE3>    {0:1}
-//			+2 CITY <ADDRESS_CITY>    {0:1}	/* The name of the city/town used in the address. Isolated for sorting or indexing. */
-//			+2 STAE <ADDRESS_STATE>    {0:1}	/* The name of the US state/UK county used in the address. Isolated for sorting or indexing. */
-//			+2 POST <ADDRESS_POSTAL_CODE>    {0:1}	/* The ZIP or postal code used by the various localities in handling of mail. Isolated for sorting or indexing. */
-//			+2 CTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. Isolated by some systems for sorting or indexing. Used in most cases to facilitate automatic sorting of mail. */
+		final GedcomNode address = extractSubStructure(parent, "ADDR");
+		if(!address.isEmpty()){
+			final StringJoiner sj = new StringJoiner(" - ");
+			final String wholeAddress = address.extractValueConcatenated();
+			if(wholeAddress != null)
+				sj.add(wholeAddress);
+			for(final GedcomNode child : address.getChildren())
+				if(ADDRESS_TAGS.contains(child.getTag())){
+					final String value = child.getValue();
+					if(value != null)
+						sj.add(value);
+				}
 
-//		+1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
-//plus, in destination:
-// 	n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
-//		+1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
-//		+1 <<PLACE_STRUCTURE>>    {1:M}	/* A list of PLACE_STRUCTURE() objects. */
-//		+1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to. */
-//		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//		+1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			String noteID = note.getID();
-			if(noteID == null){
-				noteID = destination.getNextNoteID();
-
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValueConcatenated()));
-			}
-			destinationNode.addChildReference("NOTE", noteID);
+			final String placeID = destination.getNextPlaceID();
+			destination.addPlace(GedcomNode.create("PLACE")
+				.withID(placeID)
+				.addChildValue("ADDRESS", sj.toString())
+				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
+				.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
+				.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
+			);
+			destinationNode.addChildReference("PLACE", placeID);
 		}
 	}
 

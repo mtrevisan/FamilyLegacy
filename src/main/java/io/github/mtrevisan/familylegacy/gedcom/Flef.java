@@ -148,7 +148,8 @@ public class Flef extends Store<Flef>{
 			people = new ArrayList<>(1);
 			personIndex = new HashMap<>(1);
 		}
-		person.withID(getNextPersonID(people.size()));
+		if(person.getID() == null)
+			person.withID(getNextPersonID(people.size()));
 		people.add(person);
 		personIndex.put(person.getID(), person);
 		return person;
@@ -171,7 +172,8 @@ public class Flef extends Store<Flef>{
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
-		family.withID(getNextFamilyID(families.size()));
+		if(family.getID() == null)
+			family.withID(getNextFamilyID(families.size()));
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 		return family;
@@ -194,14 +196,15 @@ public class Flef extends Store<Flef>{
 			places = new ArrayList<>(1);
 			placeIndex = new HashMap<>(1);
 		}
-		place.withID(getNextPlaceID(places.size()));
+		if(place.getID() == null)
+			place.withID(getNextPlaceID());
 		places.add(place);
 		placeIndex.put(place.getID(), place);
 		return place;
 	}
 
-	public static String getNextPlaceID(final int placesCount){
-		return ID_PLACE_PREFIX + (placesCount + 1);
+	public String getNextPlaceID(){
+		return ID_PLACE_PREFIX + (places != null? places.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -217,6 +220,8 @@ public class Flef extends Store<Flef>{
 			notes = new ArrayList<>(1);
 			noteIndex = new HashMap<>(1);
 		}
+		if(note.getID() == null)
+			note.withID(getNextNoteID());
 		notes.add(note);
 		noteIndex.put(note.getID(), note);
 		return note;
@@ -239,6 +244,8 @@ public class Flef extends Store<Flef>{
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
+		if(repository.getID() == null)
+			repository.withID(getNextRepositoryID());
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
 		return repository;
@@ -261,6 +268,8 @@ public class Flef extends Store<Flef>{
 			sources = new ArrayList<>(1);
 			sourceIndex = new HashMap<>(1);
 		}
+		if(source.getID() == null)
+			source.withID(getNextSourceID());
 		sources.add(source);
 		sourceIndex.put(source.getID(), source);
 		return source;
@@ -283,7 +292,8 @@ public class Flef extends Store<Flef>{
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
-		submitter.withID(getNextSubmitterID(submitters.size()));
+		if(submitter.getID() == null)
+			submitter.withID(getNextSubmitterID(submitters.size()));
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
 		return submitter;
