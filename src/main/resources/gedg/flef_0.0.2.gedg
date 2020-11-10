@@ -292,32 +292,25 @@ n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase u
 PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
-  +1 <<PLACE_STRUCTURE>>    {1:M}	/* A list of PLACE_STRUCTURE() objects. */
-  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to. */
-  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-
-
-PLACE_STRUCTURE :=
-n ADDRESS <ADDRESS_LINE>    {1:1}	/* The address lines usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-  +1 LOCALE <PLACE_LOCALE>    {0:1}    /* The locale identifier for the place form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
-  +1 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
-  +1 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
-  +1 STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
-    +2 TYPE <ADDRESS_STREET_TYPE>    {0:1}	/* Indicates the street type (avenue, terrace, etc.). */
-  +1 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
-  +1 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
-  +1 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
-  +1 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department that pertains to the associated address. */
-  +1 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state used in the address. */
-  +1 POSTAL_CODE <ADDRESS_POSTAL_CODE>    {0:1}	/* The ZIP or postal code used by the various localities in handling of mail. */
-  +1 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. */
+  +1 ADDRESS <ADDRESS_LINE>    {0:M}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
+    +2 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
+    +2 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
+    +2 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
+    +2 STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
+      +3 TYPE <ADDRESS_STREET_TYPE>    {0:1}	/* Indicates the street type (avenue, terrace, etc.). */
+    +2 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
+    +2 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
+    +2 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
+    +2 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department that pertains to the associated address. */
+    +2 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state used in the address. */
+    +2 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+    +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
     +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 /* ok */
@@ -342,7 +335,6 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
   +1 <<CONTACT_STRUCTURE>>    {0:1}	/* A CONTACT_STRUCTURE() object giving the contacts of the repository. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
@@ -379,4 +371,3 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
     +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
     +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and botton-right coordinates of the enclosing box inside an image. */
   +1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */

@@ -27,7 +27,6 @@ public class RepositoryRecordTransformation implements Transformation<Gedcom, Fl
 //		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 //		+1 <<CONTACT_STRUCTURE>>    {0:1}	/* A CONTACT_STRUCTURE() object giving the contacts of the repository. */
-//		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 //		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 		final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY")
