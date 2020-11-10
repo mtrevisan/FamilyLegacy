@@ -338,11 +338,11 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 CONTACT
     +2 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
       +3 TYPE <PHONE_NUMBER_TYPE>    {0:1}	/* Indicates the phone number type (blog, personal, social, work, etc.). */
-      +3 CALLER_ID    {0:1}	/* Indicates the name of the person associated with this contact. */
+      +3 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
       +3 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
     +2 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
       +3 TYPE <ADDRESS_EMAIL_TYPE>    {0:1}	/* Indicates the email type (blog, personal, social, work, etc.). */
-      +3 CALLER_ID    {0:1}	/* Indicates the name of the person associated with this contact. */
+      +3 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
       +3 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
     +2 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
       +3 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
