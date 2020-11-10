@@ -160,13 +160,13 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 
 	private void noteTo(final GedcomNode note, final Gedcom origin, final Flef destination){
 		if(note.getID() == null){
-			final String noteID = Flef.getNextNoteID(origin.getNotes().size());
+//			final String noteID = Flef.getNextNoteID(origin.getNotes().size());
 			final String noteValue = note.extractValueConcatenated();
 
-			note.withID(noteID);
+//			note.withID(noteID);
 
 			destination.addNote(GedcomNode.create("NOTE")
-				.withID(noteID)
+//				.withID(noteID)
 				.withValue(noteValue));
 		}
 	}
@@ -192,9 +192,9 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 			final GedcomNode text = extractSubStructure(sourceCitation, "TEXT");
 
 			//create a new source record
-			final String sourceRecordID = Flef.getNextSourceID(origin.getSources().size());
+//			final String sourceRecordID = Flef.getNextSourceID(origin.getSources().size());
 			final GedcomNode sourceRecord = GedcomNode.create("SOURCE")
-				.withID(sourceRecordID)
+//				.withID(sourceRecordID)
 				.addChild(GedcomNode.create("TITLE")
 					.withValue(description))
 				.addChild(text);
@@ -211,7 +211,7 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 	private void documentTo(final GedcomNode document, final Gedcom origin, final Flef destination){
 		//TODO
 		if(document.getID() == null){
-			final String documentID = Flef.getNextDocumentID(origin.getDocuments().size());
+//			final String documentID = Flef.getNextDocumentID(origin.getDocuments().size());
 			final GedcomNode title = extractSubStructure(document, "TITL");
 			if(!title.isEmpty())
 				title.withTag("TITLE");
@@ -233,7 +233,7 @@ public class PeopleTransformation implements Transformation<Gedcom, Flef>{
 					.addChild(cut);
 			}
 
-			document.withID(documentID);
+//			document.withID(documentID);
 			document.removeChildren();
 
 //			destination.addDocument(GedcomNode.create("DOCUMENT")

@@ -40,7 +40,6 @@ public class Flef extends Store<Flef>{
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
 	private static final String ID_PLACE_PREFIX = "P";
-	private static final String ID_DOCUMENT_PREFIX = "D";
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
@@ -205,10 +204,6 @@ public class Flef extends Store<Flef>{
 		return ID_PLACE_PREFIX + (placesCount + 1);
 	}
 
-	public static String getNextDocumentID(final int documentCount){
-		return ID_DOCUMENT_PREFIX + (documentCount + 1);
-	}
-
 	public List<GedcomNode> getNotes(){
 		return notes;
 	}
@@ -222,14 +217,13 @@ public class Flef extends Store<Flef>{
 			notes = new ArrayList<>(1);
 			noteIndex = new HashMap<>(1);
 		}
-		note.withID(getNextNoteID(notes.size()));
 		notes.add(note);
 		noteIndex.put(note.getID(), note);
 		return note;
 	}
 
-	public static String getNextNoteID(final int noteCount){
-		return ID_NOTE_PREFIX + (noteCount + 1);
+	public String getNextNoteID(){
+		return ID_NOTE_PREFIX + (notes != null? notes.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -245,14 +239,13 @@ public class Flef extends Store<Flef>{
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
-		repository.withID(getNextRepositoryID(repositories.size()));
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
 		return repository;
 	}
 
-	public static String getNextRepositoryID(final int repositoryCount){
-		return ID_REPOSITORY_PREFIX + (repositoryCount + 1);
+	public String getNextRepositoryID(){
+		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSources(){
@@ -268,14 +261,13 @@ public class Flef extends Store<Flef>{
 			sources = new ArrayList<>(1);
 			sourceIndex = new HashMap<>(1);
 		}
-		source.withID(getNextSourceID(sources.size()));
 		sources.add(source);
 		sourceIndex.put(source.getID(), source);
 		return source;
 	}
 
-	public static String getNextSourceID(final int sourceCount){
-		return ID_SOURCE_PREFIX + (sourceCount + 1);
+	public String getNextSourceID(){
+		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSubmitters(){

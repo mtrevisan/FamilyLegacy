@@ -5,10 +5,10 @@ import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.joinIfNotNull;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.moveTag;
 
 
@@ -23,20 +23,12 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 
 	private void sourceTo(final GedcomNode source, final Gedcom origin, final Flef destination){
 		final GedcomNode title = extractSubStructure(source, "TITL");
-		final List<GedcomNode> events = extractSubStructure(source, "DATA")
-			.getChildrenWithTag("EVENT");
-		final String author = extractSubStructure(source, "AUTH")
-			.getValueConcatenated();
-		final String publication = extractSubStructure(source, "PUBL")
-			.getValueConcatenated();
-		final String text = extractSubStructure(source, "TEXT")
-			.getValueConcatenated();
-		final List<GedcomNode> repositories = source.getChildrenWithTag("REPO");
-
 		final GedcomNode destinationSource = GedcomNode.create("SOURCE")
 			.withID(source.getID())
 			.addChildValue("TITLE", title.getValueConcatenated());
 		String date = null;
+		final List<GedcomNode> events = extractSubStructure(source, "DATA")
+			.getChildrenWithTag("EVEN");
 		for(final GedcomNode event : events){
 			if(date == null)
 				date = extractSubStructure(event, "DATE")
@@ -45,22 +37,32 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 			destinationSource.addChildValue("EVENT", event.getValue());
 		}
 		destinationSource.addChildValue("DATE", date);
-		final StringJoiner sj = new StringJoiner(", ");
-		if(author != null)
-			sj.add(author);
-		if(publication != null)
-			sj.add(publication);
-		if(sj.length() > 0){
-			final String noteID = Flef.getNextNoteID(destination.getNotes().size());
+		destinationSource.addChildValue("TEXT", extractSubStructure(source, "TEXT")
+			.getValueConcatenated());
+		final String author = extractSubStructure(source, "AUTH")
+			.getValueConcatenated();
+		final String publication = extractSubStructure(source, "PUBL")
+			.getValueConcatenated();
+		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
+		if(noteAuthorPublication != null){
+			final String noteID = destination.getNextNoteID();
 			destinationSource.addChildReference("NOTE", noteID);
-			destination.addNote(GedcomNode.create("NOTE", noteID, sj.toString()));
+			destination.addNote(GedcomNode.create("NOTE", noteID, noteAuthorPublication));
 		}
-		destinationSource.addChildValue("TEXT", text);
-		final List<GedcomNode> documents = source.getChildrenWithTag("OBJE");
+		documentsTo(source, destinationSource, destination);
+		notesTo(source, destinationSource, destination);
+		repositoriesTo(source, destinationSource, destination);
+		destination.addSource(destinationSource);
+	}
+
+	private void documentsTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
-			if(document.getID() == null){
-				final GedcomNode destinationDocument = GedcomNode.create("SOURCE")
-					.withValue(text);
+			String documentID = document.getID();
+			if(documentID == null){
+				documentID = destination.getNextSourceID();
+
+				final GedcomNode destinationDocument = GedcomNode.create("SOURCE");
 				final String documentTitle = extractSubStructure(document, "TITL")
 					.getValue();
 				final String documentFormat = extractSubStructure(document, "FORM")
@@ -80,25 +82,11 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 						.addChildValue("MEDIA", documentMedia)
 						.addChildValue("CUT", documentCut)
 					);
-				destination.addSource(destinationDocument);
+				destination.addSource(destinationDocument
+					.withID(documentID));
 			}
-			final String documentID = Flef.getNextSourceID(destination.getSources().size());
-			destinationSource.addChildReference("SOURCE", documentID);
+			destinationNode.addChildReference("SOURCE", documentID);
 		}
-		notesTo(source, destinationSource, destination);
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY");
-			final String repositoryID = (repository.getID() == null?
-				Flef.getNextRepositoryID(destination.getRepositories().size()): repository.getID());
-			if(repository.getID() == null){
-				destination.addRepository(destinationRepository);
-
-				notesTo(repository, destinationRepository, destination);
-			}
-			destinationSource.addChild(destinationRepository
-				.withID(repositoryID));
-		}
-		destination.addSource(destinationSource);
 	}
 
 	private void notesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
@@ -106,12 +94,32 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode note : notes){
 			String noteID = note.getID();
 			if(noteID == null){
-				noteID = Flef.getNextNoteID(destination.getNotes().size());
+				noteID = destination.getNextNoteID();
+
 				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValueConcatenated()));
 			}
 			destinationNode.addChildReference("NOTE", noteID);
 		}
 	}
+
+	private void repositoriesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
+		for(final GedcomNode repository : repositories){
+			String repositoryID = repository.getID();
+
+			final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY");
+			if(repositoryID == null){
+				repositoryID = destination.getNextRepositoryID();
+
+				destination.addRepository(destinationRepository);
+
+				notesTo(repository, destinationRepository, destination);
+			}
+			destinationNode.addChild(destinationRepository
+				.withID(repositoryID));
+		}
+	}
+
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){

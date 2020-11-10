@@ -52,7 +52,7 @@ public class HeaderTransformation implements Transformation{
 		final GedcomNode note = extractSubStructure(node, "NOTE");
 		if(!note.isEmpty()){
 			//create a note in the root:
-			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
+//			note.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 			root.addChild(GedcomNode.create("NOTE")
 				.withID(note.getID())
 				.withValue(note.extractValueConcatenated()));

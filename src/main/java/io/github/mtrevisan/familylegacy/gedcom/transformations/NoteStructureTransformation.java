@@ -10,7 +10,7 @@ public class NoteStructureTransformation implements Transformation{
 	public void to(final GedcomNode node, final GedcomNode root){
 		if(node.getID() == null){
 			//create a note in the root:
-			node.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
+//			node.withID(Flef.getNextNoteID(root.getChildrenWithTag("NOTE").size()));
 			root.addChild(GedcomNode.create("NOTE")
 				.withID(node.getID())
 				.withValue(node.extractValueConcatenated()));

@@ -27,7 +27,7 @@ public class MultimediaLinkTransformation implements Transformation{
 			moveTag("_MEDI", format, "MEDI");
 			final List<GedcomNode> docFiles = node.getChildrenWithTag("FILE");
 			deleteMultipleTag(node, "FILE");
-			node.withID(Flef.getNextDocumentID(root.getChildrenWithTag("DOCUMENT").size()));
+//			node.withID(Flef.getNextDocumentID(root.getChildrenWithTag("DOCUMENT").size()));
 			final GedcomNode doc = GedcomNode.create("DOCUMENT")
 				.withID(node.getID())
 				.addChild(title);

@@ -18,7 +18,7 @@ public class SourceRepositoryCitationTransformation implements Transformation{
 		node.withTag("REPOSITORY");
 		if(node.getID() == null){
 			//create a repository in the root:
-			node.withID(Flef.getNextRepositoryID(root.getChildrenWithTag("REPOSITORY").size()));
+//			node.withID(Flef.getNextRepositoryID(root.getChildrenWithTag("REPOSITORY").size()));
 			root.addChild(GedcomNode.create("REPOSITORY")
 				.withID(node.getID())
 				.withValue(node.extractValueConcatenated()));
