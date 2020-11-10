@@ -6,10 +6,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.deleteTag;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.joinIfNotNull;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.moveTag;
 
 
 public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
@@ -18,10 +16,10 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceTo(source, origin, destination);
+			sourceTo(source, destination);
 	}
 
-	private void sourceTo(final GedcomNode source, final Gedcom origin, final Flef destination){
+	private void sourceTo(final GedcomNode source, final Flef destination){
 		final GedcomNode title = extractSubStructure(source, "TITL");
 		final GedcomNode destinationSource = GedcomNode.create("SOURCE")
 			.withID(source.getID())
@@ -123,72 +121,67 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){
-		final GedcomNode header = origin.getHeader();
+		final List<GedcomNode> sources = origin.getSources();
+		for(final GedcomNode source : sources)
+			sourceFrom(source, destination);
+	}
 
-//		+1 TYPE [ DIGITAL_ARCHIVE | MICROFILM | DATABASE | GRAVE_MARKER | <CUSTOM_TYPE> | <NULL> ]    {0:1}
-//		+1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
-//		+1 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as the type of event which was responsible for the source entry being recorded (CASTE, EDUCATION, NATIONALITY, OCCUPATION, PROPERTY, RELIGION, RESIDENCE, TITLE, FACT, ANNULMENT, CENSUS, DIVORCE, DIVORCE_FILED, ENGAGEMENT, MARRIAGE, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, ADOPTION, BIRTH, BURIAL, CREMATION, DEATH, EMIGRATION, GRADUATION, IMMIGRATION, NATURALIZATION, RETIREMENT, DEED, PROBATE, WILL, EVENT, etc). For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
-//		+1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
-//		+1 TEXT <TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//		+1 DOCUMENT @<XREF:DOCUMENT>@    {0:M}	/* An xref ID of a document record. */
-//		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
-//		+1 REPOSITORY @<XREF:REPOSITORY>@    {0:M}	/* A list of xref ID of repository records who owns this source. */
-//			+2 REPOSITORY_LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
-//			+2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//		+1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
-//		+1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+	private void sourceFrom(final GedcomNode source, final Gedcom destination){
+		final GedcomNode destinationSource = GedcomNode.create("SOUR")
+			.withID(source.getID());
+		final String date = extractSubStructure(source, "DATE")
+			.getValue();
+		final GedcomNode destinationData = GedcomNode.create("DATA");
+		final List<GedcomNode> events = source.getChildrenWithTag("EVENT");
+		for(final GedcomNode event : events)
+			destinationData.addChild(GedcomNode.create("EVEN")
+				.withValue(event.getValue())
+				.addChildValue("DATE", date));
+		destinationSource.addChild(destinationData);
+		final GedcomNode title = extractSubStructure(source, "TITLE");
+		destinationSource.addChildValue("TITL", title.getValueConcatenated());
+		final GedcomNode text = extractSubStructure(source, "TEXT");
+		destinationSource.addChildValue("TEXT", text.getValueConcatenated());
+		repositoriesFrom(source, destinationSource);
+		notesFrom(source, destinationSource);
+		documentsFrom(source, destinationSource);
+		destination.addSource(destinationSource);
+	}
 
-//		+1 DATA    {0:1}
-//			+2 EVEN <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as a parish register of births, deaths, and marriages would be BIRT, DEAT, MARR. These can be enumerated over more than one vector element. */
-//				+3 DATE <DATE_PERIOD>    {0:1}	/* A date_period() object associated with the period covered by the course. */
-//				+3 PLAC <SOURCE_JURISDICTION_PLACE>    {0:1}	/* The name of the lowest jurisdiction that encompasses all lower-level places named in this source. */
-//			+2 AGNC <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
-//			+2 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects associated with the data in this source. */
-//		+1 AUTH <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
-//			+2 [ CONC | CONT ] <SOURCE_ORIGINATOR>    {0:M}
-//		+1 TITL <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
-//			+2 [ CONC | CONT ] <SOURCE_DESCRIPTIVE_TITLE>    {0:M}
-//		+1 ABBR <SOURCE_FILED_BY_ENTRY>    {0:1}	/* This entry is to provide a short title used for sorting, filing, and retrieving source records. */
-//		+1 PUBL <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
-//			+2 [ CONC | CONT ] <SOURCE_PUBLICATION_FACTS>    {0:M}
-//		+1 TEXT <TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//			+2 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
-//		+1 <<SOURCE_REPOSITORY_CITATION>>    {0:M}	/* A list of SOURCE_REPOSITORY_CITATION() objects. */
-//		+1 REFN <USER_REFERENCE_NUMBER>    {0:M}	/* A user-defined number or text that the submitter uses to identify this record. */
-//			+2 TYPE <USER_REFERENCE_TYPE>    {0:1}	/* A user-defined definition of the user_reference_number. */
-//		+1 RIN <AUTOMATED_RECORD_ID>    {0:1}	/* A unique record identification number assigned to the record by the source system. This number is intended to serve as a more sure means of identification of a record for reconciling differences in data between two interfacing systems. */
-//		+1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
-//		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-//		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+	private void repositoriesFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
+		for(final GedcomNode repository : repositories)
+			destinationNode.addChild(GedcomNode.create("REPO")
+				.withID(repository.getID()));
+	}
 
-		header.withTag("HEAD");
-		final GedcomNode source = extractSubStructure(header, "SOURCE");
-		source.withTag("SOUR");
-		moveTag("VERS", source, "VERSION");
-		moveTag("CORP", source, "CORPORATE");
-		final GedcomNode date = extractSubStructure(header, "DATE");
-		if(!date.isEmpty()){
-			source.addChild(GedcomNode.create("DATA")
-				.addChild(date));
+	private void notesFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			destinationNode.addChild(GedcomNode.create("NOTE")
+				.withID(note.getID()));
+	}
+
+	private void documentsFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> files = parent.getChildrenWithTag("FILE");
+		for(final GedcomNode file : files){
+			final String format = extractSubStructure(file, "FORMAT")
+				.getValue();
+			final String media = extractSubStructure(file, "MEDIA")
+				.getValue();
+			final GedcomNode destinationObject = GedcomNode.create("OBJE")
+				.addChild(GedcomNode.create("FORM")
+					.withValue(format)
+					.addChild(GedcomNode.create("MEDI")
+						.withValue(media))
+				)
+				.addChildValue("FILE", file.getValue());
+			final GedcomNode cut = extractSubStructure(file, "CUT");
+			if(!cut.isEmpty())
+				destinationObject.addChildValue("CUT", "Y")
+					.addChildValue("_CUTD", cut.getValue());
+			destinationNode.addChild(destinationObject);
 		}
-		final GedcomNode copyright = extractSubStructure(header, "COPYRIGHT");
-		header.removeChild(copyright);
-		moveTag("SUBM", source, "SUBMITTER");
-		deleteTag(header, "PROTOCOL_VERSION");
-		final GedcomNode gedcom = GedcomNode.create("GEDC")
-			.addChild(GedcomNode.create("VERS")
-				.withValue("5.5.1"))
-			.addChild(GedcomNode.create("FORM")
-				.withValue("LINEAGE_LINKED"));
-		final GedcomNode charset = extractSubStructure(header, "CHARSET");
-		charset.withTag("CHAR");
-		header.addChildBefore(gedcom, charset);
-		header.addChildBefore(copyright, charset);
-		final GedcomNode note = extractSubStructure(header, "NOTE");
-		note.withValueConcatenated(note.getValue());
-
-		destination.getHeader()
-			.cloneFrom(header);
 	}
 
 }

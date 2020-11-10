@@ -315,7 +315,7 @@ public final class GedcomNode{
 	public GedcomNode addChildValue(final String tag, final String value){
 		if(value != null)
 			addChild(create(tag)
-				.withValue(value));
+				.withValueConcatenated(value));
 		return this;
 	}
 
