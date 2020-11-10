@@ -201,7 +201,7 @@ public final class GedcomNode{
 		return value;
 	}
 
-	private static final String[] CONTINUATION_TAGS = new String[]{TAG_CONTINUATION, TAG_CONCATENATION};
+	private static final String[] CONTINUATION_TAGS = {TAG_CONTINUATION, TAG_CONCATENATION};
 	static{
 		Arrays.sort(CONTINUATION_TAGS);
 	}
@@ -320,7 +320,7 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addChild(final GedcomNode child){
-		if(child.isEmpty() || child.getValue() == null && !child.hasChildren())
+		if(child.isEmpty())
 			return this;
 
 		if(children == null)
@@ -360,7 +360,7 @@ public final class GedcomNode{
 	 * @param nodeAfter	Node that should be after the inserted node.
 	 */
 	public void addChildBefore(final GedcomNode child, final GedcomNode nodeAfter){
-		if(!child.isEmpty() && (child.getValue() != null || child.hasChildren())){
+		if(!child.isEmpty() && (child.value != null || child.hasChildren())){
 			if(children == null){
 				children = new ArrayList<>(1);
 				children.add(child);
