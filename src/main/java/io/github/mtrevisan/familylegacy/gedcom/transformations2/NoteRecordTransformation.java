@@ -17,7 +17,7 @@ public class NoteRecordTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordTo(final GedcomNode note, final Flef destination){
-		final GedcomNode destinationNote = GedcomNode.create("NOTE", note.getID(), note.getValueConcatenated());
+		final GedcomNode destinationNote = GedcomNode.create("NOTE", note.getID(), note.getValue());
 		destination.addNote(destinationNote);
 	}
 

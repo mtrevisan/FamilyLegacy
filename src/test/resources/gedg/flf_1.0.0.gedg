@@ -3,7 +3,7 @@ GEDCOM_SOURCE=
 GEDCOM_DESCRIPTION=DRAFT Release 1.0.0
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<RECORD>>    {0:M}
 n <<END_OF_FILE>>    {1:1}

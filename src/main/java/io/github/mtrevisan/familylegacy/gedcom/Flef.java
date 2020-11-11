@@ -57,7 +57,7 @@ public class Flef extends Store<Flef>{
 
 
 	private GedcomNode header = GedcomNode.createEmpty();
-	private List<GedcomNode> people;
+	private List<GedcomNode> individuals;
 	private List<GedcomNode> families;
 	private List<GedcomNode> places;
 	private List<GedcomNode> notes;
@@ -65,7 +65,7 @@ public class Flef extends Store<Flef>{
 	private List<GedcomNode> sources;
 	private List<GedcomNode> submitters;
 
-	private Map<String, GedcomNode> personIndex;
+	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
 	private Map<String, GedcomNode> placeIndex;
 	private Map<String, GedcomNode> noteIndex;
@@ -97,7 +97,7 @@ public class Flef extends Store<Flef>{
 		if(headers.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
 		g.header = headers.get(0);
-		g.people = root.getChildrenWithTag(TAG_INDIVIDUAL);
+		g.individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		g.families = root.getChildrenWithTag(TAG_FAMILY);
 		g.places = root.getChildrenWithTag(TAG_PLACE);
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
@@ -105,7 +105,7 @@ public class Flef extends Store<Flef>{
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
 		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
-		g.personIndex = generateIndexes(g.people);
+		g.individualIndex = generateIndexes(g.individuals);
 		g.familyIndex = generateIndexes(g.families);
 		g.placeIndex = generateIndexes(g.places);
 		g.noteIndex = generateIndexes(g.notes);
@@ -135,28 +135,28 @@ public class Flef extends Store<Flef>{
 		return header;
 	}
 
-	public List<GedcomNode> getPeople(){
-		return people;
+	public List<GedcomNode> getIndividuals(){
+		return individuals;
 	}
 
-	public GedcomNode getPerson(final String id){
-		return personIndex.get(id);
+	public GedcomNode getIndividual(final String id){
+		return individualIndex.get(id);
 	}
 
-	public GedcomNode addPerson(final GedcomNode person){
-		if(people == null){
-			people = new ArrayList<>(1);
-			personIndex = new HashMap<>(1);
+	public GedcomNode addIndividual(final GedcomNode individual){
+		if(individuals == null){
+			individuals = new ArrayList<>(1);
+			individualIndex = new HashMap<>(1);
 		}
-		if(person.getID() == null)
-			person.withID(getNextPersonID(people.size()));
-		people.add(person);
-		personIndex.put(person.getID(), person);
-		return person;
+		if(individual.getID() == null)
+			individual.withID(getNextIndividualID());
+		individuals.add(individual);
+		individualIndex.put(individual.getID(), individual);
+		return individual;
 	}
 
-	public static String getNextPersonID(final int peopleCount){
-		return ID_INDIVIDUAL_PREFIX + (peopleCount + 1);
+	public String getNextIndividualID(){
+		return ID_INDIVIDUAL_PREFIX + (individuals != null? individuals.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getFamilies(){

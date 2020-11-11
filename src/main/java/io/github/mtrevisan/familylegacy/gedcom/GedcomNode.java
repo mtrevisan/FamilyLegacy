@@ -54,6 +54,10 @@ public final class GedcomNode{
 
 	private static final String TAG_CONCATENATION = "CONC";
 	private static final String TAG_CONTINUATION = "CONT";
+	private static final String[] CONTINUATION_TAGS = {TAG_CONCATENATION, TAG_CONTINUATION};
+	static{
+		Arrays.sort(CONTINUATION_TAGS);
+	}
 
 
 	private int level;
@@ -197,20 +201,11 @@ public final class GedcomNode{
 			this.xref = xref;
 	}
 
-	public String getValue(){
-		return value;
-	}
-
-	private static final String[] CONTINUATION_TAGS = {TAG_CONTINUATION, TAG_CONCATENATION};
-	static{
-		Arrays.sort(CONTINUATION_TAGS);
-	}
-
 	/**
 	 * Returns the value associated with this node.
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
 	 */
-	public String getValueConcatenated(){
+	public String getValue(){
 		if(children != null){
 			final StringBuilder sb = new StringBuilder();
 			if(value != null)
@@ -233,7 +228,7 @@ public final class GedcomNode{
 	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned and the continuation tags are removed.</p>
 	 */
 	public String extractValueConcatenated(){
-		final List<GedcomNode> subChildren = getChildrenWithTag(TAG_CONTINUATION, TAG_CONCATENATION);
+		final List<GedcomNode> subChildren = getChildrenWithTag(CONTINUATION_TAGS);
 		if(!subChildren.isEmpty()){
 			final StringBuilder sb = new StringBuilder();
 			if(value != null)

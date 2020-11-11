@@ -90,7 +90,7 @@ public class RepositoryRecordTransformation implements Transformation<Gedcom, Fl
 			if(noteID == null){
 				noteID = destination.getNextNoteID();
 
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValueConcatenated()));
+				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValue()));
 			}
 			destinationNode.addChildReference("NOTE", noteID);
 		}

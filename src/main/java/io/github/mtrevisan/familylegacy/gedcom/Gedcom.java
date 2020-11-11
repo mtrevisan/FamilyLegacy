@@ -50,7 +50,7 @@ public class Gedcom extends Store<Gedcom>{
 
 
 	private GedcomNode header = GedcomNode.createEmpty();
-	private List<GedcomNode> people;
+	private List<GedcomNode> individuals;
 	private List<GedcomNode> families;
 	private List<GedcomNode> documents;
 	private List<GedcomNode> notes;
@@ -59,7 +59,7 @@ public class Gedcom extends Store<Gedcom>{
 	private List<GedcomNode> submitters;
 	private GedcomNode submission;
 
-	private Map<String, GedcomNode> personIndex;
+	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
 	private Map<String, GedcomNode> documentIndex;
 	private Map<String, GedcomNode> noteIndex;
@@ -93,7 +93,7 @@ public class Gedcom extends Store<Gedcom>{
 		if(heads.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
 		g.header = heads.get(0);
-		g.people = root.getChildrenWithTag(TAG_INDIVIDUAL);
+		g.individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		g.families = root.getChildrenWithTag(TAG_FAMILY);
 		g.documents = root.getChildrenWithTag(TAG_DOCUMENT);
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
@@ -108,7 +108,7 @@ public class Gedcom extends Store<Gedcom>{
 		if(!submissions.isEmpty())
 			g.submission = submissions.get(0);
 
-		g.personIndex = generateIndexes(g.people);
+		g.individualIndex = generateIndexes(g.individuals);
 		g.familyIndex = generateIndexes(g.families);
 		g.documentIndex = generateIndexes(g.documents);
 		g.noteIndex = generateIndexes(g.notes);
@@ -138,12 +138,12 @@ public class Gedcom extends Store<Gedcom>{
 		return header;
 	}
 
-	public List<GedcomNode> getPeople(){
-		return people;
+	public List<GedcomNode> getIndividuals(){
+		return individuals;
 	}
 
-	public GedcomNode getPerson(final String id){
-		return personIndex.get(id);
+	public GedcomNode getIndividual(final String id){
+		return individualIndex.get(id);
 	}
 
 	public List<GedcomNode> getFamilies(){

@@ -3,7 +3,7 @@ GEDCOM_SOURCE=http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gctoc.ht
 GEDCOM_DESCRIPTION=Release 5.5
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}

@@ -7,7 +7,7 @@ https://fhiso.org/TR/elf-data-model.pdf
 https://github.com/FamilySearch/gedcomx/blob/master/specifications/conceptual-model-specification.md
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}

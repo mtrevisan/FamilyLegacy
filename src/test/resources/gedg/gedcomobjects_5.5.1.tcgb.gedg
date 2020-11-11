@@ -3,7 +3,7 @@ GEDCOM_SOURCE=http://www.phpgedview.net/ged551-5.pdf
 GEDCOM_DESCRIPTION=DRAFT Release 5.5.1
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}

@@ -9,7 +9,7 @@ Additional Tags:
 EMAIL in INDIVIDUAL_RECORD
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}

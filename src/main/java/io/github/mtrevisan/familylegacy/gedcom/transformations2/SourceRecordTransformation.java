@@ -23,7 +23,7 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		final GedcomNode title = extractSubStructure(source, "TITL");
 		final GedcomNode destinationSource = GedcomNode.create("SOURCE")
 			.withID(source.getID())
-			.addChildValue("TITLE", title.getValueConcatenated());
+			.addChildValue("TITLE", title.getValue());
 		String date = null;
 		final List<GedcomNode> events = extractSubStructure(source, "DATA")
 			.getChildrenWithTag("EVEN");
@@ -36,11 +36,11 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 		}
 		destinationSource.addChildValue("DATE", date);
 		destinationSource.addChildValue("TEXT", extractSubStructure(source, "TEXT")
-			.getValueConcatenated());
+			.getValue());
 		final String author = extractSubStructure(source, "AUTH")
-			.getValueConcatenated();
+			.getValue();
 		final String publication = extractSubStructure(source, "PUBL")
-			.getValueConcatenated();
+			.getValue();
 		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
 		if(noteAuthorPublication != null){
 			final String noteID = destination.getNextNoteID();
@@ -94,7 +94,7 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 			if(noteID == null){
 				noteID = destination.getNextNoteID();
 
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValueConcatenated()));
+				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValue()));
 			}
 			destinationNode.addChildReference("NOTE", noteID);
 		}
@@ -139,9 +139,9 @@ public class SourceRecordTransformation implements Transformation<Gedcom, Flef>{
 				.addChildValue("DATE", date));
 		destinationSource.addChild(destinationData);
 		final GedcomNode title = extractSubStructure(source, "TITLE");
-		destinationSource.addChildValue("TITL", title.getValueConcatenated());
+		destinationSource.addChildValue("TITL", title.getValue());
 		final GedcomNode text = extractSubStructure(source, "TEXT");
-		destinationSource.addChildValue("TEXT", text.getValueConcatenated());
+		destinationSource.addChildValue("TEXT", text.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
 		notesFrom(source, destinationSource);
 		documentsFrom(source, destinationSource);

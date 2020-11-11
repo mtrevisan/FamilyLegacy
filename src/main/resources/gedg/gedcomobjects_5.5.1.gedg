@@ -7,29 +7,11 @@ https://fhiso.org/TR/elf-data-model.pdf
 https://github.com/FamilySearch/gedcomx/blob/master/specifications/conceptual-model-specification.md
 
 
-LINEAGE_LINKED_GEDCOM :=
+ROOT :=
 n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}
 n <<END_OF_FILE>>    {1:1}
-
-
-RECORD :=
-[
-n <<FAMILY_RECORD>>    {1:1}
-|
-n <<INDIVIDUAL_RECORD>>    {1:1}
-|
-n <<MULTIMEDIA_RECORD>>    {1:1}
-|
-n <<NOTE_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD>>    {1:1}
-|
-n <<SOURCE_RECORD>>    {1:1}
-|
-n <<SUBMITTER_RECORD>>    {1:1}
-]
 
 
 HEADER :=
@@ -60,6 +42,24 @@ n HEAD    {1:1}
     +2 FORM <PLACE_HIERARCHY>    {1:1}	/* This shows the jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. The jurisdictions are separated by commas, and any jurisdiction's name that is missing is still accounted for by a comma. */
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
     +2 [ CONC | CONT ] <GEDCOM_CONTENT_DESCRIPTION>    {0:M}
+
+
+RECORD :=
+[
+n <<FAMILY_RECORD>>    {1:1}
+|
+n <<INDIVIDUAL_RECORD>>    {1:1}
+|
+n <<MULTIMEDIA_RECORD>>    {1:1}
+|
+n <<NOTE_RECORD>>    {1:1}
+|
+n <<REPOSITORY_RECORD>>    {1:1}
+|
+n <<SOURCE_RECORD>>    {1:1}
+|
+n <<SUBMITTER_RECORD>>    {1:1}
+]
 
 
 FAMILY_RECORD :=
@@ -131,7 +131,7 @@ n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. +
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-REPOSITORY_RECORD :=
+REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPO>@ REPO    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 <<ADDRESS_STRUCTURE>>    {0:1}	/* An ADDRESS_STRUCTURE() object giving details of the repository address. */
@@ -230,7 +230,7 @@ n FAMC @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 
-EVENT_DETAIL :=
+EVENT_OR_FACT_DETAIL :=
 n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVEN or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
 n DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
 n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
@@ -249,7 +249,7 @@ n HUSB    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
 n WIFE    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
-n <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
+n <<EVENT_OR_FACT_DETAIL>>    {0:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
 
 
 FAMILY_EVENT_STRUCTURE :=
@@ -269,7 +269,7 @@ n [ MARL | MARS ]    {1:1}	/* A code used to indicate the type of family event. 
 n RESI    {1:1}	/* A code used to indicate the type of family event. */
   +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
 |
-n EVEN [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* A code used to indicate the type of family event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVEN tag. The classification as to the difference between this specific event and other occurrences of the EVENt tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
+n EVEN [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* A code used to indicate the type of family event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVEN tag. The classification as to the difference between this specific event and other occurrences of the EVENt tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_OR_FACT_DETAIL structure. */
   +1 <<FAMILY_EVENT_DETAIL>>    {0:1}	/* A FAMILY_EVENT_DETAIL() object giving details of the event. */
 ]
 
@@ -322,7 +322,7 @@ n FACT <ATTRIBUTE_DESCRIPTOR>    {1:1}	/* An attribute which may have caused nam
 
 
 INDIVIDUAL_EVENT_DETAIL :=
-n <<EVENT_DETAIL>>    {1:1}	/* An EVENT_DETAIL() object giving details of the event. */
+n <<EVENT_OR_FACT_DETAIL>>    {1:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
 n AGE <AGE_AT_EVENT>    {0:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
 
 
@@ -427,17 +427,6 @@ n NOTE [ <SUBMITTER_TEXT> | <NULL> ]    {1:1}	/* Comments or opinions from the s
 ]
 
 
-PERSONAL_NAME_PIECES :=
-n NPFX <NAME_PIECE_PREFIX>    {0:1}	/* Non indexing name piece that appears preceding the given name and surname parts. Different name prefix parts are separated by a comma. */
-n GIVN <NAME_PIECE_GIVEN>    {0:1}	/* Given name or earned name. Different given names are separated by a comma. */
-n NICK <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
-n SPFX <NAME_PIECE_SURNAME_PREFIX>    {0:1}	/* Surname prefix or article used in a family name. Different surname articles are separated by a comma, for example in the name "de la Cruz", this value would be "de, la". */
-n SURN <NAME_PIECE_SURNAME>    {0:1}	/* Surname or family name. Different surnames are separated by a comma. */
-n NSFX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name and surname parts. Different name suffix parts are separated by a comma. */
-n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-
-
 PERSONAL_NAME_STRUCTURE :=
 n NAME <NAME_PERSONAL>    {1:1}	/* The surname of an individual, if known, is enclosed between two slash (/) characters. The order of the name parts should be the order that the person would, by custom of their culture, have used when giving it to a recorder. */
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant */
@@ -448,6 +437,17 @@ n NAME <NAME_PERSONAL>    {1:1}	/* The surname of an individual, if known, is en
   +1 ROMN <NAME_ROMANIZED_VARIATION>    {0:M}	 /* A character vector giving romanized variations of the name. */
     +2 TYPE <ROMANIZED_TYPE>    {1:1}	 /* Indicates the method used in transforming the text to a romanized variation. */
     +2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the romanized name variations. */
+
+
+PERSONAL_NAME_PIECES :=
+n NPFX <NAME_PIECE_PREFIX>    {0:1}	/* Non indexing name piece that appears preceding the given name and surname parts. Different name prefix parts are separated by a comma. */
+n GIVN <NAME_PIECE_GIVEN>    {0:1}	/* Given name or earned name. Different given names are separated by a comma. */
+n NICK <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
+n SPFX <NAME_PIECE_SURNAME_PREFIX>    {0:1}	/* Surname prefix or article used in a family name. Different surname articles are separated by a comma, for example in the name "de la Cruz", this value would be "de, la". */
+n SURN <NAME_PIECE_SURNAME>    {0:1}	/* Surname or family name. Different surnames are separated by a comma. */
+n NSFX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name and surname parts. Different name suffix parts are separated by a comma. */
+n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
 PLACE_STRUCTURE :=
@@ -490,8 +490,8 @@ n SOUR <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe 
 SOURCE_REPOSITORY_CITATION :=
 n REPO [ @<XREF:REPO>@ | <NULL> ]    {1:1}	/* An xref ID of a repository record. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-   +1 CALN <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
-     +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
+  +1 CALN <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
+    +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
 
 
 SPOUSE_TO_FAMILY_LINK :=
