@@ -7,7 +7,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.List;
 
 
-public class NoteRecordTransformation implements Transformation<Gedcom, Flef>{
+public class NoteTransformation implements Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -32,7 +32,7 @@ public class NoteRecordTransformation implements Transformation<Gedcom, Flef>{
 	private void noteRecordFrom(final GedcomNode note, final Gedcom destination){
 		final GedcomNode destinationNote = GedcomNode.create("NOTE")
 			.withID(note.getID())
-			.withValueConcatenated(note.getValue());
+			.withValue(note.getValue());
 		destination.addNote(destinationNote);
 	}
 

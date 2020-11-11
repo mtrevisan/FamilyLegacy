@@ -82,7 +82,7 @@ public class HeaderTransformation implements Transformation<Gedcom, Flef>{
 		header.addChildBefore(gedcom, charset);
 		header.addChildBefore(copyright, charset);
 		final GedcomNode note = extractSubStructure(header, "NOTE");
-		note.withValueConcatenated(note.getValue());
+		note.withValue(note.getValue());
 
 		destination.getHeader()
 			.cloneFrom(header);

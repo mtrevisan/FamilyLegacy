@@ -248,17 +248,11 @@ public final class GedcomNode{
 			return value;
 	}
 
-	public GedcomNode withValue(final String value){
-		if(value != null && !value.isEmpty())
-			this.value = value;
-		return this;
-	}
-
 	public void removeValue(){
 		value = null;
 	}
 
-	public GedcomNode withValueConcatenated(final String value){
+	public GedcomNode withValue(final String value){
 		this.value = null;
 		if(value != null && !value.isEmpty()){
 			//split line into CONC|CONT if appliable
@@ -319,7 +313,7 @@ public final class GedcomNode{
 	public GedcomNode addChildValueConcatenated(final String tag, final String value){
 		if(StringUtils.isNotEmpty(value))
 			addChild(create(tag)
-				.withValueConcatenated(value));
+				.withValue(value));
 		return this;
 	}
 

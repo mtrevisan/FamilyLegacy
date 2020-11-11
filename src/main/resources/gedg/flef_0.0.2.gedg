@@ -201,7 +201,7 @@ n ATTRIBUTE TITLE    {1:1}	/* A title given a person associated with a local or 
   +1 VALUE <NOBILITY_TYPE_TITLE>    {1:1}
   +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
 |
-n ATTRIBUTE [ <ATTRIBUTE_DESCRIPTOR> | <NULL> ]    {1:1}	/* A generic attribute, the type of which MUST be more fully described in a EVENT_OR_FACT_CLASSIFICATION substructure. */
+n ATTRIBUTE [ <ATTRIBUTE_NAME> | <NULL> ]    {1:1}	/* A generic attribute, the type of which MUST be more fully described in a EVENT_OR_FACT_CLASSIFICATION substructure. */
   +1 VALUE <ATTRIBUTE_DESCRIPTOR>    {0:1}
   +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
 ]
