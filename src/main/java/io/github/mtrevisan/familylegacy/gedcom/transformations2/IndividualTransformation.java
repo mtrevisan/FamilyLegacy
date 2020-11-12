@@ -28,10 +28,10 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 	private void individualRecordTo(final GedcomNode individual, final Flef destination){
 		final GedcomNode destinationIndividual = GedcomNode.create("INDIVIDUAL")
-			.withID(individual.getID())
-			.addChildValue("SEX", extractSubStructure(individual, "SEX")
-				.getValue());
+			.withID(individual.getID());
 		personalNameTo(individual, destinationIndividual, destination);
+		destinationIndividual.addChildValue("SEX", extractSubStructure(individual, "SEX")
+				.getValue());
 		childToFamilyLinkTo(individual, destinationIndividual, destination);
 		spouseToFamilyLinkTo(individual, destinationIndividual, destination);
 		associationTo(individual, destinationIndividual, destination);
@@ -74,9 +74,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	private void personalNameTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> personalNameStructures = individual.getChildrenWithTag("NAME");
 		for(final GedcomNode personalNameStructure : personalNameStructures){
-			final GedcomNode destinationName = GedcomNode.create("NAME")
-				.addChildValue("TYPE", extractSubStructure(personalNameStructure, "TYPE")
-					.getValue());
+			final GedcomNode destinationName = GedcomNode.create("NAME");
 			personalNamePiecesTo(personalNameStructure, destinationName, destination);
 			final GedcomNode destinationPhoneticName = GedcomNode.create("PHONETIC");
 			personalNamePiecesTo(extractSubStructure(personalNameStructure, "FONE"), destinationPhoneticName, destination);
@@ -135,7 +133,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			final GedcomNode destinationFamilyChild = GedcomNode.create("FAMILY_CHILD")
 				.addChildValue("PEDIGREE", extractSubStructure(childToFamilyLink, "PEDI")
 					.getValue())
-				.addChildValue("STATUS", extractSubStructure(childToFamilyLink, "STAT")
+				.addChildValue("CERTAINTY", extractSubStructure(childToFamilyLink, "STAT")
 					.getValue());
 			notesTo(childToFamilyLink, destinationFamilyChild, destination);
 			destinationNode.addChild(destinationFamilyChild);
@@ -288,54 +286,52 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		final String tagFrom, final String tagTo){
 		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode event : events){
-			final GedcomNode destinationBirth = GedcomNode.create("EVENT")
+			final GedcomNode destinationEvent = GedcomNode.create("EVENT")
 				.withValue(tagTo)
 				.addChildValue("TYPE", extractSubStructure(event, "TYPE")
 					.getValue())
 				.addChildValue("DATE", extractSubStructure(event, "DATE")
 					.getValue());
-			placeAddressStructureTo(event, destinationNode, destination);
-			contactStructureTo(event, destinationNode);
+			placeAddressStructureTo(event, destinationEvent, destination);
 			final GedcomNode familyChild = extractSubStructure(event, "FAMC");
-			destinationBirth.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
+			destinationEvent.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
 				.getValue())
 				.addChildValue("CAUSE", extractSubStructure(event, "CAUS")
-					.getValue())
-				.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
+					.getValue());
+			notesTo(event, destinationEvent, destination);
+			sourceCitationTo(event, destinationEvent, destination);
+			documentsTo(event, destinationEvent, destination);
+			destinationEvent.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
 					.getValue())
 				.addChild(GedcomNode.create("FAMILY_CHILD")
 					.withID(familyChild.getID())
 					.addChildValue("ADOPTED_BY", extractSubStructure(familyChild, "ADOP")
 						.getValue())
 				);
-			notesTo(event, destinationBirth, destination);
-			sourceCitationTo(event, destinationBirth, destination);
-			documentsTo(event, destinationBirth, destination);
-			destinationNode.addChild(destinationBirth);
+			destinationNode.addChild(destinationEvent);
 		}
 	}
 
 	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-		final String tagFrom, final String tagTo){
+			final String tagFrom, final String tagTo){
 		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationBirth = GedcomNode.create("ATTRIBUTE")
+			final GedcomNode destinationAttribute = GedcomNode.create("ATTRIBUTE")
 				.withValue(tagTo)
 				.addChildValue("VALUE", attribute.getValue())
 				.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
 					.getValue());
-			placeAddressStructureTo(attribute, destinationNode, destination);
-			contactStructureTo(attribute, destinationNode);
-			destinationBirth.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
+			placeAddressStructureTo(attribute, destinationAttribute, destination);
+			destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
 				.getValue())
 				.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
 					.getValue())
 				.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
 					.getValue());
-			notesTo(attribute, destinationBirth, destination);
-			sourceCitationTo(attribute, destinationBirth, destination);
-			documentsTo(attribute, destinationBirth, destination);
-			destinationNode.addChild(destinationBirth);
+			notesTo(attribute, destinationAttribute, destination);
+			sourceCitationTo(attribute, destinationAttribute, destination);
+			documentsTo(attribute, destinationAttribute, destination);
+			destinationNode.addChild(destinationAttribute);
 		}
 	}
 
@@ -343,22 +339,21 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			final String tagFrom){
 		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationBirth = GedcomNode.create("ATTRIBUTE")
+			final GedcomNode destinationAttribute = GedcomNode.create("ATTRIBUTE")
 				.withValue(attribute.getValue())
 				.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
 					.getValue());
-			placeAddressStructureTo(attribute, destinationNode, destination);
-			contactStructureTo(attribute, destinationNode);
-			destinationBirth.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
+			placeAddressStructureTo(attribute, destinationAttribute, destination);
+			destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
 				.getValue())
 				.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
 					.getValue())
 				.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
 					.getValue());
-			notesTo(attribute, destinationBirth, destination);
-			sourceCitationTo(attribute, destinationBirth, destination);
-			documentsTo(attribute, destinationBirth, destination);
-			destinationNode.addChild(destinationBirth);
+			notesTo(attribute, destinationAttribute, destination);
+			sourceCitationTo(attribute, destinationAttribute, destination);
+			documentsTo(attribute, destinationAttribute, destination);
+			destinationNode.addChild(destinationAttribute);
 		}
 	}
 
@@ -397,26 +392,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
 		);
 		destinationNode.addChildReference("PLACE", placeID);
-	}
-
-	private void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode destinationContact = GedcomNode.create("CONTACT");
-		final List<GedcomNode> phones = parent.getChildrenWithTag("PHON");
-		for(final GedcomNode phone : phones)
-			destinationContact.addChildValue("PHONE", phone.getValue());
-		final List<GedcomNode> emails = parent.getChildrenWithTag("EMAIL");
-		for(final GedcomNode email : emails)
-			destinationContact.addChildValue("EMAIL", email.getValue());
-		final List<GedcomNode> faxes = parent.getChildrenWithTag("FAX");
-		for(final GedcomNode fax : faxes)
-			destinationContact.addChild(GedcomNode.create("PHONE")
-				.withValue(fax.getValue())
-				.addChild(GedcomNode.create("TYPE")
-					.withValue("fax")));
-		final List<GedcomNode> urls = parent.getChildrenWithTag("WWW");
-		for(final GedcomNode url : urls)
-			destinationContact.addChildValue("URL", url.getValue());
-		destinationNode.addChild(destinationContact);
 	}
 
 

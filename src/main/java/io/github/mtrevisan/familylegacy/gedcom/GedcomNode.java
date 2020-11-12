@@ -275,9 +275,11 @@ public final class GedcomNode{
 				}
 				final String newValue = value.substring(offset, offset + remainingLength);
 
-				if(this.value != null)
-					addChild(create(newTag)
-						.withValue(newValue));
+				if(this.value != null){
+					final GedcomNode child = create(newTag);
+					child.value = newValue;
+					addChild(child);
+				}
 				else
 					this.value = newValue;
 
