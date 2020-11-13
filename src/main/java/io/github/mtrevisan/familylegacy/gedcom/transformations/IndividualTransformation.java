@@ -287,56 +287,66 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void eventTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-		final String tagFrom, final String tagTo){
+			final String tagFrom, final String valueTo){
 		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode event : events){
-			final GedcomNode destinationEvent = GedcomNode.create("EVENT")
-				.withValue(tagTo)
-				.addChildValue("TYPE", extractSubStructure(event, "TYPE")
-					.getValue())
-				.addChildValue("DATE", extractSubStructure(event, "DATE")
-					.getValue());
-			placeAddressStructureTo(event, destinationEvent, destination);
-			destinationEvent.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
-				.getValue())
-				.addChildValue("CAUSE", extractSubStructure(event, "CAUS")
-					.getValue());
-			notesTo(event, destinationEvent, destination);
-			sourceCitationTo(event, destinationEvent, destination);
-			documentsTo(event, destinationEvent, destination);
-			final GedcomNode familyChild = extractSubStructure(event, "FAMC");
-			destinationEvent.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
-					.getValue())
-				.addChild(GedcomNode.create("FAMILY_CHILD")
-					.withID(familyChild.getID())
-					.addChildValue("ADOPTED_BY", extractSubStructure(familyChild, "ADOP")
-						.getValue())
-				);
+			final GedcomNode destinationEvent = createEventTo(valueTo, event, destination);
 			destinationNode.addChild(destinationEvent);
 		}
 	}
 
+	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
+		final GedcomNode destinationEvent = GedcomNode.create("EVENT")
+			.withValue(valueTo)
+			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+				.getValue())
+			.addChildValue("DATE", extractSubStructure(event, "DATE")
+				.getValue());
+		placeAddressStructureTo(event, destinationEvent, destination);
+		destinationEvent.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
+			.getValue())
+			.addChildValue("CAUSE", extractSubStructure(event, "CAUS")
+				.getValue());
+		notesTo(event, destinationEvent, destination);
+		sourceCitationTo(event, destinationEvent, destination);
+		documentsTo(event, destinationEvent, destination);
+		final GedcomNode familyChild = extractSubStructure(event, "FAMC");
+		destinationEvent.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
+				.getValue())
+			.addChild(GedcomNode.create("FAMILY_CHILD")
+				.withID(familyChild.getID())
+				.addChildValue("ADOPTED_BY", extractSubStructure(familyChild, "ADOP")
+					.getValue())
+			);
+		return destinationEvent;
+	}
+
 	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-			final String tagFrom, final String tagTo){
+			final String tagFrom, final String valueTo){
 		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationAttribute = GedcomNode.create("ATTRIBUTE")
-				.withValue(tagTo)
-				.addChildValue("VALUE", attribute.getValue())
-				.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
-					.getValue());
-			placeAddressStructureTo(attribute, destinationAttribute, destination);
-			destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
-				.getValue())
-				.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
-					.getValue())
-				.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
-					.getValue());
-			notesTo(attribute, destinationAttribute, destination);
-			sourceCitationTo(attribute, destinationAttribute, destination);
-			documentsTo(attribute, destinationAttribute, destination);
+			final GedcomNode destinationAttribute = createAttributeTo(valueTo, attribute, destination);
 			destinationNode.addChild(destinationAttribute);
 		}
+	}
+
+	private GedcomNode createAttributeTo(final String valueTo, final GedcomNode attribute, final Flef destination){
+		final GedcomNode destinationAttribute = GedcomNode.create("ATTRIBUTE")
+			.withValue(valueTo)
+			.addChildValue("VALUE", attribute.getValue())
+			.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
+				.getValue());
+		placeAddressStructureTo(attribute, destinationAttribute, destination);
+		destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
+			.getValue())
+			.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
+				.getValue())
+			.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
+				.getValue());
+		notesTo(attribute, destinationAttribute, destination);
+		sourceCitationTo(attribute, destinationAttribute, destination);
+		documentsTo(attribute, destinationAttribute, destination);
+		return destinationAttribute;
 	}
 
 	private void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
@@ -393,33 +403,35 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		spouseToFamilyLinkFrom(individual, destinationIndividual);
 		associationFrom(individual, destinationIndividual);
 		aliasFrom(individual, destinationIndividual);
-		eventFrom(individual, destinationIndividual, origin, "BIRTH", "BIRT");
-		eventFrom(individual, destinationIndividual, origin, "ADOPTION", "ADOP");
-		eventFrom(individual, destinationIndividual, origin, "DEATH", "DEAT");
-		eventFrom(individual, destinationIndividual, origin, "BURIAL", "BURI");
-		eventFrom(individual, destinationIndividual, origin, "CREMATION", "CREM");
-		eventFrom(individual, destinationIndividual, origin, "NATURALIZATION", "NATU");
-		eventFrom(individual, destinationIndividual, origin, "EMIGRATION", "EMIG");
-		eventFrom(individual, destinationIndividual, origin, "IMMIGRATION", "IMMI");
-		eventFrom(individual, destinationIndividual, origin, "CENSUS", "CENS");
-		eventFrom(individual, destinationIndividual, origin, "PROBATE", "PROB");
-		eventFrom(individual, destinationIndividual, origin, "WILL", "WILL");
-		eventFrom(individual, destinationIndividual, origin, "GRADUATION", "GRAD");
-		eventFrom(individual, destinationIndividual, origin, "RETIREMENT", "RETI");
-		eventFrom(individual, destinationIndividual, origin, "EVENT", "EVEN");
-		attributeFrom(individual, destinationIndividual, origin, "CASTE", "CAST");
-		attributeFrom(individual, destinationIndividual, origin, "PHYSICAL_DESCRIPTION", "DSCR");
-		attributeFrom(individual, destinationIndividual, origin, "EDUCATION", "EDUC");
-		attributeFrom(individual, destinationIndividual, origin, "ORIGIN", "NATI");
-		attributeFrom(individual, destinationIndividual, origin, "CHILDREN_COUNT", "NCHI");
-		attributeFrom(individual, destinationIndividual, origin, "MARRIAGES_COUNT", "NMR");
-		attributeFrom(individual, destinationIndividual, origin, "OCCUPATION", "OCCU");
-		attributeFrom(individual, destinationIndividual, origin, "POSSESSION", "PROP");
-		attributeFrom(individual, destinationIndividual, origin, "RELIGION", "RELI");
-		attributeFrom(individual, destinationIndividual, origin, "RESIDENCE", "RESI");
-		attributeFrom(individual, destinationIndividual, origin, "SSN", "SSN");
-		attributeFrom(individual, destinationIndividual, origin, "TITLE", "TITL");
-		attributeFrom(individual, destinationIndividual, origin, "FACT", "FACT");
+		final List<GedcomNode> events = individual.getChildrenWithTag("EVENT");
+		eventFrom(events, destinationIndividual, origin, "BIRTH", "BIRT");
+		eventFrom(events, destinationIndividual, origin, "ADOPTION", "ADOP");
+		eventFrom(events, destinationIndividual, origin, "DEATH", "DEAT");
+		eventFrom(events, destinationIndividual, origin, "BURIAL", "BURI");
+		eventFrom(events, destinationIndividual, origin, "CREMATION", "CREM");
+		eventFrom(events, destinationIndividual, origin, "NATURALIZATION", "NATU");
+		eventFrom(events, destinationIndividual, origin, "EMIGRATION", "EMIG");
+		eventFrom(events, destinationIndividual, origin, "IMMIGRATION", "IMMI");
+		eventFrom(events, destinationIndividual, origin, "CENSUS", "CENS");
+		eventFrom(events, destinationIndividual, origin, "PROBATE", "PROB");
+		eventFrom(events, destinationIndividual, origin, "WILL", "WILL");
+		eventFrom(events, destinationIndividual, origin, "GRADUATION", "GRAD");
+		eventFrom(events, destinationIndividual, origin, "RETIREMENT", "RETI");
+		eventFrom(events, destinationIndividual, origin, "EVENT", "EVEN");
+		final List<GedcomNode> attributes = individual.getChildrenWithTag("ATTRIBUTE");
+		attributeFrom(attributes, destinationIndividual, origin, "CASTE", "CAST");
+		attributeFrom(attributes, destinationIndividual, origin, "PHYSICAL_DESCRIPTION", "DSCR");
+		attributeFrom(attributes, destinationIndividual, origin, "EDUCATION", "EDUC");
+		attributeFrom(attributes, destinationIndividual, origin, "ORIGIN", "NATI");
+		attributeFrom(attributes, destinationIndividual, origin, "CHILDREN_COUNT", "NCHI");
+		attributeFrom(attributes, destinationIndividual, origin, "MARRIAGES_COUNT", "NMR");
+		attributeFrom(attributes, destinationIndividual, origin, "OCCUPATION", "OCCU");
+		attributeFrom(attributes, destinationIndividual, origin, "POSSESSION", "PROP");
+		attributeFrom(attributes, destinationIndividual, origin, "RELIGION", "RELI");
+		attributeFrom(attributes, destinationIndividual, origin, "RESIDENCE", "RESI");
+		attributeFrom(attributes, destinationIndividual, origin, "SSN", "SSN");
+		attributeFrom(attributes, destinationIndividual, origin, "TITLE", "TITL");
+		attributeFrom(attributes, destinationIndividual, origin, "FACT", "FACT");
 		notesFrom(individual, destinationIndividual);
 		sourceCitationFrom(individual, destinationIndividual);
 		documentsFrom(individual, destinationIndividual);
@@ -564,7 +576,8 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	private void structureFrom(final GedcomNode individual, final GedcomNode destinationNode, final String fromTag, final String toTag){
 		final List<GedcomNode> nodes = individual.getChildrenWithTag(fromTag);
 		for(final GedcomNode node : nodes){
-			final GedcomNode newNode = GedcomNode.create(toTag);
+			final GedcomNode newNode = GedcomNode.create(toTag)
+				.withID(node.getID());
 			notesFrom(node, newNode);
 			destinationNode.addChild(newNode);
 		}
@@ -582,47 +595,51 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			destinationNode.addChildReference("SOURCE", document.getID());
 	}
 
-	private void eventFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin, final String tagFrom,
+	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo) throws GedcomGrammarParseException{
-		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
-		for(final GedcomNode event : events){
-			final GedcomNode destinationEvent = GedcomNode.create("EVEN")
-				.withValue(tagTo)
-				.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+		for(final GedcomNode event : events)
+			if(valueFrom.equals(event.getValue())){
+				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
+				destinationNode.addChild(destinationEvent);
+		}
+	}
+
+	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin) throws GedcomGrammarParseException{
+		final GedcomNode destinationEvent = GedcomNode.create(tagTo)
+			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+				.getValue())
+			.addChildValue("DATE", extractSubStructure(event, "DATE")
+				.getValue());
+		placeStructureFrom(event, destinationEvent, origin);
+		addressStructureFrom(event, destinationEvent, origin);
+		destinationEvent.addChildValue("AGNC", extractSubStructure(event, "AGENCY")
+			.getValue())
+			.addChildValue("CAUS", extractSubStructure(event, "CAUSE")
+				.getValue());
+		final GedcomNode familyChild = extractSubStructure(event, "FAMILY_CHILD");
+		destinationEvent.addChildValue("RESN", extractSubStructure(event, "RESTRICTION")
+			.getValue())
+			.addChild(GedcomNode.create("FAMC")
+				.withID(familyChild.getID())
+				.addChildValue("ADOP", extractSubStructure(familyChild, "ADOPTED_BY")
 					.getValue())
-				.addChildValue("DATE", extractSubStructure(event, "DATE")
-					.getValue());
-			placeStructureFrom(event, destinationEvent, origin);
-			addressStructureFrom(event, destinationEvent, origin);
-			destinationEvent.addChildValue("AGNC", extractSubStructure(event, "AGENCY")
-				.getValue())
-				.addChildValue("CAUS", extractSubStructure(event, "CAUSE")
-					.getValue());
-			final GedcomNode familyChild = extractSubStructure(event, "FAMILY_CHILD");
-			destinationEvent.addChildValue("RESN", extractSubStructure(event, "RESTRICTION")
-				.getValue())
-				.addChild(GedcomNode.create("FAMC")
-					.withID(familyChild.getID())
-					.addChildValue("ADOP", extractSubStructure(familyChild, "ADOPTED_BY")
-						.getValue())
-				);
-			notesFrom(event, destinationEvent);
-			sourceCitationFrom(event, destinationEvent);
-			documentsFrom(event, destinationEvent);
-			destinationNode.addChild(destinationEvent);
-		}
+			);
+		notesFrom(event, destinationEvent);
+		sourceCitationFrom(event, destinationEvent);
+		documentsFrom(event, destinationEvent);
+		return destinationEvent;
 	}
 
-	private void attributeFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin, final String tagFrom,
-			final String tagTo) throws GedcomGrammarParseException{
-		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
-		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationAttribute = createAttribute(tagTo, attribute, origin);
-			destinationNode.addChild(destinationAttribute);
-		}
+	private void attributeFrom(final List<GedcomNode> attributes, final GedcomNode destinationNode, final Flef origin,
+			final String valueFrom, final String tagTo) throws GedcomGrammarParseException{
+		for(final GedcomNode attribute : attributes)
+			if(valueFrom.equals(attribute.getValue())){
+				final GedcomNode destinationAttribute = createAttributeFrom(tagTo, attribute, origin);
+				destinationNode.addChild(destinationAttribute);
+			}
 	}
 
-	private GedcomNode createAttribute(final String tagTo, final GedcomNode attribute, final Flef origin) throws GedcomGrammarParseException{
+	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin) throws GedcomGrammarParseException{
 		final GedcomNode destinationAttribute = GedcomNode.create(tagTo)
 			.withValue(attribute.getValue())
 			.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
