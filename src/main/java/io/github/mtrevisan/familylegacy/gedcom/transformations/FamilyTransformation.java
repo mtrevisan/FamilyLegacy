@@ -17,7 +17,6 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void familyRecordTo(final GedcomNode family, final Flef destination){
-//	n @<XREF:FAM>@ FAM    {1:1}	/* An xref ID of a family record. */
 //		+1 RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
 //		+1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
 //		+1 HUSB @<XREF:INDI>@    {0:1}	/* An xref ID of the husband. */
@@ -25,19 +24,15 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 //		+1 CHIL @<XREF:INDI>@    {0:M}	/* A vector of xref IDs of children in this family. */
 //		+1 NCHI <COUNT_OF_CHILDREN>    {0:1}	/* The known number of children of this individual from all marriages or, if subordinate to a family record, the reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure. This is not necessarily the count of children listed in a family structure. */
 //		+1 SUBM @<XREF:SUBM>@    {0:M}	/* A vector of xref IDs of submitters of this record. */
-//		+1 <<LDS_SPOUSE_SEALING>>    {0:M}
-//		+1 REFN <USER_REFERENCE_NUMBER>    {0:M}	/* A user-defined number or text that the submitter uses to identify this record. */
-//			+2 TYPE <USER_REFERENCE_TYPE>    {0:1}	/* A user-defined definition of the user_reference_number. */
-//		+1 RIN <AUTOMATED_RECORD_ID>    {0:1}	/* A unique record identification number assigned to the record by the source system. This number is intended to serve as a more sure means of identification of a record for reconciling differences in data between two interfacing systems. */
-//		+1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 //		+1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 //		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 //		+1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
 
-//		 @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
+//		+1 TYPE <MARRIAGE_TYPE>    {1:1}	/* One one 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
 //		+1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband or father. */
 //		+1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife or mother. */
 //		+1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
+//		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
 //		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 //		+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 //		+1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
