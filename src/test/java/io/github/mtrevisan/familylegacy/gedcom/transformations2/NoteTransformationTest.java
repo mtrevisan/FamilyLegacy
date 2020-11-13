@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations2;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class NoteTransformationTest{
 	}
 
 	@Test
-	void from(){
+	void from() throws GedcomGrammarParseException{
 		final GedcomNode note = GedcomNode.create("NOTE")
 			.withID("N1")
 			.withValue("SUBMITTER_TEXT")

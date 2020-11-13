@@ -117,7 +117,7 @@ public final class GedcomNode{
 		if(node.children != null){
 			children = new ArrayList<>(node.children.size());
 			for(final GedcomNode child : node.children)
-				children.add(child.clone());
+				addChild(child.clone());
 		}
 		custom = node.custom;
 		return this;
@@ -319,7 +319,7 @@ public final class GedcomNode{
 		return this;
 	}
 
-	public GedcomNode addChild(final GedcomNode child){
+	public GedcomNode addChild(final int index, final GedcomNode child){
 		if(child.isEmpty())
 			return this;
 
@@ -347,8 +347,12 @@ public final class GedcomNode{
 				currentLevel ++;
 			}
 		}
-		children.add(child);
+		children.add(index, child);
 		return this;
+	}
+
+	public GedcomNode addChild(final GedcomNode child){
+		return addChild((children != null? children.size(): 0), child);
 	}
 
 	/**
@@ -363,12 +367,14 @@ public final class GedcomNode{
 		if(!child.isEmpty() && (child.value != null || child.hasChildren())){
 			if(children == null){
 				children = new ArrayList<>(1);
-				children.add(child);
+				addChild(child);
 			}
-			else{
+			else if(nodeAfter != null){
 				final int index = children.indexOf(nodeAfter);
-				children.add(index, child);
+				addChild(index, child);
 			}
+			else
+				addChild(child);
 		}
 	}
 
@@ -392,6 +398,20 @@ public final class GedcomNode{
 		final List<GedcomNode> originalChildren = children;
 		children = null;
 		return originalChildren;
+	}
+
+	/**
+	 * Returns the first child with the given tag, {@code null} if no child was found.
+	 *
+	 * @param tags	The tag(s) to search the first child.
+	 * @return	The first {@link GedcomNode} that matches the given tag, or {@code null}.
+	 */
+	public GedcomNode getFirstChildWithTag(final String... tags){
+		if(children != null)
+			for(final GedcomNode child : children)
+				if(ArrayUtils.contains(tags, child.tag))
+					return child;
+		return null;
 	}
 
 	public List<GedcomNode> getChildrenWithTag(final String... tags){

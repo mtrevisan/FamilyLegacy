@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations2;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,7 +63,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		attributeTo(individual, destinationIndividual, destination, "RESI", "RESIDENCE");
 		attributeTo(individual, destinationIndividual, destination, "SSN", "SSN");
 		attributeTo(individual, destinationIndividual, destination, "TITL", "TITLE");
-		attributeTo(individual, destinationIndividual, destination, "FACT");
+		attributeTo(individual, destinationIndividual, destination, "FACT", null);
 		notesTo(individual, destinationIndividual, destination);
 		sourceCitationTo(individual, destinationIndividual, destination);
 		documentsTo(individual, destinationIndividual, destination);
@@ -76,12 +77,15 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode personalNameStructure : personalNameStructures){
 			final GedcomNode destinationName = GedcomNode.create("NAME");
 			personalNamePiecesTo(personalNameStructure, destinationName, destination);
-			final GedcomNode destinationPhoneticName = GedcomNode.create("PHONETIC");
-			personalNamePiecesTo(extractSubStructure(personalNameStructure, "FONE"), destinationPhoneticName, destination);
-			destinationName.addChild(destinationPhoneticName);
-			final GedcomNode destinationRomanizedName = GedcomNode.create("TRANSCRIPTION");
-			personalNamePiecesTo(extractSubStructure(personalNameStructure, "ROMN"), destinationRomanizedName, destination);
-			destinationName.addChild(destinationRomanizedName);
+
+			final GedcomNode destinationPhonetic = GedcomNode.create("PHONETIC");
+			personalNamePiecesTo(extractSubStructure(personalNameStructure, "FONE"), destinationPhonetic, destination);
+			destinationName.addChild(destinationPhonetic);
+
+			final GedcomNode destinationTranscription = GedcomNode.create("TRANSCRIPTION");
+			personalNamePiecesTo(extractSubStructure(personalNameStructure, "ROMN"), destinationTranscription, destination);
+			destinationName.addChild(destinationTranscription);
+
 			destinationNode.addChild(destinationName);
 		}
 	}
@@ -105,7 +109,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			givenName = (nameValue != null && StringUtils.contains(nameValue, '/')?
 				nameValue.substring(0, nameValue.indexOf('/') - 1): nameValue);
 		if(sj.length() == 0){
-			//extract surnname component
+			//extract surname component
 			final String surnameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
 				nameValue.substring(nameValue.indexOf('/') + 1, nameValue.length() - 1): null);
 			sj.add(surnameComponent);
@@ -227,11 +231,11 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 	private void structureTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
 			final String fromTag, final String toTag){
-		final List<GedcomNode> aliases = individual.getChildrenWithTag(fromTag);
-		for(final GedcomNode alias : aliases){
-			final GedcomNode destinationAlias = GedcomNode.create(toTag);
-			notesTo(alias, destinationAlias, destination);
-			destinationNode.addChild(destinationAlias);
+		final List<GedcomNode> nodes = individual.getChildrenWithTag(fromTag);
+		for(final GedcomNode node : nodes){
+			final GedcomNode newNode = GedcomNode.create(toTag);
+			notesTo(node, newNode, destination);
+			destinationNode.addChild(newNode);
 		}
 	}
 
@@ -293,7 +297,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.addChildValue("DATE", extractSubStructure(event, "DATE")
 					.getValue());
 			placeAddressStructureTo(event, destinationEvent, destination);
-			final GedcomNode familyChild = extractSubStructure(event, "FAMC");
 			destinationEvent.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
 				.getValue())
 				.addChildValue("CAUSE", extractSubStructure(event, "CAUS")
@@ -301,6 +304,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			notesTo(event, destinationEvent, destination);
 			sourceCitationTo(event, destinationEvent, destination);
 			documentsTo(event, destinationEvent, destination);
+			final GedcomNode familyChild = extractSubStructure(event, "FAMC");
 			destinationEvent.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
 					.getValue())
 				.addChild(GedcomNode.create("FAMILY_CHILD")
@@ -335,43 +339,9 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-			final String tagFrom){
-		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
-		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationAttribute = GedcomNode.create("ATTRIBUTE")
-				.withValue(attribute.getValue())
-				.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
-					.getValue());
-			placeAddressStructureTo(attribute, destinationAttribute, destination);
-			destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
-				.getValue())
-				.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
-					.getValue())
-				.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
-					.getValue());
-			notesTo(attribute, destinationAttribute, destination);
-			sourceCitationTo(attribute, destinationAttribute, destination);
-			documentsTo(attribute, destinationAttribute, destination);
-			destinationNode.addChild(destinationAttribute);
-		}
-	}
-
 	private void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode place = extractSubStructure(parent, "PLAC");
 		final GedcomNode map = extractSubStructure(place, "MAP");
-		final String placeID = destination.getNextPlaceID();
-		final GedcomNode destinationPlace = GedcomNode.create("PLACE")
-			.withID(placeID)
-			.withValue(place.getValue())
-			.addChild(GedcomNode.create("MAP")
-				.addChildValue("LATITUDE", extractSubStructure(map, "LATI")
-					.getValue())
-				.addChildValue("LONGITUDE", extractSubStructure(map, "LONG")
-					.getValue())
-			);
-		notesTo(place, destinationPlace, destination);
-
 		final GedcomNode address = extractSubStructure(parent, "ADDR");
 		final StringJoiner sj = new StringJoiner(" - ");
 		final String wholeAddress = address.extractValueConcatenated();
@@ -384,41 +354,331 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 					sj.add(value);
 			}
 
-		destination.addPlace(GedcomNode.create("PLACE")
-			.withID(placeID)
+		final GedcomNode destinationPlace = GedcomNode.create("PLACE")
+			.withID(destination.getNextPlaceID())
+			.withValue(place.getValue())
 			.addChildValue("ADDRESS", sj.toString())
 			.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
 			.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
 			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
-		);
-		destinationNode.addChildReference("PLACE", placeID);
+			.addChild(GedcomNode.create("MAP")
+				.addChildValue("LATITUDE", extractSubStructure(map, "LATI")
+					.getValue())
+				.addChildValue("LONGITUDE", extractSubStructure(map, "LONG")
+					.getValue())
+			);
+		notesTo(place, destinationPlace, destination);
+		destinationNode.addChildReference("PLACE", destinationPlace.getID());
+		destination.addPlace(destinationPlace);
 	}
 
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination){
+	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
 		final List<GedcomNode> individuals = origin.getIndividuals();
 		for(final GedcomNode individual : individuals)
-			individualRecordFrom(individual, destination);
+			individualRecordFrom(individual, origin, destination);
 	}
 
-	private void individualRecordFrom(final GedcomNode individual, final Gedcom destination){
+	private void individualRecordFrom(final GedcomNode individual, final Flef origin, final Gedcom destination)
+			throws GedcomGrammarParseException{
 		final GedcomNode destinationIndividual = GedcomNode.create("INDI")
 			.withID(individual.getID());
-		final String date = extractSubStructure(individual, "DATE")
-			.getValue();
-		final GedcomNode destinationData = GedcomNode.create("DATA");
-		final List<GedcomNode> events = individual.getChildrenWithTag("EVENT");
-		for(final GedcomNode event : events)
-			destinationData.addChild(GedcomNode.create("EVEN")
-				.withValue(event.getValue())
-				.addChildValue("DATE", date));
-		destinationIndividual.addChild(destinationData);
-		final GedcomNode title = extractSubStructure(individual, "TITLE");
-		destinationIndividual.addChildValue("TITL", title.getValue());
-		final GedcomNode text = extractSubStructure(individual, "TEXT");
-		destinationIndividual.addChildValue("TEXT", text.getValue());
+		destinationIndividual.addChildValue("RESN", extractSubStructure(individual, "RESTRICTION")
+			.getValue());
+		personalNameFrom(individual, destinationIndividual);
+		destinationIndividual.addChildValue("SEX", extractSubStructure(individual, "SEX")
+			.getValue());
+		childToFamilyLinkFrom(individual, destinationIndividual);
+		spouseToFamilyLinkFrom(individual, destinationIndividual);
+		associationFrom(individual, destinationIndividual);
+		aliasFrom(individual, destinationIndividual);
+		eventFrom(individual, destinationIndividual, origin, "BIRTH", "BIRT");
+		eventFrom(individual, destinationIndividual, origin, "ADOPTION", "ADOP");
+		eventFrom(individual, destinationIndividual, origin, "DEATH", "DEAT");
+		eventFrom(individual, destinationIndividual, origin, "BURIAL", "BURI");
+		eventFrom(individual, destinationIndividual, origin, "CREMATION", "CREM");
+		eventFrom(individual, destinationIndividual, origin, "NATURALIZATION", "NATU");
+		eventFrom(individual, destinationIndividual, origin, "EMIGRATION", "EMIG");
+		eventFrom(individual, destinationIndividual, origin, "IMMIGRATION", "IMMI");
+		eventFrom(individual, destinationIndividual, origin, "CENSUS", "CENS");
+		eventFrom(individual, destinationIndividual, origin, "PROBATE", "PROB");
+		eventFrom(individual, destinationIndividual, origin, "WILL", "WILL");
+		eventFrom(individual, destinationIndividual, origin, "GRADUATION", "GRAD");
+		eventFrom(individual, destinationIndividual, origin, "RETIREMENT", "RETI");
+		eventFrom(individual, destinationIndividual, origin, "EVENT", "EVEN");
+		attributeFrom(individual, destinationIndividual, origin, "CASTE", "CAST");
+		attributeFrom(individual, destinationIndividual, origin, "PHYSICAL_DESCRIPTION", "DSCR");
+		attributeFrom(individual, destinationIndividual, origin, "EDUCATION", "EDUC");
+		attributeFrom(individual, destinationIndividual, origin, "ORIGIN", "NATI");
+		attributeFrom(individual, destinationIndividual, origin, "CHILDREN_COUNT", "NCHI");
+		attributeFrom(individual, destinationIndividual, origin, "MARRIAGES_COUNT", "NMR");
+		attributeFrom(individual, destinationIndividual, origin, "OCCUPATION", "OCCU");
+		attributeFrom(individual, destinationIndividual, origin, "POSSESSION", "PROP");
+		attributeFrom(individual, destinationIndividual, origin, "RELIGION", "RELI");
+		attributeFrom(individual, destinationIndividual, origin, "RESIDENCE", "RESI");
+		attributeFrom(individual, destinationIndividual, origin, "SSN", "SSN");
+		attributeFrom(individual, destinationIndividual, origin, "TITLE", "TITL");
+		attributeFrom(individual, destinationIndividual, origin, "FACT", "FACT");
+		notesFrom(individual, destinationIndividual);
+		sourceCitationFrom(individual, destinationIndividual);
+		documentsFrom(individual, destinationIndividual);
 		destination.addIndividual(destinationIndividual);
+	}
+
+	private void personalNameFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		//extract first ATTRIBUTE, or first NOTE, or first SOURCE, or RESTRICTION, or as last element
+		final GedcomNode lastElement = individual.getFirstChildWithTag("ATTRIBUTE", "NOTE", "SOURCE", "RESTRICTION");
+
+		final List<GedcomNode> personalNameStructures = individual.getChildrenWithTag("NAME");
+		for(final GedcomNode personalNameStructure : personalNameStructures){
+			final GedcomNode destinationName = GedcomNode.create("NAME");
+			personalNamePiecesFrom(personalNameStructure, destinationName);
+			//transform nickname into an attribute of individual
+			final GedcomNode attributeNickname = GedcomNode.create("ATTRIBUTE")
+				.withValue("_FAMILY_NICKNAME")
+				.addChildValue("TYPE", "Family Nickname")
+				.addChildValue("VALUE", extractSubStructure(personalNameStructure, "FAMILY_NICKNAME")
+					.getValue());
+			sourceCitationFrom(personalNameStructure, attributeNickname);
+			//add nickname fact to individual (as first fact)
+			individual.addChildBefore(attributeNickname, lastElement);
+			final GedcomNode temporaryNotes = GedcomNode.create("TMP_NOTE");
+			final GedcomNode temporarySourceCitations = GedcomNode.create("TMP_SOURCE_CITATIONS");
+			//collect notes and source citations, they will be added as last elements of NAME
+			notesFrom(personalNameStructure, temporaryNotes);
+			sourceCitationFrom(personalNameStructure, temporarySourceCitations);
+
+			final GedcomNode destinationPhonetic = GedcomNode.create("FONE");
+			personalNamePiecesFrom(extractSubStructure(personalNameStructure, "PHONETIC"), destinationPhonetic);
+			//collect notes and source citations, they will be added as last elements of NAME
+			notesFrom(destinationPhonetic, temporaryNotes);
+			sourceCitationFrom(destinationPhonetic, temporarySourceCitations);
+			destinationName.addChild(destinationPhonetic);
+
+			final GedcomNode destinationTranscription = GedcomNode.create("ROMN");
+			personalNamePiecesFrom(extractSubStructure(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
+			//collect notes and source citations, they will be added as last elements of NAME
+			notesFrom(destinationTranscription, temporaryNotes);
+			sourceCitationFrom(destinationTranscription, temporarySourceCitations);
+			destinationName.addChild(destinationTranscription);
+
+			//add collected notes and source citations as last elements of NAME
+			for(final GedcomNode temporaryNote : temporaryNotes.getChildren())
+				destinationName.addChild(temporaryNote);
+			for(final GedcomNode temporarySourceCitation : temporarySourceCitations.getChildren())
+				destinationName.addChild(temporarySourceCitation);
+
+			destinationNode.addChild(destinationName);
+		}
+	}
+
+	private void personalNamePiecesFrom(final GedcomNode personalNameStructure, final GedcomNode destinationNode){
+		final String title = extractSubStructure(personalNameStructure, "TITLE").getValue();
+		final GedcomNode personalName = extractSubStructure(personalNameStructure, "PERSONAL_NAME");
+		final String givenName = personalName.getValue();
+		final String nameSuffix = extractSubStructure(personalName, "NAME_SUFFIX")
+			.getValue();
+		final String individualNickname = extractSubStructure(personalName, "INDIVIDUAL_NICKNAME")
+			.getValue();
+		final String familyName = extractSubStructure(personalName, "FAMILY_NAME")
+			.getValue();
+		final StringJoiner sj = new StringJoiner(" ");
+		if(title != null)
+			sj.add(title);
+		if(givenName != null)
+			sj.add(givenName);
+		if(nameSuffix != null)
+			sj.add(nameSuffix);
+		if(familyName != null)
+			sj.add("/ " + familyName + " /");
+		if(sj.length() > 0)
+			destinationNode
+				.withValue(sj.toString());
+
+		destinationNode
+			.addChildValue("TYPE", extractSubStructure(personalNameStructure, "TYPE")
+				.getValue())
+			.addChildValue("NPFX", title)
+			.addChildValue("GIVN", givenName)
+			.addChildValue("NICK", individualNickname)
+			.addChildValue("SURN", familyName)
+			.addChildValue("NSFX", nameSuffix);
+	}
+
+	private void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
+		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
+			final GedcomNode destinationFamilyChild = GedcomNode.create("FAMC")
+				.addChildValue("PEDI", extractSubStructure(childToFamilyLink, "PEDIGREE")
+					.getValue())
+				.addChildValue("STAT", extractSubStructure(childToFamilyLink, "CERTAINTY")
+					.getValue());
+			notesFrom(childToFamilyLink, destinationFamilyChild);
+			destinationNode.addChild(destinationFamilyChild);
+		}
+	}
+
+	private void spouseToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		structureFrom(individual, destinationNode, "FAMILY_SPOUSE", "FAMS");
+	}
+
+	private void associationFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSOCIATION");
+		for(final GedcomNode association : associations){
+			final GedcomNode destinationAssociation = GedcomNode.create("ASSO")
+				.withID(association.getID())
+				.addChildValue("TYPE", extractSubStructure(association, "TYPE")
+					.getValue())
+				.addChildValue("RELA", extractSubStructure(association, "RELATIONSHIP")
+					.getValue());
+			notesFrom(association, destinationAssociation);
+			sourceCitationFrom(association, destinationAssociation);
+			destinationNode.addChild(destinationAssociation);
+		}
+	}
+
+	private void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
+		for(final GedcomNode sourceCitation : sourceCitations){
+			//create source:
+			final GedcomNode destinationSource = GedcomNode.create("SOUR")
+				.withID(sourceCitation.getID())
+				.addChildValue("PAGE", extractSubStructure(sourceCitation, "PAGE")
+					.getValue())
+				.addChild(GedcomNode.create("EVEN")
+					.addChildValue("ROLE", extractSubStructure(sourceCitation, "ROLE")
+						.getValue())
+				)
+				.addChildValue("QUAY", extractSubStructure(sourceCitation, "CREDIBILITY")
+					.getValue());
+			notesFrom(sourceCitation, destinationSource);
+			destinationNode.addChild(destinationSource);
+		}
+	}
+
+	private void aliasFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		structureFrom(individual, destinationNode, "ALIAS", "ALIA");
+	}
+
+	private void structureFrom(final GedcomNode individual, final GedcomNode destinationNode, final String fromTag, final String toTag){
+		final List<GedcomNode> nodes = individual.getChildrenWithTag(fromTag);
+		for(final GedcomNode node : nodes){
+			final GedcomNode newNode = GedcomNode.create(toTag);
+			notesFrom(node, newNode);
+			destinationNode.addChild(newNode);
+		}
+	}
+
+	private void notesFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			destinationNode.addChildReference("NOTE", note.getID());
+	}
+
+	private void documentsFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
+		for(final GedcomNode document : documents)
+			destinationNode.addChildReference("SOURCE", document.getID());
+	}
+
+	private void eventFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin, final String tagFrom,
+			final String tagTo) throws GedcomGrammarParseException{
+		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
+		for(final GedcomNode event : events){
+			final GedcomNode destinationEvent = GedcomNode.create("EVEN")
+				.withValue(tagTo)
+				.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+					.getValue())
+				.addChildValue("DATE", extractSubStructure(event, "DATE")
+					.getValue());
+			placeStructureFrom(event, destinationEvent, origin);
+			addressStructureFrom(event, destinationEvent, origin);
+			destinationEvent.addChildValue("AGNC", extractSubStructure(event, "AGENCY")
+				.getValue())
+				.addChildValue("CAUS", extractSubStructure(event, "CAUSE")
+					.getValue());
+			final GedcomNode familyChild = extractSubStructure(event, "FAMILY_CHILD");
+			destinationEvent.addChildValue("RESN", extractSubStructure(event, "RESTRICTION")
+				.getValue())
+				.addChild(GedcomNode.create("FAMC")
+					.withID(familyChild.getID())
+					.addChildValue("ADOP", extractSubStructure(familyChild, "ADOPTED_BY")
+						.getValue())
+				);
+			notesFrom(event, destinationEvent);
+			sourceCitationFrom(event, destinationEvent);
+			documentsFrom(event, destinationEvent);
+			destinationNode.addChild(destinationEvent);
+		}
+	}
+
+	private void attributeFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin, final String tagFrom,
+			final String tagTo) throws GedcomGrammarParseException{
+		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
+		for(final GedcomNode attribute : attributes){
+			final GedcomNode destinationAttribute = createAttribute(tagTo, attribute, origin);
+			destinationNode.addChild(destinationAttribute);
+		}
+	}
+
+	private GedcomNode createAttribute(final String tagTo, final GedcomNode attribute, final Flef origin) throws GedcomGrammarParseException{
+		final GedcomNode destinationAttribute = GedcomNode.create(tagTo)
+			.withValue(attribute.getValue())
+			.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
+				.getValue());
+		placeStructureFrom(attribute, destinationAttribute, origin);
+		addressStructureFrom(attribute, destinationAttribute, origin);
+		destinationAttribute.addChildValue("AGENCY", extractSubStructure(attribute, "AGNC")
+			.getValue())
+			.addChildValue("CAUSE", extractSubStructure(attribute, "CAUS")
+				.getValue())
+			.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
+				.getValue());
+		notesFrom(attribute, destinationAttribute);
+		sourceCitationFrom(attribute, destinationAttribute);
+		documentsFrom(attribute, destinationAttribute);
+		return destinationAttribute;
+	}
+
+	private void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
+			throws GedcomGrammarParseException{
+		final GedcomNode place = extractSubStructure(parent, "PLACE");
+		if(!place.isEmpty()){
+			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			if(placeRecord == null)
+				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
+
+			final GedcomNode map = extractSubStructure(placeRecord, "MAP");
+
+			final GedcomNode destinationPlace = GedcomNode.create("PLAC")
+				.withValue(extractSubStructure(placeRecord, "NAME")
+					.getValue())
+				.addChild(GedcomNode.create("MAP")
+					.addChildValue("LATI", extractSubStructure(map, "LATI")
+						.getValue())
+					.addChildValue("LONG", extractSubStructure(map, "LONG")
+						.getValue())
+				);
+			notesFrom(place, destinationPlace);
+			destinationNode.addChild(destinationPlace);
+		}
+	}
+
+	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin) throws GedcomGrammarParseException{
+		final GedcomNode place = extractSubStructure(parent, "PLACE");
+		if(!place.isEmpty()){
+			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			if(placeRecord == null)
+				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
+
+			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
+			destinationNode.addChild(GedcomNode.create("ADDR")
+				.withValue(placeRecord.getValue())
+				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
+				.addChildValue("STAE", extractSubStructure(address, "STATE").getValue())
+				.addChildValue("CTRY", extractSubStructure(address, "COUNTRY").getValue()));
+		}
 	}
 
 }

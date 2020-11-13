@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations2;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.Arrays;
@@ -39,28 +40,26 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 
 	private void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = extractSubStructure(parent, "ADDR");
-		if(!address.isEmpty()){
-			final StringJoiner sj = new StringJoiner(" - ");
-			final String wholeAddress = address.extractValueConcatenated();
-			if(wholeAddress != null)
-				sj.add(wholeAddress);
-			for(final GedcomNode child : address.getChildren())
-				if(ADDRESS_TAGS.contains(child.getTag())){
-					final String value = child.getValue();
-					if(value != null)
-						sj.add(value);
-				}
+		final StringJoiner sj = new StringJoiner(" - ");
+		final String wholeAddress = address.extractValueConcatenated();
+		if(wholeAddress != null)
+			sj.add(wholeAddress);
+		for(final GedcomNode child : address.getChildren())
+			if(ADDRESS_TAGS.contains(child.getTag())){
+				final String value = child.getValue();
+				if(value != null)
+					sj.add(value);
+			}
 
-			final String placeID = destination.getNextPlaceID();
-			destination.addPlace(GedcomNode.create("PLACE")
-				.withID(placeID)
-				.addChildValue("ADDRESS", sj.toString())
-				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
-				.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
-				.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
-			);
-			destinationNode.addChildReference("PLACE", placeID);
-		}
+		final String placeID = destination.getNextPlaceID();
+		destination.addPlace(GedcomNode.create("PLACE")
+			.withID(placeID)
+			.addChildValue("ADDRESS", sj.toString())
+			.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
+			.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
+			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
+		);
+		destinationNode.addChildReference("PLACE", placeID);
 	}
 
 	private void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
@@ -98,13 +97,13 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination){
+	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
 		final List<GedcomNode> repositories = origin.getRepositories();
 		for(final GedcomNode repository : repositories)
 			repositoryFrom(repository, origin, destination);
 	}
 
-	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
+	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
 		final String name = extractSubStructure(repository, "NAME")
 			.getValue();
 		final GedcomNode destinationRepository = GedcomNode.create("REPO")
@@ -116,10 +115,14 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		destination.addRepository(destinationRepository);
 	}
 
-	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
+	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
+			throws GedcomGrammarParseException{
 		final GedcomNode place = extractSubStructure(parent, "PLACE");
-		final GedcomNode placeRecord = origin.getPlace(place.getID());
-		if(!placeRecord.isEmpty()){
+		if(!place.isEmpty()){
+			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			if(placeRecord == null)
+				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
+
 			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
 			destinationNode.addChild(GedcomNode.create("ADDR")
 				.withValue(placeRecord.getValue())
