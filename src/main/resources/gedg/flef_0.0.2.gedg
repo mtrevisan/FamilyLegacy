@@ -78,7 +78,9 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
 
 PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
-  +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'birth'/BIRTH_NAME (name given on birth certificate), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'maiden' (maiden name, name before first marriage), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption'/ADOPTIVE_NAME, 'religious'/RELIGIOUS_NAME -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
+  +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
+    +2 FAMILY @<XREF:FAMILY>@    {0:M}	/* An xref ID of a family record this individual has his name changed due to marriage, adoption, or forstering. */
+    +2 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
   +1 LOCALE <NAME_LOCALE>    {0:1}    /* The locale identifier for the name form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
   +1 <<PERSONAL_NAME_PIECES>>    {1:1}	/* A PERSONAL_NAME_PIECES() object giving the components of the name. */
   +1 PHONETIC    {0:1}
@@ -158,9 +160,9 @@ n ATTRIBUTE CASTE    {1:1}	/* The social, religious, or racial caste tow which a
   +1 VALUE <CASTE_NAME>    {1:1}
   +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
 |
-n ATTRIBUTE PHYSICAL_DESCRIPTION    {1:1}	/* An unstructured list of the attributes that describe the physical characteristics of a person, place, or object. Commas separate each attribute. */
-  +1 VALUE <PHYSICAL_DESCRIPTION>    {0:1}
-  +1 <<PHYSICAL_DESCRIPTION_DETAIL>>    {0:M}	/* A list of PHYSICAL_DESCRIPTION_DETAIL() objects. */
+n ATTRIBUTE CHARACTERISTIC    {1:1}	/* An unstructured list of the attributes that describe the physical characteristics of a person, place, or object. Commas separate each attribute. */
+  +1 VALUE <CHARACTERISTIC_NAME>    {0:1}
+  +1 <<CHARACTERISTIC_DETAIL>>    {0:M}	/* A list of CHARACTERISTIC_DETAIL() objects. */
   +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
 |
 n ATTRIBUTE EDUCATION    {1:1}	/* An educational degree or attainment. */

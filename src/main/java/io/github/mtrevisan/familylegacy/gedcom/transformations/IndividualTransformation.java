@@ -52,7 +52,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		eventTo(individual, destinationIndividual, destination, "RETI", "RETIREMENT");
 		eventTo(individual, destinationIndividual, destination, "EVEN", "EVENT");
 		attributeTo(individual, destinationIndividual, destination, "CAST", "CASTE");
-		attributeTo(individual, destinationIndividual, destination, "DSCR", "PHYSICAL_DESCRIPTION");
+		attributeTo(individual, destinationIndividual, destination, "DSCR", "CHARACTERISTIC");
 		attributeTo(individual, destinationIndividual, destination, "EDUC", "EDUCATION");
 		attributeTo(individual, destinationIndividual, destination, "NATI", "ORIGIN");
 		attributeTo(individual, destinationIndividual, destination, "NCHI", "CHILDREN_COUNT");
@@ -420,9 +420,10 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		eventFrom(events, destinationIndividual, origin, "EVENT", "EVEN");
 		final List<GedcomNode> attributes = individual.getChildrenWithTag("ATTRIBUTE");
 		attributeFrom(attributes, destinationIndividual, origin, "CASTE", "CAST");
-		attributeFrom(attributes, destinationIndividual, origin, "PHYSICAL_DESCRIPTION", "DSCR");
+		attributeFrom(attributes, destinationIndividual, origin, "CHARACTERISTIC", "DSCR");
 		attributeFrom(attributes, destinationIndividual, origin, "EDUCATION", "EDUC");
 		attributeFrom(attributes, destinationIndividual, origin, "ORIGIN", "NATI");
+		attributeFrom(attributes, destinationIndividual, origin, "NAME", "_NAME");
 		attributeFrom(attributes, destinationIndividual, origin, "CHILDREN_COUNT", "NCHI");
 		attributeFrom(attributes, destinationIndividual, origin, "MARRIAGES_COUNT", "NMR");
 		attributeFrom(attributes, destinationIndividual, origin, "OCCUPATION", "OCCU");
@@ -639,7 +640,8 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			}
 	}
 
-	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin) throws GedcomGrammarParseException{
+	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin)
+			throws GedcomGrammarParseException{
 		final GedcomNode destinationAttribute = GedcomNode.create(tagTo)
 			.withValue(attribute.getValue())
 			.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")

@@ -67,7 +67,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 //		eventTo(family, destinationFamily, destination, "RETI", "RETIREMENT");
 //		eventTo(family, destinationFamily, destination, "EVEN", "EVENT");
 //		attributeTo(family, destinationFamily, destination, "CAST", "CASTE");
-//		attributeTo(family, destinationFamily, destination, "DSCR", "PHYSICAL_DESCRIPTION");
+//		attributeTo(family, destinationFamily, destination, "DSCR", "CHARACTERISTIC");
 //		attributeTo(family, destinationFamily, destination, "EDUC", "EDUCATION");
 //		attributeTo(family, destinationFamily, destination, "NATI", "ORIGIN");
 //		attributeTo(family, destinationFamily, destination, "NCHI", "CHILDREN_COUNT");
@@ -124,7 +124,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 //		eventFrom(events, destinationFamily, origin, "EVENT", "EVEN");
 //		final List<GedcomNode> attributes = family.getChildrenWithTag("ATTRIBUTE");
 //		attributeFrom(attributes, destinationFamily, origin, "CASTE", "CAST");
-//		attributeFrom(attributes, destinationFamily, origin, "PHYSICAL_DESCRIPTION", "DSCR");
+//		attributeFrom(attributes, destinationFamily, origin, "CHARACTERISTIC", "DSCR");
 //		attributeFrom(attributes, destinationFamily, origin, "EDUCATION", "EDUC");
 //		attributeFrom(attributes, destinationFamily, origin, "ORIGIN", "NATI");
 //		attributeFrom(attributes, destinationFamily, origin, "CHILDREN_COUNT", "NCHI");
