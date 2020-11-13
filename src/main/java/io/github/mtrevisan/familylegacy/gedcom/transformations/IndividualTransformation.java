@@ -134,9 +134,12 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	private void childToFamilyLinkTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMC");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
+			final GedcomNode pedigree = extractSubStructure(childToFamilyLink, "PEDI");
 			final GedcomNode destinationFamilyChild = GedcomNode.create("FAMILY_CHILD")
-				.addChildValue("PEDIGREE", extractSubStructure(childToFamilyLink, "PEDI")
-					.getValue())
+				.addChild(GedcomNode.create("PEDIGREE")
+					.addChildValue("SPOUSE1", pedigree.getValue())
+					.addChildValue("SPOUSE2", pedigree.getValue())
+				)
 				.addChildValue("CERTAINTY", extractSubStructure(childToFamilyLink, "STAT")
 					.getValue());
 			notesTo(childToFamilyLink, destinationFamilyChild, destination);
@@ -522,9 +525,15 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	private void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
+			final GedcomNode pedigree = extractSubStructure(childToFamilyLink, "PEDIGREE");
+			final String pedigreeSpouse1 = extractSubStructure(pedigree, "SPOUSE1")
+				.getValue();
+			final String pedigreeSpouse2 = extractSubStructure(pedigree, "SPOUSE2")
+				.getValue();
+			final String pedigreeValue = (pedigreeSpouse1 == pedigreeSpouse2 || pedigreeSpouse1.equals(pedigreeSpouse2)?
+				pedigreeSpouse1: "SPOUSE1: " + pedigreeSpouse1 + ", SPOUSE2: " + pedigreeSpouse2);
 			final GedcomNode destinationFamilyChild = GedcomNode.create("FAMC")
-				.addChildValue("PEDI", extractSubStructure(childToFamilyLink, "PEDIGREE")
-					.getValue())
+				.addChildValue("PEDI", pedigreeValue)
 				.addChildValue("STAT", extractSubStructure(childToFamilyLink, "CERTAINTY")
 					.getValue());
 			notesFrom(childToFamilyLink, destinationFamilyChild);

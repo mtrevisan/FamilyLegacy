@@ -14,8 +14,7 @@ class RepositoryTransformationTest{
 	void to(){
 		final GedcomNode repository = GedcomNode.create("REPO")
 			.withID("R1")
-			.addChild(GedcomNode.create("NAME")
-				.withValue("NAME_OF_REPOSITORY"))
+			.addChildValue("NAME", "NAME_OF_REPOSITORY")
 			.addChild(GedcomNode.create("ADDR")
 				.withValue("ADDRESS_LINE")
 				.addChildValue("CONT", "ADDRESS_LINE")
@@ -27,26 +26,16 @@ class RepositoryTransformationTest{
 				.addChildValue("POST", "ADDRESS_POSTAL_CODE")
 				.addChildValue("CTRY", "ADDRESS_COUNTRY")
 			)
-			.addChild(GedcomNode.create("PHON")
-				.withValue("PHONE_NUMBER1"))
-			.addChild(GedcomNode.create("PHON")
-				.withValue("PHONE_NUMBER2"))
-			.addChild(GedcomNode.create("EMAIL")
-				.withValue("ADDRESS_EMAIL1"))
-			.addChild(GedcomNode.create("EMAIL")
-				.withValue("ADDRESS_EMAIL2"))
-			.addChild(GedcomNode.create("FAX")
-				.withValue("ADDRESS_FAX1"))
-			.addChild(GedcomNode.create("FAX")
-				.withValue("ADDRESS_FAX2"))
-			.addChild(GedcomNode.create("WWW")
-				.withValue("ADDRESS_WEB_PAGE1"))
-			.addChild(GedcomNode.create("WWW")
-				.withValue("ADDRESS_WEB_PAGE2"))
-			.addChild(GedcomNode.create("NOTE")
-				.withID("N1"))
-			.addChild(GedcomNode.create("NOTE")
-				.withValue("SUBMITTER_TEXT"));
+			.addChildValue("PHON", "PHONE_NUMBER1")
+			.addChildValue("PHON", "PHONE_NUMBER2")
+			.addChildValue("EMAIL", "ADDRESS_EMAIL1")
+			.addChildValue("EMAIL", "ADDRESS_EMAIL2")
+			.addChildValue("FAX", "ADDRESS_FAX1")
+			.addChildValue("FAX", "ADDRESS_FAX2")
+			.addChildValue("WWW", "ADDRESS_WEB_PAGE1")
+			.addChildValue("WWW", "ADDRESS_WEB_PAGE2")
+			.addChildReference("NOTE", "N1")
+			.addChildValue("NOTE", "SUBMITTER_TEXT");
 		final GedcomNode note = GedcomNode.create("NOTE", "N1", "SUBMITTER_TEXT");
 		final Gedcom origin = new Gedcom();
 		origin.addRepository(repository);
@@ -59,7 +48,7 @@ class RepositoryTransformationTest{
 		final Transformation<Gedcom, Flef> t = new RepositoryTransformation();
 		t.to(origin, destination);
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: P1, tag: PLACE}, {tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER1}, {tag: PHONE, value: PHONE_NUMBER2}, {tag: EMAIL, value: ADDRESS_EMAIL1}, {tag: EMAIL, value: ADDRESS_EMAIL2}, {tag: PHONE, value: ADDRESS_FAX1, children: [{tag: TYPE, value: fax}]}, {tag: PHONE, value: ADDRESS_FAX2, children: [{tag: TYPE, value: fax}]}, {tag: INTERNET, value: ADDRESS_WEB_PAGE1}, {tag: INTERNET, value: ADDRESS_WEB_PAGE2}]}, {id: N1, tag: NOTE}, {id: N1, tag: NOTE}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: P1, tag: PLACE}, {tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER1}, {tag: PHONE, value: PHONE_NUMBER2}, {tag: EMAIL, value: ADDRESS_EMAIL1}, {tag: EMAIL, value: ADDRESS_EMAIL2}, {tag: PHONE, value: ADDRESS_FAX1, children: [{tag: TYPE, value: fax}]}, {tag: PHONE, value: ADDRESS_FAX2, children: [{tag: TYPE, value: fax}]}, {tag: URL, value: ADDRESS_WEB_PAGE1}, {tag: URL, value: ADDRESS_WEB_PAGE2}]}, {id: N1, tag: NOTE}, {id: N1, tag: NOTE}]", destination.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, children: [{tag: CONC, value: ADDRESS_LINE - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}]}, {tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]", destination.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
@@ -68,40 +57,30 @@ class RepositoryTransformationTest{
 	void from() throws GedcomGrammarParseException{
 		final GedcomNode repository = GedcomNode.create("REPOSITORY")
 			.withID("R1")
-			.addChild(GedcomNode.create("NAME")
-				.withValue("NAME_OF_REPOSITORY"))
-			.addChild(GedcomNode.create("INDIVIDUAL")
-				.withID("I1"))
-			.addChild(GedcomNode.create("PLACE")
-				.withID("P1"))
+			.addChildValue("NAME", "NAME_OF_REPOSITORY")
+			.addChildReference("INDIVIDUAL", "I1")
+			.addChildReference("PLACE", "P1")
 			.addChild(GedcomNode.create("CONTACT")
 				.addChild(GedcomNode.create("PHONE")
 					.withValue("PHONE_NUMBER")
-					.addChild(GedcomNode.create("TYPE")
-						.withValue("personal"))
-					.addChild(GedcomNode.create("CALLED_ID")
-						.withValue("CALLED_ID_VALUE1"))
+					.addChildValue("TYPE", "personal")
+					.addChildValue("CALLED_ID", "CALLED_ID_VALUE1")
 					.addChildReference("NOTE", "N1")
-					.addChild(GedcomNode.create("RESTRICTION")
-						.withValue("private"))
+					.addChildValue("RESTRICTION", "private")
 				)
 				.addChild(GedcomNode.create("EMAIL")
 					.withValue("ADDRESS_EMAIL")
-					.addChild(GedcomNode.create("CALLED_ID")
-						.withValue("CALLED_ID_VALUE2"))
+					.addChildValue("CALLED_ID", "CALLED_ID_VALUE2")
 					.addChildReference("NOTE", "N1")
-					.addChild(GedcomNode.create("RESTRICTION")
-						.withValue("private"))
+					.addChildValue("RESTRICTION", "private")
 				)
-				.addChild(GedcomNode.create("INTERNET")
+				.addChild(GedcomNode.create("URL")
 					.withValue("ADDRESS_WEB_PAGE")
-					.addChild(GedcomNode.create("TYPE")
-						.withValue("blog"))
+					.addChildValue("TYPE", "blog")
 					.addChildReference("NOTE", "N1")
 				)
 			)
-			.addChild(GedcomNode.create("NOTE")
-				.withID("N1"));
+			.addChildReference("NOTE", "N1");
 		final GedcomNode place = GedcomNode.create("PLACE")
 			.withID("P1")
 			.addChild(GedcomNode.create("ADDRESS")
@@ -113,7 +92,7 @@ class RepositoryTransformationTest{
 		origin.addPlace(place);
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: I1, tag: INDIVIDUAL}, {id: P1, tag: PLACE}, {tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER, children: [{tag: TYPE, value: personal}, {tag: CALLED_ID, value: CALLED_ID_VALUE1}, {id: N1, tag: NOTE}, {tag: RESTRICTION, value: private}]}, {tag: EMAIL, value: ADDRESS_EMAIL, children: [{tag: CALLED_ID, value: CALLED_ID_VALUE2}, {id: N1, tag: NOTE}, {tag: RESTRICTION, value: private}]}, {tag: INTERNET, value: ADDRESS_WEB_PAGE, children: [{tag: TYPE, value: blog}, {id: N1, tag: NOTE}]}]}, {id: N1, tag: NOTE}]", origin.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: I1, tag: INDIVIDUAL}, {id: P1, tag: PLACE}, {tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER, children: [{tag: TYPE, value: personal}, {tag: CALLED_ID, value: CALLED_ID_VALUE1}, {id: N1, tag: NOTE}, {tag: RESTRICTION, value: private}]}, {tag: EMAIL, value: ADDRESS_EMAIL, children: [{tag: CALLED_ID, value: CALLED_ID_VALUE2}, {id: N1, tag: NOTE}, {tag: RESTRICTION, value: private}]}, {tag: URL, value: ADDRESS_WEB_PAGE, children: [{tag: TYPE, value: blog}, {id: N1, tag: NOTE}]}]}, {id: N1, tag: NOTE}]", origin.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}]}]", origin.getPlaces().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new RepositoryTransformation();

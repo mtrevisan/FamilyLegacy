@@ -78,7 +78,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 					.withValue("fax")));
 		final List<GedcomNode> urls = parent.getChildrenWithTag("WWW");
 		for(final GedcomNode url : urls)
-			destinationContact.addChildValue("INTERNET", url.getValue());
+			destinationContact.addChildValue("URL", url.getValue());
 		destinationNode.addChild(destinationContact);
 	}
 
@@ -144,7 +144,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode phone : phones)
 			if("fax".equals(extractSubStructure(phone, "TYPE").getValue()))
 				destinationNode.addChildValue("FAX", phone.getValue());
-		final List<GedcomNode> urls = contact.getChildrenWithTag("INTERNET");
+		final List<GedcomNode> urls = contact.getChildrenWithTag("URL");
 		for(final GedcomNode url : urls)
 			destinationNode.addChildValue("WWW", url.getValue());
 	}
