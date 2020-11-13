@@ -44,6 +44,7 @@ public class Flef extends Store<Flef>{
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_CULTURAL_RULE_PREFIX = "A";
+	private static final String ID_GROUP_PREFIX = "G";
 	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEADER";
@@ -65,6 +66,7 @@ public class Flef extends Store<Flef>{
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
 	private List<GedcomNode> culturalRules;
+	private List<GedcomNode> groups;
 	private List<GedcomNode> submitters;
 
 	private Map<String, GedcomNode> individualIndex;
@@ -74,6 +76,7 @@ public class Flef extends Store<Flef>{
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
 	private Map<String, GedcomNode> culturalRuleIndex;
+	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
 
@@ -326,6 +329,33 @@ public class Flef extends Store<Flef>{
 
 	public String getNextCulturalRuleID(){
 		return ID_CULTURAL_RULE_PREFIX + (culturalRules != null? culturalRules.size() + 1: 1);
+	}
+
+	public List<GedcomNode> getGroups(){
+		return groups;
+	}
+
+	public GedcomNode getGroup(final String id){
+		return groupIndex.get(id);
+	}
+
+	public String addGroup(final GedcomNode group){
+		if(groups == null){
+			groups = new ArrayList<>(1);
+			groupIndex = new HashMap<>(1);
+		}
+		String groupID = group.getID();
+		if(groupID == null){
+			groupID = getNextGroupID();
+			group.withID(groupID);
+		}
+		groups.add(group);
+		groupIndex.put(group.getID(), group);
+		return groupID;
+	}
+
+	public String getNextGroupID(){
+		return ID_GROUP_PREFIX + (groups != null? groups.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSubmitters(){
