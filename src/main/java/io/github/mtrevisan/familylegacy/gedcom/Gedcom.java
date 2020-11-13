@@ -164,6 +164,16 @@ public class Gedcom extends Store<Gedcom>{
 		return familyIndex.get(id);
 	}
 
+	public GedcomNode addFamily(final GedcomNode family){
+		if(families == null){
+			families = new ArrayList<>(1);
+			familyIndex = new HashMap<>(1);
+		}
+		families.add(family);
+		familyIndex.put(family.getID(), family);
+		return family;
+	}
+
 	public List<GedcomNode> getDocuments(){
 		return documents;
 	}

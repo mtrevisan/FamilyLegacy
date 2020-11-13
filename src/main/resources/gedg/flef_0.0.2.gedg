@@ -25,7 +25,6 @@ n HEADER    {1:1}
   +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the lineage-linked file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
 
 
-/* to be revised */
 RECORD :=
 [
 n <<INDIVIDUAL_RECORD>>    {1:1}
@@ -44,12 +43,10 @@ n <<SUBMITTER_RECORD>>    {1:1}
 ]
 
 
-/* to be revised */
 END_OF_FILE :=
 n EOF    {1:1}
 
 
-/* to do */
 INDIVIDUAL_RECORD :=	/* A representation of a historical individual, together with the facts and events believed to apply to that individual and the sources of those data. */
 n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record. */
   +1 <<PERSONAL_NAME_STRUCTURE>>    {0:M}	/* A list of PERSONAL_NAME_STRUCTURE() objects giving the names associated with this individual. */
@@ -98,7 +95,6 @@ n FAMILY_NAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
 n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname */
 
 
-/* to be revised */
 INDIVIDUAL_EVENT_STRUCTURE :=
 [
 n EVENT BIRTH    {1:1}	/* The exiting of the womb. */
@@ -151,7 +147,6 @@ n EVENT [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* A code used to indicate the 
 ]
 
 
-/* to be revised */
 INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
 [
 n ATTRIBUTE CASTE    {1:1}	/* The social, religious, or racial caste tow which an individual belongs. */
@@ -208,13 +203,11 @@ n ATTRIBUTE [ <ATTRIBUTE_NAME> | <NULL> ]    {1:1}	/* A generic attribute, the t
 ]
 
 
-/* to be revised */
 PHYSICAL_DESCRIPTION_DETAIL :=
 n KEY <KEY_DESCRIPTION>    {1:1}	/* A property name that identified the type of physical description (eg. 'height', 'weight', 'eyes color', 'complexion', etc). */
   +1 VALUE <VALUE_DESCRIPTION>    {1:1}	/* A value for the physical description type. */
 
 
-/* to be revised */
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband or father. */
@@ -226,7 +219,6 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
-/* to be revised */
 FAMILY_EVENT_STRUCTURE :=
 [
 n EVENT ANNULMENT    {1:1}	/* Declaring a marriage to be invalid, as though it had never occurred. */
@@ -271,7 +263,6 @@ n EVENT [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* Text describing a particular
 ]
 
 
-/* to be revised */
 EVENT_DETAIL :=
 n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVENT or FACT tags are used. The value of this tag is responsible for classifying the generic event or fact being cited. */
 n DATE <DATE_TIME_VALUE>    {0:1}	/* A date_time_value() object giving the date of the event. */
@@ -291,7 +282,6 @@ n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of 
 n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
-/* to do */
 PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
@@ -322,7 +312,6 @@ n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. *
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
-/* to do */
 SOURCE_CITATION :=
 n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
   +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
