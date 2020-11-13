@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.gedcom.transformations2;
+package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;

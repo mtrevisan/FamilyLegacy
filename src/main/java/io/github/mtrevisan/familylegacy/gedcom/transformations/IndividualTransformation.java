@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.gedcom.transformations2;
+package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.StringJoiner;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations2.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 
 
 public class IndividualTransformation implements Transformation<Gedcom, Flef>{

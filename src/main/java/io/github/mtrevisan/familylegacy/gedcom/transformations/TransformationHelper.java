@@ -5,11 +5,20 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
 
 
 final class TransformationHelper{
 
 	private TransformationHelper(){}
+
+	static String joinIfNotNull(final String separator, final String... components){
+		final StringJoiner sj = new StringJoiner(separator);
+		for(final String component : components)
+			if(component != null)
+				sj.add(component);
+		return (sj.length() > 0? sj.toString(): null);
+	}
 
 	static GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
 		GedcomNode current = context;
