@@ -545,7 +545,7 @@ class IndividualTransformationTest{
 			.addChild(GedcomNode.create("ATTRIBUTE")
 				.withValue("CASTE")
 				.addChildValue("VALUE", "CASTE_NAME")
-				.addChildValue("???", "EVENT_DETAIL")
+				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION_CASTE")
 			)
 			.addChild(GedcomNode.create("ATTRIBUTE")
 				.withValue("PHYSICAL_DESCRIPTION")
@@ -558,11 +558,11 @@ class IndividualTransformationTest{
 					.withValue("KEY_DESCRIPTION2")
 					.addChildValue("VALUE", "VALUE_DESCRIPTION2")
 				)
-				.addChildValue("???", "EVENT_DETAIL")
+				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION_ATTR1")
 			)
 			.addChild(GedcomNode.create("ATTRIBUTE")
 				.withValue("RESIDENCE")
-				.addChildValue("???", "EVENT_DETAIL")
+				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION_ATTR2")
 			)
 			.addChildReference("NOTE", "N2")
 			.addChildValue("SOURCE", "S1")
@@ -576,12 +576,16 @@ class IndividualTransformationTest{
 		origin.addPlace(GedcomNode.create("PLACE", "P1", null));
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT, children: [{tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: I1, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: LOCALE, value: en-US}, {tag: TITLE, value: TITLE_PIECE1}, {tag: PERSONAL_NAME, value: NAME_PIECE1, children: [{tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX1}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME1}, {tag: FAMILY_NAME, value: SURNAME_PIECE1}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME1}, {tag: PHONETIC, children: [{tag: TITLE, value: TITLE_PIECE2}, {tag: PERSONAL_NAME, value: NAME_PIECE2, children: [{tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX2}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME2}, {tag: FAMILY_NAME, value: SURNAME_PIECE2}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME2}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_TYPE, children: [{tag: SYSTEM, value: TRANSCRIPTION_SYSTEM}, {tag: TITLE, value: TITLE_PIECE3}, {tag: PERSONAL_NAME, value: NAME_PIECE3, children: [{tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX3}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME3}, {tag: FAMILY_NAME, value: SURNAME_PIECE3}, {tag: FAMILY_NICKNAME, value: SURNAME_PIECE_NICKNAME3}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}]}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, children: [{tag: PEDIGREE, value: PEDIGREE_LINKAGE_TYPE}, {tag: CERTAINTY, value: CERTAINTY}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {id: N1, tag: NOTE}]}, {tag: FAMILY_SPOUSE, children: [{id: N2, tag: NOTE}]}, {id: I1, tag: ASSOCIATION, children: [{tag: TYPE, value: ASSOCIATION_TYPE}, {tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}]}, {id: I1, tag: ALIAS, children: [{id: N2, tag: NOTE}]}, {tag: EVENT, value: BIRTH, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_BIRTH}, {tag: DATE, value: DATE_TIME_VALUE, children: [{tag: CALENDAR, value: CALENDAR_TYPE}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: P1, tag: PLACE, children: [{tag: CERTAINTY, value: CERTAINTY_ASSESSMENT}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: AGENCY, value: RESPONSIBLE_AGENCY}, {tag: CAUSE, value: CAUSE_OF_EVENT, children: [{tag: CERTAINTY, value: CERTAINTY_ASSESSMENT}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {tag: CERTAINTY, value: CERTAINTY_ASSESSMENT}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]}, {tag: EVENT, value: ADOPTION, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_ADOPTION}, {id: F1, tag: FAMILY_CHILD, children: [{tag: ADOPTED_BY, value: ADOPTED_BY_WHICH_PARENT}]}]}, {tag: EVENT, value: DEATH, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_DEATH}]}, {tag: ATTRIBUTE, value: CASTE, children: [{tag: VALUE, value: CASTE_NAME}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_CASTE}]}, {tag: ATTRIBUTE, value: PHYSICAL_DESCRIPTION, children: [{tag: VALUE, value: PHYSICAL_DESCRIPTION}, {tag: KEY, value: KEY_DESCRIPTION1, children: [{tag: VALUE, value: VALUE_DESCRIPTION1}]}, {tag: KEY, value: KEY_DESCRIPTION2, children: [{tag: VALUE, value: VALUE_DESCRIPTION2}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_ATTR1}]}, {tag: ATTRIBUTE, value: RESIDENCE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_ATTR2}]}, {id: N2, tag: NOTE}, {tag: SOURCE, value: S1}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT1", origin.getNotes().get(0).toString());
+		Assertions.assertEquals("id: N2, tag: NOTE, value: SUBMITTER_TEXT2", origin.getNotes().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE", origin.getSources().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE", origin.getPlaces().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new IndividualTransformation();
 		t.from(origin, destination);
 
-		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: I1, tag: INDI, children: [{tag: DATA, children: [{tag: EVEN, value: BIRTH}, {tag: EVEN, value: ADOPTION}, {tag: EVEN, value: DEATH}]}]", destination.getIndividuals().get(0).toString());
 	}
 
 }

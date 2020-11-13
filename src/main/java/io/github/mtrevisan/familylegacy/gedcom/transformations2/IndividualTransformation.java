@@ -418,7 +418,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		destinationIndividual.addChildValue("TITL", title.getValue());
 		final GedcomNode text = extractSubStructure(individual, "TEXT");
 		destinationIndividual.addChildValue("TEXT", text.getValue());
-		destination.addSource(destinationIndividual);
+		destination.addIndividual(destinationIndividual);
 	}
 
 }
