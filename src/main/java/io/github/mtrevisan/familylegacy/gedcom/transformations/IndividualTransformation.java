@@ -177,7 +177,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				destination.addNote(note);
 				final GedcomNode destinationSource = GedcomNode.create("SOURCE")
 					.withID(sourceCitationID)
-					.addChildValue("TEXT", extractSubStructure(sourceCitation, "TEXT")
+					.addChildValue("EXTRACT", extractSubStructure(sourceCitation, "TEXT")
 						.getValue())
 					.addChildReference("NOTE", note.getID());
 				documentsTo(sourceCitation, destinationSource, destination);
@@ -203,7 +203,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 					.addChildValue("EVENT", eventNode.getValue())
 					.addChildValue("DATE", extractSubStructure(data, "DATE")
 						.getValue());
-				final List<GedcomNode> texts = data.getChildrenWithTag( "TEXT");
+				final List<GedcomNode> texts = data.getChildrenWithTag( "EXTRACT");
 				for(final GedcomNode text : texts)
 					destinationSource.addChildValue("TEXT", text
 						.getValue());

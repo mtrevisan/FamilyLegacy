@@ -35,7 +35,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 			destinationSource.addChildValue("EVENT", event.getValue());
 		}
 		destinationSource.addChildValue("DATE", date);
-		destinationSource.addChildValue("TEXT", extractSubStructure(source, "TEXT")
+		destinationSource.addChildValue("EXTRACT", extractSubStructure(source, "TEXT")
 			.getValue());
 		final String author = extractSubStructure(source, "AUTH")
 			.getValue();
@@ -138,10 +138,10 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 				.withValue(event.getValue())
 				.addChildValue("DATE", date));
 		destinationSource.addChild(destinationData);
-		final GedcomNode title = extractSubStructure(source, "TITLE");
-		destinationSource.addChildValue("TITL", title.getValue());
-		final GedcomNode text = extractSubStructure(source, "TEXT");
-		destinationSource.addChildValue("TEXT", text.getValue());
+		destinationSource.addChildValue("TITL", extractSubStructure(source, "TITLE")
+			.getValue());
+		destinationSource.addChildValue("TEXT", extractSubStructure(source, "EXTRACT")
+			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
 		notesFrom(source, destinationSource);
 		documentsFrom(source, destinationSource);

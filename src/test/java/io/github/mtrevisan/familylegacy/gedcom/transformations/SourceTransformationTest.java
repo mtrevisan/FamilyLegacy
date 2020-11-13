@@ -83,7 +83,7 @@ class SourceTransformationTest{
 		t.to(origin, destination);
 
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: FORMAT, value: MULTIMEDIA_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}]}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: DATE_PERIOD}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {id: N1, tag: NOTE}, {id: D1, tag: SOURCE}, {id: S1, tag: SOURCE}, {id: N1, tag: NOTE}, {id: N2, tag: NOTE}, {id: R1, tag: REPOSITORY}, {id: R1, tag: REPOSITORY, children: [{id: N2, tag: NOTE}]}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: DATE_PERIOD}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}, {id: N1, tag: NOTE}, {id: D1, tag: SOURCE}, {id: S1, tag: SOURCE}, {id: N1, tag: NOTE}, {id: N2, tag: NOTE}, {id: R1, tag: REPOSITORY}, {id: R1, tag: REPOSITORY, children: [{id: N2, tag: NOTE}]}]", destination.getSources().get(1).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SOURCE_ORIGINATOR, SOURCE_PUBLICATION_FACTS", destination.getNotes().get(0).toString());
 		Assertions.assertEquals("id: N2, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(1).toString());
 		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{id: N2, tag: NOTE}]", destination.getRepositories().get(0).toString());
@@ -105,7 +105,7 @@ class SourceTransformationTest{
 				.withValue("ENTRY_RECORDING_DATE")
 				.addChildValue("CALENDAR", "CALENDAR_TYPE")
 			)
-			.addChild(GedcomNode.create("TEXT")
+			.addChild(GedcomNode.create("EXTRACT")
 				.withValue("TEXT_FROM_SOURCE"))
 			.addChild(GedcomNode.create("NOTE")
 				.withID("N1"))
@@ -125,7 +125,7 @@ class SourceTransformationTest{
 				.addChild(GedcomNode.create("CUT")
 					.withValue("CUT_COORDINATES"))
 			)
-			.addChild(GedcomNode.create("URL")
+			.addChild(GedcomNode.create("INTERNET")
 				.withValue("ADDRESS_WEB_PAGE"))
 			.addChild(GedcomNode.create("RESTRICTION")
 				.withValue("RESTRICTION_NOTICE"));
@@ -133,7 +133,7 @@ class SourceTransformationTest{
 		origin.addSource(source);
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TYPE, value: DIGITAL_ARCHIVE}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: ENTRY_RECORDING_DATE, children: [{tag: CALENDAR, value: CALENDAR_TYPE}]}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {id: N1, tag: NOTE}, {id: R1, tag: REPOSITORY, children: [{tag: REPOSITORY_LOCATION, value: REPOSITORY_LOCATION_TEXT}, {id: N2, tag: NOTE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}, {tag: CUT, value: CUT_COORDINATES}]}, {tag: URL, value: ADDRESS_WEB_PAGE}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TYPE, value: DIGITAL_ARCHIVE}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: ENTRY_RECORDING_DATE, children: [{tag: CALENDAR, value: CALENDAR_TYPE}]}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}, {id: N1, tag: NOTE}, {id: R1, tag: REPOSITORY, children: [{tag: REPOSITORY_LOCATION, value: REPOSITORY_LOCATION_TEXT}, {id: N2, tag: NOTE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}, {tag: CUT, value: CUT_COORDINATES}]}, {tag: INTERNET, value: ADDRESS_WEB_PAGE}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getSources().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new SourceTransformation();
 		t.from(origin, destination);

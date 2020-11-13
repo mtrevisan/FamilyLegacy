@@ -43,6 +43,7 @@ public class Flef extends Store<Flef>{
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
+	private static final String ID_CULTURAL_RULE_PREFIX = "A";
 	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEADER";
@@ -63,6 +64,7 @@ public class Flef extends Store<Flef>{
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
+	private List<GedcomNode> culturalRules;
 	private List<GedcomNode> submitters;
 
 	private Map<String, GedcomNode> individualIndex;
@@ -71,6 +73,7 @@ public class Flef extends Store<Flef>{
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
+	private Map<String, GedcomNode> culturalRuleIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
 
@@ -111,6 +114,7 @@ public class Flef extends Store<Flef>{
 		g.noteIndex = generateIndexes(g.notes);
 		g.repositoryIndex = generateIndexes(g.repositories);
 		g.sourceIndex = generateIndexes(g.sources);
+		g.culturalRuleIndex = generateIndexes(g.culturalRules);
 		g.submitterIndex = generateIndexes(g.submitters);
 
 		return g;
@@ -143,16 +147,19 @@ public class Flef extends Store<Flef>{
 		return individualIndex.get(id);
 	}
 
-	public GedcomNode addIndividual(final GedcomNode individual){
+	public String addIndividual(final GedcomNode individual){
 		if(individuals == null){
 			individuals = new ArrayList<>(1);
 			individualIndex = new HashMap<>(1);
 		}
-		if(individual.getID() == null)
-			individual.withID(getNextIndividualID());
+		String individualID = individual.getID();
+		if(individualID == null){
+			individualID = getNextIndividualID();
+			individual.withID(individualID);
+		}
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
-		return individual;
+		return individualID;
 	}
 
 	public String getNextIndividualID(){
@@ -167,20 +174,23 @@ public class Flef extends Store<Flef>{
 		return familyIndex.get(id);
 	}
 
-	public GedcomNode addFamily(final GedcomNode family){
+	public String addFamily(final GedcomNode family){
 		if(families == null){
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
-		if(family.getID() == null)
-			family.withID(getNextFamilyID(families.size()));
+		String familyID = family.getID();
+		if(familyID == null){
+			familyID = getNextFamilyID();
+			family.withID(familyID);
+		}
 		families.add(family);
 		familyIndex.put(family.getID(), family);
-		return family;
+		return familyID;
 	}
 
-	public static String getNextFamilyID(final int familiesCount){
-		return ID_FAMILY_PREFIX + (familiesCount + 1);
+	public String getNextFamilyID(){
+		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getPlaces(){
@@ -191,16 +201,19 @@ public class Flef extends Store<Flef>{
 		return placeIndex.get(id);
 	}
 
-	public GedcomNode addPlace(final GedcomNode place){
+	public String addPlace(final GedcomNode place){
 		if(places == null){
 			places = new ArrayList<>(1);
 			placeIndex = new HashMap<>(1);
 		}
-		if(place.getID() == null)
-			place.withID(getNextPlaceID());
+		String placeID = place.getID();
+		if(placeID == null){
+			placeID = getNextPlaceID();
+			place.withID(placeID);
+		}
 		places.add(place);
 		placeIndex.put(place.getID(), place);
-		return place;
+		return placeID;
 	}
 
 	public String getNextPlaceID(){
@@ -215,16 +228,19 @@ public class Flef extends Store<Flef>{
 		return noteIndex.get(id);
 	}
 
-	public GedcomNode addNote(final GedcomNode note){
+	public String addNote(final GedcomNode note){
 		if(notes == null){
 			notes = new ArrayList<>(1);
 			noteIndex = new HashMap<>(1);
 		}
-		if(note.getID() == null)
-			note.withID(getNextNoteID());
+		String noteID = note.getID();
+		if(noteID == null){
+			noteID = getNextNoteID();
+			note.withID(noteID);
+		}
 		notes.add(note);
 		noteIndex.put(note.getID(), note);
-		return note;
+		return noteID;
 	}
 
 	public String getNextNoteID(){
@@ -239,16 +255,19 @@ public class Flef extends Store<Flef>{
 		return repositoryIndex.get(id);
 	}
 
-	public GedcomNode addRepository(final GedcomNode repository){
+	public String addRepository(final GedcomNode repository){
 		if(repositories == null){
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
-		if(repository.getID() == null)
-			repository.withID(getNextRepositoryID());
+		String repositoryID = repository.getID();
+		if(repositoryID == null){
+			repositoryID = getNextRepositoryID();
+			repository.withID(repositoryID);
+		}
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
-		return repository;
+		return repositoryID;
 	}
 
 	public String getNextRepositoryID(){
@@ -263,20 +282,50 @@ public class Flef extends Store<Flef>{
 		return sourceIndex.get(id);
 	}
 
-	public GedcomNode addSource(final GedcomNode source){
+	public String addSource(final GedcomNode source){
 		if(sources == null){
 			sources = new ArrayList<>(1);
 			sourceIndex = new HashMap<>(1);
 		}
-		if(source.getID() == null)
-			source.withID(getNextSourceID());
+		String sourceID = source.getID();
+		if(sourceID == null){
+			sourceID = getNextSourceID();
+			source.withID(sourceID);
+		}
 		sources.add(source);
 		sourceIndex.put(source.getID(), source);
-		return source;
+		return sourceID;
 	}
 
 	public String getNextSourceID(){
 		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
+	}
+
+	public List<GedcomNode> getCulturalRules(){
+		return culturalRules;
+	}
+
+	public GedcomNode getCulturalRule(final String id){
+		return culturalRuleIndex.get(id);
+	}
+
+	public String addCulturalRule(final GedcomNode culturalRule){
+		if(culturalRules == null){
+			culturalRules = new ArrayList<>(1);
+			culturalRuleIndex = new HashMap<>(1);
+		}
+		String culturalRuleID = culturalRule.getID();
+		if(culturalRuleID == null){
+			culturalRuleID = getNextCulturalRuleID();
+			culturalRule.withID(culturalRuleID);
+		}
+		culturalRules.add(culturalRule);
+		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
+		return culturalRuleID;
+	}
+
+	public String getNextCulturalRuleID(){
+		return ID_CULTURAL_RULE_PREFIX + (culturalRules != null? culturalRules.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSubmitters(){
@@ -287,20 +336,23 @@ public class Flef extends Store<Flef>{
 		return submitterIndex.get(id);
 	}
 
-	public GedcomNode addSubmitter(final GedcomNode submitter){
+	public String addSubmitter(final GedcomNode submitter){
 		if(submitters == null){
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
-		if(submitter.getID() == null)
-			submitter.withID(getNextSubmitterID(submitters.size()));
+		String submitterID = submitter.getID();
+		if(submitterID == null){
+			submitterID = getNextSubmitterID();
+			submitter.withID(submitterID);
+		}
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
-		return submitter;
+		return submitterID;
 	}
 
-	public static String getNextSubmitterID(final int submitterCount){
-		return ID_SUBMITTER_PREFIX + (submitterCount + 1);
+	public String getNextSubmitterID(){
+		return ID_SUBMITTER_PREFIX + (submitters != null? submitters.size() + 1: 1);
 	}
 
 }
