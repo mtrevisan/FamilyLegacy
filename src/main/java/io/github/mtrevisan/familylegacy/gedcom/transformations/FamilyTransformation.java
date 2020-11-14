@@ -8,6 +8,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -260,7 +261,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 		eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
 		eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
 		eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
-		eventFrom(events, destinationFamily, origin, "EVENT", "EVEN");
+		eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
 		destinationFamily
 			.addChildValue("HUSB", extractSubStructure(family, "SPOUSE1")
 				.getValue())
@@ -276,16 +277,22 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
-		final String tagTo) throws GedcomGrammarParseException{
-		for(final GedcomNode event : events)
-			if(valueFrom.equals(event.getValue())){
+			final String tagTo) throws GedcomGrammarParseException{
+		final Iterator<GedcomNode> itr = events.iterator();
+		while(itr.hasNext()){
+			final GedcomNode event = itr.next();
+			if("@EVENT@".equals(valueFrom) || valueFrom.equals(event.getValue())){
 				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
 				destinationNode.addChild(destinationEvent);
+
+				itr.remove();
 			}
+		}
 	}
 
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin) throws GedcomGrammarParseException{
 		final GedcomNode destinationEvent = GedcomNode.create(tagTo)
+			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
 			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
 				.getValue())
 			.addChildValue("DATE", extractSubStructure(event, "DATE")

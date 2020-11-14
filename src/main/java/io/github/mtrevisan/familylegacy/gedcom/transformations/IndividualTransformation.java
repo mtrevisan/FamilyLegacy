@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -422,7 +423,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		eventFrom(events, destinationIndividual, origin, "WILL", "WILL");
 		eventFrom(events, destinationIndividual, origin, "GRADUATION", "GRAD");
 		eventFrom(events, destinationIndividual, origin, "RETIREMENT", "RETI");
-		eventFrom(events, destinationIndividual, origin, "EVENT", "EVEN");
+		eventFrom(events, destinationIndividual, origin, "@EVENT@", "EVEN");
 		final List<GedcomNode> attributes = individual.getChildrenWithTag("ATTRIBUTE");
 		attributeFrom(attributes, destinationIndividual, origin, "CASTE", "CAST");
 		attributeFrom(attributes, destinationIndividual, origin, "CHARACTERISTIC", "DSCR");
@@ -437,7 +438,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		attributeFrom(attributes, destinationIndividual, origin, "RESIDENCE", "RESI");
 		attributeFrom(attributes, destinationIndividual, origin, "SSN", "SSN");
 		attributeFrom(attributes, destinationIndividual, origin, "TITLE", "TITL");
-		attributeFrom(attributes, destinationIndividual, origin, "FACT", "FACT");
+		attributeFrom(attributes, destinationIndividual, origin, "@ATTRIBUTE@", "FACT");
 		notesFrom(individual, destinationIndividual);
 		sourceCitationFrom(individual, destinationIndividual);
 
@@ -603,15 +604,21 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo) throws GedcomGrammarParseException{
-		for(final GedcomNode event : events)
-			if(valueFrom.equals(event.getValue())){
+		final Iterator<GedcomNode> itr = events.iterator();
+		while(itr.hasNext()){
+			final GedcomNode event = itr.next();
+			if("@EVENT@".equals(valueFrom) || valueFrom.equals(event.getValue())){
 				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
 				destinationNode.addChild(destinationEvent);
+
+				itr.remove();
+			}
 		}
 	}
 
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin) throws GedcomGrammarParseException{
 		final GedcomNode destinationEvent = GedcomNode.create(tagTo)
+			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
 			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
 				.getValue())
 			.addChildValue("DATE", extractSubStructure(event, "DATE")
@@ -637,11 +644,16 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 	private void attributeFrom(final List<GedcomNode> attributes, final GedcomNode destinationNode, final Flef origin,
 			final String valueFrom, final String tagTo) throws GedcomGrammarParseException{
-		for(final GedcomNode attribute : attributes)
-			if(valueFrom.equals(attribute.getValue())){
+		final Iterator<GedcomNode> itr = attributes.iterator();
+		while(itr.hasNext()){
+			final GedcomNode attribute = itr.next();
+			if("@ATTRIBUTE@".equals(valueFrom) || valueFrom.equals(attribute.getValue())){
 				final GedcomNode destinationAttribute = createAttributeFrom(tagTo, attribute, origin);
 				destinationNode.addChild(destinationAttribute);
+
+				itr.remove();
 			}
+		}
 	}
 
 	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin)
