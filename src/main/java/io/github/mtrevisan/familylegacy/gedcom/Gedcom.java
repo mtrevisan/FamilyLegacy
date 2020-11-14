@@ -254,6 +254,15 @@ public class Gedcom extends Store<Gedcom>{
 		return submitterIndex.get(id);
 	}
 
+	public void addSubmitter(final GedcomNode submitter){
+		if(submitters == null){
+			submitters = new ArrayList<>(1);
+			submitterIndex = new HashMap<>(1);
+		}
+		submitters.add(submitter);
+		submitterIndex.put(submitter.getID(), submitter);
+	}
+
 	public GedcomNode getSubmission(){
 		return submission;
 	}
