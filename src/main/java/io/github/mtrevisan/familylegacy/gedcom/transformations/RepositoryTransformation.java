@@ -35,6 +35,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		addressStructureTo(repository, destinationRepository, destination);
 		contactStructureTo(repository, destinationRepository);
 		notesTo(repository, destinationRepository, destination);
+
 		destination.addRepository(destinationRepository);
 	}
 
@@ -112,6 +113,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		addressStructureFrom(repository, destinationRepository, origin);
 		contactStructureFrom(repository, destinationRepository);
 		notesFrom(repository, destinationRepository);
+
 		destination.addRepository(destinationRepository);
 	}
 

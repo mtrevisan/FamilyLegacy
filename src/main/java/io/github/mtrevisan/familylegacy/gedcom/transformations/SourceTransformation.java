@@ -45,11 +45,13 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		if(noteAuthorPublication != null){
 			final String noteID = destination.getNextNoteID();
 			destinationSource.addChildReference("NOTE", noteID);
+
 			destination.addNote(GedcomNode.create("NOTE", noteID, noteAuthorPublication));
 		}
 		documentsTo(source, destinationSource, destination);
 		notesTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
+
 		destination.addSource(destinationSource);
 	}
 
@@ -80,6 +82,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 						.addChildValue("MEDIA", documentMedia)
 						.addChildValue("CUT", documentCut)
 					);
+
 				destination.addSource(destinationDocument
 					.withID(documentID));
 			}
@@ -145,6 +148,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		sourceRepositoryCitationFrom(source, destinationSource);
 		notesFrom(source, destinationSource);
 		documentsFrom(source, destinationSource);
+
 		destination.addSource(destinationSource);
 	}
 

@@ -69,6 +69,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		documentsTo(individual, destinationIndividual, destination);
 		destinationIndividual.addChildValue("RESTRICTION", extractSubStructure(individual, "RESN")
 			.getValue());
+
 		destination.addIndividual(destinationIndividual);
 	}
 
@@ -300,7 +301,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
 		final GedcomNode destinationEvent = GedcomNode.create("EVENT")
-			.withValue(valueTo)
+			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
 			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
 				.getValue())
 			.addChildValue("DATE", extractSubStructure(event, "DATE")
@@ -382,6 +383,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			);
 		notesTo(place, destinationPlace, destination);
 		destinationNode.addChildReference("PLACE", destinationPlace.getID());
+
 		destination.addPlace(destinationPlace);
 	}
 
@@ -438,7 +440,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		attributeFrom(attributes, destinationIndividual, origin, "FACT", "FACT");
 		notesFrom(individual, destinationIndividual);
 		sourceCitationFrom(individual, destinationIndividual);
-		documentsFrom(individual, destinationIndividual);
+
 		destination.addIndividual(destinationIndividual);
 	}
 
@@ -599,12 +601,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			destinationNode.addChildReference("NOTE", note.getID());
 	}
 
-	private void documentsFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
-		for(final GedcomNode document : documents)
-			destinationNode.addChildReference("SOURCE", document.getID());
-	}
-
 	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo) throws GedcomGrammarParseException{
 		for(final GedcomNode event : events)
@@ -636,7 +632,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			);
 		notesFrom(event, destinationEvent);
 		sourceCitationFrom(event, destinationEvent);
-		documentsFrom(event, destinationEvent);
 		return destinationEvent;
 	}
 
@@ -665,7 +660,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.getValue());
 		notesFrom(attribute, destinationAttribute);
 		sourceCitationFrom(attribute, destinationAttribute);
-		documentsFrom(attribute, destinationAttribute);
 		return destinationAttribute;
 	}
 
