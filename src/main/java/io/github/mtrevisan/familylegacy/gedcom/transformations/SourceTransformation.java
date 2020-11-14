@@ -62,29 +62,26 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 			if(documentID == null){
 				documentID = destination.getNextSourceID();
 
-				final GedcomNode destinationDocument = GedcomNode.create("SOURCE");
-				final String documentTitle = extractSubStructure(document, "TITL")
-					.getValue();
+				final GedcomNode destinationDocument = GedcomNode.create("SOURCE")
+					.withID(documentID);
 				final String documentFormat = extractSubStructure(document, "FORM")
 					.getValue();
 				final String documentMedia = extractSubStructure(document, "FORM", "MEDI")
 					.getValue();
-				final String documentFile = extractSubStructure(document, "FILE")
-					.getValue();
-				final String documentCut = extractSubStructure(document, "_CUTD")
-					.getValue();
 
-				destinationDocument.addChildValue("TITLE", documentTitle);
+				destinationDocument.addChildValue("TITLE", extractSubStructure(document, "TITL")
+					.getValue());
 				if(documentFormat != null || documentMedia != null)
 					destinationDocument.addChild(GedcomNode.create("FILE")
-						.withValue(documentFile)
+						.withValue(extractSubStructure(document, "FILE")
+							.getValue())
 						.addChildValue("FORMAT", documentFormat)
 						.addChildValue("MEDIA", documentMedia)
-						.addChildValue("CUT", documentCut)
+						.addChildValue("CUT", extractSubStructure(document, "_CUTD")
+							.getValue())
 					);
 
-				destination.addSource(destinationDocument
-					.withID(documentID));
+				destination.addSource(destinationDocument);
 			}
 			destinationNode.addChildReference("SOURCE", documentID);
 		}

@@ -182,6 +182,15 @@ public class Gedcom extends Store<Gedcom>{
 		return documentIndex.get(id);
 	}
 
+	public void addDocument(final GedcomNode document){
+		if(documents == null){
+			documents = new ArrayList<>(1);
+			documentIndex = new HashMap<>(1);
+		}
+		documents.add(document);
+		documentIndex.put(document.getID(), document);
+	}
+
 	public List<GedcomNode> getNotes(){
 		return notes;
 	}

@@ -140,7 +140,8 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 			if(documentID == null){
 				documentID = destination.getNextSourceID();
 
-				final GedcomNode destinationDocument = GedcomNode.create("SOURCE");
+				final GedcomNode destinationDocument = GedcomNode.create("SOURCE")
+					.withID(documentID);
 				final String documentTitle = extractSubStructure(document, "TITL")
 					.getValue();
 				final String documentFormat = extractSubStructure(document, "FORM")
@@ -160,8 +161,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 						.addChildValue("MEDIA", documentMedia)
 						.addChildValue("CUT", documentCut)
 					);
-				destination.addSource(destinationDocument
-					.withID(documentID));
+				destination.addSource(destinationDocument);
 			}
 			destinationNode.addChildReference("SOURCE", documentID);
 		}
