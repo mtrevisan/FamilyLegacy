@@ -49,7 +49,7 @@ public class Gedcom extends Store<Gedcom>{
 	private static final String TAG_CHARSET = "CHAR";
 
 
-	private GedcomNode header = GedcomNode.createEmpty();
+	private GedcomNode header;
 	private List<GedcomNode> individuals;
 	private List<GedcomNode> families;
 	private List<GedcomNode> documents;
@@ -136,6 +136,10 @@ public class Gedcom extends Store<Gedcom>{
 
 	public GedcomNode getHeader(){
 		return header;
+	}
+
+	public void setHeader(final GedcomNode header){
+		this.header = header;
 	}
 
 	public List<GedcomNode> getIndividuals(){

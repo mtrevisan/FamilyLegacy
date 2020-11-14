@@ -3,10 +3,12 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import org.apache.commons.lang3.StringUtils;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.deleteTag;
+import java.util.Locale;
+import java.util.StringJoiner;
+
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.moveTag;
 
 
 public class HeaderTransformation implements Transformation<Gedcom, Flef>{
@@ -14,78 +16,79 @@ public class HeaderTransformation implements Transformation<Gedcom, Flef>{
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
 		final GedcomNode header = origin.getHeader();
-
-		header.withTag("HEADER");
 		final GedcomNode source = extractSubStructure(header, "SOUR");
-		source.withTag("SOURCE");
-		moveTag("VERSION", source, "VERS");
-		moveTag("CORPORATE", source, "CORP")
-			.removeChildren();
-		final GedcomNode data = extractSubStructure(source, "DATA");
-		if(!data.isEmpty()){
-			final GedcomNode date = extractSubStructure(data, "DATE");
-			if(!date.isEmpty())
-				source.addChildBefore(date, data);
+		final GedcomNode date = extractSubStructure(header, "DATE");
+		final GedcomNode time = extractSubStructure(date, "TIME");
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		if(!date.isEmpty())
+			sj.add(date.getValue());
+		if(!time.isEmpty())
+			sj.add(time.getValue());
+		final String language = extractSubStructure(source, "LANG")
+			.getValue();
+		final Locale locale = (language != null? new Locale(language): Locale.forLanguageTag("en-US"));
+		final GedcomNode destinationHeader = GedcomNode.create("HEADER")
+			.addChild(GedcomNode.create("SOURCE")
+				.withValue(source.getValue())
+				.addChildValue("NAME", extractSubStructure(source, "NAME")
+					.getValue())
+				.addChildValue("VERSION", extractSubStructure(source, "VERS")
+					.getValue())
+				.addChildValue("CORPORATE", extractSubStructure(source, "CORP")
+					.getValue())
+			)
+			.addChild(GedcomNode.create("PROTOCOL")
+				.withValue("FLEF")
+				.addChildValue("NAME", "Family LEgacy Format")
+				.addChildValue("VERSION", "0.0.2")
+			)
+			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
+			.addChildValue("DEFAULT_CALENDAR", "GREGORIAN")
+			.addChildValue("DEFAULT_LOCALE", locale.toLanguageTag())
+			.addChildValue("COPYRIGHT", extractSubStructure(source, "COPR")
+				.getValue())
+			.addChildReference("SUBMITTER", extractSubStructure(source, "SUBM")
+				.getID())
+			.addChildValue("NOTE", extractSubStructure(source, "NOTE")
+				.getValue());
 
-			source.removeChild(data);
-		}
-		deleteTag(header, "DEST");
-		deleteTag(header, "DATE");
-		moveTag("SUBMITTER", header, "SUBM");
-		deleteTag(header, "SUBN");
-		deleteTag(header, "FILE");
-		moveTag("COPYRIGHT", header, "COPR");
-		final GedcomNode version = extractSubStructure(header, "GEDC", "VERS");
-		final GedcomNode charset = extractSubStructure(header, "CHAR");
-		if(!version.isEmpty()){
-			version.withTag("PROTOCOL_VERSION");
-			header.addChildBefore(version, charset);
-			deleteTag(header, "GEDC");
-		}
-		charset.removeChildren();
-		charset.withTag("CHARSET");
-		deleteTag(header, "LANG");
-		deleteTag(header, "PLAC");
-		final GedcomNode note = extractSubStructure(header, "NOTE");
-		if(!note.isEmpty())
-			note.withValue(note.extractValueConcatenated());
-
-		destination.getHeader()
-			.cloneFrom(header);
+		destination.setHeader(destinationHeader);
 	}
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){
 		final GedcomNode header = origin.getHeader();
-
-		header.withTag("HEAD");
 		final GedcomNode source = extractSubStructure(header, "SOURCE");
-		source.withTag("SOUR");
-		moveTag("VERS", source, "VERSION");
-		moveTag("CORP", source, "CORPORATE");
-		final GedcomNode date = extractSubStructure(header, "DATE");
-		if(!date.isEmpty()){
-			source.addChild(GedcomNode.create("DATA")
-				.addChild(date));
-		}
-		final GedcomNode copyright = extractSubStructure(header, "COPYRIGHT");
-		header.removeChild(copyright);
-		moveTag("SUBM", source, "SUBMITTER");
-		deleteTag(header, "PROTOCOL_VERSION");
-		final GedcomNode gedcom = GedcomNode.create("GEDC")
-			.addChild(GedcomNode.create("VERS")
-				.withValue("5.5.1"))
-			.addChild(GedcomNode.create("FORM")
-				.withValue("LINEAGE_LINKED"));
-		final GedcomNode charset = extractSubStructure(header, "CHARSET");
-		charset.withTag("CHAR");
-		header.addChildBefore(gedcom, charset);
-		header.addChildBefore(copyright, charset);
-		final GedcomNode note = extractSubStructure(header, "NOTE");
-		note.withValue(note.getValue());
+		final String date = extractSubStructure(header, "DATE")
+			.getValue();
+		final String language = extractSubStructure(source, "DEFAULT_LOCALE")
+			.getValue();
+		final Locale locale = Locale.forLanguageTag(language != null? language: "en-US");
+		final GedcomNode destinationHeader = GedcomNode.create("HEAD")
+			.addChild(GedcomNode.create("SOUR")
+				.withValue(source.getValue())
+				.addChildValue("VERS", extractSubStructure(source, "VERSION")
+					.getValue())
+				.addChildValue("NAME", extractSubStructure(source, "NAME")
+					.getValue())
+				.addChildValue("CORP", extractSubStructure(source, "CORPORATE")
+					.getValue())
+			)
+			.addChildValue("DATE", date)
+			.addChildReference("SUBM", extractSubStructure(source, "SUBMITTER")
+				.getID())
+			.addChildValue("COPR", extractSubStructure(source, "COPYRIGHT")
+				.getValue())
+			.addChild(GedcomNode.create("GEDC")
+				.addChildValue("VERS", "5.5.1")
+				.addChildValue("FORM", "LINEAGE-LINKED")
+			)
+			.addChildValue("CHAR", "UTF-8")
+			.addChildValue("LANG", locale.getDisplayLanguage())
+			.addChildValue("NOTE", extractSubStructure(source, "NOTE")
+				.getValue());
 
-		destination.getHeader()
-			.cloneFrom(header);
+		destination.setHeader(destinationHeader);
 	}
 
 }
