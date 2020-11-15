@@ -124,6 +124,11 @@ public class Flef extends Store<Flef>{
 	}
 
 	@Override
+	public Flef transform(){
+		return this;
+	}
+
+	@Override
 	protected String getCharsetName(){
 		final List<GedcomNode> source = header.getChildrenWithTag(TAG_SOURCE);
 		final String generator = (!source.isEmpty()? source.get(0).getValue(): null);

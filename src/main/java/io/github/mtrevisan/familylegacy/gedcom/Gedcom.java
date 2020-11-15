@@ -24,6 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.gedcom.transformations.DocumentTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -75,10 +85,11 @@ public class Gedcom extends Store<Gedcom>{
 			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
 //			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
 
-			gedcom.transform();
+			final Flef flef = gedcom.transform();
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
 			gedcom.write(os);
+			flef.write(os);
 		}
 		catch(final Exception e){
 			e.printStackTrace();
@@ -117,6 +128,29 @@ public class Gedcom extends Store<Gedcom>{
 		g.submitterIndex = generateIndexes(g.submitters);
 
 		return g;
+	}
+
+	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
+	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
+	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
+	private static final Transformation<Gedcom, Flef> DOCUMENT_TRANSFORMATION = new DocumentTransformation();
+	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
+	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
+	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
+	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
+
+	@Override
+	public Flef transform(){
+		final Flef destination = new Flef();
+		HEADER_TRANSFORMATION.to(this, destination);
+		INDIVIDUAL_TRANSFORMATION.to(this, destination);
+		FAMILY_TRANSFORMATION.to(this, destination);
+		DOCUMENT_TRANSFORMATION.to(this, destination);
+		NOTE_TRANSFORMATION.to(this, destination);
+		REPOSITORY_TRANSFORMATION.to(this, destination);
+		SOURCE_TRANSFORMATION.to(this, destination);
+		SUBMITTER_TRANSFORMATION.to(this, destination);
+		return destination;
 	}
 
 	@Override
