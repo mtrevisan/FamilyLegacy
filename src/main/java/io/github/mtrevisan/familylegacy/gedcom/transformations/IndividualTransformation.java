@@ -4,7 +4,6 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -106,16 +105,20 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		final String nameValue = personalNameStructure.getValue();
 		String givenName = extractSubStructure(personalNameStructure, "GIVN")
 			.getValue();
-		if(givenName == null)
-			//extract given name component
-			givenName = (nameValue != null && StringUtils.contains(nameValue, '/')?
-				nameValue.substring(0, nameValue.indexOf('/') - 1): nameValue);
-		if(sj.length() == 0){
+		final int surnameBeginIndex = (nameValue != null? nameValue.indexOf('/'): -1);
+		int surnameEndIndex = -1;
+		if(nameValue != null && surnameBeginIndex >= 0){
+			surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
+			if(givenName == null)
+				//extract given name component
+				givenName = nameValue.substring(0, surnameBeginIndex - 1);
 			//extract surname component
-			final String surnameComponent = (nameValue != null && StringUtils.contains(nameValue, '/')?
-				nameValue.substring(nameValue.indexOf('/') + 1, nameValue.length() - 1): null);
-			sj.add(surnameComponent);
+			sj.add(nameValue.substring(surnameBeginIndex + 1,
+				(surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1)));
 		}
+		String personalNameSuffix = extractSubStructure(personalNameStructure, "NSFX").getValue();
+		if(personalNameSuffix == null && nameValue != null)
+			personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
 		destinationNode
 			.addChildValue("TYPE", extractSubStructure(personalNameStructure, "TYPE")
 				.getValue())
@@ -123,12 +126,11 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.getValue())
 			.addChild(GedcomNode.create("PERSONAL_NAME")
 				.withValue(givenName)
-				.addChildValue("NAME_SUFFIX", extractSubStructure(personalNameStructure, "NSFX")
-					.getValue())
+				.addChildValue("NAME_SUFFIX", personalNameSuffix)
 			)
 			.addChildValue("INDIVIDUAL_NICKNAME", extractSubStructure(personalNameStructure, "NICK")
 				.getValue())
-			.addChildValue("FAMILY_NAME", sj.toString());
+			.addChildValue("FAMILY_NAME", (sj.length() > 0? sj.toString(): null));
 		notesTo(personalNameStructure, destinationNode, destination);
 		sourceCitationTo(personalNameStructure, destinationNode, destination);
 	}

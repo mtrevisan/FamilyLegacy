@@ -288,7 +288,7 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addClosingChild(final String tag){
-		return addChildInner(0, GedcomNode.create(tag));
+		return addChildInner((children != null? children.size(): 0), create(tag));
 	}
 
 	private GedcomNode addChildInner(final int index, final GedcomNode child){
