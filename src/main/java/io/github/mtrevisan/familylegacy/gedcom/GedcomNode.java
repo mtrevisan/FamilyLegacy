@@ -303,6 +303,10 @@ public final class GedcomNode{
 		if(child.isEmpty())
 			return this;
 
+		return addChildInner(index, child);
+	}
+
+	private GedcomNode addChildInner(final int index, final GedcomNode child){
 		if(children == null)
 			children = new ArrayList<>(1);
 
@@ -333,6 +337,10 @@ public final class GedcomNode{
 
 	public GedcomNode addChild(final GedcomNode child){
 		return addChild((children != null? children.size(): 0), child);
+	}
+
+	GedcomNode addChildEvenIfEmpty(final GedcomNode child){
+		return addChildInner((children != null? children.size(): 0), child);
 	}
 
 	/**
