@@ -359,7 +359,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		final GedcomNode map = extractSubStructure(place, "MAP");
 		final GedcomNode address = extractSubStructure(parent, "ADDR");
 		final StringJoiner sj = new StringJoiner(" - ");
-		final String wholeAddress = address.extractValueConcatenated();
+		final String wholeAddress = address.getValue();
 		if(wholeAddress != null)
 			sj.add(wholeAddress);
 		for(final GedcomNode child : address.getChildren())
@@ -700,7 +700,8 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin) throws GedcomGrammarParseException{
+	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
+			throws GedcomGrammarParseException{
 		final GedcomNode place = extractSubStructure(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getID());
@@ -709,7 +710,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 
 			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
 			destinationNode.addChild(GedcomNode.create("ADDR")
-				.withValue(placeRecord.getValue())
+				.withValue(address.getValue())
 				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
 				.addChildValue("STAE", extractSubStructure(address, "STATE").getValue())
 				.addChildValue("CTRY", extractSubStructure(address, "COUNTRY").getValue()));

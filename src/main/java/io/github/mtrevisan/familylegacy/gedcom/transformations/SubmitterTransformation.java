@@ -49,7 +49,7 @@ public class SubmitterTransformation implements Transformation<Gedcom, Flef>{
 	private void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = extractSubStructure(parent, "ADDR");
 		final StringJoiner sj = new StringJoiner(" - ");
-		final String wholeAddress = address.extractValueConcatenated();
+		final String wholeAddress = address.getValue();
 		if(wholeAddress != null)
 			sj.add(wholeAddress);
 		for(final GedcomNode child : address.getChildren())

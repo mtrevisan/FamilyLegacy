@@ -209,31 +209,6 @@ public final class GedcomNode{
 			return value;
 	}
 
-	/**
-	 * Returns the value associated with this node.
-	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned and the continuation tags are removed.</p>
-	 */
-	public String extractValueConcatenated(){
-		final List<GedcomNode> subChildren = getChildrenWithTag(CONTINUATION_TAGS);
-		if(!subChildren.isEmpty()){
-			final StringBuilder sb = new StringBuilder();
-			if(value != null)
-				sb.append(value);
-			value = null;
-			for(final GedcomNode sc : subChildren){
-				if(sc.tag.charAt(3) == 'T')
-					sb.append(NEW_LINE);
-				if(sc.value != null)
-					sb.append(sc.value);
-
-				removeChild(sc);
-			}
-			return (sb.length() > 0? sb.toString(): null);
-		}
-		else
-			return value;
-	}
-
 	public void removeValue(){
 		value = null;
 	}
