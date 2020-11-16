@@ -93,8 +93,6 @@ public abstract class Store<T>{
 		out.flush();
 	}
 
-	public abstract Flef transform();
-
 	protected abstract String getCharsetName();
 
 	private void appendID(final Writer out, final String id) throws IOException{

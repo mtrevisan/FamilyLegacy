@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -54,6 +55,8 @@ public class Flef extends Store<Flef>{
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
+	private static final String TAG_GROUP = "GROUP";
 	private static final String TAG_SUBMITTER = "SUBMITTER";
 	private static final String TAG_CHARSET = "CHARSET";
 
@@ -85,8 +88,6 @@ public class Flef extends Store<Flef>{
 			final Flef store = new Flef();
 			final Flef flef = store.load("/gedg/flef_0.0.1.gedg", "/ged/small.flef.ged");
 
-			flef.transform();
-
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
 			flef.write(os);
 		}
@@ -109,6 +110,8 @@ public class Flef extends Store<Flef>{
 		g.notes = root.getChildrenWithTag(TAG_NOTE);
 		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
+		g.culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
+		g.groups = root.getChildrenWithTag(TAG_GROUP);
 		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
 		g.individualIndex = generateIndexes(g.individuals);
@@ -118,14 +121,10 @@ public class Flef extends Store<Flef>{
 		g.repositoryIndex = generateIndexes(g.repositories);
 		g.sourceIndex = generateIndexes(g.sources);
 		g.culturalRuleIndex = generateIndexes(g.culturalRules);
+		g.groupIndex = generateIndexes(g.groups);
 		g.submitterIndex = generateIndexes(g.submitters);
 
 		return g;
-	}
-
-	@Override
-	public Flef transform(){
-		return this;
 	}
 
 	@Override
@@ -141,6 +140,25 @@ public class Flef extends Store<Flef>{
 			//default
 			charset = StandardCharsets.UTF_8.name();
 		return charset;
+	}
+
+	@Override
+	public void write(final OutputStream os) throws IOException{
+		if(root == null)
+			root = GedcomNode.createRoot()
+				.addChild(header)
+				.addChildren(individuals)
+				.addChildren(families)
+				.addChildren(places)
+				.addChildren(notes)
+				.addChildren(repositories)
+				.addChildren(sources)
+				.addChildren(culturalRules)
+				.addChildren(groups)
+				.addChildren(submitters)
+				.addClosingChild("EOF");
+
+		super.write(os);
 	}
 
 	public GedcomNode getHeader(){

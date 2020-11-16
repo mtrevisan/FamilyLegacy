@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -55,7 +56,6 @@ public class Gedcom extends Store<Gedcom>{
 	private static final String TAG_REPOSITORY = "REPO";
 	private static final String TAG_SOURCE = "SOUR";
 	private static final String TAG_SUBMITTER = "SUBM";
-	private static final String TAG_SUBMISSION = "SUBN";
 	private static final String TAG_CHARSET = "CHAR";
 
 
@@ -67,7 +67,6 @@ public class Gedcom extends Store<Gedcom>{
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
 	private List<GedcomNode> submitters;
-	private GedcomNode submission;
 
 	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
@@ -88,7 +87,7 @@ public class Gedcom extends Store<Gedcom>{
 			final Flef flef = gedcom.transform();
 
 			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
-			gedcom.write(os);
+//			gedcom.write(os);
 			flef.write(os);
 		}
 		catch(final Exception e){
@@ -111,13 +110,6 @@ public class Gedcom extends Store<Gedcom>{
 		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		g.sources = root.getChildrenWithTag(TAG_SOURCE);
 		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
-		List<GedcomNode> submissions = root.getChildrenWithTag(TAG_SUBMISSION);
-		if(submissions.isEmpty())
-			submissions = g.header.getChildrenWithTag(TAG_SUBMISSION);
-		if(submissions.size() > 1)
-			throw GedcomParseException.create("Required submission tag missing");
-		if(!submissions.isEmpty())
-			g.submission = submissions.get(0);
 
 		g.individualIndex = generateIndexes(g.individuals);
 		g.familyIndex = generateIndexes(g.families);
@@ -139,7 +131,6 @@ public class Gedcom extends Store<Gedcom>{
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
 	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
-	@Override
 	public Flef transform(){
 		final Flef destination = new Flef();
 		HEADER_TRANSFORMATION.to(this, destination);
@@ -166,6 +157,22 @@ public class Gedcom extends Store<Gedcom>{
 			//default
 			charset = StandardCharsets.UTF_8.name();
 		return charset;
+	}
+
+	@Override
+	public void write(final OutputStream os) throws IOException{
+		if(root == null)
+			root = GedcomNode.createRoot()
+				.addChild(header)
+				.addChildren(individuals)
+				.addChildren(families)
+				.addChildren(notes)
+				.addChildren(repositories)
+				.addChildren(sources)
+				.addChildren(submitters)
+				.addClosingChild("TRLR");
+
+		super.write(os);
 	}
 
 	public GedcomNode getHeader(){
@@ -295,10 +302,6 @@ public class Gedcom extends Store<Gedcom>{
 		}
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
-	}
-
-	public GedcomNode getSubmission(){
-		return submission;
 	}
 
 }

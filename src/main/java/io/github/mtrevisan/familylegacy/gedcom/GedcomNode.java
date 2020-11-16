@@ -287,6 +287,10 @@ public final class GedcomNode{
 		return addChildInner(index, child);
 	}
 
+	public GedcomNode addClosingChild(final String tag){
+		return addChildInner(0, GedcomNode.create(tag));
+	}
+
 	private GedcomNode addChildInner(final int index, final GedcomNode child){
 		if(children == null)
 			children = new ArrayList<>(1);
@@ -347,9 +351,10 @@ public final class GedcomNode{
 		}
 	}
 
-	public GedcomNode withChildren(final Iterable<GedcomNode> children){
-		for(final GedcomNode child : children)
-			addChild(child);
+	public GedcomNode addChildren(final Iterable<GedcomNode> children){
+		if(children != null)
+			for(final GedcomNode child : children)
+				addChild(child);
 		return this;
 	}
 
