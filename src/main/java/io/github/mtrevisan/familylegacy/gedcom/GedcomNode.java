@@ -55,11 +55,10 @@ public final class GedcomNode{
 	private static final String TAG_CONCATENATION = "CONC";
 	private static final String TAG_CONTINUATION = "CONT";
 	private static final String[] CONTINUATION_TAGS = {TAG_CONCATENATION, TAG_CONTINUATION};
-	public static final int MAX_LINE_LENGTH = 255 - "CONT".length() - 4;
-
 	static{
 		Arrays.sort(CONTINUATION_TAGS);
 	}
+	public static final int MAX_LINE_LENGTH = 255 - TAG_CONTINUATION.length() - 4;
 
 
 	private int level;
@@ -194,7 +193,6 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode withValue(final String value){
-		this.value = null;
 		if(value != null && !value.isEmpty()){
 			//split line into CONTINUATION if applicable
 			int offset = 0;
@@ -202,76 +200,53 @@ public final class GedcomNode{
 			final int length = value.length();
 			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
 				final String subValue = value.substring(offset, offset += cutIndex);
-				if(this.value == null)
-					this.value = subValue;
-				else{
-					final GedcomNode conNode = create(TAG_CONTINUATION);
-					conNode.value = subValue;
-					addChildInner((children != null? children.size(): 0), conNode);
-				}
+				addValue(subValue, TAG_CONTINUATION);
+
 				offset ++;
 			}
 
-			if(offset < length){
-				if(this.value == null)
-					this.value = value.substring(offset);
-				else{
-					final GedcomNode conNode = create(TAG_CONTINUATION);
-					conNode.value = value.substring(offset);
-					addChildInner((children != null? children.size(): 0), conNode);
-				}
-			}
+			if(offset < length)
+				addValue(value.substring(offset), TAG_CONTINUATION);
 		}
 		return this;
 	}
 
 	public GedcomNode withValueConcatenated(final String value){
-		this.value = null;
 		if(value != null && !value.isEmpty()){
 			//split line into CONTINUATION if applicable
 			int offset = 0;
 			int cutIndex;
+			String tag = TAG_CONTINUATION;
 			final int length = value.length();
-			String tag = TAG_CONCATENATION;
-			while((cutIndex = Math.min(length - offset - 1, MAX_LINE_LENGTH)) >= 0){
-				//check for the presence of a newline
-				final int newLineIndex = value.indexOf(NEW_LINE, offset);
-				final boolean continuation = (newLineIndex >= 0 && newLineIndex < cutIndex);
-				if(continuation)
-					//newline present, cut earlier
-					cutIndex = newLineIndex;
+			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
+				final boolean concatenation = (cutIndex > offset + MAX_LINE_LENGTH);
+				if(concatenation)
+					cutIndex = offset + MAX_LINE_LENGTH;
 
-				while(value.charAt(cutIndex) == ' ')
-					cutIndex --;
-				if(!continuation)
-					cutIndex ++;
+				final String newLine = value.substring(offset, offset += cutIndex);
+				addValue(newLine, tag);
 
-				if(this.value == null)
-					this.value = value.substring(offset, offset += cutIndex);
-				else{
-					final GedcomNode conNode = create(tag);
-					conNode.value = value.substring(offset, offset += cutIndex);
-					addChildInner((children != null? children.size(): 0), conNode);
-				}
-
-				if(continuation){
-					tag = TAG_CONTINUATION;
-
+				tag = (concatenation? TAG_CONCATENATION: TAG_CONTINUATION);
+				if(!concatenation)
 					offset ++;
-				}
 			}
 
-			if(offset < length){
-				if(this.value == null)
-					this.value = value.substring(offset);
-				else{
-					final GedcomNode conNode = create(tag);
-					conNode.value = value.substring(offset);
-					addChildInner((children != null? children.size(): 0), conNode);
-				}
+			while(offset < length && (cutIndex = Math.min(length - offset, MAX_LINE_LENGTH)) >= 0){
+				final String newLine = value.substring(offset, offset += cutIndex);
+				addValue(newLine, tag);
 			}
 		}
 		return this;
+	}
+
+	private void addValue(final String subValue, final String childTag){
+		if(this.value == null)
+			this.value = subValue;
+		else{
+			final GedcomNode conNode = create(childTag);
+			conNode.value = subValue;
+			addChildInner((children != null? children.size(): 0), conNode);
+		}
 	}
 
 	public boolean hasChildren(){
