@@ -41,7 +41,6 @@ public class DocumentTransformation implements Transformation<Gedcom, Flef>{
 		destination.addSource(destinationDocument);
 	}
 
-
 	@Override
 	public void from(final Flef origin, final Gedcom destination){}
 

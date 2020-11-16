@@ -95,14 +95,12 @@ public final class GedcomNode{
 		if(!m.find())
 			return null;
 
-		final GedcomNode node = new GedcomNode();
-		node.setLevel(m.group(GEDCOM_LINE_LEVEL));
-		node.withID(m.group(GEDCOM_LINE_ID));
-		node.withTag(m.group(GEDCOM_LINE_TAG));
-		node.setXRef(m.group(GEDCOM_LINE_XREF));
-		node.withValue(m.group(GEDCOM_LINE_VALUE));
-
-		return node;
+		return createEmpty()
+			.withLevel(m.group(GEDCOM_LINE_LEVEL))
+			.withID(m.group(GEDCOM_LINE_ID))
+			.withTag(m.group(GEDCOM_LINE_TAG))
+			.withXRef(m.group(GEDCOM_LINE_XREF))
+			.withValue(m.group(GEDCOM_LINE_VALUE));
 	}
 
 	private GedcomNode(){}
@@ -112,20 +110,6 @@ public final class GedcomNode{
 			throw new IllegalArgumentException("Tag must be present");
 
 		this.tag = tag;
-	}
-
-	/**
-	 * NOTE: clear all the fields but the {@link #level} and the {@link #tag}.
-	 */
-	public GedcomNode clear(){
-		id = null;
-		xref = null;
-		value = null;
-
-		children = null;
-		custom = false;
-
-		return this;
 	}
 
 	public boolean isEmpty(){
@@ -139,11 +123,12 @@ public final class GedcomNode{
 		this.level = level;
 	}
 
-	public void setLevel(final String level){
+	public GedcomNode withLevel(final String level){
 		this.level = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
-
 		if(this.level < 0)
 			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + this.level);
+
+		return this;
 	}
 
 	public int getLevel(){
@@ -158,10 +143,6 @@ public final class GedcomNode{
 		if(id != null && !id.isEmpty())
 			this.id = id;
 		return this;
-	}
-
-	public void removeID(){
-		id = null;
 	}
 
 	public boolean isCustomTag(){
@@ -182,9 +163,10 @@ public final class GedcomNode{
 		return xref;
 	}
 
-	public void setXRef(final String xref){
+	public GedcomNode withXRef(final String xref){
 		if(xref != null && !xref.isEmpty())
 			this.xref = xref;
+		return this;
 	}
 
 	/**
@@ -207,10 +189,6 @@ public final class GedcomNode{
 		}
 		else
 			return value;
-	}
-
-	public void removeValue(){
-		value = null;
 	}
 
 	public GedcomNode withValue(final String value){
@@ -267,13 +245,6 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addChildValue(final String tag, final String value){
-		if(StringUtils.isNotEmpty(value))
-			addChild(create(tag)
-				.withValue(value));
-		return this;
-	}
-
-	public GedcomNode addChildValueConcatenated(final String tag, final String value){
 		if(StringUtils.isNotEmpty(value))
 			addChild(create(tag)
 				.withValue(value));
@@ -358,22 +329,6 @@ public final class GedcomNode{
 		return this;
 	}
 
-	public GedcomNode removeChild(final GedcomNode child){
-		if(children != null && !child.isEmpty()){
-			children.remove(child);
-
-			if(children.isEmpty())
-				children = null;
-		}
-		return this;
-	}
-
-	public List<GedcomNode> removeChildren(){
-		final List<GedcomNode> originalChildren = children;
-		children = null;
-		return originalChildren;
-	}
-
 	/**
 	 * Returns the first child with the given tag, {@code null} if no child was found.
 	 *
@@ -399,14 +354,6 @@ public final class GedcomNode{
 		else
 			taggedChildren = Collections.emptyList();
 		return taggedChildren;
-	}
-
-	public GedcomNode getChildWithIDAndTag(final String id, final String... tags){
-		if(children != null)
-			for(final GedcomNode child : children)
-				if(ArrayUtils.contains(tags, child.tag) && id.equals(child.id))
-					return child;
-		return createEmpty();
 	}
 
 	public boolean isCustom(){

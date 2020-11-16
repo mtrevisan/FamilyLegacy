@@ -7,13 +7,14 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
 
 final class TransformationHelper{
 
-	static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
+	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
 
 
 	private TransformationHelper(){}
@@ -38,7 +39,7 @@ final class TransformationHelper{
 		return current;
 	}
 
-	static void noteTo(GedcomNode parent, GedcomNode destinationNode, Flef destination){
+	static void noteTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
 			String noteID = note.getID();
@@ -51,7 +52,7 @@ final class TransformationHelper{
 		}
 	}
 
-	static void documentTo(GedcomNode parent, GedcomNode destinationNode, Flef destination){
+	static void documentTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
 			String documentID = document.getID();
@@ -102,7 +103,7 @@ final class TransformationHelper{
 		}
 	}
 
-	static void sourceCitationTo(GedcomNode parent, GedcomNode destinationNode, Flef destination){
+	static void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode sourceCitation : sourceCitations){
 			String sourceCitationID = sourceCitation.getID();
@@ -161,6 +162,179 @@ final class TransformationHelper{
 					.addChildValue("CREDIBILITY", extractSubStructure(sourceCitation, "QUAY")
 						.getValue()));
 			}
+		}
+	}
+
+	static void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final GedcomNode address = extractSubStructure(parent, "ADDR");
+		final String addressValue = extractAddressValue(address);
+
+		final GedcomNode destinationPlace = GedcomNode.create("PLACE")
+			.withID(destination.getNextPlaceID())
+			.addChildValue("ADDRESS", addressValue)
+			.addChildValue("CITY", extractSubStructure(address, "CITY")
+				.getValue())
+			.addChildValue("STATE", extractSubStructure(address, "STAE")
+				.getValue())
+			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY")
+				.getValue());
+		destinationNode.addChildReference("PLACE", destinationPlace.getID());
+
+		destination.addPlace(destinationPlace);
+	}
+
+	static GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
+		final GedcomNode destinationEvent = GedcomNode.create("EVENT")
+			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
+			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+				.getValue())
+			.addChildValue("DATE", extractSubStructure(event, "DATE")
+				.getValue());
+		placeAddressStructureTo(event, destinationEvent, destination);
+		destinationEvent.addChildValue("AGENCY", extractSubStructure(event, "AGNC")
+			.getValue())
+			.addChildValue("CAUSE", extractSubStructure(event, "CAUS")
+				.getValue());
+		noteTo(event, destinationEvent, destination);
+		sourceCitationTo(event, destinationEvent, destination);
+		documentTo(event, destinationEvent, destination);
+		final GedcomNode familyChild = extractSubStructure(event, "FAMC");
+		destinationEvent.addChildValue("RESTRICTION", extractSubStructure(event, "RESN")
+			.getValue())
+			.addChild(GedcomNode.create("FAMILY_CHILD")
+				.withID(familyChild.getID())
+				.addChildValue("ADOPTED_BY", extractSubStructure(familyChild, "ADOP")
+					.getValue())
+			);
+		return destinationEvent;
+	}
+
+	static void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final GedcomNode address = extractSubStructure(parent, "ADDR");
+		final String addressValue = extractAddressValue(address);
+
+		final GedcomNode place = extractSubStructure(parent, "PLAC");
+		final GedcomNode map = extractSubStructure(place, "MAP");
+		final GedcomNode destinationPlace = GedcomNode.create("PLACE")
+			.withID(destination.getNextPlaceID())
+			.withValue(place.getValue())
+			.addChildValue("ADDRESS", addressValue)
+			.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
+			.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
+			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
+			.addChild(GedcomNode.create("MAP")
+				.addChildValue("LATITUDE", extractSubStructure(map, "LATI")
+					.getValue())
+				.addChildValue("LONGITUDE", extractSubStructure(map, "LONG")
+					.getValue())
+			);
+		noteTo(place, destinationPlace, destination);
+		destinationNode.addChildReference("PLACE", destinationPlace.getID());
+
+		destination.addPlace(destinationPlace);
+	}
+
+	private static String extractAddressValue(final GedcomNode address){
+		final StringJoiner sj = new StringJoiner(" - ");
+		final String wholeAddress = address.getValue();
+		if(wholeAddress != null)
+			sj.add(wholeAddress);
+		for(final GedcomNode child : address.getChildren())
+			if(ADDRESS_TAGS.contains(child.getTag())){
+				final String value = child.getValue();
+				if(value != null)
+					sj.add(value);
+			}
+		return (sj.length() > 0? sj.toString(): null);
+	}
+
+	static void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
+			final String tagTo) throws GedcomGrammarParseException{
+		final Iterator<GedcomNode> itr = events.iterator();
+		while(itr.hasNext()){
+			final GedcomNode event = itr.next();
+			if("@EVENT@".equals(valueFrom) || valueFrom.equals(event.getValue())){
+				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
+				destinationNode.addChild(destinationEvent);
+
+				itr.remove();
+			}
+		}
+	}
+
+	private static GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin)
+			throws GedcomGrammarParseException{
+		final GedcomNode destinationEvent = GedcomNode.create(tagTo)
+			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
+			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
+				.getValue())
+			.addChildValue("DATE", extractSubStructure(event, "DATE")
+				.getValue());
+		placeStructureFrom(event, destinationEvent, origin);
+		addressStructureFrom(event, destinationEvent, origin);
+		destinationEvent.addChildValue("AGNC", extractSubStructure(event, "AGENCY")
+			.getValue())
+			.addChildValue("CAUS", extractSubStructure(event, "CAUSE")
+				.getValue());
+		final GedcomNode familyChild = extractSubStructure(event, "FAMILY_CHILD");
+		destinationEvent.addChildValue("RESN", extractSubStructure(event, "RESTRICTION")
+			.getValue())
+			.addChild(GedcomNode.create("FAMC")
+				.withID(familyChild.getID())
+				.addChildValue("ADOP", extractSubStructure(familyChild, "ADOPTED_BY")
+					.getValue())
+			);
+		notesFrom(event, destinationEvent);
+		sourceCitationFrom(event, destinationEvent);
+		return destinationEvent;
+	}
+
+	static void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
+			throws GedcomGrammarParseException{
+		final GedcomNode place = extractSubStructure(parent, "PLACE");
+		if(!place.isEmpty()){
+			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			if(placeRecord == null)
+				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
+
+			final GedcomNode map = extractSubStructure(placeRecord, "MAP");
+
+			final GedcomNode destinationPlace = GedcomNode.create("PLAC")
+				.withValue(extractSubStructure(placeRecord, "NAME")
+					.getValue())
+				.addChild(GedcomNode.create("MAP")
+					.addChildValue("LATI", extractSubStructure(map, "LATI")
+						.getValue())
+					.addChildValue("LONG", extractSubStructure(map, "LONG")
+						.getValue())
+				);
+			notesFrom(place, destinationPlace);
+			destinationNode.addChild(destinationPlace);
+		}
+	}
+
+	static void notesFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes)
+			destinationNode.addChildReference("NOTE", note.getID());
+	}
+
+	static void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
+		for(final GedcomNode sourceCitation : sourceCitations){
+			//create source:
+			final GedcomNode destinationSource = GedcomNode.create("SOUR")
+				.withID(sourceCitation.getID())
+				.addChildValue("PAGE", extractSubStructure(sourceCitation, "PAGE")
+					.getValue())
+				.addChild(GedcomNode.create("EVEN")
+					.addChildValue("ROLE", extractSubStructure(sourceCitation, "ROLE")
+						.getValue())
+				)
+				.addChildValue("QUAY", extractSubStructure(sourceCitation, "CREDIBILITY")
+					.getValue());
+			notesFrom(sourceCitation, destinationSource);
+			destinationNode.addChild(destinationSource);
 		}
 	}
 

@@ -63,15 +63,6 @@ public final class RegexHelper{
 		return pattern.split(text, limit);
 	}
 
-	private static String getNextGroup(final Matcher matcher){
-		String component = null;
-		int i = 1;
-		final int size = matcher.groupCount();
-		while(component == null && i <= size)
-			component = matcher.group(i ++);
-		return component;
-	}
-
 
 	private static Matcher matcher(final CharSequence text, final Pattern pattern){
 		return pattern.matcher(text);

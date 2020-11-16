@@ -7,6 +7,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.List;
 import java.util.StringJoiner;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
@@ -41,30 +42,6 @@ public class SubmitterTransformation implements Transformation<Gedcom, Flef>{
 		noteTo(submitter, destinationSource, destination);
 
 		destination.addSource(destinationSource);
-	}
-
-	private void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final GedcomNode address = extractSubStructure(parent, "ADDR");
-		final StringJoiner sj = new StringJoiner(" - ");
-		final String wholeAddress = address.getValue();
-		if(wholeAddress != null)
-			sj.add(wholeAddress);
-		for(final GedcomNode child : address.getChildren())
-			if(TransformationHelper.ADDRESS_TAGS.contains(child.getTag())){
-				final String value = child.getValue();
-				if(value != null)
-					sj.add(value);
-			}
-
-		final GedcomNode destinationPlace = GedcomNode.create("PLACE")
-			.withID(destination.getNextPlaceID())
-			.addChildValue("ADDRESS", sj.toString())
-			.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
-			.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
-			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue());
-		destinationNode.addChildReference("PLACE", destinationPlace.getID());
-
-		destination.addPlace(destinationPlace);
 	}
 
 
