@@ -6,8 +6,10 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.joinIfNotNull;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
 
 
@@ -131,8 +133,8 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		destinationSource.addChildValue("TEXT", extractSubStructure(source, "EXTRACT")
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
-		notesFrom(source, destinationSource);
-		documentsFrom(source, destinationSource);
+		noteFrom(source, destinationSource);
+		documentFrom(source, destinationSource);
 
 		destination.addSource(destinationSource);
 	}
@@ -140,37 +142,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
 		for(final GedcomNode repository : repositories)
-			destinationNode.addChild(GedcomNode.create("REPO")
-				.withID(repository.getID()));
-	}
-
-	private void notesFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes)
-			destinationNode.addChild(GedcomNode.create("NOTE")
-				.withID(note.getID()));
-	}
-
-	private void documentsFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> files = parent.getChildrenWithTag("FILE");
-		for(final GedcomNode file : files){
-			final String format = extractSubStructure(file, "FORMAT")
-				.getValue();
-			final String media = extractSubStructure(file, "MEDIA")
-				.getValue();
-			final GedcomNode destinationObject = GedcomNode.create("OBJE")
-				.addChild(GedcomNode.create("FORM")
-					.withValue(format)
-					.addChild(GedcomNode.create("MEDI")
-						.withValue(media))
-				)
-				.addChildValue("FILE", file.getValue());
-			final GedcomNode cut = extractSubStructure(file, "CUT");
-			if(!cut.isEmpty())
-				destinationObject.addChildValue("CUT", "Y")
-					.addChildValue("_CUTD", cut.getValue());
-			destinationNode.addChild(destinationObject);
-		}
+			destinationNode.addChildReference("REPO", repository.getID());
 	}
 
 }

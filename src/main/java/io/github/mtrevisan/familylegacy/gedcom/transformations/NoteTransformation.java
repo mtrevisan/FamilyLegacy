@@ -31,9 +31,7 @@ public class NoteTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordFrom(final GedcomNode note, final Gedcom destination){
-		final GedcomNode destinationNote = GedcomNode.create("NOTE")
-			.withID(note.getID())
-			.withValue(note.getValue());
+		final GedcomNode destinationNote = GedcomNode.create("NOTE", note.getID(), note.getValue());
 
 		destination.addNote(destinationNote);
 	}

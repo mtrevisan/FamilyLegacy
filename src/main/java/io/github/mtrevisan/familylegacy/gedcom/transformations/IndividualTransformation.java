@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.createEventTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventFrom;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.notesFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.placeAddressStructureTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.placeStructureFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.sourceCitationFrom;
@@ -189,15 +189,6 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void eventTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-			final String tagFrom, final String valueTo){
-		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
-		for(final GedcomNode event : events){
-			final GedcomNode destinationEvent = createEventTo(valueTo, event, destination);
-			destinationNode.addChild(destinationEvent);
-		}
-	}
-
 	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
 			final String tagFrom, final String valueTo){
 		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
@@ -277,7 +268,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		attributeFrom(attributes, destinationIndividual, origin, "SSN", "SSN");
 		attributeFrom(attributes, destinationIndividual, origin, "TITLE", "TITL");
 		attributeFrom(attributes, destinationIndividual, origin, "@ATTRIBUTE@", "FACT");
-		notesFrom(individual, destinationIndividual);
+		noteFrom(individual, destinationIndividual);
 		sourceCitationFrom(individual, destinationIndividual);
 
 		destination.addIndividual(destinationIndividual);
@@ -303,20 +294,20 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			final GedcomNode temporaryNotes = GedcomNode.create("TMP_NOTE");
 			final GedcomNode temporarySourceCitations = GedcomNode.create("TMP_SOURCE_CITATIONS");
 			//collect notes and source citations, they will be added as last elements of NAME
-			notesFrom(personalNameStructure, temporaryNotes);
+			noteFrom(personalNameStructure, temporaryNotes);
 			sourceCitationFrom(personalNameStructure, temporarySourceCitations);
 
 			final GedcomNode destinationPhonetic = GedcomNode.create("FONE");
 			personalNamePiecesFrom(extractSubStructure(personalNameStructure, "PHONETIC"), destinationPhonetic);
 			//collect notes and source citations, they will be added as last elements of NAME
-			notesFrom(destinationPhonetic, temporaryNotes);
+			noteFrom(destinationPhonetic, temporaryNotes);
 			sourceCitationFrom(destinationPhonetic, temporarySourceCitations);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = GedcomNode.create("ROMN");
 			personalNamePiecesFrom(extractSubStructure(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
 			//collect notes and source citations, they will be added as last elements of NAME
-			notesFrom(destinationTranscription, temporaryNotes);
+			noteFrom(destinationTranscription, temporaryNotes);
 			sourceCitationFrom(destinationTranscription, temporarySourceCitations);
 			destinationName.addChild(destinationTranscription);
 
@@ -350,8 +341,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		if(familyName != null)
 			sj.add("/ " + familyName + " /");
 		if(sj.length() > 0)
-			destinationNode
-				.withValue(sj.toString());
+			destinationNode.withValue(sj.toString());
 
 		destinationNode
 			.addChildValue("TYPE", extractSubStructure(personalNameStructure, "TYPE")
@@ -378,7 +368,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.addChildValue("PEDI", pedigreeValue)
 				.addChildValue("STAT", extractSubStructure(childToFamilyLink, "CERTAINTY")
 					.getValue());
-			notesFrom(childToFamilyLink, destinationFamilyChild);
+			noteFrom(childToFamilyLink, destinationFamilyChild);
 			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
@@ -396,7 +386,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 					.getValue())
 				.addChildValue("RELA", extractSubStructure(association, "RELATIONSHIP")
 					.getValue());
-			notesFrom(association, destinationAssociation);
+			noteFrom(association, destinationAssociation);
 			sourceCitationFrom(association, destinationAssociation);
 			destinationNode.addChild(destinationAssociation);
 		}
@@ -411,7 +401,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode node : nodes){
 			final GedcomNode newNode = GedcomNode.create(toTag)
 				.withID(node.getID());
-			notesFrom(node, newNode);
+			noteFrom(node, newNode);
 			destinationNode.addChild(newNode);
 		}
 	}
@@ -444,7 +434,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.getValue())
 			.addChildValue("RESTRICTION", extractSubStructure(attribute, "RESN")
 				.getValue());
-		notesFrom(attribute, destinationAttribute);
+		noteFrom(attribute, destinationAttribute);
 		sourceCitationFrom(attribute, destinationAttribute);
 		return destinationAttribute;
 	}

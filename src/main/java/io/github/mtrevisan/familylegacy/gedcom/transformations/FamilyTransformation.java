@@ -7,12 +7,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.createEventTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventFrom;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.notesFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.sourceCitationFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.sourceCitationTo;
 
@@ -57,15 +57,6 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 		destination.addFamily(destinationFamily);
 	}
 
-	private void eventTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
-		final String tagFrom, final String valueTo){
-		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
-		for(final GedcomNode event : events){
-			final GedcomNode destinationEvent = createEventTo(valueTo, event, destination);
-			destinationNode.addChild(destinationEvent);
-		}
-	}
-
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
@@ -100,7 +91,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 		final List<GedcomNode> children = family.getChildrenWithTag("CHILD");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getID());
-		notesFrom(family, destinationFamily);
+		noteFrom(family, destinationFamily);
 		sourceCitationFrom(family, destinationFamily);
 
 		destination.addFamily(destinationFamily);

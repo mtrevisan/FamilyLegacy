@@ -10,6 +10,7 @@ import java.util.List;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureTo;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
 
 
@@ -47,8 +48,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode fax : faxes)
 			destinationContact.addChild(GedcomNode.create("PHONE")
 				.withValue(fax.getValue())
-				.addChild(GedcomNode.create("TYPE")
-					.withValue("fax")));
+				.addChildValue("TYPE", "fax"));
 		final List<GedcomNode> urls = parent.getChildrenWithTag("WWW");
 		for(final GedcomNode url : urls)
 			destinationContact.addChildValue("URL", url.getValue());
@@ -71,7 +71,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 			.addChildValue("NAME", name);
 		addressStructureFrom(repository, destinationRepository, origin);
 		contactStructureFrom(repository, destinationRepository);
-		notesFrom(repository, destinationRepository);
+		noteFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -91,13 +91,6 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		final List<GedcomNode> urls = contact.getChildrenWithTag("URL");
 		for(final GedcomNode url : urls)
 			destinationNode.addChildValue("WWW", url.getValue());
-	}
-
-	private void notesFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes)
-			destinationNode.addChild(GedcomNode.create("NOTE")
-				.withID(note.getID()));
 	}
 
 }
