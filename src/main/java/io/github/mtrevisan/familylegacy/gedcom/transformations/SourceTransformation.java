@@ -3,17 +3,16 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.joinIfNotNull;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
-
 
 public class SourceTransformation implements Transformation<Gedcom, Flef>{
+
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -23,36 +22,36 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void sourceRecordTo(final GedcomNode source, final Flef destination){
-		final GedcomNode title = extractSubStructure(source, "TITL");
-		final GedcomNode destinationSource = GedcomNode.create("SOURCE")
+		final GedcomNode title = transformerTo.extractSubStructure(source, "TITL");
+		final GedcomNode destinationSource = transformerTo.create("SOURCE")
 			.withID(source.getID())
 			.addChildValue("TITLE", title.getValue());
 		String date = null;
-		final List<GedcomNode> events = extractSubStructure(source, "DATA")
+		final List<GedcomNode> events = transformerTo.extractSubStructure(source, "DATA")
 			.getChildrenWithTag("EVEN");
 		for(final GedcomNode event : events){
 			if(date == null)
-				date = extractSubStructure(event, "DATE")
+				date = transformerTo.extractSubStructure(event, "DATE")
 					.getValue();
 
 			destinationSource.addChildValue("EVENT", event.getValue());
 		}
 		destinationSource.addChildValue("DATE", date);
-		destinationSource.addChildValue("EXTRACT", extractSubStructure(source, "TEXT")
+		destinationSource.addChildValue("EXTRACT", transformerTo.extractSubStructure(source, "TEXT")
 			.getValue());
-		final String author = extractSubStructure(source, "AUTH")
+		final String author = transformerTo.extractSubStructure(source, "AUTH")
 			.getValue();
-		final String publication = extractSubStructure(source, "PUBL")
+		final String publication = transformerTo.extractSubStructure(source, "PUBL")
 			.getValue();
-		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
+		final String noteAuthorPublication = transformerTo.joinIfNotNull(", ", author, publication);
 		if(noteAuthorPublication != null){
 			final String noteID = destination.getNextNoteID();
 			destinationSource.addChildReference("NOTE", noteID);
 
-			destination.addNote(GedcomNode.create("NOTE", noteID, noteAuthorPublication));
+			destination.addNote(transformerTo.create("NOTE", noteID, noteAuthorPublication));
 		}
 		documentsTo(source, destinationSource, destination);
-		noteTo(source, destinationSource, destination);
+		transformerTo.noteTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
 
 		destination.addSource(destinationSource);
@@ -65,22 +64,22 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 			if(documentID == null){
 				documentID = destination.getNextSourceID();
 
-				final GedcomNode destinationDocument = GedcomNode.create("SOURCE")
+				final GedcomNode destinationDocument = transformerTo.create("SOURCE")
 					.withID(documentID);
-				final String documentFormat = extractSubStructure(document, "FORM")
+				final String documentFormat = transformerTo.extractSubStructure(document, "FORM")
 					.getValue();
-				final String documentMedia = extractSubStructure(document, "FORM", "MEDI")
+				final String documentMedia = transformerTo.extractSubStructure(document, "FORM", "MEDI")
 					.getValue();
 
-				destinationDocument.addChildValue("TITLE", extractSubStructure(document, "TITL")
+				destinationDocument.addChildValue("TITLE", transformerTo.extractSubStructure(document, "TITL")
 					.getValue());
 				if(documentFormat != null || documentMedia != null)
-					destinationDocument.addChild(GedcomNode.create("FILE")
-						.withValue(extractSubStructure(document, "FILE")
+					destinationDocument.addChild(transformerTo.create("FILE")
+						.withValue(transformerTo.extractSubStructure(document, "FILE")
 							.getValue())
 						.addChildValue("FORMAT", documentFormat)
 						.addChildValue("MEDIA", documentMedia)
-						.addChildValue("CUT", extractSubStructure(document, "_CUTD")
+						.addChildValue("CUT", transformerTo.extractSubStructure(document, "_CUTD")
 							.getValue())
 					);
 
@@ -95,13 +94,13 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		for(final GedcomNode repository : repositories){
 			String repositoryID = repository.getID();
 
-			final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY");
+			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
 			if(repositoryID == null){
 				repositoryID = destination.getNextRepositoryID();
 
 				destination.addRepository(destinationRepository);
 
-				noteTo(repository, destinationRepository, destination);
+				transformerTo.noteTo(repository, destinationRepository, destination);
 			}
 			destinationNode.addChild(destinationRepository
 				.withID(repositoryID));
@@ -117,24 +116,24 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
-		final GedcomNode destinationSource = GedcomNode.create("SOUR")
+		final GedcomNode destinationSource = transformerFrom.create("SOUR")
 			.withID(source.getID());
-		final String date = extractSubStructure(source, "DATE")
+		final String date = transformerFrom.extractSubStructure(source, "DATE")
 			.getValue();
-		final GedcomNode destinationData = GedcomNode.create("DATA");
+		final GedcomNode destinationData = transformerFrom.create("DATA");
 		final List<GedcomNode> events = source.getChildrenWithTag("EVENT");
 		for(final GedcomNode event : events)
-			destinationData.addChild(GedcomNode.create("EVEN")
-				.withValueConcatenated(event.getValue())
+			destinationData.addChild(transformerFrom.create("EVEN")
+				.withValue(event.getValue())
 				.addChildValue("DATE", date));
 		destinationSource.addChild(destinationData);
-		destinationSource.addChildValue("TITL", extractSubStructure(source, "TITLE")
+		destinationSource.addChildValue("TITL", transformerFrom.extractSubStructure(source, "TITLE")
 			.getValue());
-		destinationSource.addChildValue("TEXT", extractSubStructure(source, "EXTRACT")
+		destinationSource.addChildValue("TEXT", transformerFrom.extractSubStructure(source, "EXTRACT")
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
-		noteFrom(source, destinationSource);
-		documentFrom(source, destinationSource);
+		transformerFrom.noteFrom(source, destinationSource);
+		transformerFrom.documentFrom(source, destinationSource);
 
 		destination.addSource(destinationSource);
 	}

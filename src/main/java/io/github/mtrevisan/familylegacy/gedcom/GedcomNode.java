@@ -31,87 +31,27 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
-public final class GedcomNode{
+public abstract class GedcomNode{
 
-	private static final char NEW_LINE = '\n';
-
-	/** NOTE: {@link Pattern#DOTALL} is for unicode line separator. */
-	private static final Pattern GEDCOM_LINE = Pattern.compile("^\\s*(\\d)\\s+(@([^@ ]+)@\\s+)?([a-zA-Z_0-9.]+)(\\s+@([^@ ]+)@)?(\\s(.*))?$",
-		Pattern.DOTALL);
-	private static final int GEDCOM_LINE_LEVEL = 1;
-	private static final int GEDCOM_LINE_ID = 3;
-	private static final int GEDCOM_LINE_TAG = 4;
-	private static final int GEDCOM_LINE_XREF = 6;
-	private static final int GEDCOM_LINE_VALUE = 8;
-
-	private static final String TAG_CONCATENATION = "CONC";
-	private static final String TAG_CONTINUATION = "CONT";
-	private static final String[] CONTINUATION_TAGS = {TAG_CONCATENATION, TAG_CONTINUATION};
-	static{
-		Arrays.sort(CONTINUATION_TAGS);
-	}
-	public static final int MAX_LINE_LENGTH = 255 - TAG_CONTINUATION.length() - 4;
+	protected static final char NEW_LINE = '\n';
 
 
-	private int level;
+	protected int level;
 	private String id;
-	private String tag;
+	protected String tag;
 	private String xref;
-	private String value;
+	protected String value;
 
-	private List<GedcomNode> children;
+	protected List<GedcomNode> children;
 	private boolean custom;
 
 
-	public static GedcomNode createRoot(){
-		final GedcomNode root = new GedcomNode();
-		root.level = -1;
-		return root;
-	}
-
-	public static GedcomNode createEmpty(){
-		return new GedcomNode();
-	}
-
-	public static GedcomNode create(final String tag){
-		return new GedcomNode(tag);
-	}
-
-	public static GedcomNode create(final String tag, final String id, final String value){
-		return new GedcomNode(tag)
-			.withID(id)
-			.withValueConcatenated(value);
-	}
-
-	public static GedcomNode parse(final CharSequence line){
-		final Matcher m = GEDCOM_LINE.matcher(line);
-		if(!m.find())
-			return null;
-
-		return createEmpty()
-			.withLevel(m.group(GEDCOM_LINE_LEVEL))
-			.withID(m.group(GEDCOM_LINE_ID))
-			.withTag(m.group(GEDCOM_LINE_TAG))
-			.withXRef(m.group(GEDCOM_LINE_XREF))
-			.withValueConcatenated(m.group(GEDCOM_LINE_VALUE));
-	}
-
-	private GedcomNode(){}
-
-	private GedcomNode(final String tag){
-		if(tag == null || tag.isEmpty())
-			throw new IllegalArgumentException("Tag must be present");
-
-		this.tag = tag;
-	}
+	protected GedcomNode(){}
 
 	public boolean isEmpty(){
 		return (tag == null || id == null && value == null && (children == null || children.isEmpty()));
@@ -172,78 +112,17 @@ public final class GedcomNode{
 
 	/**
 	 * Returns the value associated with this node.
-	 * <p>If the value is composed of multiple CONC|CONT tags, then the concatenation is returned.</p>
+	 * <p>If the value is composed of multiple [CONT|CONTINUATION]|CONC tags, then the concatenation/continuation is returned.</p>
 	 */
-	public String getValue(){
-		if(children != null){
-			final StringBuilder sb = new StringBuilder();
-			if(value != null)
-				sb.append(value);
-			for(final GedcomNode child : children)
-				if(Arrays.binarySearch(CONTINUATION_TAGS, child.tag) >= 0){
-					if(child.tag.charAt(3) == 'T')
-						sb.append(NEW_LINE);
-					if(child.value != null)
-						sb.append(child.value);
-				}
-			return (sb.length() > 0? sb.toString(): null);
-		}
-		else
-			return value;
-	}
+	public abstract String getValue();
 
-	public GedcomNode withValue(final String value){
-		if(value != null && !value.isEmpty()){
-			//split line into CONTINUATION if applicable
-			int offset = 0;
-			int cutIndex;
-			final int length = value.length();
-			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
-				final String subValue = value.substring(offset, offset += cutIndex);
-				addValue(subValue, TAG_CONTINUATION);
+	public abstract GedcomNode withValue(final String value);
 
-				offset ++;
-			}
-
-			if(offset < length)
-				addValue(value.substring(offset), TAG_CONTINUATION);
-		}
-		return this;
-	}
-
-	public GedcomNode withValueConcatenated(final String value){
-		if(value != null && !value.isEmpty()){
-			//split line into CONTINUATION if applicable
-			int offset = 0;
-			int cutIndex;
-			String tag = TAG_CONTINUATION;
-			final int length = value.length();
-			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
-				final boolean concatenation = (cutIndex > offset + MAX_LINE_LENGTH);
-				if(concatenation)
-					cutIndex = offset + MAX_LINE_LENGTH;
-
-				final String newLine = value.substring(offset, offset += cutIndex);
-				addValue(newLine, tag);
-
-				tag = (concatenation? TAG_CONCATENATION: TAG_CONTINUATION);
-				if(!concatenation)
-					offset ++;
-			}
-
-			while(offset < length && (cutIndex = Math.min(length - offset, MAX_LINE_LENGTH)) >= 0){
-				final String newLine = value.substring(offset, offset += cutIndex);
-				addValue(newLine, tag);
-			}
-		}
-		return this;
-	}
-
-	private void addValue(final String subValue, final String childTag){
+	protected void addValue(final String subValue, final String childTag){
 		if(this.value == null)
 			this.value = subValue;
 		else{
-			final GedcomNode conNode = create(childTag);
+			final GedcomNode conNode = createNewNodeWithTag(childTag);
 			conNode.value = subValue;
 			addChildInner((children != null? children.size(): 0), conNode);
 		}
@@ -258,17 +137,19 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addChildReference(final String tag, final String id){
-		addChild(create(tag)
+		addChild(createNewNodeWithTag(tag)
 			.withID(id));
 		return this;
 	}
 
 	public GedcomNode addChildValue(final String tag, final String value){
 		if(StringUtils.isNotEmpty(value))
-			addChild(create(tag)
-				.withValueConcatenated(value));
+			addChild(createNewNodeWithTag(tag)
+				.withValue(value));
 		return this;
 	}
+
+	protected abstract GedcomNode createNewNodeWithTag(final String tag);
 
 	public GedcomNode addChild(final int index, final GedcomNode child){
 		if(child.isEmpty())
@@ -278,7 +159,7 @@ public final class GedcomNode{
 	}
 
 	public GedcomNode addClosingChild(final String tag){
-		return addChildInner((children != null? children.size(): 0), create(tag));
+		return addChildInner((children != null? children.size(): 0), createNewNodeWithTag(tag));
 	}
 
 	private GedcomNode addChildInner(final int index, final GedcomNode child){

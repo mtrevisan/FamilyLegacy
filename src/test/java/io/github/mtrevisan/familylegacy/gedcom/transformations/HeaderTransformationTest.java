@@ -4,23 +4,28 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class HeaderTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
+
 	@Test
 	void to(){
-		final GedcomNode header = GedcomNode.create("HEAD")
-			.addChild(GedcomNode.create("SOUR")
-				.withValueConcatenated("APPROVED_SYSTEM_ID")
+		final GedcomNode header = transformerTo.create("HEAD")
+			.addChild(transformerTo.create("SOUR")
+				.withValue("APPROVED_SYSTEM_ID")
 				.addChildValue("VERS", "SOURCE_VERSION_NUMBER")
 				.addChildValue("NAME", "NAME_OF_PRODUCT")
-				.addChild(GedcomNode.create("CORP")
-					.withValueConcatenated("NAME_OF_BUSINESS")
-					.addChild(GedcomNode.create("ADDR")
-						.withValueConcatenated("ADDRESS_LINE")
+				.addChild(transformerTo.create("CORP")
+					.withValue("NAME_OF_BUSINESS")
+					.addChild(transformerTo.create("ADDR")
+						.withValue("ADDRESS_LINE")
 						.addChildValue("CONT", "ADDRESS_LINE")
 						.addChildValue("ADR1", "ADDRESS_LINE1")
 						.addChildValue("ADR2", "ADDRESS_LINE2")
@@ -39,39 +44,39 @@ class HeaderTransformationTest{
 					.addChildValue("WWW", "ADDRESS_WEB_PAGE1")
 					.addChildValue("WWW", "ADDRESS_WEB_PAGE2")
 				)
-				.addChild(GedcomNode.create("DATA")
-					.withValueConcatenated("NAME_OF_SOURCE_DATA")
+				.addChild(transformerTo.create("DATA")
+					.withValue("NAME_OF_SOURCE_DATA")
 					.addChildValue("DATE", "PUBLICATION_DATE")
-					.addChild(GedcomNode.create("COPR")
-						.withValueConcatenated("COPYRIGHT_SOURCE_DATA")
+					.addChild(transformerTo.create("COPR")
+						.withValue("COPYRIGHT_SOURCE_DATA")
 						.addChildValue("CONC", "COPYRIGHT_SOURCE_DATA")
 					)
 				)
 			)
 			.addChildValue("DEST", "RECEIVING_SYSTEM_NAME")
-			.addChild(GedcomNode.create("DATE")
-				.withValueConcatenated("TRANSMISSION_DATE")
+			.addChild(transformerTo.create("DATE")
+				.withValue("TRANSMISSION_DATE")
 				.addChildValue("TIME", "TIME_VALUE")
 			)
 			.addChildReference("SUBM", "SUBM1")
 			.addChildReference("SUBN", "SUBN1")
 			.addChildValue("FILE", "FILE_NAME")
 			.addChildValue("COPR", "COPYRIGHT_GEDCOM_FILE")
-			.addChild(GedcomNode.create("GEDC")
+			.addChild(transformerTo.create("GEDC")
 				.addChildValue("VERS", "GEDCOM_VERSION_NUMBER")
 				.addChildValue("FORM", "LINEAGE-LINKED")
 			)
-			.addChild(GedcomNode.create("CHAR")
-				.withValueConcatenated("UTF-8")
+			.addChild(transformerTo.create("CHAR")
+				.withValue("UTF-8")
 				.addChildValue("VERS", "CHARSET_VERSION_NUMBER")
 			)
 			.addChildValue("LANG", "LANGUAGE_OF_TEXT_1")
 			.addChildValue("LANG", "LANGUAGE_OF_TEXT_2")
-			.addChild(GedcomNode.create("PLAC")
+			.addChild(transformerTo.create("PLAC")
 				.addChildValue("FORM", "PLACE_HIERARCHY")
 			)
-			.addChild(GedcomNode.create("NOTE")
-				.withValueConcatenated("GEDCOM_CONTENT_DESCRIPTION")
+			.addChild(transformerTo.create("NOTE")
+				.withValue("GEDCOM_CONTENT_DESCRIPTION")
 				.addChildValue("CONC", "GEDCOM_CONTENT_DESCRIPTION")
 			);
 		final Gedcom origin = new Gedcom();
@@ -83,20 +88,20 @@ class HeaderTransformationTest{
 		final Transformation<Gedcom, Flef> t = new HeaderTransformation();
 		t.to(origin, destination);
 
-		Assertions.assertEquals("tag: HEADER, children: [{tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.2}]}, {tag: DATE, value: TRANSMISSION_DATE TIME_VALUE}, {tag: DEFAULT_CALENDAR, value: GREGORIAN}, {tag: DEFAULT_LOCALE, value: en-US}]", destination.getHeader().toString());
+		Assertions.assertEquals("tag: HEADER, children: [{tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.2}]}, {tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: TRANSMISSION_DATE TIME_VALUE}, {tag: DEFAULT_CALENDAR, value: GREGORIAN}, {tag: DEFAULT_LOCALE, value: en-US}]", destination.getHeader().toString());
 	}
 
 
 	@Test
 	void from() throws GedcomGrammarParseException{
-		final GedcomNode header = GedcomNode.create("HEADER")
-			.addChild(GedcomNode.create("SOURCE")
-				.withValueConcatenated("APPROVED_SYSTEM_ID")
+		final GedcomNode header = transformerFrom.create("HEADER")
+			.addChild(transformerFrom.create("SOURCE")
+				.withValue("APPROVED_SYSTEM_ID")
 				.addChildValue("NAME", "NAME_OF_PRODUCT")
 				.addChildValue("VERSION", "VERSION_NUMBER")
 				.addChildValue("CORPORATE", "NAME_OF_BUSINESS"))
-			.addChild(GedcomNode.create("PROTOCOL")
-				.withValueConcatenated("PROTOCOL_NAME")
+			.addChild(transformerFrom.create("PROTOCOL")
+				.withValue("PROTOCOL_NAME")
 				.addChildValue("NAME", "NAME_OF_PROTOCOL")
 				.addChildValue("VERSION", "VERSION_NUMBER")
 			)

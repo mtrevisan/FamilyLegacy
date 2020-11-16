@@ -4,19 +4,24 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class SourceTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
+
 	@Test
 	void to(){
-		final GedcomNode source = GedcomNode.create("SOUR")
+		final GedcomNode source = transformerTo.create("SOUR")
 			.withID("S1")
-			.addChild(GedcomNode.create("DATA")
-				.addChild(GedcomNode.create("EVEN")
-					.withValueConcatenated("EVENTS_RECORDED1")
+			.addChild(transformerTo.create("DATA")
+				.addChild(transformerTo.create("EVEN")
+					.withValue("EVENTS_RECORDED1")
 					.addChildValue("DATE", "DATE_PERIOD")
 					.addChildValue("PLAC", "SOURCE_JURISDICTION_PLACE")
 				)
@@ -28,29 +33,29 @@ class SourceTransformationTest{
 			.addChildValue("PUBL", "SOURCE_PUBLICATION_FACTS")
 			.addChildValue("TEXT", "TEXT_FROM_SOURCE")
 			.addChildReference("REPO", "R1")
-			.addChild(GedcomNode.create("REPO")
+			.addChild(transformerTo.create("REPO")
 				.addChildReference("NOTE", "N2")
 				.addChildValue("CALN", "SOURCE_CALL_NUMBER")
 			)
-			.addChild(GedcomNode.create("REFN")
-				.withValueConcatenated("USER_REFERENCE_NUMBER")
+			.addChild(transformerTo.create("REFN")
+				.withValue("USER_REFERENCE_NUMBER")
 				.addChildValue("TYPE", "USER_REFERENCE_TYPE")
 			)
 			.addChildValue("RIN", "AUTOMATED_RECORD_ID")
-			.addChild(GedcomNode.create("CHAN")
+			.addChild(transformerTo.create("CHAN")
 				.addChildValue("DATE", "CHANGE_DATE"))
 			.addChildReference("NOTE", "N1")
 			.addChildValue("NOTE", "SUBMITTER_TEXT")
 			.addChildReference("OBJE", "D1")
-			.addChild(GedcomNode.create("OBJE")
+			.addChild(transformerTo.create("OBJE")
 				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
-				.addChild(GedcomNode.create("FORM")
-					.withValueConcatenated("MULTIMEDIA_FORMAT")
+				.addChild(transformerTo.create("FORM")
+					.withValue("MULTIMEDIA_FORMAT")
 					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
 				)
 				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
 			);
-		final GedcomNode note = GedcomNode.create("NOTE", "N1", "SUBMITTER_TEXT");
+		final GedcomNode note = transformerTo.create("NOTE", "N1", "SUBMITTER_TEXT");
 		final Gedcom origin = new Gedcom();
 		origin.addSource(source);
 		origin.addNote(note);
@@ -71,26 +76,26 @@ class SourceTransformationTest{
 
 	@Test
 	void from() throws GedcomGrammarParseException{
-		final GedcomNode source = GedcomNode.create("SOURCE")
+		final GedcomNode source = transformerFrom.create("SOURCE")
 			.withID("S1")
 			.addChildValue("TYPE", "DIGITAL_ARCHIVE")
 			.addChildValue("TITLE", "SOURCE_DESCRIPTIVE_TITLE")
 			.addChildValue("EVENT", "EVENTS_RECORDED1")
 			.addChildValue("EVENT", "EVENTS_RECORDED2")
-			.addChild(GedcomNode.create("DATE")
-				.withValueConcatenated("ENTRY_RECORDING_DATE")
+			.addChild(transformerFrom.create("DATE")
+				.withValue("ENTRY_RECORDING_DATE")
 				.addChildValue("CALENDAR", "CALENDAR_TYPE")
 			)
 			.addChildValue("LOCALE", "en-US")
 			.addChildValue("EXTRACT", "TEXT_FROM_SOURCE")
 			.addChildReference("NOTE", "N1")
-			.addChild(GedcomNode.create("REPOSITORY")
+			.addChild(transformerFrom.create("REPOSITORY")
 				.withID("R1")
 				.addChildValue("REPOSITORY_LOCATION", "REPOSITORY_LOCATION_TEXT")
 				.addChildReference("NOTE", "N2")
 			)
-			.addChild(GedcomNode.create("FILE")
-				.withValueConcatenated("DOCUMENT_FILE_REFERENCE")
+			.addChild(transformerFrom.create("FILE")
+				.withValue("DOCUMENT_FILE_REFERENCE")
 				.addChildValue("FORMAT", "DOCUMENT_FORMAT")
 				.addChildValue("MEDIA", "SOURCE_MEDIA_TYPE")
 				.addChildValue("CUT", "CUT_COORDINATES")

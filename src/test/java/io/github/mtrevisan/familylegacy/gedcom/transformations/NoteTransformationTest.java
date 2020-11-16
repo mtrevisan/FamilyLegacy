@@ -4,19 +4,24 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class NoteTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
+
 	@Test
 	void to(){
-		final GedcomNode note = GedcomNode.create("NOTE")
+		final GedcomNode note = transformerTo.create("NOTE")
 			.withID("N1")
-			.withValueConcatenated("SUBMITTER_TEXT\\nSUBMITTER_TEXT")
-			.addChild(GedcomNode.create("REFN")
-				.withValueConcatenated("USER_REFERENCE_NUMBER")
+			.withValue("SUBMITTER_TEXT\\nSUBMITTER_TEXT")
+			.addChild(transformerTo.create("REFN")
+				.withValue("USER_REFERENCE_NUMBER")
 				.addChildValue("TYPE", "USER_REFERENCE_TYPE")
 			)
 			.addChildValue("RIN", "AUTOMATED_RECORD_ID")
@@ -35,9 +40,9 @@ class NoteTransformationTest{
 
 	@Test
 	void from() throws GedcomGrammarParseException{
-		final GedcomNode note = GedcomNode.create("NOTE")
+		final GedcomNode note = transformerFrom.create("NOTE")
 			.withID("N1")
-			.withValueConcatenated("SUBMITTER_TEXT")
+			.withValue("SUBMITTER_TEXT")
 			.addChildValue("RESTRICTION", "RESTRICTION_NOTICE");
 		final Flef origin = new Flef();
 		origin.addNote(note);

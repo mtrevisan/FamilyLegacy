@@ -4,20 +4,16 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.documentTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.eventTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.sourceCitationFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.sourceCitationTo;
-
 
 public class FamilyTransformation implements Transformation<Gedcom, Flef>{
+
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -27,31 +23,31 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void familyRecordTo(final GedcomNode family, final Flef destination){
-		final GedcomNode destinationFamily = GedcomNode.create("FAMILY")
+		final GedcomNode destinationFamily = transformerTo.create("FAMILY")
 			.withID(family.getID())
-			.addChildReference("SPOUSE1", extractSubStructure(family, "HUSB")
+			.addChildReference("SPOUSE1", transformerTo.extractSubStructure(family, "HUSB")
 				.getID())
-			.addChildReference("SPOUSE2", extractSubStructure(family, "WIFE")
+			.addChildReference("SPOUSE2", transformerTo.extractSubStructure(family, "WIFE")
 				.getID());
 		final List<GedcomNode> children = family.getChildrenWithTag("CHIL");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHILD", child.getID());
-		noteTo(family, destinationFamily, destination);
-		sourceCitationTo(family, destinationFamily, destination);
-		documentTo(family, destinationFamily, destination);
-		eventTo(family, destinationFamily, destination, "ANUL", "ANNULMENT");
-		eventTo(family, destinationFamily, destination, "CENS", "CENSUS");
-		eventTo(family, destinationFamily, destination, "DIV", "DIVORCE");
-		eventTo(family, destinationFamily, destination, "DIVF", "DIVORCE_FILED");
-		eventTo(family, destinationFamily, destination, "ENGA", "ENGAGEMENT");
-		eventTo(family, destinationFamily, destination, "MARB", "MARRIAGE_BANN");
-		eventTo(family, destinationFamily, destination, "MARC", "MARRIAGE_CONTRACT");
-		eventTo(family, destinationFamily, destination, "MARR", "MARRIAGE");
-		eventTo(family, destinationFamily, destination, "MARL", "MARRIAGE_LICENCE");
-		eventTo(family, destinationFamily, destination, "MARS", "MARRIAGE_SETTLEMENT");
-		eventTo(family, destinationFamily, destination, "RESI", "RESIDENCE");
-		eventTo(family, destinationFamily, destination, "EVEN", "EVENT");
-		destinationFamily.addChildValue("RESTRICTION", extractSubStructure(family, "RESN")
+		transformerTo.noteTo(family, destinationFamily, destination);
+		transformerTo.sourceCitationTo(family, destinationFamily, destination);
+		transformerTo.documentTo(family, destinationFamily, destination);
+		transformerTo.eventTo(family, destinationFamily, destination, "ANUL", "ANNULMENT");
+		transformerTo.eventTo(family, destinationFamily, destination, "CENS", "CENSUS");
+		transformerTo.eventTo(family, destinationFamily, destination, "DIV", "DIVORCE");
+		transformerTo.eventTo(family, destinationFamily, destination, "DIVF", "DIVORCE_FILED");
+		transformerTo.eventTo(family, destinationFamily, destination, "ENGA", "ENGAGEMENT");
+		transformerTo.eventTo(family, destinationFamily, destination, "MARB", "MARRIAGE_BANN");
+		transformerTo.eventTo(family, destinationFamily, destination, "MARC", "MARRIAGE_CONTRACT");
+		transformerTo.eventTo(family, destinationFamily, destination, "MARR", "MARRIAGE");
+		transformerTo.eventTo(family, destinationFamily, destination, "MARL", "MARRIAGE_LICENCE");
+		transformerTo.eventTo(family, destinationFamily, destination, "MARS", "MARRIAGE_SETTLEMENT");
+		transformerTo.eventTo(family, destinationFamily, destination, "RESI", "RESIDENCE");
+		transformerTo.eventTo(family, destinationFamily, destination, "EVEN", "EVENT");
+		destinationFamily.addChildValue("RESTRICTION", transformerTo.extractSubStructure(family, "RESN")
 			.getValue());
 
 		destination.addFamily(destinationFamily);
@@ -66,33 +62,33 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
-		final GedcomNode destinationFamily = GedcomNode.create("FAM")
+		final GedcomNode destinationFamily = transformerFrom.create("FAM")
 			.withID(family.getID())
-			.addChildValue("RESN", extractSubStructure(family, "RESTRICTION")
+			.addChildValue("RESN", transformerFrom.extractSubStructure(family, "RESTRICTION")
 				.getValue());
 		final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
-		eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
-		eventFrom(events, destinationFamily, origin, "CENSUS", "CENS");
-		eventFrom(events, destinationFamily, origin, "DIVORCE", "DIV");
-		eventFrom(events, destinationFamily, origin, "DIVORCE_FILED", "DIVF");
-		eventFrom(events, destinationFamily, origin, "ENGAGEMENT", "ENGA");
-		eventFrom(events, destinationFamily, origin, "MARRIAGE_BANN", "MARB");
-		eventFrom(events, destinationFamily, origin, "MARRIAGE_CONTRACT", "MARC");
-		eventFrom(events, destinationFamily, origin, "MARRIAGE", "MARR");
-		eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
-		eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
-		eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
-		eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "CENSUS", "CENS");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE", "DIV");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE_FILED", "DIVF");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "ENGAGEMENT", "ENGA");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_BANN", "MARB");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_CONTRACT", "MARC");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE", "MARR");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
+		transformerFrom.eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
 		destinationFamily
-			.addChildValue("HUSB", extractSubStructure(family, "SPOUSE1")
+			.addChildValue("HUSB", transformerFrom.extractSubStructure(family, "SPOUSE1")
 				.getValue())
-			.addChildValue("WIFE", extractSubStructure(family, "SPOUSE2")
+			.addChildValue("WIFE", transformerFrom.extractSubStructure(family, "SPOUSE2")
 				.getValue());
 		final List<GedcomNode> children = family.getChildrenWithTag("CHILD");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getID());
-		noteFrom(family, destinationFamily);
-		sourceCitationFrom(family, destinationFamily);
+		transformerFrom.noteFrom(family, destinationFamily);
+		transformerFrom.sourceCitationFrom(family, destinationFamily);
 
 		destination.addFamily(destinationFamily);
 	}

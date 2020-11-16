@@ -3,15 +3,19 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class SubmitterTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+
+
 	@Test
 	void to(){
-		final GedcomNode submitter = GedcomNode.create("SUBM")
+		final GedcomNode submitter = transformerTo.create("SUBM")
 			.withID("SUBM1")
 			.addChildValue("NAME", "SUBMITTER_NAME")
 			.addChildValue("ADDR", "ADDRESS_LINE")
@@ -21,7 +25,7 @@ class SubmitterTransformationTest{
 			.addChildValue("RFN", "SUBMITTER_REGISTERED_RFN")
 			.addChildValue("RIN", "AUTOMATED_RECORD_ID")
 			.addChildReference("NOTE", "N1")
-			.addChild(GedcomNode.create("CHAN")
+			.addChild(transformerTo.create("CHAN")
 				.addChildValue("DATE", "CHANGE_DATE")
 			);
 		final Gedcom origin = new Gedcom();
