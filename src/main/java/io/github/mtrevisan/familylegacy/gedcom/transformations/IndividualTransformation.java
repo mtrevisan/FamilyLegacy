@@ -114,7 +114,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		int surnameEndIndex = -1;
 		if(nameValue != null && surnameBeginIndex >= 0){
 			surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
-			if(givenName == null)
+			if(givenName == null && surnameBeginIndex > 0)
 				//extract given name component
 				givenName = nameValue.substring(0, surnameBeginIndex - 1);
 			//extract surname component
