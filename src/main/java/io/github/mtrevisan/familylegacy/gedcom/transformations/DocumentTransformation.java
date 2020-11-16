@@ -7,6 +7,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
 
 
 public class DocumentTransformation implements Transformation<Gedcom, Flef>{
@@ -35,22 +36,9 @@ public class DocumentTransformation implements Transformation<Gedcom, Flef>{
 					.getValue())
 			);
 		}
-		notesTo(document, destinationDocument, destination);
+		noteTo(document, destinationDocument, destination);
 
 		destination.addSource(destinationDocument);
-	}
-
-	private void notesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			String noteID = note.getID();
-			if(noteID == null){
-				noteID = destination.getNextNoteID();
-
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValue()));
-			}
-			destinationNode.addChildReference("NOTE", noteID);
-		}
 	}
 
 

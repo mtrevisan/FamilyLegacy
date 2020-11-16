@@ -11,7 +11,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.StringJoiner;
 
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureFrom;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
 
 
 public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
@@ -34,7 +36,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		destinationRepository.addChildValue("NAME", name);
 		addressStructureTo(repository, destinationRepository, destination);
 		contactStructureTo(repository, destinationRepository);
-		notesTo(repository, destinationRepository, destination);
+		noteTo(repository, destinationRepository, destination);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -83,19 +85,6 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		destinationNode.addChild(destinationContact);
 	}
 
-	private void notesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			String noteID = note.getID();
-			if(noteID == null){
-				noteID = destination.getNextNoteID();
-
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValue()));
-			}
-			destinationNode.addChildReference("NOTE", noteID);
-		}
-	}
-
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
@@ -115,23 +104,6 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 		notesFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
-	}
-
-	private void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
-			throws GedcomGrammarParseException{
-		final GedcomNode place = extractSubStructure(parent, "PLACE");
-		if(!place.isEmpty()){
-			final GedcomNode placeRecord = origin.getPlace(place.getID());
-			if(placeRecord == null)
-				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
-
-			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
-			destinationNode.addChild(GedcomNode.create("ADDR")
-				.withValue(placeRecord.getValue())
-				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
-				.addChildValue("STAE", extractSubStructure(address, "STATE").getValue())
-				.addChildValue("CTRY", extractSubStructure(address, "COUNTRY").getValue()));
-		}
 	}
 
 	private void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){

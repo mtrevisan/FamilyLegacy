@@ -8,6 +8,7 @@ import java.util.List;
 
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
 import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.joinIfNotNull;
+import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
 
 
 public class SourceTransformation implements Transformation<Gedcom, Flef>{
@@ -49,7 +50,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 			destination.addNote(GedcomNode.create("NOTE", noteID, noteAuthorPublication));
 		}
 		documentsTo(source, destinationSource, destination);
-		notesTo(source, destinationSource, destination);
+		noteTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
 
 		destination.addSource(destinationSource);
@@ -87,19 +88,6 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void notesTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			String noteID = note.getID();
-			if(noteID == null){
-				noteID = destination.getNextNoteID();
-
-				destination.addNote(GedcomNode.create("NOTE", noteID, note.getValue()));
-			}
-			destinationNode.addChildReference("NOTE", noteID);
-		}
-	}
-
 	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
@@ -111,7 +99,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 
 				destination.addRepository(destinationRepository);
 
-				notesTo(repository, destinationRepository, destination);
+				noteTo(repository, destinationRepository, destination);
 			}
 			destinationNode.addChild(destinationRepository
 				.withID(repositoryID));
