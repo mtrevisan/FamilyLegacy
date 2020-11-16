@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -83,19 +81,6 @@ public class Flef extends Store<Flef>{
 	private Map<String, GedcomNode> submitterIndex;
 
 
-	public static void main(final String[] args){
-		try{
-			final Flef store = new Flef();
-			final Flef flef = store.load("/gedg/flef_0.0.1.gedg", "/ged/small.flef.ged");
-
-			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
-			flef.write(os);
-		}
-		catch(final Exception e){
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	protected Flef create(final GedcomNode root) throws GedcomParseException{
 		final Flef g = new Flef();
@@ -145,7 +130,7 @@ public class Flef extends Store<Flef>{
 	@Override
 	public void write(final OutputStream os) throws IOException{
 		if(root == null)
-			root = GedcomNode.createRoot()
+			root = GedcomNodeBuilder.createRoot(Protocol.FLEF)
 				.addChild(header)
 				.addChildren(individuals)
 				.addChildren(families)

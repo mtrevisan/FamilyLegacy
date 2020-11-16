@@ -11,13 +11,13 @@ n <<END_OF_FILE>>    {1:1}
 
 HEADER :=
 n HEADER    {1:1}
+  +1 PROTOCOL <PROTOCOL_NAME>    {1:1}
+    +2 NAME <NAME_OF_PROTOCOL>    {1:1}	/* The name of the protocol. */
+    +2 VERSION <VERSION_NUMBER>    {1:1}	/* An identifier that represents the version of the protocol. It is defined and changed by the creators of the product. */
   +1 SOURCE <APPROVED_SYSTEM_ID>    {1:1}	/* A system identification name which was obtained through the GEDCOM registration process. This name must be unique from any other product. Spaces within the name must be substituted with an underscore. */
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
-  +1 PROTOCOL <PROTOCOL_NAME>    {1:1}
-    +2 NAME <NAME_OF_PROTOCOL>    {0:1}	/* The name of the protocol. */
-    +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version of the protocol. It is defined and changed by the creators of the product. */
   +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was created. */
   +1 DEFAULT_CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
   +1 DEFAULT_LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the place address form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
@@ -86,7 +86,7 @@ n <XREF:INDIVIDUAL> INDIVIDUAL    {1:1}	/* An xref ID of an individual record. *
 PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
-    +2 FAMILY <XREF:FAMILY>    {0:M}	/* An xref ID of a family record this individual has his name changed due to marriage, adoption, or forstering. */
+    +2 FAMILY <XREF:FAMILY>    {0:M}	/* An xref ID of a family record this individual has his name changed due to marriage, adoption, or fostering. */
     +2 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
   +1 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 <<PERSONAL_NAME_PIECES>>    {1:1}	/* A PERSONAL_NAME_PIECES() object giving the components of the name. */
@@ -396,7 +396,7 @@ n <XREF:SOURCE> SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 FILE <DOCUMENT_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
     +2 FORMAT <DOCUMENT_FORMAT>    {1:1}	/* Indicates the format of the document data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. It can be, for example, 'bmp', 'gif', 'png', 'jpg'/'jpeg', 'ole', 'pcx', 'tiff', 'wav', 'mp3', 'mp4', etc. */
     +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
-    +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and botton-right coordinates of the enclosing box inside an image. */
+    +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
   +1 NOTE <XREF:NOTE>    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
 
@@ -415,7 +415,7 @@ n <XREF:RULE> CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
 GROUP_RECORD :=	/* A group can be of genealogical, historical, or general interest. Examples of groups that might be useful in genealogy research are households and neighborhoods as found in a census. A biological or legal traditional family (father, mother, children) is documented in a Family record rather than a Group record. Family-like groups such as communes, orphanages, group homes, and so on are documented here. */
 n <XREF:GROUP> GROUP    {1:1}	/* An xref ID of a group record. */
   +1 NAME <GROUP_NAME>    {0:1}	/* The name of the group. */
-  +1 TYPE <TYPE_DSCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
+  +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
   +1 <<EVENT_DETAIL>>    {0:M}	/* An EVENT_DETAIL() object giving details related to a group. */
   +1 NOTE <XREF:NOTE>    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */

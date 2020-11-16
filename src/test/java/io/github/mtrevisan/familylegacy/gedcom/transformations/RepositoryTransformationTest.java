@@ -4,19 +4,24 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class RepositoryTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
+
 	@Test
 	void to(){
-		final GedcomNode repository = GedcomNode.create("REPO")
+		final GedcomNode repository = transformerTo.create("REPO")
 			.withID("R1")
 			.addChildValue("NAME", "NAME_OF_REPOSITORY")
-			.addChild(GedcomNode.create("ADDR")
-				.withValueConcatenated("ADDRESS_LINE")
+			.addChild(transformerTo.create("ADDR")
+				.withValue("ADDRESS_LINE")
 				.addChildValue("CONT", "ADDRESS_LINE")
 				.addChildValue("ADR1", "ADDRESS_LINE1")
 				.addChildValue("ADR2", "ADDRESS_LINE2")
@@ -36,7 +41,7 @@ class RepositoryTransformationTest{
 			.addChildValue("WWW", "ADDRESS_WEB_PAGE2")
 			.addChildReference("NOTE", "N1")
 			.addChildValue("NOTE", "SUBMITTER_TEXT");
-		final GedcomNode note = GedcomNode.create("NOTE", "N1", "SUBMITTER_TEXT");
+		final GedcomNode note = transformerTo.create("NOTE", "N1", "SUBMITTER_TEXT");
 		final Gedcom origin = new Gedcom();
 		origin.addRepository(repository);
 		origin.addNote(note);
@@ -49,41 +54,41 @@ class RepositoryTransformationTest{
 		t.to(origin, destination);
 
 		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {id: P1, tag: PLACE}, {tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER1}, {tag: PHONE, value: PHONE_NUMBER2}, {tag: EMAIL, value: ADDRESS_EMAIL1}, {tag: EMAIL, value: ADDRESS_EMAIL2}, {tag: PHONE, value: ADDRESS_FAX1, children: [{tag: TYPE, value: fax}]}, {tag: PHONE, value: ADDRESS_FAX2, children: [{tag: TYPE, value: fax}]}, {tag: URL, value: ADDRESS_WEB_PAGE1}, {tag: URL, value: ADDRESS_WEB_PAGE2}]}, {id: N1, tag: NOTE}, {id: N1, tag: NOTE}]", destination.getRepositories().get(0).toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, children: [{tag: CONT, value: ADDRESS_LINE - ADDRESS_LINE - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}]}, {tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE - ADDRESS_LINE - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]", destination.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test
 	void from() throws GedcomGrammarParseException{
-		final GedcomNode repository = GedcomNode.create("REPOSITORY")
+		final GedcomNode repository = transformerFrom.create("REPOSITORY")
 			.withID("R1")
 			.addChildValue("NAME", "NAME_OF_REPOSITORY")
 			.addChildReference("INDIVIDUAL", "I1")
 			.addChildReference("PLACE", "P1")
-			.addChild(GedcomNode.create("CONTACT")
-				.addChild(GedcomNode.create("PHONE")
-					.withValueConcatenated("PHONE_NUMBER")
+			.addChild(transformerFrom.create("CONTACT")
+				.addChild(transformerFrom.create("PHONE")
+					.withValue("PHONE_NUMBER")
 					.addChildValue("TYPE", "personal")
 					.addChildValue("CALLED_ID", "CALLED_ID_VALUE1")
 					.addChildReference("NOTE", "N1")
 					.addChildValue("RESTRICTION", "private")
 				)
-				.addChild(GedcomNode.create("EMAIL")
-					.withValueConcatenated("ADDRESS_EMAIL")
+				.addChild(transformerFrom.create("EMAIL")
+					.withValue("ADDRESS_EMAIL")
 					.addChildValue("CALLED_ID", "CALLED_ID_VALUE2")
 					.addChildReference("NOTE", "N1")
 					.addChildValue("RESTRICTION", "private")
 				)
-				.addChild(GedcomNode.create("URL")
-					.withValueConcatenated("ADDRESS_WEB_PAGE")
+				.addChild(transformerFrom.create("URL")
+					.withValue("ADDRESS_WEB_PAGE")
 					.addChildValue("TYPE", "blog")
 					.addChildReference("NOTE", "N1")
 				)
 			)
 			.addChildReference("NOTE", "N1");
-		final GedcomNode place = GedcomNode.create("PLACE")
+		final GedcomNode place = transformerFrom.create("PLACE")
 			.withID("P1")
-			.addChild(GedcomNode.create("ADDRESS")
+			.addChild(transformerFrom.create("ADDRESS")
 				.addChildValue("CITY", "ADDRESS_CITY")
 				.addChildValue("STATE", "ADDRESS_STATE")
 			);

@@ -47,7 +47,8 @@ final class GedcomParser{
 
 	private final GedcomGrammar grammar;
 
-	private final GedcomNode root = GedcomNode.createRoot();
+	private final Protocol protocol;
+	private final GedcomNode root;
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
 	/** Stacks of {@link GedcomGrammarBlock} or {@link GedcomGrammarLine} objects. */
 	private final Deque<Object> grammarBlockOrLineStack = new ArrayDeque<>();
@@ -62,11 +63,19 @@ final class GedcomParser{
 		if(!gedcomFile.endsWith(GEDCOM_EXTENSION))
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
+		Protocol protocol;
 		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
 			if(is == null)
 				throw new IllegalArgumentException();
 
-			final GedcomParser parser = new GedcomParser(grammar);
+			protocol = findProtocolAndVersion(is);
+		}
+		catch(final IllegalArgumentException | IOException e){
+			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
+		}
+
+		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
+			final GedcomParser parser = new GedcomParser(protocol, grammar);
 			return parser.parseGedcom(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
@@ -74,13 +83,57 @@ final class GedcomParser{
 		}
 	}
 
-	private GedcomParser(final GedcomGrammar grammar){
+	private static Protocol findProtocolAndVersion(final InputStream is) throws GedcomParseException{
+		String version = null;
+		Protocol protocol = null;
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
+			is.mark(Short.MAX_VALUE);
+
+			String line;
+			while((line = br.readLine()) != null){
+				//skip empty lines
+				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+					continue;
+
+				if(line.equals("1 GEDC")){
+					line = br.readLine();
+					if(line.startsWith("2 VERS ")){
+						version = line.substring("2 VERS ".length());
+						protocol = Protocol.GEDCOM;
+					}
+					break;
+				}
+				else if(line.startsWith("1 PROTOCOL FLEF")){
+					while((line = br.readLine()) != null && line.charAt(0) == '2')
+						if(line.startsWith("2 VERSION "))
+							version = line.substring("2 VERSION ".length());
+					protocol = Protocol.FLEF;
+					break;
+				}
+			}
+
+			is.reset();
+		}
+		catch(final IllegalArgumentException e){
+			throw e;
+		}
+		catch(final Exception e){
+			throw GedcomParseException.create("Failed to read file", e);
+		}
+
+		LOGGER.info("Parsing {} file version {}...", protocol, version);
+
+		return protocol;
+	}
+
+	private GedcomParser(final Protocol protocol, final GedcomGrammar grammar){
+		this.protocol = protocol;
 		this.grammar = grammar;
+
+		root = GedcomNodeBuilder.createRoot(protocol);
 	}
 
 	private GedcomNode parseGedcom(final InputStream is) throws GedcomParseException{
-		LOGGER.info("Parsing GEDCOM file...");
-
 		int lineCount = -1;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
 			lineCount = 0;
@@ -98,7 +151,7 @@ final class GedcomParser{
 						lineCount);
 
 				//parse the line into five fields: level, ID, tag, xref, value
-				final GedcomNode child = GedcomNode.parse(line);
+				final GedcomNode child = GedcomNodeBuilder.parse(protocol, line);
 				if(child == null)
 					throw GedcomParseException.create("Line {} does not appear to be a standard appending content to the last tag started: {}",
 						lineCount, line);
@@ -143,6 +196,7 @@ final class GedcomParser{
 		catch(final Exception e){
 			if(lineCount < 0)
 				throw GedcomParseException.create("Failed to read file", e);
+
 			throw GedcomParseException.create("Failed to read line {}", lineCount);
 		}
 	}

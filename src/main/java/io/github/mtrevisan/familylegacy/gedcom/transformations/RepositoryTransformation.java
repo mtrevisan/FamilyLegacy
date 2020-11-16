@@ -4,17 +4,16 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 
 import java.util.List;
 
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.addressStructureTo;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.extractSubStructure;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteFrom;
-import static io.github.mtrevisan.familylegacy.gedcom.transformations.TransformationHelper.noteTo;
-
 
 public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
+
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -24,20 +23,20 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void repositoryTo(final GedcomNode repository, final Flef destination){
-		final GedcomNode destinationRepository = GedcomNode.create("REPOSITORY")
+		final GedcomNode destinationRepository = transformerTo.create("REPOSITORY")
 			.withID(repository.getID());
-		final String name = extractSubStructure(repository, "NAME")
+		final String name = transformerTo.extractSubStructure(repository, "NAME")
 			.getValue();
 		destinationRepository.addChildValue("NAME", name);
-		addressStructureTo(repository, destinationRepository, destination);
+		transformerTo.addressStructureTo(repository, destinationRepository, destination);
 		contactStructureTo(repository, destinationRepository);
-		noteTo(repository, destinationRepository, destination);
+		transformerTo.noteTo(repository, destinationRepository, destination);
 
 		destination.addRepository(destinationRepository);
 	}
 
 	private void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode destinationContact = GedcomNode.create("CONTACT");
+		final GedcomNode destinationContact = transformerTo.create("CONTACT");
 		final List<GedcomNode> phones = parent.getChildrenWithTag("PHON");
 		for(final GedcomNode phone : phones)
 			destinationContact.addChildValue("PHONE", phone.getValue());
@@ -46,7 +45,7 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 			destinationContact.addChildValue("EMAIL", email.getValue());
 		final List<GedcomNode> faxes = parent.getChildrenWithTag("FAX");
 		for(final GedcomNode fax : faxes)
-			destinationContact.addChild(GedcomNode.create("PHONE")
+			destinationContact.addChild(transformerTo.create("PHONE")
 				.withValue(fax.getValue())
 				.addChildValue("TYPE", "fax"));
 		final List<GedcomNode> urls = parent.getChildrenWithTag("WWW");
@@ -64,29 +63,29 @@ public class RepositoryTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
-		final String name = extractSubStructure(repository, "NAME")
+		final String name = transformerFrom.extractSubStructure(repository, "NAME")
 			.getValue();
-		final GedcomNode destinationRepository = GedcomNode.create("REPO")
+		final GedcomNode destinationRepository = transformerFrom.create("REPO")
 			.withID(repository.getID())
 			.addChildValue("NAME", name);
-		addressStructureFrom(repository, destinationRepository, origin);
+		transformerFrom.addressStructureFrom(repository, destinationRepository, origin);
 		contactStructureFrom(repository, destinationRepository);
-		noteFrom(repository, destinationRepository);
+		transformerFrom.noteFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
 	}
 
 	private void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode contact = extractSubStructure(parent, "CONTACT");
+		final GedcomNode contact = transformerFrom.extractSubStructure(parent, "CONTACT");
 		final List<GedcomNode> phones = contact.getChildrenWithTag("PHONE");
 		for(final GedcomNode phone : phones)
-			if(!"FAX".equals(extractSubStructure(phone, "TYPE").getValue()))
+			if(!"FAX".equals(transformerFrom.extractSubStructure(phone, "TYPE").getValue()))
 				destinationNode.addChildValue("PHONE", phone.getValue());
 		final List<GedcomNode> emails = contact.getChildrenWithTag("EMAIL");
 		for(final GedcomNode email : emails)
 			destinationNode.addChildValue("EMAIL", email.getValue());
 		for(final GedcomNode phone : phones)
-			if("fax".equals(extractSubStructure(phone, "TYPE").getValue()))
+			if("fax".equals(transformerFrom.extractSubStructure(phone, "TYPE").getValue()))
 				destinationNode.addChildValue("FAX", phone.getValue());
 		final List<GedcomNode> urls = contact.getChildrenWithTag("URL");
 		for(final GedcomNode url : urls)

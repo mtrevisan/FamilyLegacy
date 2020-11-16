@@ -4,42 +4,47 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
 class FamilyTransformationTest{
 
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
+
 	@Test
 	void to(){
-		final GedcomNode family = GedcomNode.create("FAM")
+		final GedcomNode family = transformerTo.create("FAM")
 			.withID("F1")
 			.addChildValue("RESN", "RESTRICTION_NOTICE")
-			.addChild(GedcomNode.create("MARR")
-				.withValueConcatenated("Y")
-				.addChild(GedcomNode.create("HUSB")
+			.addChild(transformerTo.create("MARR")
+				.withValue("Y")
+				.addChild(transformerTo.create("HUSB")
 					.addChildValue("AGE", "AGE_AT_EVENT11")
 				)
-				.addChild(GedcomNode.create("WIFE")
+				.addChild(transformerTo.create("WIFE")
 					.addChildValue("AGE", "AGE_AT_EVENT12")
 				)
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION1")
 			)
-			.addChild(GedcomNode.create("RESI")
-				.addChild(GedcomNode.create("HUSB")
+			.addChild(transformerTo.create("RESI")
+				.addChild(transformerTo.create("HUSB")
 					.addChildValue("AGE", "AGE_AT_EVENT21")
 				)
-				.addChild(GedcomNode.create("WIFE")
+				.addChild(transformerTo.create("WIFE")
 					.addChildValue("AGE", "AGE_AT_EVENT22")
 				)
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION2")
 			)
-			.addChild(GedcomNode.create("EVEN")
-				.withValueConcatenated("EVENT_DESCRIPTOR")
-				.addChild(GedcomNode.create("HUSB")
+			.addChild(transformerTo.create("EVEN")
+				.withValue("EVENT_DESCRIPTOR")
+				.addChild(transformerTo.create("HUSB")
 					.addChildValue("AGE", "AGE_AT_EVENT31")
 				)
-				.addChild(GedcomNode.create("WIFE")
+				.addChild(transformerTo.create("WIFE")
 					.addChildValue("AGE", "AGE_AT_EVENT32")
 				)
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION3")
@@ -49,12 +54,12 @@ class FamilyTransformationTest{
 			.addChildReference("CHIL", "I3")
 			.addChildValue("NCHI", "COUNT_OF_CHILDREN")
 			.addChildReference("SUBM", "SUBM1")
-			.addChild(GedcomNode.create("REFN")
-				.withValueConcatenated("USER_REFERENCE_NUMBER")
+			.addChild(transformerTo.create("REFN")
+				.withValue("USER_REFERENCE_NUMBER")
 				.addChildValue("TYPE", "USER_REFERENCE_TYPE")
 			)
 			.addChildValue("RIN", "AUTOMATED_RECORD_ID")
-			.addChild(GedcomNode.create("CHAN")
+			.addChild(transformerTo.create("CHAN")
 				.addChildValue("DATE", "CHANGE_DATE")
 			)
 			.addChildReference("NOTE", "N1")
@@ -74,13 +79,13 @@ class FamilyTransformationTest{
 
 	@Test
 	void from() throws GedcomGrammarParseException{
-		final GedcomNode family = GedcomNode.create("FAMILY")
+		final GedcomNode family = transformerFrom.create("FAMILY")
 			.withID("F1")
 			.addChildValue("TYPE", "FAMILY_TYPE")
 			.addChildReference("SPOUSE1", "I1")
 			.addChildReference("SPOUSE2", "I2")
 			.addChildReference("CHILD", "I3")
-			.addChild(GedcomNode.create("GROUP")
+			.addChild(transformerFrom.create("GROUP")
 				.withID("G1")
 				.addChildValue("ROLE", "ROLE_IN_GROUP")
 				.addChildReference("NOTE", "N1")
@@ -90,12 +95,12 @@ class FamilyTransformationTest{
 			.addChildReference("CULTURAL_RULE", "A1")
 			.addChildReference("NOTE", "N2")
 			.addChildReference("SOUR", "S2")
-			.addChild(GedcomNode.create("EVENT")
-				.withValueConcatenated("MARRIAGE")
+			.addChild(transformerFrom.create("EVENT")
+				.withValue("MARRIAGE")
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION1")
 			)
-			.addChild(GedcomNode.create("EVENT")
-				.withValueConcatenated("EVENT_DESCRIPTOR")
+			.addChild(transformerFrom.create("EVENT")
+				.withValue("EVENT_DESCRIPTOR")
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION2")
 			)
 			.addChildValue("RESTRICTION", "RESTRICTION_NOTICE");

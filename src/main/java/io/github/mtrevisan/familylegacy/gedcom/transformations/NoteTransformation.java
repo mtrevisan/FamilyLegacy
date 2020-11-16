@@ -3,11 +3,16 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 
 import java.util.List;
 
 
 public class NoteTransformation implements Transformation<Gedcom, Flef>{
+
+	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
+	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
+
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
@@ -17,7 +22,7 @@ public class NoteTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordTo(final GedcomNode note, final Flef destination){
-		final GedcomNode destinationNote = GedcomNode.create("NOTE", note.getID(), note.getValue());
+		final GedcomNode destinationNote = transformerTo.create("NOTE", note.getID(), note.getValue());
 
 		destination.addNote(destinationNote);
 	}
@@ -31,7 +36,7 @@ public class NoteTransformation implements Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordFrom(final GedcomNode note, final Gedcom destination){
-		final GedcomNode destinationNote = GedcomNode.create("NOTE", note.getID(), note.getValue());
+		final GedcomNode destinationNote = transformerFrom.create("NOTE", note.getID(), note.getValue());
 
 		destination.addNote(destinationNote);
 	}
