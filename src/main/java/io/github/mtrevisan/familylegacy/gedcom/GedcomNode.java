@@ -108,26 +108,6 @@ public final class GedcomNode{
 		this.tag = tag;
 	}
 
-	public GedcomNode cloneFrom(final GedcomNode node){
-		level = node.level;
-		id = node.id;
-		tag = node.tag;
-		xref = node.xref;
-		value = node.value;
-		if(node.children != null){
-			children = new ArrayList<>(node.children.size());
-			for(final GedcomNode child : node.children)
-				addChild(child.clone());
-		}
-		custom = node.custom;
-		return this;
-	}
-
-	public GedcomNode clone(){
-		return createEmpty()
-			.cloneFrom(this);
-	}
-
 	/**
 	 * NOTE: clear all the fields but the {@link #level} and the {@link #tag}.
 	 */

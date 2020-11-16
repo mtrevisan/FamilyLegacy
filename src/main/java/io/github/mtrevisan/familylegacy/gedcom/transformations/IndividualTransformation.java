@@ -533,6 +533,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 				.getValue();
 			final String pedigreeSpouse2 = extractSubStructure(pedigree, "SPOUSE2")
 				.getValue();
+			@SuppressWarnings({"StringEquality", "ConstantConditions", "ObjectEqualsCanBeEquality"})
 			final String pedigreeValue = (pedigreeSpouse1 == pedigreeSpouse2 || pedigreeSpouse1.equals(pedigreeSpouse2)?
 				pedigreeSpouse1: "SPOUSE1: " + pedigreeSpouse1 + ", SPOUSE2: " + pedigreeSpouse2);
 			final GedcomNode destinationFamilyChild = GedcomNode.create("FAMC")
@@ -602,7 +603,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			destinationNode.addChildReference("NOTE", note.getID());
 	}
 
-	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
+	private void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo) throws GedcomGrammarParseException{
 		final Iterator<GedcomNode> itr = events.iterator();
 		while(itr.hasNext()){
@@ -642,7 +643,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		return destinationEvent;
 	}
 
-	private void attributeFrom(final List<GedcomNode> attributes, final GedcomNode destinationNode, final Flef origin,
+	private void attributeFrom(final Iterable<GedcomNode> attributes, final GedcomNode destinationNode, final Flef origin,
 			final String valueFrom, final String tagTo) throws GedcomGrammarParseException{
 		final Iterator<GedcomNode> itr = attributes.iterator();
 		while(itr.hasNext()){

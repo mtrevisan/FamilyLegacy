@@ -84,7 +84,7 @@ public class HeaderTransformation implements Transformation<Gedcom, Flef>{
 				.addChildValue("FORM", "LINEAGE-LINKED")
 			)
 			.addChildValue("CHAR", "UTF-8")
-			.addChildValue("LANG", locale.getDisplayLanguage())
+			.addChildValue("LANG", locale.getDisplayLanguage(Locale.ENGLISH))
 			.addChildValue("NOTE", extractSubStructure(source, "NOTE")
 				.getValue());
 

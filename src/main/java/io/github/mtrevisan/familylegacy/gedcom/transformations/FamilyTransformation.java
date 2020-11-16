@@ -276,7 +276,7 @@ public class FamilyTransformation implements Transformation<Gedcom, Flef>{
 		destination.addFamily(destinationFamily);
 	}
 
-	private void eventFrom(final List<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
+	private void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo) throws GedcomGrammarParseException{
 		final Iterator<GedcomNode> itr = events.iterator();
 		while(itr.hasNext()){

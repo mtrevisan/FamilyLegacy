@@ -59,7 +59,7 @@ public final class RegexHelper{
 		return split(text, pattern, 0);
 	}
 
-	public static String[] split(final CharSequence text, final Pattern pattern, final int limit){
+	private static String[] split(final CharSequence text, final Pattern pattern, final int limit){
 		return pattern.split(text, limit);
 	}
 
@@ -73,7 +73,7 @@ public final class RegexHelper{
 	}
 
 
-	public static Matcher matcher(final CharSequence text, final Pattern pattern){
+	private static Matcher matcher(final CharSequence text, final Pattern pattern){
 		return pattern.matcher(text);
 	}
 

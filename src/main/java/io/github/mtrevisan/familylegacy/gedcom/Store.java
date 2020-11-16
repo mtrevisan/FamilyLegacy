@@ -46,7 +46,7 @@ public abstract class Store<T>{
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
 
 
-	protected GedcomNode root;
+	GedcomNode root;
 
 
 	public T load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
@@ -111,7 +111,7 @@ public abstract class Store<T>{
 		out.write(elem);
 	}
 
-	protected static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
+	static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
 		final Map<String, GedcomNode> indexes;
 		if(!list.isEmpty()){
 			indexes = new HashMap<>(list.size());
