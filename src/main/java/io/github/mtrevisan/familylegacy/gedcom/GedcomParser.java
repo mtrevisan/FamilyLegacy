@@ -47,7 +47,7 @@ final class GedcomParser{
 
 	private final GedcomGrammar grammar;
 
-	private final GedcomNode root = GedcomNode.createEmpty();
+	private final GedcomNode root = GedcomNode.createRoot();
 	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
 	/** Stacks of {@link GedcomGrammarBlock} or {@link GedcomGrammarLine} objects. */
 	private final Deque<Object> grammarBlockOrLineStack = new ArrayDeque<>();
@@ -70,7 +70,7 @@ final class GedcomParser{
 			return parser.parseGedcom(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomParseException.create("GEDCOM file '{}' not found!", gedcomFile);
+			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 	}
 

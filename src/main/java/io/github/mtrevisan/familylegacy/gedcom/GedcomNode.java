@@ -70,6 +70,12 @@ public final class GedcomNode{
 	private boolean custom;
 
 
+	public static GedcomNode createRoot(){
+		final GedcomNode root = new GedcomNode();
+		root.level = -1;
+		return root;
+	}
+
 	public static GedcomNode createEmpty(){
 		return new GedcomNode();
 	}
