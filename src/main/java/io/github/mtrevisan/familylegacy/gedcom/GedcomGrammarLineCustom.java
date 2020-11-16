@@ -25,23 +25,22 @@
 package io.github.mtrevisan.familylegacy.gedcom;
 
 
-class GedcomGrammarLineCustom extends GedcomGrammarLine{
+final class GedcomGrammarLineCustom extends GedcomGrammarLine{
 
-	private static final String TO_STRING = "-- custom tag grammar line --";
+	private final GedcomNode node;
 
 
-	private static class SingletonHelper{
-		private static final GedcomGrammarLineCustom INSTANCE = new GedcomGrammarLineCustom();
+	public static GedcomGrammarLineCustom create(final GedcomNode node){
+		return new GedcomGrammarLineCustom(node);
 	}
 
-
-	public static GedcomGrammarLineCustom getInstance(){
-		return SingletonHelper.INSTANCE;
+	private GedcomGrammarLineCustom(final GedcomNode node){
+		this.node = node;
 	}
 
 	@Override
 	public String toString(){
-		return TO_STRING;
+		return "[custom tag grammar line] " + node;
 	}
 
 }

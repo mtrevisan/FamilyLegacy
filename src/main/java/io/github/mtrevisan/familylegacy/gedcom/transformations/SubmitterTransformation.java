@@ -15,12 +15,11 @@ import static io.github.mtrevisan.familylegacy.gedcom.transformations.Transforma
 
 public class SubmitterTransformation implements Transformation<Gedcom, Flef>{
 
-
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> submitters = origin.getSubmitters();
-		for(final GedcomNode sbmitter : submitters)
-			submitterRecordTo(sbmitter, destination);
+		for(final GedcomNode submitter : submitters)
+			submitterRecordTo(submitter, destination);
 	}
 
 	private void submitterRecordTo(final GedcomNode submitter, final Flef destination){

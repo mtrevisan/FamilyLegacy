@@ -66,7 +66,7 @@ public class HeaderTransformation implements Transformation<Gedcom, Flef>{
 		final Locale locale = Locale.forLanguageTag(language != null? language: "en-US");
 		final GedcomNode destinationHeader = GedcomNode.create("HEAD")
 			.addChild(GedcomNode.create("SOUR")
-				.withValue(source.getValue())
+				.withValueConcatenated(source.getValue())
 				.addChildValue("VERS", extractSubStructure(source, "VERSION")
 					.getValue())
 				.addChildValue("NAME", extractSubStructure(source, "NAME")

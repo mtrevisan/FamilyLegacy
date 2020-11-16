@@ -81,8 +81,8 @@ public class Gedcom extends Store<Gedcom>{
 		try{
 			final Gedcom store = new Gedcom();
 //			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-//			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+//			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
+			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
 
 			final Flef flef = gedcom.transform();
 

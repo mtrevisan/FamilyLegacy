@@ -166,7 +166,7 @@ final class GedcomParser{
 			//consider as custom tag
 			child.setCustom();
 			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine)
-				addedGrammarLine = GedcomGrammarLineCustom.getInstance();
+				addedGrammarLine = GedcomGrammarLineCustom.create(child);
 			else
 				throw GedcomParseException.create("Cannot have custom tag {} here, inside block of {}", child.getTag(),
 					parentGrammarBlockOrLine.toString());
@@ -250,7 +250,7 @@ final class GedcomParser{
 			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
 				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
 				if(childBlock == null)
-					throw GedcomParseException.create("Children of parent tag does not exists");
+					throw GedcomParseException.create("Children of parent tag does not exists: " + grammarBlockOrLine);
 
 				final String entryTag = entry.getKey();
 				final int entryCount = entry.getValue().size();

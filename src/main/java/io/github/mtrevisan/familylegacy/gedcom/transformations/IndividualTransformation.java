@@ -284,7 +284,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 			personalNamePiecesFrom(personalNameStructure, destinationName);
 			//transform nickname into an attribute of individual
 			final GedcomNode attributeNickname = GedcomNode.create("ATTRIBUTE")
-				.withValue("_FAMILY_NICKNAME")
+				.withValueConcatenated("_FAMILY_NICKNAME")
 				.addChildValue("TYPE", "Family Nickname")
 				.addChildValue("VALUE", extractSubStructure(personalNameStructure, "FAMILY_NICKNAME")
 					.getValue());
@@ -341,7 +341,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 		if(familyName != null)
 			sj.add("/ " + familyName + " /");
 		if(sj.length() > 0)
-			destinationNode.withValue(sj.toString());
+			destinationNode.withValueConcatenated(sj.toString());
 
 		destinationNode
 			.addChildValue("TYPE", extractSubStructure(personalNameStructure, "TYPE")
@@ -423,7 +423,7 @@ public class IndividualTransformation implements Transformation<Gedcom, Flef>{
 	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin)
 			throws GedcomGrammarParseException{
 		final GedcomNode destinationAttribute = GedcomNode.create(tagTo)
-			.withValue(attribute.getValue())
+			.withValueConcatenated(attribute.getValue())
 			.addChildValue("TYPE", extractSubStructure(attribute, "TYPE")
 				.getValue());
 		placeStructureFrom(attribute, destinationAttribute, origin);

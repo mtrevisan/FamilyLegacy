@@ -125,7 +125,7 @@ public class SourceTransformation implements Transformation<Gedcom, Flef>{
 		final List<GedcomNode> events = source.getChildrenWithTag("EVENT");
 		for(final GedcomNode event : events)
 			destinationData.addChild(GedcomNode.create("EVEN")
-				.withValue(event.getValue())
+				.withValueConcatenated(event.getValue())
 				.addChildValue("DATE", date));
 		destinationSource.addChild(destinationData);
 		destinationSource.addChildValue("TITL", extractSubStructure(source, "TITLE")

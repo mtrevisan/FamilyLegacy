@@ -14,9 +14,9 @@ class NoteTransformationTest{
 	void to(){
 		final GedcomNode note = GedcomNode.create("NOTE")
 			.withID("N1")
-			.withValue("SUBMITTER_TEXT\\nSUBMITTER_TEXT")
+			.withValueConcatenated("SUBMITTER_TEXT\\nSUBMITTER_TEXT")
 			.addChild(GedcomNode.create("REFN")
-				.withValue("USER_REFERENCE_NUMBER")
+				.withValueConcatenated("USER_REFERENCE_NUMBER")
 				.addChildValue("TYPE", "USER_REFERENCE_TYPE")
 			)
 			.addChildValue("RIN", "AUTOMATED_RECORD_ID")
@@ -37,7 +37,7 @@ class NoteTransformationTest{
 	void from() throws GedcomGrammarParseException{
 		final GedcomNode note = GedcomNode.create("NOTE")
 			.withID("N1")
-			.withValue("SUBMITTER_TEXT")
+			.withValueConcatenated("SUBMITTER_TEXT")
 			.addChildValue("RESTRICTION", "RESTRICTION_NOTICE");
 		final Flef origin = new Flef();
 		origin.addNote(note);

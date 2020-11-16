@@ -261,7 +261,7 @@ final class TransformationHelper{
 				.getValue();
 			final GedcomNode destinationObject = GedcomNode.create("OBJE")
 				.addChild(GedcomNode.create("FORM")
-					.withValue(format)
+					.withValueConcatenated(format)
 					.addChildValue("MEDI", media)
 				)
 				.addChildValue("FILE", file.getValue());
@@ -295,7 +295,7 @@ final class TransformationHelper{
 	private static GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin)
 			throws GedcomGrammarParseException{
 		final GedcomNode destinationEvent = GedcomNode.create(tagTo)
-			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
+			.withValueConcatenated("EVENT".equals(tagTo)? event.getValue(): null)
 			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
 				.getValue())
 			.addChildValue("DATE", extractSubStructure(event, "DATE")
@@ -329,7 +329,7 @@ final class TransformationHelper{
 
 			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
 			destinationNode.addChild(GedcomNode.create("ADDR")
-				.withValue(placeRecord.getValue())
+				.withValueConcatenated(placeRecord.getValue())
 				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
 				.addChildValue("STAE", extractSubStructure(address, "STATE").getValue())
 				.addChildValue("CTRY", extractSubStructure(address, "COUNTRY").getValue()));
@@ -347,7 +347,7 @@ final class TransformationHelper{
 			final GedcomNode map = extractSubStructure(placeRecord, "MAP");
 
 			final GedcomNode destinationPlace = GedcomNode.create("PLAC")
-				.withValue(extractSubStructure(placeRecord, "NAME")
+				.withValueConcatenated(extractSubStructure(placeRecord, "NAME")
 					.getValue())
 				.addChild(GedcomNode.create("MAP")
 					.addChildValue("LATI", extractSubStructure(map, "LATI")
