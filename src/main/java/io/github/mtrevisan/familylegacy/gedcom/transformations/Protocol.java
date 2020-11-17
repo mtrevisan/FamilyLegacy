@@ -34,8 +34,8 @@ public enum Protocol{
 	FLEF(Flef.class);
 
 	String version;
-	private Class<? extends Store> store;
 	Transformer transformer;
+	private Class<? extends Store> store;
 
 
 	public static <T> Protocol fromStore(final Class<? extends Store> store){

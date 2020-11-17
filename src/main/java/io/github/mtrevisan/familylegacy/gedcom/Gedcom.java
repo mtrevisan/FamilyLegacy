@@ -37,9 +37,9 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -131,9 +131,9 @@ public class Gedcom extends Store{
 	}
 
 
-	public static Protocol extractProtocol(final InputStream is) throws GedcomParseException{
+	public static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
-		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(new File(gedcomFile)))){
 			int zeroLevelsFound = 0;
 			String line;
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
@@ -154,8 +154,8 @@ public class Gedcom extends Store{
 				}
 			}
 		}
-		catch(final IllegalArgumentException e){
-			throw e;
+		catch(final IllegalArgumentException | IOException e){
+			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 		catch(final Exception e){
 			throw GedcomParseException.create("Failed to read file", e);

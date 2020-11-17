@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,20 +65,11 @@ final class GedcomParser{
 		if(!gedcomFile.endsWith(GEDCOM_EXTENSION))
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
-		Protocol protocol;
-		try(final InputStream is = new FileInputStream(new File(gedcomFile))){
-			if(is == null)
-				throw new IllegalArgumentException();
+		Protocol protocol = Gedcom.extractProtocol(gedcomFile);
+		if(protocol == null)
+			protocol = Flef.extractProtocol(gedcomFile);
 
-			protocol = Gedcom.extractProtocol(is);
-			if(protocol == null)
-				protocol = Flef.extractProtocol(is);
-
-			LOGGER.info("Parsing {} file version {}...", protocol, protocol.getVersion());
-		}
-		catch(final IllegalArgumentException | IOException e){
-			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
-		}
+		LOGGER.info("Parsing {} file version {}...", protocol, protocol.getVersion());
 
 		try(final InputStream is = new FileInputStream(gedcomFile)){
 			final GedcomParser parser = new GedcomParser(protocol, grammar);
