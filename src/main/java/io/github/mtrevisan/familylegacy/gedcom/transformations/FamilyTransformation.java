@@ -9,11 +9,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import java.util.List;
 
 
-public class FamilyTransformation implements Transformation<Gedcom, Flef>{
-
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
+public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){

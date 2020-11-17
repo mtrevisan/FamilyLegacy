@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 
-public class SubmitterTransformation implements Transformation<Gedcom, Flef>{
-
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-
+public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){

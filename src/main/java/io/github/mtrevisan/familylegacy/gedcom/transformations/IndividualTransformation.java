@@ -11,11 +11,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 
-public class IndividualTransformation implements Transformation<Gedcom, Flef>{
-
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
+public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){

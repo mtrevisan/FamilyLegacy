@@ -26,6 +26,21 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 
 public enum Protocol{
-	GEDCOM,
-	FLEF
+	GEDCOM(Gedcom.class),
+	FLEF(Flef.class);
+
+	private Class<? extends Store<?>> store;
+
+
+	public static <T> Protocol fromStore(final Class<? extends Store<?>> store){
+		for(final Protocol protocol : values())
+			if(protocol.store == store)
+				return protocol;
+		return null;
+	}
+
+	Protocol(final Class<? extends Store<?>> store){
+		this.store = store;
+	}
+
 }
