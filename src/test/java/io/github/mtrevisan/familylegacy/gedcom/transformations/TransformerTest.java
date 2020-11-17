@@ -12,19 +12,23 @@ class TransformerTest{
 
 
 	@Test
-	void valueConcatenationContinuationFlef(){
+	void valueNoContinuationFlef(){
 		final GedcomNode node = transformerTo.create("NOTE")
 			.withValue("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT");
 
-		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT", node.getValue());
+		Assertions.assertFalse(node.hasChildren());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT", node.getRawValue());
 	}
 
 	@Test
-	void valueConcatenationFlef(){
+	void valueContinuationFlef(){
 		final GedcomNode node = transformerTo.create("NOTE")
 			.withValue("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY\nVERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT");
 
-		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY\nVERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT", node.getValue());
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY", node.getRawValue());
+		Assertions.assertEquals("CONTINUATION", node.getChildren().get(0).getTag());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT", node.getChildren().get(0).getRawValue());
 	}
 
 	@Test
@@ -32,7 +36,8 @@ class TransformerTest{
 		final GedcomNode node = transformerFrom.create("NOTE")
 			.withValue("SHORT TEXT");
 
-		Assertions.assertEquals("SHORT TEXT", node.getValue());
+		Assertions.assertFalse(node.hasChildren());
+		Assertions.assertEquals("SHORT TEXT", node.getRawValue());
 	}
 
 	@Test
@@ -40,15 +45,21 @@ class TransformerTest{
 		final GedcomNode node = transformerFrom.create("NOTE")
 			.withValue("SHORT\nTEXT");
 
-		Assertions.assertEquals("SHORT\nTEXT", node.getValue());
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("SHORT", node.getRawValue());
+		Assertions.assertEquals("CONT", node.getChildren().get(0).getTag());
+		Assertions.assertEquals("TEXT", node.getChildren().get(0).getRawValue());
 	}
 
 	@Test
-	void valueConcatenationContinuation(){
+	void valueConcatenationWithoutSpace(){
 		final GedcomNode node = transformerFrom.create("NOTE")
 			.withValue("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT");
 
-		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE\nRY LONG TEXT", node.getValue());
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals("RY LONG TEXT", node.getChildren().get(0).getRawValue());
 	}
 
 	@Test
@@ -56,7 +67,10 @@ class TransformerTest{
 		final GedcomNode node = transformerFrom.create("NOTE")
 			.withValue("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE Y LONG TEXT");
 
-		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE\n Y LONG TEXT", node.getValue());
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
 	}
 
 }

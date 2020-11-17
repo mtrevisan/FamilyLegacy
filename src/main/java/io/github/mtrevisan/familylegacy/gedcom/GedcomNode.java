@@ -112,15 +112,22 @@ public abstract class GedcomNode{
 
 	/**
 	 * Returns the value associated with this node.
+	 */
+	public String getRawValue(){
+		return value;
+	}
+
+	/**
+	 * Returns the value associated with this node.
 	 * <p>If the value is composed of multiple [CONT|CONTINUATION]|CONC tags, then the concatenation/continuation is returned.</p>
 	 */
 	public abstract String getValue();
 
 	public abstract GedcomNode withValue(final String value);
 
-	protected void addValue(final String subValue, final String childTag){
-		if(this.value == null)
-			this.value = subValue;
+	protected void addValue(final String childTag, final String subValue){
+		if(value == null)
+			value = subValue;
 		else{
 			final GedcomNode conNode = createNewNodeWithTag(childTag);
 			conNode.value = subValue;

@@ -87,7 +87,7 @@ public abstract class Store<T>{
 				appendID(out, child.getID());
 			}
 			if(child.getValue() != null)
-				appendElement(out, child.getValue());
+				appendElement(out, child.getRawValue());
 			out.write(eol);
 		}
 		out.flush();
