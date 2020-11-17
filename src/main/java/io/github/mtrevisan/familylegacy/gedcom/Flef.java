@@ -82,8 +82,6 @@ public class Flef extends Store{
 	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
-	private Map<GedcomNode, String> individualValue;
-	private Map<GedcomNode, String> familyValue;
 	private Map<GedcomNode, String> placeValue;
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
@@ -120,8 +118,6 @@ public class Flef extends Store{
 		groupIndex = generateIndexes(groups);
 		submitterIndex = generateIndexes(submitters);
 
-		individualValue = reverseMap(individualIndex);
-		familyValue = reverseMap(familyIndex);
 		placeValue = reverseMap(placeIndex);
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
@@ -191,11 +187,13 @@ public class Flef extends Store{
 			individuals = new ArrayList<>(1);
 			individualIndex = new HashMap<>(1);
 		}
+
 		String individualID = individual.getID();
 		if(individualID == null){
 			individualID = getNextIndividualID();
 			individual.withID(individualID);
 		}
+
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
 		return individualID;
@@ -218,11 +216,13 @@ public class Flef extends Store{
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
+
 		String familyID = family.getID();
 		if(familyID == null){
 			familyID = getNextFamilyID();
 			family.withID(familyID);
 		}
+
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 		return familyID;
@@ -242,8 +242,7 @@ public class Flef extends Store{
 
 	public String addPlace(final GedcomNode place){
 		//search place
-		final GedcomNode placeClone = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
-		String placeID = (placeValue != null? placeValue.get(placeClone): null);
+		String placeID = (placeValue != null? placeValue.get(place): null);
 		if(placeID == null){
 			//if place is not found:
 			if(places == null){
@@ -259,8 +258,8 @@ public class Flef extends Store{
 			}
 
 			places.add(place);
-			placeIndex.put(place.getID(), place);
-			placeValue.put(placeClone, place.getID());
+			placeIndex.put(placeID, place);
+			placeValue.put(place, placeID);
 		}
 		return placeID;
 	}
@@ -278,17 +277,26 @@ public class Flef extends Store{
 	}
 
 	public String addNote(final GedcomNode note){
-		if(notes == null){
-			notes = new ArrayList<>(1);
-			noteIndex = new HashMap<>(1);
-		}
-		String noteID = note.getID();
+		//search place
+		String noteID = (noteValue != null? noteValue.get(note): null);
 		if(noteID == null){
-			noteID = getNextNoteID();
-			note.withID(noteID);
+			//if place is not found:
+			if(notes == null){
+				notes = new ArrayList<>(1);
+				noteIndex = new HashMap<>(1);
+				noteValue = new HashMap<>(1);
+			}
+
+			noteID = note.getID();
+			if(noteID == null){
+				noteID = getNextNoteID();
+				note.withID(noteID);
+			}
+
+			notes.add(note);
+			noteIndex.put(noteID, note);
+			noteValue.put(note, noteID);
 		}
-		notes.add(note);
-		noteIndex.put(note.getID(), note);
 		return noteID;
 	}
 

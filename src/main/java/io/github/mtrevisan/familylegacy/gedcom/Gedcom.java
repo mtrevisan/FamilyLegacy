@@ -160,13 +160,13 @@ public class Gedcom extends Store{
 	public Flef transform(){
 		final Flef destination = new Flef();
 		HEADER_TRANSFORMATION.to(this, destination);
-		INDIVIDUAL_TRANSFORMATION.to(this, destination);
-		FAMILY_TRANSFORMATION.to(this, destination);
-		DOCUMENT_TRANSFORMATION.to(this, destination);
+		SUBMITTER_TRANSFORMATION.to(this, destination);
 		NOTE_TRANSFORMATION.to(this, destination);
 		REPOSITORY_TRANSFORMATION.to(this, destination);
 		SOURCE_TRANSFORMATION.to(this, destination);
-		SUBMITTER_TRANSFORMATION.to(this, destination);
+		DOCUMENT_TRANSFORMATION.to(this, destination);
+		INDIVIDUAL_TRANSFORMATION.to(this, destination);
+		FAMILY_TRANSFORMATION.to(this, destination);
 		return destination;
 	}
 
