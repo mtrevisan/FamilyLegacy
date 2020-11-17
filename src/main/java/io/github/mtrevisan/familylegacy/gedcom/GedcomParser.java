@@ -29,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
@@ -65,17 +67,21 @@ final class GedcomParser{
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
 		Protocol protocol;
-		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
+		try(final InputStream is = new FileInputStream(new File(gedcomFile))){
 			if(is == null)
 				throw new IllegalArgumentException();
 
 			protocol = findProtocolAndVersion(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
+			try(final InputStream is = new FileInputStream(new File(gedcomFile))){
+				protocol = findProtocolAndVersion(is);
+			}
+			catch(Exception e2){}
 			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 
-		try(final InputStream is = GedcomParser.class.getResourceAsStream(gedcomFile)){
+		try(final InputStream is = new FileInputStream(gedcomFile)){
 			final GedcomParser parser = new GedcomParser(protocol, grammar);
 			return parser.parseGedcom(is);
 		}
@@ -88,14 +94,15 @@ final class GedcomParser{
 		String version = null;
 		Protocol protocol = null;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
-			is.mark(Short.MAX_VALUE);
-
+			int zeroLevelsFound = 0;
 			String line;
-			while((line = br.readLine()) != null){
+			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
 				//skip empty lines
 				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
 					continue;
 
+				if(line.charAt(0) == '0')
+					zeroLevelsFound ++;
 				if(line.equals("1 GEDC")){
 					line = br.readLine();
 					if(line.startsWith("2 VERS ")){
@@ -112,8 +119,6 @@ final class GedcomParser{
 					break;
 				}
 			}
-
-			is.reset();
 		}
 		catch(final IllegalArgumentException e){
 			throw e;

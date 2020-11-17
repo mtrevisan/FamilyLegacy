@@ -69,30 +69,24 @@ final class Transformer{
 		for(final GedcomNode document : documents){
 			String documentID = document.getID();
 			if(documentID == null){
-				documentID = destination.getNextSourceID();
-
-				final GedcomNode destinationDocument = GedcomNodeBuilder.create(protocol, "SOURCE")
-					.withID(documentID);
-				final String documentTitle = extractSubStructure(document, "TITL")
-					.getValue();
 				final String documentFormat = extractSubStructure(document, "FORM")
 					.getValue();
 				final String documentMedia = extractSubStructure(document, "FORM", "MEDI")
 					.getValue();
-				final String documentFile = extractSubStructure(document, "FILE")
-					.getValue();
-				final String documentCut = extractSubStructure(document, "_CUTD")
-					.getValue();
 
-				destinationDocument.addChildValue("TITLE", documentTitle);
+				final GedcomNode destinationDocument = GedcomNodeBuilder.create(protocol, "SOURCE")
+					.addChildValue("TITLE", extractSubStructure(document, "TITL")
+						.getValue());
 				if(documentFormat != null || documentMedia != null)
 					destinationDocument.addChild(GedcomNodeBuilder.create(protocol, "FILE")
-						.withValue(documentFile)
+						.withValue(extractSubStructure(document, "FILE")
+							.getValue())
 						.addChildValue("FORMAT", documentFormat)
 						.addChildValue("MEDIA", documentMedia)
-						.addChildValue("CUT", documentCut)
+						.addChildValue("CUT", extractSubStructure(document, "_CUTD")
+							.getValue())
 					);
-				destination.addSource(destinationDocument);
+				documentID = destination.addSource(destinationDocument);
 			}
 			destinationNode.addChildReference("SOURCE", documentID);
 		}
@@ -103,19 +97,16 @@ final class Transformer{
 		for(final GedcomNode sourceCitation : sourceCitations){
 			String sourceCitationID = sourceCitation.getID();
 			if(sourceCitationID == null){
-				sourceCitationID = destination.getNextSourceID();
-
 				//create source:
-				final GedcomNode note = GedcomNodeBuilder.create(protocol, "NOTE", destination.getNextNoteID(), sourceCitation.getValue());
-				destination.addNote(note);
+				final String noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+					.withValue(sourceCitation.getValue()));
 				final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOURCE")
-					.withID(sourceCitationID)
 					.addChildValue("EXTRACT", extractSubStructure(sourceCitation, "TEXT")
 						.getValue())
-					.addChildReference("NOTE", note.getID());
+					.addChildReference("NOTE", noteID);
 				documentTo(sourceCitation, destinationSource, destination);
 				noteTo(sourceCitation, destinationSource, destination);
-				destination.addSource(destinationSource);
+				sourceCitationID = destination.addSource(destinationSource);
 
 				//add source citation
 				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")
@@ -125,8 +116,8 @@ final class Transformer{
 			}
 			else{
 				//create source:
-				final GedcomNode note = GedcomNodeBuilder.create(protocol, "NOTE", destination.getNextNoteID(), sourceCitation.getValue());
-				destination.addNote(note);
+				final String noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+					.withValue(sourceCitation.getValue()));
 				final GedcomNode eventNode = extractSubStructure(sourceCitation, "EVEN");
 				final GedcomNode data = extractSubStructure(sourceCitation, "DATA");
 				final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOURCE")
@@ -138,7 +129,7 @@ final class Transformer{
 				for(final GedcomNode text : texts)
 					destinationSource.addChildValue("TEXT", text
 						.getValue());
-				destinationSource.addChildReference("NOTE", note.getID());
+				destinationSource.addChildReference("NOTE", noteID);
 				documentTo(sourceCitation, destinationSource, destination);
 				noteTo(sourceCitation, destinationSource, destination);
 				destination.addSource(destinationSource);
@@ -161,7 +152,6 @@ final class Transformer{
 		final String addressValue = extractAddressValue(address);
 
 		final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLACE")
-			.withID(destination.getNextPlaceID())
 			.addChildValue("ADDRESS", addressValue)
 			.addChildValue("CITY", extractSubStructure(address, "CITY")
 				.getValue())
@@ -169,9 +159,8 @@ final class Transformer{
 				.getValue())
 			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY")
 				.getValue());
-		destinationNode.addChildReference("PLACE", destinationPlace.getID());
-
-		destination.addPlace(destinationPlace);
+		final String destinationPlaceID = destination.addPlace(destinationPlace);
+		destinationNode.addChildReference("PLACE", destinationPlaceID);
 	}
 
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
@@ -205,24 +194,24 @@ final class Transformer{
 		final String addressValue = extractAddressValue(address);
 
 		final GedcomNode place = extractSubStructure(parent, "PLAC");
-		final GedcomNode map = extractSubStructure(place, "MAP");
-		final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLACE")
-			.withID(destination.getNextPlaceID())
-			.withValue(place.getValue())
-			.addChildValue("ADDRESS", addressValue)
-			.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
-			.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
-			.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
-			.addChild(GedcomNodeBuilder.create(protocol, "MAP")
-				.addChildValue("LATITUDE", extractSubStructure(map, "LATI")
-					.getValue())
-				.addChildValue("LONGITUDE", extractSubStructure(map, "LONG")
-					.getValue())
-			);
-		noteTo(place, destinationPlace, destination);
-		destinationNode.addChildReference("PLACE", destinationPlace.getID());
-
-		destination.addPlace(destinationPlace);
+		if(!address.isEmpty() || !place.isEmpty()){
+			final GedcomNode map = extractSubStructure(place, "MAP");
+			final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLACE")
+				.withValue(place.getValue())
+				.addChildValue("ADDRESS", addressValue)
+				.addChildValue("CITY", extractSubStructure(address, "CITY").getValue())
+				.addChildValue("STATE", extractSubStructure(address, "STAE").getValue())
+				.addChildValue("COUNTRY", extractSubStructure(address, "CTRY").getValue())
+				.addChild(GedcomNodeBuilder.create(protocol, "MAP")
+					.addChildValue("LATITUDE", extractSubStructure(map, "LATI")
+						.getValue())
+					.addChildValue("LONGITUDE", extractSubStructure(map, "LONG")
+						.getValue())
+				);
+			noteTo(place, destinationPlace, destination);
+			final String destinationPlaceID = destination.addPlace(destinationPlace);
+			destinationNode.addChildReference("PLACE", destinationPlaceID);
+		}
 	}
 
 	private String extractAddressValue(final GedcomNode address){
@@ -243,11 +232,9 @@ final class Transformer{
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
 			String noteID = note.getID();
-			if(noteID == null){
-				noteID = destination.getNextNoteID();
-
-				destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE", noteID, note.getValue()));
-			}
+			if(noteID == null)
+				noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+					.withValue(note.getValue()));
 			destinationNode.addChildReference("NOTE", noteID);
 		}
 	}

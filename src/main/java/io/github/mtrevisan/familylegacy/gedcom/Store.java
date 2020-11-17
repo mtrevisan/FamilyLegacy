@@ -123,4 +123,16 @@ public abstract class Store{
 		return indexes;
 	}
 
+	static Map<GedcomNode, String> reverseMap(final Map<String, GedcomNode> map){
+		final Map<GedcomNode, String> values;
+		if(!map.isEmpty()){
+			values = new HashMap<>(map.size());
+			for(final Map.Entry<String, GedcomNode> elem : map.entrySet())
+				values.put(elem.getValue(), elem.getKey());
+		}
+		else
+			values = Collections.emptyMap();
+		return values;
+	}
+
 }

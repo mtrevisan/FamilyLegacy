@@ -85,8 +85,22 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 
 	private void personalNamePiecesTo(final GedcomNode personalNameStructure, final GedcomNode destinationNode,
 			final Flef destination){
-		final String surname = transformerTo.extractSubStructure(personalNameStructure, "SURN")
+		String givenName = transformerTo.extractSubStructure(personalNameStructure, "GIVN")
 			.getValue();
+		String personalNameSuffix = transformerTo.extractSubStructure(personalNameStructure, "NSFX").getValue();
+		String surname = transformerTo.extractSubStructure(personalNameStructure, "SURN")
+			.getValue();
+		final String nameValue = personalNameStructure.getValue();
+		if(nameValue != null){
+			final int surnameBeginIndex = nameValue.indexOf('/');
+			final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
+			if(givenName == null && surnameBeginIndex > 0)
+				givenName = nameValue.substring(0, surnameBeginIndex - 1);
+			if(personalNameSuffix == null && surnameEndIndex >= 0)
+				personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
+			if(surname == null && surnameBeginIndex >= 0)
+				surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
+		}
 		final String surnamePrefix = transformerTo.extractSubStructure(personalNameStructure, "SPFX")
 			.getValue();
 		final StringJoiner sj = new StringJoiner(" ");
@@ -94,23 +108,6 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			sj.add(surnamePrefix);
 		if(surname != null)
 			sj.add(surname);
-		final String nameValue = personalNameStructure.getValue();
-		String givenName = transformerTo.extractSubStructure(personalNameStructure, "GIVN")
-			.getValue();
-		final int surnameBeginIndex = (nameValue != null? nameValue.indexOf('/'): -1);
-		int surnameEndIndex = -1;
-		if(nameValue != null && surnameBeginIndex >= 0){
-			surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
-			if(givenName == null && surnameBeginIndex > 0)
-				//extract given name component
-				givenName = nameValue.substring(0, surnameBeginIndex - 1);
-			//extract surname component
-			sj.add(nameValue.substring(surnameBeginIndex + 1,
-				(surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1)));
-		}
-		String personalNameSuffix = transformerTo.extractSubStructure(personalNameStructure, "NSFX").getValue();
-		if(personalNameSuffix == null && nameValue != null)
-			personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
 		destinationNode
 			.addChildValue("TYPE", transformerTo.extractSubStructure(personalNameStructure, "TYPE")
 				.getValue())
@@ -150,10 +147,15 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void associationTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSO");
 		for(final GedcomNode association : associations){
+			String type = transformerTo.extractSubStructure(association, "TYPE")
+				.getValue();
+			if("FAM".equals(type))
+				type = "FAMILY";
+			else if("INDI".equals(type))
+				type = "INDIVIDUAL";
 			final GedcomNode destinationAssociation = transformerTo.create("ASSOCIATION")
 				.withID(association.getID())
-				.addChildValue("TYPE", transformerTo.extractSubStructure(association, "TYPE")
-					.getValue())
+				.addChildValue("TYPE", type)
 				.addChildValue("RELATIONSHIP", transformerTo.extractSubStructure(association, "RELA")
 					.getValue());
 			transformerTo.noteTo(association, destinationAssociation, destination);
@@ -367,10 +369,14 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void associationFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSOCIATION");
 		for(final GedcomNode association : associations){
+			String type = transformerFrom.extractSubStructure(association, "TYPE").getValue();
+			if("FAMILY".equals(type))
+				type = "FAM";
+			else if("INDIVIDUAL".equals(type))
+				type = "INDI";
 			final GedcomNode destinationAssociation = transformerFrom.create("ASSO")
 				.withID(association.getID())
-				.addChildValue("TYPE", transformerFrom.extractSubStructure(association, "TYPE")
-					.getValue())
+				.addChildValue("TYPE", type)
 				.addChildValue("RELA", transformerFrom.extractSubStructure(association, "RELATIONSHIP")
 					.getValue());
 			transformerFrom.noteFrom(association, destinationAssociation);

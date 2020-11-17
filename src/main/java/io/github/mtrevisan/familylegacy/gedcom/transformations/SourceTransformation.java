@@ -40,10 +40,9 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 			.getValue();
 		final String noteAuthorPublication = transformerTo.joinIfNotNull(", ", author, publication);
 		if(noteAuthorPublication != null){
-			final String noteID = destination.getNextNoteID();
+			final String noteID = destination.addNote(transformerTo.create("NOTE")
+				.withValue(noteAuthorPublication));
 			destinationSource.addChildReference("NOTE", noteID);
-
-			destination.addNote(transformerTo.create("NOTE", noteID, noteAuthorPublication));
 		}
 		documentsTo(source, destinationSource, destination);
 		transformerTo.noteTo(source, destinationSource, destination);
@@ -57,17 +56,14 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode document : documents){
 			String documentID = document.getID();
 			if(documentID == null){
-				documentID = destination.getNextSourceID();
-
-				final GedcomNode destinationDocument = transformerTo.create("SOURCE")
-					.withID(documentID);
 				final String documentFormat = transformerTo.extractSubStructure(document, "FORM")
 					.getValue();
 				final String documentMedia = transformerTo.extractSubStructure(document, "FORM", "MEDI")
 					.getValue();
 
-				destinationDocument.addChildValue("TITLE", transformerTo.extractSubStructure(document, "TITL")
-					.getValue());
+				final GedcomNode destinationDocument = transformerTo.create("SOURCE")
+					.addChildValue("TITLE", transformerTo.extractSubStructure(document, "TITL")
+						.getValue());
 				if(documentFormat != null || documentMedia != null)
 					destinationDocument.addChild(transformerTo.create("FILE")
 						.withValue(transformerTo.extractSubStructure(document, "FILE")
@@ -87,18 +83,13 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
-			String repositoryID = repository.getID();
-
 			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			if(repositoryID == null){
-				repositoryID = destination.getNextRepositoryID();
-
+			if(repository.getID() == null){
 				destination.addRepository(destinationRepository);
 
 				transformerTo.noteTo(repository, destinationRepository, destination);
 			}
-			destinationNode.addChild(destinationRepository
-				.withID(repositoryID));
+			destinationNode.addChild(destinationRepository);
 		}
 	}
 

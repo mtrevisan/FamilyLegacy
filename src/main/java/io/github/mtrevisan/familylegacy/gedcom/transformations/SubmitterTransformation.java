@@ -29,8 +29,8 @@ public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode preferredLanguage : preferredLanguages)
 			sj.add(preferredLanguage.getValue());
 		if(sj.length() > 0){
-			final String noteID = destination.getNextNoteID();
-			destination.addNote(transformerTo.create("NOTE", noteID, "Preferred contact language(s): " + sj));
+			final String noteID = destination.addNote(transformerTo.create("NOTE")
+				.withValue("Preferred contact language(s): " + sj));
 			destinationSource.addChildReference("NOTE", noteID);
 		}
 		transformerTo.noteTo(submitter, destinationSource, destination);

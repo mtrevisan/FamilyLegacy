@@ -82,6 +82,16 @@ public class Flef extends Store{
 	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
+	private Map<GedcomNode, String> individualValue;
+	private Map<GedcomNode, String> familyValue;
+	private Map<GedcomNode, String> placeValue;
+	private Map<GedcomNode, String> noteValue;
+	private Map<GedcomNode, String> repositoryValue;
+	private Map<GedcomNode, String> sourceValue;
+	private Map<GedcomNode, String> culturalRuleValue;
+	private Map<GedcomNode, String> groupValue;
+	private Map<GedcomNode, String> submitterValue;
+
 
 	@Override
 	protected void create(final GedcomNode root) throws GedcomParseException{
@@ -109,6 +119,16 @@ public class Flef extends Store{
 		culturalRuleIndex = generateIndexes(culturalRules);
 		groupIndex = generateIndexes(groups);
 		submitterIndex = generateIndexes(submitters);
+
+		individualValue = reverseMap(individualIndex);
+		familyValue = reverseMap(familyIndex);
+		placeValue = reverseMap(placeIndex);
+		noteValue = reverseMap(noteIndex);
+		repositoryValue = reverseMap(repositoryIndex);
+		sourceValue = reverseMap(sourceIndex);
+		culturalRuleValue = reverseMap(culturalRuleIndex);
+		groupValue = reverseMap(groupIndex);
+		submitterValue = reverseMap(submitterIndex);
 	}
 
 	@Override
@@ -181,7 +201,7 @@ public class Flef extends Store{
 		return individualID;
 	}
 
-	public String getNextIndividualID(){
+	private String getNextIndividualID(){
 		return ID_INDIVIDUAL_PREFIX + (individuals != null? individuals.size() + 1: 1);
 	}
 
@@ -208,7 +228,7 @@ public class Flef extends Store{
 		return familyID;
 	}
 
-	public String getNextFamilyID(){
+	private String getNextFamilyID(){
 		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
 	}
 
@@ -221,21 +241,31 @@ public class Flef extends Store{
 	}
 
 	public String addPlace(final GedcomNode place){
-		if(places == null){
-			places = new ArrayList<>(1);
-			placeIndex = new HashMap<>(1);
-		}
-		String placeID = place.getID();
+		//search place
+		final GedcomNode placeClone = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
+		String placeID = (placeValue != null? placeValue.get(placeClone): null);
 		if(placeID == null){
-			placeID = getNextPlaceID();
-			place.withID(placeID);
+			//if place is not found:
+			if(places == null){
+				places = new ArrayList<>(1);
+				placeIndex = new HashMap<>(1);
+				placeValue = new HashMap<>(1);
+			}
+
+			placeID = place.getID();
+			if(placeID == null){
+				placeID = getNextPlaceID();
+				place.withID(placeID);
+			}
+
+			places.add(place);
+			placeIndex.put(place.getID(), place);
+			placeValue.put(placeClone, place.getID());
 		}
-		places.add(place);
-		placeIndex.put(place.getID(), place);
 		return placeID;
 	}
 
-	public String getNextPlaceID(){
+	private String getNextPlaceID(){
 		return ID_PLACE_PREFIX + (places != null? places.size() + 1: 1);
 	}
 
@@ -262,7 +292,7 @@ public class Flef extends Store{
 		return noteID;
 	}
 
-	public String getNextNoteID(){
+	private String getNextNoteID(){
 		return ID_NOTE_PREFIX + (notes != null? notes.size() + 1: 1);
 	}
 
@@ -279,17 +309,19 @@ public class Flef extends Store{
 			repositories = new ArrayList<>(1);
 			repositoryIndex = new HashMap<>(1);
 		}
+
 		String repositoryID = repository.getID();
 		if(repositoryID == null){
 			repositoryID = getNextRepositoryID();
 			repository.withID(repositoryID);
 		}
+
 		repositories.add(repository);
 		repositoryIndex.put(repository.getID(), repository);
 		return repositoryID;
 	}
 
-	public String getNextRepositoryID(){
+	private String getNextRepositoryID(){
 		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
 	}
 
@@ -316,7 +348,7 @@ public class Flef extends Store{
 		return sourceID;
 	}
 
-	public String getNextSourceID(){
+	private String getNextSourceID(){
 		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
 	}
 
@@ -343,7 +375,7 @@ public class Flef extends Store{
 		return culturalRuleID;
 	}
 
-	public String getNextCulturalRuleID(){
+	private String getNextCulturalRuleID(){
 		return ID_CULTURAL_RULE_PREFIX + (culturalRules != null? culturalRules.size() + 1: 1);
 	}
 
@@ -370,7 +402,7 @@ public class Flef extends Store{
 		return groupID;
 	}
 
-	public String getNextGroupID(){
+	private String getNextGroupID(){
 		return ID_GROUP_PREFIX + (groups != null? groups.size() + 1: 1);
 	}
 
@@ -397,7 +429,7 @@ public class Flef extends Store{
 		return submitterID;
 	}
 
-	public String getNextSubmitterID(){
+	private String getNextSubmitterID(){
 		return ID_SUBMITTER_PREFIX + (submitters != null? submitters.size() + 1: 1);
 	}
 

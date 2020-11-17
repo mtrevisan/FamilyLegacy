@@ -86,25 +86,38 @@ public class Gedcom extends Store{
 	private Map<String, GedcomNode> sourceIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
+	private Map<GedcomNode, String> individualValue;
+	private Map<GedcomNode, String> familyValue;
+	private Map<GedcomNode, String> documentValue;
+	private Map<GedcomNode, String> noteValue;
+	private Map<GedcomNode, String> repositoryValue;
+	private Map<GedcomNode, String> sourceValue;
+	private Map<GedcomNode, String> submitterValue;
+
 
 	public static void main(final String[] args){
 		try{
 			final Store storeGedcom = new Gedcom();
-//			storeGedcom.load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-			storeGedcom.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-//			storeGedcom.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+//			storeGedcom.load("/gedg/gedcomobjects_5.5.gedg", "src/main/resources/ged/large.ged");
+//			storeGedcom.load("/gedg/gedcomobjects_5.5.1.gedg", "src/main/resources/ged/small.ged");
+			storeGedcom.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
 			final Flef storeFlef = storeGedcom.transform();
 
-			final File outputFile = new File("./tmp.ged");
+			final File outputFile = new File("tmp.ged");
 			final OutputStream os = new FileOutputStream(outputFile);
 //			gedcom.write(os);
 			storeFlef.write(os);
+			os.close();
 
 			final Store storeFlef2 = new Flef();
-			storeFlef2.load("/gedg/flef_0.0.2.gedg", outputFile.getAbsolutePath());
+			storeFlef2.load("/gedg/flef_0.0.2.gedg", outputFile.getPath());
 
-			//TODO compare storeFlef and storeFlef2
+			//compare storeFlef and storeFlef2
+			final File outputFile2 = new File("tmp2.ged");
+			final OutputStream os2 = new FileOutputStream(outputFile2);
+			storeFlef.write(os2);
+			os2.close();
 		}
 		catch(final Exception e){
 			e.printStackTrace();
@@ -133,6 +146,14 @@ public class Gedcom extends Store{
 		repositoryIndex = generateIndexes(repositories);
 		sourceIndex = generateIndexes(sources);
 		submitterIndex = generateIndexes(submitters);
+
+		individualValue = reverseMap(individualIndex);
+		familyValue = reverseMap(familyIndex);
+		documentValue = reverseMap(documentIndex);
+		noteValue = reverseMap(noteIndex);
+		repositoryValue = reverseMap(repositoryIndex);
+		sourceValue = reverseMap(sourceIndex);
+		submitterValue = reverseMap(submitterIndex);
 	}
 
 	@Override
