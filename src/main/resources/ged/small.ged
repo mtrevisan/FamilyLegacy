@@ -53,4 +53,8 @@
 1 EMAIL info@mycorporation.com
 1 FAX 866-111-1111
 1 WWW https://www.mycorporation.com/
+0 @SUBM1@ SUBM
+1 NAME submitter
+0 @SUBN1@ SUBN
+1 SUBM @SUBM1@
 0 TRLR

@@ -93,6 +93,8 @@ final class GedcomParser{
 			lineCount = 0;
 			startDocument();
 
+			final List<String> references = new ArrayList<>();
+
 			String line;
 			int currentLevel;
 			int previousLevel = -1;
@@ -128,6 +130,10 @@ final class GedcomParser{
 
 				startElement(child);
 
+				if(child.getXRef() != null)
+					//collect reference to another node
+					references.add(child.getXRef());
+
 				previousLevel = currentLevel;
 			}
 
@@ -135,7 +141,11 @@ final class GedcomParser{
 			//end document
 			endElement();
 
-			//TODO check referential integrity
+			//check referential integrity
+			for(final String xref : references)
+				if(!root.existChildrenWithID(xref))
+					throw GedcomParseException.create("Cannot find object for ID {}", xref)
+						.skipAddLineNumber();
 
 			LOGGER.info("Parsing done");
 
@@ -144,8 +154,10 @@ final class GedcomParser{
 		catch(final IllegalArgumentException e){
 			throw e;
 		}
-		catch(final GedcomParseException e){
-			throw GedcomParseException.create(e.getMessage() + " on line {}", lineCount);
+		catch(GedcomParseException e){
+			if(!e.isSkipAddLineNumber())
+				e = GedcomParseException.create(e.getMessage() + " on line {}", lineCount);
+			throw e;
 		}
 		catch(final Exception e){
 			if(lineCount < 0)

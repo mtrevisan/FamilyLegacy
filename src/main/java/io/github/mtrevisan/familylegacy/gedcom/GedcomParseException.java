@@ -38,6 +38,8 @@ public final class GedcomParseException extends Exception{
 
 	private static final long serialVersionUID = -9166944783238433522L;
 
+	private boolean skipAddLineNumber;
+
 
 	public static GedcomParseException create(final String message, final Object... parameters){
 		return new GedcomParseException(JavaHelper.format(message, parameters));
@@ -45,6 +47,15 @@ public final class GedcomParseException extends Exception{
 
 	private GedcomParseException(final String message){
 		super(message);
+	}
+
+	public GedcomParseException skipAddLineNumber(){
+		skipAddLineNumber = true;
+		return this;
+	}
+
+	public boolean isSkipAddLineNumber(){
+		return skipAddLineNumber;
 	}
 
 	@SuppressWarnings("unused")

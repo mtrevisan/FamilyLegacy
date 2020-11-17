@@ -73932,11 +73932,11 @@
 1 FAMC @F1072@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1548
+2 DATE BEF ABT 1548
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 26 NOV 1548
+2 DATE 26 NOV 1548
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 703, carta 162r
@@ -73945,19 +73945,19 @@
 4 ROLE seller
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02.jpg
 3 _PUBL Y
 2 NOTE @N51@
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 18 OCT 1562
+2 DATE BEF 18 OCT 1562
 1 CHAN
 2 DATE 15 AUG 2020
 3 TIME 18:31:59
@@ -73975,30 +73975,30 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 22 DEC 1559
+2 DATE 22 DEC 1559
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 EVEN DEED
 4 ROLE tutrix
 3 DATA
-4 DATE @#DJULIAN@ 22 DEC 1559
+4 DATE 22 DEC 1559
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N45@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 18 OCT 1562
+2 DATE 18 OCT 1562
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 2
@@ -74006,53 +74006,53 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 18 OCT 1562
+4 DATE 18 OCT 1562
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02.jpg
 3 _PUBL Y
 2 NOTE @N42@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 JAN 1564
+2 DATE 8 JAN 1564
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 8 JAN 1564
+4 DATE 8 JAN 1564
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N43@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 AUG 1574
+2 DATE 23 AUG 1574
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 848, foglio 23
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 23 AUG 1574
+4 DATE 23 AUG 1574
 2 OBJE
 3 TITL deed 15740823 Magdalena
-3 _DATE @#DJULIAN@ 23 AUG 1574
+3 _DATE 23 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740823 Magdalena.jpg
 3 _PUBL Y
@@ -74133,11 +74133,11 @@
 1 FAMC @F1071@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1529
+2 DATE BEF ABT 1529
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 29 JAN 1527
+2 DATE 29 JAN 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -74145,39 +74145,39 @@
 3 EVEN DEED
 4 ROLE prisoner
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1527
+4 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
 2 NOTE @N53@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 24 OCT 1556
+2 DATE 24 OCT 1556
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 12, 3a facciata
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 24 OCT 1556
+4 DATE 24 OCT 1556
 2 OBJE
 3 TITL deed 15561024 Trivisanus Andreas01
-3 _DATE @#DJULIAN@ 24 OCT 1556
+3 _DATE 24 OCT 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15561024 Trivisanus Andreas01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15561024 Trivisanus Andreas02
-3 _DATE @#DJULIAN@ 24 OCT 1556
+3 _DATE 24 OCT 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15561024 Trivisanus Andreas02.jpg
 3 _PUBL Y
 2 NOTE @N73@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 17 JAN 1560
+2 DATE 17 JAN 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, fascicolo 10
@@ -74185,25 +74185,25 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 17 JAN 1560
+4 DATE 17 JAN 1560
 2 OBJE
 3 TITL deed 15600117 Trivisanus Andreas01
-3 _DATE @#DJULIAN@ 17 JAN 1560
+3 _DATE 17 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600117 Trivisanus Andreas01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600117 Trivisanus Andreas02
-3 _DATE @#DJULIAN@ 17 JAN 1560
+3 _DATE 17 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600117 Trivisanus Andreas02.jpg
 3 _PUBL Y
 2 NOTE @N72@
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 17 JAN 1560
+2 DATE BEF 17 JAN 1560
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 10 SEP 1569
+2 DATE 10 SEP 1569
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, carta 33r
@@ -74211,28 +74211,28 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 10 SEP 1569
+4 DATE 10 SEP 1569
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus01
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus02
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus03
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus04
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus04.jpg
 3 _PUBL Y
@@ -74252,7 +74252,7 @@
 1 FAMC @F1055@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1580
+2 DATE BEF ABT 1580
 1 OCCU carrer
 2 PLAC Borgo Santi 40, Treviso, Italy
 1 EVEN
@@ -74368,7 +74368,7 @@
 1 FAMC @F1059@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1581
+2 DATE BEF ABT 1581
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
@@ -74400,7 +74400,7 @@
 1 ALIA @I2769@
 1 FAMS @F1059@
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1561
+2 DATE BEF ABT 1561
 1 DEAT Y
 2 DATE BEF 17 NOV 1601
 1 CHAN
@@ -74485,11 +74485,11 @@
 1 FAMC @F1054@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1549
+2 DATE BEF ABT 1549
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 31 JAN 1560
+2 DATE 31 JAN 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 13
@@ -74497,124 +74497,124 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 31 JAN 1560
+4 DATE 31 JAN 1560
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03.jpg
 3 _PUBL Y
 2 NOTE @N71@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 5 JUN 1560
+2 DATE 5 JUN 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 5 JUN 1560
+4 DATE 5 JUN 1560
 2 OBJE
 3 TITL deed 15600605 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 5 JUN 1560
+3 _DATE 5 JUN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600605 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600605 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 5 JUN 1560
+3 _DATE 5 JUN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600605 Trivisanus Franciscus02.jpg
 3 _PUBL Y
 2 NOTE @N70@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 SEP 1562
+2 DATE 27 SEP 1562
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 3
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 27 SEP 1562
+4 DATE 27 SEP 1562
 2 SOUR @S3@
 3 PAGE busta 846, carta 3
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 28 SEP 1562
+4 DATE 28 SEP 1562
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus01
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus02
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus03
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus04
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus05
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus05.jpg
 3 _PUBL Y
 2 NOTE @N26@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 3 JUN 1570
+2 DATE 3 JUN 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 164v, 165r
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 3 JUN 1570
+4 DATE 3 JUN 1570
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus03
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus03.jpg
 3 _PUBL Y
 2 NOTE @N25@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 JAN 1571
+2 DATE 27 JAN 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
@@ -74622,26 +74622,26 @@
 4 ROLE seller
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus01
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus02
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus03
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus03.jpg
 3 _PUBL Y
 2 NOTE @N35@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 FEB 1571
+2 DATE 8 FEB 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, fascicolo 1571, fascicoletto 1, 17
@@ -74649,38 +74649,38 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 8 FEB 1571
+4 DATE 8 FEB 1571
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus02.jpg
 3 _PUBL Y
 2 NOTE @N16@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 SEP 1582
+2 DATE 27 SEP 1582
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 850, carta 43
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 27 SEP 1582
+4 DATE 27 SEP 1582
 2 OBJE
 3 TITL deed 15820927 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 27 SEP 1582
+3 _DATE 27 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820927 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820927 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 27 SEP 1582
+3 _DATE 27 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820927 Trivisanus Franciscus02.jpg
 3 _PUBL Y
@@ -74699,7 +74699,7 @@
 1 FAMC @F1058@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1569
+2 DATE BEF ABT 1569
 1 EVEN
 2 TYPE Deed
 2 DATE 24 FEB 1589
@@ -74796,11 +74796,11 @@
 1 FAMC @F1064@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1549
+2 DATE BEF ABT 1549
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 25 JUL 1569
+2 DATE 25 JUL 1569
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 851, fascicolo Contratti e atti diversi
@@ -74808,29 +74808,29 @@
 3 EVEN DEED
 4 ROLE testamentary
 3 DATA
-4 DATE @#DJULIAN@ 25 JUL 1569
+4 DATE 25 JUL 1569
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N11@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 MAR 1571
+2 DATE 13 MAR 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847
@@ -74839,19 +74839,19 @@
 4 ROLE testamentary
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03.jpg
 3 _PUBL Y
@@ -74929,7 +74929,7 @@
 1 EVEN Guarnerio /gwarˈnɛrio/
 2 TYPE Family nickname
 1 DEAT Y
-2 DATE @#DJULIAN@ BET 15 NOV 1524 AND 17 JAN 1560
+2 DATE BET 15 NOV 1524 AND 17 JAN 1560
 1 CHAN
 2 DATE 9 OCT 2020
 3 TIME 10:29:38
@@ -74956,35 +74956,35 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 20 JUN 1566
+2 DATE 20 JUN 1566
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 EVEN DEED
 4 ROLE witness
 3 DATA
-4 DATE @#DJULIAN@ 20 JUN 1566
+4 DATE 20 JUN 1566
 2 OBJE
 3 TITL deed 15660620 Hieronimus01
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660620 Hieronimus02
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660620 Hieronimus03
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus03.jpg
 3 _PUBL Y
 2 NOTE @N33@
 1 DEAT Y
-2 DATE @#DJULIAN@ BET 10 JUN 1566 AND 8 FEB 1571
+2 DATE BET 10 JUN 1566 AND 8 FEB 1571
 1 CHAN
 2 DATE 29 JUN 2020
 3 TIME 19:11:01
@@ -75011,7 +75011,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 20 FEB 1560
+2 DATE 20 FEB 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 579
@@ -75020,37 +75020,37 @@
 4 ROLE protégé
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus01
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus02
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus03
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus04
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus05
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus06
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus06.jpg
 3 _PUBL Y
@@ -75151,11 +75151,11 @@
 1 FAMC @F1067@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1563
+2 DATE BEF ABT 1563
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 20 FEB 1560
+2 DATE 20 FEB 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 579
@@ -75164,37 +75164,37 @@
 4 ROLE protégé
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus01
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus02
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus03
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus04
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus05
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus06
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus06.jpg
 3 _PUBL Y
@@ -75275,54 +75275,54 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 5 APR 1571
+2 DATE 5 APR 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 5 APR 1571
+4 DATE 5 APR 1571
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua01
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua02
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua03
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua04
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua05
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua06
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua06.jpg
 3 _PUBL Y
 2 NOTE @N37@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 10 APR 1571
+2 DATE 10 APR 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio sciolto a 1/3 circa
@@ -75330,23 +75330,23 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 10 APR 1571
+4 DATE 10 APR 1571
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua01-01
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua01-01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua01-02
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua01-02.jpg
 3 _PUBL Y
 2 NOTE @N17@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 10 APR 1571
+2 DATE 10 APR 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 64
@@ -75354,22 +75354,22 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 10 APR 1571
+4 DATE 10 APR 1571
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua02-01
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua02-01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua02-02
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua02-02.jpg
 3 _PUBL Y
 2 NOTE @N36@
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT 10 APR 1571
+2 DATE AFT 10 APR 1571
 1 CHAN
 2 DATE 20 JUL 2020
 3 TIME 22:15:29
@@ -75381,7 +75381,7 @@
 1 SEX M
 1 FAMS @F1068@
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1551
+2 DATE BEF ABT 1551
 1 DEAT Y
 1 CHAN
 2 DATE 29 NOV 2019
@@ -75424,7 +75424,7 @@
 1 FAMS @F1069@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 3 NOV 1571
+2 DATE BEF 3 NOV 1571
 1 CHAN
 2 DATE 9 NOV 2019
 3 TIME 18:09:44
@@ -75472,11 +75472,11 @@
 1 FAMC @F1054@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1551
+2 DATE BEF ABT 1551
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 31 JAN 1560
+2 DATE 31 JAN 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 13
@@ -75484,74 +75484,74 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 31 JAN 1560
+4 DATE 31 JAN 1560
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03.jpg
 3 _PUBL Y
 2 NOTE @N71@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 SEP 1562
+2 DATE 27 SEP 1562
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 3
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 27 SEP 1562
+4 DATE 27 SEP 1562
 2 SOUR @S3@
 3 PAGE busta 846, carta 3
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 28 SEP 1562
+4 DATE 28 SEP 1562
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus01
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus02
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus03
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus04
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus05
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus05.jpg
 3 _PUBL Y
 2 NOTE @N26@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 JAN 1571
+2 DATE 27 JAN 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
@@ -75559,26 +75559,26 @@
 4 ROLE buyer
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus01
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus02
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus03
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus03.jpg
 3 _PUBL Y
 2 NOTE @N35@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 FEB 1571
+2 DATE 8 FEB 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, fascicolo 1571, fascicoletto 1, 17
@@ -75586,35 +75586,35 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 8 FEB 1571
+4 DATE 8 FEB 1571
 3 OBJE
 4 TITL deed 15710208 Trivisanus Franciscus01
-4 _DATE @#DJULIAN@ 8 FEB 1571
+4 _DATE 8 FEB 1571
 4 FORM jpg
 4 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus01.jpg
 4 _PUBL Y
 3 OBJE
 4 TITL deed 15710208 Trivisanus Franciscus02
-4 _DATE @#DJULIAN@ 8 FEB 1571
+4 _DATE 8 FEB 1571
 4 FORM jpg
 4 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus02.jpg
 4 _PUBL Y
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus02.jpg
 3 _PUBL Y
 2 NOTE @N16@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 24 AUG 1574
+2 DATE 24 AUG 1574
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE foglio 23
@@ -75622,23 +75622,23 @@
 3 EVEN DEED
 4 ROLE witness
 3 DATA
-4 DATE @#DJULIAN@ 24 AUG 1574
+4 DATE 24 AUG 1574
 2 OBJE
 3 TITL deed 15740824 Cargno Angelus01
-3 _DATE @#DJULIAN@ 24 AUG 1574
+3 _DATE 24 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740824 Cargno Angelus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15740824 Cargno Angelus02
-3 _DATE @#DJULIAN@ 24 AUG 1574
+3 _DATE 24 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740824 Cargno Angelus02.jpg
 3 _PUBL Y
 2 NOTE @N28@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 26 JUN 1582
+2 DATE 26 JUN 1582
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 850, fascicoletto 18, carta 3
@@ -75646,23 +75646,23 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 26 JUN 1582
+4 DATE 26 JUN 1582
 2 OBJE
 3 TITL deed 15820626 Trivisanus Dominicus01
-3 _DATE @#DJULIAN@ 26 JUN 1582
+3 _DATE 26 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820626 Trivisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820626 Trivisanus Dominicus02
-3 _DATE @#DJULIAN@ 26 JUN 1582
+3 _DATE 26 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820626 Trivisanus Dominicus02.jpg
 3 _PUBL Y
 2 NOTE @N38@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 JUN 1582
+2 DATE 27 JUN 1582
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 850, fascicoletto 18, foglio 23
@@ -75670,62 +75670,62 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 27 JUN 1582
+4 DATE 27 JUN 1582
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus01
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus02
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus03
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus04
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus04.jpg
 3 _PUBL Y
 2 NOTE @N10@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 19 SEP 1582
+2 DATE 19 SEP 1582
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 850, carta 46
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 19 SEP 1582
+4 DATE 19 SEP 1582
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus01
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus02
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus03
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus03.jpg
 3 _PUBL Y
 2 NOTE @N15@
 1 OCCU karèr
-2 DATE @#DJULIAN@ 26 JUN 1582
+2 DATE 26 JUN 1582
 1 EVEN
 2 TYPE Deed
 2 DATE 24 FEB 1589
@@ -75828,11 +75828,11 @@
 1 FAMC @F1072@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1543
+2 DATE BEF ABT 1543
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 26 NOV 1548
+2 DATE 26 NOV 1548
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 703, carta 162r
@@ -75841,20 +75841,20 @@
 4 ROLE seller
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02.jpg
 3 _PUBL Y
 2 NOTE @N51@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 26 JAN 1551
+2 DATE 26 JAN 1551
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 562, carta 188
@@ -75862,29 +75862,29 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 26 JAN 1551
+4 DATE 26 JAN 1551
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo01
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo02
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo03
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo03.jpg
 3 _PUBL Y
 2 NOTE @N50@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 10 OCT 1555
+2 DATE 10 OCT 1555
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 711, carta 40r
@@ -75892,23 +75892,23 @@
 3 EVEN DEED
 4 ROLE lessor
 3 DATA
-4 DATE @#DJULIAN@ 10 OCT 1555
+4 DATE 10 OCT 1555
 2 OBJE
 3 TITL deed 15551010 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 10 OCT 1555
+3 _DATE 10 OCT 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15551010 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15551010 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 10 OCT 1555
+3 _DATE 10 OCT 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15551010 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 NOTE @N49@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 4 DEC 1557
+2 DATE 4 DEC 1557
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 654
@@ -75916,56 +75916,56 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 4 DEC 1557
+4 DATE 4 DEC 1557
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino01
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino02
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino03
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino04
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino04.jpg
 3 _PUBL Y
 2 NOTE @N48@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 22 DEC 1559
+2 DATE 22 DEC 1559
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 22 DEC 1559
+4 DATE 22 DEC 1559
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N45@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 1 MAR 1560
+2 DATE 1 MAR 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 32
@@ -75973,17 +75973,17 @@
 3 EVEN DEED
 4 ROLE fittavolo
 3 DATA
-4 DATE @#DJULIAN@ 1 MAR 1560
+4 DATE 1 MAR 1560
 2 OBJE
 3 TITL deed 15600301 Bellansa Alexander
-3 _DATE @#DJULIAN@ 1 MAR 1560
+3 _DATE 1 MAR 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600301 Bellansa Alexander.jpg
 3 _PUBL Y
 2 NOTE @N77@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 18 OCT 1562
+2 DATE 18 OCT 1562
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 2
@@ -75991,44 +75991,44 @@
 3 EVEN DEED
 4 ROLE curator
 3 DATA
-4 DATE @#DJULIAN@ 18 OCT 1562
+4 DATE 18 OCT 1562
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02.jpg
 3 _PUBL Y
 2 NOTE @N42@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 JAN 1564
+2 DATE 8 JAN 1564
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 8 JAN 1564
+4 DATE 8 JAN 1564
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N43@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 16 JUL 1569
+2 DATE 16 JUL 1569
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 3
@@ -76036,23 +76036,23 @@
 3 EVEN DEED
 4 ROLE witness
 3 DATA
-4 DATE @#DJULIAN@ 16 JUL 1569
+4 DATE 16 JUL 1569
 2 OBJE
 3 TITL deed 15690716 Bivilaqua Catharina01
-3 _DATE @#DJULIAN@ 16 JUL 1569
+3 _DATE 16 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690716 Bivilaqua Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690716 Bivilaqua Catharina02
-3 _DATE @#DJULIAN@ 16 JUL 1569
+3 _DATE 16 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690716 Bivilaqua Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N27@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 17 AUG 1570
+2 DATE 17 AUG 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 197
@@ -76060,54 +76060,54 @@
 3 EVEN DEED
 4 ROLE witness
 3 DATA
-4 DATE @#DJULIAN@ 17 AUG 1570
+4 DATE 17 AUG 1570
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus01
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus02
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus03
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus03.jpg
 3 _PUBL Y
 2 NOTE @N24@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 9 SEP 1570
+2 DATE 9 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 15
 3 QUAY 3
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 NOTE @N23@
 1 DEAT Y
-2 DATE @#DJULIAN@ BET 18 JUN 1583 AND 22 MAR 1586
+2 DATE BET 18 JUN 1583 AND 22 MAR 1586
 1 CHAN
 2 DATE 13 OCT 2020
 3 TIME 21:28:11
@@ -76120,35 +76120,35 @@
 1 FAMC @F1064@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1550
+2 DATE BEF ABT 1550
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 9 SEP 1570
+2 DATE 9 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 15
 3 QUAY 3
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 NOTE @N23@
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT 9 SEP 1570
+2 DATE AFT 9 SEP 1570
 1 CHAN
 2 DATE 30 NOV 2019
 3 TIME 17:12:44
@@ -76161,35 +76161,35 @@
 1 FAMC @F1064@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1550
+2 DATE BEF ABT 1550
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 9 SEP 1570
+2 DATE 9 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 15
 3 QUAY 3
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 NOTE @N23@
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT 9 SEP 1570
+2 DATE AFT 9 SEP 1570
 1 CHAN
 2 DATE 26 JUL 2020
 3 TIME 14:00:41
@@ -76203,7 +76203,7 @@
 1 FAMS @F1073@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 20 JUN 1566
+2 DATE BEF 20 JUN 1566
 1 CHAN
 2 DATE 19 JUL 2020
 3 TIME 14:41:49
@@ -76217,7 +76217,7 @@
 2 SURN Trivisanum
 1 SEX M
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1566
+2 DATE BEF ABT 1566
 1 EVEN
 2 TYPE Deed
 2 DATE 22 MAR 1586
@@ -76266,11 +76266,11 @@
 1 FAMC @F1064@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1545
+2 DATE BEF ABT 1545
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 20 FEB 1560
+2 DATE 20 FEB 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 579
@@ -76279,44 +76279,44 @@
 4 ROLE guardian
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus01
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus02
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus03
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus04
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus05
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus06
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus06.jpg
 3 _PUBL Y
 2 NOTE @N34@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 17 APR 1565
+2 DATE 17 APR 1565
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 851, fascicolo Contratti e atti diversi
@@ -76324,23 +76324,23 @@
 3 EVEN DEED
 4 ROLE debtor
 3 DATA
-4 DATE @#DJULIAN@ 17 APR 1565
+4 DATE 17 APR 1565
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan01
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan02
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan02.jpg
 3 _PUBL Y
 2 NOTE @N41@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 30 JUN 1569
+2 DATE 30 JUN 1569
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, foglio 8
@@ -76348,23 +76348,23 @@
 3 EVEN DEED
 4 ROLE agent
 3 DATA
-4 DATE @#DJULIAN@ 30 JUN 1569
+4 DATE 30 JUN 1569
 2 OBJE
 3 TITL deed 15690630 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 30 JUN 1569
+3 _DATE 30 JUN 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690630 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690630 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 30 JUN 1569
+3 _DATE 30 JUN 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690630 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 NOTE @N30@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 SEP 1570
+2 DATE 23 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 31v
@@ -76373,43 +76373,43 @@
 4 ROLE creditor
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus04
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus05
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus06
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus06.jpg
 3 _PUBL Y
 2 NOTE @N22@
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT 13 MAR 1571
+2 DATE AFT 13 MAR 1571
 1 CHAN
 2 DATE 29 JUN 2020
 3 TIME 19:08:40
@@ -76451,7 +76451,7 @@
 1 FAMS @F1076@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 30 JUN 1569
+2 DATE BEF 30 JUN 1569
 1 CHAN
 2 DATE 19 JAN 2020
 3 TIME 10:24:56
@@ -76608,7 +76608,6 @@
 2 GIVN Domenico
 2 SURN Trivisan
 1 SEX M
-1 ALIA @I2624@
 1 ALIA @I2583@
 1 ALIA @I2620@
 1 FAMS @F1080@
@@ -76704,7 +76703,7 @@
 1 BIRT Y
 2 PLAC Scandolara, Treviso, Italy
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 22 DEC 1559
+2 DATE BEF 22 DEC 1559
 1 CHAN
 2 DATE 2 SEP 2020
 3 TIME 19:50:39
@@ -76719,48 +76718,48 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Move
-2 DATE @#DJULIAN@ BEF 22 DEC 1559
+2 DATE BEF 22 DEC 1559
 2 PLAC In casa di Bernardus, suo zio
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 22 DEC 1559
+2 DATE 22 DEC 1559
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 EVEN
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 22 DEC 1559
+4 DATE 22 DEC 1559
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
 2 NOTE @N45@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 JAN 1564
+2 DATE 8 JAN 1564
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 8 JAN 1564
+4 DATE 8 JAN 1564
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
@@ -76783,7 +76782,7 @@
 1 BIRT Y
 2 PLAC Scandolara, Treviso, Italy
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 17 JAN 1560
+2 DATE BEF 17 JAN 1560
 1 CHAN
 2 DATE 9 OCT 2020
 3 TIME 10:40:13
@@ -76799,7 +76798,7 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 20 FEB 1560
+2 DATE 20 FEB 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 579
@@ -76808,44 +76807,44 @@
 4 ROLE protégé
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus01
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus02
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus03
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus04
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus05
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus06
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus06.jpg
 3 _PUBL Y
 2 NOTE @N34@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 25 JUN 1566
+2 DATE 25 JUN 1566
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, foglio 10
@@ -76854,13 +76853,13 @@
 4 ROLE witness
 2 OBJE
 3 TITL deed 15660625 Balaben Ursula01
-3 _DATE @#DJULIAN@ 25 JUN 1566
+3 _DATE 25 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660625 Balaben Ursula01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660625 Balaben Ursula02
-3 _DATE @#DJULIAN@ 25 JUN 1566
+3 _DATE 25 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660625 Balaben Ursula02.jpg
 3 _PUBL Y
@@ -77757,7 +77756,7 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 26 NOV 1548
+2 DATE 26 NOV 1548
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 703, carta 162r
@@ -77766,19 +77765,19 @@
 4 ROLE seller
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02.jpg
 3 _PUBL Y
 2 NOTE @N51@
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT 26 NOV 1548
+2 DATE AFT 26 NOV 1548
 1 CHAN
 2 DATE 15 AUG 2020
 3 TIME 18:31:40
@@ -77809,13 +77808,13 @@
 1 FAMC @F1184@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1505
+2 DATE BEF ABT 1505
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN Guarnerio /gwarˈnɛrio/
 2 TYPE Family nickname
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 4 APR 1516
+2 DATE 4 APR 1516
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 370, carta 164
@@ -77823,67 +77822,67 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 4 APR 1516
+4 DATE 4 APR 1516
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N57@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 NOV 1523
+2 DATE 23 NOV 1523
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 23 NOV 1523
+4 DATE 23 NOV 1523
 2 OBJE
 3 TITL deed 15231123 Trivisanus Melchior
-3 _DATE @#DJULIAN@ 23 NOV 1523
+3 _DATE 23 NOV 1523
 3 FORM jpg
 3 FILE Photos\deeds\deed 15231123 Trivisanus Melchior.jpg
 3 _PUBL Y
 2 NOTE @N55@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 3 JUN 1524
+2 DATE 3 JUN 1524
 2 PLAC Rio San Martino di Scorzè, Venice, Italy
 2 SOUR @S99@
 3 PAGE busta 41, carta 463v
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 3 JUN 1524
+4 DATE 3 JUN 1524
 2 OBJE
 3 TITL deed 15240603 de Trivisanis Melchior01
-3 _DATE @#DJULIAN@ 3 JUN 1524
+3 _DATE 3 JUN 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15240603 de Trivisanis Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15240603 de Trivisanis Melchior02
-3 _DATE @#DJULIAN@ 3 JUN 1524
+3 _DATE 3 JUN 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15240603 de Trivisanis Melchior02.jpg
 3 _PUBL Y
 2 NOTE @N67@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 29 JAN 1527
+2 DATE 29 JAN 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -77891,17 +77890,17 @@
 3 EVEN DEED
 4 ROLE cauzionario
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1527
+4 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
 2 NOTE @N53@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 7 FEB 1527
+2 DATE 7 FEB 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -77909,22 +77908,22 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 7 FEB 1527
+4 DATE 7 FEB 1527
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior03.jpg
 3 _PUBL Y
@@ -79580,19 +79579,19 @@
 1 ADOP Y
 2 FAMC @F1071@
 3 ADOP BOTH
-2 DATE @#DJULIAN@ AFT 6 DEC 1520
+2 DATE AFT 6 DEC 1520
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1524
+2 DATE 13 OCT 1524
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, libro 1522-23, ultima carta
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1524
+4 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 de Trivisanis Marieta
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 de Trivisanis Marieta.jpg
 3 _PUBL Y
@@ -79619,19 +79618,19 @@
 1 ADOP Y
 2 FAMC @F1071@
 3 ADOP BOTH
-2 DATE @#DJULIAN@ AFT 6 DEC 1520
+2 DATE AFT 6 DEC 1520
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1524
+2 DATE 13 OCT 1524
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, libro 1522-23, ultima carta
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1524
+4 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 de Trivisanis Marieta
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 de Trivisanis Marieta.jpg
 3 _PUBL Y
@@ -79657,19 +79656,19 @@
 1 ADOP Y
 2 FAMC @F1071@
 3 ADOP BOTH
-2 DATE @#DJULIAN@ AFT 6 DEC 1520
+2 DATE AFT 6 DEC 1520
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1524
+2 DATE 13 OCT 1524
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, libro 1522-23, ultima carta
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1524
+4 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 de Trivisanis Marieta
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 de Trivisanis Marieta.jpg
 3 _PUBL Y
@@ -80155,7 +80154,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 12 NOV 1562
+2 DATE 12 NOV 1562
 2 PLAC Rio San Martino di Scorzè, Venice, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 7
@@ -80163,22 +80162,22 @@
 3 EVEN DEED
 4 ROLE donor
 3 DATA
-4 DATE @#DJULIAN@ 12 NOV 1562
+4 DATE 12 NOV 1562
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus01
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus02
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus03
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus03.jpg
 3 _PUBL Y
@@ -80213,11 +80212,11 @@
 1 FAMC @F1064@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF ABT 1545
+2 DATE BEF ABT 1545
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 18 OCT 1562
+2 DATE 18 OCT 1562
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 2
@@ -80225,23 +80224,23 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 18 OCT 1562
+4 DATE 18 OCT 1562
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02.jpg
 3 _PUBL Y
 2 NOTE @N42@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 17 APR 1565
+2 DATE 17 APR 1565
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 851, fascicolo Contratti e atti diversi
@@ -80249,23 +80248,23 @@
 3 EVEN DEED
 4 ROLE debtor
 3 DATA
-4 DATE @#DJULIAN@ 17 APR 1565
+4 DATE 17 APR 1565
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan01
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan02
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan02.jpg
 3 _PUBL Y
 2 NOTE @N41@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 25 JUL 1569
+2 DATE 25 JUL 1569
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 851, fascicolo Contratti e atti diversi
@@ -80273,55 +80272,55 @@
 3 EVEN DEED
 4 ROLE testamentary
 3 DATA
-4 DATE @#DJULIAN@ 25 JUL 1569
+4 DATE 25 JUL 1569
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N11@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 9 SEP 1570
+2 DATE 9 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 15
 3 QUAY 3
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 NOTE @N23@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 SEP 1570
+2 DATE 23 SEP 1570
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, foglio 31v
@@ -80330,44 +80329,44 @@
 4 ROLE debitor
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus04
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus05
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus06
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus06.jpg
 3 _PUBL Y
 2 NOTE @N22@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 MAR 1571
+2 DATE 13 MAR 1571
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847
@@ -80376,19 +80375,19 @@
 4 ROLE testamentary
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03.jpg
 3 _PUBL Y
@@ -80413,7 +80412,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1554
+2 DATE 13 OCT 1554
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 33r
@@ -80421,29 +80420,29 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1554
+4 DATE 13 OCT 1554
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus01
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus02
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus03
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus03.jpg
 3 _PUBL Y
 2 NOTE @N76@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 1 MAR 1560
+2 DATE 1 MAR 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 32
@@ -80451,17 +80450,17 @@
 3 EVEN DEED
 4 ROLE fittavolo
 3 DATA
-4 DATE @#DJULIAN@ 1 MAR 1560
+4 DATE 1 MAR 1560
 2 OBJE
 3 TITL deed 15600301 Bellansa Alexander
-3 _DATE @#DJULIAN@ 1 MAR 1560
+3 _DATE 1 MAR 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600301 Bellansa Alexander.jpg
 3 _PUBL Y
 2 NOTE @N77@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 12 NOV 1562
+2 DATE 12 NOV 1562
 2 PLAC Rio San Martino di Scorzè, Venice, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 7
@@ -80469,22 +80468,22 @@
 3 EVEN DEED
 4 ROLE donee
 3 DATA
-4 DATE @#DJULIAN@ 12 NOV 1562
+4 DATE 12 NOV 1562
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus01
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus02
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus03
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus03.jpg
 3 _PUBL Y
@@ -80511,43 +80510,43 @@
 1 FAMC @F1184@
 2 PEDI birth
 1 BIRT Y
-2 DATE @#DJULIAN@ BEF 18 JAN 1515
+2 DATE BEF 18 JAN 1515
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 NOV 1523
+2 DATE 23 NOV 1523
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 23 NOV 1523
+4 DATE 23 NOV 1523
 2 OBJE
 3 TITL deed 15231123 Trivisanus Melchior
-3 _DATE @#DJULIAN@ 23 NOV 1523
+3 _DATE 23 NOV 1523
 3 FORM jpg
 3 FILE Photos\deeds\deed 15231123 Trivisanus Melchior.jpg
 3 _PUBL Y
 2 NOTE @N55@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1524
+2 DATE 13 OCT 1524
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, libro 1522-23, ultima carta
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1524
+4 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 Menegus + Trivisanus
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 Menegus + Trivisanus.jpg
 3 _PUBL Y
 2 NOTE @N59@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 29 JAN 1527
+2 DATE 29 JAN 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -80555,17 +80554,17 @@
 3 EVEN DEED
 4 ROLE cauzionario
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1527
+4 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
 2 NOTE @N53@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 7 FEB 1527
+2 DATE 7 FEB 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -80573,28 +80572,28 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 7 FEB 1527
+4 DATE 7 FEB 1527
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N52@
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 13 OCT 1554
+2 DATE BEF 13 OCT 1554
 1 CHAN
 2 DATE 12 OCT 2020
 3 TIME 22:37:32
@@ -80614,39 +80613,39 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 NOV 1523
+2 DATE 23 NOV 1523
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 23 NOV 1523
+4 DATE 23 NOV 1523
 2 OBJE
 3 TITL deed 15231123 Trivisanus Melchior
-3 _DATE @#DJULIAN@ 23 NOV 1523
+3 _DATE 23 NOV 1523
 3 FORM jpg
 3 FILE Photos\deeds\deed 15231123 Trivisanus Melchior.jpg
 3 _PUBL Y
 2 NOTE @N55@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 13 OCT 1524
+2 DATE 13 OCT 1524
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, libro 1522-23, ultima carta
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 13 OCT 1524
+4 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 Menegus + Trivisanus
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 Menegus + Trivisanus.jpg
 3 _PUBL Y
 2 NOTE @N59@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 29 JAN 1527
+2 DATE 29 JAN 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -80654,17 +80653,17 @@
 3 EVEN DEED
 4 ROLE cauzionario
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1527
+4 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
 2 NOTE @N53@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 7 FEB 1527
+2 DATE 7 FEB 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -80672,28 +80671,28 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 7 FEB 1527
+4 DATE 7 FEB 1527
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N52@
 1 DEAT Y
-2 DATE BEF @#DJULIAN@ 12 NOV 1562
+2 DATE BEF 12 NOV 1562
 1 CHAN
 2 DATE 17 SEP 2020
 3 TIME 20:02:34
@@ -80708,25 +80707,25 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Move
-2 DATE @#DJULIAN@ BEF 22 DEC 1559
+2 DATE BEF 22 DEC 1559
 2 PLAC In casa di Magdalena, sua zia, moglie del fu Liberal
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 22 DEC 1559
+2 DATE 22 DEC 1559
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 22 DEC 1559
+4 DATE 22 DEC 1559
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
@@ -81611,16 +81610,16 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 MAY 1550
+2 DATE 8 MAY 1550
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 725
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 8 MAY 1550
+4 DATE 8 MAY 1550
 2 OBJE
 3 TITL deed 15500508 Trivisano Angelo
-3 _DATE @#DJULIAN@ 8 MAY 1550
+3 _DATE 8 MAY 1550
 3 FORM jpg
 3 FILE Photos\deeds\deed 15500508 Trivisano Angelo.jpg
 3 _PUBL Y
@@ -81647,7 +81646,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 15 DEC 1511
+2 DATE 15 DEC 1511
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 432, carta 204
@@ -81655,73 +81654,73 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 15 DEC 1511
+4 DATE 15 DEC 1511
 2 OBJE
 3 TITL deed 15111215 Bartholomeus01
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus02
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus03
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
 2 NOTE @N47@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 8 AUG 1512
+2 DATE 8 AUG 1512
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S99@
 3 PAGE busta 41, foglio 194
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 8 AUG 1512
+4 DATE 8 AUG 1512
 2 OBJE
 3 TITL deed 15120808 Trivisanum Antonium01
-3 _DATE @#DJULIAN@ 8 AUG 1512
+3 _DATE 8 AUG 1512
 3 FORM jpg
 3 FILE Photos\deeds\deed 15120808 Trivisanum Antonium01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15120808 Trivisanum Antonium02
-3 _DATE @#DJULIAN@ 8 AUG 1512
+3 _DATE 8 AUG 1512
 3 FORM jpg
 3 FILE Photos\deeds\deed 15120808 Trivisanum Antonium02.jpg
 3 _PUBL Y
 2 NOTE @N68@
 1 EVEN will
 2 TYPE Deed
-2 DATE @#DJULIAN@ 6 DEC 1520
+2 DATE 6 DEC 1520
 2 SOUR @S99@
 3 PAGE busta 41, carta 375r
 3 QUAY 3
 3 EVEN WILL
 4 ROLE testamentary
 3 DATA
-4 DATE @#DJULIAN@ 6 DEC 1520
+4 DATE 6 DEC 1520
 2 OBJE
 3 TITL will 15201206 Trivisan Antonio01
-3 _DATE @#DJULIAN@ 6 DEC 1520
+3 _DATE 6 DEC 1520
 3 FORM psd
 3 FILE Photos\deeds\will 15201206 Trivisan Antonio01.psd
 3 _PUBL Y
 2 OBJE
 3 TITL will 15201206 Trivisan Antonio02
-3 _DATE @#DJULIAN@ 6 DEC 1520
+3 _DATE 6 DEC 1520
 3 FORM psd
 3 FILE Photos\deeds\will 15201206 Trivisan Antonio02.psd
 3 _PUBL Y
 2 NOTE @N66@
 1 DEAT Y
-2 DATE @#DJULIAN@ BET 6 DEC 1520 AND 3 JUN 1524
+2 DATE BET 6 DEC 1520 AND 3 JUN 1524
 1 BURI Y
 2 PLAC Scandolara, Treviso, Italy
 1 RELI Catholic Christian
@@ -81749,23 +81748,23 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 23 NOV 1523
+2 DATE 23 NOV 1523
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 23 NOV 1523
+4 DATE 23 NOV 1523
 2 OBJE
 3 TITL deed 15231123 Trivisanus Melchior
-3 _DATE @#DJULIAN@ 23 NOV 1523
+3 _DATE 23 NOV 1523
 3 FORM jpg
 3 FILE Photos\deeds\deed 15231123 Trivisanus Melchior.jpg
 3 _PUBL Y
 2 NOTE @N55@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 29 JAN 1527
+2 DATE 29 JAN 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -81773,17 +81772,17 @@
 3 EVEN DEED
 4 ROLE cauzionario
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1527
+4 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
 2 NOTE @N53@
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 7 FEB 1527
+2 DATE 7 FEB 1527
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 361, carta 51
@@ -81791,28 +81790,28 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 7 FEB 1527
+4 DATE 7 FEB 1527
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior03.jpg
 3 _PUBL Y
 2 NOTE @N52@
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 26 NOV 1548
+2 DATE BEF 26 NOV 1548
 1 CHAN
 2 DATE 7 OCT 2020
 3 TIME 20:41:46
@@ -81829,7 +81828,7 @@
 1 EVEN Guarnerio /gwarˈnɛrio/
 2 TYPE Family nickname
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 25 NOV 1504
+2 DATE BEF 25 NOV 1504
 1 CHAN
 2 DATE 3 SEP 2020
 3 TIME 19:23:11
@@ -81849,7 +81848,7 @@
 1 BIRT Y
 2 PLAC Scandolara, Treviso, Italy
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 6 DEC 1520
+2 DATE BEF 6 DEC 1520
 1 CHAN
 2 DATE 17 SEP 2020
 3 TIME 22:54:52
@@ -81878,7 +81877,7 @@
 2 TYPE karèr
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 15 DEC 1511
+2 DATE 15 DEC 1511
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 432, carta 204
@@ -81886,28 +81885,28 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 15 DEC 1511
+4 DATE 15 DEC 1511
 2 OBJE
 3 TITL deed 15111215 Bartholomeus01
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus02
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus03
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
 2 NOTE @N47@
 1 DEAT Y
-2 DATE @#DJULIAN@ BET JUN 1524 AND 27 FEB 1525
+2 DATE BET JUN 1524 AND 27 FEB 1525
 1 CHAN
 2 DATE 9 SEP 2020
 3 TIME 22:42:16
@@ -81938,7 +81937,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 15 DEC 1511
+2 DATE 15 DEC 1511
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 432, carta 204
@@ -81946,22 +81945,22 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 15 DEC 1511
+4 DATE 15 DEC 1511
 2 OBJE
 3 TITL deed 15111215 Bartholomeus01
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus02
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus03
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
@@ -81981,7 +81980,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 27 FEB 1525
+2 DATE 27 FEB 1525
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 439, carta 139
@@ -81989,22 +81988,22 @@
 3 EVEN DEED
 4 ROLE buyer
 3 DATA
-4 DATE @#DJULIAN@ 27 FEB 1525
+4 DATE 27 FEB 1525
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano01
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano02
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano03
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano03.jpg
 3 _PUBL Y
@@ -82035,7 +82034,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 15 DEC 1511
+2 DATE 15 DEC 1511
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 432, carta 204
@@ -82043,22 +82042,22 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 15 DEC 1511
+4 DATE 15 DEC 1511
 2 OBJE
 3 TITL deed 15111215 Bartholomeus01
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus02
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus03
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
@@ -82098,7 +82097,7 @@
 2 PLAC Scandolara, Treviso, Italy
 1 EVEN
 2 TYPE Move
-2 DATE @#DJULIAN@ BEF 25 NOV 1504
+2 DATE BEF 25 NOV 1504
 2 PLAC Zeriolo di Morgano, Treviso, Italy
 1 DEAT Y
 1 CHAN
@@ -82121,7 +82120,7 @@
 1 BIRT Y
 2 PLAC Scandolara, Treviso, Italy
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 6 DEC 1520
+2 DATE BEF 6 DEC 1520
 1 CHAN
 2 DATE 8 OCT 2020
 3 TIME 19:31:22
@@ -82145,7 +82144,7 @@
 1 FAMS @F1186@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ AFT JUN 1524
+2 DATE AFT JUN 1524
 1 CHAN
 2 DATE 1 JUL 2020
 3 TIME 19:34:15
@@ -84639,7 +84638,7 @@
 1 FAMS @F1240@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 28 AUG 1452
+2 DATE BEF 28 AUG 1452
 1 CHAN
 2 DATE 3 SEP 2020
 3 TIME 19:24:36
@@ -84690,7 +84689,7 @@
 1 ADOP Y
 2 FAMC @F1072@
 3 ADOP BOTH
-2 DATE @#DJULIAN@ AFT 6 DEC 1520
+2 DATE AFT 6 DEC 1520
 1 DEAT Y
 1 CHAN
 2 DATE 17 SEP 2020
@@ -84707,7 +84706,7 @@
 1 ADOP Y
 2 FAMC @F1072@
 3 ADOP BOTH
-2 DATE @#DJULIAN@ AFT 6 DEC 1520
+2 DATE AFT 6 DEC 1520
 1 DEAT Y
 1 CHAN
 2 DATE 17 SEP 2020
@@ -84765,7 +84764,7 @@
 1 FAMS @F1245@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 5 FEB 1525
+2 DATE BEF 5 FEB 1525
 1 CHAN
 2 DATE 6 OCT 2020
 3 TIME 19:49:03
@@ -84785,16 +84784,16 @@
 2 PLAC Levada di Piombino Dese, Padua, Italy
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 21 SEP 1555
+2 DATE 21 SEP 1555
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, libro 1554-1559, carta 31
 3 QUAY 3
 3 DATA
-4 DATE @#DJULIAN@ 21 SEP 1555
+4 DATE 21 SEP 1555
 2 OBJE
 3 TITL deed 15550921 Trivisani Petrus
-3 _DATE @#DJULIAN@ 21 SEP 1555
+3 _DATE 21 SEP 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15550921 Trivisani Petrus.jpg
 3 _PUBL Y
@@ -84825,7 +84824,7 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Deed
-2 DATE @#DJULIAN@ 31 JAN 1560
+2 DATE 31 JAN 1560
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 13
@@ -84833,22 +84832,22 @@
 3 EVEN DEED
 4 ROLE seller
 3 DATA
-4 DATE @#DJULIAN@ 31 JAN 1560
+4 DATE 31 JAN 1560
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03.jpg
 3 _PUBL Y
@@ -84910,7 +84909,7 @@
 1 BIRT Y
 1 EVEN
 2 TYPE Move
-2 DATE @#DJULIAN@ BEF 29 JAN 1556
+2 DATE BEF 29 JAN 1556
 2 PLAC Morgano, Treviso, Italy
 1 DEAT Y
 1 CHAN
@@ -84953,7 +84952,7 @@
 1 FAMS @F1252@
 1 BIRT Y
 1 DEAT Y
-2 DATE @#DJULIAN@ BEF 1 MAR 1560
+2 DATE BEF 1 MAR 1560
 1 CHAN
 2 DATE 11 OCT 2020
 3 TIME 16:47:29
@@ -104832,41 +104831,41 @@
 1 CHIL @I2529@
 1 MARR Y
 2 TYPE deed
-2 DATE @#DJULIAN@ 6 FEB 1555
+2 DATE 6 FEB 1555
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 847, fascicoletto 73
 3 QUAY 3
 3 EVEN MARR
 3 DATA
-4 DATE @#DJULIAN@ 6 FEB 1555
+4 DATE 6 FEB 1555
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus01
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus02
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus03
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus04
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus05
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus05.jpg
 3 _PUBL Y
@@ -104900,14 +104899,14 @@
 1 NCHI 1
 1 CHIL @I2579@
 1 MARR Y
-2 DATE @#DJULIAN@ 8 JUN 1578
+2 DATE 8 JUN 1578
 2 PLAC Treviso, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 852
 3 QUAY 3
 3 EVEN MARR
 3 DATA
-4 DATE @#DJULIAN@ 8 JUN 1578
+4 DATE 8 JUN 1578
 2 OBJE
 3 TITL deed 15870906 Trivisani Andrea01
 3 _DATE 6 SEP 1587
@@ -106254,23 +106253,23 @@
 1 HUSB @I2822@
 1 WIFE @I2821@
 1 MARR Y
-2 DATE @#DJULIAN@ 25 NOV 1504
+2 DATE 25 NOV 1504
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 384
 3 QUAY 3
 3 EVEN MARR
 3 DATA
-4 DATE @#DJULIAN@ 25 NOV 1504
+4 DATE 25 NOV 1504
 2 OBJE
 3 TITL deed 15041125 Cavalini Jacobum + Trivisani Guarnerij Benvenutam
-3 _DATE @#DJULIAN@ 25 NOV 1504
+3 _DATE 25 NOV 1504
 3 FORM jpg
 3 FILE Photos\deeds\deed 15041125 Cavalini Jacobum + Trivisani Guarnerij Benvenutam.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15041125 Trivisan Benvegnua
-3 _DATE @#DJULIAN@ 25 NOV 1504
+3 _DATE 25 NOV 1504
 3 FORM jpg
 3 FILE Photos\deeds\deed 15041125 Trivisan Benvegnua.jpg
 3 _PUBL Y
@@ -106908,29 +106907,29 @@
 1 WIFE @I2948@
 1 MARR Y
 2 TYPE DEED
-2 DATE @#DJULIAN@ 5 FEB 1525
+2 DATE 5 FEB 1525
 2 PLAC Scandolara, Treviso, Italy
 2 SOUR @S3@
 3 PAGE busta 884, carta 141r
 3 QUAY 3
 3 EVEN MARR
 3 DATA
-4 DATE @#DJULIAN@ 5 FEB 1525
+4 DATE 5 FEB 1525
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva01
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva02
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva03
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva03.jpg
 3 _PUBL Y
@@ -106979,23 +106978,23 @@
 1 HUSB @I2958@
 1 WIFE @I2957@
 1 MARR Y
-2 DATE @#DJULIAN@ 29 JAN 1556
+2 DATE 29 JAN 1556
 2 PLAC Rio San Martino di Scorzè, Venice, Italy
 2 SOUR @S3@
 3 PAGE busta 846, carta 3
 3 QUAY 3
 3 EVEN MARR
 3 DATA
-4 DATE @#DJULIAN@ 29 JAN 1556
+4 DATE 29 JAN 1556
 2 OBJE
 3 TITL deed 15560430 de Costis Antonium + Trivisani Benedictam01
-3 _DATE @#DJULIAN@ 29 JAN 1556
+3 _DATE 29 JAN 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15560430 de Costis Antonium + Trivisani Benedictam01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15560430 de Costis Antonium + Trivisani Benedictam02
-3 _DATE @#DJULIAN@ 29 JAN 1556
+3 _DATE 29 JAN 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15560430 de Costis Antonium + Trivisani Benedictam02.jpg
 3 _PUBL Y
@@ -107008,7 +107007,7 @@
 1 HUSB @I2959@
 1 WIFE @I2957@
 1 MARR Y
-2 DATE @#DJULIAN@ BEF 29 JAN 1556
+2 DATE BEF 29 JAN 1556
 1 CHAN
 2 DATE 11 OCT 2020
 3 TIME 14:55:05
@@ -108971,16 +108970,16 @@
 2 PAGE busta 703, carta 162r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 26 NOV 1548
+3 DATE 26 NOV 1548
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02
-3 _DATE @#DJULIAN@ 26 NOV 1548
+3 _DATE 26 NOV 1548
 3 FORM jpg
 3 FILE Photos\deeds\deed 15481126 Benedicta + Trivisan Liberalis + Trivisan Benardinus02.jpg
 3 _PUBL Y
@@ -109039,16 +109038,16 @@
 2 PAGE busta 579
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 22 DEC 1559
+3 DATE 22 DEC 1559
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 22 DEC 1559
+3 _DATE 22 DEC 1559
 3 FORM jpg
 3 FILE Photos\deeds\deed 15591222 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
@@ -109107,16 +109106,16 @@
 2 PAGE busta 846, carta 2
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 18 OCT 1562
+3 DATE 18 OCT 1562
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02
-3 _DATE @#DJULIAN@ 18 OCT 1562
+3 _DATE 18 OCT 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621018 Trivisanus Bernardus + Magdalena + Trivisanus Trivisano02.jpg
 3 _PUBL Y
@@ -109176,16 +109175,16 @@
 2 PAGE busta 846, carta 4
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 8 JAN 1564
+3 DATE 8 JAN 1564
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02
-3 _DATE @#DJULIAN@ 8 JAN 1564
+3 _DATE 8 JAN 1564
 3 FORM jpg
 3 FILE Photos\deeds\deed 15640108 Trivisanus Bernardus + Magdalena + Trivisanus Catharina02.jpg
 3 _PUBL Y
@@ -109214,10 +109213,10 @@
 2 PAGE busta 848, carta 23
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 23 AUG 1574
+3 DATE 23 AUG 1574
 2 OBJE
 3 TITL deed 15740823 Magdalena
-3 _DATE @#DJULIAN@ 23 AUG 1574
+3 _DATE 23 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740823 Magdalena.jpg
 3 _PUBL Y
@@ -109358,10 +109357,10 @@
 2 PAGE busta 361, carta 51
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 29 JAN 1527
+3 DATE 29 JAN 1527
 2 OBJE
 3 TITL deed 15270129 Trivisani Andrea
-3 _DATE @#DJULIAN@ 29 JAN 1527
+3 _DATE 29 JAN 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270129 Trivisani Andrea.jpg
 3 _PUBL Y
@@ -109437,16 +109436,16 @@
 2 PAGE busta 846, carta 12, 3a facciata
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 24 OCT 1556
+3 DATE 24 OCT 1556
 2 OBJE
 3 TITL deed 15561024 Trivisanus Andreas01
-3 _DATE @#DJULIAN@ 24 OCT 1556
+3 _DATE 24 OCT 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15561024 Trivisanus Andreas01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15561024 Trivisanus Andreas02
-3 _DATE @#DJULIAN@ 24 OCT 1556
+3 _DATE 24 OCT 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15561024 Trivisanus Andreas02.jpg
 3 _PUBL Y
@@ -109522,16 +109521,16 @@
 2 PAGE busta 846, fascicolo 10
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 17 JAN 1560
+3 DATE 17 JAN 1560
 2 OBJE
 3 TITL deed 15600117 Trivisanus Andreas01
-3 _DATE @#DJULIAN@ 17 JAN 1560
+3 _DATE 17 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600117 Trivisanus Andreas01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600117 Trivisanus Andreas02
-3 _DATE @#DJULIAN@ 17 JAN 1560
+3 _DATE 17 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600117 Trivisanus Andreas02.jpg
 3 _PUBL Y
@@ -109642,28 +109641,28 @@
 2 PAGE busta 847, carta 33r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 10 SEP 1569
+3 DATE 10 SEP 1569
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus01
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus02
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus03
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690910 Bellinatus Ludovicus04
-3 _DATE @#DJULIAN@ 10 SEP 1569
+3 _DATE 10 SEP 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690910 Bellinatus Ludovicus04.jpg
 3 _PUBL Y
@@ -110004,22 +110003,22 @@
 2 PAGE busta 846, carta 13
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 31 JAN 1560
+3 DATE 31 JAN 1560
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03
-3 _DATE @#DJULIAN@ 31 JAN 1560
+3 _DATE 31 JAN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600131 Menega + Trivisani Franciscum + Trivisani Dominicum03.jpg
 3 _PUBL Y
@@ -110069,16 +110068,16 @@
 2 PAGE busta 846
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 5 JUN 1560
+3 DATE 5 JUN 1560
 2 OBJE
 3 TITL deed 15600605 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 5 JUN 1560
+3 _DATE 5 JUN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600605 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600605 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 5 JUN 1560
+3 _DATE 5 JUN 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600605 Trivisanus Franciscus02.jpg
 3 _PUBL Y
@@ -110204,34 +110203,34 @@
 2 PAGE busta 846, carta 3
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 27 SEP 1562
+3 DATE 27 SEP 1562
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus01
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus02
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus03
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus04
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15620927 Trivisani Franciscus + Trivisani Dominicus05
-3 _DATE @#DJULIAN@ 27 SEP 1562
+3 _DATE 27 SEP 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15620927 Trivisani Franciscus + Trivisani Dominicus05.jpg
 3 _PUBL Y
@@ -110300,22 +110299,22 @@
 2 PAGE busta 847, carta 164v, 165r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 3 JUN 1570
+3 DATE 3 JUN 1570
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700603 Trivisanus Franciscus03
-3 _DATE @#DJULIAN@ 3 JUN 1570
+3 _DATE 3 JUN 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700603 Trivisanus Franciscus03.jpg
 3 _PUBL Y
@@ -110393,22 +110392,22 @@
 2 PAGE busta 847, carta 1
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 27 JAN 1571
+3 DATE 27 JAN 1571
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus01
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus02
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710127 Trevisani Franciscus03
-3 _DATE @#DJULIAN@ 27 JAN 1571
+3 _DATE 27 JAN 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710127 Trevisani Franciscus03.jpg
 3 _PUBL Y
@@ -110466,16 +110465,16 @@
 2 PAGE busta 847, carta 17
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 8 FEB 1571
+3 DATE 8 FEB 1571
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710208 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 8 FEB 1571
+3 _DATE 8 FEB 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710208 Trivisanus Franciscus02.jpg
 3 _PUBL Y
@@ -110529,16 +110528,16 @@
 2 PAGE busta 850, carta 43
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 27 SEP 1582
+3 DATE 27 SEP 1582
 2 OBJE
 3 TITL deed 15820927 Trivisanus Franciscus01
-3 _DATE @#DJULIAN@ 27 SEP 1582
+3 _DATE 27 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820927 Trivisanus Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820927 Trivisanus Franciscus02
-3 _DATE @#DJULIAN@ 27 SEP 1582
+3 _DATE 27 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820927 Trivisanus Franciscus02.jpg
 3 _PUBL Y
@@ -110712,22 +110711,22 @@
 2 PAGE busta 851, libro Contratti e atti diversi, carta 9r e 30r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 25 JUL 1569
+3 DATE 25 JUL 1569
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03
-3 _DATE @#DJULIAN@ 25 JUL 1569
+3 _DATE 25 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690725 Trivisanus Trivisanus + Trivisanus Melchior03.jpg
 3 _PUBL Y
@@ -110802,22 +110801,22 @@
 2 PAGE busta 847
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 13 MAR 1571
+3 DATE 13 MAR 1571
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03
-3 _DATE @#DJULIAN@ 13 MAR 1571
+3 _DATE 13 MAR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710313 de Trivisanis Melchior + de Trivisanis Trivisanus03.jpg
 3 _PUBL Y
@@ -111027,22 +111026,22 @@
 2 PAGE busta 846, carta 10
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 20 JUN 1566
+3 DATE 20 JUN 1566
 2 OBJE
 3 TITL deed 15660620 Hieronimus01
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660620 Hieronimus02
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660620 Hieronimus03
-3 _DATE @#DJULIAN@ 20 JUN 1566
+3 _DATE 20 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660620 Hieronimus03.jpg
 3 _PUBL Y
@@ -111200,40 +111199,40 @@
 2 PAGE busta 579
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 20 FEB 1560
+3 DATE 20 FEB 1560
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus01
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus02
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus03
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus04
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus05
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15600220 Trivisanus Bernardinus06
-3 _DATE @#DJULIAN@ 20 FEB 1560
+3 _DATE 20 FEB 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600220 Trivisanus Bernardinus06.jpg
 3 _PUBL Y
@@ -111532,40 +111531,40 @@
 2 PAGE busta 847, carta 17
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 5 APR 1571
+3 DATE 5 APR 1571
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua01
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua02
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua03
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua04
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua05
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710405 de Trivisanus Pasqua06
-3 _DATE @#DJULIAN@ 5 APR 1571
+3 _DATE 5 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710405 de Trivisanus Pasqua06.jpg
 3 _PUBL Y
@@ -111616,16 +111615,16 @@
 2 PAGE busta 847, carta sciolta a un terzo circa
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 10 APR 1571
+3 DATE 10 APR 1571
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua01-01
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua01-01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua01-02
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua01-02.jpg
 3 _PUBL Y
@@ -111678,16 +111677,16 @@
 2 PAGE busta 847, carta 64
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 10 APR 1571
+3 DATE 10 APR 1571
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua02-01
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua02-01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15710410 Trivisani Pasqua02-02
-3 _DATE @#DJULIAN@ 10 APR 1571
+3 _DATE 10 APR 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15710410 Trivisani Pasqua02-02.jpg
 3 _PUBL Y
@@ -111787,16 +111786,16 @@
 2 PAGE busta 848, carta 23
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 24 AUG 1574
+3 DATE 24 AUG 1574
 2 OBJE
 3 TITL deed 15740824 Cargno Angelus01
-3 _DATE @#DJULIAN@ 24 AUG 1574
+3 _DATE 24 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740824 Cargno Angelus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15740824 Cargno Angelus02
-3 _DATE @#DJULIAN@ 24 AUG 1574
+3 _DATE 24 AUG 1574
 3 FORM jpg
 3 FILE Photos\deeds\deed 15740824 Cargno Angelus02.jpg
 3 _PUBL Y
@@ -111848,16 +111847,16 @@
 2 PAGE busta 850, fascicoletto 18, carta 3
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 26 JUN 1582
+3 DATE 26 JUN 1582
 2 OBJE
 3 TITL deed 15820626 Trivisanus Dominicus01
-3 _DATE @#DJULIAN@ 26 JUN 1582
+3 _DATE 26 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820626 Trivisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820626 Trivisanus Dominicus02
-3 _DATE @#DJULIAN@ 26 JUN 1582
+3 _DATE 26 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820626 Trivisanus Dominicus02.jpg
 3 _PUBL Y
@@ -111949,28 +111948,28 @@
 2 PAGE busta 850, fascicolo 18, carta 23
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 27 JUN 1582
+3 DATE 27 JUN 1582
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus01
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus02
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus03
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820627 Trevisanus Dominicus04
-3 _DATE @#DJULIAN@ 27 JUN 1582
+3 _DATE 27 JUN 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820627 Trevisanus Dominicus04.jpg
 3 _PUBL Y
@@ -112068,22 +112067,22 @@
 2 PAGE busta 850, carta 46
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 19 JUL 1582
+3 DATE 19 JUL 1582
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus01
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus02
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15820919 Trivisanus Dominicus03
-3 _DATE @#DJULIAN@ 19 SEP 1582
+3 _DATE 19 SEP 1582
 3 FORM jpg
 3 FILE Photos\deeds\deed 15820919 Trivisanus Dominicus03.jpg
 3 _PUBL Y
@@ -112322,22 +112321,22 @@
 2 PAGE busta 562, carta 188
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 26 JAN 1551
+3 DATE 26 JAN 1551
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo01
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo02
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15510126 Trevisani Bernardo03
-3 _DATE @#DJULIAN@ 26 JAN 1551
+3 _DATE 26 JAN 1551
 3 FORM jpg
 3 FILE Photos\deeds\deed 15510126 Trevisani Bernardo03.jpg
 3 _PUBL Y
@@ -112384,16 +112383,16 @@
 2 PAGE busta 711, carta 40r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 10 OCT 1555
+3 DATE 10 OCT 1555
 2 OBJE
 3 TITL deed 15551010 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 10 OCT 1555
+3 _DATE 10 OCT 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15551010 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15551010 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 10 OCT 1555
+3 _DATE 10 OCT 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15551010 Trivisanus Bernardus02.jpg
 3 _PUBL Y
@@ -112570,28 +112569,28 @@
 2 PAGE busta 654
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 4 DEC 1557
+3 DATE 4 DEC 1557
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino01
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino02
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino03
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15571204 Trivisani Bernardino04
-3 _DATE @#DJULIAN@ 4 DEC 1557
+3 _DATE 4 DEC 1557
 3 FORM jpg
 3 FILE Photos\deeds\deed 15571204 Trivisani Bernardino04.jpg
 3 _PUBL Y
@@ -112644,10 +112643,10 @@
 2 PAGE busta 846, carta 32
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 1 MAR 1560
+3 DATE 1 MAR 1560
 2 OBJE
 3 TITL deed 15600301 Bellansa Alexander
-3 _DATE @#DJULIAN@ 1 MAR 1560
+3 _DATE 1 MAR 1560
 3 FORM jpg
 3 FILE Photos\deeds\deed 15600301 Bellansa Alexander.jpg
 3 _PUBL Y
@@ -112707,16 +112706,16 @@
 2 PAGE busta 847, carta 3
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 16 JUL 1569
+3 DATE 16 JUL 1569
 2 OBJE
 3 TITL deed 15690716 Bivilaqua Catharina01
-3 _DATE @#DJULIAN@ 16 JUL 1569
+3 _DATE 16 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690716 Bivilaqua Catharina01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15690716 Bivilaqua Catharina02
-3 _DATE @#DJULIAN@ 16 JUL 1569
+3 _DATE 16 JUL 1569
 3 FORM jpg
 3 FILE Photos\deeds\deed 15690716 Bivilaqua Catharina02.jpg
 3 _PUBL Y
@@ -112785,22 +112784,22 @@
 2 PAGE busta 847, carta 197
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 17 AUG 1570
+3 DATE 17 AUG 1570
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus01
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus02
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700817 Sartoratus Benedictus03
-3 _DATE @#DJULIAN@ 17 AUG 1570
+3 _DATE 17 AUG 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700817 Sartoratus Benedictus03.jpg
 3 _PUBL Y
@@ -112871,22 +112870,22 @@
 2 PAGE busta 847, carta 15
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 9 SEP 1570
+3 DATE 9 SEP 1570
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700909 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 9 SEP 1570
+3 _DATE 9 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700909 Trivisanus Bernardus03.jpg
 3 _PUBL Y
@@ -113014,16 +113013,16 @@
 2 PAGE busta 851, fascicolo Contratti e atti diversi
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 17 APR 1565
+3 DATE 17 APR 1565
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan01
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15650417 Trivisan Bernardin + Trivisan Trivisan02
-3 _DATE @#DJULIAN@ 17 APR 1565
+3 _DATE 17 APR 1565
 3 FORM jpg
 3 FILE Photos\deeds\deed 15650417 Trivisan Bernardin + Trivisan Trivisan02.jpg
 3 _PUBL Y
@@ -113098,7 +113097,7 @@
 2 PAGE busta 846, carta 8
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 30 JUN 1569
+3 DATE 30 JUN 1569
 2 OBJE
 3 TITL deed 15690630 Trivisanus Bernardus01
 3 _DATE 30 JUN 1596
@@ -113237,40 +113236,40 @@
 2 PAGE busta 847, carta 31v
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 23 SEP 1570
+3 DATE 23 SEP 1570
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus01
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus02
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus03
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus04
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus05
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus05.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15700923 Trivisanus Bernardus06
-3 _DATE @#DJULIAN@ 23 SEP 1570
+3 _DATE 23 SEP 1570
 3 FORM jpg
 3 FILE Photos\deeds\deed 15700923 Trivisanus Bernardus06.jpg
 3 _PUBL Y
@@ -113342,16 +113341,16 @@
 2 PAGE busta 846, carta 10
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 25 JUN 1566
+3 DATE 25 JUN 1566
 2 OBJE
 3 TITL deed 15660625 Balaben Ursula01
-3 _DATE @#DJULIAN@ 25 JUN 1566
+3 _DATE 25 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660625 Balaben Ursula01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15660625 Balaben Ursula02
-3 _DATE @#DJULIAN@ 25 JUN 1566
+3 _DATE 25 JUN 1566
 3 FORM jpg
 3 FILE Photos\deeds\deed 15660625 Balaben Ursula02.jpg
 3 _PUBL Y
@@ -113689,22 +113688,22 @@
 2 PAGE busta 370, carta 164
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 4 APR 1516
+3 DATE 4 APR 1516
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15160404 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 4 APR 1516
+3 _DATE 4 APR 1516
 3 FORM jpg
 3 FILE Photos\deeds\deed 15160404 Trivisani Melchior03.jpg
 3 _PUBL Y
@@ -113744,10 +113743,10 @@
 2 PAGE busta 884
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 23 NOV 1523
+3 DATE 23 NOV 1523
 2 OBJE
 3 TITL deed 15231123 Trivisanus Melchior
-3 _DATE @#DJULIAN@ 23 NOV 1523
+3 _DATE 23 NOV 1523
 3 FORM jpg
 3 FILE Photos\deeds\deed 15231123 Trivisanus Melchior.jpg
 3 _PUBL Y
@@ -113813,16 +113812,16 @@
 2 PAGE busta 41, carta 463v
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 3 JUN 1524
+3 DATE 3 JUN 1524
 2 OBJE
 3 TITL deed 15240603 de Trivisanis Melchior01
-3 _DATE @#DJULIAN@ 3 JUN 1524
+3 _DATE 3 JUN 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15240603 de Trivisanis Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15240603 de Trivisanis Melchior02
-3 _DATE @#DJULIAN@ 3 JUN 1524
+3 _DATE 3 JUN 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15240603 de Trivisanis Melchior02.jpg
 3 _PUBL Y
@@ -113932,22 +113931,22 @@
 2 PAGE busta 361, carta 51
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 7 FEB 1527
+3 DATE 7 FEB 1527
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior01
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior02
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15270207 Trivisani Melchior03
-3 _DATE @#DJULIAN@ 7 FEB 1527
+3 _DATE 7 FEB 1527
 3 FORM jpg
 3 FILE Photos\deeds\deed 15270207 Trivisani Melchior03.jpg
 3 _PUBL Y
@@ -113999,10 +113998,10 @@
 2 PAGE busta 884, libro 1522-23, ultima carta
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 13 OCT 1524
+3 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 de Trivisanis Marieta
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 de Trivisanis Marieta.jpg
 3 _PUBL Y
@@ -114094,22 +114093,22 @@
 2 PAGE busta 846, carta 7
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 12 NOV 1562
+3 DATE 12 NOV 1562
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus01
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus02
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15621112 Trivisanus Benedictus03
-3 _DATE @#DJULIAN@ 12 NOV 1562
+3 _DATE 12 NOV 1562
 3 FORM jpg
 3 FILE Photos\deeds\deed 15621112 Trivisanus Benedictus03.jpg
 3 _PUBL Y
@@ -114172,22 +114171,22 @@
 2 PAGE busta 846, carta 33r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 13 OCT 1554
+3 DATE 13 OCT 1554
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus01
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus02
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15541013 de Benedictis Martinus03
-3 _DATE @#DJULIAN@ 13 OCT 1554
+3 _DATE 13 OCT 1554
 3 FORM jpg
 3 FILE Photos\deeds\deed 15541013 de Benedictis Martinus03.jpg
 3 _PUBL Y
@@ -114228,10 +114227,10 @@
 2 PAGE busta 884, libro 1522-23, ultima carta
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 13 OCT 1524
+3 DATE 13 OCT 1524
 2 OBJE
 3 TITL deed 15241013 Menegus + Trivisanus
-3 _DATE @#DJULIAN@ 13 OCT 1524
+3 _DATE 13 OCT 1524
 3 FORM jpg
 3 FILE Photos\deeds\deed 15241013 Menegus + Trivisanus.jpg
 3 _PUBL Y
@@ -114285,10 +114284,10 @@
 2 PAGE busta 725
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 8 MAY 1550
+3 DATE 8 MAY 1550
 2 OBJE
 3 TITL deed 15500508 Trivisano Angelo
-3 _DATE @#DJULIAN@ 8 MAY 1550
+3 _DATE 8 MAY 1550
 3 FORM jpg
 3 FILE Photos\deeds\deed 15500508 Trivisano Angelo.jpg
 3 _PUBL Y
@@ -114383,22 +114382,22 @@
 2 PAGE busta 432, carta 204
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 15 DEC 1511
+3 DATE 15 DEC 1511
 2 OBJE
 3 TITL deed 15111215 Bartholomeus01
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus02
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15111215 Bartholomeus03
-3 _DATE @#DJULIAN@ 15 DEC 1511
+3 _DATE 15 DEC 1511
 3 FORM jpg
 3 FILE Photos\deeds\deed 15111215 Bartholomeus03.jpg
 3 _PUBL Y
@@ -114486,16 +114485,16 @@
 2 PAGE busta 41, foglio 194
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 8 AUG 1512
+3 DATE 8 AUG 1512
 2 OBJE
 3 TITL deed 15120808 Trivisanum Antonium01
-3 _DATE @#DJULIAN@ 8 AUG 1512
+3 _DATE 8 AUG 1512
 3 FORM jpg
 3 FILE Photos\deeds\deed 15120808 Trivisanum Antonium01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15120808 Trivisanum Antonium02
-3 _DATE @#DJULIAN@ 8 AUG 1512
+3 _DATE 8 AUG 1512
 3 FORM jpg
 3 FILE Photos\deeds\deed 15120808 Trivisanum Antonium02.jpg
 3 _PUBL Y
@@ -114588,16 +114587,16 @@
 2 PAGE busta 41, carta 375r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 6 DEC 1520
+3 DATE 6 DEC 1520
 2 OBJE
 3 TITL will 15201206 Trivisan Antonio01
-3 _DATE @#DJULIAN@ 6 DEC 1520
+3 _DATE 6 DEC 1520
 3 FORM psd
 3 FILE Photos\deeds\will 15201206 Trivisan Antonio01.psd
 3 _PUBL Y
 2 OBJE
 3 TITL will 15201206 Trivisan Antonio02
-3 _DATE @#DJULIAN@ 6 DEC 1520
+3 _DATE 6 DEC 1520
 3 FORM psd
 3 FILE Photos\deeds\will 15201206 Trivisan Antonio02.psd
 3 _PUBL Y
@@ -114669,22 +114668,22 @@
 2 PAGE busta 439, carta 139
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 27 FEB 1525
+3 DATE 27 FEB 1525
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano01
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano02
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250227 Trivisano Sebastiano03
-3 _DATE @#DJULIAN@ 27 FEB 1525
+3 _DATE 27 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250227 Trivisano Sebastiano03.jpg
 3 _PUBL Y
@@ -114730,10 +114729,10 @@
 2 PAGE busta 846, libro 1554-1559, carta 31
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 21 SEP 1555
+3 DATE 21 SEP 1555
 2 OBJE
 3 TITL deed 15550921 Trivisani Petrus
-3 _DATE @#DJULIAN@ 21 SEP 1555
+3 _DATE 21 SEP 1555
 3 FORM jpg
 3 FILE Photos\deeds\deed 15550921 Trivisani Petrus.jpg
 3 _PUBL Y
@@ -114850,34 +114849,34 @@
 2 PAGE busta 847, carta 73
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 3 NOV 1571
+3 DATE 3 NOV 1571
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus01
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus02
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus03
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus03.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus04
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus04.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15711103 Trivisani Franciscus05
-3 _DATE @#DJULIAN@ 3 NOV 1571
+3 _DATE 3 NOV 1571
 3 FORM jpg
 3 FILE Photos\deeds\deed 15711103 Trivisani Franciscus05.jpg
 3 _PUBL Y
@@ -114998,10 +114997,10 @@
 2 QUAY 3
 2 EVEN MARR
 2 DATA
-3 DATE @#DJULIAN@ 25 NOV 1504
+3 DATE 25 NOV 1504
 2 OBJE
 3 TITL deed 15041125 Cavalini Jacobum + Trivisani Guarnerij Benvenutam
-3 _DATE @#DJULIAN@ 25 NOV 1504
+3 _DATE 25 NOV 1504
 3 FORM jpg
 3 FILE Photos\deeds\deed 15041125 Cavalini Jacobum + Trivisani Guarnerij Benvenutam.jpg
 3 _PUBL Y
@@ -115054,10 +115053,10 @@
 2 EVEN MARR
 3 ROLE dowry
 2 DATA
-3 DATE @#DJULIAN@ 25 NOV 1504
+3 DATE 25 NOV 1504
 2 OBJE
 3 TITL deed 15041125 Trivisan Benvegnua
-3 _DATE @#DJULIAN@ 25 NOV 1504
+3 _DATE 25 NOV 1504
 3 FORM jpg
 3 FILE Photos\deeds\deed 15041125 Trivisan Benvegnua.jpg
 3 _PUBL Y
@@ -115142,22 +115141,22 @@
 2 PAGE busta 884, carta 141r
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 5 FEB 1525
+3 DATE 5 FEB 1525
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva01
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva02
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva02.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva03
-3 _DATE @#DJULIAN@ 5 FEB 1525
+3 _DATE 5 FEB 1525
 3 FORM jpg
 3 FILE Photos\deeds\deed 15250205 de Berthonatis Sebastianum + Trivisani Oliva03.jpg
 3 _PUBL Y
@@ -115237,16 +115236,16 @@
 2 PAGE busta 846, carta 3
 2 QUAY 3
 2 DATA
-3 DATE @#DJULIAN@ 29 JAN 1556
+3 DATE 29 JAN 1556
 2 OBJE
 3 TITL deed 15560430 de Costis Antonium + Trivisani Benedictam01
-3 _DATE @#DJULIAN@ 29 JAN 1556
+3 _DATE 29 JAN 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15560430 de Costis Antonium + Trivisani Benedictam01.jpg
 3 _PUBL Y
 2 OBJE
 3 TITL deed 15560430 de Costis Antonium + Trivisani Benedictam02
-3 _DATE @#DJULIAN@ 29 JAN 1556
+3 _DATE 29 JAN 1556
 3 FORM jpg
 3 FILE Photos\deeds\deed 15560430 de Costis Antonium + Trivisani Benedictam02.jpg
 3 _PUBL Y
