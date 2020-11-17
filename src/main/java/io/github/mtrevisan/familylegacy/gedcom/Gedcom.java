@@ -108,7 +108,7 @@ public class Gedcom extends Store{
 //			storeGedcom.load("/gedg/gedcomobjects_5.5.1.gedg", "src/main/resources/ged/small.ged");
 			storeGedcom.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
-			final Flef storeFlef = storeGedcom.transform();
+			final Store storeFlef = storeGedcom.transform();
 
 			final File outputFile = new File("tmp.ged");
 			final OutputStream os = new FileOutputStream(outputFile);
@@ -143,7 +143,7 @@ public class Gedcom extends Store{
 
 				if(line.charAt(0) == '0')
 					zeroLevelsFound ++;
-				if(line.equals("1 GEDC")){
+				if("1 GEDC".equals(line)){
 					protocol = Protocol.GEDCOM;
 					while((line = br.readLine()) != null && line.charAt(0) == '2')
 						if(line.startsWith("2 VERS ")){

@@ -78,7 +78,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	private void documentsTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
-			String documentID = document.getID();
+			final String documentID = document.getID();
 			if(documentID == null){
 				final String documentFormat = transformerTo.extractSubStructure(document, "FORM")
 					.getValue();

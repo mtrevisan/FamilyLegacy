@@ -57,7 +57,7 @@ public abstract class GedcomNode{
 		return (tag == null || id == null && value == null && (children == null || children.isEmpty()));
 	}
 
-	public void setLevel(final int level){
+	private void setLevel(final int level){
 		if(level < 0)
 			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
 
@@ -253,7 +253,7 @@ public abstract class GedcomNode{
 	public boolean existChildrenWithID(final String xref){
 		if(xref != null && children != null)
 			for(final GedcomNode child : children)
-				if(xref.equals(child.getID()))
+				if(xref.equals(child.id))
 					return true;
 		return false;
 	}

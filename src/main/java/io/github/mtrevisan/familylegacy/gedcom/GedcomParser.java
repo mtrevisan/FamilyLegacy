@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -93,7 +94,7 @@ final class GedcomParser{
 			lineCount = 0;
 			startDocument();
 
-			final List<String> references = new ArrayList<>();
+			final Collection<String> references = new ArrayList<>();
 
 			String line;
 			int currentLevel;

@@ -59,7 +59,7 @@ public abstract class Store{
 
 	protected abstract void create(final GedcomNode root) throws GedcomParseException;
 
-	public abstract Flef transform();
+	protected abstract Store transform();
 
 	public void write(final OutputStream os) throws IOException{
 		final String charset = getCharsetName();

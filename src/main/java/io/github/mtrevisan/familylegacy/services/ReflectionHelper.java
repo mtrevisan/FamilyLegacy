@@ -34,6 +34,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public final class ReflectionHelper{
 		final Type rawType = ancestorType.getRawType();
 		if(rawType instanceof Class<?> && base.isAssignableFrom((Class<?>)rawType)){
 			//loop through all type arguments and replace type variables with the actually known types
-			final List<Class> resolvedTypes = new ArrayList<>();
+			final Collection<Class> resolvedTypes = new ArrayList<>();
 			for(final Type t : ancestorType.getActualTypeArguments()){
 				final String typeName = resolveArgumentType(typeVariables, t).getTypeName();
 				final Class<?> cls = toClass(typeName);
@@ -132,8 +133,7 @@ public final class ReflectionHelper{
 
 			@SuppressWarnings("unchecked")
 			final List<Class<?>> result = resolveGenericTypes((Class<? extends T>)rawType, base, resolvedTypes.toArray(Class[]::new));
-			if(result != null)
-				types.addAll(result);
+			types.addAll(result);
 		}
 		return types;
 	}

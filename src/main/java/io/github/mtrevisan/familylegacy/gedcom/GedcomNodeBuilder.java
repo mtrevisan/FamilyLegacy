@@ -53,8 +53,9 @@ public abstract class GedcomNodeBuilder{
 			return new GedcomNodeGedcom();
 		else if(protocol == Protocol.FLEF)
 			return new GedcomNodeFlef();
+
 		//cannot happen
-		return null;
+		throw new IllegalArgumentException("Cannot recognize protocol: " + protocol);
 	}
 
 	public static GedcomNode create(final Protocol protocol, final String tag){

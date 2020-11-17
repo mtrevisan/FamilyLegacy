@@ -28,14 +28,18 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 
 public enum Protocol{
 	GEDCOM(Gedcom.class),
 	FLEF(Flef.class);
 
-	String version;
-	Transformer transformer;
-	private Class<? extends Store> store;
+	private String version;
+	final Transformer transformer;
+	private final Class<? extends Store> store;
 
 
 	public static <T> Protocol fromStore(final Class<? extends Store> store){
@@ -56,6 +60,17 @@ public enum Protocol{
 
 	public String getVersion(){
 		return version;
+	}
+
+
+	@SuppressWarnings("unused")
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
 	}
 
 }
