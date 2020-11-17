@@ -71,13 +71,13 @@ final class GedcomParser{
 			if(is == null)
 				throw new IllegalArgumentException();
 
-			protocol = findProtocolAndVersion(is);
+			protocol = Gedcom.extractProtocol(is);
+			if(protocol == null)
+				protocol = Flef.extractProtocol(is);
+
+			LOGGER.info("Parsing {} file version {}...", protocol, protocol.getVersion());
 		}
 		catch(final IllegalArgumentException | IOException e){
-			try(final InputStream is = new FileInputStream(new File(gedcomFile))){
-				protocol = findProtocolAndVersion(is);
-			}
-			catch(Exception e2){}
 			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 
@@ -88,48 +88,6 @@ final class GedcomParser{
 		catch(final IllegalArgumentException | IOException e){
 			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
-	}
-
-	private static Protocol findProtocolAndVersion(final InputStream is) throws GedcomParseException{
-		String version = null;
-		Protocol protocol = null;
-		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
-			int zeroLevelsFound = 0;
-			String line;
-			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
-				//skip empty lines
-				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
-					continue;
-
-				if(line.charAt(0) == '0')
-					zeroLevelsFound ++;
-				if(line.equals("1 GEDC")){
-					line = br.readLine();
-					if(line.startsWith("2 VERS ")){
-						version = line.substring("2 VERS ".length());
-						protocol = Protocol.GEDCOM;
-					}
-					break;
-				}
-				else if(line.startsWith("1 PROTOCOL FLEF")){
-					while((line = br.readLine()) != null && line.charAt(0) == '2')
-						if(line.startsWith("2 VERSION "))
-							version = line.substring("2 VERSION ".length());
-					protocol = Protocol.FLEF;
-					break;
-				}
-			}
-		}
-		catch(final IllegalArgumentException e){
-			throw e;
-		}
-		catch(final Exception e){
-			throw GedcomParseException.create("Failed to read file", e);
-		}
-
-		LOGGER.info("Parsing {} file version {}...", protocol, version);
-
-		return protocol;
 	}
 
 	private GedcomParser(final Protocol protocol, final GedcomGrammar grammar){

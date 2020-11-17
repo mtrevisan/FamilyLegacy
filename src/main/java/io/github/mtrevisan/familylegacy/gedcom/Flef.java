@@ -26,7 +26,9 @@ package io.github.mtrevisan.familylegacy.gedcom;
 
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -86,6 +88,40 @@ public class Flef extends Store{
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
 	private Map<GedcomNode, String> sourceValue;
+
+
+
+	public static Protocol extractProtocol(final InputStream is) throws GedcomParseException{
+		Protocol protocol = null;
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
+			int zeroLevelsFound = 0;
+			String line;
+			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
+				//skip empty lines
+				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+					continue;
+
+				if(line.charAt(0) == '0')
+					zeroLevelsFound ++;
+				if(line.startsWith("1 PROTOCOL FLEF")){
+					protocol = Protocol.FLEF;
+					while((line = br.readLine()) != null && line.charAt(0) == '2')
+						if(line.startsWith("2 VERSION ")){
+							protocol.setVersion(line.substring("2 VERSION ".length()));
+							break;
+						}
+					break;
+				}
+			}
+		}
+		catch(final IllegalArgumentException e){
+			throw e;
+		}
+		catch(final Exception e){
+			throw GedcomParseException.create("Failed to read file", e);
+		}
+		return protocol;
+	}
 
 
 	@Override

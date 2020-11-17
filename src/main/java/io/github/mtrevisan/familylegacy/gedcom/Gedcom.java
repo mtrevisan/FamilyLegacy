@@ -35,9 +35,11 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformat
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -103,7 +105,6 @@ public class Gedcom extends Store{
 	public static void main(final String[] args){
 		try{
 			final Store storeGedcom = new Gedcom();
-//			storeGedcom.load("/gedg/gedcomobjects_5.5.gedg", "src/main/resources/ged/large.ged");
 //			storeGedcom.load("/gedg/gedcomobjects_5.5.1.gedg", "src/main/resources/ged/small.ged");
 			storeGedcom.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
@@ -128,6 +129,40 @@ public class Gedcom extends Store{
 			e.printStackTrace();
 		}
 	}
+
+
+	public static Protocol extractProtocol(final InputStream is) throws GedcomParseException{
+		Protocol protocol = null;
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(is)){
+			int zeroLevelsFound = 0;
+			String line;
+			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
+				//skip empty lines
+				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+					continue;
+
+				if(line.charAt(0) == '0')
+					zeroLevelsFound ++;
+				if(line.equals("1 GEDC")){
+					protocol = Protocol.GEDCOM;
+					while((line = br.readLine()) != null && line.charAt(0) == '2')
+						if(line.startsWith("2 VERS ")){
+							protocol.setVersion(line.substring("2 VERS ".length()));
+							break;
+						}
+					break;
+				}
+			}
+		}
+		catch(final IllegalArgumentException e){
+			throw e;
+		}
+		catch(final Exception e){
+			throw GedcomParseException.create("Failed to read file", e);
+		}
+		return protocol;
+	}
+
 
 	@Override
 	protected void create(final GedcomNode root) throws GedcomParseException{

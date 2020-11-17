@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
@@ -34,6 +33,7 @@ public enum Protocol{
 	GEDCOM(Gedcom.class),
 	FLEF(Flef.class);
 
+	String version;
 	private Class<? extends Store> store;
 	Transformer transformer;
 
@@ -48,6 +48,14 @@ public enum Protocol{
 	Protocol(final Class<? extends Store> store){
 		this.store = store;
 		transformer = new Transformer(this);
+	}
+
+	public void setVersion(final String version){
+		this.version = version;
+	}
+
+	public String getVersion(){
+		return version;
 	}
 
 }
