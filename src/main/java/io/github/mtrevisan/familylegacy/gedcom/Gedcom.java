@@ -49,6 +49,14 @@ import java.util.Map;
 
 public class Gedcom extends Store{
 
+	private static final String ID_INDIVIDUAL_PREFIX = "I";
+	private static final String ID_FAMILY_PREFIX = "F";
+	private static final String ID_DOCUMENT_PREFIX = "D";
+	private static final String ID_NOTE_PREFIX = "N";
+	private static final String ID_REPOSITORY_PREFIX = "R";
+	private static final String ID_SOURCE_PREFIX = "S";
+	private static final String ID_SUBMITTER_PREFIX = "M";
+
 	private static final String TAG_HEADER = "HEAD";
 	private static final String TAG_INDIVIDUAL = "INDI";
 	private static final String TAG_FAMILY = "FAM";
@@ -86,13 +94,10 @@ public class Gedcom extends Store{
 	private Map<String, GedcomNode> sourceIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
-	private Map<GedcomNode, String> individualValue;
-	private Map<GedcomNode, String> familyValue;
 	private Map<GedcomNode, String> documentValue;
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
 	private Map<GedcomNode, String> sourceValue;
-	private Map<GedcomNode, String> submitterValue;
 
 
 	public static void main(final String[] args){
@@ -147,13 +152,10 @@ public class Gedcom extends Store{
 		sourceIndex = generateIndexes(sources);
 		submitterIndex = generateIndexes(submitters);
 
-		individualValue = reverseMap(individualIndex);
-		familyValue = reverseMap(familyIndex);
 		documentValue = reverseMap(documentIndex);
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
 		sourceValue = reverseMap(sourceIndex);
-		submitterValue = reverseMap(submitterIndex);
 	}
 
 	@Override
@@ -217,14 +219,25 @@ public class Gedcom extends Store{
 		return individualIndex.get(id);
 	}
 
-	public GedcomNode addIndividual(final GedcomNode individual){
+	public String addIndividual(final GedcomNode individual){
 		if(individuals == null){
 			individuals = new ArrayList<>(1);
 			individualIndex = new HashMap<>(1);
 		}
+
+		String individualID = individual.getID();
+		if(individualID == null){
+			individualID = getNextIndividualID();
+			individual.withID(individualID);
+		}
+
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
-		return individual;
+		return individualID;
+	}
+
+	private String getNextIndividualID(){
+		return ID_INDIVIDUAL_PREFIX + (individuals != null? individuals.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getFamilies(){
@@ -235,14 +248,25 @@ public class Gedcom extends Store{
 		return familyIndex.get(id);
 	}
 
-	public GedcomNode addFamily(final GedcomNode family){
+	public String addFamily(final GedcomNode family){
 		if(families == null){
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
 		}
+
+		String familyID = family.getID();
+		if(familyID == null){
+			familyID = getNextFamilyID();
+			family.withID(familyID);
+		}
+
 		families.add(family);
 		familyIndex.put(family.getID(), family);
-		return family;
+		return familyID;
+	}
+
+	private String getNextFamilyID(){
+		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getDocuments(){
@@ -253,13 +277,33 @@ public class Gedcom extends Store{
 		return documentIndex.get(id);
 	}
 
-	public void addDocument(final GedcomNode document){
-		if(documents == null){
-			documents = new ArrayList<>(1);
-			documentIndex = new HashMap<>(1);
+	public String addDocument(final GedcomNode document){
+		//search document
+		final GedcomNode documentCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, document);
+		String documentID = (documentValue != null? documentValue.get(documentCloned): null);
+		if(documentID == null){
+			//if document is not found:
+			if(documents == null){
+				documents = new ArrayList<>(1);
+				documentIndex = new HashMap<>(1);
+				documentValue = new HashMap<>(1);
+			}
+
+			documentID = document.getID();
+			if(documentID == null){
+				documentID = getNextDocumentID();
+				document.withID(documentID);
+			}
+
+			documents.add(document);
+			documentIndex.put(documentID, document);
+			documentValue.put(documentCloned, documentID);
 		}
-		documents.add(document);
-		documentIndex.put(document.getID(), document);
+		return documentID;
+	}
+
+	private String getNextDocumentID(){
+		return ID_DOCUMENT_PREFIX + (documents != null? documents.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -270,13 +314,33 @@ public class Gedcom extends Store{
 		return noteIndex.get(id);
 	}
 
-	public void addNote(final GedcomNode note){
-		if(notes == null){
-			notes = new ArrayList<>(1);
-			noteIndex = new HashMap<>(1);
+	public String addNote(final GedcomNode note){
+		//search note
+		final GedcomNode noteCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, note);
+		String noteID = (noteValue != null? noteValue.get(noteCloned): null);
+		if(noteID == null){
+			//if note is not found:
+			if(notes == null){
+				notes = new ArrayList<>(1);
+				noteIndex = new HashMap<>(1);
+				noteValue = new HashMap<>(1);
+			}
+
+			noteID = note.getID();
+			if(noteID == null){
+				noteID = getNextNoteID();
+				note.withID(noteID);
+			}
+
+			notes.add(note);
+			noteIndex.put(noteID, note);
+			noteValue.put(noteCloned, noteID);
 		}
-		notes.add(note);
-		noteIndex.put(note.getID(), note);
+		return noteID;
+	}
+
+	private String getNextNoteID(){
+		return ID_NOTE_PREFIX + (notes != null? notes.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -287,13 +351,33 @@ public class Gedcom extends Store{
 		return repositoryIndex.get(id);
 	}
 
-	public void addRepository(final GedcomNode repository){
-		if(repositories == null){
-			repositories = new ArrayList<>(1);
-			repositoryIndex = new HashMap<>(1);
+	public String addRepository(final GedcomNode repository){
+		//search repository
+		final GedcomNode repositoryCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, repository);
+		String repositoryID = (repositoryValue != null? repositoryValue.get(repositoryCloned): null);
+		if(repositoryID == null){
+			//if repository is not found:
+			if(repositories == null){
+				repositories = new ArrayList<>(1);
+				repositoryIndex = new HashMap<>(1);
+				repositoryValue = new HashMap<>(1);
+			}
+
+			repositoryID = repository.getID();
+			if(repositoryID == null){
+				repositoryID = getNextRepositoryID();
+				repository.withID(repositoryID);
+			}
+
+			repositories.add(repository);
+			repositoryIndex.put(repositoryID, repository);
+			repositoryValue.put(repositoryCloned, repositoryID);
 		}
-		repositories.add(repository);
-		repositoryIndex.put(repository.getID(), repository);
+		return repositoryID;
+	}
+
+	private String getNextRepositoryID(){
+		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSources(){
@@ -304,13 +388,33 @@ public class Gedcom extends Store{
 		return sourceIndex.get(id);
 	}
 
-	public void addSource(final GedcomNode source){
-		if(sources == null){
-			sources = new ArrayList<>(1);
-			sourceIndex = new HashMap<>(1);
+	public String addSource(final GedcomNode source){
+		//search source
+		final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
+		String sourceID = (sourceValue != null? sourceValue.get(sourceCloned): null);
+		if(sourceID == null){
+			//if source is not found:
+			if(sources == null){
+				sources = new ArrayList<>(1);
+				sourceIndex = new HashMap<>(1);
+				sourceValue = new HashMap<>(1);
+			}
+
+			sourceID = source.getID();
+			if(sourceID == null){
+				sourceID = getNextSourceID();
+				source.withID(sourceID);
+			}
+
+			sources.add(source);
+			sourceIndex.put(sourceID, source);
+			sourceValue.put(sourceCloned, sourceID);
 		}
-		sources.add(source);
-		sourceIndex.put(source.getID(), source);
+		return sourceID;
+	}
+
+	private String getNextSourceID(){
+		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
 	}
 
 	public List<GedcomNode> getSubmitters(){
@@ -321,13 +425,25 @@ public class Gedcom extends Store{
 		return submitterIndex.get(id);
 	}
 
-	public void addSubmitter(final GedcomNode submitter){
+	public String addSubmitter(final GedcomNode submitter){
 		if(submitters == null){
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
+
+		String submitterID = submitter.getID();
+		if(submitterID == null){
+			submitterID = getNextSubmitterID();
+			submitter.withID(submitterID);
+		}
+
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
+		return submitterID;
+	}
+
+	private String getNextSubmitterID(){
+		return ID_SUBMITTER_PREFIX + (submitters != null? submitters.size() + 1: 1);
 	}
 
 }
