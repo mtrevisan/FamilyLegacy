@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.StringJoiner;
 
 
-final class Transformer{
+public final class Transformer{
 
 	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
 
@@ -44,10 +44,14 @@ final class Transformer{
 	private final Protocol protocol;
 
 
-	Transformer(final Protocol protocol){
+	public Transformer(final Protocol protocol){
 		this.protocol = protocol;
 	}
 
+
+	public GedcomNode createEmpty(){
+		return GedcomNodeBuilder.createEmpty(protocol);
+	}
 
 	public GedcomNode create(final String tag){
 		return GedcomNodeBuilder.create(protocol, tag);
@@ -65,7 +69,7 @@ final class Transformer{
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
-	GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
+	public GedcomNode extractSubStructure(final GedcomNode context, final String... tags){
 		GedcomNode current = context;
 		for(final String tag : tags){
 			final List<GedcomNode> childrenWithTag = current.getChildrenWithTag(tag);

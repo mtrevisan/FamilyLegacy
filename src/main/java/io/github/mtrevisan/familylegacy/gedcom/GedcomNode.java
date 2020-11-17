@@ -123,6 +123,11 @@ public abstract class GedcomNode{
 	 */
 	public abstract String getValue();
 
+	public String getValueOrDefault(final String defaultValue){
+		final String v = getValue();
+		return (v != null? v: defaultValue);
+	}
+
 	public abstract GedcomNode withValue(final String value);
 
 	protected void addValue(final String childTag, final String subValue){
