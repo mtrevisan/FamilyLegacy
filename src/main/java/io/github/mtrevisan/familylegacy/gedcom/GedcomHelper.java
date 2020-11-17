@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -95,8 +93,7 @@ final class GedcomHelper{
 	}
 
 	private static String readCorrectedCharsetName(final InputStream is) throws IOException{
-		final BufferedReader r = new BufferedReader(new InputStreamReader(is));
-		return readCorrectedCharsetName(r);
+		return readCorrectedCharsetName(new BufferedReader(new InputStreamReader(is)));
 	}
 
 	private static String readCorrectedCharsetName(final BufferedReader in) throws IOException{
@@ -115,7 +112,7 @@ final class GedcomHelper{
 						final String id = split[1];
 						if(generatorName == null && "SOUR".equals(id))
 							generatorName = split[2];
-						else if("CHAR".equals(id) || "CHARACTER".equals(id)){
+						else if("CHAR".equals(id)){
 							//get encoding
 							encoding = split[2].toUpperCase();
 							//look for version
@@ -175,8 +172,8 @@ final class GedcomHelper{
 		else if("UTF-16BE".equals(encoding))
 			encoding = "UnicodeBigUnmarked";
 		else if(encoding == null)
-			//not found
-			encoding = StringUtils.EMPTY;
+			//not found, use default character encoding
+			encoding = "UTF-8";
 		return encoding;
 	}
 
