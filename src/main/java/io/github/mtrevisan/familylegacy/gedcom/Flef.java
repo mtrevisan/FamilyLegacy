@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Flef extends Store<Flef>{
+public class Flef extends Store{
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -84,34 +84,36 @@ public class Flef extends Store<Flef>{
 
 
 	@Override
-	protected Flef create(final GedcomNode root) throws GedcomParseException{
-		final Flef g = new Flef();
-		g.root = root;
+	protected void create(final GedcomNode root) throws GedcomParseException{
+		this.root = root;
 		final List<GedcomNode> headers = root.getChildrenWithTag(TAG_HEADER);
 		if(headers.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
-		g.header = headers.get(0);
-		g.individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
-		g.families = root.getChildrenWithTag(TAG_FAMILY);
-		g.places = root.getChildrenWithTag(TAG_PLACE);
-		g.notes = root.getChildrenWithTag(TAG_NOTE);
-		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
-		g.sources = root.getChildrenWithTag(TAG_SOURCE);
-		g.culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
-		g.groups = root.getChildrenWithTag(TAG_GROUP);
-		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
+		header = headers.get(0);
+		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
+		families = root.getChildrenWithTag(TAG_FAMILY);
+		places = root.getChildrenWithTag(TAG_PLACE);
+		notes = root.getChildrenWithTag(TAG_NOTE);
+		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
+		sources = root.getChildrenWithTag(TAG_SOURCE);
+		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
+		groups = root.getChildrenWithTag(TAG_GROUP);
+		submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
-		g.individualIndex = generateIndexes(g.individuals);
-		g.familyIndex = generateIndexes(g.families);
-		g.placeIndex = generateIndexes(g.places);
-		g.noteIndex = generateIndexes(g.notes);
-		g.repositoryIndex = generateIndexes(g.repositories);
-		g.sourceIndex = generateIndexes(g.sources);
-		g.culturalRuleIndex = generateIndexes(g.culturalRules);
-		g.groupIndex = generateIndexes(g.groups);
-		g.submitterIndex = generateIndexes(g.submitters);
+		individualIndex = generateIndexes(individuals);
+		familyIndex = generateIndexes(families);
+		placeIndex = generateIndexes(places);
+		noteIndex = generateIndexes(notes);
+		repositoryIndex = generateIndexes(repositories);
+		sourceIndex = generateIndexes(sources);
+		culturalRuleIndex = generateIndexes(culturalRules);
+		groupIndex = generateIndexes(groups);
+		submitterIndex = generateIndexes(submitters);
+	}
 
-		return g;
+	@Override
+	public Flef transform(){
+		return this;
 	}
 
 	@Override

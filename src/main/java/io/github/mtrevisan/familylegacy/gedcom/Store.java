@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public abstract class Store<T>{
+public abstract class Store{
 
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
@@ -49,15 +49,17 @@ public abstract class Store<T>{
 	GedcomNode root;
 
 
-	public T load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
+	public void load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomGrammar grammar = GedcomGrammar.create(grammarFile);
 
 		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
 
-		return create(root);
+		create(root);
 	}
 
-	protected abstract T create(final GedcomNode root) throws GedcomParseException;
+	protected abstract void create(final GedcomNode root) throws GedcomParseException;
+
+	public abstract Flef transform();
 
 	public void write(final OutputStream os) throws IOException{
 		final String charset = getCharsetName();

@@ -7,7 +7,7 @@ import io.github.mtrevisan.familylegacy.services.ReflectionHelper;
 import java.util.List;
 
 
-public abstract class Transformation<FROM extends Store<FROM>, TO extends Store<TO>>{
+public abstract class Transformation<FROM extends Store, TO extends Store>{
 
 	private final Protocol protocolFrom;
 	private final Protocol protocolTo;
@@ -20,8 +20,8 @@ public abstract class Transformation<FROM extends Store<FROM>, TO extends Store<
 	protected Transformation(){
 		final List<Class<?>> generics = ReflectionHelper.resolveGenericTypes(getClass(), Transformation.class);
 
-		protocolFrom = Protocol.fromStore((Class<? extends Store<?>>)generics.get(0));
-		protocolTo = Protocol.fromStore((Class<? extends Store<?>>)generics.get(1));
+		protocolFrom = Protocol.fromStore((Class<? extends Store>)generics.get(0));
+		protocolTo = Protocol.fromStore((Class<? extends Store>)generics.get(1));
 
 		transformerFrom = protocolFrom.transformer;
 		transformerTo = protocolTo.transformer;

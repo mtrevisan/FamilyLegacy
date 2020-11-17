@@ -34,18 +34,18 @@ public enum Protocol{
 	GEDCOM(Gedcom.class),
 	FLEF(Flef.class);
 
-	private Class<? extends Store<?>> store;
+	private Class<? extends Store> store;
 	Transformer transformer;
 
 
-	public static <T> Protocol fromStore(final Class<? extends Store<?>> store){
+	public static <T> Protocol fromStore(final Class<? extends Store> store){
 		for(final Protocol protocol : values())
 			if(protocol.store == store)
 				return protocol;
 		return null;
 	}
 
-	Protocol(final Class<? extends Store<?>> store){
+	Protocol(final Class<? extends Store> store){
 		this.store = store;
 		transformer = new Transformer(this);
 	}

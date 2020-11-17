@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Gedcom extends Store<Gedcom>{
+public class Gedcom extends Store{
 
 	private static final String TAG_HEADER = "HEAD";
 	private static final String TAG_INDIVIDUAL = "INDI";
@@ -58,6 +58,15 @@ public class Gedcom extends Store<Gedcom>{
 	private static final String TAG_SOURCE = "SOUR";
 	private static final String TAG_SUBMITTER = "SUBM";
 	private static final String TAG_CHARSET = "CHAR";
+
+	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
+	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
+	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
+	private static final Transformation<Gedcom, Flef> DOCUMENT_TRANSFORMATION = new DocumentTransformation();
+	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
+	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
+	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
+	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
 
 	private GedcomNode header;
@@ -80,16 +89,22 @@ public class Gedcom extends Store<Gedcom>{
 
 	public static void main(final String[] args){
 		try{
-			final Gedcom store = new Gedcom();
-//			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
-			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
-//			final Gedcom gedcom = store.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
+			final Store storeGedcom = new Gedcom();
+//			storeGedcom.load("/gedg/gedcomobjects_5.5.gedg", "/ged/large.ged");
+			storeGedcom.load("/gedg/gedcomobjects_5.5.1.gedg", "/ged/small.ged");
+//			storeGedcom.load("/gedg/gedcomobjects_5.5.1.tcgb.gedg", "/ged/large.ged");
 
-			final Flef flef = gedcom.transform();
+			final Flef storeFlef = storeGedcom.transform();
 
-			final OutputStream os = new FileOutputStream(new File("./tmp.ged"));
+			final File outputFile = new File("./tmp.ged");
+			final OutputStream os = new FileOutputStream(outputFile);
 //			gedcom.write(os);
-			flef.write(os);
+			storeFlef.write(os);
+
+			final Store storeFlef2 = new Flef();
+			storeFlef2.load("/gedg/flef_0.0.2.gedg", outputFile.getAbsolutePath());
+
+			//TODO compare storeFlef and storeFlef2
 		}
 		catch(final Exception e){
 			e.printStackTrace();
@@ -97,41 +112,30 @@ public class Gedcom extends Store<Gedcom>{
 	}
 
 	@Override
-	protected Gedcom create(final GedcomNode root) throws GedcomParseException{
-		final Gedcom g = new Gedcom();
-		g.root = root;
+	protected void create(final GedcomNode root) throws GedcomParseException{
+		this.root = root;
 		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEADER);
 		if(heads.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
-		g.header = heads.get(0);
-		g.individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
-		g.families = root.getChildrenWithTag(TAG_FAMILY);
-		g.documents = root.getChildrenWithTag(TAG_DOCUMENT);
-		g.notes = root.getChildrenWithTag(TAG_NOTE);
-		g.repositories = root.getChildrenWithTag(TAG_REPOSITORY);
-		g.sources = root.getChildrenWithTag(TAG_SOURCE);
-		g.submitters = root.getChildrenWithTag(TAG_SUBMITTER);
+		header = heads.get(0);
+		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
+		families = root.getChildrenWithTag(TAG_FAMILY);
+		documents = root.getChildrenWithTag(TAG_DOCUMENT);
+		notes = root.getChildrenWithTag(TAG_NOTE);
+		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
+		sources = root.getChildrenWithTag(TAG_SOURCE);
+		submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
-		g.individualIndex = generateIndexes(g.individuals);
-		g.familyIndex = generateIndexes(g.families);
-		g.documentIndex = generateIndexes(g.documents);
-		g.noteIndex = generateIndexes(g.notes);
-		g.repositoryIndex = generateIndexes(g.repositories);
-		g.sourceIndex = generateIndexes(g.sources);
-		g.submitterIndex = generateIndexes(g.submitters);
-
-		return g;
+		individualIndex = generateIndexes(individuals);
+		familyIndex = generateIndexes(families);
+		documentIndex = generateIndexes(documents);
+		noteIndex = generateIndexes(notes);
+		repositoryIndex = generateIndexes(repositories);
+		sourceIndex = generateIndexes(sources);
+		submitterIndex = generateIndexes(submitters);
 	}
 
-	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
-	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
-	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
-	private static final Transformation<Gedcom, Flef> DOCUMENT_TRANSFORMATION = new DocumentTransformation();
-	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
-	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
-	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
-	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
-
+	@Override
 	public Flef transform(){
 		final Flef destination = new Flef();
 		HEADER_TRANSFORMATION.to(this, destination);
