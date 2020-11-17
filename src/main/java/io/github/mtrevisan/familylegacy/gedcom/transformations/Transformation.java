@@ -1,7 +1,6 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
-import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.services.ReflectionHelper;
 
@@ -10,23 +9,22 @@ import java.util.List;
 
 public abstract class Transformation<FROM extends Store<FROM>, TO extends Store<TO>>{
 
-	private static Protocol protocolFrom;
-	private static Protocol protocolTo;
+	private final Protocol protocolFrom;
+	private final Protocol protocolTo;
 
-	protected static Transformer transformerFrom;
-	protected static Transformer transformerTo;
+	protected final Transformer transformerFrom;
+	protected final Transformer transformerTo;
 
 
+	@SuppressWarnings("unchecked")
 	protected Transformation(){
-		if(protocolFrom == null){
-			final List<Class<?>> generics = ReflectionHelper.resolveGenericTypes(getClass(), Transformation.class);
+		final List<Class<?>> generics = ReflectionHelper.resolveGenericTypes(getClass(), Transformation.class);
 
-			protocolFrom = Protocol.fromStore((Class<? extends Store<?>>)generics.get(0));
-			protocolTo = Protocol.fromStore((Class<? extends Store<?>>)generics.get(1));
+		protocolFrom = Protocol.fromStore((Class<? extends Store<?>>)generics.get(0));
+		protocolTo = Protocol.fromStore((Class<? extends Store<?>>)generics.get(1));
 
-			transformerFrom = new Transformer(protocolFrom);
-			transformerTo = new Transformer(protocolTo);
-		}
+		transformerFrom = protocolFrom.transformer;
+		transformerTo = protocolTo.transformer;
 	}
 
 	public abstract void to(final FROM origin, final TO destination);

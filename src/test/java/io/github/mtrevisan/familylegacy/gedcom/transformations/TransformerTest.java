@@ -1,7 +1,6 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

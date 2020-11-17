@@ -3,7 +3,6 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;

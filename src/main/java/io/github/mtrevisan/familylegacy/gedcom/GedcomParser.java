@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

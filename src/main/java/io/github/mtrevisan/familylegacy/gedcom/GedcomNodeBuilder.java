@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

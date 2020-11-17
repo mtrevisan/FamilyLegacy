@@ -22,7 +22,12 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom;
+package io.github.mtrevisan.familylegacy.gedcom.transformations;
+
+
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
+import io.github.mtrevisan.familylegacy.gedcom.Store;
 
 
 public enum Protocol{
@@ -30,6 +35,7 @@ public enum Protocol{
 	FLEF(Flef.class);
 
 	private Class<? extends Store<?>> store;
+	Transformer transformer;
 
 
 	public static <T> Protocol fromStore(final Class<? extends Store<?>> store){
@@ -41,6 +47,7 @@ public enum Protocol{
 
 	Protocol(final Class<? extends Store<?>> store){
 		this.store = store;
+		transformer = new Transformer(this);
 	}
 
 }

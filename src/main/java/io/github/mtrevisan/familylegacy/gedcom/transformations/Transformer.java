@@ -4,7 +4,6 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
-import io.github.mtrevisan.familylegacy.gedcom.Protocol;
 
 import java.util.Arrays;
 import java.util.Collection;

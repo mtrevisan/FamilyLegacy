@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformat
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;

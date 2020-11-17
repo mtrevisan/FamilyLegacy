@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.gedcom;
 
 
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
+
+
 public final class GedcomNodeFlef extends GedcomNode{
 
 	private static final String TAG_CONTINUATION = "CONTINUATION";

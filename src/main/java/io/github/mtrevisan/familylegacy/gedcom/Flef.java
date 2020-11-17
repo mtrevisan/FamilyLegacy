@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
