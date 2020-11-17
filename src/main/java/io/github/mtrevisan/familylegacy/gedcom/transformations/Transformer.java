@@ -121,7 +121,6 @@ final class Transformer{
 				final GedcomNode eventNode = extractSubStructure(sourceCitation, "EVEN");
 				final GedcomNode data = extractSubStructure(sourceCitation, "DATA");
 				final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOURCE")
-					.withID(sourceCitationID)
 					.addChildValue("EVENT", eventNode.getValue())
 					.addChildValue("DATE", extractSubStructure(data, "DATE")
 						.getValue());
@@ -132,7 +131,7 @@ final class Transformer{
 				destinationSource.addChildReference("NOTE", noteID);
 				documentTo(sourceCitation, destinationSource, destination);
 				noteTo(sourceCitation, destinationSource, destination);
-				destination.addSource(destinationSource);
+				sourceCitationID = destination.addSource(destinationSource);
 
 				//add source citation
 				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")

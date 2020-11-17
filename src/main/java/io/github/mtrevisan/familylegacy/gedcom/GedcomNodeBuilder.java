@@ -74,6 +74,25 @@ public abstract class GedcomNodeBuilder{
 			.withValue(value);
 	}
 
+	public static GedcomNode createCloneWithoutID(final Protocol protocol, final GedcomNode node){
+		final GedcomNode clone = create(protocol, node.getTag())
+			.withXRef(node.getXRef())
+			.withValue(node.getValue());
+		for(final GedcomNode child : node.getChildren())
+			clone.addChild(createCloneWithID(protocol, child));
+		return clone;
+	}
+
+	private static GedcomNode createCloneWithID(final Protocol protocol, final GedcomNode node){
+		final GedcomNode clone = create(protocol, node.getTag())
+			.withID(node.getID())
+			.withXRef(node.getXRef())
+			.withValue(node.getValue());
+		for(final GedcomNode child : node.getChildren())
+			clone.addChild(createCloneWithID(protocol, child));
+		return clone;
+	}
+
 	public static GedcomNode parse(final Protocol protocol, final CharSequence line){
 		final Matcher m = GEDCOM_LINE.matcher(line);
 		if(!m.find())

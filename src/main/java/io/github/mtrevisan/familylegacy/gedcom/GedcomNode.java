@@ -280,6 +280,7 @@ public abstract class GedcomNode{
 
 		final GedcomNode rhs = (GedcomNode)obj;
 		final EqualsBuilder builder = new EqualsBuilder()
+			.append(id, rhs.id)
 			.append(tag, rhs.tag)
 			.append(xref, rhs.xref)
 			.append(value, rhs.value)
@@ -290,6 +291,7 @@ public abstract class GedcomNode{
 	@Override
 	public int hashCode(){
 		return new HashCodeBuilder()
+			.append(id)
 			.append(tag)
 			.append(xref)
 			.append(value)

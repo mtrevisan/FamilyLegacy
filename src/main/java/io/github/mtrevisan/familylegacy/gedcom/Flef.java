@@ -86,9 +86,6 @@ public class Flef extends Store{
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
 	private Map<GedcomNode, String> sourceValue;
-	private Map<GedcomNode, String> culturalRuleValue;
-	private Map<GedcomNode, String> groupValue;
-	private Map<GedcomNode, String> submitterValue;
 
 
 	@Override
@@ -122,9 +119,6 @@ public class Flef extends Store{
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
 		sourceValue = reverseMap(sourceIndex);
-		culturalRuleValue = reverseMap(culturalRuleIndex);
-		groupValue = reverseMap(groupIndex);
-		submitterValue = reverseMap(submitterIndex);
 	}
 
 	@Override
@@ -242,7 +236,8 @@ public class Flef extends Store{
 
 	public String addPlace(final GedcomNode place){
 		//search place
-		String placeID = (placeValue != null? placeValue.get(place): null);
+		final GedcomNode placeCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
+		String placeID = (placeValue != null? placeValue.get(placeCloned): null);
 		if(placeID == null){
 			//if place is not found:
 			if(places == null){
@@ -259,7 +254,7 @@ public class Flef extends Store{
 
 			places.add(place);
 			placeIndex.put(placeID, place);
-			placeValue.put(place, placeID);
+			placeValue.put(placeCloned, placeID);
 		}
 		return placeID;
 	}
@@ -277,10 +272,11 @@ public class Flef extends Store{
 	}
 
 	public String addNote(final GedcomNode note){
-		//search place
-		String noteID = (noteValue != null? noteValue.get(note): null);
+		//search note
+		final GedcomNode noteCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, note);
+		String noteID = (noteValue != null? noteValue.get(noteCloned): null);
 		if(noteID == null){
-			//if place is not found:
+			//if note is not found:
 			if(notes == null){
 				notes = new ArrayList<>(1);
 				noteIndex = new HashMap<>(1);
@@ -295,7 +291,7 @@ public class Flef extends Store{
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
-			noteValue.put(note, noteID);
+			noteValue.put(noteCloned, noteID);
 		}
 		return noteID;
 	}
@@ -313,19 +309,27 @@ public class Flef extends Store{
 	}
 
 	public String addRepository(final GedcomNode repository){
-		if(repositories == null){
-			repositories = new ArrayList<>(1);
-			repositoryIndex = new HashMap<>(1);
-		}
-
-		String repositoryID = repository.getID();
+		//search repository
+		final GedcomNode repositoryCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, repository);
+		String repositoryID = (repositoryValue != null? repositoryValue.get(repositoryCloned): null);
 		if(repositoryID == null){
-			repositoryID = getNextRepositoryID();
-			repository.withID(repositoryID);
-		}
+			//if repository is not found:
+			if(repositories == null){
+				repositories = new ArrayList<>(1);
+				repositoryIndex = new HashMap<>(1);
+				repositoryValue = new HashMap<>(1);
+			}
 
-		repositories.add(repository);
-		repositoryIndex.put(repository.getID(), repository);
+			repositoryID = repository.getID();
+			if(repositoryID == null){
+				repositoryID = getNextRepositoryID();
+				repository.withID(repositoryID);
+			}
+
+			repositories.add(repository);
+			repositoryIndex.put(repositoryID, repository);
+			repositoryValue.put(repositoryCloned, repositoryID);
+		}
 		return repositoryID;
 	}
 
@@ -342,17 +346,27 @@ public class Flef extends Store{
 	}
 
 	public String addSource(final GedcomNode source){
-		if(sources == null){
-			sources = new ArrayList<>(1);
-			sourceIndex = new HashMap<>(1);
-		}
-		String sourceID = source.getID();
+		//search source
+		final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
+		String sourceID = (sourceValue != null? sourceValue.get(sourceCloned): null);
 		if(sourceID == null){
-			sourceID = getNextSourceID();
-			source.withID(sourceID);
+			//if source is not found:
+			if(sources == null){
+				sources = new ArrayList<>(1);
+				sourceIndex = new HashMap<>(1);
+				sourceValue = new HashMap<>(1);
+			}
+
+			sourceID = source.getID();
+			if(sourceID == null){
+				sourceID = getNextSourceID();
+				source.withID(sourceID);
+			}
+
+			sources.add(source);
+			sourceIndex.put(sourceID, source);
+			sourceValue.put(sourceCloned, sourceID);
 		}
-		sources.add(source);
-		sourceIndex.put(source.getID(), source);
 		return sourceID;
 	}
 
@@ -373,11 +387,13 @@ public class Flef extends Store{
 			culturalRules = new ArrayList<>(1);
 			culturalRuleIndex = new HashMap<>(1);
 		}
+
 		String culturalRuleID = culturalRule.getID();
 		if(culturalRuleID == null){
 			culturalRuleID = getNextCulturalRuleID();
 			culturalRule.withID(culturalRuleID);
 		}
+
 		culturalRules.add(culturalRule);
 		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
 		return culturalRuleID;
@@ -400,11 +416,13 @@ public class Flef extends Store{
 			groups = new ArrayList<>(1);
 			groupIndex = new HashMap<>(1);
 		}
+
 		String groupID = group.getID();
 		if(groupID == null){
 			groupID = getNextGroupID();
 			group.withID(groupID);
 		}
+
 		groups.add(group);
 		groupIndex.put(group.getID(), group);
 		return groupID;
@@ -427,11 +445,13 @@ public class Flef extends Store{
 			submitters = new ArrayList<>(1);
 			submitterIndex = new HashMap<>(1);
 		}
+
 		String submitterID = submitter.getID();
 		if(submitterID == null){
 			submitterID = getNextSubmitterID();
 			submitter.withID(submitterID);
 		}
+
 		submitters.add(submitter);
 		submitterIndex.put(submitter.getID(), submitter);
 		return submitterID;
