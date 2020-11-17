@@ -74,13 +74,13 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
+	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> families = origin.getFamilies();
 		for(final GedcomNode family : families)
 			familyRecordFrom(family, origin, destination);
 	}
 
-	private void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
+	private void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationFamily = transformerFrom.create("FAM")
 			.withID(family.getID())
 			.addChildValue("RESN", transformerFrom.extractSubStructure(family, "RESTRICTION")

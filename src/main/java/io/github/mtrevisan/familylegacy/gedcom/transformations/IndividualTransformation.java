@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.Iterator;
@@ -232,14 +231,13 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
+	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> individuals = origin.getIndividuals();
 		for(final GedcomNode individual : individuals)
 			individualRecordFrom(individual, origin, destination);
 	}
 
-	private void individualRecordFrom(final GedcomNode individual, final Flef origin, final Gedcom destination)
-			throws GedcomGrammarParseException{
+	private void individualRecordFrom(final GedcomNode individual, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationIndividual = transformerFrom.create("INDI")
 			.withID(individual.getID());
 		destinationIndividual.addChildValue("RESN", transformerFrom.extractSubStructure(individual, "RESTRICTION")
@@ -424,7 +422,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void attributeFrom(final Iterable<GedcomNode> attributes, final GedcomNode destinationNode, final Flef origin,
-			final String valueFrom, final String tagTo) throws GedcomGrammarParseException{
+			final String valueFrom, final String tagTo){
 		final Iterator<GedcomNode> itr = attributes.iterator();
 		while(itr.hasNext()){
 			final GedcomNode attribute = itr.next();
@@ -437,8 +435,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin)
-			throws GedcomGrammarParseException{
+	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin){
 		final GedcomNode destinationAttribute = transformerFrom.create(tagTo)
 			.withValue(attribute.getValue())
 			.addChildValue("TYPE", transformerFrom.extractSubStructure(attribute, "TYPE")

@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 
@@ -264,7 +263,7 @@ final class Transformer{
 
 
 	void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
-			final String tagTo) throws GedcomGrammarParseException{
+			final String tagTo){
 		final Iterator<GedcomNode> itr = events.iterator();
 		while(itr.hasNext()){
 			final GedcomNode event = itr.next();
@@ -317,8 +316,7 @@ final class Transformer{
 		}
 	}
 
-	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin)
-			throws GedcomGrammarParseException{
+	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = GedcomNodeBuilder.create(protocol, tagTo)
 			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
 			.addChildValue("TYPE", extractSubStructure(event, "TYPE")
@@ -344,14 +342,10 @@ final class Transformer{
 		return destinationEvent;
 	}
 
-	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
-		throws GedcomGrammarParseException{
+	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = extractSubStructure(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getID());
-			if(placeRecord == null)
-				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
-
 			final GedcomNode address = extractSubStructure(placeRecord, "ADDRESS");
 			destinationNode.addChild(GedcomNodeBuilder.create(protocol, "ADDR")
 				.withValue(placeRecord.getValue())
@@ -361,16 +355,11 @@ final class Transformer{
 		}
 	}
 
-	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin)
-			throws GedcomGrammarParseException{
+	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = extractSubStructure(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getID());
-			if(placeRecord == null)
-				throw GedcomGrammarParseException.create("Place with ID {} not found", place.getID());
-
 			final GedcomNode map = extractSubStructure(placeRecord, "MAP");
-
 			final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLAC")
 				.withValue(extractSubStructure(placeRecord, "NAME")
 					.getValue())

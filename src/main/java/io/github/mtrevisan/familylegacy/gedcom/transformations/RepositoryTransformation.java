@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 import java.util.List;
@@ -75,13 +74,13 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
+	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> repositories = origin.getRepositories();
 		for(final GedcomNode repository : repositories)
 			repositoryFrom(repository, origin, destination);
 	}
 
-	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination) throws GedcomGrammarParseException{
+	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
 		final String name = transformerFrom.extractSubStructure(repository, "NAME")
 			.getValue();
 		final GedcomNode destinationRepository = transformerFrom.create("REPO")

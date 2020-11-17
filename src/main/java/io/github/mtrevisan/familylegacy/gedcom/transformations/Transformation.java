@@ -53,6 +53,6 @@ public abstract class Transformation<FROM extends Store, TO extends Store>{
 
 	public abstract void to(final FROM origin, final TO destination);
 
-	public abstract void from(final TO origin, final FROM destination) throws GedcomGrammarParseException;
+	public abstract void from(final TO origin, final FROM destination);
 
 }
