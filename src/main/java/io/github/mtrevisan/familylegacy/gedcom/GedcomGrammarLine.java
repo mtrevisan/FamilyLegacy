@@ -66,7 +66,7 @@ class GedcomGrammarLine{
 	/** Matches [&lt;EVENT_DESCRIPTOR&gt;|&lt;NULL&gt;] etc */
 	private static final Pattern MULTIPLE_VALUES = Pattern.compile("([\\[|]<[A-Z_]+>\\|?)+\\]");
 	private static final Pattern MULTIPLE_VALUES_REPLACE = Pattern.compile("[\\[\\] <>]");
-	private static final Pattern TAG_PATTERN = Pattern.compile("[A-Z]+[1-9]*");
+	private static final Pattern TAG_PATTERN = Pattern.compile("[A-Z][A-Z_]*[1-9]*");
 	/** Matches multiple tags ([ABC|DEF|GHI|JKL]) */
 	private static final Pattern MULTIPLE_TAGS = Pattern.compile("([\\[|]?[A-Z]+\\|?)+\\]");
 	private static final Pattern MULTIPLE_TAGS_REPLACE = Pattern.compile("[\\[\\] ]");
@@ -109,7 +109,7 @@ class GedcomGrammarLine{
 			return null;
 		}
 
-		int tagIndex = - 1;
+		int tagIndex = -1;
 		for(int i = 0; i < components.length; i ++){
 			if(RegexHelper.matches(components[i], XREF_PATTERN))
 				//@<XREF:TAG>
@@ -162,7 +162,7 @@ class GedcomGrammarLine{
 
 				tagIndex = i;
 			}
-			else if(tagIndex != - 1 && i == tagIndex + 1 && RegexHelper.contains(components[i], MULTIPLE_VALUE_POSSIBILITIES)){
+			else if(tagIndex != -1 && i == tagIndex + 1 && RegexHelper.contains(components[i], MULTIPLE_VALUE_POSSIBILITIES)){
 				//Value possibilities. They can only appear right after the tag
 				//Example: DEAT [Y|<NULL>]
 				final String[] possibilities = StringUtils.split(
@@ -171,7 +171,7 @@ class GedcomGrammarLine{
 					sl.valuePossibilities.add(!"NULL".equals(possibility.toUpperCase())? possibility: null);
 			}
 			else
-				LOGGER.info("Did not process {} in {} under {}", components[i], sl.getID(), sl.structureName);
+				LOGGER.info("Did not process component {} with ID '{}' under {}", components[i], sl.getID(), sl.structureName);
 		}
 
 		return sl;

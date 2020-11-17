@@ -70,7 +70,7 @@ final class GedcomParser{
 		if(protocol == null)
 			protocol = Flef.extractProtocol(gedcomFile);
 
-		LOGGER.info("Parsing {} file version {}...", protocol, protocol.getVersion());
+		LOGGER.info("Parsing {} format, version {}...", protocol, protocol.getVersion());
 
 		try(final InputStream is = new FileInputStream(gedcomFile)){
 			final GedcomParser parser = new GedcomParser(protocol, grammar);
@@ -147,8 +147,6 @@ final class GedcomParser{
 				if(!root.existChildrenWithID(xref))
 					throw GedcomParseException.create("Cannot find object for ID {}", xref)
 						.skipAddLineNumber();
-
-			LOGGER.info("Parsing done");
 
 			return root;
 		}
