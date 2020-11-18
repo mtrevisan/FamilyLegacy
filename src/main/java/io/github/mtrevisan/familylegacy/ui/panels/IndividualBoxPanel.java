@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
@@ -40,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
@@ -67,6 +67,8 @@ public class IndividualBoxPanel extends JPanel{
 	private static final Dimension ARCS = new Dimension(10, 10);
 
 	private static final EnumMap<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
+	public static final double IMAGE_ASPECT_RATIO = 4. / 3.;
+
 	static{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.MALE, BACKGROUND_COLOR_MALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
@@ -80,20 +82,28 @@ public class IndividualBoxPanel extends JPanel{
 	private static final ImageIcon ADD_PHOTO_GIRL = ResourceHelper.getImage("/images/addPhoto.girl.jpg");
 	private static final ImageIcon ADD_PHOTO_UNKNOWN = ResourceHelper.getImage("/images/addPhoto.unknown.jpg");
 
+	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
+	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
+
+	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
+
 
 	private final JLabel birthDeathAgeLabel = new JLabel();
 	private final JLabel imgLabel = new JLabel();
 	private final JLabel individualNameLabel = new JLabel();
-	private final JLabel linkIndividualLabel = new JLabel();
 	private final JLabel newIndividualLabel = new JLabel();
+	private final JLabel linkIndividualLabel = new JLabel();
 
 	private GedcomNode individualNode;
-	private final Transformer transformer = new Transformer(Protocol.FLEF);
+	private boolean treeHasIndividuals;
+	private IndividualBoxListenerInterface listener;
 
 
-	public IndividualBoxPanel(final GedcomNode individualNode, final BoxPanelType boxType){
+	public IndividualBoxPanel(final GedcomNode individualNode, final boolean treeHasIndividuals, final BoxPanelType boxType,
+			final IndividualBoxListenerInterface listener){
 		this.individualNode = individualNode;
-//		this.listener = listener;
+		this.treeHasIndividuals = treeHasIndividuals;
+		this.listener = listener;
 
 		initComponents(boxType);
 
@@ -103,51 +113,57 @@ public class IndividualBoxPanel extends JPanel{
 	private void initComponents(final BoxPanelType boxType){
 		setBackground(null);
 		setOpaque(false);
-//		addMouseListener(new java.awt.event.MouseAdapter(){
-//			public void mouseClicked(java.awt.event.MouseEvent evt){
-//				formMouseClicked(evt);
-//			}
-//		});
+		setPreferredSize(boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
+		if(listener != null)
+			addMouseListener(new MouseAdapter(){
+				public void mouseClicked(final MouseEvent evt){
+					if(individualNode != null && boxType == BoxPanelType.PRIMARY && SwingUtilities.isRightMouseButton(evt))
+						listener.onIndividualEdit(IndividualBoxPanel.this, individualNode);
+					else if(individualNode != null && boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
+						listener.onIndividualFocus(IndividualBoxPanel.this, individualNode);
+				}
+			});
 
-		individualNameLabel.setText("individual-name");
 		individualNameLabel.setVerticalAlignment(SwingConstants.TOP);
 		individualNameLabel.setMinimumSize(new Dimension(0, 16));
-		individualNameLabel.setName(""); // NOI18N
-//		individualNameLabel.addMouseListener(new java.awt.event.MouseAdapter(){
-//			public void mouseClicked(java.awt.event.MouseEvent evt){
-//				individualNameLabelMouseClicked(evt);
-//			}
-//		});
+		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
+		individualNameLabel.setFont(font);
 
 		birthDeathAgeLabel.setForeground(new Color(110, 110, 110));
-		birthDeathAgeLabel.setText("birth-death-age");
 
-		newIndividualLabel.setText("New Individual");
-		newIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-//		newIndividualLabel.addMouseListener(new java.awt.event.MouseAdapter(){
-//			public void mouseClicked(java.awt.event.MouseEvent evt){
-//				newIndividualLabelMouseClicked(evt);
-//			}
-//		});
+		if(listener != null){
+			newIndividualLabel.setText("New individual");
+			newIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			newIndividualLabel.addMouseListener(new MouseAdapter(){
+				public void mouseClicked(final MouseEvent evt){
+					listener.onIndividualNew(IndividualBoxPanel.this);
+				}
+			});
+		}
 
-		linkIndividualLabel.setText("Link Individual");
-		linkIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-//		linkIndividualLabel.addMouseListener(new java.awt.event.MouseAdapter(){
-//			public void mouseClicked(java.awt.event.MouseEvent evt){
-//				linkIndividualLabelMouseClicked(evt);
-//			}
-//		});
+		if(listener != null){
+			linkIndividualLabel.setText("Link individual");
+			linkIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			linkIndividualLabel.addMouseListener(new MouseAdapter(){
+				public void mouseClicked(final MouseEvent evt){
+					listener.onIndividualLink(IndividualBoxPanel.this);
+				}
+			});
+		}
 
 		imgLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255)));
-		imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-//		imgLabel.addMouseListener(new java.awt.event.MouseAdapter(){
-//			public void mouseClicked(java.awt.event.MouseEvent evt){
-//				imgLabelMouseClicked(evt);
-//			}
-//		});
+		setComponentSize(imgLabel, 48., boxType);
+		if(listener != null){
+			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			imgLabel.addMouseListener(new MouseAdapter(){
+				public void mouseClicked(MouseEvent evt){
+					listener.onIndividualAddPreferredImage(IndividualBoxPanel.this, individualNode);
+				}
+			});
+		}
 
 		final GroupLayout layout = new GroupLayout(this);
-		this.setLayout(layout);
+		setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 			.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
 				.addContainerGap()
@@ -189,15 +205,13 @@ public class IndividualBoxPanel extends JPanel{
 		final int individualMaxWidth = (int)individualNameLabel.getPreferredSize().getWidth();
 		final int individualMaxHeight = (int)individualNameLabel.getPreferredSize().getHeight();
 		individualNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
+	}
 
-
-		setPreferredSize(boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
-		final Font individualNameFont = (boxType == BoxPanelType.PRIMARY?
-			new Font("Tahoma", Font.BOLD, 14): new Font("Tahoma", Font.PLAIN, 11));
-		individualNameLabel.setFont(individualNameFont);
-		individualNameLabel.setCursor(new Cursor(boxType == BoxPanelType.PRIMARY? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR));
-		imgLabel.setPreferredSize(boxType == BoxPanelType.PRIMARY?
-			new Dimension(60, 80): new Dimension(30, 40));
+	private void setComponentSize(final JComponent component, final double imageWidth, final BoxPanelType boxType){
+		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final int width = (int)Math.ceil(imageWidth / shrinkFactor);
+		final int height = (int)Math.ceil(imageWidth * IMAGE_ASPECT_RATIO / shrinkFactor);
+		component.setPreferredSize(new Dimension(width, height));
 	}
 
 	@Override
@@ -239,7 +253,7 @@ public class IndividualBoxPanel extends JPanel{
 	private Color getBackgroundColor(){
 		Color backgroundColor = BACKGROUND_COLOR_NO_INDIVIDUAL;
 		if(individualNode != null){
-			final Sex sex = Sex.fromCode(transformer.traverse(individualNode, "SEX")
+			final Sex sex = Sex.fromCode(TRANSFORMER.traverse(individualNode, "SEX")
 				.getValue());
 			backgroundColor = BACKGROUND_COLOR_FROM_SEX.getOrDefault(sex, BACKGROUND_COLOR_UNKNOWN);
 		}
@@ -247,7 +261,7 @@ public class IndividualBoxPanel extends JPanel{
 	}
 
 	private void loadData(final BoxPanelType boxType){
-		final String personalName = extractPersonalName();
+		final String personalName = extractCompleteName();
 		if(boxType == BoxPanelType.PRIMARY)
 			//FIXME if selected (?):
 			individualNameLabel.setText("<html><font style=\"text-decoration:underline;font-weight:bold\">" + personalName + "</font></html>");
@@ -264,27 +278,26 @@ public class IndividualBoxPanel extends JPanel{
 		if(boxType == BoxPanelType.PRIMARY && individualNode != null)
 			writeGeneralInfo();
 
-		boolean hasIndividual = (individualNode != null);
-		individualNameLabel.setVisible(hasIndividual);
-		birthDeathAgeLabel.setVisible(hasIndividual);
-		newIndividualLabel.setVisible(!hasIndividual);
-//		linkIndividualLabel.setVisible(!hasIndividual && treeHasIndividuals);
+		individualNameLabel.setVisible(individualNode != null);
+		birthDeathAgeLabel.setVisible(individualNode != null);
+		newIndividualLabel.setVisible(individualNode == null);
+		linkIndividualLabel.setVisible(individualNode == null && treeHasIndividuals);
 		imgLabel.setVisible(individualNode != null);
 	}
 
-	private String extractPersonalName(){
+	private String extractCompleteName(){
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		if(individualNode != null){
-			GedcomNode name = transformer.createEmpty();
+			GedcomNode name = TRANSFORMER.createEmpty();
 			final List<GedcomNode> names = individualNode.getChildrenWithTag("NAME");
 			if(!names.isEmpty())
 				name = names.get(0);
-			final String title = transformer.traverse(name, "TITLE")
+			final String title = TRANSFORMER.traverse(name, "TITLE")
 				.getValue();
-			final GedcomNode personalName = transformer.traverse(name, "PERSONAL_NAME");
-			final String nameSuffix = transformer.traverse(personalName, "NAME_SUFFIX")
+			final GedcomNode personalName = TRANSFORMER.traverse(name, "PERSONAL_NAME");
+			final String nameSuffix = TRANSFORMER.traverse(personalName, "NAME_SUFFIX")
 				.getValue();
-			final String familyName = transformer.traverse(name, "FAMILY_NAME")
+			final String familyName = TRANSFORMER.traverse(name, "FAMILY_NAME")
 				.getValueOrDefault(NO_DATA);
 
 			if(title != null)
@@ -304,11 +317,11 @@ public class IndividualBoxPanel extends JPanel{
 	private String getBirthDeathAge(){
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		if(individualNode != null){
-			GedcomNode birth = transformer.createEmpty();
+			GedcomNode birth = TRANSFORMER.createEmpty();
 			final List<GedcomNode> events = individualNode.getChildrenWithTag("EVENT");
 			final List<String> birthDates = events.stream()
 				.filter(b -> "BIRTH".equals(b.getValue()))
-				.map(b -> transformer.traverse(b, "DATE").getValue())
+				.map(b -> TRANSFORMER.traverse(b, "DATE").getValue())
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 			//TODO what if there are multiple birth dates?
@@ -316,7 +329,7 @@ public class IndividualBoxPanel extends JPanel{
 
 			final List<String> deathDates = events.stream()
 				.filter(b -> "DEATH".equals(b.getValue()))
-				.map(b -> transformer.traverse(b, "DATE").getValue())
+				.map(b -> TRANSFORMER.traverse(b, "DATE").getValue())
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 			//TODO what if there are multiple death dates?
@@ -409,16 +422,44 @@ public class IndividualBoxPanel extends JPanel{
 		Store storeGedcom = new Gedcom();
 		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode node = storeFlef.getIndividuals().get(0);
+		GedcomNode individualNode = storeFlef.getIndividuals().get(0);
+//		GedcomNode individualNode = null;
+
+		IndividualBoxListenerInterface listener = new IndividualBoxListenerInterface(){
+			@Override
+			public void onIndividualEdit(IndividualBoxPanel boxPanel, GedcomNode individual){
+				System.out.println("onEdit " + individual.getID());
+			}
+
+			@Override
+			public void onIndividualFocus(IndividualBoxPanel boxPanel, GedcomNode individual){
+				System.out.println("onFocus " + individual.getID());
+			}
+
+			@Override
+			public void onIndividualNew(IndividualBoxPanel boxPanel){
+				System.out.println("onNew");
+			}
+
+			@Override
+			public void onIndividualLink(IndividualBoxPanel boxPanel){
+				System.out.println("onLink");
+			}
+
+			@Override
+			public void onIndividualAddPreferredImage(IndividualBoxPanel boxPanel, GedcomNode individual){
+				System.out.println("onAddPreferredImage " + individual.getID());
+			}
+		};
 
 		EventQueue.invokeLater(() -> {
 			JDialog dialog = new JDialog(new JFrame(), true);
 			BoxPanelType boxType = BoxPanelType.PRIMARY;
-			IndividualBoxPanel panel = new IndividualBoxPanel(node, boxType);
+			IndividualBoxPanel panel = new IndividualBoxPanel(individualNode, true, boxType, listener);
 			dialog.add(panel);
-			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
+			dialog.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosing(java.awt.event.WindowEvent e){
+				public void windowClosing(WindowEvent e){
 					System.exit(0);
 				}
 			});
