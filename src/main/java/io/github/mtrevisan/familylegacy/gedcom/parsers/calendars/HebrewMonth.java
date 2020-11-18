@@ -1,9 +1,9 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -46,8 +46,18 @@ enum HebrewMonth{
 		return result;
 	}
 
+	HebrewMonth(final String description, final String abbreviation){
+		this.description = description;
+		this.abbreviation = abbreviation;
+	}
+
+	public String getDescription(){
+		return description;
+	}
+
 	public static String[] getDescriptionsWithEmptyValueFirst(){
-		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values()).map(HebrewMonth::getDescription))
+		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
+			.map(HebrewMonth::getDescription))
 			.toArray(String[]::new);
 	}
 
@@ -60,15 +70,17 @@ enum HebrewMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		return Arrays.stream(values())
-			.map(HebrewMonth::getAbbreviation)
-			.toArray(String[]::new);
+		final List<String> list = new ArrayList<>();
+		for(final HebrewMonth hebrewMonth : values())
+			list.add(hebrewMonth.abbreviation);
+		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		return Arrays.stream(values())
-			.map(HebrewMonth::getDescription)
-			.toArray(String[]::new);
+		final List<String> list = new ArrayList<>();
+		for(final HebrewMonth hebrewMonth : values())
+			list.add(hebrewMonth.description);
+		return list.toArray(new String[0]);
 	}
 
 }

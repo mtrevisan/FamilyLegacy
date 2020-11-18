@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -10,16 +10,20 @@ import org.apache.commons.lang3.StringUtils;
 
 class Age{
 
-	private static final Matcher AGE_MATCHER = RegexHelper.matcher("[^\\d]+");
+	private static final Pattern AGE_MATCHER = RegexHelper.pattern("[^\\d]+");
 
 
-	public static enum ApproximationType{
+	public enum ApproximationType{
 		PREFIX("~"),
 		SUFFIX(" ca.");
 
 		private final String approx;
 
-	};
+		ApproximationType(final String approx){
+			this.approx = approx;
+		}
+
+	}
 
 
 	private final int value;

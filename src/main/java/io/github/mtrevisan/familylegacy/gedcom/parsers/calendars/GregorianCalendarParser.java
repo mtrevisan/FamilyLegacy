@@ -2,9 +2,11 @@ package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -13,17 +15,17 @@ import org.apache.commons.lang3.StringUtils;
 class GregorianCalendarParser extends AbstractCalendarParser{
 
 	public static final String DOUBLE_ENTRY_YEAR_SEPARATOR = "/";
-	private static final Matcher MATCHER_DATE = RegexHelper.matcher("(?i)^((?<day>\\d{1,2}) )?((?<month>[A-Z]+) )?((?<year>\\d{1,4})(\\/(?<doubleEntryYear>\\d{2}))?)?( (?<era>[ABCE.]+))?$");
+	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^((?<day>\\d{1,2}) )?((?<month>[A-Z]+) )?((?<year>\\d{1,4})(\\/(?<doubleEntryYear>\\d{2}))?)?( (?<era>[ABCE.]+))?$");
 
 	private static final List<String> BEFORE_COMMON_ERA = Arrays.asList("BC", "B.C.", "BCE", "B.C.E.");
 
 	public static enum Era{
-		CE("CE", RegexHelper.matcher("(?i)A\\.?C\\.?|(^|[^B.])C\\.?E\\.?")),
-		BCE("BCE", RegexHelper.matcher("(?i)B\\.?C\\.?(E\\.?)?"));
+		CE("CE", RegexHelper.pattern("(?i)A\\.?C\\.?|(^|[^B.])C\\.?E\\.?")),
+		BCE("BCE", RegexHelper.pattern("(?i)B\\.?C\\.?(E\\.?)?"));
 
 
 		private final String description;
-		private final Matcher matcher;
+		private final Pattern pattern;
 
 
 		public static Era createFromIndex(int index){
@@ -32,25 +34,31 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 
 		public static Era createFromDate(String date){
 			for(Era type : values())
-				if(RegexHelper.find(date, type.matcher))
+				if(RegexHelper.find(date, type.pattern))
 					return type;
 			return null;
 		}
 
+		Era(final String description, final Pattern pattern){
+			this.description = description;
+			this.pattern = pattern;
+		}
+
 		public static String[] getDescriptions(){
-			return Arrays.stream(values())
-				.map(Era::getDescription)
-				.toArray(String[]::new);
+			final List<String> list = new ArrayList<>();
+			for(final Era era : values())
+				list.add(era.description);
+			return list.toArray(new String[0]);
 		}
 
 		public static String replaceAll(String era){
-			era = RegexHelper.replaceAll(era, BCE.getMatcher(), BCE.getDescription());
-			era = RegexHelper.replaceAll(era, CE.getMatcher(), StringUtils.EMPTY);
+			era = RegexHelper.replaceAll(era, BCE.pattern, BCE.description);
+			era = RegexHelper.replaceAll(era, CE.pattern, StringUtils.EMPTY);
 			return era;
 		}
 
 		public static String restoreAll(String era){
-			return era.replaceAll(CE.getDescription(), StringUtils.EMPTY);
+			return era.replaceAll(CE.description, StringUtils.EMPTY);
 		}
 	};
 
@@ -74,21 +82,21 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
 
 		DateData.DateDataBuilder dateBuilder = DateData.builder();
-		MATCHER_DATE.reset(singleDate);
-		if(MATCHER_DATE.find()){
-			String day = MATCHER_DATE.group("day");
+		PATTERN_DATE.reset(singleDate);
+		if(PATTERN_DATE.find()){
+			String day = PATTERN_DATE.group("day");
 			if(StringUtils.isNotBlank(day))
 				dateBuilder.day(Integer.parseInt(day));
-			String month = MATCHER_DATE.group("month");
+			String month = PATTERN_DATE.group("month");
 			if(StringUtils.isNotBlank(month))
 				dateBuilder.month(GregorianMonth.createFromAbbreviation(month).ordinal());
-			String year = MATCHER_DATE.group("year");
+			String year = PATTERN_DATE.group("year");
 			if(StringUtils.isNotBlank(year))
 				dateBuilder.year(Integer.parseInt(year));
-			String doubleEntryYear = MATCHER_DATE.group("doubleEntryYear");
+			String doubleEntryYear = PATTERN_DATE.group("doubleEntryYear");
 			if(StringUtils.isNotBlank(doubleEntryYear))
 				dateBuilder.doubleEntryYear(Integer.parseInt(doubleEntryYear));
-			String era = MATCHER_DATE.group("era");
+			String era = PATTERN_DATE.group("era");
 			if(StringUtils.isNotBlank(era))
 				dateBuilder.era(Era.createFromDate(era));
 		}
@@ -114,13 +122,13 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 
 	private LocalDate getDate(String date, DatePreciseness preciseness) throws IllegalArgumentException{
 		LocalDate dt = null;
-		MATCHER_DATE.reset(date);
-		if(MATCHER_DATE.find()){
-			String day = MATCHER_DATE.group("day");
-			String month = MATCHER_DATE.group("month");
-			String year = MATCHER_DATE.group("year");
-			String doubleEntryYear = MATCHER_DATE.group("doubleEntryYear");
-			String era = MATCHER_DATE.group("era");
+		PATTERN_DATE.reset(date);
+		if(PATTERN_DATE.find()){
+			String day = PATTERN_DATE.group("day");
+			String month = PATTERN_DATE.group("month");
+			String year = PATTERN_DATE.group("year");
+			String doubleEntryYear = PATTERN_DATE.group("doubleEntryYear");
+			String era = PATTERN_DATE.group("era");
 			
 			try{
 				year = resolveEnglishCalendarSwitchYear(year, doubleEntryYear);

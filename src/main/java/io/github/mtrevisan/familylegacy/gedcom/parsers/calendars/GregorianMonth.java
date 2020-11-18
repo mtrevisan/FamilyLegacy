@@ -1,9 +1,9 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Stream;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -43,8 +43,14 @@ enum GregorianMonth{
 		return result;
 	}
 
+	GregorianMonth(final String description, final String abbreviation){
+		this.description = description;
+		this.abbreviation = abbreviation;
+	}
+
 	public static String[] getDescriptionsWithEmptyValueFirst(){
-		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values()).map(GregorianMonth::getDescription))
+		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
+			.map(GregorianMonth::getDescription))
 			.toArray(String[]::new);
 	}
 
@@ -57,15 +63,17 @@ enum GregorianMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		return Arrays.stream(values())
-			.map(GregorianMonth::getAbbreviation)
-			.toArray(String[]::new);
+		final List<String> list = new ArrayList<>();
+		for(final GregorianMonth gregorianMonth : values())
+			list.add(gregorianMonth.abbreviation);
+		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		return Arrays.stream(values())
-			.map(GregorianMonth::getDescription)
-			.toArray(String[]::new);
+		final List<String> list = new ArrayList<>();
+		for(final GregorianMonth gregorianMonth : values())
+			list.add(gregorianMonth.description);
+		return list.toArray(new String[0]);
 	}
 
 }

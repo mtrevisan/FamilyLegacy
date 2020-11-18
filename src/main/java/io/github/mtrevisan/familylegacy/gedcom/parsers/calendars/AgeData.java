@@ -1,9 +1,6 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import java.util.StringJoiner;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
 

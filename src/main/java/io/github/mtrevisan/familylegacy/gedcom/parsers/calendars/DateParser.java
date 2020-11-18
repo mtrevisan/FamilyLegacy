@@ -55,8 +55,8 @@ class DateParser{
 		String formattedDate = null;
 		if(StringUtils.isNotBlank(date)){
 			date = AbstractCalendarParser.IntervalType.replaceAll(date);
-			date = RegexHelper.replaceAll(date, AbstractCalendarParser.MATCHER_APPROX, AbstractCalendarParser.DESCRIPTION_APPROX);
-			date = RegexHelper.replaceAll(date, AbstractCalendarParser.MATCHER_AND, AbstractCalendarParser.DESCRIPTION_AND);
+			date = RegexHelper.replaceAll(date, AbstractCalendarParser.PATTERN_APPROX, AbstractCalendarParser.DESCRIPTION_APPROX);
+			date = RegexHelper.replaceAll(date, AbstractCalendarParser.PATTERN_AND, AbstractCalendarParser.DESCRIPTION_AND);
 			date = RegexHelper.replaceAll(date, GregorianCalendarParser.Era.BCE.getMatcher(), GregorianCalendarParser.Era.BCE.getDescription());
 			date = GregorianCalendarParser.Era.replaceAll(date);
 			date = GregorianMonth.replaceAll(date);

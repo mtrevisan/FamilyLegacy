@@ -1,10 +1,10 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
@@ -19,27 +19,27 @@ abstract class AbstractCalendarParser{
 
 	private static final Pattern PATTERN_RANGE_INFIX = RegexHelper.pattern("(?i) (AND|TO) ");
 
-	private static final Matcher MATCHER_PREFIXES_APPROXIMATIONS = RegexHelper.matcher("(?i)((?:(?:ABT|APP(?:RO)?X|CALC?|EST)\\.?|ABOUT)) ");
-	private static final Matcher MATCHER_PREFIXES_RANGE = RegexHelper.matcher("(?i)((?:BET(?:WEEN|\\.)?|BTW\\.?|FROM)) ");
-	private static final Matcher MATCHER_INTERPRETED = RegexHelper.matcher("(?i)^INT\\.?\\s+((\\d{1,2} )?([A-Z]{3,4} )?(\\d{1,4}(/\\d{2})?)?)\\s+\\([^)]+\\)$");
-	private static final Matcher MATCHER_INTERPRETATION_TEXT = RegexHelper.matcher("\\(([^)]+)\\)$");
+	private static final Pattern PATTERN_PREFIXES_APPROXIMATIONS = RegexHelper.pattern("(?i)((?:(?:ABT|APP(?:RO)?X|CALC?|EST)\\.?|ABOUT)) ");
+	private static final Pattern PATTERN_PREFIXES_RANGE = RegexHelper.pattern("(?i)((?:BET(?:WEEN|\\.)?|BTW\\.?|FROM)) ");
+	private static final Pattern PATTERN_INTERPRETED = RegexHelper.pattern("(?i)^INT\\.?\\s+((\\d{1,2} )?([A-Z]{3,4} )?(\\d{1,4}(/\\d{2})?)?)\\s+\\([^)]+\\)$");
+	private static final Pattern PATTERN_INTERPRETATION_TEXT = RegexHelper.pattern("\\(([^)]+)\\)$");
 
-	public static final Matcher MATCHER_APPROX = RegexHelper.matcher("(?i)APP(RO)?X\\.?");
+	public static final Pattern PATTERN_APPROX = RegexHelper.pattern("(?i)APP(RO)?X\\.?");
 	public static final String DESCRIPTION_APPROX = "Approximated";
 	public static final String TYPE_APPROX = "APPX";
-	public static final Matcher MATCHER_AND = RegexHelper.matcher("(?i)AND");
+	public static final Pattern PATTERN_AND = RegexHelper.pattern("(?i)AND");
 	public static final String DESCRIPTION_AND = "And";
 	public static final String TYPE_AND = "AND";
 
 	/** The regex pattern that identifies two-date range or period. Works for Gregorian, Julian, and Hebrew years */
-	private static final Matcher MATCHER_TWO_DATES = RegexHelper.matcher("(?i)^" + FORMAT_RANGE_PREFIX
+	private static final Pattern PATTERN_TWO_DATES = RegexHelper.pattern("(?i)^" + FORMAT_RANGE_PREFIX
 		+ FORMAT_DAY_MONTH_YEAR + " (AND|TO) " + FORMAT_DAY_MONTH_YEAR + "$");
 
-	private static final Matcher MATCHER_PREFIXES_FROM_TO = RegexHelper.matcher("(?i)((?:FROM|BEF(?:ORE|\\.)?|AFT(?:ER|\\.)?|TO)) ");
+	private static final Pattern PATTERN_PREFIXES_FROM_TO = RegexHelper.pattern("(?i)((?:FROM|BEF(?:ORE|\\.)?|AFT(?:ER|\\.)?|TO)) ");
 
 
 
-	public static enum CalendarType{
+	public enum CalendarType{
 		GREGORIAN("Gregorian", CalendarParserBuilder.GREGORIAN_CALENDAR),
 		JULIAN("Julian", CalendarParserBuilder.JULIAN_CALENDAR),
 		FRENCH_REPUBLICAN("French Republican", CalendarParserBuilder.FRENCH_REPUBLICAN_CALENDAR),
@@ -54,10 +54,16 @@ abstract class AbstractCalendarParser{
 			return values()[index];
 		}
 
+		CalendarType(final String description, final String type){
+			this.description = description;
+			this.type = type;
+		}
+
 		public static String[] getDescriptions(){
-			return Arrays.stream(values())
-				.map(CalendarType::getDescription)
-				.toArray(String[]::new);
+			final List<String> list = new ArrayList<>();
+			for(final CalendarType calendarType : values())
+				list.add(calendarType.description);
+			return list.toArray(new String[0]);
 		}
 
 		public boolean isGregorianOrJulian(){
@@ -65,31 +71,31 @@ abstract class AbstractCalendarParser{
 		}
 	};
 
-	public static enum IntervalType{
+	public enum IntervalType{
 		NO_TYPE(StringUtils.EMPTY, StringUtils.EMPTY, null),
-		ABOUT("About", "ABT", RegexHelper.matcher("(?i)(?:ABT\\.?|ABOUT|APP(?:RO)?X\\.?)")),
-		CALCULATED("Calculated", "CAL", RegexHelper.matcher("(?i)CALC?\\.?")),
-		ESTIMATED("Estimated", "EST", RegexHelper.matcher("(?i)EST\\.?")),
-		BETWEEN("Between", "BET", RegexHelper.matcher("(?i)(?:(?:BET|BTW)\\.?|BETWEEN)")),
-		BEFORE("Before", "BEF", RegexHelper.matcher("(?i)BEF(?:ORE|\\.)?")),
-		AFTER("After", "AFT", RegexHelper.matcher("(?i)AFT(?:ER|\\.)?")),
-		FROM("From", "FROM", RegexHelper.matcher("(?i)FROM")),
-		TO("To", "TO", RegexHelper.matcher("(?i)TO")),
-		INTERPRETED("Interpreted", "INT", RegexHelper.matcher("(?i)INT\\.?"));
+		ABOUT("About", "ABT", RegexHelper.pattern("(?i)(?:ABT\\.?|ABOUT|APP(?:RO)?X\\.?)")),
+		CALCULATED("Calculated", "CAL", RegexHelper.pattern("(?i)CALC?\\.?")),
+		ESTIMATED("Estimated", "EST", RegexHelper.pattern("(?i)EST\\.?")),
+		BETWEEN("Between", "BET", RegexHelper.pattern("(?i)(?:(?:BET|BTW)\\.?|BETWEEN)")),
+		BEFORE("Before", "BEF", RegexHelper.pattern("(?i)BEF(?:ORE|\\.)?")),
+		AFTER("After", "AFT", RegexHelper.pattern("(?i)AFT(?:ER|\\.)?")),
+		FROM("From", "FROM", RegexHelper.pattern("(?i)FROM")),
+		TO("To", "TO", RegexHelper.pattern("(?i)TO")),
+		INTERPRETED("Interpreted", "INT", RegexHelper.pattern("(?i)INT\\.?"));
 
 
 		private static final Set<IntervalType> QUALIFICATION_NOT_PRESENT_IF = new HashSet<>();
 		static{
-			QUALIFICATION_NOT_PRESENT_IF.add(IntervalType.ABOUT);
-			QUALIFICATION_NOT_PRESENT_IF.add(IntervalType.CALCULATED);
-			QUALIFICATION_NOT_PRESENT_IF.add(IntervalType.ESTIMATED);
-			QUALIFICATION_NOT_PRESENT_IF.add(IntervalType.INTERPRETED);
+			QUALIFICATION_NOT_PRESENT_IF.add(ABOUT);
+			QUALIFICATION_NOT_PRESENT_IF.add(CALCULATED);
+			QUALIFICATION_NOT_PRESENT_IF.add(ESTIMATED);
+			QUALIFICATION_NOT_PRESENT_IF.add(INTERPRETED);
 		}
 
 
 		private final String description;
 		private final String type;
-		private final Matcher matcher;
+		private final Pattern pattern;
 
 
 		public static IntervalType createFromIndex(int index){
@@ -98,15 +104,22 @@ abstract class AbstractCalendarParser{
 
 		public static IntervalType createFromDate(String date){
 			for(IntervalType type : values())
-				if(type.matcher != null && RegexHelper.find(date, type.matcher))
+				if(type.pattern != null && RegexHelper.find(date, type.pattern))
 					return type;
 			return NO_TYPE;
 		}
 
+		IntervalType(final String description, final String type, final Pattern pattern){
+			this.description = description;
+			this.type = type;
+			this.pattern = pattern;
+		}
+
 		public static String[] getDescriptions(){
-			return Arrays.stream(values())
-				.map(IntervalType::getDescription)
-				.toArray(String[]::new);
+			final List<String> list = new ArrayList<>();
+			for(final IntervalType intervalType : values())
+				list.add(intervalType.description);
+			return list.toArray(new String[0]);
 		}
 
 		public boolean canQualificationBePresent(){
@@ -120,27 +133,27 @@ abstract class AbstractCalendarParser{
 		public static String replaceAll(String date){
 			for(IntervalType value : values())
 				if(value != NO_TYPE)
-					date = RegexHelper.replaceAll(date, value.getMatcher(), value.getDescription());
+					date = RegexHelper.replaceAll(date, value.pattern, value.description);
 			return date;
 		}
 
 		public static String restoreAll(String date){
 			for(IntervalType value : values())
 				if(value != NO_TYPE)
-					date = StringUtils.replaceEachRepeatedly(date, new String[]{value.getDescription()}, new String[]{value.getType()});
+					date = StringUtils.replaceEachRepeatedly(date, new String[]{value.description}, new String[]{value.type});
 			return date;
 		}
 	};
 
-	public static enum Qualification{
+	public enum Qualification{
 		NO_QUALIFICATION(StringUtils.EMPTY, null),
-		ABOUT("About", RegexHelper.matcher("(?i)ABT\\.?|ABOUT|APP(?:RO)?X\\.?")),
-		CALCULATED("Calculated", RegexHelper.matcher("(?i)CALC?\\.?")),
-		ESTIMATED("Estimated", RegexHelper.matcher("(?i)EST\\.?"));
+		ABOUT("About", RegexHelper.pattern("(?i)ABT\\.?|ABOUT|APP(?:RO)?X\\.?")),
+		CALCULATED("Calculated", RegexHelper.pattern("(?i)CALC?\\.?")),
+		ESTIMATED("Estimated", RegexHelper.pattern("(?i)EST\\.?"));
 
 
 		private final String description;
-		private final Matcher matcher;
+		private final Pattern pattern;
 
 
 		public static Qualification createFromIndex(int index){
@@ -149,15 +162,21 @@ abstract class AbstractCalendarParser{
 
 		public static Qualification createFromDate(String date){
 			for(Qualification type : values())
-				if(type.matcher != null && RegexHelper.find(date, type.matcher))
+				if(type.pattern != null && RegexHelper.find(date, type.pattern))
 					return type;
 			return null;
 		}
 
+		Qualification(final String description, final Pattern pattern){
+			this.description = description;
+			this.pattern = pattern;
+		}
+
 		public static String[] getDescriptions(){
-			return Arrays.stream(values())
-				.map(Qualification::getDescription)
-				.toArray(String[]::new);
+			final List<String> list = new ArrayList<>();
+			for(final Qualification qualification : values())
+				list.add(qualification.description);
+			return list.toArray(new String[0]);
 		}
 	};
 
@@ -212,7 +231,7 @@ abstract class AbstractCalendarParser{
 	public abstract int parseMonth(String month);
 
 	public boolean isRange(String date){
-		return RegexHelper.matches(date, MATCHER_TWO_DATES);
+		return RegexHelper.matches(date, PATTERN_TWO_DATES);
 	}
 
 	/**
@@ -257,7 +276,7 @@ abstract class AbstractCalendarParser{
 	 *				<code>splitOn</code> delimiter value. Never returns null.
 	 */
 	private String[] splitDates(String date){
-		date = RegexHelper.clear(date, MATCHER_PREFIXES_RANGE);
+		date = RegexHelper.clear(date, PATTERN_PREFIXES_RANGE);
 		return RegexHelper.split(date, PATTERN_RANGE_INFIX);
 	}
 
@@ -268,7 +287,7 @@ abstract class AbstractCalendarParser{
 	 * @return a version of the string with approximation prefixes removed
 	 */
 	public static boolean isApproximation(String date){
-		return RegexHelper.find(date, MATCHER_PREFIXES_APPROXIMATIONS);
+		return RegexHelper.find(date, PATTERN_PREFIXES_APPROXIMATIONS);
 	}
 
 	/**
@@ -278,14 +297,13 @@ abstract class AbstractCalendarParser{
 	 * @return a version of the string with approximation prefixes removed
 	 */
 	protected String removeApproximations(String date){
-		date = RegexHelper.clear(date, MATCHER_PREFIXES_APPROXIMATIONS);
-		date = RegexHelper.replaceFirst(date, MATCHER_INTERPRETED, "$1");
+		date = RegexHelper.clear(date, PATTERN_PREFIXES_APPROXIMATIONS);
+		date = RegexHelper.replaceFirst(date, PATTERN_INTERPRETED, "$1");
 		return date;
 	}
 
 	protected String extractInterpretedFrom(String date){
-		MATCHER_INTERPRETATION_TEXT.reset(date);
-		return (MATCHER_INTERPRETATION_TEXT.find()? MATCHER_INTERPRETATION_TEXT.group(1): null);
+		return (RegexHelper.find(date, PATTERN_INTERPRETATION_TEXT)? PATTERN_INTERPRETATION_TEXT.group(1): null);
 	}
 
 	/**
@@ -295,7 +313,7 @@ abstract class AbstractCalendarParser{
 	 * @return	the same date string with range/period prefixes removed, but only if it's an open-ended period or range
 	 */
 	protected String removeOpenEndedRangesAndPeriods(String date){
-		return (!RegexHelper.matches(date, MATCHER_TWO_DATES)? RegexHelper.clear(date, MATCHER_PREFIXES_FROM_TO): date);
+		return (!RegexHelper.matches(date, PATTERN_TWO_DATES)? RegexHelper.clear(date, PATTERN_PREFIXES_FROM_TO): date);
 	}
 
 }

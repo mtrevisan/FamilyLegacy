@@ -1,9 +1,5 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
-
 
 class DateData{
 
