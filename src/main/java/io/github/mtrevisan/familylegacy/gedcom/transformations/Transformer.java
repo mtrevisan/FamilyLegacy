@@ -90,7 +90,7 @@ public final class Transformer{
 
 	/**
 	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` and separated by dots.
+	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` or `(tag1|tag2)#id{value}[index]` and separated by dots.
 	 * @return	The final node.
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
@@ -106,9 +106,12 @@ public final class Transformer{
 
 				final List<GedcomNode> nodes = new ArrayList<>(pointer.getChildren());
 				if(tag != null){
+					final String[] tags = (tag.charAt(0) == '(' && tag.charAt(tag.length() - 1) == ')'?
+						StringUtils.split(tag.substring(1, tag.length() - 1), '|'): new String[]{tag});
+					Arrays.sort(tags);
 					final Iterator<GedcomNode> itr = nodes.iterator();
 					while(itr.hasNext())
-						if(!tag.equals(itr.next().getTag()))
+						if(Arrays.binarySearch(tags, itr.next().getTag()) < 0)
 							itr.remove();
 				}
 				if(value != null){

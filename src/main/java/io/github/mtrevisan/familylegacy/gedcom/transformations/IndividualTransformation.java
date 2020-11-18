@@ -288,7 +288,11 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 
 	private void personalNameFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		//extract first ATTRIBUTE, or first NOTE, or first SOURCE, or RESTRICTION, or as last element
-		final GedcomNode lastElement = individual.getFirstChildWithTag("ATTRIBUTE", "NOTE", "SOURCE", "RESTRICTION");
+		GedcomNode lastElement = transformerFrom.traverse(individual, "(ATTRIBUTE|NOTE|SOURCE|RESTRICTION)[0]");
+		if(lastElement.isEmpty()){
+			final List<GedcomNode> children = individual.getChildren();
+			lastElement = children.get(children.size() - 1);
+		}
 
 		final List<GedcomNode> personalNameStructures = individual.getChildrenWithTag("NAME");
 		for(final GedcomNode personalNameStructure : personalNameStructures){

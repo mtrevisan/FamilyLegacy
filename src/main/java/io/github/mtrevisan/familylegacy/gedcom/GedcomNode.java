@@ -241,20 +241,6 @@ public abstract class GedcomNode{
 		return this;
 	}
 
-	/**
-	 * Returns the first child with the given tag, {@code null} if no child was found.
-	 *
-	 * @param tags	The tag(s) to search the first child.
-	 * @return	The first {@link GedcomNode} that matches the given tag, or {@code null}.
-	 */
-	public GedcomNode getFirstChildWithTag(final String... tags){
-		if(children != null)
-			for(final GedcomNode child : children)
-				if(ArrayUtils.contains(tags, child.tag))
-					return child;
-		return null;
-	}
-
 	public boolean existChildrenWithID(final String xref){
 		if(xref != null && children != null)
 			for(final GedcomNode child : children)
