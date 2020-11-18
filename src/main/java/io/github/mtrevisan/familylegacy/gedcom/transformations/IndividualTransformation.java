@@ -46,7 +46,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		final GedcomNode destinationIndividual = transformerTo.create("INDIVIDUAL")
 			.withID(individual.getID());
 		personalNameTo(individual, destinationIndividual, destination);
-		destinationIndividual.addChildValue("SEX", transformerTo.extractSubStructure(individual, "SEX")
+		destinationIndividual.addChildValue("SEX", transformerTo.traverse(individual, "SEX")
 				.getValue());
 		childToFamilyLinkTo(individual, destinationIndividual, destination);
 		spouseToFamilyLinkTo(individual, destinationIndividual, destination);
@@ -82,7 +82,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		transformerTo.noteTo(individual, destinationIndividual, destination);
 		transformerTo.sourceCitationTo(individual, destinationIndividual, destination);
 		transformerTo.documentTo(individual, destinationIndividual, destination);
-		destinationIndividual.addChildValue("RESTRICTION", transformerTo.extractSubStructure(individual, "RESN")
+		destinationIndividual.addChildValue("RESTRICTION", transformerTo.traverse(individual, "RESN")
 			.getValue());
 
 		destination.addIndividual(destinationIndividual);
@@ -95,11 +95,11 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			personalNamePiecesTo(personalNameStructure, destinationName, destination);
 
 			final GedcomNode destinationPhonetic = transformerTo.create("PHONETIC");
-			personalNamePiecesTo(transformerTo.extractSubStructure(personalNameStructure, "FONE"), destinationPhonetic, destination);
+			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "FONE"), destinationPhonetic, destination);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = transformerTo.create("TRANSCRIPTION");
-			personalNamePiecesTo(transformerTo.extractSubStructure(personalNameStructure, "ROMN"), destinationTranscription, destination);
+			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "ROMN"), destinationTranscription, destination);
 			destinationName.addChild(destinationTranscription);
 
 			destinationNode.addChild(destinationName);
@@ -108,10 +108,11 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 
 	private void personalNamePiecesTo(final GedcomNode personalNameStructure, final GedcomNode destinationNode,
 			final Flef destination){
-		String givenName = transformerTo.extractSubStructure(personalNameStructure, "GIVN")
+		String givenName = transformerTo.traverse(personalNameStructure, "GIVN")
 			.getValue();
-		String personalNameSuffix = transformerTo.extractSubStructure(personalNameStructure, "NSFX").getValue();
-		String surname = transformerTo.extractSubStructure(personalNameStructure, "SURN")
+		String personalNameSuffix = transformerTo.traverse(personalNameStructure, "NSFX")
+			.getValue();
+		String surname = transformerTo.traverse(personalNameStructure, "SURN")
 			.getValue();
 		final String nameValue = personalNameStructure.getValue();
 		if(nameValue != null){
@@ -124,7 +125,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			if(surname == null && surnameBeginIndex >= 0)
 				surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
 		}
-		final String surnamePrefix = transformerTo.extractSubStructure(personalNameStructure, "SPFX")
+		final String surnamePrefix = transformerTo.traverse(personalNameStructure, "SPFX")
 			.getValue();
 		final StringJoiner sj = new StringJoiner(" ");
 		if(surnamePrefix != null)
@@ -132,15 +133,15 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		if(surname != null)
 			sj.add(surname);
 		destinationNode
-			.addChildValue("TYPE", transformerTo.extractSubStructure(personalNameStructure, "TYPE")
+			.addChildValue("TYPE", transformerTo.traverse(personalNameStructure, "TYPE")
 				.getValue())
-			.addChildValue("TITLE", transformerTo.extractSubStructure(personalNameStructure, "NPFX")
+			.addChildValue("TITLE", transformerTo.traverse(personalNameStructure, "NPFX")
 				.getValue())
 			.addChild(transformerTo.create("PERSONAL_NAME")
 				.withValue(givenName)
 				.addChildValue("NAME_SUFFIX", personalNameSuffix)
 			)
-			.addChildValue("INDIVIDUAL_NICKNAME", transformerTo.extractSubStructure(personalNameStructure, "NICK")
+			.addChildValue("INDIVIDUAL_NICKNAME", transformerTo.traverse(personalNameStructure, "NICK")
 				.getValue())
 			.addChildValue("FAMILY_NAME", (sj.length() > 0? sj.toString(): null));
 		transformerTo.noteTo(personalNameStructure, destinationNode, destination);
@@ -150,13 +151,13 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void childToFamilyLinkTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMC");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
-			final GedcomNode pedigree = transformerTo.extractSubStructure(childToFamilyLink, "PEDI");
+			final GedcomNode pedigree = transformerTo.traverse(childToFamilyLink, "PEDI");
 			final GedcomNode destinationFamilyChild = transformerTo.create("FAMILY_CHILD")
 				.addChild(transformerTo.create("PEDIGREE")
 					.addChildValue("SPOUSE1", pedigree.getValue())
 					.addChildValue("SPOUSE2", pedigree.getValue())
 				)
-				.addChildValue("CERTAINTY", transformerTo.extractSubStructure(childToFamilyLink, "STAT")
+				.addChildValue("CERTAINTY", transformerTo.traverse(childToFamilyLink, "STAT")
 					.getValue());
 			transformerTo.noteTo(childToFamilyLink, destinationFamilyChild, destination);
 			destinationNode.addChild(destinationFamilyChild);
@@ -170,7 +171,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void associationTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSO");
 		for(final GedcomNode association : associations){
-			String type = transformerTo.extractSubStructure(association, "TYPE")
+			String type = transformerTo.traverse(association, "TYPE")
 				.getValue();
 			if("FAM".equals(type))
 				type = "FAMILY";
@@ -179,7 +180,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			final GedcomNode destinationAssociation = transformerTo.create("ASSOCIATION")
 				.withID(association.getID())
 				.addChildValue("TYPE", type)
-				.addChildValue("RELATIONSHIP", transformerTo.extractSubStructure(association, "RELA")
+				.addChildValue("RELATIONSHIP", transformerTo.traverse(association, "RELA")
 					.getValue());
 			transformerTo.noteTo(association, destinationAssociation, destination);
 			transformerTo.sourceCitationTo(association, destinationAssociation, destination);
@@ -214,14 +215,14 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		final GedcomNode destinationAttribute = transformerTo.create("ATTRIBUTE")
 			.withValue(valueTo)
 			.addChildValue("VALUE", attribute.getValue())
-			.addChildValue("TYPE", transformerTo.extractSubStructure(attribute, "TYPE")
+			.addChildValue("TYPE", transformerTo.traverse(attribute, "TYPE")
 				.getValue());
 		transformerTo.placeAddressStructureTo(attribute, destinationAttribute, destination);
-		destinationAttribute.addChildValue("AGENCY", transformerTo.extractSubStructure(attribute, "AGNC")
+		destinationAttribute.addChildValue("AGENCY", transformerTo.traverse(attribute, "AGNC")
 			.getValue())
-			.addChildValue("CAUSE", transformerTo.extractSubStructure(attribute, "CAUS")
+			.addChildValue("CAUSE", transformerTo.traverse(attribute, "CAUS")
 				.getValue())
-			.addChildValue("RESTRICTION", transformerTo.extractSubStructure(attribute, "RESN")
+			.addChildValue("RESTRICTION", transformerTo.traverse(attribute, "RESN")
 				.getValue());
 		transformerTo.noteTo(attribute, destinationAttribute, destination);
 		transformerTo.sourceCitationTo(attribute, destinationAttribute, destination);
@@ -240,10 +241,10 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void individualRecordFrom(final GedcomNode individual, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationIndividual = transformerFrom.create("INDI")
 			.withID(individual.getID());
-		destinationIndividual.addChildValue("RESN", transformerFrom.extractSubStructure(individual, "RESTRICTION")
+		destinationIndividual.addChildValue("RESN", transformerFrom.traverse(individual, "RESTRICTION")
 			.getValue());
 		personalNameFrom(individual, destinationIndividual);
-		destinationIndividual.addChildValue("SEX", transformerFrom.extractSubStructure(individual, "SEX")
+		destinationIndividual.addChildValue("SEX", transformerFrom.traverse(individual, "SEX")
 			.getValue());
 		childToFamilyLinkFrom(individual, destinationIndividual);
 		spouseToFamilyLinkFrom(individual, destinationIndividual);
@@ -297,7 +298,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			final GedcomNode attributeNickname = transformerFrom.create("ATTRIBUTE")
 				.withValue("_FAMILY_NICKNAME")
 				.addChildValue("TYPE", "Family Nickname")
-				.addChildValue("VALUE", transformerFrom.extractSubStructure(personalNameStructure, "FAMILY_NICKNAME")
+				.addChildValue("VALUE", transformerFrom.traverse(personalNameStructure, "FAMILY_NICKNAME")
 					.getValue());
 			transformerFrom.sourceCitationFrom(personalNameStructure, attributeNickname);
 			//add nickname fact to individual (as first fact)
@@ -309,14 +310,14 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			transformerFrom.sourceCitationFrom(personalNameStructure, temporarySourceCitations);
 
 			final GedcomNode destinationPhonetic = transformerFrom.create("FONE");
-			personalNamePiecesFrom(transformerFrom.extractSubStructure(personalNameStructure, "PHONETIC"), destinationPhonetic);
+			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "PHONETIC"), destinationPhonetic);
 			//collect notes and source citations, they will be added as last elements of NAME
 			transformerFrom.noteFrom(destinationPhonetic, temporaryNotes);
 			transformerFrom.sourceCitationFrom(destinationPhonetic, temporarySourceCitations);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = transformerFrom.create("ROMN");
-			personalNamePiecesFrom(transformerFrom.extractSubStructure(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
+			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
 			//collect notes and source citations, they will be added as last elements of NAME
 			transformerFrom.noteFrom(destinationTranscription, temporaryNotes);
 			transformerFrom.sourceCitationFrom(destinationTranscription, temporarySourceCitations);
@@ -333,14 +334,14 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void personalNamePiecesFrom(final GedcomNode personalNameStructure, final GedcomNode destinationNode){
-		final String title = transformerFrom.extractSubStructure(personalNameStructure, "TITLE").getValue();
-		final GedcomNode personalName = transformerFrom.extractSubStructure(personalNameStructure, "PERSONAL_NAME");
+		final String title = transformerFrom.traverse(personalNameStructure, "TITLE").getValue();
+		final GedcomNode personalName = transformerFrom.traverse(personalNameStructure, "PERSONAL_NAME");
 		final String givenName = personalName.getValue();
-		final String nameSuffix = transformerFrom.extractSubStructure(personalName, "NAME_SUFFIX")
+		final String nameSuffix = transformerFrom.traverse(personalName, "NAME_SUFFIX")
 			.getValue();
-		final String individualNickname = transformerFrom.extractSubStructure(personalName, "INDIVIDUAL_NICKNAME")
+		final String individualNickname = transformerFrom.traverse(personalName, "INDIVIDUAL_NICKNAME")
 			.getValue();
-		final String familyName = transformerFrom.extractSubStructure(personalName, "FAMILY_NAME")
+		final String familyName = transformerFrom.traverse(personalName, "FAMILY_NAME")
 			.getValue();
 		final StringJoiner sj = new StringJoiner(" ");
 		if(title != null)
@@ -355,7 +356,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			destinationNode.withValue(sj.toString());
 
 		destinationNode
-			.addChildValue("TYPE", transformerFrom.extractSubStructure(personalNameStructure, "TYPE")
+			.addChildValue("TYPE", transformerFrom.traverse(personalNameStructure, "TYPE")
 				.getValue())
 			.addChildValue("NPFX", title)
 			.addChildValue("GIVN", givenName)
@@ -367,17 +368,17 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
-			final GedcomNode pedigree = transformerFrom.extractSubStructure(childToFamilyLink, "PEDIGREE");
-			final String pedigreeSpouse1 = transformerFrom.extractSubStructure(pedigree, "SPOUSE1")
+			final GedcomNode pedigree = transformerFrom.traverse(childToFamilyLink, "PEDIGREE");
+			final String pedigreeSpouse1 = transformerFrom.traverse(pedigree, "SPOUSE1")
 				.getValue();
-			final String pedigreeSpouse2 = transformerFrom.extractSubStructure(pedigree, "SPOUSE2")
+			final String pedigreeSpouse2 = transformerFrom.traverse(pedigree, "SPOUSE2")
 				.getValue();
 			@SuppressWarnings("StringEquality")
 			final String pedigreeValue = (pedigreeSpouse1 == pedigreeSpouse2 || pedigreeSpouse1.equals(pedigreeSpouse2)?
 				pedigreeSpouse1: "SPOUSE1: " + pedigreeSpouse1 + ", SPOUSE2: " + pedigreeSpouse2);
 			final GedcomNode destinationFamilyChild = transformerFrom.create("FAMC")
 				.addChildValue("PEDI", pedigreeValue)
-				.addChildValue("STAT", transformerFrom.extractSubStructure(childToFamilyLink, "CERTAINTY")
+				.addChildValue("STAT", transformerFrom.traverse(childToFamilyLink, "CERTAINTY")
 					.getValue());
 			transformerFrom.noteFrom(childToFamilyLink, destinationFamilyChild);
 			destinationNode.addChild(destinationFamilyChild);
@@ -391,7 +392,8 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private void associationFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSOCIATION");
 		for(final GedcomNode association : associations){
-			String type = transformerFrom.extractSubStructure(association, "TYPE").getValue();
+			String type = transformerFrom.traverse(association, "TYPE")
+				.getValue();
 			if("FAMILY".equals(type))
 				type = "FAM";
 			else if("INDIVIDUAL".equals(type))
@@ -399,7 +401,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			final GedcomNode destinationAssociation = transformerFrom.create("ASSO")
 				.withID(association.getID())
 				.addChildValue("TYPE", type)
-				.addChildValue("RELA", transformerFrom.extractSubStructure(association, "RELATIONSHIP")
+				.addChildValue("RELA", transformerFrom.traverse(association, "RELATIONSHIP")
 					.getValue());
 			transformerFrom.noteFrom(association, destinationAssociation);
 			transformerFrom.sourceCitationFrom(association, destinationAssociation);
@@ -438,15 +440,15 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	private GedcomNode createAttributeFrom(final String tagTo, final GedcomNode attribute, final Flef origin){
 		final GedcomNode destinationAttribute = transformerFrom.create(tagTo)
 			.withValue(attribute.getValue())
-			.addChildValue("TYPE", transformerFrom.extractSubStructure(attribute, "TYPE")
+			.addChildValue("TYPE", transformerFrom.traverse(attribute, "TYPE")
 				.getValue());
 		transformerFrom.placeStructureFrom(attribute, destinationAttribute, origin);
 		transformerFrom.addressStructureFrom(attribute, destinationAttribute, origin);
-		destinationAttribute.addChildValue("AGENCY", transformerFrom.extractSubStructure(attribute, "AGNC")
+		destinationAttribute.addChildValue("AGENCY", transformerFrom.traverse(attribute, "AGNC")
 			.getValue())
-			.addChildValue("CAUSE", transformerFrom.extractSubStructure(attribute, "CAUS")
+			.addChildValue("CAUSE", transformerFrom.traverse(attribute, "CAUS")
 				.getValue())
-			.addChildValue("RESTRICTION", transformerFrom.extractSubStructure(attribute, "RESN")
+			.addChildValue("RESTRICTION", transformerFrom.traverse(attribute, "RESN")
 				.getValue());
 		transformerFrom.noteFrom(attribute, destinationAttribute);
 		transformerFrom.sourceCitationFrom(attribute, destinationAttribute);

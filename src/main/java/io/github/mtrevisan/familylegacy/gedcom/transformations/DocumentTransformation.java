@@ -45,13 +45,13 @@ public class DocumentTransformation extends Transformation<Gedcom, Flef>{
 			.withID(document.getID());
 		final List<GedcomNode> files = document.getChildrenWithTag("FILE");
 		for(final GedcomNode file : files){
-			final GedcomNode format = transformerTo.extractSubStructure(file, "FORM");
+			final GedcomNode format = transformerTo.traverse(file, "FORM");
 			final String fileValue = file.getValue();
 			destinationDocument.addChild(transformerTo.create("FILE")
-				.withValue(fileValue != null? fileValue: transformerTo.extractSubStructure(file, "TITLE")
+				.withValue(fileValue != null? fileValue: transformerTo.traverse(file, "TITLE")
 					.getValue())
 				.addChildValue("FORMAT", format.getValue())
-				.addChildValue("MEDIA", transformerTo.extractSubStructure(format, "TYPE")
+				.addChildValue("MEDIA", transformerTo.traverse(format, "TYPE")
 					.getValue())
 			);
 		}

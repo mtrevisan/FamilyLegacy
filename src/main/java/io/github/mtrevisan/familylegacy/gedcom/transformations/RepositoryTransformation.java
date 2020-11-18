@@ -43,7 +43,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 	private void repositoryTo(final GedcomNode repository, final Flef destination){
 		final GedcomNode destinationRepository = transformerTo.create("REPOSITORY")
 			.withID(repository.getID());
-		final String name = transformerTo.extractSubStructure(repository, "NAME")
+		final String name = transformerTo.traverse(repository, "NAME")
 			.getValue();
 		destinationRepository.addChildValue("NAME", name);
 		transformerTo.addressStructureTo(repository, destinationRepository, destination);
@@ -81,7 +81,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void repositoryFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
-		final String name = transformerFrom.extractSubStructure(repository, "NAME")
+		final String name = transformerFrom.traverse(repository, "NAME")
 			.getValue();
 		final GedcomNode destinationRepository = transformerFrom.create("REPO")
 			.withID(repository.getID())
@@ -94,16 +94,18 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode contact = transformerFrom.extractSubStructure(parent, "CONTACT");
+		final GedcomNode contact = transformerFrom.traverse(parent, "CONTACT");
 		final List<GedcomNode> phones = contact.getChildrenWithTag("PHONE");
 		for(final GedcomNode phone : phones)
-			if(!"FAX".equals(transformerFrom.extractSubStructure(phone, "TYPE").getValue()))
+			if(!"FAX".equals(transformerFrom.traverse(phone, "TYPE")
+				.getValue()))
 				destinationNode.addChildValue("PHONE", phone.getValue());
 		final List<GedcomNode> emails = contact.getChildrenWithTag("EMAIL");
 		for(final GedcomNode email : emails)
 			destinationNode.addChildValue("EMAIL", email.getValue());
 		for(final GedcomNode phone : phones)
-			if("fax".equals(transformerFrom.extractSubStructure(phone, "TYPE").getValue()))
+			if("fax".equals(transformerFrom.traverse(phone, "TYPE")
+				.getValue()))
 				destinationNode.addChildValue("FAX", phone.getValue());
 		final List<GedcomNode> urls = contact.getChildrenWithTag("URL");
 		for(final GedcomNode url : urls)

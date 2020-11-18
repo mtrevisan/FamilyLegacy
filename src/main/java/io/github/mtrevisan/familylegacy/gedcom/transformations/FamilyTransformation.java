@@ -44,9 +44,9 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 	private void familyRecordTo(final GedcomNode family, final Flef destination){
 		final GedcomNode destinationFamily = transformerTo.create("FAMILY")
 			.withID(family.getID())
-			.addChildReference("SPOUSE1", transformerTo.extractSubStructure(family, "HUSB")
+			.addChildReference("SPOUSE1", transformerTo.traverse(family, "HUSB")
 				.getID())
-			.addChildReference("SPOUSE2", transformerTo.extractSubStructure(family, "WIFE")
+			.addChildReference("SPOUSE2", transformerTo.traverse(family, "WIFE")
 				.getID());
 		final List<GedcomNode> children = family.getChildrenWithTag("CHIL");
 		for(final GedcomNode child : children)
@@ -66,7 +66,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		transformerTo.eventTo(family, destinationFamily, destination, "MARS", "MARRIAGE_SETTLEMENT");
 		transformerTo.eventTo(family, destinationFamily, destination, "RESI", "RESIDENCE");
 		transformerTo.eventTo(family, destinationFamily, destination, "EVEN", "EVENT");
-		destinationFamily.addChildValue("RESTRICTION", transformerTo.extractSubStructure(family, "RESN")
+		destinationFamily.addChildValue("RESTRICTION", transformerTo.traverse(family, "RESN")
 			.getValue());
 
 		destination.addFamily(destinationFamily);
@@ -83,7 +83,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 	private void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationFamily = transformerFrom.create("FAM")
 			.withID(family.getID())
-			.addChildValue("RESN", transformerFrom.extractSubStructure(family, "RESTRICTION")
+			.addChildValue("RESN", transformerFrom.traverse(family, "RESTRICTION")
 				.getValue());
 		final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
 		transformerFrom.eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
@@ -99,9 +99,9 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		transformerFrom.eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
 		transformerFrom.eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
 		destinationFamily
-			.addChildValue("HUSB", transformerFrom.extractSubStructure(family, "SPOUSE1")
+			.addChildValue("HUSB", transformerFrom.traverse(family, "SPOUSE1")
 				.getValue())
-			.addChildValue("WIFE", transformerFrom.extractSubStructure(family, "SPOUSE2")
+			.addChildValue("WIFE", transformerFrom.traverse(family, "SPOUSE2")
 				.getValue());
 		final List<GedcomNode> children = family.getChildrenWithTag("CHILD");
 		for(final GedcomNode child : children)

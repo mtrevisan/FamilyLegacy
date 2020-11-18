@@ -42,7 +42,7 @@ public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void submitterRecordTo(final GedcomNode submitter, final Flef destination){
-		final GedcomNode name = transformerTo.extractSubStructure(submitter, "NAME");
+		final GedcomNode name = transformerTo.traverse(submitter, "NAME");
 		final GedcomNode destinationSource = transformerTo.create("SOURCE")
 			.withID(submitter.getID())
 			.addChildValue("TITLE", name.getValue());

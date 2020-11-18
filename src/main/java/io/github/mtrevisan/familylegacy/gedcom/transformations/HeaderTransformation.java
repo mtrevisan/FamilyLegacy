@@ -38,15 +38,15 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
 		final GedcomNode header = origin.getHeader();
-		final GedcomNode source = transformerTo.extractSubStructure(header, "SOUR");
-		final GedcomNode date = transformerTo.extractSubStructure(header, "DATE");
-		final GedcomNode time = transformerTo.extractSubStructure(date, "TIME");
+		final GedcomNode source = transformerTo.traverse(header, "SOUR");
+		final GedcomNode date = transformerTo.traverse(header, "DATE");
+		final GedcomNode time = transformerTo.traverse(date, "TIME");
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		if(!date.isEmpty())
 			sj.add(date.getValue());
 		if(!time.isEmpty())
 			sj.add(time.getValue());
-		final String language = transformerTo.extractSubStructure(source, "LANG")
+		final String language = transformerTo.traverse(source, "LANG")
 			.getValue();
 		final Locale locale = (language != null? new Locale(language): Locale.forLanguageTag("en-US"));
 		final GedcomNode destinationHeader = transformerTo.create("HEADER")
@@ -57,21 +57,21 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 			)
 			.addChild(transformerTo.create("SOURCE")
 				.withValue(source.getValue())
-				.addChildValue("NAME", transformerTo.extractSubStructure(source, "NAME")
+				.addChildValue("NAME", transformerTo.traverse(source, "NAME")
 					.getValue())
-				.addChildValue("VERSION", transformerTo.extractSubStructure(source, "VERS")
+				.addChildValue("VERSION", transformerTo.traverse(source, "VERS")
 					.getValue())
-				.addChildValue("CORPORATE", transformerTo.extractSubStructure(source, "CORP")
+				.addChildValue("CORPORATE", transformerTo.traverse(source, "CORP")
 					.getValue())
 			)
 			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
 			.addChildValue("DEFAULT_CALENDAR", "GREGORIAN")
 			.addChildValue("DEFAULT_LOCALE", locale.toLanguageTag())
-			.addChildValue("COPYRIGHT", transformerTo.extractSubStructure(source, "COPR")
+			.addChildValue("COPYRIGHT", transformerTo.traverse(source, "COPR")
 				.getValue())
-			.addChildReference("SUBMITTER", transformerTo.extractSubStructure(source, "SUBM")
+			.addChildReference("SUBMITTER", transformerTo.traverse(source, "SUBM")
 				.getID())
-			.addChildValue("NOTE", transformerTo.extractSubStructure(source, "NOTE")
+			.addChildValue("NOTE", transformerTo.traverse(source, "NOTE")
 				.getValue());
 
 		destination.setHeader(destinationHeader);
@@ -80,26 +80,26 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 	@Override
 	public void from(final Flef origin, final Gedcom destination){
 		final GedcomNode header = origin.getHeader();
-		final GedcomNode source = transformerFrom.extractSubStructure(header, "SOURCE");
-		final String date = transformerFrom.extractSubStructure(header, "DATE")
+		final GedcomNode source = transformerFrom.traverse(header, "SOURCE");
+		final String date = transformerFrom.traverse(header, "DATE")
 			.getValue();
-		final String language = transformerFrom.extractSubStructure(source, "DEFAULT_LOCALE")
+		final String language = transformerFrom.traverse(source, "DEFAULT_LOCALE")
 			.getValue();
 		final Locale locale = Locale.forLanguageTag(language != null? language: "en-US");
 		final GedcomNode destinationHeader = transformerFrom.create("HEAD")
 			.addChild(transformerFrom.create("SOUR")
 				.withValue(source.getValue())
-				.addChildValue("VERS", transformerFrom.extractSubStructure(source, "VERSION")
+				.addChildValue("VERS", transformerFrom.traverse(source, "VERSION")
 					.getValue())
-				.addChildValue("NAME", transformerFrom.extractSubStructure(source, "NAME")
+				.addChildValue("NAME", transformerFrom.traverse(source, "NAME")
 					.getValue())
-				.addChildValue("CORP", transformerFrom.extractSubStructure(source, "CORPORATE")
+				.addChildValue("CORP", transformerFrom.traverse(source, "CORPORATE")
 					.getValue())
 			)
 			.addChildValue("DATE", date)
-			.addChildReference("SUBM", transformerFrom.extractSubStructure(source, "SUBMITTER")
+			.addChildReference("SUBM", transformerFrom.traverse(source, "SUBMITTER")
 				.getID())
-			.addChildValue("COPR", transformerFrom.extractSubStructure(source, "COPYRIGHT")
+			.addChildValue("COPR", transformerFrom.traverse(source, "COPYRIGHT")
 				.getValue())
 			.addChild(transformerFrom.create("GEDC")
 				.addChildValue("VERS", "5.5.1")
@@ -107,7 +107,7 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 			)
 			.addChildValue("CHAR", "UTF-8")
 			.addChildValue("LANG", locale.getDisplayLanguage(Locale.ENGLISH))
-			.addChildValue("NOTE", transformerFrom.extractSubStructure(source, "NOTE")
+			.addChildValue("NOTE", transformerFrom.traverse(source, "NOTE")
 				.getValue());
 
 		destination.setHeader(destinationHeader);

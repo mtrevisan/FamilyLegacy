@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.services;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,7 +66,45 @@ public final class RegexHelper{
 	}
 
 
-	private static Matcher matcher(final CharSequence text, final Pattern pattern){
+	public static String[] extract(final CharSequence text, final Pattern pattern){
+		return extract(text, pattern, -1);
+	}
+
+	public static String[] extract(final CharSequence text, final Pattern pattern, final int limit){
+		final Matcher matcher = matcher(text, pattern);
+		return (limit >= 0? extractWithLimit(matcher, limit): extractUnlimited(matcher));
+	}
+
+	private static String[] extractWithLimit(final Matcher matcher, final int limit){
+		int index = 0;
+		final String[] result = new String[limit];
+		while(matcher.find() && index < limit){
+			final String component = getNextGroup(matcher);
+			result[index ++] = (component != null? component: matcher.group());
+		}
+		return result;
+	}
+
+	private static String[] extractUnlimited(final Matcher matcher){
+		final List<String> result = new ArrayList<>();
+		while(matcher.find()){
+			final String component = getNextGroup(matcher);
+			result.add((component != null? component: matcher.group()));
+		}
+		return result.toArray(String[]::new);
+	}
+
+	private static String getNextGroup(final Matcher matcher){
+		String component = null;
+		int i = 1;
+		final int size = matcher.groupCount();
+		while(component == null && i <= size)
+			component = matcher.group(i ++);
+		return component;
+	}
+
+
+	public static Matcher matcher(final CharSequence text, final Pattern pattern){
 		return pattern.matcher(text);
 	}
 

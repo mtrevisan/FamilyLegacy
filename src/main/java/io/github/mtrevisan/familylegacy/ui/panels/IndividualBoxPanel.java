@@ -42,7 +42,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 
 public class IndividualBoxPanel extends JPanel{
@@ -82,11 +84,8 @@ public class IndividualBoxPanel extends JPanel{
 	private final JLabel birthDeathAgeLabel = new JLabel();
 	private final JLabel imgLabel = new JLabel();
 	private final JLabel individualNameLabel = new JLabel();
-	private final JScrollPane infoScrollPane = new JScrollPane();
-	private final JTable infoTable = new JTable();
 	private final JLabel linkIndividualLabel = new JLabel();
 	private final JLabel newIndividualLabel = new JLabel();
-	private final JButton photosButton = new JButton();
 
 	private GedcomNode individualNode;
 	private final Transformer transformer = new Transformer(Protocol.FLEF);
@@ -147,47 +146,47 @@ public class IndividualBoxPanel extends JPanel{
 //			}
 //		});
 
-		infoScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-
-		infoTable.setModel(new javax.swing.table.DefaultTableModel(new Object[][]{{null, null}, {null, null}, {null, null}, {null, null}, {null, null}}, new String[]{"", ""}){
-			final Class[] types = new Class[]{String.class, String.class};
-			boolean[] canEdit = new boolean[]{false, false};
-
-			public Class getColumnClass(int columnIndex){
-				return types[columnIndex];
-			}
-
-			public boolean isCellEditable(int rowIndex, int columnIndex){
-				return canEdit[columnIndex];
-			}
-		});
-		infoTable.setFocusable(false);
-		infoTable.setIntercellSpacing(new Dimension(0, 0));
-		infoTable.setRowSelectionAllowed(false);
-		infoTable.setShowHorizontalLines(false);
-		infoTable.setShowVerticalLines(false);
-		infoTable.setTableHeader(null);
-//		TableColumnModel columnModel = infoTable.getColumnModel();
-//		TableColumn column = columnModel.getColumn(0);
-//		column.setMinWidth(55);
-//		column.setMaxWidth(55);
-//		infoScrollPane.setVisible(individualBoxType == BoxPanelType.PRIMARY && individual != null);
-		infoScrollPane.setViewportView(infoTable);
-
-		photosButton.setText("Photos");
-//		photosButton.setVisible(boxType == BoxPanelType.PRIMARY && individual != null);
-//		photosButton.addActionListener(new java.awt.event.ActionListener(){
-//			public void actionPerformed(java.awt.event.ActionEvent evt){
-//				photosButtonActionPerformed(evt);
-//			}
-//		});
-
 		final GroupLayout layout = new GroupLayout(this);
 		this.setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addContainerGap().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(infoScrollPane, GroupLayout.DEFAULT_SIZE, 297, Short.MAX_VALUE).addGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addComponent(birthDeathAgeLabel).addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(linkIndividualLabel)).addGroup(layout.createSequentialGroup().addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addComponent(newIndividualLabel))).addGap(0, 0, Short.MAX_VALUE))).addGap(18, 18, 18).addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(photosButton, GroupLayout.Alignment.TRAILING).addComponent(imgLabel, GroupLayout.Alignment.TRAILING)).addContainerGap()));
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addComponent(newIndividualLabel)).addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(birthDeathAgeLabel).addComponent(linkIndividualLabel)).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addComponent(infoScrollPane, GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE)).addGroup(layout.createSequentialGroup().addComponent(imgLabel).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addComponent(photosButton).addGap(0, 0, Short.MAX_VALUE))).addContainerGap()));
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+				.addContainerGap()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(birthDeathAgeLabel)
+								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+								.addComponent(linkIndividualLabel))
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+								.addComponent(newIndividualLabel)))
+						.addGap(0, 0, Short.MAX_VALUE)))
+				.addGap(18, 18, 18)
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addComponent(imgLabel, GroupLayout.Alignment.TRAILING))
+				.addContainerGap()));
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+			.addGroup(layout.createSequentialGroup()
+				.addContainerGap()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+					.addGroup(layout.createSequentialGroup()
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(newIndividualLabel))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(birthDeathAgeLabel)
+							.addComponent(linkIndividualLabel))
+						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED))
+					.addGroup(layout.createSequentialGroup()
+						.addComponent(imgLabel)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+						.addGap(0, 0, Short.MAX_VALUE)))
+				.addContainerGap()));
 
-		final int individualMaxWidth = (int)infoScrollPane.getPreferredSize().getWidth();
+		final int individualMaxWidth = (int)individualNameLabel.getPreferredSize().getWidth();
 		final int individualMaxHeight = (int)individualNameLabel.getPreferredSize().getHeight();
 		individualNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 
@@ -240,7 +239,7 @@ public class IndividualBoxPanel extends JPanel{
 	private Color getBackgroundColor(){
 		Color backgroundColor = BACKGROUND_COLOR_NO_INDIVIDUAL;
 		if(individualNode != null){
-			final Sex sex = Sex.fromCode(transformer.extractSubStructure(individualNode, "SEX")
+			final Sex sex = Sex.fromCode(transformer.traverse(individualNode, "SEX")
 				.getValue());
 			backgroundColor = BACKGROUND_COLOR_FROM_SEX.getOrDefault(sex, BACKGROUND_COLOR_UNKNOWN);
 		}
@@ -250,7 +249,7 @@ public class IndividualBoxPanel extends JPanel{
 	private void loadData(final BoxPanelType boxType){
 		final String personalName = extractPersonalName();
 		if(boxType == BoxPanelType.PRIMARY)
-			//FIXME if selected:
+			//FIXME if selected (?):
 			individualNameLabel.setText("<html><font style=\"text-decoration:underline;font-weight:bold\">" + personalName + "</font></html>");
 		else
 			individualNameLabel.setText("<html>" + personalName + "</html>");
@@ -262,12 +261,8 @@ public class IndividualBoxPanel extends JPanel{
 		final ImageIcon img = ResourceHelper.getImage(icon, imgLabel.getPreferredSize());
 		imgLabel.setIcon(img);
 
-		if(boxType == BoxPanelType.PRIMARY){
-			resetInfo();
-
-			if(individualNode != null)
-				writeGeneralInfo();
-		}
+		if(boxType == BoxPanelType.PRIMARY && individualNode != null)
+			writeGeneralInfo();
 
 		boolean hasIndividual = (individualNode != null);
 		individualNameLabel.setVisible(hasIndividual);
@@ -275,8 +270,6 @@ public class IndividualBoxPanel extends JPanel{
 		newIndividualLabel.setVisible(!hasIndividual);
 //		linkIndividualLabel.setVisible(!hasIndividual && treeHasIndividuals);
 		imgLabel.setVisible(individualNode != null);
-		infoScrollPane.setVisible(boxType == BoxPanelType.PRIMARY && individualNode != null);
-		photosButton.setVisible(boxType == BoxPanelType.PRIMARY && individualNode != null);
 	}
 
 	private String extractPersonalName(){
@@ -286,12 +279,12 @@ public class IndividualBoxPanel extends JPanel{
 			final List<GedcomNode> names = individualNode.getChildrenWithTag("NAME");
 			if(!names.isEmpty())
 				name = names.get(0);
-			final String title = transformer.extractSubStructure(name, "TITLE")
+			final String title = transformer.traverse(name, "TITLE")
 				.getValue();
-			final GedcomNode personalName = transformer.extractSubStructure(name, "PERSONAL_NAME");
-			final String nameSuffix = transformer.extractSubStructure(personalName, "NAME_SUFFIX")
+			final GedcomNode personalName = transformer.traverse(name, "PERSONAL_NAME");
+			final String nameSuffix = transformer.traverse(personalName, "NAME_SUFFIX")
 				.getValue();
-			final String familyName = transformer.extractSubStructure(name, "FAMILY_NAME")
+			final String familyName = transformer.traverse(name, "FAMILY_NAME")
 				.getValueOrDefault(NO_DATA);
 
 			if(title != null)
@@ -312,10 +305,22 @@ public class IndividualBoxPanel extends JPanel{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		if(individualNode != null){
 			GedcomNode birth = transformer.createEmpty();
-			final List<GedcomNode> births = individualNode.getChildrenWithTag("BIRTH");
-			if(!births.isEmpty())
-				birth = births.get(0);
-			final String birthDate = birth.getValue();
+			final List<GedcomNode> events = individualNode.getChildrenWithTag("EVENT");
+			final List<String> birthDates = events.stream()
+				.filter(b -> "BIRTH".equals(b.getValue()))
+				.map(b -> transformer.traverse(b, "DATE").getValue())
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+			//TODO what if there are multiple birth dates?
+			final String birthDate = (!birthDates.isEmpty()? birthDates.get(0): NO_DATA);
+
+			final List<String> deathDates = events.stream()
+				.filter(b -> "DEATH".equals(b.getValue()))
+				.map(b -> transformer.traverse(b, "DATE").getValue())
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+			//TODO what if there are multiple death dates?
+			final String deathDate = (!deathDates.isEmpty()? deathDates.get(0): NO_DATA);
 
 //			String birthDate = Optional.ofNullable(individual.getBirthDate())
 //				.map(DateParser::formatYear)
@@ -385,16 +390,6 @@ public class IndividualBoxPanel extends JPanel{
 //			infoTable.setValueAt(nickname, row, 1);
 //			row ++;
 //		}
-
-		infoScrollPane.setVerticalScrollBarPolicy(row == 5? ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS:
-			ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-	}
-
-	private void resetInfo(){
-		for(int row = 0; row < 5; row ++){
-			infoTable.setValueAt(null, row, 0);
-			infoTable.setValueAt(null, row, 1);
-		}
 	}
 
 	public Point getIndividualPaintingEnteringPoint(){
@@ -414,7 +409,7 @@ public class IndividualBoxPanel extends JPanel{
 		Store storeGedcom = new Gedcom();
 		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode node = storeFlef.getIndividuals().get(1);
+		GedcomNode node = storeFlef.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
 			JDialog dialog = new JDialog(new JFrame(), true);
