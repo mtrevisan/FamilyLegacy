@@ -6,11 +6,31 @@ import org.apache.commons.lang3.StringUtils;
 
 class AgeData{
 
-	private final AgeParser.AgeType ageType;
-	private final String years;
-	private final String months;
-	private final String days;
+	private AgeParser.AgeType ageType;
+	private String years;
+	private String months;
+	private String days;
 
+
+	public AgeData withAgeType(final AgeParser.AgeType ageType){
+		this.ageType = ageType;
+		return this;
+	}
+
+	public AgeData withYears(final String years){
+		this.years = years;
+		return this;
+	}
+
+	public AgeData withMonths(final String months){
+		this.months = months;
+		return this;
+	}
+
+	public AgeData withDays(final String days){
+		this.days = days;
+		return this;
+	}
 
 	public String getAge(){
 		StringJoiner sj = new StringJoiner(StringUtils.SPACE);

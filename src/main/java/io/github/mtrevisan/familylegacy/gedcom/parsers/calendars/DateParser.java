@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 class DateParser{
 
-	private static final DateTimeFormatter FORMATTER_DATE = DateTimeFormatter.ofPattern("d MMMM u", Locale.US);
+	private static final DateTimeFormatter FORMATTER_DATE = DateTimeFormatter.ofPattern("d MMM u", Locale.US);
 
 
 	/**
@@ -22,7 +22,7 @@ class DateParser{
 	 * @param date	the date string
 	 * @return	the date, if it can be derived from the string
 	 */
-	public static LocalDate parse(String date){
+	public static LocalDate parse(final String date){
 		return parse(date, DatePreciseness.PRECISE);
 	}
 
@@ -33,19 +33,19 @@ class DateParser{
 	 * @param preciseness	the preference for handling an imprecise date.
 	 * @return	the date, if one can be derived from the string
 	 */
-	public static LocalDate parse(String date, DatePreciseness preciseness){
+	public static LocalDate parse(final String date, final DatePreciseness preciseness){
 		LocalDate dt = null;
 		if(StringUtils.isNotBlank(date)){
-			AbstractCalendarParser calendar = CalendarParserBuilder.getParser(date);
+			final AbstractCalendarParser calendar = CalendarParserBuilder.getParser(date);
 			dt = calendar.parse(date, preciseness);
 		}
 		return dt;
 	}
 
-	public static CalendarData toCalendarData(String date){
+	public static CalendarData toCalendarData(final String date){
 		CalendarData data = null;
 		if(StringUtils.isNotBlank(date)){
-			AbstractCalendarParser calendarParser = CalendarParserBuilder.getParser(date);
+			final AbstractCalendarParser calendarParser = CalendarParserBuilder.getParser(date);
 			data = calendarParser.extractComponents(date);
 		}
 		return data;
@@ -57,7 +57,7 @@ class DateParser{
 			date = AbstractCalendarParser.IntervalType.replaceAll(date);
 			date = RegexHelper.replaceAll(date, AbstractCalendarParser.PATTERN_APPROX, AbstractCalendarParser.DESCRIPTION_APPROX);
 			date = RegexHelper.replaceAll(date, AbstractCalendarParser.PATTERN_AND, AbstractCalendarParser.DESCRIPTION_AND);
-			date = RegexHelper.replaceAll(date, GregorianCalendarParser.Era.BCE.getMatcher(), GregorianCalendarParser.Era.BCE.getDescription());
+			date = RegexHelper.replaceAll(date, GregorianCalendarParser.Era.BCE.getPattern(), GregorianCalendarParser.Era.BCE.getDescription());
 			date = GregorianCalendarParser.Era.replaceAll(date);
 			date = GregorianMonth.replaceAll(date);
 			date = FrenchRepublicanMonth.replaceAll(date);
@@ -82,11 +82,11 @@ class DateParser{
 		return formattedDate;
 	}
 
-	public static String formatYear(String date){
+	public static String formatYear(final String date){
 		String formattedDate = null;
 		LocalDate dt = parse(date);
 		if(dt != null)
-			formattedDate = (AbstractCalendarParser.isApproximation(date)? "~": StringUtils.EMPTY) + Integer.toString(dt.getYear());
+			formattedDate = (AbstractCalendarParser.isApproximation(date)? "~": StringUtils.EMPTY) + dt.getYear();
 		return formattedDate;
 	}
 

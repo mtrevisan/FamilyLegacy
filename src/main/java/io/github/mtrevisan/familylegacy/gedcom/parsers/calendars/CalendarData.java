@@ -2,18 +2,60 @@ package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Date;
+
 
 class CalendarData{
 
-	private final AbstractCalendarParser.CalendarType calendarType;
-	private final boolean afterSunset;
-	private final AbstractCalendarParser.IntervalType intervalType;
-	private final DateData fromDate;
-	private final AbstractCalendarParser.Qualification fromQualification;
-	private final DateData toDate;
-	private final AbstractCalendarParser.Qualification toQualification;
-	private final String interpretedFrom;
+	private AbstractCalendarParser.CalendarType calendarType;
+	private boolean afterSunset;
+	private AbstractCalendarParser.IntervalType intervalType;
+	private DateData fromDate;
+	private AbstractCalendarParser.Qualification fromQualification;
+	private DateData toDate;
+	private AbstractCalendarParser.Qualification toQualification;
+	private String interpretedFrom;
 
+
+	public CalendarData withCalendarType(final AbstractCalendarParser.CalendarType calendarType){
+		this.calendarType = calendarType;
+		return this;
+	}
+
+	public CalendarData withAfterSunset(final boolean afterSunset){
+		this.afterSunset = afterSunset;
+		return this;
+	}
+
+	public CalendarData withIntervalType(final AbstractCalendarParser.IntervalType intervalType){
+		this.intervalType = intervalType;
+		return this;
+	}
+
+	public CalendarData withFromDate(final DateData fromDate){
+		this.fromDate = fromDate;
+		return this;
+	}
+
+	public CalendarData withFromQualification(final AbstractCalendarParser.Qualification fromQualification){
+		this.fromQualification = fromQualification;
+		return this;
+	}
+
+	public CalendarData withToDate(final DateData toDate){
+		this.toDate = toDate;
+		return this;
+	}
+
+	public CalendarData withToQualification(final AbstractCalendarParser.Qualification toQualification){
+		this.toQualification = toQualification;
+		return this;
+	}
+
+	public CalendarData withInterpretedFrom(final String interpretedFrom){
+		this.interpretedFrom = interpretedFrom;
+		return this;
+	}
 
 	public String getDate(){
 		//TODO

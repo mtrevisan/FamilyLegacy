@@ -48,6 +48,10 @@ enum GregorianMonth{
 		this.abbreviation = abbreviation;
 	}
 
+	public String getDescription(){
+		return description;
+	}
+
 	public static String[] getDescriptionsWithEmptyValueFirst(){
 		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
 			.map(GregorianMonth::getDescription))

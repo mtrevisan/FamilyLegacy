@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
@@ -19,7 +18,7 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 
 	private static final List<String> BEFORE_COMMON_ERA = Arrays.asList("BC", "B.C.", "BCE", "B.C.E.");
 
-	public static enum Era{
+	public enum Era{
 		CE("CE", RegexHelper.pattern("(?i)A\\.?C\\.?|(^|[^B.])C\\.?E\\.?")),
 		BCE("BCE", RegexHelper.pattern("(?i)B\\.?C\\.?(E\\.?)?"));
 
@@ -49,6 +48,14 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 			for(final Era era : values())
 				list.add(era.description);
 			return list.toArray(new String[0]);
+		}
+
+		public String getDescription(){
+			return description;
+		}
+
+		public Pattern getPattern(){
+			return pattern;
 		}
 
 		public static String replaceAll(String era){
@@ -81,26 +88,26 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	protected DateData extractSingleDateComponents(String singleDate){
 		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
 
-		DateData.DateDataBuilder dateBuilder = DateData.builder();
+		DateData date = new DateData();
 		PATTERN_DATE.reset(singleDate);
 		if(PATTERN_DATE.find()){
 			String day = PATTERN_DATE.group("day");
 			if(StringUtils.isNotBlank(day))
-				dateBuilder.day(Integer.parseInt(day));
+				date.withDay(Integer.parseInt(day));
 			String month = PATTERN_DATE.group("month");
 			if(StringUtils.isNotBlank(month))
-				dateBuilder.month(GregorianMonth.createFromAbbreviation(month).ordinal());
+				date.withMonth(GregorianMonth.createFromAbbreviation(month).ordinal());
 			String year = PATTERN_DATE.group("year");
 			if(StringUtils.isNotBlank(year))
-				dateBuilder.year(Integer.parseInt(year));
+				date.withYear(Integer.parseInt(year));
 			String doubleEntryYear = PATTERN_DATE.group("doubleEntryYear");
 			if(StringUtils.isNotBlank(doubleEntryYear))
-				dateBuilder.doubleEntryYear(Integer.parseInt(doubleEntryYear));
+				date.withDoubleEntryYear(Integer.parseInt(doubleEntryYear));
 			String era = PATTERN_DATE.group("era");
 			if(StringUtils.isNotBlank(era))
-				dateBuilder.era(Era.createFromDate(era));
+				date.withEra(Era.createFromDate(era));
 		}
-		return dateBuilder.build();
+		return date;
 	}
 
 	/**

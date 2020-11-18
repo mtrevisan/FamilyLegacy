@@ -31,6 +31,12 @@ class Age{
 	private final ApproximationType approximationType;
 
 
+	public Age(int value, boolean approximated, ApproximationType approximationType){
+		this.value = value;
+		this.approximated = approximated;
+		this.approximationType = approximationType;
+	}
+
 	public Age(String value, ApproximationType approximationType){
 		value = StringUtils.strip(value);
 

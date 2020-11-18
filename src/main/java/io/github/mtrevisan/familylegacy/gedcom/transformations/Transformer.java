@@ -50,8 +50,8 @@ public final class Transformer{
 	private static final String PARAM_VALUE = "value";
 	private static final String PARAM_INDEX = "index";
 	private static final String PARAM_ID = "id";
-	private static final String PATH_COMPONENT = "[^{}\\[\\]#]+";
-	private static final String PATH_COMPONENT_OPTIONAL = "[^{}\\[\\]#]*";
+	private static final String PATH_COMPONENT = "[^#{}\\[\\])]+";
+	private static final String PATH_COMPONENT_OPTIONAL = "[^#{}\\[\\])]*";
 	private static final String PATH_COMPONENT_TAG = "(?<" + PARAM_TAG + ">" + PATH_COMPONENT + ")";
 	private static final String PATH_COMPONENT_VALUE = "\\{(?<" + PARAM_VALUE + ">" + PATH_COMPONENT + ")\\}";
 	private static final String PATH_COMPONENT_INDEX = "\\[(?<" + PARAM_INDEX + ">" + PATH_COMPONENT_OPTIONAL + ")\\]";

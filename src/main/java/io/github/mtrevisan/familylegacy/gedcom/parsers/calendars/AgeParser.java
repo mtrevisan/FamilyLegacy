@@ -51,13 +51,17 @@ class AgeParser{
 			this.pattern = pattern;
 		}
 
+		public String getDescription(){
+			return description;
+		}
+
 		public static String[] getDescriptions(){
 			final List<String> list = new ArrayList<>();
 			for(final AgeType ageType : values())
 				list.add(ageType.description);
 			return list.toArray(new String[0]);
 		}
-	};
+	}
 
 
 	/**
@@ -80,12 +84,11 @@ class AgeParser{
 				String years = PATTERN_AGE.group("years");
 				String months = PATTERN_AGE.group("months");
 				String days = PATTERN_AGE.group("days");
-				ad = AgeData.builder()
-					.ageType(AgeType.createFromText(relation))
-					.years(years)
-					.months(months)
-					.days(days)
-					.build();
+				ad = new AgeData()
+					.withAgeType(AgeType.createFromText(relation))
+					.withYears(years)
+					.withMonths(months)
+					.withDays(days);
 			}
 		}
 		return ad;

@@ -40,10 +40,10 @@ abstract class AbstractCalendarParser{
 
 
 	public enum CalendarType{
-		GREGORIAN("Gregorian", CalendarParserBuilder.GREGORIAN_CALENDAR),
-		JULIAN("Julian", CalendarParserBuilder.JULIAN_CALENDAR),
-		FRENCH_REPUBLICAN("French Republican", CalendarParserBuilder.FRENCH_REPUBLICAN_CALENDAR),
-		HEBREW("Hebrew", CalendarParserBuilder.HEBREW_CALENDAR);
+		GREGORIAN("Gregorian", CalendarParserBuilder.CALENDAR_GREGORIAN),
+		JULIAN("Julian", CalendarParserBuilder.CALENDAR_JULIAN),
+		FRENCH_REPUBLICAN("French Republican", CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN),
+		HEBREW("Hebrew", CalendarParserBuilder.CALENDAR_HEBREW);
 
 
 		private final String description;
@@ -66,8 +66,12 @@ abstract class AbstractCalendarParser{
 			return list.toArray(new String[0]);
 		}
 
+		public String getType(){
+			return type;
+		}
+
 		public boolean isGregorianOrJulian(){
-			return (this == CalendarType.GREGORIAN || this == CalendarType.JULIAN);
+			return (this == GREGORIAN || this == JULIAN);
 		}
 	};
 
@@ -122,12 +126,16 @@ abstract class AbstractCalendarParser{
 			return list.toArray(new String[0]);
 		}
 
+		public String getType(){
+			return type;
+		}
+
 		public boolean canQualificationBePresent(){
 			return !QUALIFICATION_NOT_PRESENT_IF.contains(this);
 		}
 
 		public boolean isRangePresent(){
-			return (this == IntervalType.BETWEEN || this == IntervalType.FROM);
+			return (this == BETWEEN || this == FROM);
 		}
 
 		public static String replaceAll(String date){
@@ -194,18 +202,18 @@ abstract class AbstractCalendarParser{
 		date = removeApproximations(date);
 		date = removeOpenEndedRangesAndPeriods(date);
 
-		CalendarData.CalendarDataBuilder responseBuilder = CalendarData.builder()
-			.calendarType(getCalendarType())
-			.intervalType(intervalType)
-			.interpretedFrom(interpretedFrom);
+		CalendarData responseBuilder = new CalendarData()
+			.withCalendarType(getCalendarType())
+			.withIntervalType(intervalType)
+			.withInterpretedFrom(interpretedFrom);
 		if(isRange(date)){
 			Pair<String, String> range = getDatesFromRangeOrPeriod(date);
 			if(range == null)
 				return null;
 
 			DateData fromDate = extractSingleDateComponents(range.getLeft());
-			responseBuilder.fromDate(fromDate)
-				.fromQualification(fromQualification);
+			responseBuilder.withFromDate(fromDate)
+				.withFromQualification(fromQualification);
 			DateData toDate = extractSingleDateComponents(range.getRight());
 			Qualification toQualification = null;
 			for(int i = 2; i < rawComponents.length; i ++){
@@ -213,15 +221,15 @@ abstract class AbstractCalendarParser{
 				if(toQualification != null)
 					break;
 				}
-			responseBuilder.toDate(toDate)
-				.toQualification(toQualification);
+			responseBuilder.withToDate(toDate)
+				.withToQualification(toQualification);
 		}
 		else{
 			DateData singleDate = extractSingleDateComponents(date);
-			responseBuilder.fromDate(singleDate)
-				.fromQualification(fromQualification);
+			responseBuilder.withFromDate(singleDate)
+				.withFromQualification(fromQualification);
 		}
-		return responseBuilder.build();
+		return responseBuilder;
 	}
 
 	protected abstract DateData extractSingleDateComponents(String singleDate);

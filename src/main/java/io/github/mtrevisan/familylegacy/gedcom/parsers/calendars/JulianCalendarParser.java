@@ -29,23 +29,23 @@ class JulianCalendarParser extends GregorianCalendarParser{
 	protected DateData extractSingleDateComponents(String singleDate){
 		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
 
-		DateData.DateDataBuilder dateBuilder = DateData.builder();
+		DateData date = new DateData();
 		PATTERN_DATE.reset(singleDate);
 		if(PATTERN_DATE.find()){
 			String day = PATTERN_DATE.group("day");
 			if(StringUtils.isNotBlank(day))
-				dateBuilder.day(Integer.parseInt(day));
+				date.withDay(Integer.parseInt(day));
 			String month = PATTERN_DATE.group("month");
 			if(StringUtils.isNotBlank(month))
-				dateBuilder.month(GregorianMonth.createFromAbbreviation(month).ordinal());
+				date.withMonth(GregorianMonth.createFromAbbreviation(month).ordinal());
 			String year = PATTERN_DATE.group("year");
 			if(StringUtils.isNotBlank(year))
-				dateBuilder.year(Integer.parseInt(year));
+				date.withYear(Integer.parseInt(year));
 			String era = PATTERN_DATE.group("era");
 			if(StringUtils.isNotBlank(era))
-				dateBuilder.era(Era.createFromDate(era));
+				date.withEra(Era.createFromDate(era));
 		}
-		return dateBuilder.build();
+		return date;
 	}
 
 }
