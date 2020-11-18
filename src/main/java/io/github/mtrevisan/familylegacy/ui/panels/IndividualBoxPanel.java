@@ -42,6 +42,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.stream.Collectors;
@@ -53,29 +54,26 @@ public class IndividualBoxPanel extends JPanel{
 
 
 	private static final String NO_DATA = "?";
-	private static final String FAMILY_NAME_SEPARATOR = ", ";
 
 	private static final Color BACKGROUND_COLOR_NO_INDIVIDUAL = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_MALE = new Color(180, 197, 213);
 	private static final Color BACKGROUND_COLOR_FEMALE = new Color(255, 212, 177);
 	private static final Color BACKGROUND_COLOR_UNKNOWN = new Color(221, 221, 221);
 
-	public static final Color BORDER_COLOR = new Color(165, 165, 165);
+	private static final Color BORDER_COLOR = new Color(165, 165, 165);
 	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
 
 	//double values for Horizontal and Vertical radius of corner arcs
 	private static final Dimension ARCS = new Dimension(10, 10);
 
-	private static final EnumMap<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
-	public static final double IMAGE_ASPECT_RATIO = 4. / 3.;
-
+	private static final Map<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
 	static{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.MALE, BACKGROUND_COLOR_MALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.UNKNOWN, BACKGROUND_COLOR_UNKNOWN);
 	}
+	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
-	//preload imaged
 	private static final ImageIcon ADD_PHOTO_MAN = ResourceHelper.getImage("/images/addPhoto.man.jpg");
 	private static final ImageIcon ADD_PHOTO_WOMAN = ResourceHelper.getImage("/images/addPhoto.woman.jpg");
 	private static final ImageIcon ADD_PHOTO_BOY = ResourceHelper.getImage("/images/addPhoto.boy.jpg");
@@ -253,11 +251,15 @@ public class IndividualBoxPanel extends JPanel{
 	private Color getBackgroundColor(){
 		Color backgroundColor = BACKGROUND_COLOR_NO_INDIVIDUAL;
 		if(individualNode != null){
-			final Sex sex = Sex.fromCode(TRANSFORMER.traverse(individualNode, "SEX")
-				.getValue());
+			final Sex sex = extractSex();
 			backgroundColor = BACKGROUND_COLOR_FROM_SEX.getOrDefault(sex, BACKGROUND_COLOR_UNKNOWN);
 		}
 		return backgroundColor;
+	}
+
+	private Sex extractSex(){
+		return Sex.fromCode(TRANSFORMER.traverse(individualNode, "SEX")
+			.getValue());
 	}
 
 	private void loadData(final BoxPanelType boxType){
@@ -317,17 +319,15 @@ public class IndividualBoxPanel extends JPanel{
 	private String getBirthDeathAge(){
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		if(individualNode != null){
-			GedcomNode birth = TRANSFORMER.createEmpty();
-			final List<GedcomNode> events = individualNode.getChildrenWithTag("EVENT");
-			final List<String> birthDates = events.stream()
-				.filter(b -> "BIRTH".equals(b.getValue()))
-				.map(b -> TRANSFORMER.traverse(b, "DATE").getValue())
+			final List<String> birthYears = TRANSFORMER.traverseAsList(individualNode, "EVENT{BIRTH}[]").stream()
+				.map(b -> TRANSFORMER.traverse(b, "EVENT{BIRTH}").getValue())
 				.filter(Objects::nonNull)
+				//TODO extract year
 				.collect(Collectors.toList());
 			//TODO what if there are multiple birth dates?
-			final String birthDate = (!birthDates.isEmpty()? birthDates.get(0): NO_DATA);
+			final String birthDate = (!birthYears.isEmpty()? birthYears.get(0): NO_DATA);
 
-			final List<String> deathDates = events.stream()
+			final List<String> deathDates = individualNode.getChildrenWithTag("EVENT").stream()
 				.filter(b -> "DEATH".equals(b.getValue()))
 				.map(b -> TRANSFORMER.traverse(b, "DATE").getValue())
 				.filter(Objects::nonNull)
@@ -353,9 +353,14 @@ public class IndividualBoxPanel extends JPanel{
 
 	private ImageIcon getAddPhotoImage(){
 		ImageIcon icon = ADD_PHOTO_UNKNOWN;
-//		if(individualNode != null){
-//			Sex sex = individual.getSexAsEnum();
-//			String approximatedAge = individual.getAge();
+		if(individualNode != null){
+			final Sex sex = extractSex();
+			final String birth = TRANSFORMER.traverse(individualNode, "EVENT{BIRTH}[0]")
+				.getValue();
+			final String death = TRANSFORMER.traverse(individualNode, "EVENT{DEATH}[0]")
+				.getValue();
+
+//			String approximatedAge = individualNode.getAge();
 //			int age = (approximatedAge != null? Integer.valueOf(approximatedAge.startsWith("~")? approximatedAge.substring(1): approximatedAge): -1);
 //			switch(sex){
 //				case MALE:
@@ -365,7 +370,7 @@ public class IndividualBoxPanel extends JPanel{
 //				case FEMALE:
 //					icon = (age >= 0 && age < 11? ADD_PHOTO_GIRL: ADD_PHOTO_WOMAN);
 //			}
-//		}
+		}
 		return icon;
 	}
 

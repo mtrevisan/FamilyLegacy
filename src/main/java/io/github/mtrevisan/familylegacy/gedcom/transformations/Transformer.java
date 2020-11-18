@@ -51,9 +51,10 @@ public final class Transformer{
 	private static final String PARAM_INDEX = "index";
 	private static final String PARAM_ID = "id";
 	private static final String PATH_COMPONENT = "[^{}\\[\\]#]+";
+	private static final String PATH_COMPONENT_OPTIONAL = "[^{}\\[\\]#]*";
 	private static final String PATH_COMPONENT_TAG = "(?<" + PARAM_TAG + ">" + PATH_COMPONENT + ")";
 	private static final String PATH_COMPONENT_VALUE = "\\{(?<" + PARAM_VALUE + ">" + PATH_COMPONENT + ")\\}";
-	private static final String PATH_COMPONENT_INDEX = "\\[(?<" + PARAM_INDEX + ">" + PATH_COMPONENT + ")\\]";
+	private static final String PATH_COMPONENT_INDEX = "\\[(?<" + PARAM_INDEX + ">" + PATH_COMPONENT_OPTIONAL + ")\\]";
 	private static final String PATH_COMPONENT_ID = "#(?<" + PARAM_ID + ">" + PATH_COMPONENT + ")";
 	private static final Pattern PATH_COMPONENTS = RegexHelper.pattern(
 		PATH_COMPONENT_TAG + "?(?:" + PATH_COMPONENT_ID + ")?(?:" + PATH_COMPONENT_VALUE + ")?(?:" + PATH_COMPONENT_INDEX + ")?"
@@ -94,9 +95,30 @@ public final class Transformer{
 	 * @return	The final node.
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
-		GedcomNode pointer = origin;
+		return (GedcomNode)traverseInner(origin, path);
+	}
+
+	/**
+	 * @param origin	Origin node from which to start the traversal.
+	 * @param path	The path to follow from the origin in the form `tag#id{value}[]` or `(tag1|tag2)#id{value}[]` and separated by dots.
+	 * 	<p>The void array MUST BE last in the sequence.</p>
+	 * @return	The final node list.
+	 */
+	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
+		if(path.charAt(path.length() - 1) == ']' && path.charAt(path.length() - 2) != '[')
+			throw new IllegalArgumentException("The array indication `[]` must be last in the path, was " + path);
+		else if(path.charAt(path.length() - 1) != ']' && path.charAt(path.length() - 2) != '[')
+			path = path + "[]";
+		return (List<GedcomNode>)traverseInner(origin, path);
+	}
+
+	private Object traverseInner(final GedcomNode origin, final String path){
+		Object pointer = origin;
 		final String[] components = StringUtils.split(path, '.');
 		for(final String component : components){
+			if(pointer instanceof List)
+				throw new IllegalArgumentException("Only the last step of the path can produce an array, was " + path);
+
 			final Matcher m = RegexHelper.matcher(component, PATH_COMPONENTS);
 			if(m.find()){
 				final String tag = m.group(PARAM_TAG);
@@ -104,7 +126,7 @@ public final class Transformer{
 				final String index = m.group(PARAM_INDEX);
 				final String id = m.group(PARAM_ID);
 
-				final List<GedcomNode> nodes = new ArrayList<>(pointer.getChildren());
+				final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
 				if(tag != null){
 					final String[] tags = (tag.charAt(0) == '(' && tag.charAt(tag.length() - 1) == ')'?
 						StringUtils.split(tag.substring(1, tag.length() - 1), '|'): new String[]{tag});
@@ -126,9 +148,7 @@ public final class Transformer{
 						if(!id.equals(itr.next().getID()))
 							itr.remove();
 				}
-				if(index != null)
-					pointer = nodes.get(Integer.parseInt(index));
-				else{
+				if(index == null){
 					final int size = nodes.size();
 					if(size > 1)
 						throw new IllegalArgumentException("More than one node is selected from path " + path);
@@ -138,6 +158,12 @@ public final class Transformer{
 						pointer = GedcomNodeBuilder.createEmpty(protocol);
 						break;
 					}
+				}
+				else if(index.length() == 0){
+					pointer = nodes;
+				}
+				else{
+					pointer = nodes.get(Integer.parseInt(index));
 				}
 			}
 			else
