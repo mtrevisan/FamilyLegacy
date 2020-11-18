@@ -62,7 +62,7 @@ class NoteTransformationTest{
 	}
 
 	@Test
-	void from() throws GedcomGrammarParseException{
+	void from(){
 		final GedcomNode note = transformerFrom.create("NOTE")
 			.withID("N1")
 			.withValue("SUBMITTER_TEXT")

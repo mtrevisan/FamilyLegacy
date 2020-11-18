@@ -96,6 +96,8 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 						.addChildValue("MEDIA", documentMedia)
 						.addChildValue("CUT", transformerTo.extractSubStructure(document, "_CUTD")
 							.getValue())
+						.addChildValue("PREFERRED", transformerTo.extractSubStructure(document, "_PREF")
+							.getValue())
 					);
 
 				destination.addSource(destinationDocument);

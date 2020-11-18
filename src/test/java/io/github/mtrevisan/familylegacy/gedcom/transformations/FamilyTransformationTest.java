@@ -101,7 +101,7 @@ class FamilyTransformationTest{
 	}
 
 	@Test
-	void from() throws GedcomGrammarParseException{
+	void from(){
 		final GedcomNode family = transformerFrom.create("FAMILY")
 			.withID("F1")
 			.addChildValue("TYPE", "FAMILY_TYPE")

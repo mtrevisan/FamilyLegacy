@@ -49,17 +49,19 @@ public abstract class Store{
 	GedcomNode root;
 
 
-	public void load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
+	public Store load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomGrammar grammar = GedcomGrammar.create(grammarFile);
 
 		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
 
 		create(root);
+
+		return this;
 	}
 
 	protected abstract void create(final GedcomNode root) throws GedcomParseException;
 
-	protected abstract Store transform();
+	public abstract Store transform();
 
 	public void write(final OutputStream os) throws IOException{
 		final String charset = getCharsetName();

@@ -82,7 +82,7 @@ class RepositoryTransformationTest{
 	}
 
 	@Test
-	void from() throws GedcomGrammarParseException{
+	void from(){
 		final GedcomNode repository = transformerFrom.create("REPOSITORY")
 			.withID("R1")
 			.addChildValue("NAME", "NAME_OF_REPOSITORY")

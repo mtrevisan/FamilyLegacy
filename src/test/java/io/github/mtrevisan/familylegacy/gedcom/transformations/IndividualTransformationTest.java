@@ -480,7 +480,7 @@ class IndividualTransformationTest{
 	}
 
 	@Test
-	void from() throws GedcomGrammarParseException{
+	void from(){
 		final GedcomNode individual = transformerFrom.create("INDIVIDUAL")
 			.withID("I1")
 			.addChild(transformerFrom.create("NAME")

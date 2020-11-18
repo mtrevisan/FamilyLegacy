@@ -112,6 +112,8 @@ public final class Transformer{
 						.addChildValue("MEDIA", documentMedia)
 						.addChildValue("CUT", extractSubStructure(document, "_CUTD")
 							.getValue())
+						.addChildValue("PREFERRED", extractSubStructure(document, "_PREF")
+							.getValue())
 					);
 				documentID = destination.addSource(destinationDocument);
 			}
@@ -297,6 +299,9 @@ public final class Transformer{
 			if(!cut.isEmpty())
 				destinationObject.addChildValue("CUT", "Y")
 					.addChildValue("_CUTD", cut.getValue());
+			final GedcomNode preferred = extractSubStructure(file, "PREFERRED");
+			if(!preferred.isEmpty())
+				destinationObject.addChildValue("_PREF", preferred.getValue());
 			destinationNode.addChild(destinationObject);
 		}
 	}

@@ -116,7 +116,7 @@ class HeaderTransformationTest{
 
 
 	@Test
-	void from() throws GedcomGrammarParseException{
+	void from(){
 		final GedcomNode header = transformerFrom.create("HEADER")
 			.addChild(transformerFrom.create("SOURCE")
 				.withValue("APPROVED_SYSTEM_ID")

@@ -53,8 +53,6 @@ public class DocumentTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("FORMAT", format.getValue())
 				.addChildValue("MEDIA", transformerTo.extractSubStructure(format, "TYPE")
 					.getValue())
-				.addChildValue("CUT", transformerTo.extractSubStructure(file, "_CUTD")
-					.getValue())
 			);
 		}
 		transformerTo.noteTo(document, destinationDocument, destination);

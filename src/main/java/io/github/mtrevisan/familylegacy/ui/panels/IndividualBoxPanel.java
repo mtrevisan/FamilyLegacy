@@ -24,8 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.panels;
 
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
@@ -399,16 +404,19 @@ public class IndividualBoxPanel extends JPanel{
 	}
 
 
-	public static void main(String args[]){
+	public static void main(String args[]) throws GedcomParseException, GedcomGrammarParseException{
 		try{
 			String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
 		catch(final Exception e){}
 
-		EventQueue.invokeLater(() -> {
-			GedcomNode node = null;
+		Store storeGedcom = new Gedcom();
+		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+			.transform();
+		GedcomNode node = storeFlef.getIndividuals().get(1);
 
+		EventQueue.invokeLater(() -> {
 			JDialog dialog = new JDialog(new JFrame(), true);
 			BoxPanelType boxType = BoxPanelType.PRIMARY;
 			IndividualBoxPanel panel = new IndividualBoxPanel(node, boxType);
