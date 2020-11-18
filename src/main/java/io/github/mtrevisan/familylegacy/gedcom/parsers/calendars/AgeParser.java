@@ -1,105 +1,87 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 
-
-/**
- * A class for parsing ages from strings.
- */
-class AgeParser{
-
-	private static final Pattern PATTERN_AGE = RegexHelper.pattern("(?i)^(((?<relation><|>) )?((?<years>\\d{1,2})y)? ?((?<months>\\d{1,2})m)? ?((?<days>\\d{1,3})d)?|(?<instant>CHILD|INFANT|STILLBORN))$");
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
-	public enum AgeType{
-		EXACT("Exact", StringUtils.EMPTY, null),
-		LESS_THAN("Less than", "<", RegexHelper.pattern("<")),
-		MORE_THAN("More than", ">", RegexHelper.pattern(">")),
+/** A class for parsing ages from strings. */
+public class AgeParser{
 
-		//less than 8 years
-		CHILD("Child", "CHILD", RegexHelper.pattern("(?i)CHILD")),
-		//less than 1 year
-		INFANT("Infant", "INFANT", RegexHelper.pattern("(?i)INFANT")),
-		STILLBORN("Stillborn", "STILLBORN", RegexHelper.pattern("(?i)STILLBORN"));
-
-
-		private final String description;
-		private final String type;
-		private final Pattern pattern;
-
-
-		public static AgeType createFromIndex(int index){
-			return values()[index];
-		}
-
-		public static AgeType createFromText(String instant){
-			if(instant != null)
-				for(AgeType type : values())
-					if(type.pattern != null && RegexHelper.find(instant, type.pattern))
-						return type;
-			return EXACT;
-		}
-
-		AgeType(final String description, final String type, final Pattern pattern){
-			this.description = description;
-			this.type = type;
-			this.pattern = pattern;
-		}
-
-		public String getDescription(){
-			return description;
-		}
-
-		public static String[] getDescriptions(){
-			final List<String> list = new ArrayList<>();
-			for(final AgeType ageType : values())
-				list.add(ageType.description);
-			return list.toArray(new String[0]);
-		}
-	}
+	private static final String PARAM_RELATION = "relation";
+	private static final String PARAM_YEARS = "years";
+	private static final String PARAM_MONTHS = "months";
+	private static final String PARAM_DAYS = "days";
+	private static final String PARAM_INSTANT = "instant";
+	private static final String PATTERN_AGE_RELATION = "(?:(?<" + PARAM_RELATION + "><|>) )?";
+	private static final String PATTERN_AGE_YEARS = "(?:(?<" + PARAM_YEARS + ">\\d{1,2})y)? ?";
+	private static final String PATTERN_AGE_MONTHS = "(?:(?<" + PARAM_MONTHS + ">\\d{1,2})m)? ?";
+	private static final String PATTERN_AGE_DAYS = "(?:(?<" + PARAM_DAYS + ">\\d{1,3})d)?";
+	private static final String PATTERN_AGE_INSTANT = "(?<" + PARAM_INSTANT + ">CHILD|INFANT|STILLBORN)";
+	private static final Pattern PATTERN_AGE = RegexHelper.pattern("(?i)^(?:" + PATTERN_AGE_RELATION + PATTERN_AGE_YEARS
+		+ PATTERN_AGE_MONTHS + PATTERN_AGE_DAYS + "|" + PATTERN_AGE_INSTANT + ")$");
 
 
 	/**
 	 * Parse the string as age.
 	 *
-	 * @param age	the age string
-	 * @return	the age, if it can be derived from the string
+	 * @param age	The age string.
+	 * @return	The age, if it can be derived from the string.
 	 */
-	public static AgeData parse(String age){
-		AgeData ad = null;
-		PATTERN_AGE.reset(age);
-		if(PATTERN_AGE.find()){
-			String instant = PATTERN_AGE.group("instant");
+	public static AgeData parse(final String age){
+		final AgeData ageData = new AgeData();
+		final Matcher matcher = RegexHelper.matcher(age, PATTERN_AGE);
+		if(matcher.find()){
+			final String instant = matcher.group(PARAM_INSTANT);
 			if(StringUtils.isNotEmpty(instant))
-				ad = AgeData.builder()
-					.ageType(AgeType.createFromText(instant))
-					.build();
+				ageData.withAgeType(AgeType.createFromText(instant));
 			else{
-				String relation = PATTERN_AGE.group("relation");
-				String years = PATTERN_AGE.group("years");
-				String months = PATTERN_AGE.group("months");
-				String days = PATTERN_AGE.group("days");
-				ad = new AgeData()
-					.withAgeType(AgeType.createFromText(relation))
+				final String relation = matcher.group(PARAM_RELATION);
+				final String years = matcher.group(PARAM_YEARS);
+				final String months = matcher.group(PARAM_MONTHS);
+				final String days = matcher.group(PARAM_DAYS);
+
+				ageData.withAgeType(AgeType.createFromText(relation))
 					.withYears(years)
 					.withMonths(months)
 					.withDays(days);
 			}
 		}
-		return ad;
+		return ageData;
 	}
 
-	public static String formatAge(String age){
+	public static String formatAge(final String age){
 		String formattedAge = null;
 		if(StringUtils.isNotBlank(age)){
-			RegexHelper.replaceAll(age, AgeType.CHILD.pattern, AgeType.CHILD.description);
-			RegexHelper.replaceAll(age, AgeType.INFANT.pattern, AgeType.INFANT.description);
-			RegexHelper.replaceAll(age, AgeType.STILLBORN.pattern, AgeType.STILLBORN.description);
+			RegexHelper.replaceAll(age, AgeType.CHILD.getPattern(), AgeType.CHILD.getDescription());
+			RegexHelper.replaceAll(age, AgeType.INFANT.getPattern(), AgeType.INFANT.getDescription());
+			RegexHelper.replaceAll(age, AgeType.STILLBORN.getPattern(), AgeType.STILLBORN.getDescription());
 			formattedAge = age;
 		}
 		return formattedAge;

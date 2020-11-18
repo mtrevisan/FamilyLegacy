@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.services.ReflectionHelper;
 

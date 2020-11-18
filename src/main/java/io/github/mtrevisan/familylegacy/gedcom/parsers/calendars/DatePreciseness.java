@@ -1,10 +1,33 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
 import java.util.function.BiFunction;
-import org.apache.commons.lang3.tuple.Pair;
 
 
 /** When a range or imprecise date value is found, what is the preference for handling it? */
@@ -23,8 +46,8 @@ enum DatePreciseness{
 		}
 
 		@Override
-		LocalDate applyToRange(final Pair<String, String> dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
-			return parser.apply(dates.getLeft(), this);
+		LocalDate applyToRange(final String[] dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
+			return parser.apply(dates[0], this);
 		}
 	},
 
@@ -46,8 +69,8 @@ enum DatePreciseness{
 		}
 
 		@Override
-		LocalDate applyToRange(final Pair<String, String> dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
-			return parser.apply(dates.getRight(), this);
+		LocalDate applyToRange(final String[] dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
+			return parser.apply(dates[1], this);
 		}
 	},
 
@@ -71,9 +94,9 @@ enum DatePreciseness{
 		}
 
 		@Override
-		LocalDate applyToRange(final Pair<String, String> dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
-			final LocalDate d1 = parser.apply(dates.getLeft(), FAVOR_EARLIEST);
-			final LocalDate d2 = parser.apply(dates.getRight(), FAVOR_LATEST);
+		LocalDate applyToRange(final String[] dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
+			final LocalDate d1 = parser.apply(dates[0], FAVOR_EARLIEST);
+			final LocalDate d2 = parser.apply(dates[1], FAVOR_LATEST);
 			return getMidpointOfDateRange(d1, d2);
 		}
 
@@ -107,8 +130,8 @@ enum DatePreciseness{
 		}
 
 		@Override
-		LocalDate applyToRange(final Pair<String, String> dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
-			return parser.apply(dates.getLeft(), this);
+		LocalDate applyToRange(final String[] dates, final BiFunction<String, DatePreciseness, LocalDate> parser){
+			return parser.apply(dates[0], this);
 		}
 	};
 
@@ -117,6 +140,6 @@ enum DatePreciseness{
 
 	abstract LocalDate applyToYear(final LocalDate date);
 
-	abstract LocalDate applyToRange(final Pair<String, String> dates, final BiFunction<String, DatePreciseness, LocalDate> parser);
+	abstract LocalDate applyToRange(final String[] dates, final BiFunction<String, DatePreciseness, LocalDate> parser);
 
 }

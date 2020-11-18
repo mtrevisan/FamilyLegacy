@@ -1,73 +1,53 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+
+import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
 import java.time.DateTimeException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 
 
 class GregorianCalendarParser extends AbstractCalendarParser{
 
 	public static final String DOUBLE_ENTRY_YEAR_SEPARATOR = "/";
-	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^((?<day>\\d{1,2}) )?((?<month>[A-Z]+) )?((?<year>\\d{1,4})(\\/(?<doubleEntryYear>\\d{2}))?)?( (?<era>[ABCE.]+))?$");
 
-	private static final List<String> BEFORE_COMMON_ERA = Arrays.asList("BC", "B.C.", "BCE", "B.C.E.");
-
-	public enum Era{
-		CE("CE", RegexHelper.pattern("(?i)A\\.?C\\.?|(^|[^B.])C\\.?E\\.?")),
-		BCE("BCE", RegexHelper.pattern("(?i)B\\.?C\\.?(E\\.?)?"));
-
-
-		private final String description;
-		private final Pattern pattern;
-
-
-		public static Era createFromIndex(int index){
-			return values()[index];
-		}
-
-		public static Era createFromDate(String date){
-			for(Era type : values())
-				if(RegexHelper.find(date, type.pattern))
-					return type;
-			return null;
-		}
-
-		Era(final String description, final Pattern pattern){
-			this.description = description;
-			this.pattern = pattern;
-		}
-
-		public static String[] getDescriptions(){
-			final List<String> list = new ArrayList<>();
-			for(final Era era : values())
-				list.add(era.description);
-			return list.toArray(new String[0]);
-		}
-
-		public String getDescription(){
-			return description;
-		}
-
-		public Pattern getPattern(){
-			return pattern;
-		}
-
-		public static String replaceAll(String era){
-			era = RegexHelper.replaceAll(era, BCE.pattern, BCE.description);
-			era = RegexHelper.replaceAll(era, CE.pattern, StringUtils.EMPTY);
-			return era;
-		}
-
-		public static String restoreAll(String era){
-			return era.replaceAll(CE.description, StringUtils.EMPTY);
-		}
-	};
+	private static final String PARAM_DAY = "day";
+	private static final String PARAM_MONTH = "month";
+	private static final String PARAM_YEAR = "year";
+	private static final String PARAM_DOUBLE_ENTRY_YEAR = "doubleEntryYear";
+	private static final String PARAM_ERA = "era";
+	private static final String PATTERN_DATE_DAY = "(?:(?<" + PARAM_DAY + ">\\d{1,2}) )?";
+	private static final String PATTERN_DATE_MONTH = "(?:(?<" + PARAM_MONTH + ">[A-Z]+) )?";
+	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4})";
+	private static final String PATTERN_DATE_DOUBLE_YEAR = "(?:\\/(?<" + PARAM_DOUBLE_ENTRY_YEAR + ">\\d{2}))?)?";
+	private static final String PATTERN_DATE_ERA = "(?: (?<" + PARAM_ERA + ">[ABCE.]+))?";
+	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^" + PATTERN_DATE_DAY + PATTERN_DATE_MONTH
+		+ PATTERN_DATE_YEAR + PATTERN_DATE_DOUBLE_YEAR + PATTERN_DATE_ERA + "$");
 
 
 	private static class SingletonHelper{
@@ -85,86 +65,82 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	}
 
 	@Override
-	protected DateData extractSingleDateComponents(String singleDate){
-		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
+	protected DateData extractSingleDateComponents(final String singleDate){
+		final DateData date = new DateData();
+		final String plainDate = CalendarParserBuilder.removeCalendarType(singleDate);
+		final Matcher matcher = RegexHelper.matcher(plainDate, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String year = matcher.group(PARAM_YEAR);
+			final String doubleEntryYear = matcher.group(PARAM_DOUBLE_ENTRY_YEAR);
+			final String era = matcher.group(PARAM_ERA);
 
-		DateData date = new DateData();
-		PATTERN_DATE.reset(singleDate);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			if(StringUtils.isNotBlank(day))
+			if(day != null)
 				date.withDay(Integer.parseInt(day));
-			String month = PATTERN_DATE.group("month");
-			if(StringUtils.isNotBlank(month))
-				date.withMonth(GregorianMonth.createFromAbbreviation(month).ordinal());
-			String year = PATTERN_DATE.group("year");
-			if(StringUtils.isNotBlank(year))
+			if(month != null)
+				date.withMonth(Integer.parseInt(month));
+			if(year != null)
 				date.withYear(Integer.parseInt(year));
-			String doubleEntryYear = PATTERN_DATE.group("doubleEntryYear");
-			if(StringUtils.isNotBlank(doubleEntryYear))
+			if(doubleEntryYear != null)
 				date.withDoubleEntryYear(Integer.parseInt(doubleEntryYear));
-			String era = PATTERN_DATE.group("era");
-			if(StringUtils.isNotBlank(era))
-				date.withEra(Era.createFromDate(era));
+			if(era != null)
+				date.withEra(Era.fromDate(era));
 		}
 		return date;
 	}
 
 	/**
-	 * Parse a Gregorian/Julian/unknown date string
+	 * Parse a Gregorian/Julian/unknown date string.
 	 *
-	 * @param date				the date string to parse
-	 * @param preciseness	the preference for handling an imprecise date.
-	 * @return	the date, if one can be derived from the string
+	 * @param date	The date string to parse.
+	 * @param preciseness	The preference for handling an imprecise date.
+	 * @return	The date, if one can be derived from the string.
 	 */
 	@Override
-	public LocalDate parse(String date, DatePreciseness preciseness){
-		date = CalendarParserBuilder.removeCalendarType(date);
+	public LocalDate parse(final String date, final DatePreciseness preciseness){
+		String plainDate = CalendarParserBuilder.removeCalendarType(date);
 
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
+		plainDate = removeApproximations(plainDate);
+		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
 
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
+		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
-	private LocalDate getDate(String date, DatePreciseness preciseness) throws IllegalArgumentException{
-		LocalDate dt = null;
-		PATTERN_DATE.reset(date);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			String month = PATTERN_DATE.group("month");
-			String year = PATTERN_DATE.group("year");
-			String doubleEntryYear = PATTERN_DATE.group("doubleEntryYear");
-			String era = PATTERN_DATE.group("era");
-			
+	private LocalDate getDate(final String date, final DatePreciseness preciseness) throws IllegalArgumentException{
+		LocalDate localDate = null;
+		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String doubleEntryYear = matcher.group(PARAM_DOUBLE_ENTRY_YEAR);
+			final String year = resolveEnglishCalendarSwitchYear(matcher.group(PARAM_YEAR), doubleEntryYear);
+			final Era era = Era.fromDate(matcher.group(PARAM_ERA));
+
 			try{
-				year = resolveEnglishCalendarSwitchYear(year, doubleEntryYear);
-				
 				int y = Integer.parseInt(year);
-				if(BEFORE_COMMON_ERA.contains(era))
+				if(era == Era.BCE)
 					y = 1 - y;
-				int m = (month != null? GregorianMonth.createFromAbbreviation(month).ordinal() + 1: 1);
-				int d = (day != null? Integer.parseInt(day): 1);
-				
+				final int m = (month != null? GregorianMonth.fromAbbreviation(month).ordinal() + 1: 1);
+				final int d = (day != null? Integer.parseInt(day): 1);
+
 				try{
-					dt = LocalDate.of(y, m, d);
+					localDate = LocalDate.of(y, m, d);
 				}
-				catch(DateTimeException e){
+				catch(final DateTimeException e){
 					if(m == 2 && d == 29)
-						dt = LocalDate.of(y, 3, 1);
+						localDate = LocalDate.of(y, 3, 1);
 				}
-				
-				dt = managePreciseness(day, month, dt, preciseness);
+
+				localDate = managePreciseness(day, month, localDate, preciseness);
 			}
-			catch(NullPointerException ignored){}
+			catch(final NullPointerException ignored){}
 		}
-		return dt;
+		return localDate;
 	}
 
 	/**
-	 * <p>
 	 * Resolve a date in double-dated format, for the old/new dates preceding the English calendar switch of 1752.
-	 * </p>
 	 * <p>
 	 * Because of the switch to the Gregorian Calendar in 1752 in England and its colonies, and the corresponding change of the
 	 * first day of the year, it's not uncommon for dates in the range between 1582 and 1752 to be written using a double-dated
@@ -173,35 +149,36 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	 * entered into a GEDCOM field as <code>22 FEB 1731/32</code>.
 	 * </p>
 	 *
-	 * @param year					the year.
-	 * @param doubleEntryYear	the double-entry for the year.
-	 * @return	the year, resolved to a Gregorian year
+	 * @param year	The year.
+	 * @param doubleEntryYear	The double-entry for the year.
+	 * @return	The year, resolved to a Gregorian year.
 	 */
-	private String resolveEnglishCalendarSwitchYear(String year, String doubleEntryYear){
+	private String resolveEnglishCalendarSwitchYear(final String year, final String doubleEntryYear){
 		int y = Integer.parseInt(year);
 		if(1582 <= y && y <= 1752 && doubleEntryYear != null){
-			int yy = Integer.parseInt(doubleEntryYear);
+			final int yy = Integer.parseInt(doubleEntryYear);
 			//handle century boundary
 			if(yy == 0 && y % 100 == 99)
 				y ++;
 
-			year = Integer.toString(y / 100) + doubleEntryYear;
+			return (y / 100) + doubleEntryYear;
 		}
 		return year;
 	}
 
-	private LocalDate managePreciseness(String day, String month, LocalDate d, DatePreciseness preciseness) throws IllegalArgumentException{
+	private LocalDate managePreciseness(final String day, final String month, final LocalDate localDate,
+			final DatePreciseness preciseness) throws IllegalArgumentException{
 		if(preciseness == null)
-			throw new IllegalArgumentException("Unknown value for date handling preference: " + preciseness);
+			throw new IllegalArgumentException("Unknown value for date handling preference");
 
-		if(d != null && day == null)
-			d = (month != null? preciseness.applyToMonth(d): preciseness.applyToYear(d));
-		return d;
+		return (localDate != null && day == null?
+			(month != null? preciseness.applyToMonth(localDate): preciseness.applyToYear(localDate)):
+			localDate);
 	}
 
 	@Override
-	public int parseMonth(String month){
-		GregorianMonth m = GregorianMonth.createFromAbbreviation(month);
+	public int parseMonth(final String month){
+		final GregorianMonth m = GregorianMonth.fromAbbreviation(month);
 		return (m != null? m.ordinal(): -1);
 	}
 

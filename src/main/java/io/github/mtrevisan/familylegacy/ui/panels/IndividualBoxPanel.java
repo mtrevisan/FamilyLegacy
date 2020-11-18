@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
@@ -39,13 +41,16 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
 
 
 public class IndividualBoxPanel extends JPanel{
@@ -94,26 +99,25 @@ public class IndividualBoxPanel extends JPanel{
 
 	private GedcomNode individualNode;
 	private boolean treeHasIndividuals;
-	private IndividualBoxListenerInterface listener;
 
 
 	public IndividualBoxPanel(final GedcomNode individualNode, final boolean treeHasIndividuals, final BoxPanelType boxType,
 			final IndividualBoxListenerInterface listener){
 		this.individualNode = individualNode;
 		this.treeHasIndividuals = treeHasIndividuals;
-		this.listener = listener;
 
-		initComponents(boxType);
+		initComponents(boxType, listener);
 
 		loadData(boxType);
 	}
 
-	private void initComponents(final BoxPanelType boxType){
+	private void initComponents(final BoxPanelType boxType, final IndividualBoxListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
 		setPreferredSize(boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
 		if(listener != null)
 			addMouseListener(new MouseAdapter(){
+				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(individualNode != null && boxType == BoxPanelType.PRIMARY && SwingUtilities.isRightMouseButton(evt))
 						listener.onIndividualEdit(IndividualBoxPanel.this, individualNode);
@@ -133,6 +137,7 @@ public class IndividualBoxPanel extends JPanel{
 			newIndividualLabel.setText("New individual");
 			newIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			newIndividualLabel.addMouseListener(new MouseAdapter(){
+				@Override
 				public void mouseClicked(final MouseEvent evt){
 					listener.onIndividualNew(IndividualBoxPanel.this);
 				}
@@ -143,6 +148,7 @@ public class IndividualBoxPanel extends JPanel{
 			linkIndividualLabel.setText("Link individual");
 			linkIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			linkIndividualLabel.addMouseListener(new MouseAdapter(){
+				@Override
 				public void mouseClicked(final MouseEvent evt){
 					listener.onIndividualLink(IndividualBoxPanel.this);
 				}
@@ -154,7 +160,8 @@ public class IndividualBoxPanel extends JPanel{
 		if(listener != null){
 			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			imgLabel.addMouseListener(new MouseAdapter(){
-				public void mouseClicked(MouseEvent evt){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
 					listener.onIndividualAddPreferredImage(IndividualBoxPanel.this, individualNode);
 				}
 			});
@@ -266,16 +273,17 @@ public class IndividualBoxPanel extends JPanel{
 		final String personalName = extractCompleteName();
 		if(boxType == BoxPanelType.PRIMARY)
 			//FIXME if selected (?):
-			individualNameLabel.setText("<html><font style=\"text-decoration:underline;font-weight:bold\">" + personalName + "</font></html>");
+			individualNameLabel.setText("<html><font style=\"text-decoration:underline;font-weight:bold\">" + personalName
+				+ "</font></html>");
 		else
 			individualNameLabel.setText("<html>" + personalName + "</html>");
 
-		final String birthDeathAge = getBirthDeathAge();
-		birthDeathAgeLabel.setText(birthDeathAge);
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		final int years = extractBirthDeathAge(sj);
+		birthDeathAgeLabel.setText(sj.toString());
 
-		final ImageIcon icon = getAddPhotoImage();
-		final ImageIcon img = ResourceHelper.getImage(icon, imgLabel.getPreferredSize());
-		imgLabel.setIcon(img);
+		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), imgLabel.getPreferredSize());
+		imgLabel.setIcon(icon);
 
 		if(boxType == BoxPanelType.PRIMARY && individualNode != null)
 			writeGeneralInfo();
@@ -316,60 +324,82 @@ public class IndividualBoxPanel extends JPanel{
 		return sj.toString();
 	}
 
-	private String getBirthDeathAge(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+	private int extractBirthDeathAge(final StringJoiner sj){
+		int years = -1;
 		if(individualNode != null){
-			final List<String> birthYears = TRANSFORMER.traverseAsList(individualNode, "EVENT{BIRTH}[]").stream()
-				.map(b -> TRANSFORMER.traverse(b, "EVENT{BIRTH}").getValue())
-				.filter(Objects::nonNull)
-				//TODO extract year
-				.collect(Collectors.toList());
-			//TODO what if there are multiple birth dates?
-			final String birthDate = (!birthYears.isEmpty()? birthYears.get(0): NO_DATA);
+			final String birthDate = extractEarliestBirthDate();
+			final String deathDate = extractLatestDeathDate();
+			String age = null;
+			if(birthDate != null && deathDate != null){
+				final boolean isApproximated = (AbstractCalendarParser.isApproximation(birthDate)
+					|| AbstractCalendarParser.isApproximation(deathDate));
+				final LocalDate birth = DateParser.parse(birthDate);
+				final LocalDate death = DateParser.parse(deathDate);
+				years = Period.between(birth, death).getYears();
+				age = (isApproximated? "~" + years: Integer.toString(years));
+			}
 
-			final List<String> deathDates = individualNode.getChildrenWithTag("EVENT").stream()
-				.filter(b -> "DEATH".equals(b.getValue()))
-				.map(b -> TRANSFORMER.traverse(b, "DATE").getValue())
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
-			//TODO what if there are multiple death dates?
-			final String deathDate = (!deathDates.isEmpty()? deathDates.get(0): NO_DATA);
-
-//			String birthDate = Optional.ofNullable(individual.getBirthDate())
-//				.map(DateParser::formatYear)
-//				.orElse("?");
-//			sj.add(birthDate);
-//			sj.add("-");
-//			String deathDate = Optional.ofNullable(individual.getDeathDate())
-//				.map(DateParser::formatYear)
-//				.orElse("?");
-//			sj.add(deathDate);
-//			String age = individual.getAge();
-//			if(age != null)
-//				sj.add("(" + age + ")");
+			sj.add(birthDate != null? DateParser.extractYear(birthDate): NO_DATA);
+			sj.add("-");
+			sj.add(deathDate != null? DateParser.extractYear(deathDate): NO_DATA);
+			if(age != null)
+				sj.add("(" + age + ")");
 		}
-		return sj.toString();
+		return years;
 	}
 
-	private ImageIcon getAddPhotoImage(){
+	private String extractEarliestBirthDate(){
+		int birthYear = 0;
+		String birthDate = null;
+		for(final GedcomNode node : TRANSFORMER.traverseAsList(individualNode, "EVENT{BIRTH}[]")){
+			final String date = TRANSFORMER.traverse(node, "DATE").getValue();
+			if(date != null){
+				final int by = DateParser.parse(date).getYear();
+				if(birthDate == null){
+					birthYear = by;
+					birthDate = date;
+				}
+				else if(by < birthYear){
+					birthYear = by;
+					birthDate = date;
+				}
+			}
+		}
+		return birthDate;
+	}
+
+	private String extractLatestDeathDate(){
+		int deathYear = 0;
+		String deathDate = null;
+		for(final GedcomNode node : TRANSFORMER.traverseAsList(individualNode, "EVENT{DEATH}[]")){
+			final String date = TRANSFORMER.traverse(node, "DATE").getValue();
+			if(date != null){
+				final int by = DateParser.parse(date).getYear();
+				if(deathDate == null){
+					deathYear = by;
+					deathDate = date;
+				}
+				else if(by > deathYear){
+					deathYear = by;
+					deathDate = date;
+				}
+			}
+		}
+		return deathDate;
+	}
+
+	private ImageIcon getAddPhotoImage(final int years){
 		ImageIcon icon = ADD_PHOTO_UNKNOWN;
 		if(individualNode != null){
 			final Sex sex = extractSex();
-			final String birth = TRANSFORMER.traverse(individualNode, "EVENT{BIRTH}[0]")
-				.getValue();
-			final String death = TRANSFORMER.traverse(individualNode, "EVENT{DEATH}[0]")
-				.getValue();
+			switch(sex){
+				case MALE:
+					icon = (years >= 0 && years < 11? ADD_PHOTO_BOY: ADD_PHOTO_MAN);
+					break;
 
-//			String approximatedAge = individualNode.getAge();
-//			int age = (approximatedAge != null? Integer.valueOf(approximatedAge.startsWith("~")? approximatedAge.substring(1): approximatedAge): -1);
-//			switch(sex){
-//				case MALE:
-//					icon = (age >= 0 && age < 11? ADD_PHOTO_BOY: ADD_PHOTO_MAN);
-//					break;
-//
-//				case FEMALE:
-//					icon = (age >= 0 && age < 11? ADD_PHOTO_GIRL: ADD_PHOTO_WOMAN);
-//			}
+				case FEMALE:
+					icon = (years >= 0 && years < 11? ADD_PHOTO_GIRL: ADD_PHOTO_WOMAN);
+			}
 		}
 		return icon;
 	}
@@ -427,7 +457,7 @@ public class IndividualBoxPanel extends JPanel{
 		Store storeGedcom = new Gedcom();
 		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode individualNode = storeFlef.getIndividuals().get(0);
+		GedcomNode individualNode = storeFlef.getIndividuals().get(1500);
 //		GedcomNode individualNode = null;
 
 		IndividualBoxListenerInterface listener = new IndividualBoxListenerInterface(){

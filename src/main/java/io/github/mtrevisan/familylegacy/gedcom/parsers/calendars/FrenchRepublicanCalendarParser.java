@@ -1,21 +1,52 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+
+import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 
 
 /**
- * Class for parsing French Republican Calendar dates. Calculations based on Romme method. Only supports dates on or after September
- * 22, 1792 (Gregorian).
+ * Class for parsing French Republican Calendar dates.
+ * <p>Calculations based on Romme method.</p>
+ * <p>Only supports dates on or after September 22, 1792 (Gregorian).</p>
  */
 class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 
-	/** Pattern for matching a single French Republican date in GEDCOM format */
-	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^((?<day>\\d{1,2}) )?((?<month>[A-Z]+) )?(?<year>\\d{1,4})?$");
+	private static final String PARAM_DAY = "day";
+	private static final String PARAM_MONTH = "month";
+	private static final String PARAM_YEAR = "year";
+	private static final String PATTERN_DATE_DAY = "(?:(?<" + PARAM_DAY + ">\\d{1,2}) )?";
+	private static final String PATTERN_DATE_MONTH = "(?:(?<" + PARAM_MONTH + ">[A-Z]+) )?";
+	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4})?";
+	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^" + PATTERN_DATE_DAY + PATTERN_DATE_MONTH
+		+ PATTERN_DATE_YEAR + "$");
 
 
 	private static class SingletonHelper{
@@ -33,20 +64,20 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	}
 
 	@Override
-	protected DateData extractSingleDateComponents(String singleDate){
-		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
+	protected DateData extractSingleDateComponents(final String singleDate){
+		final DateData date = new DateData();
+		final String plainDate = CalendarParserBuilder.removeCalendarType(singleDate);
+		final Matcher matcher = RegexHelper.matcher(plainDate, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String year = matcher.group(PARAM_YEAR);
 
-		DateData date = new DateData();
-		PATTERN_DATE.reset(singleDate);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			if(StringUtils.isNotBlank(day))
+			if(day != null)
 				date.withDay(Integer.parseInt(day));
-			String month = PATTERN_DATE.group("month");
-			if(StringUtils.isNotBlank(month))
+			if(month != null)
 				date.withMonth(Integer.parseInt(month));
-			String year = PATTERN_DATE.group("year");
-			if(StringUtils.isNotBlank(year))
+			if(year != null)
 				date.withYear(Integer.parseInt(year));
 		}
 		return date;
@@ -55,41 +86,42 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	/**
 	 * Convert a French Republican date string (in proper GEDCOM format) to a (Gregorian) java.time.LocalDate.
 	 *
-	 * @param date				the French Republican date in GEDCOM spec format - see DATE_FREN and MONTH_FREN in the spec. Could be a single
-	 *								date, an approximate date, a date range, or a date period.
-	 * @param preciseness	preference on how to handle imprecise dates - return the earliest day of the month, the latest, or the midpoint
-	 * @return	the Gregorian date that represents the French Republican date supplied
+	 * @param date	The French Republican date in GEDCOM format.
+	 * @param preciseness	Preference on how to handle imprecise dates: return the earliest day of the month, the latest,
+	 * 	or the midpoint.
+	 * @return	The Gregorian date that represents the French Republican date supplied.
 	 */
 	@Override
-	public LocalDate parse(String date, DatePreciseness preciseness){
-		date = CalendarParserBuilder.removeCalendarType(date);
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
+	public LocalDate parse(final String date, final DatePreciseness preciseness){
+		String plainDate = CalendarParserBuilder.removeCalendarType(date);
+		plainDate = removeApproximations(plainDate);
+		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
 
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
+		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
-	private LocalDate getDate(String date, DatePreciseness preciseness){
-		LocalDate dt = null;
-		PATTERN_DATE.reset(date);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			String month = PATTERN_DATE.group("month");
-			String year = PATTERN_DATE.group("year");
+	private LocalDate getDate(final String date, final DatePreciseness preciseness){
+		LocalDate localDate = null;
+		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String year = matcher.group(PARAM_YEAR);
 
 			try{
-				int y = Integer.parseInt(year);
-				FrenchRepublicanMonth m = (month != null? FrenchRepublicanMonth.createFromAbbreviation(month): null);
-				Integer d = (day != null? Integer.parseInt(day): null);
-				
-				dt = managePreciseness(y, m, d, preciseness);
+				final int y = Integer.parseInt(year);
+				final FrenchRepublicanMonth m = (month != null? FrenchRepublicanMonth.fromAbbreviation(month): null);
+				final Integer d = (day != null? Integer.valueOf(day): null);
+
+				localDate = managePreciseness(y, m, d, preciseness);
 			}
-			catch(NullPointerException ignored){}
+			catch(final NullPointerException ignored){}
 		}
-		return dt;
+		return localDate;
 	}
 
-	private LocalDate managePreciseness(int year, FrenchRepublicanMonth month, Integer day, DatePreciseness preciseness) throws IllegalArgumentException{
+	private LocalDate managePreciseness(final int year, FrenchRepublicanMonth month, Integer day, final DatePreciseness preciseness)
+			throws IllegalArgumentException{
 		if(preciseness == null)
 			throw new IllegalArgumentException("Unknown value for date handling preference: " + preciseness);
 
@@ -130,12 +162,12 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	/**
 	 * This function converts a French Republican date into the Gregorian date.
 	 *
-	 * @param year		the French Republican year (french year 1 corresponds to Gregorian year 1792)
-	 * @param month	the French Republican month abbreviation in GEDCOM format
-	 * @param day		the day within the month
-	 * @return the date in Gregorian form
+	 * @param year	The French Republican year (french year 1 corresponds to Gregorian year 1792).
+	 * @param month	The French Republican month abbreviation in GEDCOM format.
+	 * @param day	The day within the month.
+	 * @return	The date in Gregorian form.
 	 */
-	private LocalDate convertToGregorian(int year, FrenchRepublicanMonth month, int day){
+	private LocalDate convertToGregorian(final int year, final FrenchRepublicanMonth month, final int day){
 		if(year < 1 || month == null || day < 1
 				//there were never more than 6 days in Jour Complementairs, and that was only on leap years
 				|| month == FrenchRepublicanMonth.JOUR_COMPLEMENTAIRS && day > 6
@@ -157,9 +189,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 		}
 
 		//add 30 days per month
-		date = date.plusDays(30 * ((Enum)month).ordinal() + day);
-
-		return date;
+		return date.plusDays(30 * month.ordinal() + day);
 	}
 
 	/**
@@ -170,17 +200,17 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	 * 400 to be a leap year (much like Gregorian).
 	 * </ul>
 	 *
-	 * @param year	the French Republican Year
-	 * @return true if it's a French Leap Year.
+	 * @param year	The French Republican Year.
+	 * @return	Whether it's a French Leap Year.
 	 */
-	private boolean isLeapYear(int year){
+	private boolean isLeapYear(final int year){
 		return (year == 3 || year == 7 || year == 11 || year == 15
 			|| year >= 20 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 	}
 
 	@Override
-	public int parseMonth(String month){
-		FrenchRepublicanMonth m = FrenchRepublicanMonth.createFromAbbreviation(month);
+	public int parseMonth(final String month){
+		final FrenchRepublicanMonth m = FrenchRepublicanMonth.fromAbbreviation(month);
 		return (m != null? m.ordinal(): -1);
 	}
 

@@ -104,6 +104,7 @@ public final class Transformer{
 	 * 	<p>The void array MUST BE last in the sequence.</p>
 	 * @return	The final node list.
 	 */
+	@SuppressWarnings("unchecked")
 	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
 		if(path.charAt(path.length() - 1) == ']' && path.charAt(path.length() - 2) != '[')
 			throw new IllegalArgumentException("The array indication `[]` must be last in the path, was " + path);

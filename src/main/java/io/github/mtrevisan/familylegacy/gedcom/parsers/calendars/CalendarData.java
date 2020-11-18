@@ -1,23 +1,47 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Date;
+import java.util.StringJoiner;
 
 
-class CalendarData{
+public class CalendarData{
 
-	private AbstractCalendarParser.CalendarType calendarType;
+	private CalendarType calendarType;
 	private boolean afterSunset;
-	private AbstractCalendarParser.IntervalType intervalType;
+	private IntervalType intervalType;
 	private DateData fromDate;
-	private AbstractCalendarParser.Qualification fromQualification;
+	private Qualification fromQualification;
 	private DateData toDate;
-	private AbstractCalendarParser.Qualification toQualification;
+	private Qualification toQualification;
 	private String interpretedFrom;
 
 
-	public CalendarData withCalendarType(final AbstractCalendarParser.CalendarType calendarType){
+	public CalendarData withCalendarType(final CalendarType calendarType){
 		this.calendarType = calendarType;
 		return this;
 	}
@@ -27,7 +51,7 @@ class CalendarData{
 		return this;
 	}
 
-	public CalendarData withIntervalType(final AbstractCalendarParser.IntervalType intervalType){
+	public CalendarData withIntervalType(final IntervalType intervalType){
 		this.intervalType = intervalType;
 		return this;
 	}
@@ -37,7 +61,7 @@ class CalendarData{
 		return this;
 	}
 
-	public CalendarData withFromQualification(final AbstractCalendarParser.Qualification fromQualification){
+	public CalendarData withFromQualification(final Qualification fromQualification){
 		this.fromQualification = fromQualification;
 		return this;
 	}
@@ -47,7 +71,7 @@ class CalendarData{
 		return this;
 	}
 
-	public CalendarData withToQualification(final AbstractCalendarParser.Qualification toQualification){
+	public CalendarData withToQualification(final Qualification toQualification){
 		this.toQualification = toQualification;
 		return this;
 	}
@@ -58,12 +82,22 @@ class CalendarData{
 	}
 
 	public String getDate(){
-		//TODO
-		String fromMonth = (fromDate.getMonth() != null? GregorianMonth.values()[fromDate.getMonth()].toString(): null);
-		GregorianCalendarParser.Era fromEra = fromDate.getEra();
-		return calendarType.getType() + intervalType.getType()
-			+ fromDate.getDay() + fromMonth + fromDate.getYear()
-			+ (fromEra!= null && fromEra == GregorianCalendarParser.Era.BCE? fromEra.getDescription(): StringUtils.EMPTY);
+		final String fromMonth = (fromDate.getMonth() != null? GregorianMonth.values()[fromDate.getMonth()].toString(): null);
+		final Era fromEra = fromDate.getEra();
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		if(calendarType != null)
+			sj.add(calendarType.getType());
+		if(intervalType != null)
+			sj.add(intervalType.getType());
+		if(fromDate != null)
+			sj.add(Integer.toString(fromDate.getDay()));
+		if(fromMonth != null)
+			sj.add(fromMonth);
+		if(fromDate != null)
+			sj.add(Integer.toString(fromDate.getYear()));
+		if(fromEra == Era.BCE)
+			sj.add(Era.BCE.toString());
+		return sj.toString();
 	}
 
 }

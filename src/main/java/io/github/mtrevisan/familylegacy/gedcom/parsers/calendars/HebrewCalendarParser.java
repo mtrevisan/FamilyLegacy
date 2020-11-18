@@ -1,12 +1,36 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+
+import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.ChronoUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 
 
 /**
@@ -15,8 +39,14 @@ import org.apache.commons.lang3.StringUtils;
  */
 class HebrewCalendarParser extends AbstractCalendarParser{
 
-	/** Pattern for matching a single Hebrew date in GEDCOM format */
-	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^((?<day>\\d{1,2}) )?((?<month>[A-Z]+) )?(?<year>\\d{1,4})?$");
+	private static final String PARAM_DAY = "day";
+	private static final String PARAM_MONTH = "month";
+	private static final String PARAM_YEAR = "year";
+	private static final String PATTERN_DATE_DAY = "(?:(?<" + PARAM_DAY + ">\\d{1,2}) )?";
+	private static final String PATTERN_DATE_MONTH = "(?:(?<" + PARAM_MONTH + ">[A-Z]+) )?";
+	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4})";
+	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^" + PATTERN_DATE_DAY + PATTERN_DATE_MONTH
+		+ PATTERN_DATE_YEAR + "$");
 
 
 	private static class SingletonHelper{
@@ -34,20 +64,20 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	}
 
 	@Override
-	protected DateData extractSingleDateComponents(String singleDate){
-		singleDate = CalendarParserBuilder.removeCalendarType(singleDate);
+	protected DateData extractSingleDateComponents(final String singleDate){
+		final DateData date = new DateData();
+		final String plainDate = CalendarParserBuilder.removeCalendarType(singleDate);
+		final Matcher matcher = RegexHelper.matcher(plainDate, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String year = matcher.group(PARAM_YEAR);
 
-		DateData date = new DateData();
-		PATTERN_DATE.reset(singleDate);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			if(StringUtils.isNotBlank(day))
+			if(day != null)
 				date.withDay(Integer.parseInt(day));
-			String month = PATTERN_DATE.group("month");
-			if(StringUtils.isNotBlank(month))
+			if(month != null)
 				date.withMonth(Integer.parseInt(month));
-			String year = PATTERN_DATE.group("year");
-			if(StringUtils.isNotBlank(year))
+			if(year != null)
 				date.withYear(Integer.parseInt(year));
 		}
 		return date;
@@ -56,43 +86,44 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	/**
 	 * Convert a Hebrew date string (in proper GEDCOM format) to a (Gregorian) java.time.LocalDate.
 	 *
-	 * @param date				the Hebrew date in GEDCOM spec format - see DATE_HEBR and MONTH_HEBR in the spec. Could be a single date, an
-	 *								approximate date, a date range, or a date period.
-	 * @param preciseness	preference on how to handle imprecise dates - return the earliest day of the month, the latest, or the midpoint
-	 * @return the Gregorian date that represents the Hebrew date supplied
+	 * @param date	The Hebrew date in GEDCOM spec format.
+	 * @param preciseness	Preference on how to handle imprecise dates - return the earliest day of the month, the latest,
+	 * 	or the midpoint.
+	 * @return The Gregorian date that represents the Hebrew date supplied.
 	 */
 	@Override
-	public LocalDate parse(String date, DatePreciseness preciseness){
-		date = CalendarParserBuilder.removeCalendarType(date);
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
+	public LocalDate parse(final String date, final DatePreciseness preciseness){
+		String plainDate = CalendarParserBuilder.removeCalendarType(date);
+		plainDate = removeApproximations(plainDate);
+		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
 
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
+		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
 	private LocalDate getDate(String date, DatePreciseness preciseness){
-		LocalDate dt = null;
-		PATTERN_DATE.reset(date);
-		if(PATTERN_DATE.find()){
-			String day = PATTERN_DATE.group("day");
-			String month = PATTERN_DATE.group("month");
-			String year = PATTERN_DATE.group("year");
+		LocalDate localDate = null;
+		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
+		if(matcher.find()){
+			final String day = matcher.group(PARAM_DAY);
+			final String month = matcher.group(PARAM_MONTH);
+			final String year = matcher.group(PARAM_YEAR);
 
 			try{
-				int y = Integer.parseInt(year);
-				HebrewMonth m = (month != null? HebrewMonth.createFromAbbreviation(month): null);
-				Integer d = (day != null? Integer.parseInt(day): null);
-				
-				dt = managePreciseness(y, m, d, preciseness);
+				final int y = Integer.parseInt(year);
+				final HebrewMonth m = (month != null? HebrewMonth.fromAbbreviation(month): null);
+				final Integer d = (day != null? Integer.valueOf(day): null);
+
+				localDate = managePreciseness(y, m, d, preciseness);
 			}
-			catch(NullPointerException ignored){}
+			catch(final NullPointerException ignored){}
 		}
-		return dt;
+		return localDate;
 	}
 
-	private LocalDate managePreciseness(int year, HebrewMonth month, Integer day, DatePreciseness preciseness) throws IllegalArgumentException{
+	private LocalDate managePreciseness(final int year, HebrewMonth month, Integer day, final DatePreciseness preciseness)
+			throws IllegalArgumentException{
 		if(preciseness == null)
-			throw new IllegalArgumentException("Unknown value for date handling preference: " + preciseness);
+			throw new IllegalArgumentException("Unknown value for date handling preference");
 
 		if(day == null){
 			switch(preciseness){
@@ -119,20 +150,20 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	}
 
 	/**
-	 * This function converts a Hebrew date into the Gregorian date
+	 * This function converts a Hebrew date into the Gregorian date.
 	 *
-	 * @param year		he hebrew year
-	 * @param month	the hebrew month abbreviation in GEDCOM format
-	 * @param day		the day within the month
-	 * @return	the date in Gregorian form
+	 * @param year	The hebrew year.
+	 * @param month	The hebrew month abbreviation in GEDCOM format.
+	 * @param day	The day within the month.
+	 * @return	The date in Gregorian form.
 	 */
-	private LocalDate convertToGregorian(int year, HebrewMonth month, int day){
+	private LocalDate convertToGregorian(final int year, final HebrewMonth month, final int day){
 		LocalDate c = getFirstDayOfHebrewYear(year);
 
 		//now count up days within the year
-		int monthNumber = ((Enum)month).ordinal();
+		final int monthNumber = month.ordinal();
 		for(int m = 1; m <= monthNumber; m ++){
-			int monthLength = getMonthLength(year, HebrewMonth.values()[m - 1]);
+			final int monthLength = getMonthLength(year, HebrewMonth.values()[m - 1]);
 			c = c.plusDays(monthLength);
 		}
 		c = c.plusDays(day - 1);
@@ -141,15 +172,15 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	}
 
 	/**
-	 * Get the number of days in the month and year requeted
+	 * Get the number of days in the month and year requested.
 	 *
-	 * @param year		the hebrew year
-	 * @param month	the Hebrew month
-	 * @return	the number of days in the month on the specified year
+	 * @param year	The hebrew year.
+	 * @param month	The Hebrew month.
+	 * @return	The number of days in the month on the specified year.
 	 */
-	private int getMonthLength(int year, HebrewMonth month){
-		int yearLength = getLengthOfYear(year);
-		int monthNumber = month.ordinal() + 1;
+	private int getMonthLength(final int year, final HebrewMonth month){
+		final int yearLength = getLengthOfYear(year);
+		final int monthNumber = month.ordinal() + 1;
 		//the regular length of a non-leap Hebrew year is 354 days. The regular length of a Hebrew leap year is 384 days.
 		//if the year is shorter by one less day, it is called a haser year. Kislev on a haser year has 29 days. If the year is
 		//longer by one day, it is called a shalem year. Cheshvan on a shalem year is 30 days.
@@ -172,34 +203,34 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 				break;
 
 			case 6:
-				boolean leapYear = isLeapYear(year);
+				final boolean leapYear = isLeapYear(year);
 				monthLength = (leapYear? 30: 0);
 				break;
 
 			case 2:
-				boolean shalemYear = (yearLength == 355 || yearLength == 385);
+				final boolean shalemYear = (yearLength == 355 || yearLength == 385);
 				monthLength = (shalemYear? 30: 29);
 				break;
 
 			case 3:
-				boolean haserYear = (yearLength == 353 || yearLength == 383);
+				final boolean haserYear = (yearLength == 353 || yearLength == 383);
 				monthLength = (haserYear? 29: 30);
 		}
 		return monthLength;
 	}
 
 	/**
-	 * Get the Gregorian Date corresponding to the first day of a given Hebrew year (1 Tishrei)
+	 * Get the Gregorian Date corresponding to the first day of a given Hebrew year (1 Tishrei).
 	 *
-	 * @param year	the hebrew year (e.g., 5776)
-	 * @return	the gregorian date of the first day of the hebrew year supplied
+	 * @param year	The hebrew year.
+	 * @return	The gregorian date of the first day of the hebrew year supplied.
 	 */
-	private LocalDate getFirstDayOfHebrewYear(int year){
+	private LocalDate getFirstDayOfHebrewYear(final int year){
 		//Calculate how many days, hours and chalakim (1/1080th of an hour, about 3.333 secs) it has been from the molad (start of
 		//new moon) at the beginning of the year.
 		//The period between one new moon to the next is 29 days, 12 hours and 793 chalakim. We must multiply that by the amount of
 		//months that transpired since the first molad. Then we add the time of the first molad (Monday, 5 hours and 204 chalakim).
-		int monthsSinceFirstMolad = getMonthsSinceFirstMolad(year);
+		final int monthsSinceFirstMolad = getMonthsSinceFirstMolad(year);
 		int chalakim = 793 * monthsSinceFirstMolad + 204;
 		//carry the excess Chalakim over to the hours
 		int hours = (int)Math.floor(chalakim / 1080.);
@@ -259,7 +290,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 			.plusDays(days);
 
 		//Sep 14, 1752, when Gregorian was adopted by England and its colonies
-		LocalDate gregorianReformation = LocalDate.of(1752, Month.SEPTEMBER, 14);
+		final LocalDate gregorianReformation = LocalDate.of(1752, Month.SEPTEMBER, 14);
 		//adjust for the Gregorian Reformation if needed
 		if(c.isBefore(gregorianReformation))
 			c = c.plusDays(-10);
@@ -270,22 +301,22 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	/**
 	 * This function gets the number of days of a Hebrew year.
 	 *
-	 * @param year	the Hebrew year
-	 * @return	the number of days in the year
+	 * @param year	The Hebrew year.
+	 * @return	The number of days in the year.
 	 */
-	private int getLengthOfYear(int year){
-		LocalDate thisNewYear = getFirstDayOfHebrewYear(year);
-		LocalDate nextNewYear = getFirstDayOfHebrewYear(year + 1);
+	private int getLengthOfYear(final int year){
+		final LocalDate thisNewYear = getFirstDayOfHebrewYear(year);
+		final LocalDate nextNewYear = getFirstDayOfHebrewYear(year + 1);
 		return (int)ChronoUnit.DAYS.between(thisNewYear, nextNewYear);
 	}
 
 	/**
 	 * This function returns how many months there has been from the first Molad of the year supplied.
 	 *
-	 * @param year	the Hebrew year
-	 * @return	the number of months since the first Molad
+	 * @param year	The Hebrew year.
+	 * @return	The number of months since the first Molad.
 	 */
-	private int getMonthsSinceFirstMolad(int year){
+	private int getMonthsSinceFirstMolad(final int year){
 		//the months of this year haven't happened yet, so go back a year
 		int y = year - 1;
 
@@ -318,11 +349,11 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	/**
 	 * This function returns if a given year is a leap year.
 	 *
-	 * @param year	the Hebrew year
-	 * @return	true if and only if the hebrew year supplied is a leap year
+	 * @param year	The Hebrew year.
+	 * @return	Whether the hebrew year supplied is a leap year.
 	 */
-	private boolean isLeapYear(int year){
-		int yearInCycle = yearInLeapCycle(year);
+	private boolean isLeapYear(final int year){
+		final int yearInCycle = yearInLeapCycle(year);
 		return (yearInCycle == 3 || yearInCycle == 6 || yearInCycle == 8 || yearInCycle == 11 || yearInCycle == 14
 			|| yearInCycle == 17 || yearInCycle == 0);
 	}
@@ -330,16 +361,16 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	/**
 	 * Find out which year we are within the leap-year cycle. Since the cycle lasts 19 years, the 19th year of the cycle will return 0.
 	 *
-	 * @param year	the Hebrew year
-	 * @return	which year within the cycle we're in. The 19th year of the cycle is zero.
+	 * @param year	The Hebrew year.
+	 * @return	Which year within the cycle we're in. The 19th year of the cycle is zero.
 	 */
-	private int yearInLeapCycle(int year){
+	private int yearInLeapCycle(final int year){
 		return year % 19;
 	}
 
 	@Override
-	public int parseMonth(String month){
-		HebrewMonth m = HebrewMonth.createFromAbbreviation(month);
+	public int parseMonth(final String month){
+		final HebrewMonth m = HebrewMonth.fromAbbreviation(month);
 		return (m != null? m.ordinal(): -1);
 	}
 
