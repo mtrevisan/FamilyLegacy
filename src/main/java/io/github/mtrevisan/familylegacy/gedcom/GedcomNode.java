@@ -54,7 +54,7 @@ public abstract class GedcomNode{
 	protected GedcomNode(){}
 
 	public boolean isEmpty(){
-		return (tag == null || id == null && value == null && (children == null || children.isEmpty()));
+		return (tag == null || id == null && xref == null && value == null && (children == null || children.isEmpty()));
 	}
 
 	private void setLevel(final int level){
@@ -148,9 +148,9 @@ public abstract class GedcomNode{
 		return (children != null? children: Collections.emptyList());
 	}
 
-	public GedcomNode addChildReference(final String tag, final String id){
+	public GedcomNode addChildReference(final String tag, final String xref){
 		addChild(createNewNodeWithTag(tag)
-			.withID(id));
+			.withXRef(xref));
 		return this;
 	}
 

@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -77,8 +78,12 @@ public final class Transformer{
 		return GedcomNodeBuilder.create(protocol, tag);
 	}
 
-	public GedcomNode create(final String tag, final String id, final String value){
-		return GedcomNodeBuilder.create(protocol, tag, id, value);
+	public GedcomNode createWithID(final String tag, final String id, final String value){
+		return GedcomNodeBuilder.createWithID(protocol, tag, id, value);
+	}
+
+	public GedcomNode createWithReference(final String tag, final String xref, final String value){
+		return GedcomNodeBuilder.createWithReference(protocol, tag, xref, value);
 	}
 
 	String joinIfNotNull(final String separator, final String... components){
@@ -95,7 +100,8 @@ public final class Transformer{
 	 * @return	The final node.
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
-		return (GedcomNode)traverseInner(origin, path);
+		final GedcomNode node = (GedcomNode)traverseInner(origin, path);
+		return (node != null? node: GedcomNodeBuilder.createEmpty(protocol));
 	}
 
 	/**
@@ -110,65 +116,66 @@ public final class Transformer{
 			throw new IllegalArgumentException("The array indication `[]` must be last in the path, was " + path);
 		else if(path.charAt(path.length() - 1) != ']' && path.charAt(path.length() - 2) != '[')
 			path = path + "[]";
-		return (List<GedcomNode>)traverseInner(origin, path);
+		final List<GedcomNode> nodes = (List<GedcomNode>)traverseInner(origin, path);
+		return (nodes != null? nodes: Collections.emptyList());
 	}
 
 	private Object traverseInner(final GedcomNode origin, final String path){
 		Object pointer = origin;
-		final String[] components = StringUtils.split(path, '.');
-		for(final String component : components){
-			if(pointer instanceof List)
-				throw new IllegalArgumentException("Only the last step of the path can produce an array, was " + path);
+		if(origin != null){
+			final String[] components = StringUtils.split(path, '.');
+			for(final String component : components){
+				if(pointer instanceof List)
+					throw new IllegalArgumentException("Only the last step of the path can produce an array, was " + path);
 
-			final Matcher m = RegexHelper.matcher(component, PATH_COMPONENTS);
-			if(m.find()){
-				final String tag = m.group(PARAM_TAG);
-				final String value = m.group(PARAM_VALUE);
-				final String index = m.group(PARAM_INDEX);
-				final String id = m.group(PARAM_ID);
+				final Matcher m = RegexHelper.matcher(component, PATH_COMPONENTS);
+				if(m.find()){
+					final String tag = m.group(PARAM_TAG);
+					final String value = m.group(PARAM_VALUE);
+					final String index = m.group(PARAM_INDEX);
+					final String id = m.group(PARAM_ID);
 
-				final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
-				if(tag != null){
-					final String[] tags = (tag.charAt(0) == '(' && tag.charAt(tag.length() - 1) == ')'?
-						StringUtils.split(tag.substring(1, tag.length() - 1), '|'): new String[]{tag});
-					Arrays.sort(tags);
-					final Iterator<GedcomNode> itr = nodes.iterator();
-					while(itr.hasNext())
-						if(Arrays.binarySearch(tags, itr.next().getTag()) < 0)
-							itr.remove();
-				}
-				if(value != null){
-					final Iterator<GedcomNode> itr = nodes.iterator();
-					while(itr.hasNext())
-						if(!value.equals(itr.next().getValue()))
-							itr.remove();
-				}
-				if(id != null){
-					final Iterator<GedcomNode> itr = nodes.iterator();
-					while(itr.hasNext())
-						if(!id.equals(itr.next().getID()))
-							itr.remove();
-				}
-				if(index == null){
-					final int size = nodes.size();
-					if(size > 1)
-						throw new IllegalArgumentException("More than one node is selected from path " + path);
-					else if(size == 1)
-						pointer = nodes.get(0);
-					else{
-						pointer = GedcomNodeBuilder.createEmpty(protocol);
-						break;
+					final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
+					if(tag != null){
+						final String[] tags = (tag.charAt(0) == '(' && tag.charAt(tag.length() - 1) == ')'?
+							StringUtils.split(tag.substring(1, tag.length() - 1), '|'): new String[]{tag});
+						Arrays.sort(tags);
+						final Iterator<GedcomNode> itr = nodes.iterator();
+						while(itr.hasNext())
+							if(Arrays.binarySearch(tags, itr.next().getTag()) < 0)
+								itr.remove();
 					}
+					if(value != null){
+						final Iterator<GedcomNode> itr = nodes.iterator();
+						while(itr.hasNext())
+							if(!value.equals(itr.next().getValue()))
+								itr.remove();
+					}
+					if(id != null){
+						final Iterator<GedcomNode> itr = nodes.iterator();
+						while(itr.hasNext())
+							if(!id.equals(itr.next().getID()))
+								itr.remove();
+					}
+					if(index == null){
+						final int size = nodes.size();
+						if(size > 1)
+							throw new IllegalArgumentException("More than one node is selected from path " + path);
+						else if(size == 1)
+							pointer = nodes.get(0);
+						else{
+							pointer = null;
+							break;
+						}
+					}
+					else if(index.length() == 0)
+						pointer = nodes;
+					else
+						pointer = nodes.get(Integer.parseInt(index));
 				}
-				else if(index.length() == 0){
-					pointer = nodes;
-				}
-				else{
-					pointer = nodes.get(Integer.parseInt(index));
-				}
+				else
+					throw new IllegalArgumentException("Illegal path " + path);
 			}
-			else
-				throw new IllegalArgumentException("Illegal path " + path);
 		}
 		return pointer;
 	}
@@ -186,8 +193,8 @@ public final class Transformer{
 	void documentTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
-			String documentID = document.getID();
-			if(documentID == null){
+			String documentXRef = document.getXRef();
+			if(documentXRef == null){
 				final String documentFormat = traverse(document, "FORM")
 					.getValue();
 				final String documentMedia = traverse(document, "FORM.MEDI")
@@ -207,17 +214,17 @@ public final class Transformer{
 						.addChildValue("PREFERRED", traverse(document, "_PREF")
 							.getValue())
 					);
-				documentID = destination.addSource(destinationDocument);
+				documentXRef = destination.addSource(destinationDocument);
 			}
-			destinationNode.addChildReference("SOURCE", documentID);
+			destinationNode.addChildReference("SOURCE", documentXRef);
 		}
 	}
 
 	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode sourceCitation : sourceCitations){
-			String sourceCitationID = sourceCitation.getID();
-			if(sourceCitationID == null){
+			String sourceCitationXRef = sourceCitation.getXRef();
+			if(sourceCitationXRef == null){
 				//create source:
 				final String noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
 					.withValue(sourceCitation.getValue()));
@@ -227,11 +234,11 @@ public final class Transformer{
 					.addChildReference("NOTE", noteID);
 				documentTo(sourceCitation, destinationSource, destination);
 				noteTo(sourceCitation, destinationSource, destination);
-				sourceCitationID = destination.addSource(destinationSource);
+				sourceCitationXRef = destination.addSource(destinationSource);
 
 				//add source citation
 				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")
-					.withID(sourceCitationID)
+					.withXRef(sourceCitationXRef)
 					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY")
 						.getValue()));
 			}
@@ -252,11 +259,11 @@ public final class Transformer{
 				destinationSource.addChildReference("NOTE", noteID);
 				documentTo(sourceCitation, destinationSource, destination);
 				noteTo(sourceCitation, destinationSource, destination);
-				sourceCitationID = destination.addSource(destinationSource);
+				sourceCitationXRef = destination.addSource(destinationSource);
 
 				//add source citation
 				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")
-					.withID(sourceCitationID)
+					.withXRef(sourceCitationXRef)
 					.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
 						.getValue())
 					.addChildValue("ROLE", traverse(eventNode, "ROLE")
@@ -302,7 +309,7 @@ public final class Transformer{
 		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN")
 			.getValue())
 			.addChild(GedcomNodeBuilder.create(protocol, "FAMILY_CHILD")
-				.withID(familyChild.getID())
+				.withXRef(familyChild.getXRef())
 				.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP")
 					.getValue())
 			);
@@ -354,11 +361,11 @@ public final class Transformer{
 	void noteTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
-			String noteID = note.getID();
-			if(noteID == null)
-				noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+			String noteXref = note.getXRef();
+			if(noteXref == null)
+				noteXref = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
 					.withValue(note.getValue()));
-			destinationNode.addChildReference("NOTE", noteID);
+			destinationNode.addChildReference("NOTE", noteXref);
 		}
 	}
 
@@ -406,7 +413,7 @@ public final class Transformer{
 		for(final GedcomNode sourceCitation : sourceCitations){
 			//create source:
 			final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOUR")
-				.withID(sourceCitation.getID())
+				.withXRef(sourceCitation.getXRef())
 				.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
 					.getValue())
 				.addChild(GedcomNodeBuilder.create(protocol, "EVEN")
@@ -437,7 +444,7 @@ public final class Transformer{
 		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION")
 			.getValue())
 			.addChild(GedcomNodeBuilder.create(protocol, "FAMC")
-				.withID(familyChild.getID())
+				.withXRef(familyChild.getXRef())
 				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY")
 					.getValue())
 			);
@@ -449,7 +456,7 @@ public final class Transformer{
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
-			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode address = traverse(placeRecord, "ADDRESS");
 			destinationNode.addChild(GedcomNodeBuilder.create(protocol, "ADDR")
 				.withValue(placeRecord.getValue())
@@ -465,7 +472,7 @@ public final class Transformer{
 	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
-			final GedcomNode placeRecord = origin.getPlace(place.getID());
+			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode map = traverse(placeRecord, "MAP");
 			final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLAC")
 				.withValue(traverse(placeRecord, "NAME")
@@ -484,7 +491,7 @@ public final class Transformer{
 	void noteFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
-			destinationNode.addChildReference("NOTE", note.getID());
+			destinationNode.addChildReference("NOTE", note.getXRef());
 	}
 
 }

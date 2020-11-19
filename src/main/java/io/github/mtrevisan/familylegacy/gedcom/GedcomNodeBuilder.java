@@ -66,12 +66,21 @@ public abstract class GedcomNodeBuilder{
 			.withTag(tag);
 	}
 
-	public static GedcomNode create(final Protocol protocol, final String tag, final String id, final String value){
+	public static GedcomNode createWithID(final Protocol protocol, final String tag, final String id, final String value){
 		if(id == null || id.isEmpty())
 			throw new IllegalArgumentException("ID must be present");
 
 		return create(protocol, tag)
 			.withID(id)
+			.withValue(value);
+	}
+
+	public static GedcomNode createWithReference(final Protocol protocol, final String tag, final String xref, final String value){
+		if(xref == null || xref.isEmpty())
+			throw new IllegalArgumentException("XRef must be present");
+
+		return create(protocol, tag)
+			.withXRef(xref)
 			.withValue(value);
 	}
 

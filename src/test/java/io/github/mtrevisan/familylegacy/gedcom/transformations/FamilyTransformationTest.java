@@ -91,12 +91,12 @@ class FamilyTransformationTest{
 		origin.addFamily(family);
 		final Flef destination = new Flef();
 
-		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, value: Y, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT11}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT12}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: RESI, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT21}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT22}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT31}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT32}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {id: I1, tag: HUSB}, {id: I2, tag: WIFE}, {id: I3, tag: CHIL}, {tag: NCHI, value: COUNT_OF_CHILDREN}, {id: SUBM1, tag: SUBM}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {id: D1, tag: OBJE}]", origin.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, value: Y, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT11}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT12}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: RESI, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT21}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT22}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT31}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT32}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: HUSB, ref: I1}, {tag: WIFE, ref: I2}, {tag: CHIL, ref: I3}, {tag: NCHI, value: COUNT_OF_CHILDREN}, {tag: SUBM, ref: SUBM1}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: CHAN, children: [{tag: DATE, value: CHANGE_DATE}]}, {tag: NOTE, ref: N1}, {tag: SOUR, ref: S1}, {tag: OBJE, ref: D1}]", origin.getFamilies().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new FamilyTransformation();
 		t.to(origin, destination);
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{id: I1, tag: SPOUSE1}, {id: I2, tag: SPOUSE2}, {id: I3, tag: CHILD}, {id: N1, tag: NOTE}, {id: S1, tag: SOURCE}, {id: D1, tag: SOURCE}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: RESIDENCE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: SPOUSE1, ref: I1}, {tag: SPOUSE2, ref: I2}, {tag: CHILD, ref: I3}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: D1}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: RESIDENCE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
 	}
 
 	@Test
@@ -108,7 +108,7 @@ class FamilyTransformationTest{
 			.addChildReference("SPOUSE2", "I2")
 			.addChildReference("CHILD", "I3")
 			.addChild(transformerFrom.create("GROUP")
-				.withID("G1")
+				.withXRef("G1")
 				.addChildValue("ROLE", "ROLE_IN_GROUP")
 				.addChildReference("NOTE", "N1")
 				.addChildReference("SOUR", "S1")
@@ -130,12 +130,12 @@ class FamilyTransformationTest{
 		origin.addFamily(family);
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: FAMILY_TYPE}, {id: I1, tag: SPOUSE1}, {id: I2, tag: SPOUSE2}, {id: I3, tag: CHILD}, {id: G1, tag: GROUP, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {id: N1, tag: NOTE}, {id: S1, tag: SOUR}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {id: A1, tag: CULTURAL_RULE}, {id: N2, tag: NOTE}, {id: S2, tag: SOUR}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: FAMILY_TYPE}, {tag: SPOUSE1, ref: I1}, {tag: SPOUSE2, ref: I2}, {tag: CHILD, ref: I3}, {tag: GROUP, ref: G1, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {tag: NOTE, ref: N1}, {tag: SOUR, ref: S1}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: CULTURAL_RULE, ref: A1}, {tag: NOTE, ref: N2}, {tag: SOUR, ref: S2}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getFamilies().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new FamilyTransformation();
 		t.from(origin, destination);
 
-		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVEN, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {id: I3, tag: CHIL}, {id: N2, tag: NOTE}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVEN, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: CHIL, ref: I3}, {tag: NOTE, ref: N2}]", destination.getFamilies().get(0).toString());
 	}
 
 }

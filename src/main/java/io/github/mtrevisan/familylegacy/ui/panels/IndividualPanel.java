@@ -101,24 +101,26 @@ public class IndividualPanel extends JPanel{
 	private final JLabel newIndividualLabel = new JLabel();
 	private final JLabel linkIndividualLabel = new JLabel();
 
+	private final BoxPanelType boxType;
 	private final GedcomNode individual;
 	private final Flef store;
 
 
 	public IndividualPanel(final GedcomNode individual, final Flef store, final BoxPanelType boxType,
 			final IndividualListenerInterface listener){
+		this.boxType = boxType;
 		this.individual = individual;
 		this.store = store;
 
-		initComponents(boxType, listener);
+		initComponents(listener);
 
-		loadData(boxType);
+		loadData();
 	}
 
-	private void initComponents(final BoxPanelType boxType, final IndividualListenerInterface listener){
+	private void initComponents(final IndividualListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
-		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(200, 90): new Dimension(170, 55));
+		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90): new Dimension(170, 55));
 		setSize(size);
 		setPreferredSize(size);
 		if(listener != null)
@@ -162,7 +164,7 @@ public class IndividualPanel extends JPanel{
 		}
 
 		imgLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
-		setPreferredSize(imgLabel, 48., boxType);
+		setPreferredSize(imgLabel, 48.);
 		if(listener != null){
 			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			imgLabel.addMouseListener(new MouseAdapter(){
@@ -195,7 +197,6 @@ public class IndividualPanel extends JPanel{
 						.addGap(0, 0, Short.MAX_VALUE)
 					)
 				)
-				.addGap(18, 18, 18)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addComponent(imgLabel, GroupLayout.Alignment.TRAILING)
 				)
@@ -234,7 +235,7 @@ public class IndividualPanel extends JPanel{
 		individualNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 	}
 
-	private void setPreferredSize(final JComponent component, final double baseWidth, final BoxPanelType boxType){
+	private void setPreferredSize(final JComponent component, final double baseWidth){
 		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
 		final int height = (int)Math.ceil(baseWidth * IMAGE_ASPECT_RATIO / shrinkFactor);
@@ -292,8 +293,8 @@ public class IndividualPanel extends JPanel{
 			.getValue());
 	}
 
-	void loadData(final BoxPanelType boxType){
-		individualNameLabel.setText(composeIndividualName(boxType));
+	public void loadData(){
+		individualNameLabel.setText(composeIndividualName());
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
@@ -310,7 +311,7 @@ public class IndividualPanel extends JPanel{
 		imgLabel.setVisible(individual != null);
 	}
 
-	private String composeIndividualName(final BoxPanelType boxType){
+	private String composeIndividualName(){
 		final String personalName = extractCompleteName();
 		return (boxType == BoxPanelType.PRIMARY?
 			"<html><font style=\"text-decoration:underline\">" + personalName + "</font></html>":

@@ -178,7 +178,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			else if("INDI".equals(type))
 				type = "INDIVIDUAL";
 			final GedcomNode destinationAssociation = transformerTo.create("ASSOCIATION")
-				.withID(association.getID())
+				.withXRef(association.getXRef())
 				.addChildValue("TYPE", type)
 				.addChildValue("RELATIONSHIP", transformerTo.traverse(association, "RELA")
 					.getValue());
@@ -403,7 +403,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			else if("INDIVIDUAL".equals(type))
 				type = "INDI";
 			final GedcomNode destinationAssociation = transformerFrom.create("ASSO")
-				.withID(association.getID())
+				.withXRef(association.getXRef())
 				.addChildValue("TYPE", type)
 				.addChildValue("RELA", transformerFrom.traverse(association, "RELATIONSHIP")
 					.getValue());
@@ -421,7 +421,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> nodes = individual.getChildrenWithTag(fromTag);
 		for(final GedcomNode node : nodes){
 			final GedcomNode newNode = transformerFrom.create(toTag)
-				.withID(node.getID());
+				.withXRef(node.getXRef());
 			transformerFrom.noteFrom(node, newNode);
 			destinationNode.addChild(newNode);
 		}

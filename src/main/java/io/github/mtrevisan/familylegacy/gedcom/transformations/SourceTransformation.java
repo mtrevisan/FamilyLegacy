@@ -78,8 +78,8 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	private void documentsTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
-			final String documentID = document.getID();
-			if(documentID == null){
+			final String documentXRef = document.getXRef();
+			if(documentXRef == null){
 				final String documentFormat = transformerTo.traverse(document, "FORM")
 					.getValue();
 				final String documentMedia = transformerTo.traverse(document, "FORM.MEDI")
@@ -102,7 +102,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 
 				destination.addSource(destinationDocument);
 			}
-			destinationNode.addChildReference("SOURCE", documentID);
+			destinationNode.addChildReference("SOURCE", documentXRef);
 		}
 	}
 
@@ -110,7 +110,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
 			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			if(repository.getID() == null){
+			if(repository.getXRef() == null){
 				destination.addRepository(destinationRepository);
 
 				transformerTo.noteTo(repository, destinationRepository, destination);
@@ -153,7 +153,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
 		for(final GedcomNode repository : repositories)
-			destinationNode.addChildReference("REPO", repository.getID());
+			destinationNode.addChildReference("REPO", repository.getXRef());
 	}
 
 }

@@ -70,7 +70,7 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("COPYRIGHT", transformerTo.traverse(source, "COPR")
 				.getValue())
 			.addChildReference("SUBMITTER", transformerTo.traverse(source, "SUBM")
-				.getID())
+				.getXRef())
 			.addChildValue("NOTE", transformerTo.traverse(source, "NOTE")
 				.getValue());
 
@@ -98,7 +98,7 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 			)
 			.addChildValue("DATE", date)
 			.addChildReference("SUBM", transformerFrom.traverse(source, "SUBMITTER")
-				.getID())
+				.getXRef())
 			.addChildValue("COPR", transformerFrom.traverse(source, "COPYRIGHT")
 				.getValue())
 			.addChild(transformerFrom.create("GEDC")

@@ -12,10 +12,7 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 
 
 public class FamilyPanel extends JPanel{
@@ -26,8 +23,8 @@ public class FamilyPanel extends JPanel{
 	private static final Color BORDER_COLOR = Color.BLACK;
 	private static final Color BACKGROUND_COLOR_INFO_PANEL = new Color(230, 230, 230);
 
-	/** [px] */
-	private static final int FAMILY_CONNECTION_DEPTH = 15;
+	/** Height of the marriage line from the botton of the individual panel [px] */
+	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_ICON_DIMENSION = new Dimension(13, 12);
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
@@ -35,9 +32,10 @@ public class FamilyPanel extends JPanel{
 
 	private IndividualPanel spouse1Panel;
 	private IndividualPanel spouse2Panel;
-	private JLabel marriageLabel;
-	private JLabel addFamilyLabel;
-	private JLabel linkFamilyLabel;
+	private JPanel marriagePanel;
+	private JMenuItem editFamilyItem;
+	private JMenuItem newFamilyItem;
+	private JMenuItem linkFamilyItem;
 
 	private final BoxPanelType boxType;
 	private final GedcomNode family;
@@ -52,12 +50,8 @@ public class FamilyPanel extends JPanel{
 		this.family = family;
 		this.store = store;
 
-		final String individualXRef1 = TRANSFORMER.traverse(family, "SPOUSE1")
-			.getXRef();
-		final String individualXRef2 = TRANSFORMER.traverse(family, "SPOUSE2")
-			.getXRef();
-		spouse1 = store.getIndividual(individualXRef1);
-		spouse2 = store.getIndividual(individualXRef2);
+		spouse1 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef()): null);
+		spouse2 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef()): null);
 
 		initComponents(family, store, familyListener, individualListener);
 
@@ -68,53 +62,20 @@ public class FamilyPanel extends JPanel{
 			final IndividualListenerInterface individualListener){
 		spouse1Panel = new IndividualPanel(spouse1, store, boxType, individualListener);
 		spouse2Panel = new IndividualPanel(spouse2, store, boxType, individualListener);
-		marriageLabel = new JLabel();
-		addFamilyLabel = new JLabel();
+		marriagePanel = new JPanel();
+
+		if(familyListener != null)
+			attachPopUpMenu(marriagePanel, family, familyListener);
 
 		setBackground(null);
 		setOpaque(false);
-		if(familyListener != null){
-			marriageLabel.addMouseListener(new MouseAdapter(){
-				public void mouseClicked(final MouseEvent evt){
-					if(family == null)
-						familyListener.onFamilyLink(FamilyPanel.this);
-				}
-			});
-		}
 
-		marriageLabel.setBackground(Color.WHITE);
-//		marriageLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/marriageType.unknown.png"))); // NOI18N
-		marriageLabel.setFocusable(false);
-		marriageLabel.setInheritsPopupMenu(false);
-		marriageLabel.setMaximumSize(MARRIAGE_ICON_DIMENSION);
-		marriageLabel.setMinimumSize(MARRIAGE_ICON_DIMENSION);
-		marriageLabel.setPreferredSize(MARRIAGE_ICON_DIMENSION);
-		if(familyListener != null)
-			marriageLabel.addMouseListener(new MouseAdapter(){
-				public void mouseClicked(final MouseEvent evt){
-					final int clickCount = evt.getClickCount();
-					if(clickCount == 2 && family != null)
-						familyListener.onFamilyEdit(FamilyPanel.this, family);
-				}
-			});
-
-		addFamilyLabel.setText("Add Family");
-		addFamilyLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-		addFamilyLabel.setFocusable(false);
-		if(familyListener != null)
-			addFamilyLabel.addMouseListener(new MouseAdapter(){
-				public void mouseClicked(final MouseEvent evt){
-					familyListener.onFamilyNew(FamilyPanel.this);
-				}
-			});
-		GridBagConstraints gridBagConstraints = new GridBagConstraints();
-		gridBagConstraints.gridx = 0;
-		gridBagConstraints.gridy = 0;
-		gridBagConstraints.fill = GridBagConstraints.BOTH;
-		gridBagConstraints.anchor = GridBagConstraints.WEST;
-		gridBagConstraints.weighty = 1.0;
-		gridBagConstraints.insets = new Insets(4, 4, 4, 4);
-		marriageLabel.add(addFamilyLabel, gridBagConstraints);
+		marriagePanel.setBackground(Color.WHITE);
+		marriagePanel.setFocusable(false);
+		marriagePanel.setInheritsPopupMenu(false);
+		marriagePanel.setMaximumSize(MARRIAGE_ICON_DIMENSION);
+		marriagePanel.setMinimumSize(MARRIAGE_ICON_DIMENSION);
+		marriagePanel.setPreferredSize(MARRIAGE_ICON_DIMENSION);
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -123,37 +84,62 @@ public class FamilyPanel extends JPanel{
 				.addGroup(layout.createSequentialGroup()
 					.addComponent(spouse1Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-					.addComponent(marriageLabel, GroupLayout.PREFERRED_SIZE, 13, GroupLayout.PREFERRED_SIZE)
+					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_ICON_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 					.addComponent(spouse2Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(0, 0, Short.MAX_VALUE)
-				)
-				.addGroup(layout.createSequentialGroup()
-					.addGap(100, 100, 100)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addComponent(marriageLabel, GroupLayout.PREFERRED_SIZE, 621, GroupLayout.PREFERRED_SIZE)
-					)
-					.addGap(100, 100, 100)
 				)
 		);
+		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_ICON_DIMENSION.height / 2;
 		layout.setVerticalGroup(
 			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup()
-					.addGap(0, 0, 0)
 					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-						.addGroup(layout.createSequentialGroup()
-							.addComponent(marriageLabel, GroupLayout.PREFERRED_SIZE, 12, GroupLayout.PREFERRED_SIZE)
-							.addGap(10, 10, 10))
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addComponent(spouse1Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addComponent(spouse2Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						)
+						.addGroup(layout.createSequentialGroup()
+							.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_ICON_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
+							.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
+						)
 					)
-					.addGap(0, 0, 0)
-					.addComponent(marriageLabel, GroupLayout.PREFERRED_SIZE, 46, GroupLayout.PREFERRED_SIZE)
-					.addGap(1, 1, 1)
 				)
 		);
+	}
+
+	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
+		final JPopupMenu popupMenu = new JPopupMenu();
+		editFamilyItem = new JMenuItem("Edit Family...", 'E');
+		editFamilyItem.setEnabled(family != null);
+		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
+		popupMenu.add(editFamilyItem);
+		newFamilyItem = new JMenuItem("New Family...", 'N');
+		newFamilyItem.addActionListener(e -> familyListener.onFamilyNew(this));
+		newFamilyItem.setEnabled(family == null);
+		popupMenu.add(newFamilyItem);
+		linkFamilyItem = new JMenuItem("Link Family...", 'L');
+		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
+		linkFamilyItem.setEnabled(family == null);
+		popupMenu.add(linkFamilyItem);
+
+		component.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				processMouseEvent(e);
+			}
+
+			@Override
+			public void mouseReleased(final MouseEvent e){
+				processMouseEvent(e);
+			}
+
+			private void processMouseEvent(final MouseEvent e){
+				if(e.isPopupTrigger()){
+					popupMenu.show(e.getComponent(), e.getX(), e.getY());
+					popupMenu.setInvoker(component);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -165,95 +151,32 @@ public class FamilyPanel extends JPanel{
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-			//info-panel-width = 1.5 * individual-box-width = 622 px
-			//info-panel-location = ((container-width - info-panel-width) / 2, info-panel-y)
 			final int xFrom = spouse1Panel.getX() + spouse1Panel.getWidth();
 			final int xTo = spouse2Panel.getX();
-			final int yFrom = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_DEPTH;
-			Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f, new float[]{1.f}, 0.f);
-			graphics2D.setStroke(dashedStroke);
+			final int yFrom = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
+			if(family == null)
+				graphics2D.setStroke(new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
+					new float[]{1.f}, 0.f));
 			//horizontal line between spouses
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
-			if(boxType == BoxPanelType.PRIMARY){
-				final int yTo = marriageLabel.getY();
-				//vertical line down to infoPanel
-				graphics2D.drawLine((xFrom + xTo) / 2, yFrom, (xFrom + xTo) / 2, yTo);
+			if(family == null){
+				graphics2D.setColor(BACKGROUND_COLOR);
+				graphics2D.setColor(IndividualPanel.BORDER_COLOR);
+				graphics2D.setStroke(new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f,
+					new float[]{5.f}, 0.f));
 			}
-//			if(family == null){
-//				graphics2D.setColor(BACKGROUND_COLOR);
-//				final int x = marriageTypeLabel.getX();
-//				final int y = marriageTypeLabel.getY();
-//				graphics2D.fillRect(x, y, MARRIAGE_TYPE_ICON_DIMENSION.width, MARRIAGE_TYPE_ICON_DIMENSION.height);
-//
-//				graphics2D.setColor(IndividualPanel.BORDER_COLOR);
-//				dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f, new float[]{5.f}, 0.f);
-//				graphics2D.setStroke(dashedStroke);
-//
-//				graphics2D.drawRect(x, y, MARRIAGE_TYPE_ICON_DIMENSION.width, MARRIAGE_TYPE_ICON_DIMENSION.height);
-//
-//				if(boxType == BoxPanelType.PRIMARY){
-//					final Point loc = infoPanel.getLocation();
-//					final Dimension size = infoPanel.getPreferredSize();
-////TODO draw line above infoPanel
-////					graphics2D.drawRect(loc.x, loc.y, (int)(spouse1Panel.getWidth() * 1.5), size.height - 1);
-////TODO fix the magic number 622
-//					graphics2D.drawRect(loc.x - 1, loc.y - 1, 622 + 1, size.height + 1);
-//				}
-//			}
 
 			graphics2D.dispose();
 		}
 	}
 
-	private void loadData(){
-		spouse1Panel.loadData(boxType);
-		spouse2Panel.loadData(boxType);
+	public void loadData(){
+		spouse1Panel.loadData();
+		spouse2Panel.loadData();
 
 		final boolean hasFamily = (family != null);
-		marriageLabel.setBorder(hasFamily? BorderFactory.createLineBorder(BORDER_COLOR): null);
-		marriageLabel.setBackground(boxType == BoxPanelType.PRIMARY && hasFamily? BACKGROUND_COLOR_INFO_PANEL: BACKGROUND_COLOR);
-		addFamilyLabel.setVisible(!hasFamily);
-//		if(hasFamily){
-//			final MarriageType marriageType = getMarriageType(family);
-//			final ImageIcon marriageTypeIcon = marriageType.getIcon();
-//			marriageTypeLabel.setIcon(marriageTypeIcon);
-//			statusLabel.setIcon(marriageTypeIcon);
-//			statusLabel.setText(marriageType.getDescription());
-//			final List<FamilyEvent> events = Collections.<FamilyEvent>emptyList();
-//			if(family != null){
-//				events = family.getEventsOfType(FamilyEventType.MARRIAGE);
-//				if(events.isEmpty())
-//					events = family.getEventsOfType(FamilyEventType.MARRIAGE_CONTRACT);
-//			}
-//			if(!events.isEmpty()){
-//				final FamilyEvent marriageEvent = events.get(0);
-//				final String marriageDate = Optional.ofNullable(marriageEvent)
-//					.map(FamilyEvent::getDate)
-//					.map(StringWithCustomFacts::getValue)
-//					.orElse(null);
-//				infoDateLabel.setVisible(marriageDate != null);
-//				dateLabel.setText(DateParser.formatDate(marriageDate));
-//				final String marriagePlace = Optional.ofNullable(marriageEvent)
-//					.map(FamilyEvent::getPlace)
-//					.map(Place::getPlaceName)
-//					.orElse(null);
-//				infoPlaceLabel.setVisible(marriagePlace != null);
-//				placeLabel.setText(marriagePlace);
-//			}
-//			else{
-//				infoDateLabel.setVisible(false);
-//				dateLabel.setText(null);
-//				infoPlaceLabel.setVisible(false);
-//				placeLabel.setText(null);
-//			}
-//			final String childrenNumber = Optional.ofNullable(family)
-//				.map(Family::getChildrenNumber)
-//				.map(StringWithCustomFacts::getValue)
-//				.orElse("0");
-//			childrenLabel.setText(childrenNumber);
-//		}
-//		else
-//			marriageTypeLabel.setIcon(null);
+		marriagePanel.setBorder(hasFamily? BorderFactory.createLineBorder(BORDER_COLOR): BorderFactory.createDashedBorder(BORDER_COLOR));
+		marriagePanel.setBackground(boxType == BoxPanelType.PRIMARY && hasFamily? BACKGROUND_COLOR_INFO_PANEL: BACKGROUND_COLOR);
 	}
 
 

@@ -52,7 +52,7 @@ class NoteTransformationTest{
 		origin.addNote(note);
 		final Flef destination = new Flef();
 
-		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT\\nSUBMITTER_TEXT, children: [{tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {id: S1, tag: SOUR}]", origin.getNotes().get(0).toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT\\nSUBMITTER_TEXT, children: [{tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: SOUR, ref: S1}]", origin.getNotes().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new NoteTransformation();
 		t.to(origin, destination);
