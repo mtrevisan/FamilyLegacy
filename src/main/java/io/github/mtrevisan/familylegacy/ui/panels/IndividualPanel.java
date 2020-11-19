@@ -98,7 +98,8 @@ public class IndividualPanel extends JPanel{
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
-	private final JLabel individualNameLabel = new JLabel();
+	private final JLabel familyNameLabel = new JLabel();
+	private final JLabel personalNameLabel = new JLabel();
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel imgLabel = new JLabel();
 	private final JLabel newIndividualLabel = new JLabel();
@@ -138,10 +139,13 @@ public class IndividualPanel extends JPanel{
 				}
 			});
 
-		individualNameLabel.setVerticalAlignment(SwingConstants.TOP);
-//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
 		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
-		individualNameLabel.setFont(font);
+		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
+		familyNameLabel.setFont(font);
+
+		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
+//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
+		personalNameLabel.setFont(font);
 
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
@@ -188,14 +192,15 @@ public class IndividualPanel extends JPanel{
 					.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addGroup(layout.createSequentialGroup()
-								.addComponent(infoLabel)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-								.addComponent(linkIndividualLabel)
+								.addComponent(familyNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							)
 							.addGroup(layout.createSequentialGroup()
-								.addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+								.addComponent(personalNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addComponent(newIndividualLabel)
+							)
+							.addGroup(layout.createSequentialGroup()
+								.addComponent(infoLabel)
+								.addComponent(linkIndividualLabel)
 							)
 						)
 						.addGap(0, 0, Short.MAX_VALUE)
@@ -212,8 +217,12 @@ public class IndividualPanel extends JPanel{
 				.addContainerGap()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addGroup(layout.createSequentialGroup()
+						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(individualNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(familyNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+							.addComponent(personalNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 							.addComponent(newIndividualLabel)
 						)
 						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -221,7 +230,6 @@ public class IndividualPanel extends JPanel{
 							.addComponent(infoLabel)
 							.addComponent(linkIndividualLabel)
 						)
-						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 					)
 					.addGroup(layout.createSequentialGroup()
 						.addComponent(imgLabel)
@@ -233,10 +241,10 @@ public class IndividualPanel extends JPanel{
 			)
 		);
 
-		final Dimension namePreferredSize = individualNameLabel.getPreferredSize();
-		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
-		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
-		individualNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
+//		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
+//		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
+//		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
+//		personalNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 	}
 
 	private void setPreferredSize(final JComponent component, final double baseWidth){
@@ -298,32 +306,42 @@ public class IndividualPanel extends JPanel{
 	}
 
 	public void loadData(){
-		individualNameLabel.setText(composeIndividualName());
+		final String[] personalName = composeIndividualName();
+		familyNameLabel.setText(personalName[0]);
+		personalNameLabel.setText(personalName[1]);
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
 		infoLabel.setText(sj.toString());
-		infoLabel.setFont(deriveInfoFont(individualNameLabel.getFont()));
+		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
 
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), imgLabel.getPreferredSize());
 		imgLabel.setIcon(icon);
 
-		individualNameLabel.setVisible(individual != null);
+		familyNameLabel.setVisible(individual != null);
+		personalNameLabel.setVisible(individual != null);
 		infoLabel.setVisible(individual != null);
 		newIndividualLabel.setVisible(individual == null);
 		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
 		imgLabel.setVisible(individual != null);
 	}
 
-	private String composeIndividualName(){
-		final String personalName = extractCompleteName();
-		return (boxType == BoxPanelType.PRIMARY?
-			"<html><font style=\"text-decoration:underline\">" + personalName + "</font></html>":
-			"<html>" + personalName + "</html>");
+	private String[] composeIndividualName(){
+		final String[] personalName = extractCompleteName();
+		if(boxType == BoxPanelType.PRIMARY){
+			personalName[0] = "<html><font style=\"text-decoration:underline\">" + personalName[0] + "</font></html>";
+			personalName[1] = "<html><font style=\"text-decoration:underline\">" + personalName[1] + "</font></html>";
+		}
+		else{
+			personalName[0] = "<html>" + personalName[0] + "</html>";
+			personalName[1] = "<html>" + personalName[1] + "</html>";
+		}
+		return personalName;
 	}
 
-	private String extractCompleteName(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+	private String[] extractCompleteName(){
+		final StringJoiner family = new StringJoiner(StringUtils.SPACE);
+		final StringJoiner personal = new StringJoiner(StringUtils.SPACE);
 		if(individual != null){
 			GedcomNode name = TRANSFORMER.createEmpty();
 			final List<GedcomNode> names = individual.getChildrenWithTag("NAME");
@@ -338,17 +356,20 @@ public class IndividualPanel extends JPanel{
 				.getValueOrDefault(NO_DATA);
 
 			if(title != null)
-				sj.add(title);
-			if(familyName != null)
-				sj.add(familyName + ",");
+				personal.add(title);
 			if(!personalName.isEmpty())
-				sj.add(personalName.getValueOrDefault(NO_DATA));
+				personal.add(personalName.getValueOrDefault(NO_DATA));
+			if(familyName != null)
+				family.add(familyName);
 			if(nameSuffix != null)
-				sj.add(nameSuffix);
+				family.add(nameSuffix);
+
+			return new String[]{
+				(family.length() > 0? family.toString(): NO_DATA),
+				(personal.length() > 0? personal.toString(): NO_DATA)
+			};
 		}
-		else
-			sj.add(NO_DATA);
-		return sj.toString();
+		return new String[]{NO_DATA, NO_DATA};
 	}
 
 	private int extractBirthDeathAge(final StringJoiner sj){

@@ -76,18 +76,18 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-		childrenScrollPane.setPreferredSize(new Dimension(0, 105));
+		childrenScrollPane.setPreferredSize(new Dimension(0, 80));
 
-		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
+//		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
 //		childrenPanel.setLayout(childrenPanelLayout);
-		childrenPanelLayout.setHorizontalGroup(
-			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 0, Short.MAX_VALUE)
-		);
-		childrenPanelLayout.setVerticalGroup(
-			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 0, Short.MAX_VALUE)
-		);
+//		childrenPanelLayout.setHorizontalGroup(
+//			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//				.addGap(0, 0, Short.MAX_VALUE)
+//		);
+//		childrenPanelLayout.setVerticalGroup(
+//			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+//				.addGap(0, 0, Short.MAX_VALUE)
+//		);
 
 		childrenScrollPane.setViewportView(childrenPanel);
 
@@ -101,7 +101,6 @@ public class TreePanel extends JPanel{
 			)
 			.addComponent(homeFamilyPanel)
 			.addComponent(childrenScrollPane)
-//			.addComponent(childrenPanel)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createParallelGroup()
@@ -112,12 +111,11 @@ public class TreePanel extends JPanel{
 			.addComponent(homeFamilyPanel)
 			.addGap(GENERATION_SEPARATION)
 			.addComponent(childrenScrollPane)
-//			.addComponent(childrenPanel)
 		);
 	}
 
-	@Override
-	protected void paintComponent(final Graphics g){
+//	@Override
+	protected void paintComponent2(final Graphics g){
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
@@ -268,9 +266,8 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		GedcomNode family = null;
-		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
 			@Override
