@@ -121,6 +121,7 @@ public class IndividualPanel extends JPanel{
 		loadData();
 	}
 
+	//TODO add arrows to switch across multiple spouses
 	private void initComponents(final IndividualListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
@@ -328,14 +329,8 @@ public class IndividualPanel extends JPanel{
 
 	private String[] composeIndividualName(){
 		final String[] personalName = extractCompleteName();
-		if(boxType == BoxPanelType.PRIMARY){
-			personalName[0] = "<html><font style=\"text-decoration:underline\">" + personalName[0] + "</font></html>";
-			personalName[1] = "<html><font style=\"text-decoration:underline\">" + personalName[1] + "</font></html>";
-		}
-		else{
-			personalName[0] = "<html>" + personalName[0] + "</html>";
-			personalName[1] = "<html>" + personalName[1] + "</html>";
-		}
+		personalName[0] = "<html>" + personalName[0] + "</html>";
+		personalName[1] = "<html>" + personalName[1] + "</html>";
 		return personalName;
 	}
 

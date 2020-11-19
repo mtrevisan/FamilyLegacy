@@ -12,8 +12,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -26,44 +24,13 @@ public class TreePanel extends JPanel{
 
 	private static final int GENERATION_SEPARATION = 20;
 
-	private final MouseAdapter mouseAdapter = new MouseAdapter(){
-
-		private Point origin;
-
-		@Override
-		public void mousePressed(final MouseEvent e){
-			origin = new Point(e.getPoint());
-		}
-
-		@Override
-		public void mouseReleased(final MouseEvent e){}
-
-		@Override
-		public void mouseDragged(final MouseEvent e){
-			if(origin != null){
-				final JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, childrenPanel);
-				if(viewPort != null){
-					final int deltaX = origin.x - e.getX();
-					final int deltaY = origin.y - e.getY();
-
-					final Rectangle view = viewPort.getViewRect();
-					view.x += deltaX;
-					view.y += deltaY;
-
-					childrenPanel.scrollRectToVisible(view);
-				}
-			}
-		}
-
-	};
-
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private FamilyPanel spouse1ParentsPanel;
 	private FamilyPanel spouse2ParentsPanel;
 	private FamilyPanel homeFamilyPanel;
-	private final JScrollPane childrenScrollPane = new JScrollPane();
+	private JScrollPane childrenScrollPane;
 	private ChildrenPanel childrenPanel;
 
 	private final GedcomNode homeFamily;
@@ -97,28 +64,11 @@ public class TreePanel extends JPanel{
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
+		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-//		childrenScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-		childrenScrollPane.setPreferredSize(new Dimension(0, 80));
-
-//		childrenPanel.addMouseListener(mouseAdapter);
-//		childrenPanel.addMouseMotionListener(mouseAdapter);
-//		childrenPanel.addMouseWheelListener(mouseAdapter);
-
-//		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
-//		childrenPanel.setLayout(childrenPanelLayout);
-//		childrenPanelLayout.setHorizontalGroup(
-//			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-//				.addGap(0, 0, Short.MAX_VALUE)
-//		);
-//		childrenPanelLayout.setVerticalGroup(
-//			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-//				.addGap(0, 0, Short.MAX_VALUE)
-//		);
-
-		childrenScrollPane.setViewportView(childrenPanel);
+		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);

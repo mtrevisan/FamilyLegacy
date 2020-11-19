@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class ChildrenPanel extends JPanel implements Scrollable{
+public class ChildrenPanel extends JPanel{
 
 	private static final long serialVersionUID = -1250057284416778781L;
 
@@ -40,6 +40,8 @@ public class ChildrenPanel extends JPanel implements Scrollable{
 
 		setBackground(null);
 		setOpaque(false);
+		//allow room for horizontal scrollbar
+		setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
 
 		loadData();
 	}
@@ -72,7 +74,6 @@ public class ChildrenPanel extends JPanel implements Scrollable{
 			}
 
 			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
-//			verticalGroup.addGap(50, 50, 50);
 
 			//FIXME really needed?
 //			revalidate();
@@ -96,35 +97,6 @@ public class ChildrenPanel extends JPanel implements Scrollable{
 		final int x = getX() + getWidth() / 2;
 		final int y = getY();
 		return new Point(x, y);
-	}
-
-
-	@Override
-	public Dimension getPreferredScrollableViewportSize(){
-		final Dimension preferredSize = getPreferredSize();
-		if(getParent() instanceof JViewport)
-			preferredSize.width += ((JScrollPane)getParent().getParent()).getVerticalScrollBar().getPreferredSize().width;
-		return preferredSize;
-	}
-
-	@Override
-	public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction){
-		return 64;
-	}
-
-	@Override
-	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction){
-		return 128;
-	}
-
-	@Override
-	public boolean getScrollableTracksViewportWidth(){
-		return (getParent() instanceof JViewport && getPreferredSize().height < getParent().getHeight());
-	}
-
-	@Override
-	public boolean getScrollableTracksViewportHeight(){
-		return true;
 	}
 
 
