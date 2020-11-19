@@ -25,8 +25,8 @@ public class ChildrenPanel extends JPanel{
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
-	private GroupLayout.SequentialGroup sequentialGroup;
-	private GroupLayout.ParallelGroup parallelGroup;
+	private GroupLayout.SequentialGroup horizontalGroup;
+	private GroupLayout.ParallelGroup verticalGroup;
 
 	private final GedcomNode family;
 	private final Flef store;
@@ -50,14 +50,14 @@ public class ChildrenPanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		sequentialGroup = layout.createSequentialGroup();
-		parallelGroup = layout.createParallelGroup();
-		layout.setHorizontalGroup(sequentialGroup);
-		layout.setVerticalGroup(parallelGroup);
+		horizontalGroup = layout.createSequentialGroup();
+		verticalGroup = layout.createParallelGroup();
+		layout.setHorizontalGroup(horizontalGroup);
+		layout.setVerticalGroup(verticalGroup);
 
 		final List<GedcomNode> children = TRANSFORMER.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
-			sequentialGroup.addGap(0, 0, Short.MAX_VALUE);
+			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
 
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
@@ -65,14 +65,17 @@ public class ChildrenPanel extends JPanel{
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
 
-				sequentialGroup.addComponent(individualBox);
+				horizontalGroup.addComponent(individualBox);
 				if(itr.hasNext())
-					sequentialGroup.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED);
-				parallelGroup.addComponent(individualBox);
+					horizontalGroup.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED);
+				verticalGroup.addComponent(individualBox);
 			}
 
-			revalidate();
-			repaint();
+			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
+
+			//FIXME really needed?
+//			revalidate();
+//			repaint();
 		}
 	}
 

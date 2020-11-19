@@ -76,18 +76,15 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setAutoscrolls(true);
 		childrenScrollPane.setPreferredSize(new Dimension(0, 105));
 
-//		childrenPanel.setBackground(BACKGROUND_COLOR_APPLICATION);
-//		childrenPanel.setBorder(null);
-
 		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
-		childrenPanel.setLayout(childrenPanelLayout);
+//		childrenPanel.setLayout(childrenPanelLayout);
 		childrenPanelLayout.setHorizontalGroup(
 			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-//				.addGap(0, 0, Short.MAX_VALUE)
+				.addGap(0, 0, Short.MAX_VALUE)
 		);
 		childrenPanelLayout.setVerticalGroup(
 			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-//				.addGap(0, 0, Short.MAX_VALUE)
+				.addGap(0, 0, Short.MAX_VALUE)
 		);
 
 		childrenScrollPane.setViewportView(childrenPanel);
