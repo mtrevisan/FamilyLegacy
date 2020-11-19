@@ -38,25 +38,7 @@ public class ChildrenPanel extends JPanel{
 		this.store = store;
 		this.individualListener = individualListener;
 
-		initComponents(family, store);
-
 		loadData();
-	}
-
-	private void initComponents(final GedcomNode family, final Flef store){
-		setBackground(null);
-		setOpaque(true);
-
-		final GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 400, Short.MAX_VALUE)
-		);
-		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 300, Short.MAX_VALUE)
-		);
 	}
 
 	public void loadData(){
@@ -89,6 +71,24 @@ public class ChildrenPanel extends JPanel{
 			revalidate();
 			repaint();
 		}
+	}
+
+
+	//TODO
+	public Point[] getChildrenPaintingEntryPoints(){
+		//halfway between spouse1 and spouse2 boxes
+//		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
+//		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
+//		//plus half the size of the marriage panel box)
+//		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT + MARRIAGE_PANEL_DIMENSION.height / 2;
+//		return new Point(x, y);
+		return null;
+	}
+
+	public Point getChildrenPaintingExitPoint(){
+		final int x = getX() + getWidth() / 2;
+		final int y = getY();
+		return new Point(x, y);
 	}
 
 

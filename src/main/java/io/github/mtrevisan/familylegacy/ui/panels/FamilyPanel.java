@@ -12,7 +12,10 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 
 public class FamilyPanel extends JPanel{
@@ -25,7 +28,7 @@ public class FamilyPanel extends JPanel{
 
 	/** Height of the marriage line from the botton of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
-	private static final Dimension MARRIAGE_ICON_DIMENSION = new Dimension(13, 12);
+	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
@@ -74,9 +77,9 @@ public class FamilyPanel extends JPanel{
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setFocusable(false);
 		marriagePanel.setInheritsPopupMenu(false);
-		marriagePanel.setMaximumSize(MARRIAGE_ICON_DIMENSION);
-		marriagePanel.setMinimumSize(MARRIAGE_ICON_DIMENSION);
-		marriagePanel.setPreferredSize(MARRIAGE_ICON_DIMENSION);
+		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
+		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
+		marriagePanel.setPreferredSize(MARRIAGE_PANEL_DIMENSION);
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -85,12 +88,12 @@ public class FamilyPanel extends JPanel{
 				.addGroup(layout.createSequentialGroup()
 					.addComponent(spouse1Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_ICON_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
+					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 					.addComponent(spouse2Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 				)
 		);
-		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_ICON_DIMENSION.height / 2;
+		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
 		layout.setVerticalGroup(
 			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 				.addGroup(layout.createSequentialGroup()
@@ -100,7 +103,7 @@ public class FamilyPanel extends JPanel{
 							.addComponent(spouse2Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 						)
 						.addGroup(layout.createSequentialGroup()
-							.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_ICON_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
+							.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
 							.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
 						)
 					)
@@ -182,6 +185,16 @@ public class FamilyPanel extends JPanel{
 		final boolean hasFamily = (family != null);
 		marriagePanel.setBorder(hasFamily? BorderFactory.createLineBorder(BORDER_COLOR): BorderFactory.createDashedBorder(BORDER_COLOR));
 		marriagePanel.setBackground(boxType == BoxPanelType.PRIMARY && hasFamily? BACKGROUND_COLOR_INFO_PANEL: BACKGROUND_COLOR);
+	}
+
+
+	public Point getFamilyPaintingExitPoint(){
+		//halfway between spouse1 and spouse2 boxes
+		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
+		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
+		//plus half the size of the marriage panel box)
+		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT + MARRIAGE_PANEL_DIMENSION.height / 2;
+		return new Point(x, y);
 	}
 
 

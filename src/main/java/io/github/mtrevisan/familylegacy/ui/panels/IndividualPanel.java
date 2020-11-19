@@ -41,7 +41,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.EnumMap;
@@ -431,9 +434,22 @@ public class IndividualPanel extends JPanel{
 		return icon;
 	}
 
-	public Point getIndividualPaintingEnteringPoint(){
+
+	public Point getIndividualPaintingEnterPoint(){
 		final int x = getX() + getWidth() / 2;
 		final int y = getY();
+		return new Point(x, y);
+	}
+
+	public Point getIndividualPaintingExitRightPoint(){
+		final int x = getX() + getWidth();
+		final int y = getY() + getHeight();
+		return new Point(x, y);
+	}
+
+	public Point getIndividualPaintingExitLeftPoint(){
+		final int x = getX();
+		final int y = getY() + getHeight();
 		return new Point(x, y);
 	}
 
