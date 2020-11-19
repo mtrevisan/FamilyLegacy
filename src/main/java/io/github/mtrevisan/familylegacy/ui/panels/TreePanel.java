@@ -84,7 +84,7 @@ public class TreePanel extends JPanel{
 		loadData();
 	}
 
-	//FIXME remove horizontal scrollbar, enable drag
+	//FIXME allow room for horizontal scroolbar
 	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
 	private void initComponents(final GedcomNode family, final Flef store){
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1", store);
@@ -99,13 +99,13 @@ public class TreePanel extends JPanel{
 
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-		childrenScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+//		childrenScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 		childrenScrollPane.setPreferredSize(new Dimension(0, 80));
 
-		childrenPanel.addMouseListener(mouseAdapter);
-		childrenPanel.addMouseMotionListener(mouseAdapter);
-		childrenPanel.addMouseWheelListener(mouseAdapter);
+//		childrenPanel.addMouseListener(mouseAdapter);
+//		childrenPanel.addMouseMotionListener(mouseAdapter);
+//		childrenPanel.addMouseWheelListener(mouseAdapter);
 
 //		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
 //		childrenPanel.setLayout(childrenPanelLayout);

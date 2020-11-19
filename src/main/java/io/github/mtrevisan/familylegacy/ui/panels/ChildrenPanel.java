@@ -18,7 +18,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class ChildrenPanel extends JPanel{
+public class ChildrenPanel extends JPanel implements Scrollable{
 
 	private static final long serialVersionUID = -1250057284416778781L;
 
@@ -72,6 +72,7 @@ public class ChildrenPanel extends JPanel{
 			}
 
 			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
+//			verticalGroup.addGap(50, 50, 50);
 
 			//FIXME really needed?
 //			revalidate();
@@ -98,6 +99,35 @@ public class ChildrenPanel extends JPanel{
 	}
 
 
+	@Override
+	public Dimension getPreferredScrollableViewportSize(){
+		final Dimension preferredSize = getPreferredSize();
+		if(getParent() instanceof JViewport)
+			preferredSize.width += ((JScrollPane)getParent().getParent()).getVerticalScrollBar().getPreferredSize().width;
+		return preferredSize;
+	}
+
+	@Override
+	public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction){
+		return 64;
+	}
+
+	@Override
+	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction){
+		return 128;
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportWidth(){
+		return (getParent() instanceof JViewport && getPreferredSize().height < getParent().getHeight());
+	}
+
+	@Override
+	public boolean getScrollableTracksViewportHeight(){
+		return true;
+	}
+
+
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -109,7 +139,7 @@ public class ChildrenPanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		GedcomNode family = null;
+		//		GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
