@@ -232,6 +232,10 @@ public class Flef extends Store{
 		this.header = header;
 	}
 
+	public boolean hasIndividuals(){
+		return (individuals != null && !individuals.isEmpty());
+	}
+
 	public List<GedcomNode> getIndividuals(){
 		return individuals;
 	}

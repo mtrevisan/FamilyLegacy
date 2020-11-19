@@ -65,18 +65,23 @@ public class IndividualBoxPanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_FEMALE = new Color(255, 212, 177);
 	private static final Color BACKGROUND_COLOR_UNKNOWN = new Color(221, 221, 221);
 
-	private static final Color BORDER_COLOR = new Color(165, 165, 165);
-	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
-
-	//double values for Horizontal and Vertical radius of corner arcs
-	private static final Dimension ARCS = new Dimension(10, 10);
-
 	private static final Map<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
+
 	static{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.MALE, BACKGROUND_COLOR_MALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.UNKNOWN, BACKGROUND_COLOR_UNKNOWN);
 	}
+	private static final Color BORDER_COLOR = new Color(165, 165, 165);
+	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
+	private static final Color BORDER_COLOR_SHADOW_SELECTED = new Color(131, 131, 131, 130);
+
+	private static final Color BIRTH_DEATH_AGE_COLOR = new Color(110, 110, 110);
+	private static final Color IMAGE_LABEL_BORDER_COLOR = new Color(255, 255, 255);
+
+	//double values for Horizontal and Vertical radius of corner arcs
+	private static final Dimension ARCS = new Dimension(10, 10);
+
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 	private static final ImageIcon ADD_PHOTO_MAN = ResourceHelper.getImage("/images/addPhoto.man.jpg");
@@ -87,24 +92,25 @@ public class IndividualBoxPanel extends JPanel{
 
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
+	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
-	private final JLabel birthDeathAgeLabel = new JLabel();
-	private final JLabel imgLabel = new JLabel();
 	private final JLabel individualNameLabel = new JLabel();
+	private final JLabel infoLabel = new JLabel();
+	private final JLabel imgLabel = new JLabel();
 	private final JLabel newIndividualLabel = new JLabel();
 	private final JLabel linkIndividualLabel = new JLabel();
 
-	private GedcomNode individualNode;
-	private boolean treeHasIndividuals;
+	private final GedcomNode individualNode;
+	private final Flef store;
 
 
-	public IndividualBoxPanel(final GedcomNode individualNode, final boolean treeHasIndividuals, final BoxPanelType boxType,
+	public IndividualBoxPanel(final GedcomNode individualNode, final Flef store, final BoxPanelType boxType,
 			final IndividualBoxListenerInterface listener){
 		this.individualNode = individualNode;
-		this.treeHasIndividuals = treeHasIndividuals;
+		this.store = store;
 
 		initComponents(boxType, listener);
 
@@ -134,7 +140,7 @@ public class IndividualBoxPanel extends JPanel{
 		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
 		individualNameLabel.setFont(font);
 
-		birthDeathAgeLabel.setForeground(new Color(110, 110, 110));
+		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
 			newIndividualLabel.setText("New individual");
@@ -158,7 +164,7 @@ public class IndividualBoxPanel extends JPanel{
 			});
 		}
 
-		imgLabel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255)));
+		imgLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
 		setComponentSize(imgLabel, 48., boxType);
 		if(listener != null){
 			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -179,7 +185,7 @@ public class IndividualBoxPanel extends JPanel{
 					.addGroup(layout.createSequentialGroup()
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addGroup(layout.createSequentialGroup()
-								.addComponent(birthDeathAgeLabel)
+								.addComponent(infoLabel)
 								.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 								.addComponent(linkIndividualLabel))
 							.addGroup(layout.createSequentialGroup()
@@ -201,7 +207,7 @@ public class IndividualBoxPanel extends JPanel{
 							.addComponent(newIndividualLabel))
 						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(birthDeathAgeLabel)
+							.addComponent(infoLabel)
 							.addComponent(linkIndividualLabel))
 						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED))
 					.addGroup(layout.createSequentialGroup()
@@ -273,31 +279,28 @@ public class IndividualBoxPanel extends JPanel{
 	}
 
 	private void loadData(final BoxPanelType boxType){
-		final String personalName = extractCompleteName();
-		if(boxType == BoxPanelType.PRIMARY)
-			//FIXME if selected (?):
-			individualNameLabel.setText("<html><font style=\"text-decoration:underline;font-weight:bold\">" + personalName
-				+ "</font></html>");
-		else
-			individualNameLabel.setText("<html>" + personalName + "</html>");
+		individualNameLabel.setText(composeIndividualName(boxType));
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
-		birthDeathAgeLabel.setText(sj.toString());
-		final Font baseFont = individualNameLabel.getFont();
-		birthDeathAgeLabel.setFont(baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * 0.8f));
+		infoLabel.setText(sj.toString());
+		infoLabel.setFont(deriveInfoFont(individualNameLabel.getFont()));
 
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), imgLabel.getPreferredSize());
 		imgLabel.setIcon(icon);
 
-		if(boxType == BoxPanelType.PRIMARY && individualNode != null)
-			writeGeneralInfo();
-
 		individualNameLabel.setVisible(individualNode != null);
-		birthDeathAgeLabel.setVisible(individualNode != null);
+		infoLabel.setVisible(individualNode != null);
 		newIndividualLabel.setVisible(individualNode == null);
-		linkIndividualLabel.setVisible(individualNode == null && treeHasIndividuals);
+		linkIndividualLabel.setVisible(individualNode == null && store.hasIndividuals());
 		imgLabel.setVisible(individualNode != null);
+	}
+
+	private String composeIndividualName(final BoxPanelType boxType){
+		final String personalName = extractCompleteName();
+		return (boxType == BoxPanelType.PRIMARY?
+			"<html><font style=\"text-decoration:underline\">" + personalName + "</font></html>":
+			"<html>" + personalName + "</html>");
 	}
 
 	private String extractCompleteName(){
@@ -393,6 +396,10 @@ public class IndividualBoxPanel extends JPanel{
 		return deathDate;
 	}
 
+	private Font deriveInfoFont(final Font baseFont){
+		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
+	}
+
 	private ImageIcon getAddPhotoImage(final int years){
 		ImageIcon icon = ADD_PHOTO_UNKNOWN;
 		if(individualNode != null){
@@ -407,42 +414,6 @@ public class IndividualBoxPanel extends JPanel{
 			}
 		}
 		return icon;
-	}
-
-	private void writeGeneralInfo(){
-//		int row = 0;
-//		String birthDate = individual.getBirthDate();
-//		if(birthDate != null){
-//			infoTable.setValueAt("Born:", row, 0);
-//			infoTable.setValueAt(DateParser.formatDate(birthDate), row, 1);
-//			row ++;
-//		}
-//		Place birthPlace = individual.getBirthPlace();
-//		if(birthPlace != null){
-//			infoTable.setValueAt("in:", row, 0);
-//			infoTable.setValueAt(birthPlace.getPlaceName(), row, 1);
-//			row ++;
-//		}
-//		String deathDate = individual.getDeathDate();
-//		if(deathDate != null){
-//			String age = individual.getAge();
-//			infoTable.setValueAt("Died:", row, 0);
-//			infoTable.setValueAt(DateParser.formatDate(deathDate) + (age != null? " (" + age + ")": StringUtils.EMPTY), row, 1);
-//			row ++;
-//		}
-//		Place deathPlace = individual.getDeathPlace();
-//		if(deathPlace != null){
-//			infoTable.setValueAt("in:", row, 0);
-//			infoTable.setValueAt(deathPlace.getPlaceName(), row, 1);
-//			row ++;
-//		}
-//		List<PersonalName> names = individual.getNames();
-//		if(names != null && !names.isEmpty() && names.get(0).getNickname() != null){
-//			String nickname = names.get(0).getNickname().getValue();
-//			infoTable.setValueAt("Nickname:", row, 0);
-//			infoTable.setValueAt(nickname, row, 1);
-//			row ++;
-//		}
 	}
 
 	public Point getIndividualPaintingEnteringPoint(){
@@ -464,6 +435,7 @@ public class IndividualBoxPanel extends JPanel{
 			.transform();
 		GedcomNode individualNode = storeFlef.getIndividuals().get(1500);
 //		GedcomNode individualNode = null;
+		BoxPanelType boxType = BoxPanelType.PRIMARY;
 
 		IndividualBoxListenerInterface listener = new IndividualBoxListenerInterface(){
 			@Override
@@ -493,8 +465,7 @@ public class IndividualBoxPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			BoxPanelType boxType = BoxPanelType.SECONDARY;
-			IndividualBoxPanel panel = new IndividualBoxPanel(individualNode, true, boxType, listener);
+			IndividualBoxPanel panel = new IndividualBoxPanel(individualNode, storeFlef, boxType, listener);
 
 			JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
