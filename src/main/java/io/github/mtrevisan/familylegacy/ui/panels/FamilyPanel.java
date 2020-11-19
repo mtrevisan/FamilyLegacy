@@ -36,6 +36,7 @@ public class FamilyPanel extends JPanel{
 	private JMenuItem editFamilyItem;
 	private JMenuItem newFamilyItem;
 	private JMenuItem linkFamilyItem;
+	private JMenuItem addChildItem;
 
 	private final BoxPanelType boxType;
 	private final GedcomNode family;
@@ -121,6 +122,10 @@ public class FamilyPanel extends JPanel{
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
 		linkFamilyItem.setEnabled(family == null);
 		popupMenu.add(linkFamilyItem);
+		addChildItem = new JMenuItem("Add Child...", 'C');
+		addChildItem.addActionListener(e -> familyListener.onFamilyAddChild(this, family));
+		addChildItem.setEnabled(family != null);
+		popupMenu.add(addChildItem);
 
 		component.addMouseListener(new MouseAdapter(){
 			@Override
@@ -213,6 +218,11 @@ public class FamilyPanel extends JPanel{
 			@Override
 			public void onFamilyLink(FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
+			}
+
+			@Override
+			public void onFamilyAddChild(FamilyPanel familyPanel, GedcomNode family){
+				System.out.println("onAddChildFamily");
 			}
 		};
 		IndividualListenerInterface individualListener = new IndividualListenerInterface(){
