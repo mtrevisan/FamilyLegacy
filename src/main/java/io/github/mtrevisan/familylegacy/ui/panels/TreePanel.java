@@ -12,6 +12,8 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -23,6 +25,37 @@ public class TreePanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 
 	private static final int GENERATION_SEPARATION = 20;
+
+	private final MouseAdapter mouseAdapter = new MouseAdapter(){
+
+		private Point origin;
+
+		@Override
+		public void mousePressed(final MouseEvent e){
+			origin = new Point(e.getPoint());
+		}
+
+		@Override
+		public void mouseReleased(final MouseEvent e){}
+
+		@Override
+		public void mouseDragged(final MouseEvent e){
+			if(origin != null){
+				final JViewport viewPort = (JViewport)SwingUtilities.getAncestorOfClass(JViewport.class, childrenPanel);
+				if(viewPort != null){
+					final int deltaX = origin.x - e.getX();
+					final int deltaY = origin.y - e.getY();
+
+					final Rectangle view = viewPort.getViewRect();
+					view.x += deltaX;
+					view.y += deltaY;
+
+					childrenPanel.scrollRectToVisible(view);
+				}
+			}
+		}
+
+	};
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
@@ -54,17 +87,8 @@ public class TreePanel extends JPanel{
 	//FIXME remove horizontal scrollbar, enable drag
 	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
 	private void initComponents(final GedcomNode family, final Flef store){
-		//extract spouse1 and spouse2 parents
-		GedcomNode spouse1Parents = null;
-		GedcomNode spouse2Parents = null;
-		if(family != null){
-			final GedcomNode spouse1 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef());
-			if(!spouse1.isEmpty())
-				spouse1Parents = store.getFamily(TRANSFORMER.traverse(spouse1, "FAMILY_CHILD").getXRef());
-			final GedcomNode spouse2 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef());
-			if(!spouse2.isEmpty())
-				spouse2Parents = store.getFamily(TRANSFORMER.traverse(spouse2, "FAMILY_CHILD").getXRef());
-		}
+		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1", store);
+		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2", store);
 
 		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
 		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
@@ -75,8 +99,13 @@ public class TreePanel extends JPanel{
 
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		childrenScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 		childrenScrollPane.setPreferredSize(new Dimension(0, 80));
+
+		childrenPanel.addMouseListener(mouseAdapter);
+		childrenPanel.addMouseMotionListener(mouseAdapter);
+		childrenPanel.addMouseWheelListener(mouseAdapter);
 
 //		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
 //		childrenPanel.setLayout(childrenPanelLayout);
@@ -112,6 +141,16 @@ public class TreePanel extends JPanel{
 			.addGap(GENERATION_SEPARATION)
 			.addComponent(childrenScrollPane)
 		);
+	}
+
+	private GedcomNode extractParents(final GedcomNode family, final String spouseTag, final Flef store){
+		GedcomNode parents = null;
+		if(family != null){
+			final GedcomNode spouse = store.getIndividual(TRANSFORMER.traverse(family, spouseTag).getXRef());
+			if(!spouse.isEmpty())
+				parents = store.getFamily(TRANSFORMER.traverse(spouse, "FAMILY_CHILD").getXRef());
+		}
+		return parents;
 	}
 
 //	@Override
