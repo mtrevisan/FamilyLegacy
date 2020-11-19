@@ -67,7 +67,7 @@ public class ChildrenPanel extends JPanel{
 
 				horizontalGroup.addComponent(individualBox);
 				if(itr.hasNext())
-					horizontalGroup.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED);
+					horizontalGroup.addGap(FamilyPanel.SPOUSE_SEPARATION);
 				verticalGroup.addComponent(individualBox);
 			}
 

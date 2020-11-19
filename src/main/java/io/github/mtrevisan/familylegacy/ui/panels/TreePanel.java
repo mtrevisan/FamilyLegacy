@@ -22,6 +22,8 @@ public class TreePanel extends JPanel{
 
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 
+	private static final int GENERATION_SEPARATION = 20;
+
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
@@ -94,23 +96,23 @@ public class TreePanel extends JPanel{
 		layout.setHorizontalGroup(layout.createParallelGroup()
 			.addGroup(layout.createSequentialGroup()
 				.addComponent(spouse1ParentsPanel)
-				.addGap(24, 24, 24)
+				.addGap(FamilyPanel.SPOUSE_SEPARATION)
 				.addComponent(spouse2ParentsPanel)
 			)
 			.addComponent(homeFamilyPanel)
-//			.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
-			.addComponent(childrenPanel)
+			.addComponent(childrenScrollPane)
+//			.addComponent(childrenPanel)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
 			.addGroup(layout.createParallelGroup()
 				.addComponent(spouse1ParentsPanel)
 				.addComponent(spouse2ParentsPanel)
 			)
-			.addGap(18, 18, 18)
+			.addGap(GENERATION_SEPARATION)
 			.addComponent(homeFamilyPanel)
-			.addGap(18, 18, 18)
-//			.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-			.addComponent(childrenPanel)
+			.addGap(GENERATION_SEPARATION)
+			.addComponent(childrenScrollPane)
+//			.addComponent(childrenPanel)
 		);
 	}
 

@@ -29,6 +29,8 @@ public class FamilyPanel extends JPanel{
 	/** Height of the marriage line from the botton of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
+	public static final int HALF_SPOUSE_SEPARATION = 10;
+	public static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
@@ -113,9 +115,9 @@ public class FamilyPanel extends JPanel{
 		setLayout(layout);
 		layout.setHorizontalGroup(layout.createSequentialGroup()
 			.addComponent(spouse1Panel)
-			.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+			.addGap(HALF_SPOUSE_SEPARATION)
 			.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
-			.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+			.addGap(HALF_SPOUSE_SEPARATION)
 			.addComponent(spouse2Panel)
 		);
 		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
