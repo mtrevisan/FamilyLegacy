@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
-import io.github.mtrevisan.familylegacy.ui.enums.Sex;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
@@ -123,7 +123,8 @@ public class IndividualPanel extends JPanel{
 	private void initComponents(final IndividualListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
-		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90): new Dimension(170, 55));
+		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
+			new Dimension(170, 55));
 		setSize(size);
 		setPreferredSize(size);
 		if(listener != null)

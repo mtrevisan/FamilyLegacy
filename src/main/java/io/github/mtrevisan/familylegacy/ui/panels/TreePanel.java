@@ -74,20 +74,20 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-		childrenScrollPane.setPreferredSize(new java.awt.Dimension(0, 105));
+		childrenScrollPane.setPreferredSize(new Dimension(0, 105));
 
-		childrenPanel.setBackground(BACKGROUND_COLOR_APPLICATION);
-		childrenPanel.setBorder(null);
+//		childrenPanel.setBackground(BACKGROUND_COLOR_APPLICATION);
+//		childrenPanel.setBorder(null);
 
 		final GroupLayout childrenPanelLayout = new GroupLayout(childrenPanel);
 		childrenPanel.setLayout(childrenPanelLayout);
 		childrenPanelLayout.setHorizontalGroup(
 			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 0, Short.MAX_VALUE)
+//				.addGap(0, 0, Short.MAX_VALUE)
 		);
 		childrenPanelLayout.setVerticalGroup(
 			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 0, Short.MAX_VALUE)
+//				.addGap(0, 0, Short.MAX_VALUE)
 		);
 
 		childrenScrollPane.setViewportView(childrenPanel);
@@ -95,33 +95,25 @@ public class TreePanel extends JPanel{
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
 		layout.setHorizontalGroup(layout.createParallelGroup()
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-						.addComponent(spouse1ParentsPanel)
-						.addGap(18, 18, 18)
-						.addComponent(spouse2ParentsPanel)
-					)
-					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-						.addComponent(homeFamilyPanel)
-					)
-//					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-//						.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
-//					)
-				)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(spouse1ParentsPanel)
+				.addGap(24, 24, 24)
+				.addComponent(spouse2ParentsPanel)
 			)
+			.addComponent(homeFamilyPanel)
+//			.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
+			.addComponent(childrenPanel)
 		);
-		layout.setVerticalGroup(layout.createParallelGroup()
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-					.addComponent(spouse1ParentsPanel)
-					.addComponent(spouse2ParentsPanel)
-				)
-				.addGap(18, 18, 18)
-				.addComponent(homeFamilyPanel)
-//				.addGap(18, 18, 18)
-//				.addCcomponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createParallelGroup()
+				.addComponent(spouse1ParentsPanel)
+				.addComponent(spouse2ParentsPanel)
 			)
+			.addGap(18, 18, 18)
+			.addComponent(homeFamilyPanel)
+			.addGap(18, 18, 18)
+//			.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+			.addComponent(childrenPanel)
 		);
 	}
 

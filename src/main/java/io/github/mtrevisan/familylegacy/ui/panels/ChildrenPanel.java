@@ -38,6 +38,9 @@ public class ChildrenPanel extends JPanel{
 		this.store = store;
 		this.individualListener = individualListener;
 
+		setBackground(null);
+		setOpaque(false);
+
 		loadData();
 	}
 
@@ -46,11 +49,11 @@ public class ChildrenPanel extends JPanel{
 //		removeAll();
 
 		final GroupLayout layout = new GroupLayout(this);
+		setLayout(layout);
 		sequentialGroup = layout.createSequentialGroup();
-		parallelGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+		parallelGroup = layout.createParallelGroup();
 		layout.setHorizontalGroup(sequentialGroup);
 		layout.setVerticalGroup(parallelGroup);
-		setLayout(layout);
 
 		final List<GedcomNode> children = TRANSFORMER.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
@@ -62,10 +65,10 @@ public class ChildrenPanel extends JPanel{
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
 
-				sequentialGroup.addComponent(individualBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+				sequentialGroup.addComponent(individualBox);
 				if(itr.hasNext())
 					sequentialGroup.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED);
-				parallelGroup.addComponent(individualBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+				parallelGroup.addComponent(individualBox);
 			}
 
 			revalidate();

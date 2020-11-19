@@ -111,28 +111,22 @@ public class FamilyPanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup()
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addComponent(spouse1Panel)
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
-				.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-				.addComponent(spouse2Panel)
-			)
+		layout.setHorizontalGroup(layout.createSequentialGroup()
+			.addComponent(spouse1Panel)
+			.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+			.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
+			.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+			.addComponent(spouse2Panel)
 		);
 		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
-		layout.setVerticalGroup(layout.createParallelGroup()
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addComponent(spouse1Panel)
-						.addComponent(spouse2Panel)
-					)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
-						.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
-					)
-				)
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+			.addGroup(layout.createParallelGroup()
+				.addComponent(spouse1Panel)
+				.addComponent(spouse2Panel)
+			)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
+				.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
 			)
 		);
 	}
