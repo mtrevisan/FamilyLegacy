@@ -50,6 +50,7 @@ public class TreePanel extends JPanel{
 	}
 
 	//FIXME remove horizontal scrollbar, enable drag
+	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
 	private void initComponents(final GedcomNode family, final Flef store){
 		//extract spouse1 and spouse2 parents
 		GedcomNode spouse1Parents = null;
@@ -86,44 +87,41 @@ public class TreePanel extends JPanel{
 		);
 		childrenPanelLayout.setVerticalGroup(
 			childrenPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGap(0, 109, Short.MAX_VALUE)
+				.addGap(0, 0, Short.MAX_VALUE)
 		);
 
 		childrenScrollPane.setViewportView(childrenPanel);
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(
-			layout.createParallelGroup()
-				.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-							.addComponent(spouse1ParentsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addGap(18, 18, 18)
-							.addComponent(spouse2ParentsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						)
-						.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-							.addComponent(homeFamilyPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						)
-						.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-							.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
-						)
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+						.addComponent(spouse1ParentsPanel)
+						.addGap(18, 18, 18)
+						.addComponent(spouse2ParentsPanel)
 					)
+					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+						.addComponent(homeFamilyPanel)
+					)
+//					.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+//						.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
+//					)
 				)
+			)
 		);
-		layout.setVerticalGroup(
-			layout.createParallelGroup()
-				.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addComponent(spouse1ParentsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						.addComponent(spouse2ParentsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					)
-					.addGap(18, 18, 18)
-					.addComponent(homeFamilyPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-					.addGap(18, 18, 18)
-					.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 95, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		layout.setVerticalGroup(layout.createParallelGroup()
+			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+					.addComponent(spouse1ParentsPanel)
+					.addComponent(spouse2ParentsPanel)
 				)
+				.addGap(18, 18, 18)
+				.addComponent(homeFamilyPanel)
+//				.addGap(18, 18, 18)
+//				.addCcomponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+			)
 		);
 	}
 
