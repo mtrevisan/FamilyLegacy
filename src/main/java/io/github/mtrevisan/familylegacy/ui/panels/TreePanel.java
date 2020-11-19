@@ -51,10 +51,15 @@ public class TreePanel extends JPanel{
 
 	//FIXME remove horizontal scrollbar, enable drag
 	private void initComponents(final GedcomNode family, final Flef store){
-		//TODO extract spouse1 parents
+		//extract spouse1 and spouse2 parents
 		GedcomNode spouse1Parents = null;
-		//TODO extract spouse2 parents
 		GedcomNode spouse2Parents = null;
+		if(family != null){
+			final GedcomNode spouse1 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef());
+			spouse1Parents = store.getFamily(TRANSFORMER.traverse(spouse1, "FAMILY_CHILD").getXRef());
+			final GedcomNode spouse2 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef());
+			spouse2Parents = store.getFamily(TRANSFORMER.traverse(spouse2, "FAMILY_CHILD").getXRef());
+		}
 
 		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
 		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);

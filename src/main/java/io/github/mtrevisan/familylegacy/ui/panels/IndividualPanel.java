@@ -130,7 +130,7 @@ public class IndividualPanel extends JPanel{
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(individual != null && boxType == BoxPanelType.PRIMARY && SwingUtilities.isRightMouseButton(evt))
+					if(individual != null && SwingUtilities.isRightMouseButton(evt))
 						listener.onIndividualEdit(IndividualPanel.this, individual);
 					else if(individual != null && boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
 						listener.onIndividualFocus(IndividualPanel.this, individual);

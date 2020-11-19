@@ -153,9 +153,10 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
 			final GedcomNode pedigree = transformerTo.traverse(childToFamilyLink, "PEDI");
 			final GedcomNode destinationFamilyChild = transformerTo.create("FAMILY_CHILD")
+				.withXRef(childToFamilyLink.getXRef())
 				.addChild(transformerTo.create("PEDIGREE")
-					.addChildValue("SPOUSE1", pedigree.getValue())
-					.addChildValue("SPOUSE2", pedigree.getValue())
+					.addChildValue("PARENT1", pedigree.getValue())
+					.addChildValue("PARENT2", pedigree.getValue())
 				)
 				.addChildValue("CERTAINTY", transformerTo.traverse(childToFamilyLink, "STAT")
 					.getValue());
@@ -373,13 +374,13 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
 			final GedcomNode pedigree = transformerFrom.traverse(childToFamilyLink, "PEDIGREE");
-			final String pedigreeSpouse1 = transformerFrom.traverse(pedigree, "SPOUSE1")
+			final String pedigreeParent1 = transformerFrom.traverse(pedigree, "PARENT1")
 				.getValue();
-			final String pedigreeSpouse2 = transformerFrom.traverse(pedigree, "SPOUSE2")
+			final String pedigreeParent2 = transformerFrom.traverse(pedigree, "PARENT2")
 				.getValue();
 			@SuppressWarnings("StringEquality")
-			final String pedigreeValue = (pedigreeSpouse1 == pedigreeSpouse2 || pedigreeSpouse1.equals(pedigreeSpouse2)?
-				pedigreeSpouse1: "SPOUSE1: " + pedigreeSpouse1 + ", SPOUSE2: " + pedigreeSpouse2);
+			final String pedigreeValue = (pedigreeParent1 == pedigreeParent2 || pedigreeParent1.equals(pedigreeParent2)?
+				pedigreeParent1: "PARENT1: " + pedigreeParent1 + ", PARENT2: " + pedigreeParent2);
 			final GedcomNode destinationFamilyChild = transformerFrom.create("FAMC")
 				.addChildValue("PEDI", pedigreeValue)
 				.addChildValue("STAT", transformerFrom.traverse(childToFamilyLink, "CERTAINTY")

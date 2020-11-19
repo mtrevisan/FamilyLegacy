@@ -184,7 +184,6 @@ public class FamilyPanel extends JPanel{
 
 		final boolean hasFamily = (family != null);
 		marriagePanel.setBorder(hasFamily? BorderFactory.createLineBorder(BORDER_COLOR): BorderFactory.createDashedBorder(BORDER_COLOR));
-		marriagePanel.setBackground(boxType == BoxPanelType.PRIMARY && hasFamily? BACKGROUND_COLOR_INFO_PANEL: BACKGROUND_COLOR);
 	}
 
 
