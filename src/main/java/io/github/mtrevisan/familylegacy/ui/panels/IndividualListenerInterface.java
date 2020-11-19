@@ -27,16 +27,16 @@ package io.github.mtrevisan.familylegacy.ui.panels;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 
-public interface IndividualBoxListenerInterface{
+public interface IndividualListenerInterface{
 
-	void onIndividualEdit(final IndividualBoxPanel boxPanel, final GedcomNode individual);
+	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
 
-	void onIndividualFocus(final IndividualBoxPanel boxPanel, final GedcomNode individual);
+	void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual);
 
-	void onIndividualNew(final IndividualBoxPanel boxPanel);
+	void onIndividualNew(final IndividualPanel boxPanel);
 
-	void onIndividualLink(final IndividualBoxPanel boxPanel);
+	void onIndividualLink(final IndividualPanel boxPanel);
 
-	void onIndividualAddPreferredImage(final IndividualBoxPanel boxPanel, final GedcomNode individual);
+	void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual);
 
 }

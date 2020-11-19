@@ -53,7 +53,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 
-public class IndividualBoxPanel extends JPanel{
+public class IndividualPanel extends JPanel{
 
 	private static final long serialVersionUID = -300117824230109203L;
 
@@ -107,8 +107,8 @@ public class IndividualBoxPanel extends JPanel{
 	private final Flef store;
 
 
-	public IndividualBoxPanel(final GedcomNode individualNode, final Flef store, final BoxPanelType boxType,
-			final IndividualBoxListenerInterface listener){
+	public IndividualPanel(final GedcomNode individualNode, final Flef store, final BoxPanelType boxType,
+			final IndividualListenerInterface listener){
 		this.individualNode = individualNode;
 		this.store = store;
 
@@ -117,26 +117,25 @@ public class IndividualBoxPanel extends JPanel{
 		loadData(boxType);
 	}
 
-	private void initComponents(final BoxPanelType boxType, final IndividualBoxListenerInterface listener){
+	private void initComponents(final BoxPanelType boxType, final IndividualListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
-//		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
 		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(200, 90): new Dimension(170, 55));
-		setPreferredSize(size);
 		setSize(size);
+		setPreferredSize(size);
 		if(listener != null)
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(individualNode != null && boxType == BoxPanelType.PRIMARY && SwingUtilities.isRightMouseButton(evt))
-						listener.onIndividualEdit(IndividualBoxPanel.this, individualNode);
+						listener.onIndividualEdit(IndividualPanel.this, individualNode);
 					else if(individualNode != null && boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
-						listener.onIndividualFocus(IndividualBoxPanel.this, individualNode);
+						listener.onIndividualFocus(IndividualPanel.this, individualNode);
 				}
 			});
 
 		individualNameLabel.setVerticalAlignment(SwingConstants.TOP);
-		individualNameLabel.setMinimumSize(new Dimension(0, 16));
+//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
 		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
 		individualNameLabel.setFont(font);
 
@@ -148,7 +147,7 @@ public class IndividualBoxPanel extends JPanel{
 			newIndividualLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualNew(IndividualBoxPanel.this);
+					listener.onIndividualNew(IndividualPanel.this);
 				}
 			});
 		}
@@ -159,19 +158,19 @@ public class IndividualBoxPanel extends JPanel{
 			linkIndividualLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualLink(IndividualBoxPanel.this);
+					listener.onIndividualLink(IndividualPanel.this);
 				}
 			});
 		}
 
 		imgLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
-		setComponentSize(imgLabel, 48., boxType);
+		setPreferredSize(imgLabel, 48., boxType);
 		if(listener != null){
 			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			imgLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualAddPreferredImage(IndividualBoxPanel.this, individualNode);
+					listener.onIndividualAddPreferredImage(IndividualPanel.this, individualNode);
 				}
 			});
 		}
@@ -216,15 +215,16 @@ public class IndividualBoxPanel extends JPanel{
 						.addGap(0, 0, Short.MAX_VALUE)))
 				.addContainerGap()));
 
-		final int individualMaxWidth = (int)individualNameLabel.getPreferredSize().getWidth();
-		final int individualMaxHeight = (int)individualNameLabel.getPreferredSize().getHeight();
+		final Dimension namePreferredSize = individualNameLabel.getPreferredSize();
+		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
+		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
 		individualNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 	}
 
-	private void setComponentSize(final JComponent component, final double imageWidth, final BoxPanelType boxType){
+	private void setPreferredSize(final JComponent component, final double baseWidth, final BoxPanelType boxType){
 		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
-		final int width = (int)Math.ceil(imageWidth / shrinkFactor);
-		final int height = (int)Math.ceil(imageWidth * IMAGE_ASPECT_RATIO / shrinkFactor);
+		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
+		final int height = (int)Math.ceil(baseWidth * IMAGE_ASPECT_RATIO / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
 	}
 
@@ -241,8 +241,8 @@ public class IndividualBoxPanel extends JPanel{
 			final Color startColor = getBackgroundColor();
 			final Color endColor = Color.WHITE;
 
-//			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-//			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			if(individualNode != null){
 				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, endColor);
 				graphics2D.setPaint(gradientPaint);
@@ -437,35 +437,35 @@ public class IndividualBoxPanel extends JPanel{
 //		GedcomNode individualNode = null;
 		BoxPanelType boxType = BoxPanelType.PRIMARY;
 
-		IndividualBoxListenerInterface listener = new IndividualBoxListenerInterface(){
+		IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override
-			public void onIndividualEdit(IndividualBoxPanel boxPanel, GedcomNode individual){
+			public void onIndividualEdit(IndividualPanel boxPanel, GedcomNode individual){
 				System.out.println("onEdit " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualFocus(IndividualBoxPanel boxPanel, GedcomNode individual){
+			public void onIndividualFocus(IndividualPanel boxPanel, GedcomNode individual){
 				System.out.println("onFocus " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualNew(IndividualBoxPanel boxPanel){
+			public void onIndividualNew(IndividualPanel boxPanel){
 				System.out.println("onNew");
 			}
 
 			@Override
-			public void onIndividualLink(IndividualBoxPanel boxPanel){
+			public void onIndividualLink(IndividualPanel boxPanel){
 				System.out.println("onLink");
 			}
 
 			@Override
-			public void onIndividualAddPreferredImage(IndividualBoxPanel boxPanel, GedcomNode individual){
+			public void onIndividualAddPreferredImage(IndividualPanel boxPanel, GedcomNode individual){
 				System.out.println("onAddPreferredImage " + individual.getID());
 			}
 		};
 
 		EventQueue.invokeLater(() -> {
-			IndividualBoxPanel panel = new IndividualBoxPanel(individualNode, storeFlef, boxType, listener);
+			IndividualPanel panel = new IndividualPanel(individualNode, storeFlef, boxType, listener);
 
 			JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
