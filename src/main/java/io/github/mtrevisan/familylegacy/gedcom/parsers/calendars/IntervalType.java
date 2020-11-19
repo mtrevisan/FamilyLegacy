@@ -28,9 +28,9 @@ import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 
@@ -48,7 +48,7 @@ public enum IntervalType{
 	INTERPRETED("Interpreted", "INT", RegexHelper.pattern("(?i)INT\\.?"));
 
 
-	private static final Set<IntervalType> QUALIFICATION_NOT_PRESENT_IF = new HashSet<>();
+	private static final Collection<IntervalType> QUALIFICATION_NOT_PRESENT_IF = EnumSet.noneOf(IntervalType.class);
 	static{
 		QUALIFICATION_NOT_PRESENT_IF.add(ABOUT);
 		QUALIFICATION_NOT_PRESENT_IF.add(CALCULATED);
@@ -62,11 +62,11 @@ public enum IntervalType{
 	private final Pattern pattern;
 
 
-	public static IntervalType createFromIndex(int index){
+	public static IntervalType createFromIndex(final int index){
 		return values()[index];
 	}
 
-	public static IntervalType createFromDate(String date){
+	public static IntervalType createFromDate(final CharSequence date){
 		for(final IntervalType type : values())
 			if(type.pattern != null && RegexHelper.find(date, type.pattern))
 				return type;

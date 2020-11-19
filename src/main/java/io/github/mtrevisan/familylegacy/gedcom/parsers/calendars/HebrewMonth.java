@@ -63,7 +63,7 @@ enum HebrewMonth{
 	 */
 	public static HebrewMonth fromAbbreviation(final String abbreviation){
 		HebrewMonth result = null;
-		for(HebrewMonth month : values())
+		for(final HebrewMonth month : values())
 			if(month.abbreviation.equalsIgnoreCase(abbreviation)){
 				result = month;
 				break;

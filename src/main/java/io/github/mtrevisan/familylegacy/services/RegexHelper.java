@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.services;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -86,7 +86,7 @@ public final class RegexHelper{
 	}
 
 	private static String[] extractUnlimited(final Matcher matcher){
-		final List<String> result = new ArrayList<>();
+		final Collection<String> result = new ArrayList<>();
 		while(matcher.find()){
 			final String component = getNextGroup(matcher);
 			result.add((component != null? component: matcher.group()));

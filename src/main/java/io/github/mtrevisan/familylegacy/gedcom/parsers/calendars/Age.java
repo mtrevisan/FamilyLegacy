@@ -55,53 +55,53 @@ class Age{
 	private final ApproximationType approximationType;
 
 
-	public Age(int value, boolean approximated, ApproximationType approximationType){
+	Age(final int value, final boolean approximated, final ApproximationType approximationType){
 		this.value = value;
 		this.approximated = approximated;
 		this.approximationType = approximationType;
 	}
 
-	public Age(String value, ApproximationType approximationType){
+	Age(String value, final ApproximationType approximationType){
 		value = StringUtils.strip(value);
 
-		String age = RegexHelper.replaceAll(value, AGE_MATCHER, StringUtils.EMPTY);
+		final String age = RegexHelper.replaceAll(value, AGE_MATCHER, StringUtils.EMPTY);
 		this.value = Integer.parseInt(age);
 		approximated = (value.length() != age.length());
 		this.approximationType = approximationType;
 	}
 
-	public static Age createFromExactAge(int value){
+	public static Age createFromExactAge(final int value){
 		return new Age(value, false, null);
 	}
 
-	public static Age createFromApproximatedAge(int value, ApproximationType approximationType){
+	public static Age createFromApproximatedAge(final int value, final ApproximationType approximationType){
 		return new Age(value, true, approximationType);
 	}
 
-	public static Age createFromDates(String dateFrom, String dateTo, ApproximationType approximationType){
+	public static Age createFromDates(final String dateFrom, final String dateTo, final ApproximationType approximationType){
 		Age age = null;
 		if(dateFrom != null && dateTo != null){
-			LocalDate from = DateParser.parse(dateFrom);
-			LocalDate to = DateParser.parse(dateTo);
+			final LocalDate from = DateParser.parse(dateFrom);
+			final LocalDate to = DateParser.parse(dateTo);
 			if(from != null && to != null){
-				boolean approximatedAge = (AbstractCalendarParser.isApproximation(dateFrom) || AbstractCalendarParser.isApproximation(dateTo));
+				final boolean approximatedAge = (AbstractCalendarParser.isApproximation(dateFrom) || AbstractCalendarParser.isApproximation(dateTo));
 				age = new Age(Period.between(from, to).getYears(), approximatedAge, approximationType);
 			}
 		}
 		return age;
 	}
 
-	public static Age createFromDates(LocalDate from, LocalDate to){
+	public static Age createFromDates(final LocalDate from, final LocalDate to){
 		return createFromPeriod(Period.between(from, to));
 	}
 
-	public static Age createFromPeriod(Period period){
+	public static Age createFromPeriod(final Period period){
 		return createFromExactAge(period.getYears());
 	}
 
 	@Override
 	public String toString(){
-		String text = Integer.toString(value);
+		final String text = Integer.toString(value);
 		if(!approximated)
 			return text;
 

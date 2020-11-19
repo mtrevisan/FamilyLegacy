@@ -105,9 +105,9 @@ public class NeuralNetQuantizationAlgorithm{
 	/* Types and Global Variables
 	-------------------------- */
 	/* the input image itself */
-	private byte[] imageData;
+	private final byte[] imageData;
 	/* lengthCount = H*W*3 */
-	private int length_count;
+	private final int length_count;
 
 	//biased by 10 bits
 	private int alphaDecreaseFactor;
@@ -116,14 +116,14 @@ public class NeuralNetQuantizationAlgorithm{
 	private int samplingFactor;
 
 	//typedef int pixel[4]; /* BGRc */
-	private int[][] network = new int[NET_SIZE][];
+	private final int[][] network = new int[NET_SIZE][];
 
 	/* for network lookup - really 256 */
-	private int[] net_index = new int[256];
+	private final int[] net_index = new int[256];
 
-	private int[] bias = new int[NET_SIZE];
-	private int[] frequency = new int[NET_SIZE];
-	private int[] rad_power = new int[INIT_RAD];
+	private final int[] bias = new int[NET_SIZE];
+	private final int[] frequency = new int[NET_SIZE];
+	private final int[] rad_power = new int[INIT_RAD];
 
 	/* radpower for precomputation */
 
@@ -135,7 +135,7 @@ public class NeuralNetQuantizationAlgorithm{
 		this.samplingFactor = samplingFactor;
 
 		for(int i = 0; i < NET_SIZE; i ++){
-			int p = (i << (NET_BIAS_SHIFT + 8)) / NET_SIZE;
+			final int p = (i << (NET_BIAS_SHIFT + 8)) / NET_SIZE;
 			network[i] = new int[]{p, p, p, 0};
 			//1 / net_size
 			frequency[i] = int_bias / NET_SIZE;
@@ -217,7 +217,7 @@ public class NeuralNetQuantizationAlgorithm{
 		final byte[] p = imageData;
 		int pix = 0;
 		final int lim = length_count;
-		int samplepixels = length_count / (3 * samplingFactor);
+		final int samplepixels = length_count / (3 * samplingFactor);
 		int delta = samplepixels / LEARNING_CYCLES;
 		int alpha = INITIAL_ALPHA;
 		int radius = INITIAL_RADIUS;
@@ -382,7 +382,7 @@ public class NeuralNetQuantizationAlgorithm{
 					p[1] -= (a * (p[1] - g)) / ALPHA_RAD_BIAS;
 					p[2] -= (a * (p[2] - r)) / ALPHA_RAD_BIAS;
 				}
-				catch(Exception e){} // prevents 1.3 miscompilation
+				catch(final Exception ignored){} // prevents 1.3 miscompilation
 			}
 			if(k > lo){
 				final int[] p = network[k --];

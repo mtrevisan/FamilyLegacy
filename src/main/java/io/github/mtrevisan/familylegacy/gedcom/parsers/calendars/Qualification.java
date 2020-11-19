@@ -44,11 +44,11 @@ public enum Qualification{
 	private final Pattern pattern;
 
 
-	public static Qualification createFromIndex(int index){
+	public static Qualification createFromIndex(final int index){
 		return values()[index];
 	}
 
-	public static Qualification createFromDate(String date){
+	public static Qualification createFromDate(final CharSequence date){
 		for(final Qualification type : values())
 			if(type.pattern != null && RegexHelper.find(date, type.pattern))
 				return type;

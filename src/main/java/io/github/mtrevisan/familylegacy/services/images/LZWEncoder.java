@@ -44,6 +44,7 @@ public class LZWEncoder{
 	// General DEFINEs
 	private static final int BITS = 12;
 
+	// for dynamic table sizing
 	private static final int HSIZE = 5003; // 80% occupancy
 
 
@@ -65,20 +66,18 @@ public class LZWEncoder{
 	//              James A. Woods         (decvax!ihnp4!ames!jaw)
 	//              Joe Orost              (decvax!vax135!petsd!joe)
 	int numberOfBits; // number of bits/code
-	int maxbits = BITS; // user settable max # bits/code
+	static final int MAX_BITS = BITS; // user settable max # bits/code
 	int maxcode; // maximum code, given numberOfBits
-	int maxmaxcode = 1 << BITS; // should NEVER generate this code
+	static final int MAX_MAX_CODE = 1 << BITS; // should NEVER generate this code
 
-	int[] htab = new int[HSIZE];
-	int[] codetab = new int[HSIZE];
+	final int[] htab = new int[HSIZE];
+	final int[] codetab = new int[HSIZE];
 
-	int hsize = HSIZE; // for dynamic table sizing
-
-	int freeEntry = 0; // first unused entry
+	int freeEntry; // first unused entry
 
 	// block compression parameters -- after all codes are used up,
 	// and compression rate changes, start over.
-	boolean clearFlag = false;
+	boolean clearFlag;
 
 	// Algorithm: use open addressing double hashing (no chaining) on the
 	// prefix code / next character combination. We do a variant of Knuth's
@@ -110,11 +109,10 @@ public class LZWEncoder{
 	//      Maintain a BITS character long buffer (so that 8 codes will
 	// fit in it exactly).  Use the VAX insv instruction to insert each
 	// code in turn.  When the buffer fills up empty it and start over.
-	int cur_accum = 0;
-	int cur_bits = 0;
+	int cur_accum;
+	int cur_bits;
 
-	int masks[]
-		= {
+	final int[] masks = {
 			0x0000,
 			0x0001,
 			0x0003,
@@ -137,10 +135,10 @@ public class LZWEncoder{
 	int a_count;
 
 	// Define the storage for the packet accumulator
-	byte[] accum = new byte[256];
+	final byte[] accum = new byte[256];
 
 	//----------------------------------------------------------------------------
-	LZWEncoder(int width, int height, byte[] pixels, int colorDepth){
+	LZWEncoder(final int width, final int height, final byte[] pixels, final int colorDepth){
 		imgW = width;
 		imgH = height;
 		pixAry = pixels;
@@ -149,7 +147,7 @@ public class LZWEncoder{
 
 	// Add a character to the end of the current packet, and if it is 254
 	// characters, flush the packet to disk.
-	void charOut(byte c, OutputStream outs) throws IOException{
+	void charOut(final byte c, final OutputStream outs) throws IOException{
 		accum[a_count ++] = c;
 		if(a_count >= 254)
 			flushChar(outs);
@@ -157,8 +155,8 @@ public class LZWEncoder{
 
 	// Clear out the hash table
 	// table clear for block compress
-	void clearBlock(OutputStream outs) throws IOException{
-		clearHash(hsize);
+	void clearBlock(final OutputStream outs) throws IOException{
+		clearHash(HSIZE);
 		freeEntry = clearCode + 2;
 		clearFlag = true;
 
@@ -166,18 +164,18 @@ public class LZWEncoder{
 	}
 
 	// reset code table
-	void clearHash(int hsize){
+	void clearHash(final int hsize){
 		for(int i = 0; i < hsize; i ++)
 			htab[i] = -1;
 	}
 
-	void compress(int initBits, OutputStream outs) throws IOException{
+	void compress(final int initBits, final OutputStream outs) throws IOException{
 		int fcode;
 		int i /* = 0 */;
 		int c;
 		int ent;
 		int disp;
-		int hsize_reg;
+		final int hsize_reg;
 		int hshift;
 
 		// Set up the globals: g_init_bits - initial number of bits
@@ -197,18 +195,18 @@ public class LZWEncoder{
 		ent = nextPixel();
 
 		hshift = 0;
-		for(fcode = hsize; fcode < 65536; fcode *= 2)
+		for(fcode = HSIZE; fcode < 65536; fcode *= 2)
 			 ++ hshift;
 		hshift = 8 - hshift; // set hash code range bound
 
-		hsize_reg = hsize;
+		hsize_reg = HSIZE;
 		clearHash(hsize_reg); // clear hash table
 
 		output(clearCode, outs);
 
 		outer_loop:
 		while((c = nextPixel()) != EOF){
-			fcode = (c << maxbits) + ent;
+			fcode = (c << MAX_BITS) + ent;
 			i = (c << hshift) ^ ent; // xor hashing
 
 			if(htab[i] == fcode){
@@ -232,7 +230,7 @@ public class LZWEncoder{
 			}
 			output(ent, outs);
 			ent = c;
-			if(freeEntry < maxmaxcode){
+			if(freeEntry < MAX_MAX_CODE){
 				codetab[i] = freeEntry ++; // code -> hashtable
 				htab[i] = fcode;
 			}
@@ -245,7 +243,7 @@ public class LZWEncoder{
 	}
 
 	//----------------------------------------------------------------------------
-	void encode(OutputStream os) throws IOException{
+	void encode(final OutputStream os) throws IOException{
 		os.write(initCodeSize); // write "initial code size" byte
 
 		remaining = imgW * imgH; // reset navigation variables
@@ -257,7 +255,7 @@ public class LZWEncoder{
 	}
 
 	// Flush the packet to disk, and reset the accumulator
-	void flushChar(OutputStream outs) throws IOException{
+	void flushChar(final OutputStream outs) throws IOException{
 		if(a_count > 0){
 			outs.write(a_count);
 			outs.write(accum, 0, a_count);
@@ -265,7 +263,7 @@ public class LZWEncoder{
 		}
 	}
 
-	final int MAXCODE(int numberOfBits){
+	final int MAXCODE(final int numberOfBits){
 		return (1 << numberOfBits) - 1;
 	}
 
@@ -278,12 +276,12 @@ public class LZWEncoder{
 
 		 -- remaining;
 
-		byte pix = pixAry[curPixel ++];
+		final byte pix = pixAry[curPixel ++];
 
 		return pix & 0xff;
 	}
 
-	void output(int code, OutputStream outs) throws IOException{
+	void output(final int code, final OutputStream outs) throws IOException{
 		cur_accum &= masks[cur_bits];
 
 		if(cur_bits > 0)
@@ -308,8 +306,8 @@ public class LZWEncoder{
 			}
 			else{
 				 ++ numberOfBits;
-				if(numberOfBits == maxbits)
-					maxcode = maxmaxcode;
+				if(numberOfBits == MAX_BITS)
+					maxcode = MAX_MAX_CODE;
 				else
 					maxcode = MAXCODE(numberOfBits);
 			}

@@ -112,10 +112,12 @@ public final class Transformer{
 	 */
 	@SuppressWarnings("unchecked")
 	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
-		if(path.charAt(path.length() - 1) == ']' && path.charAt(path.length() - 2) != '[')
+		final boolean hasCloseParenthesis = (path.charAt(path.length() - 1) == ']');
+		final boolean hasOpenParenthesis = (path.charAt(path.length() - 2) == '[');
+		if(hasCloseParenthesis && !hasOpenParenthesis)
 			throw new IllegalArgumentException("The array indication `[]` must be last in the path, was " + path);
-		else if(path.charAt(path.length() - 1) != ']' && path.charAt(path.length() - 2) != '[')
-			path = path + "[]";
+		else if(!hasCloseParenthesis && !hasOpenParenthesis)
+			path += "[]";
 		final List<GedcomNode> nodes = (List<GedcomNode>)traverseInner(origin, path);
 		return (nodes != null? nodes: Collections.emptyList());
 	}

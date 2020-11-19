@@ -158,7 +158,7 @@ public class AnimatedGifEncoder{
 	 * @param quality	Quality (greater than <code>0</code>).
 	 */
 	public void setQuality(final int quality){
-		sample = (quality > 1? quality: 1);
+		sample = Math.max(quality, 1);
 	}
 
 	/**
@@ -327,7 +327,7 @@ public class AnimatedGifEncoder{
 		colorTab = nq.process(); // create reduced palette
 		// convert map from BGR to RGB
 		for(int i = 0; i < colorTab.length; i += 3){
-			byte temp = colorTab[i];
+			final byte temp = colorTab[i];
 			colorTab[i] = colorTab[i + 2];
 			colorTab[i + 2] = temp;
 			usedEntry[i / 3] = false;
@@ -428,7 +428,8 @@ public class AnimatedGifEncoder{
 		out.write(0x21); // extension introducer
 		out.write(0xf9); // GCE label
 		out.write(4); // data block size
-		int transp, disp;
+		final int transp;
+		int disp;
 		if(transparent == null){
 			transp = 0;
 			disp = 0; // dispose = no action

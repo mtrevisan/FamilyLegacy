@@ -56,9 +56,11 @@ public class TreePanel extends JPanel{
 		GedcomNode spouse2Parents = null;
 		if(family != null){
 			final GedcomNode spouse1 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef());
-			spouse1Parents = store.getFamily(TRANSFORMER.traverse(spouse1, "FAMILY_CHILD").getXRef());
+			if(!spouse1.isEmpty())
+				spouse1Parents = store.getFamily(TRANSFORMER.traverse(spouse1, "FAMILY_CHILD").getXRef());
 			final GedcomNode spouse2 = store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef());
-			spouse2Parents = store.getFamily(TRANSFORMER.traverse(spouse2, "FAMILY_CHILD").getXRef());
+			if(!spouse2.isEmpty())
+				spouse2Parents = store.getFamily(TRANSFORMER.traverse(spouse2, "FAMILY_CHILD").getXRef());
 		}
 
 		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
@@ -130,7 +132,7 @@ public class TreePanel extends JPanel{
 	}
 
 	@Override
-	protected void paintComponent(Graphics g){
+	protected void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
@@ -155,7 +157,7 @@ public class TreePanel extends JPanel{
 
 //FIXME
 graphics2D.setColor(Color.RED);
-Point p = getChildrenPaintingExitPoint();
+final Point p = getChildrenPaintingExitPoint();
 graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			graphics2D.dispose();
 		}
@@ -212,84 +214,84 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 	}
 
 
-	public static void main(String args[]) throws GedcomParseException, GedcomGrammarParseException{
+	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
-			String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
+			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
-		catch(final Exception e){}
+		catch(final Exception ignored){}
 
-		Store storeGedcom = new Gedcom();
-		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Store storeGedcom = new Gedcom();
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		GedcomNode family = null;
-		BoxPanelType boxType = BoxPanelType.PRIMARY;
+		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 
-		FamilyListenerInterface familyListener = new FamilyListenerInterface(){
+		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
 			@Override
-			public void onFamilyEdit(FamilyPanel boxPanel, GedcomNode family){
+			public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onEditFamily " + family.getID());
 			}
 
 			@Override
-			public void onFamilyFocus(FamilyPanel boxPanel, GedcomNode family){
+			public void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onFocusFamily " + family.getID());
 			}
 
 			@Override
-			public void onFamilyNew(FamilyPanel boxPanel){
+			public void onFamilyNew(final FamilyPanel boxPanel){
 				System.out.println("onNewFamily");
 			}
 
 			@Override
-			public void onFamilyLink(FamilyPanel boxPanel){
+			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
 			}
 
 			@Override
-			public void onFamilyAddChild(FamilyPanel familyPanel, GedcomNode family){
+			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
 				System.out.println("onAddChildFamily");
 			}
 		};
-		IndividualListenerInterface individualListener = new IndividualListenerInterface(){
+		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
 			@Override
-			public void onIndividualEdit(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onEditIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualFocus(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onFocusIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualNew(IndividualPanel boxPanel){
+			public void onIndividualNew(final IndividualPanel boxPanel){
 				System.out.println("onNewIndividual");
 			}
 
 			@Override
-			public void onIndividualLink(IndividualPanel boxPanel){
+			public void onIndividualLink(final IndividualPanel boxPanel){
 				System.out.println("onLinkIndividual");
 			}
 
 			@Override
-			public void onIndividualAddPreferredImage(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onAddPreferredImage " + individual.getID());
 			}
 		};
 
 		EventQueue.invokeLater(() -> {
-			TreePanel panel = new TreePanel(family, storeFlef, familyListener, individualListener);
+			final TreePanel panel = new TreePanel(family, storeFlef, familyListener, individualListener);
 
-			JFrame frame = new JFrame();
+			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
 			frame.getContentPane().add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosing(WindowEvent e){
+				public void windowClosing(final WindowEvent e){
 					System.exit(0);
 				}
 			});

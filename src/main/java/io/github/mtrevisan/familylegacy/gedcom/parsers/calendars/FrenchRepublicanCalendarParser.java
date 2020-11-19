@@ -100,7 +100,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
-	private LocalDate getDate(final String date, final DatePreciseness preciseness){
+	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness){
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){
@@ -189,7 +189,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 		}
 
 		//add 30 days per month
-		return date.plusDays(30 * month.ordinal() + day);
+		return date.plusDays(30l * month.ordinal() + day);
 	}
 
 	/**

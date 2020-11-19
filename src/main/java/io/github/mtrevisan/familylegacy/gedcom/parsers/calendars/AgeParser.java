@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 
 /** A class for parsing ages from strings. */
-public class AgeParser{
+public final class AgeParser{
 
 	private static final String PARAM_RELATION = "relation";
 	private static final String PARAM_YEARS = "years";
@@ -47,6 +47,8 @@ public class AgeParser{
 	private static final Pattern PATTERN_AGE = RegexHelper.pattern("(?i)^(?:" + PATTERN_AGE_RELATION + PATTERN_AGE_YEARS
 		+ PATTERN_AGE_MONTHS + PATTERN_AGE_DAYS + "|" + PATTERN_AGE_INSTANT + ")$");
 
+	private AgeParser(){}
+
 
 	/**
 	 * Parse the string as age.
@@ -54,7 +56,7 @@ public class AgeParser{
 	 * @param age	The age string.
 	 * @return	The age, if it can be derived from the string.
 	 */
-	public static AgeData parse(final String age){
+	public static AgeData parse(final CharSequence age){
 		final AgeData ageData = new AgeData();
 		final Matcher matcher = RegexHelper.matcher(age, PATTERN_AGE);
 		if(matcher.find()){

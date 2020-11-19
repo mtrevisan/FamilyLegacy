@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
@@ -32,7 +33,7 @@ import java.util.regex.Pattern;
 
 
 /** A class for parsing dates from strings. */
-public class DateParser{
+public final class DateParser{
 
 	private static final Pattern PATTERN_APPROX = RegexHelper.pattern("(?i)APP(?:RO)?X\\.?");
 	private static final String DESCRIPTION_APPROX = "Approximated";
@@ -40,6 +41,8 @@ public class DateParser{
 	private static final Pattern PATTERN_AND = RegexHelper.pattern("(?i)AND");
 	private static final String DESCRIPTION_AND = "And";
 	private static final String TYPE_AND = "AND";
+
+	private DateParser(){}
 
 
 	/**
@@ -97,8 +100,8 @@ public class DateParser{
 		String formattedDate = null;
 		if(StringUtils.isNotBlank(date)){
 			date = IntervalType.restoreAll(date);
-			date = date.replaceAll(DESCRIPTION_APPROX, TYPE_APPROX);
-			date = date.replaceAll(DESCRIPTION_AND, TYPE_AND);
+			date = RegExUtils.replaceAll(date, DESCRIPTION_APPROX, TYPE_APPROX);
+			date = RegExUtils.replaceAll(date, DESCRIPTION_AND, TYPE_AND);
 			date = Era.restoreAll(date);
 			date = GregorianMonth.restoreAll(date);
 			date = FrenchRepublicanMonth.restoreAll(date);

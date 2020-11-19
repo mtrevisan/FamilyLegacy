@@ -39,7 +39,7 @@ public enum Era{
 	private final Pattern pattern;
 
 
-	public static Era fromDate(final String date){
+	public static Era fromDate(final CharSequence date){
 		if(date != null)
 			for(final Era type : values())
 				if(RegexHelper.find(date, type.pattern))

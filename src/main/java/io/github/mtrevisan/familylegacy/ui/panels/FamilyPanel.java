@@ -32,6 +32,34 @@ public class FamilyPanel extends JPanel{
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
+	private static class PopupMouseAdapter extends MouseAdapter{
+
+		private final JPopupMenu popupMenu;
+		private final JComponent component;
+
+		PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
+			this.popupMenu = popupMenu;
+			this.component = component;
+		}
+
+		@Override
+		public void mouseClicked(final MouseEvent e){
+			processMouseEvent(e);
+		}
+
+		@Override
+		public void mouseReleased(final MouseEvent e){
+			processMouseEvent(e);
+		}
+
+		private void processMouseEvent(final MouseEvent e){
+			if(e.isPopupTrigger()){
+				popupMenu.show(e.getComponent(), e.getX(), e.getY());
+				popupMenu.setInvoker(component);
+			}
+		}
+	}
+
 
 	private IndividualPanel spouse1Panel;
 	private IndividualPanel spouse2Panel;
@@ -130,24 +158,7 @@ public class FamilyPanel extends JPanel{
 		addChildItem.setEnabled(family != null);
 		popupMenu.add(addChildItem);
 
-		component.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent e){
-				processMouseEvent(e);
-			}
-
-			@Override
-			public void mouseReleased(final MouseEvent e){
-				processMouseEvent(e);
-			}
-
-			private void processMouseEvent(final MouseEvent e){
-				if(e.isPopupTrigger()){
-					popupMenu.show(e.getComponent(), e.getX(), e.getY());
-					popupMenu.setInvoker(component);
-				}
-			}
-		});
+		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
 	@Override
@@ -197,84 +208,84 @@ public class FamilyPanel extends JPanel{
 	}
 
 
-	public static void main(String args[]) throws GedcomParseException, GedcomGrammarParseException{
+	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
-			String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
+			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
-		catch(final Exception e){}
+		catch(final Exception ignored){}
 
-		Store storeGedcom = new Gedcom();
-		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Store storeGedcom = new Gedcom();
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		GedcomNode family = null;
-		BoxPanelType boxType = BoxPanelType.PRIMARY;
+		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 
-		FamilyListenerInterface familyListener = new FamilyListenerInterface(){
+		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
 			@Override
-			public void onFamilyEdit(FamilyPanel boxPanel, GedcomNode family){
+			public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onEditFamily " + family.getID());
 			}
 
 			@Override
-			public void onFamilyFocus(FamilyPanel boxPanel, GedcomNode family){
+			public void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onFocusFamily " + family.getID());
 			}
 
 			@Override
-			public void onFamilyNew(FamilyPanel boxPanel){
+			public void onFamilyNew(final FamilyPanel boxPanel){
 				System.out.println("onNewFamily");
 			}
 
 			@Override
-			public void onFamilyLink(FamilyPanel boxPanel){
+			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
 			}
 
 			@Override
-			public void onFamilyAddChild(FamilyPanel familyPanel, GedcomNode family){
+			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
 				System.out.println("onAddChildFamily");
 			}
 		};
-		IndividualListenerInterface individualListener = new IndividualListenerInterface(){
+		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
 			@Override
-			public void onIndividualEdit(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onEditIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualFocus(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onFocusIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualNew(IndividualPanel boxPanel){
+			public void onIndividualNew(final IndividualPanel boxPanel){
 				System.out.println("onNewIndividual");
 			}
 
 			@Override
-			public void onIndividualLink(IndividualPanel boxPanel){
+			public void onIndividualLink(final IndividualPanel boxPanel){
 				System.out.println("onLinkIndividual");
 			}
 
 			@Override
-			public void onIndividualAddPreferredImage(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onAddPreferredImage " + individual.getID());
 			}
 		};
 
 		EventQueue.invokeLater(() -> {
-			FamilyPanel panel = new FamilyPanel(family, storeFlef, boxType, familyListener, individualListener);
+			final FamilyPanel panel = new FamilyPanel(family, storeFlef, boxType, familyListener, individualListener);
 
-			JFrame frame = new JFrame();
+			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
 			frame.getContentPane().add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosing(WindowEvent e){
+				public void windowClosing(final WindowEvent e){
 					System.exit(0);
 				}
 			});

@@ -94,7 +94,6 @@ public final class ReflectionHelper{
 		final Queue<Type> ancestorsQueue = extractAncestors(offspring);
 
 		//iterate over ancestors
-		@SuppressWarnings("rawtypes")
 		final List<Class<?>> types = new ArrayList<>();
 		while(!ancestorsQueue.isEmpty()){
 			final Type ancestorType = ancestorsQueue.poll();

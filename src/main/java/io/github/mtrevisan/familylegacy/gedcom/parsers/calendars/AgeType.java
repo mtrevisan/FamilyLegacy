@@ -50,13 +50,13 @@ public enum AgeType{
 	private final Pattern pattern;
 
 
-	public static AgeType createFromIndex(int index){
+	public static AgeType createFromIndex(final int index){
 		return values()[index];
 	}
 
-	public static AgeType createFromText(String instant){
+	public static AgeType createFromText(final CharSequence instant){
 		if(instant != null)
-			for(AgeType type : values())
+			for(final AgeType type : values())
 				if(type.pattern != null && RegexHelper.find(instant, type.pattern))
 					return type;
 		return EXACT;

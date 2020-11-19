@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import java.util.regex.Pattern;
 
 
-class CalendarParserBuilder{
+final class CalendarParserBuilder{
 
 	private static final Pattern PATTERN_CALENDAR_TYPE_PREFIX = RegexHelper.pattern("@#D[^@]+@ ");
 
@@ -38,9 +38,11 @@ class CalendarParserBuilder{
 	public static final String CALENDAR_GREGORIAN = "@#DGREGORIAN@";
 	public static final String CALENDAR_JULIAN = "@#DJULIAN@";
 
+	private CalendarParserBuilder(){}
+
 
 	public static AbstractCalendarParser getParser(final String date){
-		AbstractCalendarParser parser;
+		final AbstractCalendarParser parser;
 		if(date.startsWith(CALENDAR_GREGORIAN))
 			parser = GregorianCalendarParser.getInstance();
 		else if(date.startsWith(CALENDAR_JULIAN))
@@ -54,7 +56,7 @@ class CalendarParserBuilder{
 		return parser;
 	}
 
-	public static String removeCalendarType(final String date){
+	public static String removeCalendarType(final CharSequence date){
 		return RegexHelper.clear(date, PATTERN_CALENDAR_TYPE_PREFIX);
 	}
 

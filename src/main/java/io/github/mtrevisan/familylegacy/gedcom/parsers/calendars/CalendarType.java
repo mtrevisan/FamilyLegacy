@@ -40,7 +40,7 @@ public enum CalendarType{
 	private final String type;
 
 
-	public static CalendarType createFromIndex(int index){
+	public static CalendarType createFromIndex(final int index){
 		return values()[index];
 	}
 

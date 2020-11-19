@@ -107,7 +107,7 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
-	private LocalDate getDate(final String date, final DatePreciseness preciseness) throws IllegalArgumentException{
+	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){

@@ -454,58 +454,58 @@ public class IndividualPanel extends JPanel{
 	}
 
 
-	public static void main(String args[]) throws GedcomParseException, GedcomGrammarParseException{
+	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
-			String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
+			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
-		catch(final Exception e){}
+		catch(final Exception ignored){}
 
-		Store storeGedcom = new Gedcom();
-		Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Store storeGedcom = new Gedcom();
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		GedcomNode individual = storeFlef.getIndividuals().get(1500);
+		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
 //		GedcomNode individual = null;
-		BoxPanelType boxType = BoxPanelType.PRIMARY;
+		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 
-		IndividualListenerInterface listener = new IndividualListenerInterface(){
+		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override
-			public void onIndividualEdit(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onEditIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualFocus(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onFocusIndividual " + individual.getID());
 			}
 
 			@Override
-			public void onIndividualNew(IndividualPanel boxPanel){
+			public void onIndividualNew(final IndividualPanel boxPanel){
 				System.out.println("onNewIndividual");
 			}
 
 			@Override
-			public void onIndividualLink(IndividualPanel boxPanel){
+			public void onIndividualLink(final IndividualPanel boxPanel){
 				System.out.println("onLinkIndividual");
 			}
 
 			@Override
-			public void onIndividualAddPreferredImage(IndividualPanel boxPanel, GedcomNode individual){
+			public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 				System.out.println("onAddPreferredImage " + individual.getID());
 			}
 		};
 
 		EventQueue.invokeLater(() -> {
-			IndividualPanel panel = new IndividualPanel(individual, storeFlef, boxType, listener);
+			final IndividualPanel panel = new IndividualPanel(individual, storeFlef, boxType, listener);
 
-			JFrame frame = new JFrame();
+			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
 			frame.getContentPane().add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosing(WindowEvent e){
+				public void windowClosing(final WindowEvent e){
 					System.exit(0);
 				}
 			});

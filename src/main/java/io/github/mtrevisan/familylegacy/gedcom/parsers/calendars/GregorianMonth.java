@@ -58,7 +58,7 @@ enum GregorianMonth{
 	 * @param abbreviation	The GEDCOM spec abbreviation for this month.
 	 * @return	The enum constant that matches the abbreviation.
 	 */
-	public static GregorianMonth fromAbbreviation(String abbreviation){
+	public static GregorianMonth fromAbbreviation(final String abbreviation){
 		for(final GregorianMonth month : values())
 			if(month.abbreviation.equalsIgnoreCase(abbreviation))
 				return month;

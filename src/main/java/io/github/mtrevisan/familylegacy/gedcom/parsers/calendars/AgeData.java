@@ -58,7 +58,7 @@ public class AgeData{
 	}
 
 	public String getAge(){
-		StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		sj.add(ageType.getDescription());
 		if(ageType == AgeType.EXACT || ageType == AgeType.LESS_THAN || ageType == AgeType.MORE_THAN){
 			if(StringUtils.isNotBlank(years))

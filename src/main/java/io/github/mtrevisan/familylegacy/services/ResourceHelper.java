@@ -73,14 +73,14 @@ public final class ResourceHelper{
 			final int hints = Image.SCALE_SMOOTH;
 			return scaleImage(icon, w, h, hints);
 		}
-		catch(IOException ex){
+		catch(final IOException ex){
 			LOGGER.error(null, ex);
 		}
 		return null;
 	}
 
 	private static ImageIcon scaleImage(final ImageIcon icon, final int w, final int h, final int hints) throws IOException{
-		ImageIcon scaled;
+		final ImageIcon scaled;
 		if(icon.getDescription().endsWith(EXTENSION_GIF)){
 			final GifDecoder decoder = new GifDecoder();
 			decoder.read(icon.getDescription());
@@ -98,7 +98,7 @@ public final class ResourceHelper{
 				final BufferedImage frame = decoder.getFrame(frameNumber);
 				final int delay = decoder.getDelay(frameNumber);
 				encoder.setDelay(delay);
-				encoder.addFrame(toBufferedImage(((Image)frame).getScaledInstance(w, h, hints)));
+				encoder.addFrame(toBufferedImage(frame.getScaledInstance(w, h, hints)));
 			}
 			encoder.finish();
 

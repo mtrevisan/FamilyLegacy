@@ -53,7 +53,7 @@ public abstract class AbstractCalendarParser{
 
 	public abstract CalendarType getCalendarType();
 
-	public CalendarData extractComponents(final String date){
+	public CalendarData extractComponents(final CharSequence date){
 		String plainDate = CalendarParserBuilder.removeCalendarType(date);
 
 		final String[] rawComponents = StringUtils.splitByWholeSeparator(plainDate, StringUtils.SPACE);
@@ -100,7 +100,7 @@ public abstract class AbstractCalendarParser{
 
 	public abstract int parseMonth(final String month);
 
-	public boolean isRange(final String date){
+	public boolean isRange(final CharSequence date){
 		return RegexHelper.matches(date, PATTERN_TWO_DATES);
 	}
 
@@ -156,7 +156,7 @@ public abstract class AbstractCalendarParser{
 	 * @param date	The date string.
 	 * @return	A version of the string with approximation prefixes removed.
 	 */
-	public static boolean isApproximation(final String date){
+	public static boolean isApproximation(final CharSequence date){
 		return RegexHelper.find(date, PATTERN_PREFIXES_APPROXIMATIONS);
 	}
 
@@ -172,7 +172,7 @@ public abstract class AbstractCalendarParser{
 		return date;
 	}
 
-	protected String extractInterpretedFrom(final String date){
+	protected String extractInterpretedFrom(final CharSequence date){
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_INTERPRETATION_TEXT);
 		return (matcher.find()? matcher.group(0): null);
 	}

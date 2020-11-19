@@ -100,7 +100,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
 	}
 
-	private LocalDate getDate(String date, DatePreciseness preciseness){
+	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness){
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){
@@ -272,7 +272,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 			//see rule 2 above. Check the Hebrew year 5765 for an example
 			if(hours >= 18){
 				dayOfWeek += 1;
-				dayOfWeek = dayOfWeek % 7;
+				dayOfWeek %= 7;
 				days += 1;
 			}
 			//see rule 1 above. Check the Hebrew year 5765 for an example
