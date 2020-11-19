@@ -98,13 +98,13 @@ public class TreePanel extends JPanel{
 				.addGroup(layout.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addComponent(homeFamilyPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addGroup(layout.createSequentialGroup()
 							.addComponent(spouse1ParentsPanel, GroupLayout.PREFERRED_SIZE, 400, GroupLayout.PREFERRED_SIZE)
 							.addGap(18, 18, 18)
 							.addComponent(spouse2ParentsPanel, GroupLayout.PREFERRED_SIZE, 400, GroupLayout.PREFERRED_SIZE)
 							.addGap(0, 0, Short.MAX_VALUE)
 						)
+						.addComponent(homeFamilyPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
 						.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
 							.addGap(0, 0, Short.MAX_VALUE)
 							.addComponent(childrenScrollPane, GroupLayout.PREFERRED_SIZE, 821, GroupLayout.PREFERRED_SIZE)
@@ -148,12 +148,12 @@ public class TreePanel extends JPanel{
 				new float[]{1}, 0);
 			graphics2D.setStroke(dashedStroke);
 
-			if(spouse1ParentsPanel.isVisible())
-				graphics2D.drawLine(husbandParentsExitingPoint.x, husbandParentsExitingPoint.y,
-					husbandParentsExitingPoint.x, homeFamilyEnteringPoint.y);
-			if(spouse2ParentsPanel.isVisible())
-				graphics2D.drawLine(wifeParentsExitingPoint.x, wifeParentsExitingPoint.y,
-					wifeParentsExitingPoint.x, homeFamilyEnteringPoint.y);
+//			if(spouse1ParentsPanel.isVisible())
+//				graphics2D.drawLine(husbandParentsExitingPoint.x, husbandParentsExitingPoint.y,
+//					husbandParentsExitingPoint.x, homeFamilyEnteringPoint.y);
+//			if(spouse2ParentsPanel.isVisible())
+//				graphics2D.drawLine(wifeParentsExitingPoint.x, wifeParentsExitingPoint.y,
+//					wifeParentsExitingPoint.x, homeFamilyEnteringPoint.y);
 
 //FIXME
 graphics2D.setColor(Color.RED);
@@ -163,36 +163,95 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		}
 	}
 
-	public void loadData(){
-		//FIXME really needed?
-//		removeAll();
-
-//		final GroupLayout layout = new GroupLayout(this);
-//		sequentialGroup = layout.createSequentialGroup();
-//		parallelGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
-//		layout.setHorizontalGroup(sequentialGroup);
-//		layout.setVerticalGroup(parallelGroup);
-//		setLayout(layout);
+//	public void loadData(Individual individual, boolean treeHasIndividuals){
+//		java.util.List<FamilySpouse> familySpouses = individual.getFamiliesWhereSpouse();
+//		Family homeFamily = Optional.ofNullable(familySpouses)
+//			.filter(list -> !list.isEmpty())
+//			//FIXME remember which family was before
+//			.map(list -> list.get(0))
+//			.map(FamilySpouse::getFamily)
+//			.orElse(null);
+//		if(homeFamily != null)
+//			loadData(homeFamily);
+//		else{
+//			Sex sex = individual.getSexAsEnum();
+//			switch(sex){
+//				case MALE:
+//				case UNKNOWN: {
+//					homeFamilyBoxPanel.loadData(null, individual, null, treeHasIndividuals);
+//					java.util.List<FamilyChild> familiesChild = individual.getFamiliesWhereChild();
+//					Family individualParents = Optional.ofNullable(familiesChild)
+//						.filter(list -> !list.isEmpty())
+//						//FIXME remember which family was before
+//						.map(list -> list.get(0))
+//						.map(FamilyChild::getFamily)
+//						.orElse(null);
+//					husbandParentsBoxPanel.loadData(individualParents);
+//					wifeParentsBoxPanel.loadData(null);
+//					childrenBoxPanel.loadData(null);
 //
-//		final List<GedcomNode> children = TRANSFORMER.traverseAsList(homeFamily, "CHILD[]");
-//		if(!children.isEmpty()){
-//			sequentialGroup.addGap(0, 0, Short.MAX_VALUE);
+//					husbandParentsBoxPanel.setVisible(true);
+//					wifeParentsBoxPanel.setVisible(false);
+//				} break;
 //
-//			final Iterator<GedcomNode> itr = children.iterator();
-//			while(itr.hasNext()){
-//				final String individualXRef = itr.next().getXRef();
-//				final GedcomNode individual = store.getIndividual(individualXRef);
-//				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
+//				case FEMALE: {
+//					homeFamilyBoxPanel.loadData(null, null, individual, treeHasIndividuals);
+//					java.util.List<FamilyChild> familiesChild = individual.getFamiliesWhereChild();
+//					Family individualParents = Optional.ofNullable(familiesChild)
+//						.filter(list -> !list.isEmpty())
+//						//FIXME remember which family was before
+//						.map(list -> list.get(0))
+//						.map(FamilyChild::getFamily)
+//						.orElse(null);
+//					husbandParentsBoxPanel.loadData(null);
+//					wifeParentsBoxPanel.loadData(individualParents);
+//					childrenBoxPanel.loadData(null);
 //
-//				sequentialGroup.addComponent(individualBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
-//				if(itr.hasNext())
-//					sequentialGroup.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED);
-//				parallelGroup.addComponent(individualBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE);
+//					husbandParentsBoxPanel.setVisible(false);
+//					wifeParentsBoxPanel.setVisible(true);
+//				}
 //			}
+//
 //
 //			revalidate();
 //			repaint();
 //		}
+//	}
+
+	public void loadData(){
+//		Family husbandParents = Optional.ofNullable(family)
+//			.map(Family::getHusband)
+//			.map(IndividualReference::getIndividual)
+//			.map(Individual::getFamiliesWhereChild)
+//			.filter(list -> !list.isEmpty())
+//			//FIXME remember which family was before
+//			.map(list -> list.get(0))
+//			.map(FamilyChild::getFamily)
+//			.orElse(null);
+//		husbandParentsBoxPanel.loadData(husbandParents);
+//
+//		Family wifeParents = Optional.ofNullable(family)
+//			.map(Family::getWife)
+//			.map(IndividualReference::getIndividual)
+//			.map(Individual::getFamiliesWhereChild)
+//			.filter(list -> !list.isEmpty())
+//			//FIXME remember which family was before
+//			.map(list -> list.get(0))
+//			.map(FamilyChild::getFamily)
+//			.orElse(null);
+//		wifeParentsBoxPanel.loadData(wifeParents);
+//
+//		homeFamilyBoxPanel.loadData(family);
+//
+//		List<IndividualReference> children = family.getChildren();
+//		childrenBoxPanel.loadData(children);
+//
+//		husbandParentsBoxPanel.setVisible(Optional.ofNullable(family).map(Family::getHusband).isPresent());
+//		wifeParentsBoxPanel.setVisible(Optional.ofNullable(family).map(Family::getWife).isPresent());
+//
+//
+//		revalidate();
+//		repaint();
 	}
 
 
