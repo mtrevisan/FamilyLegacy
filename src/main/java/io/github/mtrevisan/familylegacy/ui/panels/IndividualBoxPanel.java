@@ -114,7 +114,10 @@ public class IndividualBoxPanel extends JPanel{
 	private void initComponents(final BoxPanelType boxType, final IndividualBoxListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
-		setPreferredSize(boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
+//		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(400, 136): new Dimension(190, 68));
+		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(200, 90): new Dimension(170, 55));
+		setPreferredSize(size);
+		setSize(size);
 		if(listener != null)
 			addMouseListener(new MouseAdapter(){
 				@Override
@@ -235,7 +238,7 @@ public class IndividualBoxPanel extends JPanel{
 //			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 //			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			if(individualNode != null){
-				final GradientPaint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, endColor);
+				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, endColor);
 				graphics2D.setPaint(gradientPaint);
 			}
 			else
@@ -245,7 +248,7 @@ public class IndividualBoxPanel extends JPanel{
 
 			graphics2D.setColor(BORDER_COLOR);
 			if(individualNode == null){
-				final BasicStroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
 					10.f, new float[]{5.f}, 0.f);
 				graphics2D.setStroke(dashedStroke);
 			}
@@ -281,6 +284,8 @@ public class IndividualBoxPanel extends JPanel{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
 		birthDeathAgeLabel.setText(sj.toString());
+		final Font baseFont = individualNameLabel.getFont();
+		birthDeathAgeLabel.setFont(baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * 0.8f));
 
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), imgLabel.getPreferredSize());
 		imgLabel.setIcon(icon);
@@ -405,7 +410,7 @@ public class IndividualBoxPanel extends JPanel{
 	}
 
 	private void writeGeneralInfo(){
-		int row = 0;
+//		int row = 0;
 //		String birthDate = individual.getBirthDate();
 //		if(birthDate != null){
 //			infoTable.setValueAt("Born:", row, 0);
@@ -488,20 +493,24 @@ public class IndividualBoxPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			JDialog dialog = new JDialog(new JFrame(), true);
-			BoxPanelType boxType = BoxPanelType.PRIMARY;
+			BoxPanelType boxType = BoxPanelType.SECONDARY;
 			IndividualBoxPanel panel = new IndividualBoxPanel(individualNode, true, boxType, listener);
-			dialog.add(panel);
-			dialog.addWindowListener(new WindowAdapter(){
+
+			JFrame frame = new JFrame();
+			frame.getContentPane().setLayout(new BorderLayout());
+			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(WindowEvent e){
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setMinimumSize(boxType == BoxPanelType.PRIMARY?
+			frame.setLocationRelativeTo(null);
+			frame.setMinimumSize(boxType == BoxPanelType.PRIMARY?
 				new Dimension(80*3, 60*3): new Dimension(40*3, 30*3));
-			dialog.setVisible(true);
+			frame.setVisible(true);
 		});
 	}
 
