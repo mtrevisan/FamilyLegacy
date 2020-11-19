@@ -112,8 +112,8 @@ public class FamilyPanel extends JPanel{
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
 		layout.setHorizontalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup()
+			layout.createParallelGroup()
+				.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 					.addComponent(spouse1Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 					.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
@@ -123,8 +123,8 @@ public class FamilyPanel extends JPanel{
 		);
 		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
 		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-				.addGroup(layout.createSequentialGroup()
+			layout.createParallelGroup()
+				.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 					.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
 						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addComponent(spouse1Panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)

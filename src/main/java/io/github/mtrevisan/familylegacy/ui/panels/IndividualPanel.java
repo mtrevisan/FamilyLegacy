@@ -180,8 +180,8 @@ public class IndividualPanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 				.addContainerGap()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addGroup(layout.createSequentialGroup()
@@ -206,8 +206,8 @@ public class IndividualPanel extends JPanel{
 				.addContainerGap()
 			)
 		);
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-			.addGroup(layout.createSequentialGroup()
+		layout.setVerticalGroup(layout.createParallelGroup()
+			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 				.addContainerGap()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
 					.addGroup(layout.createSequentialGroup()
