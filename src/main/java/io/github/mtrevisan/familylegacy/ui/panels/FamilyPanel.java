@@ -12,8 +12,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -33,34 +31,6 @@ public class FamilyPanel extends JPanel{
 	public static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
-
-	private static class PopupMouseAdapter extends MouseAdapter{
-
-		private final JPopupMenu popupMenu;
-		private final JComponent component;
-
-		PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
-			this.popupMenu = popupMenu;
-			this.component = component;
-		}
-
-		@Override
-		public void mouseClicked(final MouseEvent e){
-			processMouseEvent(e);
-		}
-
-		@Override
-		public void mouseReleased(final MouseEvent e){
-			processMouseEvent(e);
-		}
-
-		private void processMouseEvent(final MouseEvent e){
-			if(e.isPopupTrigger()){
-				popupMenu.show(e.getComponent(), e.getX(), e.getY());
-				popupMenu.setInvoker(component);
-			}
-		}
-	}
 
 
 	private IndividualPanel spouse1Panel;
@@ -135,22 +105,21 @@ public class FamilyPanel extends JPanel{
 
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
-		editFamilyItem = new JMenuItem("Edit Family...", 'E');
+
+		editFamilyItem = new JMenuItem("Edit Family…", 'E');
 		editFamilyItem.setEnabled(family != null);
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
-		newFamilyItem = new JMenuItem("New Family...", 'N');
-		newFamilyItem.addActionListener(e -> familyListener.onFamilyNew(this));
-		newFamilyItem.setEnabled(family == null);
-		popupMenu.add(newFamilyItem);
-		linkFamilyItem = new JMenuItem("Link Family...", 'L');
-		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
-		linkFamilyItem.setEnabled(family == null);
-		popupMenu.add(linkFamilyItem);
-		addChildItem = new JMenuItem("Add Child...", 'C');
+
+		addChildItem = new JMenuItem("Add Child…", 'C');
 		addChildItem.addActionListener(e -> familyListener.onFamilyAddChild(this, family));
 		addChildItem.setEnabled(family != null);
 		popupMenu.add(addChildItem);
+
+		linkFamilyItem = new JMenuItem("Link Family…", 'L');
+		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
+		linkFamilyItem.setEnabled(family == null);
+		popupMenu.add(linkFamilyItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
@@ -225,11 +194,6 @@ public class FamilyPanel extends JPanel{
 			@Override
 			public void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onFocusFamily " + family.getID());
-			}
-
-			@Override
-			public void onFamilyNew(final FamilyPanel boxPanel){
-				System.out.println("onNewFamily");
 			}
 
 			@Override

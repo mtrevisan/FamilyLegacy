@@ -22,11 +22,15 @@ public class TreePanel extends JPanel{
 
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 
-	private static final int GENERATION_SEPARATION = 20;
+	private static final int GENERATION_SEPARATOR_SIZE = 20;
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
+	private FamilyPanel spouse1Parent1ParentsPanel;
+	private FamilyPanel spouse1Parent2ParentsPanel;
+	private FamilyPanel spouse2Parent1ParentsPanel;
+	private FamilyPanel spouse2Parent2ParentsPanel;
 	private FamilyPanel spouse1ParentsPanel;
 	private FamilyPanel spouse2ParentsPanel;
 	private FamilyPanel homeFamilyPanel;
@@ -39,23 +43,25 @@ public class TreePanel extends JPanel{
 	private final FamilyListenerInterface familyListener;
 
 
-	public TreePanel(final GedcomNode homeFamily, final Flef store, final FamilyListenerInterface familyListener,
+	public TreePanel(final GedcomNode homeFamily, final int generations, final Flef store, final FamilyListenerInterface familyListener,
 			final IndividualListenerInterface individualListener){
 		this.homeFamily = homeFamily;
 		this.store = store;
 		this.individualListener = individualListener;
 		this.familyListener = familyListener;
 
-		initComponents(homeFamily, store);
+		if(generations <= 3)
+			initComponents3Generations(homeFamily);
+		else
+			initComponents4Generations(homeFamily);
 
 		loadData();
 	}
 
-	//FIXME allow room for horizontal scroolbar
 	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
-	private void initComponents(final GedcomNode family, final Flef store){
-		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1", store);
-		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2", store);
+	private void initComponents3Generations(final GedcomNode family){
+		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
+		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
 
 		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
 		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
@@ -86,14 +92,78 @@ public class TreePanel extends JPanel{
 				.addComponent(spouse1ParentsPanel)
 				.addComponent(spouse2ParentsPanel)
 			)
-			.addGap(GENERATION_SEPARATION)
+			.addGap(GENERATION_SEPARATOR_SIZE)
 			.addComponent(homeFamilyPanel)
-			.addGap(GENERATION_SEPARATION)
+			.addGap(GENERATION_SEPARATOR_SIZE)
 			.addComponent(childrenScrollPane)
 		);
 	}
 
-	private GedcomNode extractParents(final GedcomNode family, final String spouseTag, final Flef store){
+	private void initComponents4Generations(final GedcomNode family){
+		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
+		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
+		final GedcomNode spouse1Parent1Parents = extractParents(spouse1Parents, "SPOUSE1");
+		final GedcomNode spouse1Parent2Parents = extractParents(spouse1Parents, "SPOUSE2");
+		final GedcomNode spouse2Parent1Parents = extractParents(spouse2Parents, "SPOUSE1");
+		final GedcomNode spouse2Parent2Parents = extractParents(spouse2Parents, "SPOUSE2");
+
+		spouse1Parent1ParentsPanel = new FamilyPanel(spouse1Parent1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse1Parent2ParentsPanel = new FamilyPanel(spouse1Parent2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse2Parent1ParentsPanel = new FamilyPanel(spouse2Parent1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse2Parent2ParentsPanel = new FamilyPanel(spouse2Parent2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		homeFamilyPanel = new FamilyPanel(homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
+		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
+
+		setBackground(BACKGROUND_COLOR_APPLICATION);
+
+		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
+		childrenScrollPane.setBorder(null);
+		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+		childrenScrollPane.setAutoscrolls(true);
+		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
+
+		final GroupLayout layout = new GroupLayout(this);
+		setLayout(layout);
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(spouse1Parent1ParentsPanel)
+				.addGap(FamilyPanel.SPOUSE_SEPARATION)
+				.addComponent(spouse1Parent2ParentsPanel)
+				.addGap(FamilyPanel.SPOUSE_SEPARATION)
+				.addComponent(spouse2Parent1ParentsPanel)
+				.addGap(FamilyPanel.SPOUSE_SEPARATION)
+				.addComponent(spouse2Parent2ParentsPanel)
+			)
+			.addGroup(layout.createSequentialGroup()
+				.addComponent(spouse1ParentsPanel)
+				.addGap(FamilyPanel.SPOUSE_SEPARATION)
+				.addComponent(spouse2ParentsPanel)
+			)
+			.addComponent(homeFamilyPanel)
+			.addComponent(childrenScrollPane)
+		);
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createParallelGroup()
+				.addComponent(spouse1Parent1ParentsPanel)
+				.addComponent(spouse1Parent2ParentsPanel)
+				.addComponent(spouse2Parent1ParentsPanel)
+				.addComponent(spouse2Parent2ParentsPanel)
+			)
+			.addGap(GENERATION_SEPARATOR_SIZE)
+			.addGroup(layout.createParallelGroup()
+				.addComponent(spouse1ParentsPanel)
+				.addComponent(spouse2ParentsPanel)
+			)
+			.addGap(GENERATION_SEPARATOR_SIZE)
+			.addComponent(homeFamilyPanel)
+			.addGap(GENERATION_SEPARATOR_SIZE)
+			.addComponent(childrenScrollPane)
+		);
+	}
+
+	private GedcomNode extractParents(final GedcomNode family, final String spouseTag){
 		GedcomNode parents = null;
 		if(family != null){
 			final GedcomNode spouse = store.getIndividual(TRANSFORMER.traverse(family, spouseTag).getXRef());
@@ -270,18 +340,13 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			}
 
 			@Override
-			public void onFamilyNew(final FamilyPanel boxPanel){
-				System.out.println("onNewFamily");
-			}
-
-			@Override
 			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
 			}
 
 			@Override
 			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
-				System.out.println("onAddChildFamily");
+				System.out.println("onAddChildFamily " + family.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
@@ -312,7 +377,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = new TreePanel(family, storeFlef, familyListener, individualListener);
+			final TreePanel panel = new TreePanel(family, 4, storeFlef, familyListener, individualListener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

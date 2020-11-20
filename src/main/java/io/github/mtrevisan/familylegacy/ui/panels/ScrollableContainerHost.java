@@ -51,7 +51,7 @@ public class ScrollableContainerHost extends JPanel implements Scrollable{
 
 	@Override
 	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction){
-		return 128;
+		return 64;
 	}
 
 	@Override
