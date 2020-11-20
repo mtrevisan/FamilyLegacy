@@ -350,6 +350,16 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
 				System.out.println("onAddChildFamily " + family.getID());
 			}
+
+			@Override
+			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
+				System.out.println("onPrevSpouseFamily " + spouse.getID());
+			}
+
+			@Override
+			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
+				System.out.println("onNextSpouseFamily " + spouse.getID());
+			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
 			@Override

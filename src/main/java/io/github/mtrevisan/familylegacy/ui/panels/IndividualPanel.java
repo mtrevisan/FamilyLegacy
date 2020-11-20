@@ -30,13 +30,13 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
-import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
@@ -101,7 +101,7 @@ public class IndividualPanel extends JPanel{
 	private final JLabel familyNameLabel = new JLabel();
 	private final JLabel personalNameLabel = new JLabel();
 	private final JLabel infoLabel = new JLabel();
-	private final JLabel imgLabel = new JLabel();
+	private final JLabel preferredImageLabel = new JLabel();
 	private final JLabel newIndividualLabel = new JLabel();
 	private final JLabel linkIndividualLabel = new JLabel();
 
@@ -121,7 +121,6 @@ public class IndividualPanel extends JPanel{
 		loadData();
 	}
 
-	//TODO add arrows to switch across multiple spouses
 	private void initComponents(final IndividualListenerInterface listener){
 		setBackground(null);
 		setOpaque(false);
@@ -174,11 +173,11 @@ public class IndividualPanel extends JPanel{
 			});
 		}
 
-		imgLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
-		setPreferredSize(imgLabel, 48.);
+		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
+		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
 		if(listener != null){
-			imgLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			imgLabel.addMouseListener(new MouseAdapter(){
+			preferredImageLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			preferredImageLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					listener.onIndividualAddPreferredImage(IndividualPanel.this, individual);
@@ -210,7 +209,7 @@ public class IndividualPanel extends JPanel{
 					)
 				)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(imgLabel, GroupLayout.Alignment.TRAILING)
+					.addComponent(preferredImageLabel, GroupLayout.Alignment.TRAILING)
 				)
 				.addContainerGap()
 			)
@@ -235,7 +234,7 @@ public class IndividualPanel extends JPanel{
 						)
 					)
 					.addGroup(layout.createSequentialGroup()
-						.addComponent(imgLabel)
+						.addComponent(preferredImageLabel)
 						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
 						.addGap(0, 0, Short.MAX_VALUE)
 					)
@@ -250,10 +249,10 @@ public class IndividualPanel extends JPanel{
 //		personalNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 	}
 
-	private void setPreferredSize(final JComponent component, final double baseWidth){
+	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio){
 		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
-		final int height = (int)Math.ceil(baseWidth * IMAGE_ASPECT_RATIO / shrinkFactor);
+		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
 	}
 
@@ -318,15 +317,15 @@ public class IndividualPanel extends JPanel{
 		infoLabel.setText(sj.toString());
 		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
 
-		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), imgLabel.getPreferredSize());
-		imgLabel.setIcon(icon);
+		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), preferredImageLabel.getPreferredSize());
+		preferredImageLabel.setIcon(icon);
 
 		familyNameLabel.setVisible(individual != null);
 		personalNameLabel.setVisible(individual != null);
 		infoLabel.setVisible(individual != null);
 		newIndividualLabel.setVisible(individual == null);
 		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
-		imgLabel.setVisible(individual != null);
+		preferredImageLabel.setVisible(individual != null);
 	}
 
 	private String[] composeIndividualName(){

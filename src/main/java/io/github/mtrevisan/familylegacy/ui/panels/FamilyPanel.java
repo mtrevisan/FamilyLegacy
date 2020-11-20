@@ -8,10 +8,13 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -22,22 +25,29 @@ public class FamilyPanel extends JPanel{
 
 	private static final Color BACKGROUND_COLOR = Color.WHITE;
 	private static final Color BORDER_COLOR = Color.BLACK;
-	private static final Color BACKGROUND_COLOR_INFO_PANEL = new Color(230, 230, 230);
+
+	private static final ImageIcon SPOUSE_PREVIOUS = ResourceHelper.getImage("/images/previous.png");
+	private static final ImageIcon SPOUSE_NEXT = ResourceHelper.getImage("/images/next.png");
+	private static final double SPOUSE_PREV_NEXT_WIDTH = 12.;
+	private static final double SPOUSE_PREV_NEXT_ASPECT_RATIO = 3501. / 2662.;
 
 	/** Height of the marriage line from the botton of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int HALF_SPOUSE_SEPARATION = 10;
-	public static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
+	static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private IndividualPanel spouse1Panel;
 	private IndividualPanel spouse2Panel;
+	private final JLabel spouse1PreviousLabel = new JLabel();
+	private final JLabel spouse1NextLabel = new JLabel();
+	private final JLabel spouse2PreviousLabel = new JLabel();
+	private final JLabel spouse2NextLabel = new JLabel();
 	private JPanel marriagePanel;
 	private JMenuItem editFamilyItem;
-	private JMenuItem newFamilyItem;
 	private JMenuItem linkFamilyItem;
 	private JMenuItem addChildItem;
 
@@ -57,23 +67,19 @@ public class FamilyPanel extends JPanel{
 		spouse1 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef()): null);
 		spouse2 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef()): null);
 
-		initComponents(family, store, familyListener, individualListener);
+		initComponents(family, familyListener, individualListener);
 
 		loadData();
 	}
 
-	private void initComponents(final GedcomNode family, final Flef store, final FamilyListenerInterface familyListener,
+	private void initComponents(final GedcomNode family, final FamilyListenerInterface familyListener,
 			final IndividualListenerInterface individualListener){
-		spouse1Panel = new IndividualPanel(spouse1, store, boxType, individualListener);
-		spouse2Panel = new IndividualPanel(spouse2, store, boxType, individualListener);
-		marriagePanel = new JPanel();
-
-		if(familyListener != null)
-			attachPopUpMenu(marriagePanel, family, familyListener);
-
 		setBackground(null);
 		setOpaque(false);
 
+		spouse1Panel = new IndividualPanel(spouse1, store, boxType, individualListener);
+		spouse2Panel = new IndividualPanel(spouse2, store, boxType, individualListener);
+		marriagePanel = new JPanel();
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setFocusable(false);
 		marriagePanel.setInheritsPopupMenu(false);
@@ -81,26 +87,91 @@ public class FamilyPanel extends JPanel{
 		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
 		marriagePanel.setPreferredSize(MARRIAGE_PANEL_DIMENSION);
 
+		if(familyListener != null){
+			attachPopUpMenu(marriagePanel, family, familyListener);
+
+			addPreviousNextSpouseIcons(spouse1, spouse1PreviousLabel, spouse1NextLabel, familyListener);
+
+			addPreviousNextSpouseIcons(spouse2, spouse2PreviousLabel, spouse2NextLabel, familyListener);
+		}
+
+		//TODO add arrows to switch across multiple spouses
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createSequentialGroup()
-			.addComponent(spouse1Panel)
-			.addGap(HALF_SPOUSE_SEPARATION)
-			.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
-			.addGap(HALF_SPOUSE_SEPARATION)
-			.addComponent(spouse2Panel)
-		);
-		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-			.addGroup(layout.createParallelGroup()
-				.addComponent(spouse1Panel)
-				.addComponent(spouse2Panel)
+		layout.setHorizontalGroup(layout.createParallelGroup()
+			.addGroup(layout.createSequentialGroup()
+				.addGap(0, 0, Short.MAX_VALUE)
+				.addComponent(spouse1PreviousLabel)
+				.addGap(10)
+				.addComponent(spouse1NextLabel)
+				.addGap(MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION * 2)
+				.addComponent(spouse2PreviousLabel)
+				.addGap(10)
+				.addComponent(spouse2NextLabel)
+				.addGap(0, 0, Short.MAX_VALUE)
 			)
 			.addGroup(layout.createSequentialGroup()
-				.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
-				.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
+				.addComponent(spouse1Panel)
+				.addGap(HALF_SPOUSE_SEPARATION)
+				.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
+				.addGap(HALF_SPOUSE_SEPARATION)
+				.addComponent(spouse2Panel)
 			)
 		);
+		final int marriagePanelGapHeight = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
+		layout.setVerticalGroup(layout.createSequentialGroup()
+			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addComponent(spouse1PreviousLabel)
+				.addComponent(spouse1NextLabel)
+				.addComponent(spouse2PreviousLabel)
+				.addComponent(spouse2NextLabel)
+			)
+			.addGap(3)
+			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+				.addGroup(layout.createParallelGroup()
+					.addComponent(spouse1Panel)
+					.addComponent(spouse2Panel)
+				)
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.height, GroupLayout.PREFERRED_SIZE)
+					.addGap(marriagePanelGapHeight, marriagePanelGapHeight, marriagePanelGapHeight)
+				)
+			)
+		);
+	}
+
+	private void addPreviousNextSpouseIcons(final GedcomNode spouse, final JLabel spousePreviousLabel, final JLabel spouseNextLabel,
+			final FamilyListenerInterface familyListener){
+		setPreferredSize(spousePreviousLabel, SPOUSE_PREV_NEXT_WIDTH, SPOUSE_PREV_NEXT_ASPECT_RATIO);
+		spousePreviousLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		spousePreviousLabel.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent evt){
+				familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse);
+			}
+		});
+
+		setPreferredSize(spouseNextLabel, SPOUSE_PREV_NEXT_WIDTH, SPOUSE_PREV_NEXT_ASPECT_RATIO);
+		spouseNextLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		spouseNextLabel.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent evt){
+				familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse);
+			}
+		});
+
+		ImageIcon icon = ResourceHelper.getImage(SPOUSE_PREVIOUS, spousePreviousLabel.getPreferredSize());
+		spousePreviousLabel.setIcon(icon);
+
+		icon = ResourceHelper.getImage(SPOUSE_NEXT, spouseNextLabel.getPreferredSize());
+		spouseNextLabel.setIcon(icon);
+	}
+
+	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio){
+		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
+		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
+		component.setPreferredSize(new Dimension(width, height));
 	}
 
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
@@ -203,7 +274,17 @@ public class FamilyPanel extends JPanel{
 
 			@Override
 			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
-				System.out.println("onAddChildFamily");
+				System.out.println("onAddChildFamily " + family.getID());
+			}
+
+			@Override
+			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
+				System.out.println("onPrevSpouseFamily " + spouse.getID());
+			}
+
+			@Override
+			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
+				System.out.println("onNextSpouseFamily " + spouse.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
