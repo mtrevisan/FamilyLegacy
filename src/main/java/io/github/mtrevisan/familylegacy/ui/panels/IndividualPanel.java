@@ -129,6 +129,8 @@ public class IndividualPanel extends JPanel{
 			new Dimension(170, 55));
 		setSize(size);
 		setPreferredSize(size);
+		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
+			new Dimension(280, size.height));
 		if(listener != null)
 			addMouseListener(new MouseAdapter(){
 				@Override

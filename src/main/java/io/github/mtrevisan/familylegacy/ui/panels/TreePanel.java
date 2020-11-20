@@ -126,7 +126,7 @@ public class TreePanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			.addGroup(layout.createSequentialGroup()
 				.addComponent(spouse1Parent1ParentsPanel)
 				.addGap(FamilyPanel.SPOUSE_SEPARATION)
