@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransfo
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -80,6 +81,8 @@ public class Flef extends Store{
 	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
 	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
+
+	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private GedcomNode header;
@@ -222,6 +225,29 @@ public class Flef extends Store{
 				.addClosingChild("EOF");
 
 		super.write(os);
+	}
+
+	public GedcomNode createEmptyNode(){
+		return TRANSFORMER.createEmpty();
+	}
+
+	/**
+	 * @param origin	Origin node from which to start the traversal.
+	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` or `(tag1|tag2)#id{value}[index]` and separated by dots.
+	 * @return	The final node.
+	 */
+	public GedcomNode traverse(final GedcomNode origin, final String path){
+		return TRANSFORMER.traverse(origin, path);
+	}
+
+	/**
+	 * @param origin	Origin node from which to start the traversal.
+	 * @param path	The path to follow from the origin in the form `tag#id{value}[]` or `(tag1|tag2)#id{value}[]` and separated by dots.
+	 * 	<p>The void array MUST BE last in the sequence.</p>
+	 * @return	The final node list.
+	 */
+	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
+		return TRANSFORMER.traverseAsList(origin, path);
 	}
 
 	public GedcomNode getHeader(){

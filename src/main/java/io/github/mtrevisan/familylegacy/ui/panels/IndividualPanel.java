@@ -33,8 +33,6 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import org.apache.commons.lang3.StringUtils;
@@ -94,8 +92,6 @@ public class IndividualPanel extends JPanel{
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
-
-	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private final JLabel familyNameLabel = new JLabel();
@@ -302,7 +298,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private Sex extractSex(){
-		return Sex.fromCode(TRANSFORMER.traverse(individual, "SEX")
+		return Sex.fromCode(store.traverse(individual, "SEX")
 			.getValue());
 	}
 
@@ -338,16 +334,16 @@ public class IndividualPanel extends JPanel{
 		final StringJoiner family = new StringJoiner(StringUtils.SPACE);
 		final StringJoiner personal = new StringJoiner(StringUtils.SPACE);
 		if(individual != null){
-			GedcomNode name = TRANSFORMER.createEmpty();
+			GedcomNode name = store.createEmptyNode();
 			final List<GedcomNode> names = individual.getChildrenWithTag("NAME");
 			if(!names.isEmpty())
 				name = names.get(0);
-			final String title = TRANSFORMER.traverse(name, "TITLE")
+			final String title = store.traverse(name, "TITLE")
 				.getValue();
-			final GedcomNode personalName = TRANSFORMER.traverse(name, "PERSONAL_NAME");
-			final String nameSuffix = TRANSFORMER.traverse(personalName, "NAME_SUFFIX")
+			final GedcomNode personalName = store.traverse(name, "PERSONAL_NAME");
+			final String nameSuffix = store.traverse(personalName, "NAME_SUFFIX")
 				.getValue();
-			final String familyName = TRANSFORMER.traverse(name, "FAMILY_NAME")
+			final String familyName = store.traverse(name, "FAMILY_NAME")
 				.getValueOrDefault(NO_DATA);
 
 			if(title != null)
@@ -394,8 +390,8 @@ public class IndividualPanel extends JPanel{
 	private String extractEarliestBirthDate(){
 		int birthYear = 0;
 		String birthDate = null;
-		for(final GedcomNode node : TRANSFORMER.traverseAsList(individual, "EVENT{BIRTH}[]")){
-			final String dateValue = TRANSFORMER.traverse(node, "DATE").getValue();
+		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{BIRTH}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int by = date.getYear();
@@ -415,8 +411,8 @@ public class IndividualPanel extends JPanel{
 	private String extractLatestDeathDate(){
 		int deathYear = 0;
 		String deathDate = null;
-		for(final GedcomNode node : TRANSFORMER.traverseAsList(individual, "EVENT{DEATH}[]")){
-			final String dateValue = TRANSFORMER.traverse(node, "DATE").getValue();
+		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{DEATH}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int by = date.getYear();

@@ -31,8 +31,6 @@ public interface FamilyListenerInterface{
 
 	void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family);
 
-	void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family);
-
 	void onFamilyLink(final FamilyPanel boxPanel);
 
 	void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family);

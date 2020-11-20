@@ -6,8 +6,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
@@ -21,8 +19,6 @@ import java.util.List;
 public class ChildrenPanel extends JPanel{
 
 	private static final long serialVersionUID = -1250057284416778781L;
-
-	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private final GedcomNode family;
@@ -44,7 +40,7 @@ public class ChildrenPanel extends JPanel{
 		//FIXME really needed?
 //		removeAll();
 
-		final List<GedcomNode> children = TRANSFORMER.traverseAsList(family, "CHILD[]");
+		final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
 			final GroupLayout layout = new GroupLayout(this);
 			setLayout(layout);

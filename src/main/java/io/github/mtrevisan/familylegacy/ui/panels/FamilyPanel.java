@@ -6,8 +6,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
@@ -38,8 +36,6 @@ public class FamilyPanel extends JPanel{
 	public static final int HALF_SPOUSE_SEPARATION = 10;
 	static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
-	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
-
 
 	private IndividualPanel spouse1Panel;
 	private IndividualPanel spouse2Panel;
@@ -62,8 +58,8 @@ public class FamilyPanel extends JPanel{
 		this.family = family;
 		this.store = store;
 
-		spouse1 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef()): null);
-		spouse2 = (family != null? store.getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef()): null);
+		spouse1 = (family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
+		spouse2 = (family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
 		initComponents(family, familyListener, individualListener);
 
@@ -192,7 +188,7 @@ public class FamilyPanel extends JPanel{
 	private boolean addPreviousNextSpouseIcons(final GedcomNode family, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
 			final JLabel spousePreviousLabel, final JLabel spouseNextLabel, final FamilyListenerInterface familyListener){
 		//get list of marriages for the `other spouse`
-		final List<GedcomNode> otherMarriages = TRANSFORMER.traverseAsList(otherSpouse, "FAMILY_SPOUSE[]");
+		final List<GedcomNode> otherMarriages = store.traverseAsList(otherSpouse, "FAMILY_SPOUSE[]");
 		//find current marriage in list
 		int currentFamilyIndex = -1;
 		final int otherMarriagesCount = otherMarriages.size();
@@ -336,11 +332,6 @@ public class FamilyPanel extends JPanel{
 			@Override
 			public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onEditFamily " + family.getID());
-			}
-
-			@Override
-			public void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family){
-				System.out.println("onFocusFamily " + family.getID());
 			}
 
 			@Override

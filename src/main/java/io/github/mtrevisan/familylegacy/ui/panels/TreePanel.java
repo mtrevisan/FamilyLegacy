@@ -6,8 +6,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 
 import javax.swing.*;
@@ -23,8 +21,6 @@ public class TreePanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 
 	private static final int GENERATION_SEPARATOR_SIZE = 20;
-
-	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
 	private FamilyPanel spouse1ParentsPanel;
@@ -178,9 +174,9 @@ public class TreePanel extends JPanel{
 	private GedcomNode extractParents(final GedcomNode family, final String spouseTag){
 		GedcomNode parents = null;
 		if(family != null){
-			final GedcomNode spouse = store.getIndividual(TRANSFORMER.traverse(family, spouseTag).getXRef());
+			final GedcomNode spouse = store.getIndividual(store.traverse(family, spouseTag).getXRef());
 			if(!spouse.isEmpty())
-				parents = store.getFamily(TRANSFORMER.traverse(spouse, "FAMILY_CHILD").getXRef());
+				parents = store.getFamily(store.traverse(spouse, "FAMILY_CHILD").getXRef());
 		}
 		return parents;
 	}
@@ -348,11 +344,6 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			@Override
 			public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
 				System.out.println("onEditFamily " + family.getID());
-			}
-
-			@Override
-			public void onFamilyFocus(final FamilyPanel boxPanel, final GedcomNode family){
-				System.out.println("onFocusFamily " + family.getID());
 			}
 
 			@Override
