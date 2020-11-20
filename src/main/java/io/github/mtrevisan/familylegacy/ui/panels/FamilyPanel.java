@@ -32,7 +32,7 @@ public class FamilyPanel extends JPanel{
 	private static final double SPOUSE_PREV_NEXT_WIDTH = 12.;
 	private static final double SPOUSE_PREV_NEXT_ASPECT_RATIO = 3501. / 2662.;
 
-	/** Height of the marriage line from the botton of the individual panel [px] */
+	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int HALF_SPOUSE_SEPARATION = 10;
@@ -48,9 +48,6 @@ public class FamilyPanel extends JPanel{
 	private final JLabel spouse2PreviousLabel = new JLabel();
 	private final JLabel spouse2NextLabel = new JLabel();
 	private JPanel marriagePanel;
-	private JMenuItem editFamilyItem;
-	private JMenuItem linkFamilyItem;
-	private JMenuItem addChildItem;
 
 	private final BoxPanelType boxType;
 	private final GedcomNode family;
@@ -218,14 +215,14 @@ public class FamilyPanel extends JPanel{
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(spousePreviousEnabled)
-						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, thisSpouse);
+						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, otherSpouse, thisSpouse);
 				}
 			});
 			spouseNextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(spouseNextEnabled)
-						familyListener.onFamilyNextSpouse(FamilyPanel.this, thisSpouse);
+						familyListener.onFamilyNextSpouse(FamilyPanel.this, otherSpouse, thisSpouse);
 				}
 			});
 
@@ -259,17 +256,17 @@ public class FamilyPanel extends JPanel{
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		editFamilyItem = new JMenuItem("Edit Family…", 'E');
+		final JMenuItem editFamilyItem = new JMenuItem("Edit Family…", 'E');
 		editFamilyItem.setEnabled(family != null);
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
 
-		addChildItem = new JMenuItem("Add Child…", 'C');
+		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
 		addChildItem.addActionListener(e -> familyListener.onFamilyAddChild(this, family));
 		addChildItem.setEnabled(family != null);
 		popupMenu.add(addChildItem);
 
-		linkFamilyItem = new JMenuItem("Link Family…", 'L');
+		final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
 		linkFamilyItem.setEnabled(family == null);
 		popupMenu.add(linkFamilyItem);
@@ -357,13 +354,13 @@ public class FamilyPanel extends JPanel{
 			}
 
 			@Override
-			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
-				System.out.println("onPrevSpouseFamily " + spouse.getID());
+			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
+				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
 			}
 
 			@Override
-			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
-				System.out.println("onNextSpouseFamily " + spouse.getID());
+			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
+				System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){

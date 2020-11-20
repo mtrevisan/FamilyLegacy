@@ -279,7 +279,7 @@ public class AnimatedGifEncoder{
 	 * Flushes any pending data and closes output file.
 	 * If writing to an OutputStream, the stream is not closed.
 	 *
-	 * @return	Wheter a closing of a previous stream was completed successfully.
+	 * @return	Whether a closing of a previous stream was completed successfully.
 	 */
 	public boolean finish(){
 		if(!started)

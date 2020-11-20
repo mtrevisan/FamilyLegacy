@@ -37,8 +37,8 @@ public interface FamilyListenerInterface{
 
 	void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family);
 
-	void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode spouse);
+	void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse);
 
-	void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode spouse);
+	void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse);
 
 }

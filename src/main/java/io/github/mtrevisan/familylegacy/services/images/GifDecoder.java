@@ -158,7 +158,7 @@ public class GifDecoder{
 
 	/**
 	 * Gets the "Netscape" iteration count, if any.
-	 * A count of <code>0</code> means repeat indefinitiely.
+	 * A count of <code>0</code> means repeat indefinitely.
 	 *
 	 * @return	iteration count if one was specified, else <code>1</code>.
 	 */

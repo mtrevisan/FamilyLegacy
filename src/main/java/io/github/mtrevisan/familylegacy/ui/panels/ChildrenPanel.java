@@ -25,9 +25,6 @@ public class ChildrenPanel extends JPanel{
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
-	private GroupLayout.SequentialGroup horizontalGroup;
-	private GroupLayout.ParallelGroup verticalGroup;
-
 	private final GedcomNode family;
 	private final Flef store;
 	private final IndividualListenerInterface individualListener;
@@ -51,9 +48,9 @@ public class ChildrenPanel extends JPanel{
 		if(!children.isEmpty()){
 			final GroupLayout layout = new GroupLayout(this);
 			setLayout(layout);
-			horizontalGroup = layout.createSequentialGroup()
+			final GroupLayout.SequentialGroup horizontalGroup = layout.createSequentialGroup()
 				.addGap(0, 0, Short.MAX_VALUE);
-			verticalGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
+			final GroupLayout.ParallelGroup verticalGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
 
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){

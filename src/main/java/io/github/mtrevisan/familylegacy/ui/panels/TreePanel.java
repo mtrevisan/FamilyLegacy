@@ -27,10 +27,6 @@ public class TreePanel extends JPanel{
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
 
-	private FamilyPanel spouse1Parent1ParentsPanel;
-	private FamilyPanel spouse1Parent2ParentsPanel;
-	private FamilyPanel spouse2Parent1ParentsPanel;
-	private FamilyPanel spouse2Parent2ParentsPanel;
 	private FamilyPanel spouse1ParentsPanel;
 	private FamilyPanel spouse2ParentsPanel;
 	private FamilyPanel homeFamilyPanel;
@@ -114,10 +110,14 @@ public class TreePanel extends JPanel{
 		final GedcomNode spouse2Parent1Parents = extractParents(spouse2Parents, "SPOUSE1");
 		final GedcomNode spouse2Parent2Parents = extractParents(spouse2Parents, "SPOUSE2");
 
-		spouse1Parent1ParentsPanel = new FamilyPanel(spouse1Parent1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		spouse1Parent2ParentsPanel = new FamilyPanel(spouse1Parent2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		spouse2Parent1ParentsPanel = new FamilyPanel(spouse2Parent1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		spouse2Parent2ParentsPanel = new FamilyPanel(spouse2Parent2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
+		final FamilyPanel spouse1Parent1ParentsPanel = new FamilyPanel(spouse1Parent1Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
+		final FamilyPanel spouse1Parent2ParentsPanel = new FamilyPanel(spouse1Parent2Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
+		final FamilyPanel spouse2Parent1ParentsPanel = new FamilyPanel(spouse2Parent1Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
+		final FamilyPanel spouse2Parent2ParentsPanel = new FamilyPanel(spouse2Parent2Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
 		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
 		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
 		homeFamilyPanel = new FamilyPanel(homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
@@ -338,8 +338,8 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-		final GedcomNode family = storeFlef.getFamilies().get(4);
-//		final GedcomNode family = storeFlef.getFamilies().get(9);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
+		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		GedcomNode family = null;
@@ -366,13 +366,13 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			}
 
 			@Override
-			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
-				System.out.println("onPrevSpouseFamily " + spouse.getID());
+			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
+				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
 			}
 
 			@Override
-			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode spouse){
-				System.out.println("onNextSpouseFamily " + spouse.getID());
+			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
+				System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){
