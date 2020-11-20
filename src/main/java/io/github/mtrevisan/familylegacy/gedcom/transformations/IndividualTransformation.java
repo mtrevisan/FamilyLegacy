@@ -197,7 +197,8 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			final String fromTag, final String toTag){
 		final List<GedcomNode> nodes = individual.getChildrenWithTag(fromTag);
 		for(final GedcomNode node : nodes){
-			final GedcomNode newNode = transformerTo.create(toTag);
+			final GedcomNode newNode = transformerTo.create(toTag)
+				.withXRef(node.getXRef());
 			transformerTo.noteTo(node, newNode, destination);
 			destinationNode.addChild(newNode);
 		}

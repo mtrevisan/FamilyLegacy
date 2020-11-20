@@ -237,8 +237,8 @@ n KEY <KEY_DESCRIPTION>    {1:1}	/* A property name that identified the type of 
 FAMILY_RECORD :=
 n <XREF:FAMILY> FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 TYPE <FAMILY_TYPE>    {1:1}	/* One one 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
-  +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband or father. */
-  +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife or mother. */
+  +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband. */
+  +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
   +1 GROUP @<XREF:GROUP>@    {0:M}	/* A GROUP_RECORD() object giving the group in which this family belongs. */
     +2 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this family played in the group that is being cited in this context. */

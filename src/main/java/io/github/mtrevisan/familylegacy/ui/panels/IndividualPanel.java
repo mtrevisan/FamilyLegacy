@@ -396,16 +396,17 @@ public class IndividualPanel extends JPanel{
 		int birthYear = 0;
 		String birthDate = null;
 		for(final GedcomNode node : TRANSFORMER.traverseAsList(individual, "EVENT{BIRTH}[]")){
-			final String date = TRANSFORMER.traverse(node, "DATE").getValue();
+			final String dateValue = TRANSFORMER.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int by = DateParser.parse(date).getYear();
+				final int by = date.getYear();
 				if(birthDate == null){
 					birthYear = by;
-					birthDate = date;
+					birthDate = dateValue;
 				}
 				else if(by < birthYear){
 					birthYear = by;
-					birthDate = date;
+					birthDate = dateValue;
 				}
 			}
 		}
@@ -416,16 +417,17 @@ public class IndividualPanel extends JPanel{
 		int deathYear = 0;
 		String deathDate = null;
 		for(final GedcomNode node : TRANSFORMER.traverseAsList(individual, "EVENT{DEATH}[]")){
-			final String date = TRANSFORMER.traverse(node, "DATE").getValue();
+			final String dateValue = TRANSFORMER.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int by = DateParser.parse(date).getYear();
+				final int by = date.getYear();
 				if(deathDate == null){
 					deathYear = by;
-					deathDate = date;
+					deathDate = dateValue;
 				}
 				else if(by > deathYear){
 					deathYear = by;
-					deathDate = date;
+					deathDate = dateValue;
 				}
 			}
 		}
