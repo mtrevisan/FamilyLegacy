@@ -75,11 +75,8 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setOpaque(false);
 		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);
-childrenScrollPane.setBorder(BorderFactory.createBevelBorder(0));
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-//FIXME magic number
-//		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -340,8 +337,8 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
@@ -419,6 +416,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 					System.exit(0);
 				}
 			});
+			frame.setSize(new Dimension(1200, 470));
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
 		});

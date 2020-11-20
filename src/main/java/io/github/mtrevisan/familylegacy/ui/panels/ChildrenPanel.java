@@ -69,12 +69,7 @@ public class ChildrenPanel extends JPanel{
 
 			layout.setHorizontalGroup(horizontalGroup
 				.addGap(0, 0, Short.MAX_VALUE));
-			layout.setVerticalGroup(layout.createSequentialGroup()
-				.addGroup(verticalGroup)
-				//allow room for horizontal scrollbar
-				//FIXME magic number (scrollbar height plus something)
-				.addGap(20)
-			);
+			layout.setVerticalGroup(verticalGroup);
 
 			//FIXME really needed?
 //			revalidate();

@@ -42,7 +42,7 @@ public class ScrollableContainerHost extends JPanel implements Scrollable{
 	public Dimension getPreferredScrollableViewportSize(){
 		final Dimension preferredSize = getPreferredSize();
 		if(getParent() instanceof JViewport)
-			preferredSize.width += ((JScrollPane)getParent().getParent()).getHorizontalScrollBar().getPreferredSize().width;
+			preferredSize.height += ((JScrollPane)getParent().getParent()).getHorizontalScrollBar().getPreferredSize().height;
 		return preferredSize;
 	}
 
@@ -58,7 +58,7 @@ public class ScrollableContainerHost extends JPanel implements Scrollable{
 
 	@Override
 	public boolean getScrollableTracksViewportWidth(){
-		return (getParent() instanceof JViewport && getPreferredSize().height < getParent().getHeight());
+		return (getParent() instanceof JViewport && getPreferredSize().width < getParent().getWidth());
 	}
 
 	@Override
