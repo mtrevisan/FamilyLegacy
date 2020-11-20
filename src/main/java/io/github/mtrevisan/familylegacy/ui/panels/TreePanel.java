@@ -59,6 +59,7 @@ public class TreePanel extends JPanel{
 	}
 
 	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
+	//TODO remove duplicated code
 	private void initComponents3Generations(final GedcomNode family){
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
@@ -78,7 +79,7 @@ public class TreePanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			.addGroup(layout.createSequentialGroup()
 				.addComponent(spouse1ParentsPanel)
 				.addGap(FamilyPanel.SPOUSE_SEPARATION)
@@ -99,6 +100,7 @@ public class TreePanel extends JPanel{
 		);
 	}
 
+	//TODO remove duplicated code
 	private void initComponents4Generations(final GedcomNode family){
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
@@ -377,7 +379,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = new TreePanel(family, 4, storeFlef, familyListener, individualListener);
+			final TreePanel panel = new TreePanel(family, 3, storeFlef, familyListener, individualListener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
