@@ -38,10 +38,7 @@ public class ChildrenPanel extends JPanel{
 		this.store = store;
 		this.individualListener = individualListener;
 
-		setBackground(null);
 		setOpaque(false);
-		//allow room for horizontal scrollbar
-		setBorder(BorderFactory.createEmptyBorder(0, 0, 40, 0));
 
 		loadData();
 	}
@@ -50,16 +47,13 @@ public class ChildrenPanel extends JPanel{
 		//FIXME really needed?
 //		removeAll();
 
-		final GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
-		horizontalGroup = layout.createSequentialGroup();
-		verticalGroup = layout.createParallelGroup();
-		layout.setHorizontalGroup(horizontalGroup);
-		layout.setVerticalGroup(verticalGroup);
-
 		final List<GedcomNode> children = TRANSFORMER.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
-			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
+			final GroupLayout layout = new GroupLayout(this);
+			setLayout(layout);
+			horizontalGroup = layout.createSequentialGroup()
+				.addGap(0, 0, Short.MAX_VALUE);
+			verticalGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
 
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
@@ -73,7 +67,14 @@ public class ChildrenPanel extends JPanel{
 				verticalGroup.addComponent(individualBox);
 			}
 
-			horizontalGroup.addGap(0, 0, Short.MAX_VALUE);
+			layout.setHorizontalGroup(horizontalGroup
+				.addGap(0, 0, Short.MAX_VALUE));
+			layout.setVerticalGroup(layout.createSequentialGroup()
+				.addGroup(verticalGroup)
+				//allow room for horizontal scrollbar
+				//FIXME magic number (scrollbar height plus something)
+				.addGap(20)
+			);
 
 			//FIXME really needed?
 //			revalidate();

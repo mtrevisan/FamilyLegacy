@@ -24,7 +24,6 @@ public class FamilyPanel extends JPanel{
 
 	private static final long serialVersionUID = 6664809287767332824L;
 
-	private static final Color BACKGROUND_COLOR = Color.WHITE;
 	private static final Color BORDER_COLOR = Color.BLACK;
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
@@ -76,7 +75,6 @@ public class FamilyPanel extends JPanel{
 
 	private void initComponents(final GedcomNode family, final FamilyListenerInterface familyListener,
 			final IndividualListenerInterface individualListener){
-		setBackground(null);
 		setOpaque(false);
 
 		spouse1Panel = new IndividualPanel(spouse1, store, boxType, individualListener);
@@ -101,23 +99,25 @@ public class FamilyPanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		final GroupLayout.ParallelGroup horizontalGroup = layout.createParallelGroup();
+		final GroupLayout.ParallelGroup horizontalGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
 		final GroupLayout.SequentialGroup verticalGroup = layout.createSequentialGroup();
 		showArrows(hasSpouse2MoreFamilies, hasSpouse1MoreFamilies, layout, horizontalGroup, verticalGroup);
-		layout.setHorizontalGroup(layout.createParallelGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			.addGroup(horizontalGroup
 				.addGroup(layout.createSequentialGroup()
+					.addGap(0, 0, Short.MAX_VALUE)
 					.addComponent(spouse1Panel)
 					.addGap(HALF_SPOUSE_SEPARATION)
 					.addComponent(marriagePanel, GroupLayout.PREFERRED_SIZE, MARRIAGE_PANEL_DIMENSION.width, GroupLayout.PREFERRED_SIZE)
 					.addGap(HALF_SPOUSE_SEPARATION)
 					.addComponent(spouse2Panel)
+					.addGap(0, 0, Short.MAX_VALUE)
 				)
 			)
 		);
 		layout.setVerticalGroup(verticalGroup
 			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addGroup(layout.createParallelGroup()
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 					.addComponent(spouse1Panel)
 					.addComponent(spouse2Panel)
 				)
@@ -294,12 +294,6 @@ public class FamilyPanel extends JPanel{
 					new float[]{1.f}, 0.f));
 			//horizontal line between spouses
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
-			if(family == null){
-				graphics2D.setColor(BACKGROUND_COLOR);
-				graphics2D.setColor(IndividualPanel.BORDER_COLOR);
-				graphics2D.setStroke(new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 10.f,
-					new float[]{5.f}, 0.f));
-			}
 
 			graphics2D.dispose();
 		}

@@ -122,7 +122,6 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void initComponents(final IndividualListenerInterface listener){
-		setBackground(null);
 		setOpaque(false);
 		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
 			new Dimension(170, 55));
@@ -187,7 +186,7 @@ public class IndividualPanel extends JPanel{
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup()
+		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 				.addContainerGap()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
@@ -214,7 +213,7 @@ public class IndividualPanel extends JPanel{
 				.addContainerGap()
 			)
 		);
-		layout.setVerticalGroup(layout.createParallelGroup()
+		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
 				.addContainerGap()
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)

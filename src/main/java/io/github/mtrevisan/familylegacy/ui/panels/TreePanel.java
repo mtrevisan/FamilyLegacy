@@ -72,10 +72,14 @@ public class TreePanel extends JPanel{
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
 		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
+		childrenScrollPane.setOpaque(false);
+		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);
+childrenScrollPane.setBorder(BorderFactory.createBevelBorder(0));
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
+//FIXME magic number
+//		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -86,10 +90,14 @@ public class TreePanel extends JPanel{
 				.addComponent(spouse2ParentsPanel)
 			)
 			.addComponent(homeFamilyPanel)
-			.addComponent(childrenScrollPane)
+			.addGroup(layout.createSequentialGroup()
+				.addGap(0, 0, Short.MAX_VALUE)
+				.addComponent(childrenScrollPane)
+				.addGap(0, 0, Short.MAX_VALUE)
+			)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup()
+			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(spouse1ParentsPanel)
 				.addComponent(spouse2ParentsPanel)
 			)
@@ -121,10 +129,11 @@ public class TreePanel extends JPanel{
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
 		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
+		childrenScrollPane.setOpaque(false);
+		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
-		childrenScrollPane.setPreferredSize(new Dimension(0, 90));
 
 		final GroupLayout layout = new GroupLayout(this);
 		setLayout(layout);
@@ -144,17 +153,21 @@ public class TreePanel extends JPanel{
 				.addComponent(spouse2ParentsPanel)
 			)
 			.addComponent(homeFamilyPanel)
-			.addComponent(childrenScrollPane)
+			.addGroup(layout.createSequentialGroup()
+				.addGap(0, 0, Short.MAX_VALUE)
+				.addComponent(childrenScrollPane)
+				.addGap(0, 0, Short.MAX_VALUE)
+			)
 		);
 		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup()
+			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(spouse1Parent1ParentsPanel)
 				.addComponent(spouse1Parent2ParentsPanel)
 				.addComponent(spouse2Parent1ParentsPanel)
 				.addComponent(spouse2Parent2ParentsPanel)
 			)
 			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addGroup(layout.createParallelGroup()
+			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
 				.addComponent(spouse1ParentsPanel)
 				.addComponent(spouse2ParentsPanel)
 			)
@@ -327,7 +340,11 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(4);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(9);
+//		final GedcomNode family = storeFlef.getFamilies().get(64);
+//		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		GedcomNode family = null;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
