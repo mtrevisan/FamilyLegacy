@@ -128,40 +128,16 @@ public class FamilyPanel extends JPanel{
 			});
 		}
 
-//		setLayout(new MigLayout("insets 0", "[][][]", "[]5[]"));
-//		add(spouse1PreviousLabel, "split 2,alignx right,gapx 0 10");
-//		add(spouse1NextLabel);
-//		add(new JPanel());
-//		add(spouse2PreviousLabel, "split 2,gapx 0 10");
-//		add(spouse2NextLabel, "wrap");
-//		add(spouse1Panel);
-//		add(marriagePanel, "aligny bottom,gapbottom "
-//			+ (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2)
-//			+ ",gap " + HALF_SPOUSE_SEPARATION + " " + HALF_SPOUSE_SEPARATION);
-//		add(spouse2Panel);
-
-//		setLayout(new MigLayout("insets 0", "[grow][fill][grow]", "[]5[]"));
-//		add(spouse1PreviousLabel, "split 2,alignx right,gapx 0 10");
-//		add(spouse1NextLabel);
-//		add(new JPanel(), "grow 0");
-//		add(spouse2PreviousLabel, "split 2,gapx 0 10");
-//		add(spouse2NextLabel, "wrap");
-//		add(spouse1Panel, "grow 50");
-//		add(marriagePanel, "aligny bottom,grow 0,gapbottom "
-//			+ (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2)
-//			+ ",gap " + HALF_SPOUSE_SEPARATION + " " + HALF_SPOUSE_SEPARATION);
-//		add(spouse2Panel, "grow 50");
-
-		//kind of
-		setLayout(new MigLayout("insets 0", "[grow][grow,fill][grow]", "[]5[]"));
+		//FIXME why the fuck extending horizontally this panel the marriagePanel grows??
+		//because of setMaximumSize on IndividualPanel... but WHY then not keeping the content the same and extending the outer frame only?
+		setLayout(new MigLayout("insets 0", "[grow][][grow]", "[]5[]"));
 		add(spouse1PreviousLabel, "split 2,alignx right,gapx 0 10");
 		add(spouse1NextLabel);
 		add(new JPanel());
 		add(spouse2PreviousLabel, "split 2,gapx 0 10");
 		add(spouse2NextLabel, "wrap");
 		add(spouse1Panel, "grow 50");
-		//why the fuck grow 0 does not works??
-		add(marriagePanel, "aligny bottom,grow 0,gapbottom "
+		add(marriagePanel, "aligny bottom,gapbottom "
 			+ (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2)
 			+ ",gap " + HALF_SPOUSE_SEPARATION + " " + HALF_SPOUSE_SEPARATION);
 		add(spouse2Panel, "grow 50");
@@ -224,7 +200,9 @@ public class FamilyPanel extends JPanel{
 		spouse2Panel.loadData(spouse2, boxType);
 
 		spouse1PreviousLabel.setVisible(boxType == BoxPanelType.PRIMARY);
+		spouse1NextLabel.setVisible(boxType == BoxPanelType.PRIMARY);
 		spouse2PreviousLabel.setVisible(boxType == BoxPanelType.PRIMARY);
+		spouse2NextLabel.setVisible(boxType == BoxPanelType.PRIMARY);
 		if(boxType == BoxPanelType.PRIMARY){
 			updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
 			updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
@@ -232,6 +210,8 @@ public class FamilyPanel extends JPanel{
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
+
+		repaint();
 	}
 
 	public void updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
@@ -365,9 +345,9 @@ public class FamilyPanel extends JPanel{
 
 
 //			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.SECONDARY);
+////			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.SECONDARY);
 ////			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.PRIMARY);
-////			final Runnable task = () -> panel.loadData(null, null, null, BoxPanelType.PRIMARY);
+//			final Runnable task = () -> panel.loadData(null, null, null, BoxPanelType.PRIMARY);
 //			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}

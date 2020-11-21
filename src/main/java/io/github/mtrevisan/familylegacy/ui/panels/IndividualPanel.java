@@ -173,17 +173,13 @@ public class IndividualPanel extends JPanel{
 			});
 		}
 
-		setLayout(new MigLayout("insets 7", "[grow][]", "[]2[]5[]"));
-		if(individual != null){
-			add(familyNameLabel);
-			add(preferredImageLabel, "spany 3,aligny top,wrap");
-			add(personalNameLabel, "wrap");
-			add(infoLabel);
-		}
-		else{
-			add(newIndividualLabel, "wrap 10");
-			add(linkIndividualLabel);
-		}
+		setLayout(new MigLayout("insets 7", "[grow][]", "[][][]"));
+		add(familyNameLabel, "cell 0 0,hidemode 3");
+		add(newIndividualLabel, "cell 0 0,hidemode 3");
+		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
+		add(personalNameLabel, "cell 0 1,pad -5 0,hidemode 3");
+		add(linkIndividualLabel, "cell 0 1,hidemode 3");
+		add(infoLabel, "cell 0 2");
 
 //		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
 //		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
@@ -290,6 +286,8 @@ public class IndividualPanel extends JPanel{
 		newIndividualLabel.setVisible(individual == null);
 		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
 		preferredImageLabel.setVisible(individual != null);
+
+		repaint();
 	}
 
 	private String[] composeIndividualName(){
@@ -499,7 +497,10 @@ public class IndividualPanel extends JPanel{
 			frame.setVisible(true);
 
 //			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//			final Runnable task = () -> panel.loadData(storeFlef.getIndividuals().get(0), BoxPanelType.SECONDARY);
+////			final Runnable task = () -> panel.loadData(storeFlef.getIndividuals().get(0), BoxPanelType.SECONDARY);
+////			final Runnable task = () -> panel.loadData(storeFlef.getIndividuals().get(0), BoxPanelType.PRIMARY);
+////			final Runnable task = () -> panel.loadData(null, BoxPanelType.SECONDARY);
+//			final Runnable task = () -> panel.loadData(null, BoxPanelType.PRIMARY);
 //			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}
