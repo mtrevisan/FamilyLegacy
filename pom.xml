@@ -293,6 +293,13 @@
 			<version>${apache.commons-lang3.version}</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+			<version>5.2</version>
+		</dependency>
+
 		<!-- JSON -->
 <!--		<dependency>-->
 <!--			<groupId>com.google.code.gson</groupId>-->

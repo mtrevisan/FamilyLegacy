@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalenda
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
@@ -49,6 +50,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class IndividualPanel extends JPanel{
@@ -101,49 +105,40 @@ public class IndividualPanel extends JPanel{
 	private final JLabel newIndividualLabel = new JLabel();
 	private final JLabel linkIndividualLabel = new JLabel();
 
-	private final BoxPanelType boxType;
-	private final GedcomNode individual;
+	private GedcomNode individual;
 	private final Flef store;
+	private BoxPanelType boxType;
+	private final IndividualListenerInterface listener;
 
 
 	public IndividualPanel(final GedcomNode individual, final Flef store, final BoxPanelType boxType,
 			final IndividualListenerInterface listener){
-		this.boxType = boxType;
-		this.individual = individual;
 		this.store = store;
+		this.listener = listener;
 
-		initComponents(listener);
+		this.individual = individual;
+		this.boxType = boxType;
+
+		initComponents();
 
 		loadData();
 	}
 
-	private void initComponents(final IndividualListenerInterface listener){
+	private void initComponents(){
 		setOpaque(false);
-		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
-			new Dimension(170, 55));
-		setSize(size);
-		setPreferredSize(size);
-		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
-			new Dimension(280, size.height));
 		if(listener != null)
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(individual != null && SwingUtilities.isRightMouseButton(evt))
+					if(SwingUtilities.isRightMouseButton(evt))
 						listener.onIndividualEdit(IndividualPanel.this, individual);
-					else if(individual != null && boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
+					else if(boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
 						listener.onIndividualFocus(IndividualPanel.this, individual);
 				}
 			});
 
-		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
 		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
-		familyNameLabel.setFont(font);
-
 		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
-//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
-		personalNameLabel.setFont(font);
-
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
@@ -155,9 +150,7 @@ public class IndividualPanel extends JPanel{
 					listener.onIndividualNew(IndividualPanel.this);
 				}
 			});
-		}
 
-		if(listener != null){
 			linkIndividualLabel.setText("Link individual");
 			linkIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
 			linkIndividualLabel.addMouseListener(new MouseAdapter(){
@@ -180,63 +173,17 @@ public class IndividualPanel extends JPanel{
 			});
 		}
 
-		final GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup()
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(familyNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(personalNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-								.addComponent(newIndividualLabel)
-							)
-							.addGroup(layout.createSequentialGroup()
-								.addComponent(infoLabel)
-								.addComponent(linkIndividualLabel)
-							)
-						)
-						.addGap(0, 0, Short.MAX_VALUE)
-					)
-				)
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addComponent(preferredImageLabel, GroupLayout.Alignment.TRAILING)
-				)
-				.addContainerGap()
-			)
-		);
-		layout.setVerticalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-			.addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
-				.addContainerGap()
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(layout.createSequentialGroup()
-						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(familyNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-						)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(personalNameLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-							.addComponent(newIndividualLabel)
-						)
-						.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-							.addComponent(infoLabel)
-							.addComponent(linkIndividualLabel)
-						)
-					)
-					.addGroup(layout.createSequentialGroup()
-						.addComponent(preferredImageLabel)
-						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-						.addGap(0, 0, Short.MAX_VALUE)
-					)
-				)
-				.addContainerGap()
-			)
-		);
+		setLayout(new MigLayout("insets 7", "[grow][]", "[]2[]5[]"));
+		if(individual != null){
+			add(familyNameLabel);
+			add(preferredImageLabel, "spany 3,aligny top,wrap");
+			add(personalNameLabel, "wrap");
+			add(infoLabel);
+		}
+		else{
+			add(newIndividualLabel, "wrap 10");
+			add(linkIndividualLabel);
+		}
 
 //		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
 //		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
@@ -302,7 +249,29 @@ public class IndividualPanel extends JPanel{
 			.getValue());
 	}
 
-	public void loadData(){
+	public void loadData(final GedcomNode individual, final BoxPanelType boxType){
+		this.individual = individual;
+		this.boxType = boxType;
+
+		loadData();
+	}
+
+	private void loadData(){
+		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
+			new Dimension(170, 65));
+		setSize(size);
+		setPreferredSize(size);
+		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
+			new Dimension(280, size.height));
+
+		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
+		familyNameLabel.setFont(font);
+
+//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
+		personalNameLabel.setFont(font);
+
+		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
+
 		final String[] personalName = composeIndividualName();
 		familyNameLabel.setText(personalName[0]);
 		personalNameLabel.setText(personalName[1]);
@@ -310,8 +279,8 @@ public class IndividualPanel extends JPanel{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
 		infoLabel.setText(sj.toString());
-		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
 
+		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), preferredImageLabel.getPreferredSize());
 		preferredImageLabel.setIcon(icon);
 
@@ -479,9 +448,11 @@ public class IndividualPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
+//		final GedcomNode individual = storeFlef.getIndividuals().get(0);
 		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
-//		GedcomNode individual = null;
+//		final GedcomNode individual = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
+//		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override
@@ -526,6 +497,10 @@ public class IndividualPanel extends JPanel{
 			});
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
+
+//			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//			final Runnable task = () -> panel.loadData(storeFlef.getIndividuals().get(0), BoxPanelType.SECONDARY);
+//			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}
 

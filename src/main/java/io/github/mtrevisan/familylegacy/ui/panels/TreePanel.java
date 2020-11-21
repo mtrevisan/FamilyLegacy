@@ -29,36 +29,45 @@ public class TreePanel extends JPanel{
 	private JScrollPane childrenScrollPane;
 	private ChildrenPanel childrenPanel;
 
-	private final GedcomNode homeFamily;
+	private GedcomNode spouse1;
+	private GedcomNode spouse2;
+	private GedcomNode homeFamily;
+	private int generations;
 	private final Flef store;
 	private final IndividualListenerInterface individualListener;
 	private final FamilyListenerInterface familyListener;
 
 
-	public TreePanel(final GedcomNode homeFamily, final int generations, final Flef store, final FamilyListenerInterface familyListener,
-			final IndividualListenerInterface individualListener){
+	public TreePanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily, final int generations,
+			final Flef store, final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
 		this.homeFamily = homeFamily;
 		this.store = store;
 		this.individualListener = individualListener;
 		this.familyListener = familyListener;
 
 		if(generations <= 3)
-			initComponents3Generations(homeFamily);
+			initComponents3Generations(spouse1, spouse2, homeFamily);
 		else
-			initComponents4Generations(homeFamily);
+			initComponents4Generations(spouse1, spouse2, homeFamily);
 
 		loadData();
 	}
 
 	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
 	//TODO remove duplicated code
-	private void initComponents3Generations(final GedcomNode family){
+	private void initComponents3Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
+		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
+		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
+
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
 
-		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		homeFamilyPanel = new FamilyPanel(homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
+		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
+		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, store, BoxPanelType.SECONDARY, familyListener,
+			individualListener);
+		homeFamilyPanel = new FamilyPanel(this.spouse1, this.spouse2, homeFamily, store, BoxPanelType.PRIMARY, familyListener,
+			individualListener);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -98,7 +107,10 @@ public class TreePanel extends JPanel{
 	}
 
 	//TODO remove duplicated code
-	private void initComponents4Generations(final GedcomNode family){
+	private void initComponents4Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
+		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
+		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
+
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
 		final GedcomNode spouse1Parent1Parents = extractParents(spouse1Parents, "SPOUSE1");
@@ -106,17 +118,19 @@ public class TreePanel extends JPanel{
 		final GedcomNode spouse2Parent1Parents = extractParents(spouse2Parents, "SPOUSE1");
 		final GedcomNode spouse2Parent2Parents = extractParents(spouse2Parents, "SPOUSE2");
 
-		final FamilyPanel spouse1Parent1ParentsPanel = new FamilyPanel(spouse1Parent1Parents, store, BoxPanelType.SECONDARY, familyListener,
+		final FamilyPanel spouse1Parent1ParentsPanel = new FamilyPanel(null, null, spouse1Parent1Parents, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		final FamilyPanel spouse1Parent2ParentsPanel = new FamilyPanel(null, null, spouse1Parent2Parents, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		final FamilyPanel spouse2Parent1ParentsPanel = new FamilyPanel(null, null, spouse2Parent1Parents, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		final FamilyPanel spouse2Parent2ParentsPanel = new FamilyPanel(null, null, spouse2Parent2Parents, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
 			individualListener);
-		final FamilyPanel spouse1Parent2ParentsPanel = new FamilyPanel(spouse1Parent2Parents, store, BoxPanelType.SECONDARY, familyListener,
+		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, store, BoxPanelType.SECONDARY, familyListener,
 			individualListener);
-		final FamilyPanel spouse2Parent1ParentsPanel = new FamilyPanel(spouse2Parent1Parents, store, BoxPanelType.SECONDARY, familyListener,
-			individualListener);
-		final FamilyPanel spouse2Parent2ParentsPanel = new FamilyPanel(spouse2Parent2Parents, store, BoxPanelType.SECONDARY, familyListener,
-			individualListener);
-		spouse1ParentsPanel = new FamilyPanel(spouse1Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		spouse2ParentsPanel = new FamilyPanel(spouse2Parents, store, BoxPanelType.SECONDARY, familyListener, individualListener);
-		homeFamilyPanel = new FamilyPanel(homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
+		homeFamilyPanel = new FamilyPanel(spouse1, spouse2, homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -141,9 +155,11 @@ public class TreePanel extends JPanel{
 				.addComponent(spouse2Parent2ParentsPanel)
 			)
 			.addGroup(layout.createSequentialGroup()
+//				.addGap(0, 0, Short.MAX_VALUE)
 				.addComponent(spouse1ParentsPanel)
 				.addGap(FamilyPanel.SPOUSE_SEPARATION)
 				.addComponent(spouse2ParentsPanel)
+//				.addGap(0, 0, Short.MAX_VALUE)
 			)
 			.addComponent(homeFamilyPanel)
 			.addGroup(layout.createSequentialGroup()
@@ -268,7 +284,16 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 //		}
 //	}
 
-	public void loadData(){
+	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily, final int generations){
+		this.spouse1 = spouse1;
+		this.spouse2 = spouse2;
+		this.homeFamily = homeFamily;
+		this.generations = generations;
+
+		loadData();
+	}
+
+	private void loadData(){
 //		Family husbandParents = Optional.ofNullable(family)
 //			.map(Family::getHusband)
 //			.map(IndividualReference::getIndividual)
@@ -334,8 +359,8 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		final GedcomNode family = storeFlef.getFamilies().get(4);
-		final GedcomNode family = storeFlef.getFamilies().get(9);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		GedcomNode family = null;
@@ -394,7 +419,8 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = new TreePanel(family, 3, storeFlef, familyListener, individualListener);
+			final TreePanel panel = new TreePanel(null, null, family, 3, storeFlef, familyListener,
+				individualListener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
@@ -407,7 +433,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 					System.exit(0);
 				}
 			});
-			frame.setSize(new Dimension(1200, 470));
+			frame.setSize(new Dimension(1000, 470));
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
 		});

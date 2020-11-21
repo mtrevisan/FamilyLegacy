@@ -14,6 +14,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class ChildrenPanel extends JPanel{
@@ -21,32 +24,34 @@ public class ChildrenPanel extends JPanel{
 	private static final long serialVersionUID = -1250057284416778781L;
 
 
-	private final GedcomNode family;
+	private GedcomNode family;
 	private final Flef store;
 	private final IndividualListenerInterface individualListener;
 
 
 	public ChildrenPanel(final GedcomNode family, final Flef store, final IndividualListenerInterface individualListener){
-		this.family = family;
 		this.store = store;
 		this.individualListener = individualListener;
 
 		setOpaque(false);
 
+		loadData(family);
+	}
+
+	public void loadData(final GedcomNode family){
+		this.family = family;
+
+		removeAll();
+
 		loadData();
 	}
 
-	public void loadData(){
-		//FIXME really needed?
-//		removeAll();
-
+	private void loadData(){
 		final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
-			final GroupLayout layout = new GroupLayout(this);
+			final FlowLayout layout = new FlowLayout();
+			layout.setAlignment(FlowLayout.CENTER);
 			setLayout(layout);
-			final GroupLayout.SequentialGroup horizontalGroup = layout.createSequentialGroup()
-				.addGap(0, 0, Short.MAX_VALUE);
-			final GroupLayout.ParallelGroup verticalGroup = layout.createParallelGroup(GroupLayout.Alignment.CENTER);
 
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
@@ -54,19 +59,10 @@ public class ChildrenPanel extends JPanel{
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
 
-				horizontalGroup.addComponent(individualBox);
+				add(individualBox);
 				if(itr.hasNext())
-					horizontalGroup.addGap(FamilyPanel.SPOUSE_SEPARATION);
-				verticalGroup.addComponent(individualBox);
+					add(Box.createHorizontalStrut(FamilyPanel.SPOUSE_SEPARATION));
 			}
-
-			layout.setHorizontalGroup(horizontalGroup
-				.addGap(0, 0, Short.MAX_VALUE));
-			layout.setVerticalGroup(verticalGroup);
-
-			//FIXME really needed?
-//			revalidate();
-//			repaint();
 		}
 	}
 
@@ -100,8 +96,7 @@ public class ChildrenPanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 		final GedcomNode family = storeFlef.getFamilies().get(0);
-		//		GedcomNode family = null;
-		final BoxPanelType boxType = BoxPanelType.PRIMARY;
+//		GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override
@@ -146,6 +141,11 @@ public class ChildrenPanel extends JPanel{
 			});
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
+
+
+			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+			final Runnable task = () -> panel.loadData(storeFlef.getFamilies().get(1));
+			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}
 

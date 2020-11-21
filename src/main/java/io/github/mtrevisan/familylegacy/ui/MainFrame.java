@@ -4,9 +4,12 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
@@ -17,19 +20,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 
 public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface{
 
 	private Flef store;
 
-	/** Stores the gedcom node of the last selected family for an individual. */
-	private final Map<GedcomNode, GedcomNode> individualLastSelectedFamily = new HashMap<>(0);
-	/** Stores the gedcom node of the last selected child for a family. */
-	private final Map<GedcomNode, GedcomNode> familyLastSelectedChild = new HashMap<>(0);
+	private final Deque<GedcomNode> selectedNode = new ArrayDeque<>();
 
 
 	public MainFrame(){
@@ -38,15 +44,15 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			store = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 				.transform();
 //			final GedcomNode family = store.getFamilies().get(0);
-			final GedcomNode family = store.getFamilies().get(4);
+//			final GedcomNode family = store.getFamilies().get(4);
 //			final GedcomNode family = store.getFamilies().get(9);
 //			final GedcomNode family = store.getFamilies().get(64);
-//			final GedcomNode family = store.getFamilies().get(75);
+			final GedcomNode family = store.getFamilies().get(75);
 //			GedcomNode family = null;
 
 
 			getContentPane().setLayout(new BorderLayout());
-			final TreePanel panel = new TreePanel(family, 3, store, this, this);
+			final TreePanel panel = new TreePanel(null, null, family, 3, store, this, this);
 			getContentPane().add(panel, BorderLayout.NORTH);
 			pack();
 
@@ -110,38 +116,59 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	 * @param individual	The individual that has to obtain focus.
 	 */
 	@Override
-	public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
+	public void onIndividualFocus(final IndividualPanel boxPanel, GedcomNode individual){
+individual = store.getIndividual("I202");
 		//prefer left position if male or unknown, right if female
+		GedcomNode spouse1 = null;
+		GedcomNode spouse2 = null;
 		final Sex sex = extractSex(individual);
-		if(sex == Sex.FEMALE){
-			//TODO put in the right box
-		}
-		else{
-			//TODO put in the left box
-		}
-		//TODO see if this individual belongs to a family
-		GedcomNode family = null;
-		final List<GedcomNode> families = store.traverseAsList(individual, "FAMILY_CHILD");
-		if(families.size() > 1){
-			//if it belongs to more than one family, select the last one...
-			family = individualLastSelectedFamily.get(individual);
-			if(family == null){
-				//TODO ... or the oldest...
-			}
-			if(family == null){
-				//TODO ... or the first
-			}
-		}
-		else if(families.size() == 1){
-			//TODO the individual belongs to exact one family, choose it and load as the primary family
-			family = families.get(0);
-		}
-		else{
-			//TODO if it belongs to no families, then put it into a fake family (?)
-		}
+		if(sex == Sex.FEMALE)
+			//put in the right box
+			spouse2 = individual;
+		else
+			//put in the left box
+			spouse1 = individual;
 
-		//store the node of the last selected family
-		individualLastSelectedFamily.put(individual, family);
+		GedcomNode family = null;
+		//see if this individual belongs to a family
+		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_SPOUSE[]");
+		List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
+		for(final GedcomNode familyXRef : familyXRefs)
+			families.add(store.getFamily(familyXRef.getXRef()));
+		if(familyXRefs.size() > 1){
+			//if it belongs to more than one family, select those with the oldest event
+			LocalDate oldestDate = null;
+			final List<GedcomNode> oldestFamilies = new ArrayList<>(0);
+			for(final GedcomNode f : families){
+				final LocalDate oldestEventDate = extractOldestEventDate(f);
+				if(oldestEventDate != null){
+					final int cmp;
+					if(oldestDate == null || (cmp = oldestEventDate.compareTo(oldestDate)) < 0){
+						oldestDate = oldestEventDate;
+						oldestFamilies.clear();
+						oldestFamilies.add(f);
+					}
+					else if(cmp == 0)
+						oldestFamilies.add(f);
+				}
+			}
+			if(oldestFamilies.size() == 1)
+				family = oldestFamilies.get(0);
+			else{
+				//choose the one with the lowest ID
+				if(!oldestFamilies.isEmpty())
+					families = oldestFamilies;
+				final Map<Integer, GedcomNode> all = new TreeMap<>();
+				for(final GedcomNode fam : families)
+					all.put(Integer.parseInt(fam.getID().substring(1)), fam);
+				family = all.values().iterator().next();
+			}
+		}
+		else if(familyXRefs.size() == 1)
+			//the individual belongs to exact one family, choose it and load as the primary family
+			family = families.get(0);
+
+		//TODO update primary family
 
 		System.out.println("onFocusIndividual " + individual.getID());
 	}
@@ -149,6 +176,17 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	private Sex extractSex(final GedcomNode individual){
 		return Sex.fromCode(store.traverse(individual, "SEX")
 			.getValue());
+	}
+
+	private LocalDate extractOldestEventDate(final GedcomNode node){
+		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
+		final TreeMap<LocalDate, GedcomNode> dateEvent = new TreeMap<>();
+		for(final GedcomNode event : events){
+			final GedcomNode eventDate = store.traverse(event, "DATE");
+			if(!eventDate.isEmpty())
+				dateEvent.put(DateParser.parse(eventDate.getValue()), event);
+		}
+		return (!dateEvent.isEmpty()? dateEvent.keySet().iterator().next(): null);
 	}
 
 	@Override
