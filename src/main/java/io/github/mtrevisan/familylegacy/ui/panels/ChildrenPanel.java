@@ -97,7 +97,7 @@ public class ChildrenPanel extends JPanel{
 			.transform();
 		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		final GedcomNode family = storeFlef.getFamilies().get(4);
-//		final GedcomNode family = null;
+//		GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override

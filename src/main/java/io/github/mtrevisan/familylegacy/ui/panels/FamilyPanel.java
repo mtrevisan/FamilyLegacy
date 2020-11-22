@@ -55,6 +55,7 @@ public class FamilyPanel extends JPanel{
 	private IndividualPanel spouse2Panel;
 	private final JLabel spouse1PreviousLabel = new JLabel();
 	private final JLabel spouse1NextLabel = new JLabel();
+	private final JLabel previousNextSpace = new JLabel();
 	private final JLabel spouse2PreviousLabel = new JLabel();
 	private final JLabel spouse2NextLabel = new JLabel();
 	private final JPanel marriagePanel = new JPanel();
@@ -101,28 +102,28 @@ public class FamilyPanel extends JPanel{
 			spouse1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if((Boolean)spouse1PreviousLabel.getClientProperty(KEY_ENABLED))
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1PreviousLabel.getClientProperty(KEY_ENABLED))
 						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse2, spouse1);
 				}
 			});
 			spouse1NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if((Boolean)spouse1NextLabel.getClientProperty(KEY_ENABLED))
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1NextLabel.getClientProperty(KEY_ENABLED))
 						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse2, spouse1);
 				}
 			});
 			spouse2PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if((Boolean)spouse2PreviousLabel.getClientProperty(KEY_ENABLED))
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2PreviousLabel.getClientProperty(KEY_ENABLED))
 						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse1, spouse2);
 				}
 			});
 			spouse2NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if((Boolean)spouse2NextLabel.getClientProperty(KEY_ENABLED))
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2NextLabel.getClientProperty(KEY_ENABLED))
 						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse1, spouse2);
 				}
 			});
@@ -133,18 +134,16 @@ public class FamilyPanel extends JPanel{
 			spouse1Panel.getMaximumSize().height + (spouse1PreviousLabel.isVisible()? spouse1PreviousLabel.getMaximumSize().height: 0)
 		));
 
-		//why the fuck extending horizontally this panel the marriagePanel grows??
-		//because of setMaximumSize on IndividualPanel... but WHY then not keeping the content the same and extending the outer frame only?
-		setLayout(new MigLayout("insets 0", "[grow][][grow]", "[]5[]"));
-		add(spouse1PreviousLabel, "split 2,alignx right,gapx 0 10");
+		setLayout(new MigLayout("debug,insets 0",
+			"[grow]" + HALF_SPOUSE_SEPARATION + "[]" + HALF_SPOUSE_SEPARATION + "[grow]",
+			"[]0[]"));
+		add(spouse1PreviousLabel, "split 2,alignx right,gapx 10");
 		add(spouse1NextLabel);
-		add(new JPanel());
-		add(spouse2PreviousLabel, "split 2,gapx 0 10");
-		add(spouse2NextLabel, "wrap");
+		add(new JLabel());
+		add(spouse2PreviousLabel, "split 2");
+		add(spouse2NextLabel, "gapx 10,wrap");
 		add(spouse1Panel, "growx 50");
-		add(marriagePanel, "aligny bottom,gapbottom "
-			+ (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2)
-			+ ",gap " + HALF_SPOUSE_SEPARATION + " " + HALF_SPOUSE_SEPARATION);
+		add(marriagePanel, "aligny bottom,gapbottom " + (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2));
 		add(spouse2Panel, "growx 50");
 	}
 
@@ -204,13 +203,14 @@ public class FamilyPanel extends JPanel{
 		spouse1Panel.loadData(spouse1, boxType);
 		spouse2Panel.loadData(spouse2, boxType);
 
-		spouse1PreviousLabel.setVisible(boxType == BoxPanelType.PRIMARY);
-		spouse1NextLabel.setVisible(boxType == BoxPanelType.PRIMARY);
-		spouse2PreviousLabel.setVisible(boxType == BoxPanelType.PRIMARY);
-		spouse2NextLabel.setVisible(boxType == BoxPanelType.PRIMARY);
+		spouse1PreviousLabel.setVisible(false);
+		spouse1NextLabel.setVisible(false);
+		spouse2PreviousLabel.setVisible(false);
+		spouse2NextLabel.setVisible(false);
 		if(boxType == BoxPanelType.PRIMARY){
-			updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
-			updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
+			final boolean hasMoreFamilies2 = updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
+			final boolean hasMoreFamilies1 = updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
+			previousNextSpace.setVisible(hasMoreFamilies2 || hasMoreFamilies1);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -219,7 +219,7 @@ public class FamilyPanel extends JPanel{
 		repaint();
 	}
 
-	public void updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
+	public boolean updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
 			final JLabel spouseNextLabel){
 		//get list of marriages for the `other spouse`
 		final List<GedcomNode> otherMarriages = store.traverseAsList(otherSpouse, "FAMILY_SPOUSE[]");
@@ -246,6 +246,7 @@ public class FamilyPanel extends JPanel{
 			spouseNextLabel.setCursor(new Cursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 			spouseNextLabel.setIcon(spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
 		}
+		return hasMoreFamilies;
 	}
 
 

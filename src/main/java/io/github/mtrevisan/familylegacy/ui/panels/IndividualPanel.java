@@ -168,16 +168,17 @@ public class IndividualPanel extends JPanel{
 			preferredImageLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualAddPreferredImage(IndividualPanel.this, individual);
+					if(SwingUtilities.isLeftMouseButton(evt))
+						listener.onIndividualAddPreferredImage(IndividualPanel.this, individual);
 				}
 			});
 		}
 
-		setLayout(new MigLayout("insets 7", "[grow][]", "[][][]"));
+		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]0[]"));
 		add(familyNameLabel, "cell 0 0,hidemode 3");
 		add(newIndividualLabel, "cell 0 0,hidemode 3");
 		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
-		add(personalNameLabel, "cell 0 1,pad -5 0,hidemode 3");
+		add(personalNameLabel, "cell 0 1,hidemode 3");
 		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
 

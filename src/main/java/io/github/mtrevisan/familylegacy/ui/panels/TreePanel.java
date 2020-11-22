@@ -80,13 +80,13 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 
-		setLayout(new MigLayout("insets 0",
-			"[grow,fill][grow,fill]",
-			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(spouse1ParentsPanel, "alignx center,growx 50");
-		add(spouse2ParentsPanel, "alignx center,growx 50,wrap");
-		add(homeFamilyPanel, "span 2,alignx center,wrap");
-		add(childrenScrollPane, "span 2,alignx center");
+		setLayout(new MigLayout("debug,insets 0",
+			"[grow,fill,center]" + FamilyPanel.SPOUSE_SEPARATION + "[grow,fill,center]",
+			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[grow]"));
+		add(spouse1ParentsPanel, "growx 50");
+		add(spouse2ParentsPanel, "growx 50,wrap");
+		add(homeFamilyPanel, "span 2,wrap");
+		add(childrenScrollPane, "span 2");
 	}
 
 	//TODO remove duplicated code
@@ -126,15 +126,15 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setAutoscrolls(true);
 
 		setLayout(new MigLayout("insets 0",
-			"[grow,fill][grow,fill][grow,fill][grow,fill]",
+			"[grow,fill,center][grow,fill,center][grow,fill,center][grow,fill,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(spouse1Grandparents1Panel, "alignx center,growx 25");
-		add(spouse1Grandparents2Panel, "alignx center,growx 25");
-		add(spouse2Grandparents1Panel, "alignx center,growx 25");
-		add(spouse2Grandparents2Panel, "alignx center,growx 25,wrap");
-		add(spouse1ParentsPanel, "span 2,alignx center,growx 50");
-		add(spouse2ParentsPanel, "span 2,alignx center,growx 50,wrap");
-		add(homeFamilyPanel, "span 4,alignx center,wrap");
+		add(spouse1Grandparents1Panel, "growx 25");
+		add(spouse1Grandparents2Panel, "growx 25");
+		add(spouse2Grandparents1Panel, "growx 25");
+		add(spouse2Grandparents2Panel, "growx 25,wrap");
+		add(spouse1ParentsPanel, "span 2,growx 50");
+		add(spouse2ParentsPanel, "span 2,growx 50,wrap");
+		add(homeFamilyPanel, "span 4,wrap");
 		add(childrenScrollPane, "span 4,alignx center");
 	}
 
@@ -310,10 +310,10 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
-//		final GedcomNode family = storeFlef.getFamilies().get(75);
+		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		GedcomNode family = null;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
