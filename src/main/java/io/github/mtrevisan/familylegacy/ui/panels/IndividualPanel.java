@@ -254,7 +254,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void loadData(){
-		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
+		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(260, 90):
 			new Dimension(170, 65));
 		setPreferredSize(size);
 		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):

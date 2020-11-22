@@ -134,7 +134,7 @@ public class FamilyPanel extends JPanel{
 			spouse1Panel.getMaximumSize().height + (spouse1PreviousLabel.isVisible()? spouse1PreviousLabel.getMaximumSize().height: 0)
 		));
 
-		setLayout(new MigLayout("debug,insets 0",
+		setLayout(new MigLayout("insets 0",
 			"[grow]" + HALF_SPOUSE_SEPARATION + "[]" + HALF_SPOUSE_SEPARATION + "[grow]",
 			"[]0[]"));
 		add(spouse1PreviousLabel, "split 2,alignx right,gapx 10");

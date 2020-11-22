@@ -80,9 +80,9 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 
-		setLayout(new MigLayout("debug,insets 0",
-			"[grow,fill,center]" + FamilyPanel.SPOUSE_SEPARATION + "[grow,fill,center]",
-			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[grow]"));
+		setLayout(new MigLayout("insets 0",
+			"[grow,center]" + FamilyPanel.SPOUSE_SEPARATION + "[grow,center]",
+			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
 		add(spouse1ParentsPanel, "growx 50");
 		add(spouse2ParentsPanel, "growx 50,wrap");
 		add(homeFamilyPanel, "span 2,wrap");
@@ -126,7 +126,7 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setAutoscrolls(true);
 
 		setLayout(new MigLayout("insets 0",
-			"[grow,fill,center][grow,fill,center][grow,fill,center][grow,fill,center]",
+			"[grow,center][grow,center][grow,center][grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
 		add(spouse1Grandparents1Panel, "growx 25");
 		add(spouse1Grandparents2Panel, "growx 25");
@@ -370,7 +370,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = new TreePanel(null, null, family, 3, storeFlef, familyListener,
+			final TreePanel panel = new TreePanel(null, null, family, 4, storeFlef, familyListener,
 				individualListener);
 
 			final JFrame frame = new JFrame();
