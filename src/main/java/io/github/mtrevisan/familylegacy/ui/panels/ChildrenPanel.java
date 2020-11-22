@@ -96,7 +96,8 @@ public class ChildrenPanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		GedcomNode family = null;
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override

@@ -7,6 +7,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
@@ -79,31 +80,13 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 
-		final GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-			.addGroup(layout.createSequentialGroup()
-				.addComponent(spouse1ParentsPanel)
-				.addGap(FamilyPanel.SPOUSE_SEPARATION)
-				.addComponent(spouse2ParentsPanel)
-			)
-			.addComponent(homeFamilyPanel)
-			.addGroup(layout.createSequentialGroup()
-				.addGap(0, 0, Short.MAX_VALUE)
-				.addComponent(childrenScrollPane)
-				.addGap(0, 0, Short.MAX_VALUE)
-			)
-		);
-		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(spouse1ParentsPanel)
-				.addComponent(spouse2ParentsPanel)
-			)
-			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addComponent(homeFamilyPanel)
-			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addComponent(childrenScrollPane)
-		);
+		setLayout(new MigLayout("insets 0",
+			"[grow,fill][grow,fill]",
+			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
+		add(spouse1ParentsPanel, "alignx center,growx 50");
+		add(spouse2ParentsPanel, "alignx center,growx 50,wrap");
+		add(homeFamilyPanel, "span 2,alignx center,wrap");
+		add(childrenScrollPane, "span 2,alignx center");
 	}
 
 	//TODO remove duplicated code
@@ -113,18 +96,18 @@ public class TreePanel extends JPanel{
 
 		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
-		final GedcomNode spouse1Parent1Parents = extractParents(spouse1Parents, "SPOUSE1");
-		final GedcomNode spouse1Parent2Parents = extractParents(spouse1Parents, "SPOUSE2");
-		final GedcomNode spouse2Parent1Parents = extractParents(spouse2Parents, "SPOUSE1");
-		final GedcomNode spouse2Parent2Parents = extractParents(spouse2Parents, "SPOUSE2");
+		final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parents, "SPOUSE1");
+		final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parents, "SPOUSE2");
+		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parents, "SPOUSE1");
+		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parents, "SPOUSE2");
 
-		final FamilyPanel spouse1Parent1ParentsPanel = new FamilyPanel(null, null, spouse1Parent1Parents, store,
+		final FamilyPanel spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse1Parent2ParentsPanel = new FamilyPanel(null, null, spouse1Parent2Parents, store,
+		final FamilyPanel spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse2Parent1ParentsPanel = new FamilyPanel(null, null, spouse2Parent1Parents, store,
+		final FamilyPanel spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse2Parent2ParentsPanel = new FamilyPanel(null, null, spouse2Parent2Parents, store,
+		final FamilyPanel spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
 			individualListener);
@@ -142,49 +125,17 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 
-		final GroupLayout layout = new GroupLayout(this);
-		setLayout(layout);
-		layout.setHorizontalGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-			.addGroup(layout.createSequentialGroup()
-				.addComponent(spouse1Parent1ParentsPanel)
-				.addGap(FamilyPanel.SPOUSE_SEPARATION)
-				.addComponent(spouse1Parent2ParentsPanel)
-				.addGap(FamilyPanel.SPOUSE_SEPARATION)
-				.addComponent(spouse2Parent1ParentsPanel)
-				.addGap(FamilyPanel.SPOUSE_SEPARATION)
-				.addComponent(spouse2Parent2ParentsPanel)
-			)
-			.addGroup(layout.createSequentialGroup()
-//				.addGap(0, 0, Short.MAX_VALUE)
-				.addComponent(spouse1ParentsPanel)
-				.addGap(FamilyPanel.SPOUSE_SEPARATION)
-				.addComponent(spouse2ParentsPanel)
-//				.addGap(0, 0, Short.MAX_VALUE)
-			)
-			.addComponent(homeFamilyPanel)
-			.addGroup(layout.createSequentialGroup()
-				.addGap(0, 0, Short.MAX_VALUE)
-				.addComponent(childrenScrollPane)
-				.addGap(0, 0, Short.MAX_VALUE)
-			)
-		);
-		layout.setVerticalGroup(layout.createSequentialGroup()
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(spouse1Parent1ParentsPanel)
-				.addComponent(spouse1Parent2ParentsPanel)
-				.addComponent(spouse2Parent1ParentsPanel)
-				.addComponent(spouse2Parent2ParentsPanel)
-			)
-			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
-				.addComponent(spouse1ParentsPanel)
-				.addComponent(spouse2ParentsPanel)
-			)
-			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addComponent(homeFamilyPanel)
-			.addGap(GENERATION_SEPARATOR_SIZE)
-			.addComponent(childrenScrollPane)
-		);
+		setLayout(new MigLayout("insets 0",
+			"[grow,fill][grow,fill][grow,fill][grow,fill]",
+			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
+		add(spouse1Grandparents1Panel, "alignx center,growx 25");
+		add(spouse1Grandparents2Panel, "alignx center,growx 25");
+		add(spouse2Grandparents1Panel, "alignx center,growx 25");
+		add(spouse2Grandparents2Panel, "alignx center,growx 25,wrap");
+		add(spouse1ParentsPanel, "span 2,alignx center,growx 50");
+		add(spouse2ParentsPanel, "span 2,alignx center,growx 50,wrap");
+		add(homeFamilyPanel, "span 4,alignx center,wrap");
+		add(childrenScrollPane, "span 4,alignx center");
 	}
 
 	private GedcomNode extractParents(final GedcomNode family, final String spouseTag){

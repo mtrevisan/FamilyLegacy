@@ -141,11 +141,11 @@ public class FamilyPanel extends JPanel{
 		add(new JPanel());
 		add(spouse2PreviousLabel, "split 2,gapx 0 10");
 		add(spouse2NextLabel, "wrap");
-		add(spouse1Panel, "grow 50");
+		add(spouse1Panel, "growx 50");
 		add(marriagePanel, "aligny bottom,gapbottom "
 			+ (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2)
 			+ ",gap " + HALF_SPOUSE_SEPARATION + " " + HALF_SPOUSE_SEPARATION);
-		add(spouse2Panel, "grow 50");
+		add(spouse2Panel, "growx 50");
 	}
 
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
