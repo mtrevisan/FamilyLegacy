@@ -128,7 +128,12 @@ public class FamilyPanel extends JPanel{
 			});
 		}
 
-		//FIXME why the fuck extending horizontally this panel the marriagePanel grows??
+		setMaximumSize(new Dimension(
+			(spouse1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
+			spouse1Panel.getMaximumSize().height + (spouse1PreviousLabel.isVisible()? spouse1PreviousLabel.getMaximumSize().height: 0)
+		));
+
+		//why the fuck extending horizontally this panel the marriagePanel grows??
 		//because of setMaximumSize on IndividualPanel... but WHY then not keeping the content the same and extending the outer frame only?
 		setLayout(new MigLayout("insets 0", "[grow][][grow]", "[]5[]"));
 		add(spouse1PreviousLabel, "split 2,alignx right,gapx 0 10");
@@ -346,8 +351,8 @@ public class FamilyPanel extends JPanel{
 
 //			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 ////			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.SECONDARY);
-////			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.PRIMARY);
-//			final Runnable task = () -> panel.loadData(null, null, null, BoxPanelType.PRIMARY);
+//			final Runnable task = () -> panel.loadData(null, null, storeFlef.getFamilies().get(1), BoxPanelType.PRIMARY);
+////			final Runnable task = () -> panel.loadData(null, null, null, BoxPanelType.PRIMARY);
 //			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}

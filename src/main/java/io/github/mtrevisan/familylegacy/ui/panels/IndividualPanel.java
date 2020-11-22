@@ -255,7 +255,6 @@ public class IndividualPanel extends JPanel{
 	private void loadData(){
 		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(220, 90):
 			new Dimension(170, 65));
-		setSize(size);
 		setPreferredSize(size);
 		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
 			new Dimension(280, size.height));
@@ -263,7 +262,6 @@ public class IndividualPanel extends JPanel{
 		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
 		familyNameLabel.setFont(font);
 
-//		individualNameLabel.setMinimumSize(new Dimension(0, 16));
 		personalNameLabel.setFont(font);
 
 		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
