@@ -24,6 +24,10 @@ public class TreePanel extends JPanel{
 	private static final int GENERATION_SEPARATOR_SIZE = 20;
 
 
+	private FamilyPanel spouse1Grandparents1Panel;
+	private FamilyPanel spouse1Grandparents2Panel;
+	private FamilyPanel spouse2Grandparents1Panel;
+	private FamilyPanel spouse2Grandparents2Panel;
 	private FamilyPanel spouse1ParentsPanel;
 	private FamilyPanel spouse2ParentsPanel;
 	private FamilyPanel homeFamilyPanel;
@@ -42,6 +46,7 @@ public class TreePanel extends JPanel{
 	public TreePanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily, final int generations,
 			final Flef store, final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
 		this.homeFamily = homeFamily;
+		this.generations = generations;
 		this.store = store;
 		this.individualListener = individualListener;
 		this.familyListener = familyListener;
@@ -101,14 +106,14 @@ public class TreePanel extends JPanel{
 		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parents, "SPOUSE1");
 		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parents, "SPOUSE2");
 
-		final FamilyPanel spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store,
-			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, store,
-			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, store,
-			BoxPanelType.SECONDARY, familyListener, individualListener);
-		final FamilyPanel spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, store,
-			BoxPanelType.SECONDARY, familyListener, individualListener);
+		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
+		spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
+		spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
+		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
 			individualListener);
 		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, store, BoxPanelType.SECONDARY, familyListener,
@@ -235,16 +240,34 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 //		}
 //	}
 
-	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily, final int generations){
+	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily){
 		this.spouse1 = spouse1;
 		this.spouse2 = spouse2;
 		this.homeFamily = homeFamily;
-		this.generations = generations;
 
 		loadData();
 	}
 
 	private void loadData(){
+		if(generations <= 3){
+			//TODO
+			spouse1ParentsPanel.loadData();
+			spouse2ParentsPanel.loadData();
+			homeFamilyPanel.loadData();
+			childrenScrollPane.loadData();
+		}
+		else{
+			//TODO
+			spouse1Grandparents1Panel.loadData();
+			spouse1Grandparents2Panel.loadData();
+			spouse2Grandparents1Panel.loadData();
+			spouse2Grandparents2Panel.loadData();
+			spouse1ParentsPanel.loadData();
+			spouse2ParentsPanel.loadData();
+			homeFamilyPanel.loadData();
+			childrenScrollPane.loadData();
+		}
+
 //		Family husbandParents = Optional.ofNullable(family)
 //			.map(Family::getHusband)
 //			.map(IndividualReference::getIndividual)

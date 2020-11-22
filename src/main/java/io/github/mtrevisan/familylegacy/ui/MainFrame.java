@@ -35,6 +35,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	private Flef store;
 
+	private TreePanel panel;
 	private final Deque<GedcomNode> selectedNode = new ArrayDeque<>();
 
 
@@ -52,7 +53,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 
 			getContentPane().setLayout(new BorderLayout());
-			final TreePanel panel = new TreePanel(null, null, family, 3, store, this, this);
+			panel = new TreePanel(null, null, family, 3, store, this, this);
 			getContentPane().add(panel, BorderLayout.NORTH);
 			pack();
 
@@ -117,7 +118,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	 */
 	@Override
 	public void onIndividualFocus(final IndividualPanel boxPanel, GedcomNode individual){
-individual = store.getIndividual("I202");
+//individual = store.getIndividual("I202");
 		//prefer left position if male or unknown, right if female
 		GedcomNode spouse1 = null;
 		GedcomNode spouse2 = null;
@@ -169,6 +170,7 @@ individual = store.getIndividual("I202");
 			family = families.get(0);
 
 		//TODO update primary family
+		panel.loadData(spouse1, spouse2, family, 3);
 
 		System.out.println("onFocusIndividual " + individual.getID());
 	}
