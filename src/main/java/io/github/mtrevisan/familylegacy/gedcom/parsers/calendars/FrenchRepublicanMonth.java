@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 
 enum FrenchRepublicanMonth{
@@ -77,9 +76,11 @@ enum FrenchRepublicanMonth{
 	}
 
 	public static String[] getDescriptionsWithEmptyValueFirst(){
-		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
-			.map(FrenchRepublicanMonth::getDescription))
-			.toArray(String[]::new);
+		final FrenchRepublicanMonth[] values = values();
+		final String[] descriptions = new String[values.length];
+		for(int i = 0; i < values.length; i ++)
+			descriptions[i] = values[i].getDescription();
+		return descriptions;
 	}
 
 	public static String replaceAll(final String month){

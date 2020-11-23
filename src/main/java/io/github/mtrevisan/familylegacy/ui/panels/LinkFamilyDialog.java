@@ -20,11 +20,13 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
@@ -244,8 +246,13 @@ public class LinkFamilyDialog extends JDialog{
 	private RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
 		if(StringUtils.isNotBlank(text)){
 			try{
-				//TODO split text around spaces and punctuation, filter for all with RowFilter.andFilter()
-				return RowFilter.regexFilter("(?i)" + text, columnIndexes);
+				//split input text around spaces and commas
+				final String[] components = StringUtils.split(text, " ,");
+				final List<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
+				for(final String component : components)
+					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
+				return RowFilter.andFilter(andFilters);
+//				return RowFilter.regexFilter("(?i)(?:" + text + ")", columnIndexes);
 			}
 			catch(final PatternSyntaxException ignored){
 				//current expression doesn't parse, ignore it
