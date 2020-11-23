@@ -246,7 +246,6 @@ public class LinkFamilyDialog extends JDialog{
 				for(final String component : components)
 					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
 				return RowFilter.andFilter(andFilters);
-//				return RowFilter.regexFilter("(?i)(?:" + text + ")", columnIndexes);
 			}
 			catch(final PatternSyntaxException ignored){
 				//current expression doesn't parse, ignore it
