@@ -40,6 +40,8 @@ public class LinkFamilyDialog extends JDialog{
 	private static final String NAMES_SEPARATOR = ", ";
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
+	private static final int ID_PREFERRED_WIDTH = 40;
+	private static final int YEAR_PREFERRED_WIDTH = 40;
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
 	private static final int TABLE_INDEX_SPOUSE1 = 1;
@@ -98,6 +100,7 @@ public class LinkFamilyDialog extends JDialog{
 				return false;
 			}
 		});
+		familiesTable.getColumnModel().setColumnMargin(5);
 		familiesTable.setAutoCreateRowSorter(true);
 		familiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		familiesTable.setFocusable(false);
@@ -106,20 +109,20 @@ public class LinkFamilyDialog extends JDialog{
 		familiesTable.getTableHeader().setFont(familiesTable.getFont().deriveFont(Font.BOLD));
 		final DefaultTableCellRenderer rightAlignedRenderer = new DefaultTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, 40);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1, 0, 150);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, 0, 35)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_DEATH_YEAR, 0, 35)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_ID, 0, 40);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2, 0, 150);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, 0, 35)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_DEATH_YEAR, 0, 35)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_ID, 0, 40);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, 0, 35)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, 250);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
