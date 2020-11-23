@@ -26,6 +26,7 @@ import java.util.StringJoiner;
 //http://www.miglayout.com/whitepaper.html
 //http://www.miglayout.com/QuickStart.pdf
 //https://www.oracle.com/technetwork/systems/ts-4928-159120.pdf
+//https://stackoverflow.com/questions/25010068/miglayout-push-vs-grow
 public class FamilyPanel extends JPanel{
 
 	private static final long serialVersionUID = 6664809287767332824L;

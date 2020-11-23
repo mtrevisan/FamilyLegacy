@@ -20,7 +20,6 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -63,13 +62,6 @@ public class LinkFamilyDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private final Debouncer<LinkFamilyDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
-	private RowFilter<DefaultTableModel, Object> marriageIDFilter;
-	private RowFilter<DefaultTableModel, Object> spouse1Filter;
-	private RowFilter<DefaultTableModel, Object> spouse1AdditionalNamesFilter;
-	private RowFilter<DefaultTableModel, Object> spouse1IDFilter;
-	private RowFilter<DefaultTableModel, Object> spouse2Filter;
-	private RowFilter<DefaultTableModel, Object> spouse2AdditionalNamesFilter;
-	private RowFilter<DefaultTableModel, Object> spouse2IDFilter;
 
 	private Flef store;
 	private SelectionListenerInterface listener;
@@ -87,6 +79,8 @@ public class LinkFamilyDialog extends JDialog{
 	}
 
 	private void initComponents(){
+		setTitle("Link family");
+
 		familiesTable = new JTable(new DefaultTableModel(new String[]{"ID",
 				"Spouse 1", "", "", "", "Spouse 1 ID",
 				"Spouse 2", "", "", "", "Spouse 2 ID",
@@ -128,21 +122,20 @@ public class LinkFamilyDialog extends JDialog{
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, 250);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
 		final Comparator<String> idDateComparator = (value1, value2) -> {
-			if(!Character.isDigit(value1.charAt(0)))
-				value1 = value1.substring(1);
-			if(!Character.isDigit(value2.charAt(0)))
-				value2 = value2.substring(1);
-			return Integer.compare(Integer.parseInt(value1), Integer.parseInt(value2));
+			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
+			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
+			return Integer.compare(v1, v2);
 		};
+		final Comparator<String> dateWithApproximationComparator = idDateComparator.thenComparingInt(year -> year.charAt(0));
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_ID, idDateComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE1_ID, idDateComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE2_ID, idDateComparator);
 		//put approximated years after exact years
-		sorter.setComparator(TABLE_INDEX_SPOUSE1_BIRTH_YEAR, idDateComparator.thenComparingInt(year -> year.charAt(0)));
-		sorter.setComparator(TABLE_INDEX_SPOUSE1_DEATH_YEAR, idDateComparator.thenComparingInt(year -> year.charAt(0)));
-		sorter.setComparator(TABLE_INDEX_SPOUSE2_BIRTH_YEAR, idDateComparator.thenComparingInt(year -> year.charAt(0)));
-		sorter.setComparator(TABLE_INDEX_SPOUSE2_DEATH_YEAR, idDateComparator.thenComparingInt(year -> year.charAt(0)));
-		sorter.setComparator(TABLE_INDEX_MARRIAGE_YEAR, idDateComparator.thenComparingInt(year -> year.charAt(0)));
+		sorter.setComparator(TABLE_INDEX_SPOUSE1_BIRTH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_SPOUSE1_DEATH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_SPOUSE2_BIRTH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_SPOUSE2_DEATH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_MARRIAGE_YEAR, dateWithApproximationComparator);
 		familiesTable.setRowSorter(sorter);
 		final ListSelectionModel selectionModel = familiesTable.getSelectionModel();
 		if(listener != null)
@@ -234,16 +227,9 @@ public class LinkFamilyDialog extends JDialog{
 
 	private void filterTableBy(final LinkFamilyDialog panel){
 		final String text = filterSpouseField.getText();
-		marriageIDFilter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID);
-		spouse1Filter = createTextFilter(text, TABLE_INDEX_SPOUSE1);
-		spouse1AdditionalNamesFilter = createTextFilter(text, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES);
-		spouse1IDFilter = createTextFilter(text, TABLE_INDEX_SPOUSE1_ID);
-		spouse2Filter = createTextFilter(text, TABLE_INDEX_SPOUSE2);
-		spouse2AdditionalNamesFilter = createTextFilter(text, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES);
-		spouse2IDFilter = createTextFilter(text, TABLE_INDEX_SPOUSE2_ID);
-
-		final RowFilter<DefaultTableModel, Object> filter = RowFilter.andFilter(Arrays.asList(marriageIDFilter, spouse1Filter,
-			spouse1AdditionalNamesFilter, spouse1IDFilter, spouse2Filter, spouse2AdditionalNamesFilter, spouse2IDFilter));
+		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_SPOUSE1,
+			TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
+			TABLE_INDEX_SPOUSE2_ID);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
@@ -255,17 +241,17 @@ public class LinkFamilyDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
-	private RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int columnIndex){
-		RowFilter<DefaultTableModel, Object> rf = null;
+	private RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
 		if(StringUtils.isNotBlank(text)){
 			try{
-				rf = RowFilter.regexFilter("(?i)" + text, columnIndex);
+				//TODO split text around spaces and punctuation, filter for all with RowFilter.andFilter()
+				return RowFilter.regexFilter("(?i)" + text, columnIndexes);
 			}
 			catch(final PatternSyntaxException ignored){
-				//if current expression doesn't parse, don't update.
+				//current expression doesn't parse, ignore it
 			}
 		}
-		return rf;
+		return null;
 	}
 
 	public GedcomNode getSelectedFamily(){
