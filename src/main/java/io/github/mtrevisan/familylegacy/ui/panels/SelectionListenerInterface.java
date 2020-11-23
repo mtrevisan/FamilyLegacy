@@ -29,6 +29,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 public interface SelectionListenerInterface{
 
-	void onNodeSelected(GedcomNode node);
+	void onNodeSelected(final GedcomNode node);
 
 }

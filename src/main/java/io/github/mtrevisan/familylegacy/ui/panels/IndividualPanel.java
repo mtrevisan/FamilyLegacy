@@ -44,6 +44,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
@@ -53,7 +55,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 
-public class IndividualPanel extends JPanel{
+public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final long serialVersionUID = -300117824230109203L;
 
@@ -67,7 +69,6 @@ public class IndividualPanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_UNKNOWN = new Color(221, 221, 221);
 
 	private static final Map<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
-
 	static{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.MALE, BACKGROUND_COLOR_MALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
@@ -83,6 +84,7 @@ public class IndividualPanel extends JPanel{
 	//double values for Horizontal and Vertical radius of corner arcs
 	private static final Dimension ARCS = new Dimension(10, 10);
 
+	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 	private static final ImageIcon ADD_PHOTO_MAN = ResourceHelper.getImage("/images/addPhoto.man.jpg");
@@ -94,6 +96,8 @@ public class IndividualPanel extends JPanel{
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
+
+	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
 
 
 	private final JLabel familyNameLabel = new JLabel();
@@ -137,6 +141,7 @@ public class IndividualPanel extends JPanel{
 
 		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
 		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
+		addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
@@ -173,18 +178,12 @@ public class IndividualPanel extends JPanel{
 		}
 
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]0[]"));
-		add(familyNameLabel, "cell 0 0,hidemode 3");
+		add(familyNameLabel, "cell 0 0,width ::100%-" + (PREFERRED_IMAGE_WIDTH + 7 * 3 + 2) + ",hidemode 3");
 		add(newIndividualLabel, "cell 0 0,hidemode 3");
 		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
-		add(personalNameLabel, "cell 0 1,hidemode 3");
+		add(personalNameLabel, "cell 0 1,width ::100%-" + (PREFERRED_IMAGE_WIDTH + 7 * 3 + 2) + ",hidemode 3");
 		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
-
-		//FIXME what if name is too long? find a way to add ellipsis
-//		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
-//		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
-//		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
-//		personalNameLabel.setMaximumSize(new Dimension(individualMaxWidth, individualMaxHeight));
 	}
 
 	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio){
@@ -199,6 +198,13 @@ public class IndividualPanel extends JPanel{
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
+//			final Dimension preferredSize = familyNameLabel.getPreferredSize();
+//			preferredSize.width = (int)((getWidth() - preferredImageLabel.getWidth() - familyNameLabel.getX() * 2) * 0.95);
+//			familyNameLabel.setSize(preferredSize);
+//			familyNameLabel.setMaximumSize(preferredSize);
+//			personalNameLabel.setSize(preferredSize);
+//			personalNameLabel.setMaximumSize(preferredSize);
+
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -228,6 +234,18 @@ public class IndividualPanel extends JPanel{
 				ARCS.width, ARCS.height);
 
 			graphics2D.dispose();
+		}
+	}
+
+	@Override
+	public void propertyChange(final PropertyChangeEvent evt){
+		//show tooltips with full names if they are too long to be displayed
+		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
+			int requiredWidth = familyNameLabel.getUI().getPreferredSize(familyNameLabel).width;
+			familyNameLabel.setToolTipText(requiredWidth > familyNameLabel.getWidth()? familyNameLabel.getText(): null);
+
+			requiredWidth = personalNameLabel.getUI().getPreferredSize(personalNameLabel).width;
+			personalNameLabel.setToolTipText(requiredWidth > personalNameLabel.getWidth()? personalNameLabel.getText(): null);
 		}
 	}
 
@@ -266,20 +284,17 @@ public class IndividualPanel extends JPanel{
 
 		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
 
-		final String[] personalName = composeIndividualName();
-		//FIXME what if name is too long? find a way to add ellipsis
-//familyNameLabel.setSize(familyNameLabel.getPreferredSize());
-//familyNameLabel.setMaximumSize(familyNameLabel.getPreferredSize());
-//personalNameLabel.setSize(personalNameLabel.getPreferredSize());
-//personalNameLabel.setMaximumSize(personalNameLabel.getPreferredSize());
+		final String[] personalName = extractCompleteName(individual, store).get(0);
 		familyNameLabel.setText(personalName[0]);
 		personalNameLabel.setText(personalName[1]);
+		firePropertyChange(PROPERTY_NAME_TEXT_CHANGE, null, null);
+
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		final int years = extractBirthDeathAge(sj);
 		infoLabel.setText(sj.toString());
 
-		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
+		setPreferredSize(preferredImageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO);
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), preferredImageLabel.getPreferredSize());
 		preferredImageLabel.setIcon(icon);
 
@@ -289,17 +304,6 @@ public class IndividualPanel extends JPanel{
 		newIndividualLabel.setVisible(individual == null);
 		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
 		preferredImageLabel.setVisible(individual != null);
-	}
-
-	private String[] composeIndividualName(){
-		final List<String[]> personalName = extractCompleteName(individual, store);
-		final String[] firstPersonalName = personalName.get(0);
-		return new String[]{
-//			"<html><span style=\"width:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + firstPersonalName[0] + "</span></html>",
-//			"<html><span style=\"width:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + firstPersonalName[0] + "</span></html>",
-			"<html>" + firstPersonalName[0] + "</html>",
-			"<html>" + firstPersonalName[1] + "</html>"
-		};
 	}
 
 	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
