@@ -180,7 +180,7 @@ public class IndividualPanel extends JPanel{
 		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
 
-		//FIXME what if name is too long?
+		//FIXME what if name is too long? find a way to add ellipsis
 //		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
 //		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
 //		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
@@ -267,6 +267,11 @@ public class IndividualPanel extends JPanel{
 		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
 
 		final String[] personalName = composeIndividualName();
+		//FIXME what if name is too long? find a way to add ellipsis
+//familyNameLabel.setSize(familyNameLabel.getPreferredSize());
+//familyNameLabel.setMaximumSize(familyNameLabel.getPreferredSize());
+//personalNameLabel.setSize(personalNameLabel.getPreferredSize());
+//personalNameLabel.setMaximumSize(personalNameLabel.getPreferredSize());
 		familyNameLabel.setText(personalName[0]);
 		personalNameLabel.setText(personalName[1]);
 
@@ -290,6 +295,8 @@ public class IndividualPanel extends JPanel{
 		final List<String[]> personalName = extractCompleteName(individual, store);
 		final String[] firstPersonalName = personalName.get(0);
 		return new String[]{
+//			"<html><span style=\"width:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + firstPersonalName[0] + "</span></html>",
+//			"<html><span style=\"width:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\">" + firstPersonalName[0] + "</span></html>",
 			"<html>" + firstPersonalName[0] + "</html>",
 			"<html>" + firstPersonalName[1] + "</html>"
 		};
@@ -459,7 +466,9 @@ public class IndividualPanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode individual = storeFlef.getIndividuals().get(0);
-		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
+//		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
+		//long names
+		final GedcomNode individual = storeFlef.getIndividual("I2365");
 //		final GedcomNode individual = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
