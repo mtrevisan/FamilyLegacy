@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 
 import java.util.Iterator;
 import java.util.List;
@@ -125,13 +126,10 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			if(surname == null && surnameBeginIndex >= 0)
 				surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
 		}
-		final String surnamePrefix = transformerTo.traverse(personalNameStructure, "SPFX")
-			.getValue();
 		final StringJoiner sj = new StringJoiner(" ");
-		if(surnamePrefix != null)
-			sj.add(surnamePrefix);
-		if(surname != null)
-			sj.add(surname);
+		final GedcomNode surnamePrefix = transformerTo.traverse(personalNameStructure, "SPFX");
+		JavaHelper.addValueIfNotNull(sj, surnamePrefix);
+		JavaHelper.addValueIfNotNull(sj, surname);
 		destinationNode
 			.addChildValue("TYPE", transformerTo.traverse(personalNameStructure, "TYPE")
 				.getValue())
@@ -350,12 +348,9 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		final String familyName = transformerFrom.traverse(personalName, "FAMILY_NAME")
 			.getValue();
 		final StringJoiner sj = new StringJoiner(" ");
-		if(title != null)
-			sj.add(title);
-		if(givenName != null)
-			sj.add(givenName);
-		if(nameSuffix != null)
-			sj.add(nameSuffix);
+		JavaHelper.addValueIfNotNull(sj, title);
+		JavaHelper.addValueIfNotNull(sj, givenName);
+		JavaHelper.addValueIfNotNull(sj, nameSuffix);
 		if(familyName != null)
 			sj.add("/ " + familyName + " /");
 		if(sj.length() > 0)

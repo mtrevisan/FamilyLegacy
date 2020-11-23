@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -42,10 +43,8 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 		final GedcomNode date = transformerTo.traverse(header, "DATE");
 		final GedcomNode time = transformerTo.traverse(date, "TIME");
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		if(!date.isEmpty())
-			sj.add(date.getValue());
-		if(!time.isEmpty())
-			sj.add(time.getValue());
+		JavaHelper.addValueIfNotNull(sj, date);
+		JavaHelper.addValueIfNotNull(sj, time);
 		final String language = transformerTo.traverse(source, "LANG")
 			.getValue();
 		final Locale locale = (language != null? new Locale(language): Locale.forLanguageTag("en-US"));

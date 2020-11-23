@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.services;
 
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -33,6 +35,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.StringJoiner;
 
 
 public final class JavaHelper{
@@ -69,6 +72,24 @@ public final class JavaHelper{
 	public static String format(final String message, final Object... parameters){
 		return MessageFormatter.arrayFormat(message, parameters)
 			.getMessage();
+	}
+
+	/**
+	 * @param node	Node whose value is to be appended to the given joiner.
+	 */
+	public static void addValueIfNotNull(final StringJoiner sj, final GedcomNode node){
+		final String value = node.getValue();
+		if(value != null)
+			sj.add(value);
+	}
+
+	/**
+	 * @param values	Text(s) to be appended to the given joiner.
+	 */
+	public static void addValueIfNotNull(final StringJoiner sj, final String... values){
+		if(StringUtils.isNotBlank(values[0]))
+			for(final String value : values)
+				sj.add(value);
 	}
 
 }

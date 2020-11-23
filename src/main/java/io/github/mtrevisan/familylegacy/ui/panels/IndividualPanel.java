@@ -46,6 +46,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,7 @@ public class IndividualPanel extends JPanel{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.UNKNOWN, BACKGROUND_COLOR_UNKNOWN);
 	}
-	static final Color BORDER_COLOR = new Color(165, 165, 165);
+	private static final Color BORDER_COLOR = new Color(165, 165, 165);
 	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
 	private static final Color BORDER_COLOR_SHADOW_SELECTED = new Color(131, 131, 131, 130);
 
@@ -286,50 +287,74 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private String[] composeIndividualName(){
-		final String[] personalName = extractCompleteName();
-		personalName[0] = "<html>" + personalName[0] + "</html>";
-		personalName[1] = "<html>" + personalName[1] + "</html>";
-		return personalName;
+		final List<String[]> personalName = extractCompleteName(individual, store);
+		final String[] firstPersonalName = personalName.get(0);
+		return new String[]{
+			"<html>" + firstPersonalName[0] + "</html>",
+			"<html>" + firstPersonalName[1] + "</html>"
+		};
 	}
 
-	private String[] extractCompleteName(){
-		final StringJoiner family = new StringJoiner(StringUtils.SPACE);
-		final StringJoiner personal = new StringJoiner(StringUtils.SPACE);
+	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
+		final List<String[]> completeNames = new ArrayList<>();
 		if(individual != null){
-			GedcomNode name = store.createEmptyNode();
 			final List<GedcomNode> names = individual.getChildrenWithTag("NAME");
-			if(!names.isEmpty())
-				name = names.get(0);
-			final String title = store.traverse(name, "TITLE")
-				.getValue();
-			final GedcomNode personalName = store.traverse(name, "PERSONAL_NAME");
-			final String nameSuffix = store.traverse(personalName, "NAME_SUFFIX")
-				.getValue();
-			final String familyName = store.traverse(name, "FAMILY_NAME")
-				.getValueOrDefault(NO_DATA);
+			for(final GedcomNode name : names){
+				final String title = store.traverse(name, "TITLE")
+					.getValue();
+				final GedcomNode personalName = store.traverse(name, "PERSONAL_NAME");
+				final String nameSuffix = store.traverse(personalName, "NAME_SUFFIX")
+					.getValue();
+				final String familyName = store.traverse(name, "FAMILY_NAME")
+					.getValueOrDefault(NO_DATA);
 
-			if(title != null)
-				personal.add(title);
-			if(!personalName.isEmpty())
-				personal.add(personalName.getValueOrDefault(NO_DATA));
-			if(familyName != null)
-				family.add(familyName);
-			if(nameSuffix != null)
-				family.add(nameSuffix);
+				final StringJoiner personal = new StringJoiner(StringUtils.SPACE);
+				final StringJoiner family = new StringJoiner(StringUtils.SPACE);
+				if(title != null)
+					personal.add(title);
+				if(!personalName.isEmpty())
+					personal.add(personalName.getValueOrDefault(NO_DATA));
+				if(familyName != null)
+					family.add(familyName);
+				if(nameSuffix != null)
+					family.add(nameSuffix);
 
-			return new String[]{
-				(family.length() > 0? family.toString(): NO_DATA),
-				(personal.length() > 0? personal.toString(): NO_DATA)
-			};
+				completeNames.add(new String[]{
+					(family.length() > 0? family.toString(): NO_DATA),
+					(personal.length() > 0? personal.toString(): NO_DATA)
+				});
+			}
 		}
-		return new String[]{NO_DATA, NO_DATA};
+		else
+			completeNames.add(new String[]{NO_DATA, NO_DATA});
+		return completeNames;
+	}
+
+	public static String extractBirthYear(final GedcomNode individual, final Flef store){
+		String year = null;
+		if(individual != null){
+			final String birthDate = extractEarliestBirthDate(individual, store);
+			if(birthDate != null)
+				year = DateParser.extractYear(birthDate);
+		}
+		return year;
+	}
+
+	public static String extractDeathYear(final GedcomNode individual, final Flef store){
+		String year = null;
+		if(individual != null){
+			final String deathDate = extractLatestDeathDate(individual, store);
+			if(deathDate != null)
+				year = DateParser.extractYear(deathDate);
+		}
+		return year;
 	}
 
 	private int extractBirthDeathAge(final StringJoiner sj){
 		int years = -1;
 		if(individual != null){
-			final String birthDate = extractEarliestBirthDate();
-			final String deathDate = extractLatestDeathDate();
+			final String birthDate = extractEarliestBirthDate(individual, store);
+			final String deathDate = extractLatestDeathDate(individual, store);
 			String age = null;
 			if(birthDate != null && deathDate != null){
 				final boolean isApproximated = (AbstractCalendarParser.isApproximation(birthDate)
@@ -349,7 +374,7 @@ public class IndividualPanel extends JPanel{
 		return years;
 	}
 
-	private String extractEarliestBirthDate(){
+	private static String extractEarliestBirthDate(final GedcomNode individual, final Flef store){
 		int birthYear = 0;
 		String birthDate = null;
 		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{BIRTH}[]")){
@@ -357,11 +382,7 @@ public class IndividualPanel extends JPanel{
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int by = date.getYear();
-				if(birthDate == null){
-					birthYear = by;
-					birthDate = dateValue;
-				}
-				else if(by < birthYear){
+				if(birthDate == null || by < birthYear){
 					birthYear = by;
 					birthDate = dateValue;
 				}
@@ -370,7 +391,7 @@ public class IndividualPanel extends JPanel{
 		return birthDate;
 	}
 
-	private String extractLatestDeathDate(){
+	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
 		int deathYear = 0;
 		String deathDate = null;
 		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{DEATH}[]")){
@@ -378,11 +399,7 @@ public class IndividualPanel extends JPanel{
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int by = date.getYear();
-				if(deathDate == null){
-					deathYear = by;
-					deathDate = dateValue;
-				}
-				else if(by > deathYear){
+				if(deathDate == null || by > deathYear){
 					deathYear = by;
 					deathDate = dateValue;
 				}

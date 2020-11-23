@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
 
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -91,8 +92,7 @@ public class CalendarData{
 			sj.add(intervalType.getType());
 		if(fromDate != null)
 			sj.add(Integer.toString(fromDate.getDay()));
-		if(fromMonth != null)
-			sj.add(fromMonth);
+		JavaHelper.addValueIfNotNull(sj, fromMonth);
 		if(fromDate != null)
 			sj.add(Integer.toString(fromDate.getYear()));
 		if(fromEra == Era.BCE)

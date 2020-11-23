@@ -423,7 +423,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 					System.exit(0);
 				}
 			});
-			frame.setSize(new Dimension(1000, 470));
+			frame.setSize(1000, 470);
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
 		});

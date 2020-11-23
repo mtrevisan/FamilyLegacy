@@ -6,6 +6,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import net.miginfocom.swing.MigLayout;
@@ -16,7 +18,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.StringJoiner;
 
 
 //http://www.miglayout.com/whitepaper.html
@@ -241,6 +245,88 @@ public class FamilyPanel extends JPanel{
 			spouseNextLabel.setIcon(spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
 		}
 		return hasMoreFamilies;
+	}
+
+	public static String extractEarliestMarriageYear(final GedcomNode family, final Flef store){
+		int marriageYear = 0;
+		String marriageDate = null;
+		for(final GedcomNode node : store.traverseAsList(family, "EVENT{MARRIAGE}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null){
+				final int my = date.getYear();
+				if(marriageDate == null || my < marriageYear){
+					marriageYear = my;
+					marriageDate = DateParser.extractYear(dateValue);
+				}
+			}
+		}
+		return marriageDate;
+	}
+
+	public static String extractEarliestMarriagePlace(final GedcomNode family, final Flef store){
+		int marriageYear = 0;
+		String marriagePlace = null;
+		for(final GedcomNode node : store.traverseAsList(family, "EVENT{MARRIAGE}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null){
+				final int my = date.getYear();
+				if(marriagePlace == null || my < marriageYear){
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						final String placeValue = extractPlace(place, store);
+						if(placeValue != null){
+							marriageYear = my;
+							marriagePlace = placeValue;
+						}
+					}
+				}
+			}
+		}
+		return marriagePlace;
+	}
+
+	private static String extractPlace(final GedcomNode place, final Flef store){
+		final GedcomNode addressEarliest = extractEarliestAddress(place, store);
+
+		//extract place as town, county, state, country, otherwise from value
+		String placeValue = place.getValue();
+		if(addressEarliest != null){
+			final GedcomNode town = store.traverse(addressEarliest, "TOWN");
+			final GedcomNode city = store.traverse(addressEarliest, "CITY");
+			final GedcomNode county = store.traverse(addressEarliest, "COUNTY");
+			final GedcomNode state = store.traverse(addressEarliest, "STATE");
+			final GedcomNode country = store.traverse(addressEarliest, "COUNTRY");
+			final StringJoiner sj = new StringJoiner(", ");
+			JavaHelper.addValueIfNotNull(sj, town);
+			JavaHelper.addValueIfNotNull(sj, city);
+			JavaHelper.addValueIfNotNull(sj, county);
+			JavaHelper.addValueIfNotNull(sj, state);
+			JavaHelper.addValueIfNotNull(sj, country);
+			if(sj.length() > 0)
+				placeValue = sj.toString();
+		}
+		return placeValue;
+	}
+
+	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
+		int addressYear = 0;
+		GedcomNode addressEarliest = null;
+		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS");
+		for(final GedcomNode address : addresses){
+			final GedcomNode source = store.getSource(store.traverse(address, "SOURCE").getXRef());
+			final String addressDateValue = store.traverse(source, "DATE").getValue();
+			final LocalDate addressDate = DateParser.parse(addressDateValue);
+			if(addressDate != null){
+				final int ay = addressDate.getYear();
+				if(addressEarliest == null || ay < addressYear){
+					addressYear = ay;
+					addressEarliest = address;
+				}
+			}
+		}
+		return addressEarliest;
 	}
 
 

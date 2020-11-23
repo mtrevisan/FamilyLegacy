@@ -59,7 +59,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 					System.exit(0);
 				}
 			});
-			setSize(new Dimension(1000, 470));
+			setSize(1000, 470);
 			setLocationRelativeTo(null);
 			setVisible(true);
 		}

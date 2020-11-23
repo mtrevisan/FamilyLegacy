@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,8 +90,7 @@ public final class Transformer{
 	String joinIfNotNull(final String separator, final String... components){
 		final StringJoiner sj = new StringJoiner(separator);
 		for(final String component : components)
-			if(component != null)
-				sj.add(component);
+			JavaHelper.addValueIfNotNull(sj, component);
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
@@ -349,13 +349,11 @@ public final class Transformer{
 	private String extractAddressValue(final GedcomNode address){
 		final StringJoiner sj = new StringJoiner(" - ");
 		final String wholeAddress = address.getValue();
-		if(wholeAddress != null)
-			sj.add(wholeAddress);
+		JavaHelper.addValueIfNotNull(sj, wholeAddress);
 		for(final GedcomNode child : address.getChildren())
 			if(ADDRESS_TAGS.contains(child.getTag())){
 				final String value = child.getValue();
-				if(value != null)
-					sj.add(value);
+				JavaHelper.addValueIfNotNull(sj, value);
 			}
 		return (sj.length() > 0? sj.toString(): null);
 	}

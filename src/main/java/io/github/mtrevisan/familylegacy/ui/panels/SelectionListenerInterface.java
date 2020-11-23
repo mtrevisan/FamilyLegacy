@@ -22,51 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.ui.panels;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.StringJoiner;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 
-public class AgeData{
+public interface SelectionListenerInterface{
 
-	private AgeType ageType;
-	private String years;
-	private String months;
-	private String days;
-
-
-	public AgeData withAgeType(final AgeType ageType){
-		this.ageType = ageType;
-		return this;
-	}
-
-	public AgeData withYears(final String years){
-		this.years = years;
-		return this;
-	}
-
-	public AgeData withMonths(final String months){
-		this.months = months;
-		return this;
-	}
-
-	public AgeData withDays(final String days){
-		this.days = days;
-		return this;
-	}
-
-	public String getAge(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(ageType.getDescription());
-		if(ageType == AgeType.EXACT || ageType == AgeType.LESS_THAN || ageType == AgeType.MORE_THAN){
-			JavaHelper.addValueIfNotNull(sj, years, "y");
-			JavaHelper.addValueIfNotNull(sj, months, "m");
-			JavaHelper.addValueIfNotNull(sj, days, "s");
-		}
-		return sj.toString();
-	}
+	void onNodeSelected(GedcomNode node);
 
 }
