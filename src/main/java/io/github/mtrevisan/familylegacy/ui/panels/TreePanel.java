@@ -6,6 +6,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import net.miginfocom.swing.MigLayout;
 
@@ -13,6 +14,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 public class TreePanel extends JPanel{
@@ -101,10 +107,14 @@ public class TreePanel extends JPanel{
 
 		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
-		final GedcomNode spouse1Grandparents1 = extractParents(spouse1, spouse1Parents, "SPOUSE1");
-		final GedcomNode spouse1Grandparents2 = extractParents(spouse1, spouse1Parents, "SPOUSE2");
-		final GedcomNode spouse2Grandparents1 = extractParents(spouse2, spouse2Parents, "SPOUSE1");
-		final GedcomNode spouse2Grandparents2 = extractParents(spouse2, spouse2Parents, "SPOUSE2");
+		final GedcomNode spouse1Grandparents1 = (!spouse1Parents.isEmpty()? extractParents(null, spouse1Parents, "SPOUSE1"):
+			null);
+		final GedcomNode spouse1Grandparents2 = (!spouse1Parents.isEmpty()? extractParents(null, spouse1Parents, "SPOUSE2"):
+			null);
+		final GedcomNode spouse2Grandparents1 = (!spouse2Parents.isEmpty()? extractParents(null, spouse2Parents, "SPOUSE1"):
+			null);
+		final GedcomNode spouse2Grandparents2 = (!spouse2Parents.isEmpty()? extractParents(null, spouse2Parents, "SPOUSE2"):
+			null);
 
 		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
@@ -133,10 +143,10 @@ public class TreePanel extends JPanel{
 		setLayout(new MigLayout("insets 0",
 			"[grow,center][grow,center][grow,center][grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(spouse1Grandparents1Panel, "growx 25");
-		add(spouse1Grandparents2Panel, "growx 25");
-		add(spouse2Grandparents1Panel, "growx 25");
-		add(spouse2Grandparents2Panel, "growx 25,wrap");
+		add(spouse1Grandparents1Panel, "growx 25,hidemode 1");
+		add(spouse1Grandparents2Panel, "growx 25,hidemode 1");
+		add(spouse2Grandparents1Panel, "growx 25,hidemode 1");
+		add(spouse2Grandparents2Panel, "growx 25,hidemode 1,wrap");
 		add(spouse1ParentsPanel, "span 2,growx 50");
 		add(spouse2ParentsPanel, "span 2,growx 50,wrap");
 		add(homeFamilyPanel, "span 4,wrap");
@@ -146,7 +156,88 @@ public class TreePanel extends JPanel{
 	private GedcomNode extractParents(GedcomNode child, final GedcomNode family, final String spouseTag){
 		if(child == null && family != null)
 			child = store.getIndividual(store.traverse(family, spouseTag).getXRef());
-		return (child != null && !child.isEmpty()? store.getFamily(store.traverse(child, "FAMILY_CHILD").getXRef()): null);
+		if(child != null && !child.isEmpty()){
+			final List<GedcomNode> familyChilds = store.traverseAsList(child, "FAMILY_CHILD[]");
+			final List<GedcomNode> biologicalFamilyChilds = new ArrayList<>(familyChilds.size());
+			//check pedigree (prefers `biological` or <null>)
+			for(final GedcomNode familyChild : familyChilds){
+				final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARENT1").getValue();
+				if(pedigree1 == null || pedigree1.equalsIgnoreCase("biological"))
+					biologicalFamilyChilds.add(familyChild);
+				else{
+					final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARENT2").getValue();
+					if(pedigree2 == null || pedigree2.equalsIgnoreCase("biological"))
+						biologicalFamilyChilds.add(familyChild);
+				}
+			}
+			if(!biologicalFamilyChilds.isEmpty()){
+				familyChilds.clear();
+				familyChilds.addAll(biologicalFamilyChilds);
+			}
+
+			//FIXME how to choose between families?
+			if(!familyChilds.isEmpty())
+				return store.getFamily(familyChilds.get(0).getXRef());
+		}
+		return null;
+	}
+
+	public GedcomNode getPreferredFamily(final GedcomNode individual){
+		GedcomNode family = null;
+		//see if this individual belongs to a family
+		List<GedcomNode> families = extractFamilies(individual);
+		if(families.size() > 1){
+			//if it belongs to more than one family, select those with the oldest event
+			LocalDate oldestDate = null;
+			final List<GedcomNode> oldestFamilies = new ArrayList<>(0);
+			for(final GedcomNode f : families){
+				final LocalDate oldestEventDate = extractOldestEventDate(f);
+				if(oldestEventDate != null){
+					final int cmp;
+					if(oldestDate == null || (cmp = oldestEventDate.compareTo(oldestDate)) < 0){
+						oldestDate = oldestEventDate;
+						oldestFamilies.clear();
+						oldestFamilies.add(f);
+					}
+					else if(cmp == 0)
+						oldestFamilies.add(f);
+				}
+			}
+			if(oldestFamilies.size() == 1)
+				family = oldestFamilies.get(0);
+			else{
+				//choose the one with the lowest ID
+				if(!oldestFamilies.isEmpty())
+					families = oldestFamilies;
+				final Map<Integer, GedcomNode> all = new TreeMap<>();
+				for(final GedcomNode fam : families)
+					all.put(Integer.parseInt(fam.getID().substring(1)), fam);
+				family = all.values().iterator().next();
+			}
+		}
+		else if(families.size() == 1)
+			//the individual belongs to exact one family, choose it and load as the primary family
+			family = families.get(0);
+		return family;
+	}
+
+	private List<GedcomNode> extractFamilies(final GedcomNode individual){
+		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_SPOUSE[]");
+		List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
+		for(final GedcomNode familyXRef : familyXRefs)
+			families.add(store.getFamily(familyXRef.getXRef()));
+		return families;
+	}
+
+	private LocalDate extractOldestEventDate(final GedcomNode node){
+		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
+		final TreeMap<LocalDate, GedcomNode> dateEvent = new TreeMap<>();
+		for(final GedcomNode event : events){
+			final GedcomNode eventDate = store.traverse(event, "DATE");
+			if(!eventDate.isEmpty())
+				dateEvent.put(DateParser.parse(eventDate.getValue()), event);
+		}
+		return (!dateEvent.isEmpty()? dateEvent.keySet().iterator().next(): null);
 	}
 
 //	@Override
@@ -258,11 +349,15 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			childrenPanel.loadData(homeFamily);
 		}
 		else{
-			final GedcomNode spouse1Grandparents1 = extractParents(spouse1, spouse1Parents, "SPOUSE1");
-			final GedcomNode spouse1Grandparents2 = extractParents(spouse1, spouse1Parents, "SPOUSE2");
-			final GedcomNode spouse2Grandparents1 = extractParents(spouse2, spouse2Parents, "SPOUSE1");
-			final GedcomNode spouse2Grandparents2 = extractParents(spouse2, spouse2Parents, "SPOUSE2");
+			final GedcomNode spouse1Grandparents1 = extractParents(null, spouse1Parents, "SPOUSE1");
+			final GedcomNode spouse1Grandparents2 = extractParents(null, spouse1Parents, "SPOUSE2");
+			final GedcomNode spouse2Grandparents1 = extractParents(null, spouse2Parents, "SPOUSE1");
+			final GedcomNode spouse2Grandparents2 = extractParents(null, spouse2Parents, "SPOUSE2");
 
+			spouse1Grandparents1Panel.setVisible(spouse1Parents != null && !spouse1Parents.isEmpty());
+			spouse1Grandparents2Panel.setVisible(spouse1Parents != null && !spouse1Parents.isEmpty());
+			spouse2Grandparents1Panel.setVisible(spouse2Parents != null && !spouse2Parents.isEmpty());
+			spouse2Grandparents2Panel.setVisible(spouse2Parents != null && !spouse2Parents.isEmpty());
 			spouse1Grandparents1Panel.loadData(null, null, spouse1Grandparents1);
 			spouse1Grandparents2Panel.loadData(null, null, spouse1Grandparents2);
 			spouse2Grandparents1Panel.loadData(null, null, spouse2Grandparents1);

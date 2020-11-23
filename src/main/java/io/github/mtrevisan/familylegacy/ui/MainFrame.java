@@ -7,7 +7,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
-import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
@@ -20,13 +19,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.time.LocalDate;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 
 public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface{
@@ -50,11 +45,11 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 //			final GedcomNode family = store.getFamilies().get(9);
 //			final GedcomNode family = store.getFamilies().get(64);
 			final GedcomNode family = store.getFamilies().get(75);
-//			GedcomNode family = null;
+//			final GedcomNode family = null;
 
 
 			getContentPane().setLayout(new BorderLayout());
-			panel = new TreePanel(null, null, family, 3, store, this, this);
+			panel = new TreePanel(null, null, family, 4, store, this, this);
 			getContentPane().add(panel, BorderLayout.NORTH);
 			pack();
 
@@ -145,52 +140,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		//prefer left position if male or unknown, right if female
 		GedcomNode spouse1 = null;
 		GedcomNode spouse2 = null;
-		final Sex sex = extractSex(individual);
-		if(sex == Sex.FEMALE)
+		if(extractSex(individual) == Sex.FEMALE)
 			//put in the right box
 			spouse2 = individual;
 		else
 			//put in the left box
 			spouse1 = individual;
 
-		GedcomNode family = null;
-		//see if this individual belongs to a family
-		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_SPOUSE[]");
-		List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
-		for(final GedcomNode familyXRef : familyXRefs)
-			families.add(store.getFamily(familyXRef.getXRef()));
-		if(familyXRefs.size() > 1){
-			//if it belongs to more than one family, select those with the oldest event
-			LocalDate oldestDate = null;
-			final List<GedcomNode> oldestFamilies = new ArrayList<>(0);
-			for(final GedcomNode f : families){
-				final LocalDate oldestEventDate = extractOldestEventDate(f);
-				if(oldestEventDate != null){
-					final int cmp;
-					if(oldestDate == null || (cmp = oldestEventDate.compareTo(oldestDate)) < 0){
-						oldestDate = oldestEventDate;
-						oldestFamilies.clear();
-						oldestFamilies.add(f);
-					}
-					else if(cmp == 0)
-						oldestFamilies.add(f);
-				}
-			}
-			if(oldestFamilies.size() == 1)
-				family = oldestFamilies.get(0);
-			else{
-				//choose the one with the lowest ID
-				if(!oldestFamilies.isEmpty())
-					families = oldestFamilies;
-				final Map<Integer, GedcomNode> all = new TreeMap<>();
-				for(final GedcomNode fam : families)
-					all.put(Integer.parseInt(fam.getID().substring(1)), fam);
-				family = all.values().iterator().next();
-			}
-		}
-		else if(familyXRefs.size() == 1)
-			//the individual belongs to exact one family, choose it and load as the primary family
-			family = families.get(0);
+		final GedcomNode family = panel.getPreferredFamily(individual);
 
 		//update primary family
 		panel.loadData(spouse1, spouse2, family);
@@ -199,17 +156,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	private Sex extractSex(final GedcomNode individual){
 		return Sex.fromCode(store.traverse(individual, "SEX")
 			.getValue());
-	}
-
-	private LocalDate extractOldestEventDate(final GedcomNode node){
-		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
-		final TreeMap<LocalDate, GedcomNode> dateEvent = new TreeMap<>();
-		for(final GedcomNode event : events){
-			final GedcomNode eventDate = store.traverse(event, "DATE");
-			if(!eventDate.isEmpty())
-				dateEvent.put(DateParser.parse(eventDate.getValue()), event);
-		}
-		return (!dateEvent.isEmpty()? dateEvent.keySet().iterator().next(): null);
 	}
 
 	@Override

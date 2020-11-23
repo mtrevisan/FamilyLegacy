@@ -169,7 +169,7 @@ public class FamilyPanel extends JPanel{
 	protected void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
-		if(g instanceof Graphics2D){
+		if(g instanceof Graphics2D && spouse1Panel != null && spouse2Panel != null){
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -269,8 +269,8 @@ public class FamilyPanel extends JPanel{
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
-		final GedcomNode family = storeFlef.getFamilies().get(75);
-//		GedcomNode family = null;
+//		final GedcomNode family = storeFlef.getFamilies().get(75);
+		GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
