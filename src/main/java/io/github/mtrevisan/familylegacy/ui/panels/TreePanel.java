@@ -240,6 +240,7 @@ public class TreePanel extends JPanel{
 		return (!dateEvent.isEmpty()? dateEvent.keySet().iterator().next(): null);
 	}
 
+	//FIXME connection segments?
 //	@Override
 	protected void paintComponent2(final Graphics g){
 		super.paintComponent(g);
@@ -271,61 +272,6 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			graphics2D.dispose();
 		}
 	}
-
-//	public void loadData(Individual individual, boolean treeHasIndividuals){
-//		java.util.List<FamilySpouse> familySpouses = individual.getFamiliesWhereSpouse();
-//		Family homeFamily = Optional.ofNullable(familySpouses)
-//			.filter(list -> !list.isEmpty())
-//			//FIXME remember which family was before
-//			.map(list -> list.get(0))
-//			.map(FamilySpouse::getFamily)
-//			.orElse(null);
-//		if(homeFamily != null)
-//			loadData(homeFamily);
-//		else{
-//			Sex sex = individual.getSexAsEnum();
-//			switch(sex){
-//				case MALE:
-//				case UNKNOWN: {
-//					homeFamilyBoxPanel.loadData(null, individual, null, treeHasIndividuals);
-//					java.util.List<FamilyChild> familiesChild = individual.getFamiliesWhereChild();
-//					Family individualParents = Optional.ofNullable(familiesChild)
-//						.filter(list -> !list.isEmpty())
-//						//FIXME remember which family was before
-//						.map(list -> list.get(0))
-//						.map(FamilyChild::getFamily)
-//						.orElse(null);
-//					husbandParentsBoxPanel.loadData(individualParents);
-//					wifeParentsBoxPanel.loadData(null);
-//					childrenBoxPanel.loadData(null);
-//
-//					husbandParentsBoxPanel.setVisible(true);
-//					wifeParentsBoxPanel.setVisible(false);
-//				} break;
-//
-//				case FEMALE: {
-//					homeFamilyBoxPanel.loadData(null, null, individual, treeHasIndividuals);
-//					java.util.List<FamilyChild> familiesChild = individual.getFamiliesWhereChild();
-//					Family individualParents = Optional.ofNullable(familiesChild)
-//						.filter(list -> !list.isEmpty())
-//						//FIXME remember which family was before
-//						.map(list -> list.get(0))
-//						.map(FamilyChild::getFamily)
-//						.orElse(null);
-//					husbandParentsBoxPanel.loadData(null);
-//					wifeParentsBoxPanel.loadData(individualParents);
-//					childrenBoxPanel.loadData(null);
-//
-//					husbandParentsBoxPanel.setVisible(false);
-//					wifeParentsBoxPanel.setVisible(true);
-//				}
-//			}
-//
-//
-//			revalidate();
-//			repaint();
-//		}
-//	}
 
 	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily){
 		this.spouse1 = spouse1;
@@ -367,10 +313,6 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
 			childrenPanel.loadData(homeFamily);
 		}
-
-
-//		revalidate();
-//		repaint();
 	}
 
 

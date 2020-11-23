@@ -179,6 +179,7 @@ public class IndividualPanel extends JPanel{
 		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
 
+		//FIXME what if name is too long?
 //		final Dimension namePreferredSize = personalNameLabel.getPreferredSize();
 //		final int individualMaxWidth = (int)Math.ceil(namePreferredSize.getWidth());
 //		final int individualMaxHeight = (int)Math.ceil(namePreferredSize.getHeight());
@@ -282,8 +283,6 @@ public class IndividualPanel extends JPanel{
 		newIndividualLabel.setVisible(individual == null);
 		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
 		preferredImageLabel.setVisible(individual != null);
-
-		repaint();
 	}
 
 	private String[] composeIndividualName(){

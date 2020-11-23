@@ -211,8 +211,6 @@ public class FamilyPanel extends JPanel{
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
-
-		repaint();
 	}
 
 	public boolean updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,

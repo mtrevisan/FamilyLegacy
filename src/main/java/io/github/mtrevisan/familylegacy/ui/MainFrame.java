@@ -32,7 +32,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	private Flef store;
 
 	private TreePanel panel;
-	private final Deque<GedcomNode> selectedNode = new ArrayDeque<>();
 
 
 	public MainFrame(){
