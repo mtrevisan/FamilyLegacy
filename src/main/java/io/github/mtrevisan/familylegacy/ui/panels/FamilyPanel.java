@@ -237,12 +237,12 @@ public class FamilyPanel extends JPanel{
 		if(hasMoreFamilies){
 			final boolean spousePreviousEnabled = (currentFamilyIndex > 0);
 			spousePreviousLabel.putClientProperty(KEY_ENABLED, spousePreviousEnabled);
-			spousePreviousLabel.setCursor(new Cursor(spousePreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+			spousePreviousLabel.setCursor(Cursor.getPredefinedCursor(spousePreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 			spousePreviousLabel.setIcon(spousePreviousEnabled? SPOUSE_PREVIOUS_ENABLED: SPOUSE_PREVIOUS_DISABLED);
 
 			final boolean spouseNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
 			spouseNextLabel.putClientProperty(KEY_ENABLED, spouseNextEnabled);
-			spouseNextLabel.setCursor(new Cursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+			spouseNextLabel.setCursor(Cursor.getPredefinedCursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 			spouseNextLabel.setIcon(spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
 		}
 		return hasMoreFamilies;

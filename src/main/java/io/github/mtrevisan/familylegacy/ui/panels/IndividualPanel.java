@@ -44,6 +44,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.TextAttribute;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.time.LocalDate;
@@ -134,19 +135,33 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				public void mouseClicked(final MouseEvent evt){
 					if(SwingUtilities.isRightMouseButton(evt))
 						listener.onIndividualEdit(IndividualPanel.this, individual);
-					else if(boxType == BoxPanelType.SECONDARY && SwingUtilities.isLeftMouseButton(evt))
-						listener.onIndividualFocus(IndividualPanel.this, individual);
 				}
 			});
 
 		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
 		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
+		if(boxType == BoxPanelType.SECONDARY){
+			familyNameLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt))
+						listener.onIndividualFocus(IndividualPanel.this, individual);
+				}
+			});
+			personalNameLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt))
+						listener.onIndividualFocus(IndividualPanel.this, individual);
+				}
+			});
+		}
 		addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
 			newIndividualLabel.setText("New individual");
-			newIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			newIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			newIndividualLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -155,7 +170,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			});
 
 			linkIndividualLabel.setText("Link individual");
-			linkIndividualLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			linkIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			linkIndividualLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -167,7 +182,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
 		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
 		if(listener != null){
-			preferredImageLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+			preferredImageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			preferredImageLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -177,20 +192,25 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			});
 		}
 
+		final double shrinkFactor = getShrinkFactor();
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]0[]"));
-		add(familyNameLabel, "cell 0 0,width ::100%-" + (PREFERRED_IMAGE_WIDTH + 7 * 3 + 2) + ",hidemode 3");
+		add(familyNameLabel, "cell 0 0,width ::100%-" + (PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3) + ",hidemode 3");
 		add(newIndividualLabel, "cell 0 0,hidemode 3");
 		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
-		add(personalNameLabel, "cell 0 1,width ::100%-" + (PREFERRED_IMAGE_WIDTH + 7 * 3 + 2) + ",hidemode 3");
+		add(personalNameLabel, "cell 0 1,width ::100%-" + (PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3) + ",hidemode 3");
 		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
 	}
 
 	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio){
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final double shrinkFactor = getShrinkFactor();
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
 		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
+	}
+
+	private double getShrinkFactor(){
+		return (boxType == BoxPanelType.PRIMARY? 1.: 2.);
 	}
 
 	@Override
@@ -198,13 +218,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
-//			final Dimension preferredSize = familyNameLabel.getPreferredSize();
-//			preferredSize.width = (int)((getWidth() - preferredImageLabel.getWidth() - familyNameLabel.getX() * 2) * 0.95);
-//			familyNameLabel.setSize(preferredSize);
-//			familyNameLabel.setMaximumSize(preferredSize);
-//			personalNameLabel.setSize(preferredSize);
-//			personalNameLabel.setMaximumSize(preferredSize);
-
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -277,12 +290,19 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
 			new Dimension(280, size.height));
 
-		final Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
+		Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
+		final Font infoFont = deriveInfoFont(font);
+		if(boxType == BoxPanelType.SECONDARY){
+			//add underline to mark this individual as eligible for primary position
+			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
+			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
+			font = font.deriveFont(attributes);
+		}
 		familyNameLabel.setFont(font);
-
+		familyNameLabel.setCursor(Cursor.getPredefinedCursor(boxType == BoxPanelType.PRIMARY? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR));
 		personalNameLabel.setFont(font);
-
-		infoLabel.setFont(deriveInfoFont(personalNameLabel.getFont()));
+		personalNameLabel.setCursor(Cursor.getPredefinedCursor(boxType == BoxPanelType.PRIMARY? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR));
+		infoLabel.setFont(infoFont);
 
 		final String[] personalName = extractCompleteName(individual, store).get(0);
 		familyNameLabel.setText(personalName[0]);
