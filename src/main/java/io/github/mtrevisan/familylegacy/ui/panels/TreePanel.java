@@ -65,8 +65,8 @@ public class TreePanel extends JPanel{
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
-		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
-		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
+		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
+		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
 
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
 			individualListener);
@@ -99,12 +99,12 @@ public class TreePanel extends JPanel{
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
-		final GedcomNode spouse1Parents = extractParents(family, "SPOUSE1");
-		final GedcomNode spouse2Parents = extractParents(family, "SPOUSE2");
-		final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parents, "SPOUSE1");
-		final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parents, "SPOUSE2");
-		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parents, "SPOUSE1");
-		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parents, "SPOUSE2");
+		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
+		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
+		final GedcomNode spouse1Grandparents1 = extractParents(spouse1, spouse1Parents, "SPOUSE1");
+		final GedcomNode spouse1Grandparents2 = extractParents(spouse1, spouse1Parents, "SPOUSE2");
+		final GedcomNode spouse2Grandparents1 = extractParents(spouse2, spouse2Parents, "SPOUSE1");
+		final GedcomNode spouse2Grandparents2 = extractParents(spouse2, spouse2Parents, "SPOUSE2");
 
 		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
@@ -143,14 +143,10 @@ public class TreePanel extends JPanel{
 		add(childrenScrollPane, "span 4,alignx center");
 	}
 
-	private GedcomNode extractParents(final GedcomNode family, final String spouseTag){
-		GedcomNode parents = null;
-		if(family != null){
-			final GedcomNode spouse = store.getIndividual(store.traverse(family, spouseTag).getXRef());
-			if(!spouse.isEmpty())
-				parents = store.getFamily(store.traverse(spouse, "FAMILY_CHILD").getXRef());
-		}
-		return parents;
+	private GedcomNode extractParents(GedcomNode child, final GedcomNode family, final String spouseTag){
+		if(child == null && family != null)
+			child = store.getIndividual(store.traverse(family, spouseTag).getXRef());
+		return (child != null && !child.isEmpty()? store.getFamily(store.traverse(child, "FAMILY_CHILD").getXRef()): null);
 	}
 
 //	@Override
@@ -249,56 +245,35 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 	}
 
 	private void loadData(){
+		spouse1 = (spouse1 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE1").getXRef()): spouse1);
+		spouse2 = (spouse2 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE2").getXRef()): spouse2);
+
+		final GedcomNode spouse1Parents = extractParents(spouse1, homeFamily, "SPOUSE1");
+		final GedcomNode spouse2Parents = extractParents(spouse2, homeFamily, "SPOUSE2");
+
 		if(generations <= 3){
-			//TODO
-			spouse1ParentsPanel.loadData();
-			spouse2ParentsPanel.loadData();
-			homeFamilyPanel.loadData();
-			childrenScrollPane.loadData();
+			spouse1ParentsPanel.loadData(null, null, spouse1Parents);
+			spouse2ParentsPanel.loadData(null, null, spouse2Parents);
+			homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
+			childrenPanel.loadData(homeFamily);
 		}
 		else{
-			//TODO
-			spouse1Grandparents1Panel.loadData();
-			spouse1Grandparents2Panel.loadData();
-			spouse2Grandparents1Panel.loadData();
-			spouse2Grandparents2Panel.loadData();
-			spouse1ParentsPanel.loadData();
-			spouse2ParentsPanel.loadData();
-			homeFamilyPanel.loadData();
-			childrenScrollPane.loadData();
+			final GedcomNode spouse1Grandparents1 = extractParents(spouse1, spouse1Parents, "SPOUSE1");
+			final GedcomNode spouse1Grandparents2 = extractParents(spouse1, spouse1Parents, "SPOUSE2");
+			final GedcomNode spouse2Grandparents1 = extractParents(spouse2, spouse2Parents, "SPOUSE1");
+			final GedcomNode spouse2Grandparents2 = extractParents(spouse2, spouse2Parents, "SPOUSE2");
+
+			spouse1Grandparents1Panel.loadData(null, null, spouse1Grandparents1);
+			spouse1Grandparents2Panel.loadData(null, null, spouse1Grandparents2);
+			spouse2Grandparents1Panel.loadData(null, null, spouse2Grandparents1);
+			spouse2Grandparents2Panel.loadData(null, null, spouse2Grandparents2);
+			spouse1ParentsPanel.loadData(null, null, spouse1Parents);
+			spouse2ParentsPanel.loadData(null, null, spouse2Parents);
+			homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
+			childrenPanel.loadData(homeFamily);
 		}
 
-//		Family husbandParents = Optional.ofNullable(family)
-//			.map(Family::getHusband)
-//			.map(IndividualReference::getIndividual)
-//			.map(Individual::getFamiliesWhereChild)
-//			.filter(list -> !list.isEmpty())
-//			//FIXME remember which family was before
-//			.map(list -> list.get(0))
-//			.map(FamilyChild::getFamily)
-//			.orElse(null);
-//		husbandParentsBoxPanel.loadData(husbandParents);
-//
-//		Family wifeParents = Optional.ofNullable(family)
-//			.map(Family::getWife)
-//			.map(IndividualReference::getIndividual)
-//			.map(Individual::getFamiliesWhereChild)
-//			.filter(list -> !list.isEmpty())
-//			//FIXME remember which family was before
-//			.map(list -> list.get(0))
-//			.map(FamilyChild::getFamily)
-//			.orElse(null);
-//		wifeParentsBoxPanel.loadData(wifeParents);
-//
-//		homeFamilyBoxPanel.loadData(family);
-//
-//		List<IndividualReference> children = family.getChildren();
-//		childrenBoxPanel.loadData(children);
-//
-//		husbandParentsBoxPanel.setVisible(Optional.ofNullable(family).map(Family::getHusband).isPresent());
-//		wifeParentsBoxPanel.setVisible(Optional.ofNullable(family).map(Family::getWife).isPresent());
-//
-//
+
 //		revalidate();
 //		repaint();
 	}

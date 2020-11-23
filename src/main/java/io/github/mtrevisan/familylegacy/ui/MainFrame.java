@@ -118,7 +118,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	 */
 	@Override
 	public void onIndividualFocus(final IndividualPanel boxPanel, GedcomNode individual){
-//individual = store.getIndividual("I202");
 		//prefer left position if male or unknown, right if female
 		GedcomNode spouse1 = null;
 		GedcomNode spouse2 = null;
@@ -169,8 +168,8 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			//the individual belongs to exact one family, choose it and load as the primary family
 			family = families.get(0);
 
-		//TODO update primary family
-		panel.loadData(spouse1, spouse2, family, 3);
+		//update primary family
+		panel.loadData(spouse1, spouse2, family);
 
 		System.out.println("onFocusIndividual " + individual.getID());
 	}

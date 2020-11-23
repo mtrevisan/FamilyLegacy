@@ -190,11 +190,10 @@ public class FamilyPanel extends JPanel{
 		}
 	}
 
-	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family, final BoxPanelType boxType){
+	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): spouse1);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): spouse2);
 		this.family = family;
-		this.boxType = boxType;
 
 		loadData();
 	}
