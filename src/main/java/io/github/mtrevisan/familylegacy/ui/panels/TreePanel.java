@@ -16,8 +16,10 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 
@@ -43,7 +45,7 @@ public class TreePanel extends JPanel{
 	private GedcomNode spouse1;
 	private GedcomNode spouse2;
 	private GedcomNode homeFamily;
-	private int generations;
+	private final int generations;
 	private final Flef store;
 	private final IndividualListenerInterface individualListener;
 	private final FamilyListenerInterface familyListener;
@@ -158,15 +160,15 @@ public class TreePanel extends JPanel{
 			child = store.getIndividual(store.traverse(family, spouseTag).getXRef());
 		if(child != null && !child.isEmpty()){
 			final List<GedcomNode> familyChilds = store.traverseAsList(child, "FAMILY_CHILD[]");
-			final List<GedcomNode> biologicalFamilyChilds = new ArrayList<>(familyChilds.size());
+			final Collection<GedcomNode> biologicalFamilyChilds = new ArrayList<>(familyChilds.size());
 			//check pedigree (prefers `biological` or <null>)
 			for(final GedcomNode familyChild : familyChilds){
 				final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARENT1").getValue();
-				if(pedigree1 == null || pedigree1.equalsIgnoreCase("biological"))
+				if(pedigree1 == null || "biological".equalsIgnoreCase(pedigree1))
 					biologicalFamilyChilds.add(familyChild);
 				else{
 					final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARENT2").getValue();
-					if(pedigree2 == null || pedigree2.equalsIgnoreCase("biological"))
+					if(pedigree2 == null || "biological".equalsIgnoreCase(pedigree2))
 						biologicalFamilyChilds.add(familyChild);
 				}
 			}
@@ -223,7 +225,7 @@ public class TreePanel extends JPanel{
 
 	private List<GedcomNode> extractFamilies(final GedcomNode individual){
 		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_SPOUSE[]");
-		List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
+		final List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
 		for(final GedcomNode familyXRef : familyXRefs)
 			families.add(store.getFamily(familyXRef.getXRef()));
 		return families;
@@ -231,7 +233,7 @@ public class TreePanel extends JPanel{
 
 	private LocalDate extractOldestEventDate(final GedcomNode node){
 		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
-		final TreeMap<LocalDate, GedcomNode> dateEvent = new TreeMap<>();
+		final SortedMap<LocalDate, GedcomNode> dateEvent = new TreeMap<>();
 		for(final GedcomNode event : events){
 			final GedcomNode eventDate = store.traverse(event, "DATE");
 			if(!eventDate.isEmpty())
@@ -288,13 +290,7 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 		final GedcomNode spouse1Parents = extractParents(spouse1, homeFamily, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(spouse2, homeFamily, "SPOUSE2");
 
-		if(generations <= 3){
-			spouse1ParentsPanel.loadData(null, null, spouse1Parents);
-			spouse2ParentsPanel.loadData(null, null, spouse2Parents);
-			homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
-			childrenPanel.loadData(homeFamily);
-		}
-		else{
+		if(generations > 3){
 			final GedcomNode spouse1Grandparents1 = extractParents(null, spouse1Parents, "SPOUSE1");
 			final GedcomNode spouse1Grandparents2 = extractParents(null, spouse1Parents, "SPOUSE2");
 			final GedcomNode spouse2Grandparents1 = extractParents(null, spouse2Parents, "SPOUSE1");
@@ -308,11 +304,11 @@ graphics2D.drawLine(p.x, p.y, p.x - 20, p.y - 20);
 			spouse1Grandparents2Panel.loadData(null, null, spouse1Grandparents2);
 			spouse2Grandparents1Panel.loadData(null, null, spouse2Grandparents1);
 			spouse2Grandparents2Panel.loadData(null, null, spouse2Grandparents2);
-			spouse1ParentsPanel.loadData(null, null, spouse1Parents);
-			spouse2ParentsPanel.loadData(null, null, spouse2Parents);
-			homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
-			childrenPanel.loadData(homeFamily);
 		}
+		spouse1ParentsPanel.loadData(null, null, spouse1Parents);
+		spouse2ParentsPanel.loadData(null, null, spouse2Parents);
+		homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
+		childrenPanel.loadData(homeFamily);
 	}
 
 

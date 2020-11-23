@@ -19,8 +19,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
 
@@ -133,7 +131,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onIndividualFocus(final IndividualPanel boxPanel, GedcomNode individual){
+	public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
 		LOGGER.debug("onFocusIndividual {}", individual.getID());
 
 		//prefer left position if male or unknown, right if female

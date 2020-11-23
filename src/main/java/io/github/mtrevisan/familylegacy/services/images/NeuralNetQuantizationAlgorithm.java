@@ -393,6 +393,7 @@ public class NeuralNetQuantizationAlgorithm{
 				}
 				catch(final Exception e){
 					//FIXME
+					e.printStackTrace();
 				}
 			}
 		}

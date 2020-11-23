@@ -196,6 +196,7 @@ public class AnimatedGifEncoder{
 		}
 		catch(final IOException e){
 			//FIXME
+			e.printStackTrace();
 		}
 		return response;
 	}
@@ -220,6 +221,7 @@ public class AnimatedGifEncoder{
 			}
 			catch(final IOException e){
 				//FIXME
+				e.printStackTrace();
 			}
 			started = response;
 		}
@@ -270,6 +272,7 @@ public class AnimatedGifEncoder{
 			}
 			catch(final IOException e){
 				//FIXME
+				e.printStackTrace();
 			}
 		}
 		return response;
@@ -299,6 +302,7 @@ public class AnimatedGifEncoder{
 		}
 		catch(final IOException e){
 			//FIXME
+			e.printStackTrace();
 		}
 
 		//reset for subsequent use

@@ -21,6 +21,7 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -70,8 +71,8 @@ public class LinkFamilyDialog extends JDialog{
 
 	private final Debouncer<LinkFamilyDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
-	private Flef store;
-	private SelectionListenerInterface listener;
+	private final Flef store;
+	private final SelectionListenerInterface listener;
 
 
 	public LinkFamilyDialog(final Flef store, final SelectionListenerInterface listener, final Frame parent){
@@ -88,21 +89,7 @@ public class LinkFamilyDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Link family");
 
-		familiesTable = new JTable(new DefaultTableModel(new String[]{"ID",
-				"Spouse 1", "", "", "", "Spouse 1 ID",
-				"Spouse 2", "", "", "", "Spouse 2 ID",
-				"Date", "Place"}, 0){
-			@Override
-			public Class<?> getColumnClass(final int column){
-				final Object value = getValueAt(0, column);
-				return (value != null? value.getClass(): Object.class);
-			}
-
-			@Override
-			public boolean isCellEditable(final int row, final int column){
-				return false;
-			}
-		});
+		familiesTable = new JTable(new FamiliesTableModel());
 		familiesTable.getColumnModel().setColumnMargin(5);
 		familiesTable.setAutoCreateRowSorter(true);
 		familiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
@@ -130,15 +117,16 @@ public class LinkFamilyDialog extends JDialog{
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, MARRIAGE_PLACE_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
 		final Comparator<String> idDateComparator = (value1, value2) -> {
+			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
 			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
 			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
 			return Integer.compare(v1, v2);
 		};
+		//put approximated years after exact years
 		final Comparator<String> dateWithApproximationComparator = idDateComparator.thenComparingInt(year -> year.charAt(0));
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_ID, idDateComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE1_ID, idDateComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE2_ID, idDateComparator);
-		//put approximated years after exact years
 		sorter.setComparator(TABLE_INDEX_SPOUSE1_BIRTH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE1_DEATH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_SPOUSE2_BIRTH_YEAR, dateWithApproximationComparator);
@@ -186,7 +174,7 @@ public class LinkFamilyDialog extends JDialog{
 
 		final DefaultTableModel familiesModel = (DefaultTableModel)familiesTable.getModel();
 
-		int size = families.size();
+		final int size = families.size();
 		if(size > 0){
 			familiesModel.setRowCount(size);
 
@@ -254,7 +242,7 @@ public class LinkFamilyDialog extends JDialog{
 			try{
 				//split input text around spaces and commas
 				final String[] components = StringUtils.split(text, " ,");
-				final List<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
+				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
 				for(final String component : components)
 					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
 				return RowFilter.andFilter(andFilters);
@@ -289,19 +277,14 @@ public class LinkFamilyDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = new SelectionListenerInterface(){
-			@Override
-			public void onNodeSelected(final GedcomNode node){
-				System.out.println("onNodeSelected " + node.getID());
-			}
-		};
+		final SelectionListenerInterface listener = node -> System.out.println("onNodeSelected " + node.getID());
 
 		EventQueue.invokeLater(() -> {
 			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
-				public void windowClosing(java.awt.event.WindowEvent e){
+				public void windowClosing(final java.awt.event.WindowEvent e){
 					System.exit(0);
 				}
 			});
@@ -310,9 +293,29 @@ public class LinkFamilyDialog extends JDialog{
 			dialog.setVisible(true);
 
 			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-			final Runnable task = () -> dialog.loadData();
-			scheduler.schedule(task, 3, TimeUnit.SECONDS);
+			scheduler.schedule(dialog::loadData, 3, TimeUnit.SECONDS);
 		});
+	}
+
+	private static class FamiliesTableModel extends DefaultTableModel{
+
+		private static final long serialVersionUID = -2461556718124651678L;
+
+
+		FamiliesTableModel(){
+			super(new String[]{"ID", "Spouse 1", "", "", "", "Spouse 1 ID", "Spouse 2", "", "", "", "Spouse 2 ID", "Date", "Place"}, 0);
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			final Object value = getValueAt(0, column);
+			return (value != null? value.getClass(): Object.class);
+		}
+
+		@Override
+		public boolean isCellEditable(final int row, final int column){
+			return false;
+		}
 	}
 
 }

@@ -66,7 +66,7 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode spouse2;
 	private GedcomNode family;
 	private final Flef store;
-	private BoxPanelType boxType;
+	private final BoxPanelType boxType;
 	private final FamilyListenerInterface familyListener;
 	private final IndividualListenerInterface individualListener;
 
@@ -355,7 +355,7 @@ public class FamilyPanel extends JPanel{
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
-		GedcomNode family = null;
+		final GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
