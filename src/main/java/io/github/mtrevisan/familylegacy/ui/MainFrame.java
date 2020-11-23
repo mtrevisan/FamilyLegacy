@@ -4,17 +4,17 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,14 +24,15 @@ import java.time.LocalDate;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 
 public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
+
 
 	private Flef store;
 
@@ -92,15 +93,42 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
-		//TODO
-		System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
+	public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+			final GedcomNode currentFamily){
+		LOGGER.debug("onPrevSpouseFamily this: {}, other: {}, family: {}", thisSpouse.getID(), otherCurrentSpouse.getID(),
+			currentFamily.getID());
+
+		GedcomNode nextFamily = null;
+		final String currentFamilyID = currentFamily.getID();
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisSpouse, "FAMILY_SPOUSE[]");
+		for(int familyIndex = 1; familyIndex < familyXRefs.size(); familyIndex ++)
+			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
+				nextFamily = store.getFamily(familyXRefs.get(familyIndex - 1).getXRef());
+				break;
+			}
+
+		//update primary family
+		panel.loadData(null, null, nextFamily);
 	}
 
 	@Override
-	public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
-		//TODO
-		System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
+	public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+			final GedcomNode currentFamily){
+		LOGGER.debug("onNextSpouseFamily this: {}, other: {}, family: {}", thisSpouse.getID(), otherCurrentSpouse.getID(),
+			currentFamily.getID());
+
+		GedcomNode nextFamily = null;
+		final String currentFamilyID = currentFamily.getID();
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisSpouse, "FAMILY_SPOUSE[]");
+		for(int familyIndex = 0; familyIndex < familyXRefs.size() - 1; familyIndex ++){
+			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
+				nextFamily = store.getFamily(familyXRefs.get(familyIndex + 1).getXRef());
+				break;
+			}
+		}
+
+		//update primary family
+		panel.loadData(null, null, nextFamily);
 	}
 
 
@@ -110,14 +138,10 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		System.out.println("onEditIndividual " + individual.getID());
 	}
 
-	/**
-	 * Bring individual to primary position.
-	 *
-	 * @param boxPanel	The box panel that originates the call.
-	 * @param individual	The individual that has to obtain focus.
-	 */
 	@Override
 	public void onIndividualFocus(final IndividualPanel boxPanel, GedcomNode individual){
+		LOGGER.debug("onFocusIndividual {}", individual.getID());
+
 		//prefer left position if male or unknown, right if female
 		GedcomNode spouse1 = null;
 		GedcomNode spouse2 = null;
@@ -170,8 +194,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 		//update primary family
 		panel.loadData(spouse1, spouse2, family);
-
-		System.out.println("onFocusIndividual " + individual.getID());
 	}
 
 	private Sex extractSex(final GedcomNode individual){

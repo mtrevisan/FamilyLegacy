@@ -17,9 +17,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 //http://www.miglayout.com/whitepaper.html
@@ -103,28 +100,28 @@ public class FamilyPanel extends JPanel{
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse2, spouse1);
+						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse2, spouse1, family);
 				}
 			});
 			spouse1NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse2, spouse1);
+						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse2, spouse1, family);
 				}
 			});
 			spouse2PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse1, spouse2);
+						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse1, spouse2, family);
 				}
 			});
 			spouse2NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse1, spouse2);
+						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse1, spouse2, family);
 				}
 			});
 		}
@@ -294,13 +291,17 @@ public class FamilyPanel extends JPanel{
 			}
 
 			@Override
-			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
-				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
+			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
+					final GedcomNode currentFamily){
+				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID()
+					+ ", family: " + currentFamily.getID());
 			}
 
 			@Override
-			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse){
-				System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID());
+			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
+					final GedcomNode currentFamily){
+				System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID()
+					+ ", family: " + currentFamily.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){

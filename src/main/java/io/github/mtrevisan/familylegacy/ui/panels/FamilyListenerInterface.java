@@ -35,8 +35,26 @@ public interface FamilyListenerInterface{
 
 	void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family);
 
-	void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse);
+	/**
+	 * Iterate through spouses.
+	 *
+	 * @param familyPanel	The current family panel from which to iterate through spouses.
+	 * @param thisSpouse	The current spouse (that remain the same).
+	 * @param otherCurrentSpouse	The spouse that has to change.
+	 * @param currentFamily	Current family `thisSpouse` is in.
+	 */
+	void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+		final GedcomNode currentFamily);
 
-	void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse);
+	/**
+	 * Iterate through spouses.
+	 *
+	 * @param familyPanel	The current family panel from which to iterate through spouses.
+	 * @param thisSpouse	The current spouse (that remain the same).
+	 * @param otherCurrentSpouse	The spouse that has to change.
+	 * @param currentFamily	Current family `thisSpouse` is in.
+	 */
+	void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+		final GedcomNode currentFamily);
 
 }

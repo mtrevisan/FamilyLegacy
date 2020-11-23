@@ -31,6 +31,12 @@ public interface IndividualListenerInterface{
 
 	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
 
+	/**
+	 * Bring individual to primary position.
+	 *
+	 * @param boxPanel	The box panel that originates the call.
+	 * @param individual	The individual that has to obtain focus.
+	 */
 	void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual);
 
 	void onIndividualNew(final IndividualPanel boxPanel);
