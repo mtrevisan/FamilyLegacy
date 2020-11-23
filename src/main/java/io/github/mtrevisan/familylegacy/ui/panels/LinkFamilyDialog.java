@@ -40,8 +40,11 @@ public class LinkFamilyDialog extends JDialog{
 	private static final String NAMES_SEPARATOR = ", ";
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
+
 	private static final int ID_PREFERRED_WIDTH = 40;
+	private static final int SPOUSE_NAME_PREFERRED_WIDTH = 150;
 	private static final int YEAR_PREFERRED_WIDTH = 40;
+	private static final int MARRIAGE_PLACE_PREFERRED_WIDTH = 250;
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
 	private static final int TABLE_INDEX_SPOUSE1 = 1;
@@ -110,13 +113,13 @@ public class LinkFamilyDialog extends JDialog{
 		final DefaultTableCellRenderer rightAlignedRenderer = new DefaultTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1, 0, 150);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1, 0, SPOUSE_NAME_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2, 0, 150);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2, 0, SPOUSE_NAME_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
@@ -124,7 +127,7 @@ public class LinkFamilyDialog extends JDialog{
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, 250);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, MARRIAGE_PLACE_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
 		final Comparator<String> idDateComparator = (value1, value2) -> {
 			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
