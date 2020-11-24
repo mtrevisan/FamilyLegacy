@@ -48,7 +48,7 @@ public class ChildrenPanel extends JPanel{
 	private static final long serialVersionUID = -1250057284416778781L;
 
 
-	private GedcomNode family;
+	private List<GedcomNode> children;
 	private final Flef store;
 	private final IndividualListenerInterface individualListener;
 
@@ -63,7 +63,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	public void loadData(final GedcomNode family){
-		this.family = family;
+		children = store.traverseAsList(family, "CHILD[]");
 
 		removeAll();
 
@@ -71,7 +71,6 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private void loadData(){
-		final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
 		if(!children.isEmpty()){
 			final FlowLayout layout = new FlowLayout();
 			layout.setAlignment(FlowLayout.CENTER);
@@ -91,21 +90,15 @@ public class ChildrenPanel extends JPanel{
 	}
 
 
-	//TODO
 	public Point[] getChildrenPaintingEnterPoints(){
-		//halfway between spouse1 and spouse2 boxes
-//		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
-//		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
-//		//plus half the size of the marriage panel box)
-//		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT + MARRIAGE_PANEL_DIMENSION.height / 2;
-//		return new Point(x, y);
-		return null;
-	}
-
-	public Point getChildrenPaintingExitPoint(){
-		final int x = getX() + getWidth() / 2;
-		final int y = getY();
-		return new Point(x, y);
+		final Component[] components = getComponents();
+		final Point[] enterPoints = new Point[components.length];
+		for(int i = 0; i < components.length; i ++){
+			final int x = components[i].getX() + components[i].getWidth() / 2;
+			final int y = components[i].getY();
+			enterPoints[i] = new Point(x, y);
+		}
+		return enterPoints;
 	}
 
 

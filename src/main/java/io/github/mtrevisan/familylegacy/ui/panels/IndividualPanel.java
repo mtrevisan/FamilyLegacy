@@ -559,9 +559,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 
 	public Point getIndividualPaintingEnterPoint(){
-		final int x = getX() + getWidth() / 2;
-		final int y = getY();
-		return new Point(x, y);
+		return new Point(getX() + getWidth() / 2, getY());
 	}
 
 

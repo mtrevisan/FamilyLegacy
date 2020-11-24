@@ -325,12 +325,16 @@ public class TreePanel extends JPanel{
 			spouseParentsExitingConnection(hf, graphics2D);
 
 			//TODO connect the children
-//FIXME
-//graphics2D.setColor(Color.RED);
-////final Point p = getChildrenPaintingExitPoint();
-//final int rayLength = 100;
-//graphics2D.drawLine(hf.x - rayLength, hf.y - rayLength, hf.x + rayLength, hf.y + rayLength);
-//graphics2D.drawLine(hf.x - rayLength, hf.y + rayLength, hf.x + rayLength, hf.y - rayLength);
+//			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
+//			final Point origin = childrenScrollPane.getLocation();
+			//horizontal line from first to last child
+//			graphics2D.drawLine(origin.x + c[0].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[0].y,
+//				origin.x + c[c.length - 1].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[0].y);
+//			//vertical line connecting the children
+//			for(int i = 0; i < c.length; i ++)
+//				graphics2D.drawLine(origin.x + c[i].x, origin.y + c[i].y,
+//					origin.x + c[i].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[i].y);
+
 			graphics2D.dispose();
 		}
 	}
@@ -405,24 +409,6 @@ public class TreePanel extends JPanel{
 		spouse2ParentsPanel.loadData(null, null, spouse2Parents);
 		homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
 		childrenPanel.loadData(homeFamily);
-	}
-
-
-	//TODO
-	public Point[] getChildrenPaintingEnterPoints(){
-		//halfway between spouse1 and spouse2 boxes
-//		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
-//		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
-//		//plus half the size of the marriage panel box)
-//		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT + MARRIAGE_PANEL_DIMENSION.height / 2;
-//		return new Point(x, y);
-		return null;
-	}
-
-	public Point getChildrenPaintingExitPoint(){
-		final int x = getX() + getWidth() / 2;
-		final int y = getY();
-		return new Point(x, y);
 	}
 
 
