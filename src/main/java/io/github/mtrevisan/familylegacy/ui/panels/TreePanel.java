@@ -38,6 +38,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
@@ -118,9 +122,10 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
+		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
 
 		setLayout(new MigLayout("insets 0",
-			"[grow,center]" + FamilyPanel.SPOUSE_SEPARATION + "[grow,center]",
+			"[grow,center]" + FamilyPanel.FAMILY_SEPARATION + "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
 		add(spouse1ParentsPanel, "growx 50");
 		add(spouse2ParentsPanel, "growx 50,wrap");
@@ -166,14 +171,18 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
+		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
+		//FIXME
+//		childrenScrollPane.scrollRectToVisible(childrenPanel.getMiddleChildren().getRectangle());
 
 		setLayout(new MigLayout("insets 0",
-			"[grow,center][grow,center][grow,center][grow,center]",
+			"[grow,center]" + FamilyPanel.FAMILY_SEPARATION + "[grow,center]" + FamilyPanel.FAMILY_SEPARATION
+				+ "[grow,center]" + FamilyPanel.FAMILY_SEPARATION + "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(spouse1Grandparents1Panel, "growx 25,hidemode 1");
-		add(spouse1Grandparents2Panel, "growx 25,hidemode 1");
-		add(spouse2Grandparents1Panel, "growx 25,hidemode 1");
-		add(spouse2Grandparents2Panel, "growx 25,hidemode 1,wrap");
+		add(spouse1Grandparents1Panel, "growx 25");
+		add(spouse1Grandparents2Panel, "growx 25");
+		add(spouse2Grandparents1Panel, "growx 25");
+		add(spouse2Grandparents2Panel, "growx 25,wrap");
 		add(spouse1ParentsPanel, "span 2,growx 50");
 		add(spouse2ParentsPanel, "span 2,growx 50,wrap");
 		add(homeFamilyPanel, "span 4,wrap");
@@ -324,16 +333,16 @@ public class TreePanel extends JPanel{
 			final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
 			spouseParentsExitingConnection(hf, graphics2D);
 
-			//TODO connect the children
-//			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
-//			final Point origin = childrenScrollPane.getLocation();
+			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
+			final Point origin = childrenScrollPane.getLocation();
+			origin.x -= childrenScrollPane.getHorizontalScrollBar().getValue();
 			//horizontal line from first to last child
-//			graphics2D.drawLine(origin.x + c[0].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[0].y,
-//				origin.x + c[c.length - 1].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[0].y);
-//			//vertical line connecting the children
-//			for(int i = 0; i < c.length; i ++)
-//				graphics2D.drawLine(origin.x + c[i].x, origin.y + c[i].y,
-//					origin.x + c[i].x, origin.y - GENERATION_SEPARATOR_SIZE / 2 + c[i].y);
+			graphics2D.drawLine(origin.x + c[0].x, origin.y + c[0].y - GENERATION_SEPARATOR_SIZE / 2,
+				origin.x + c[c.length - 1].x, origin.y + c[c.length - 1].y - GENERATION_SEPARATOR_SIZE / 2);
+			//vertical line connecting the children
+			for(int i = 0; i < c.length; i ++)
+				graphics2D.drawLine(origin.x + c[i].x, origin.y + c[i].y,
+					origin.x + c[i].x, origin.y + c[i].y - GENERATION_SEPARATOR_SIZE / 2);
 
 			graphics2D.dispose();
 		}

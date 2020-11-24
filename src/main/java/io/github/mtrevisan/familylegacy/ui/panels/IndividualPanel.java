@@ -288,8 +288,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(260, 90):
 			new Dimension(170, 65));
 		setPreferredSize(size);
-		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(373, size.height):
-			new Dimension(280, size.height));
+		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(420, size.height):
+			new Dimension(240, size.height));
 
 		Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);

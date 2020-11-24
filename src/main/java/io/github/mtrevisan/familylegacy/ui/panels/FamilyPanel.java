@@ -76,7 +76,7 @@ public class FamilyPanel extends JPanel{
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
 	public static final int HALF_SPOUSE_SEPARATION = 10;
-	static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
+	static final int FAMILY_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -88,7 +88,6 @@ public class FamilyPanel extends JPanel{
 	private IndividualPanel spouse2Panel;
 	private final JLabel spouse1PreviousLabel = new JLabel();
 	private final JLabel spouse1NextLabel = new JLabel();
-	private final JLabel previousNextSpace = new JLabel();
 	private final JLabel spouse2PreviousLabel = new JLabel();
 	private final JLabel spouse2NextLabel = new JLabel();
 	private final JPanel marriagePanel = new JPanel();
@@ -162,9 +161,17 @@ public class FamilyPanel extends JPanel{
 			});
 		}
 
+		final Dimension minimumSize = new Dimension(SPOUSE_PREVIOUS_ENABLED.getIconWidth(), SPOUSE_PREVIOUS_ENABLED.getIconHeight());
+		if(boxType == BoxPanelType.PRIMARY){
+			spouse1PreviousLabel.setMinimumSize(minimumSize);
+			spouse1NextLabel.setMinimumSize(minimumSize);
+			spouse2PreviousLabel.setMinimumSize(minimumSize);
+			spouse2NextLabel.setMinimumSize(minimumSize);
+		}
+
 		setMaximumSize(new Dimension(
 			(spouse1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
-			spouse1Panel.getMaximumSize().height + spouse1PreviousLabel.getMaximumSize().height
+			spouse1Panel.getMaximumSize().height + minimumSize.height
 		));
 
 		setLayout(new MigLayout("insets 0",
@@ -229,21 +236,16 @@ public class FamilyPanel extends JPanel{
 		spouse1Panel.loadData(spouse1, boxType);
 		spouse2Panel.loadData(spouse2, boxType);
 
-		spouse1PreviousLabel.setVisible(false);
-		spouse1NextLabel.setVisible(false);
-		spouse2PreviousLabel.setVisible(false);
-		spouse2NextLabel.setVisible(false);
 		if(boxType == BoxPanelType.PRIMARY){
-			final boolean hasMoreFamilies2 = updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
-			final boolean hasMoreFamilies1 = updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
-			previousNextSpace.setVisible(hasMoreFamilies2 || hasMoreFamilies1);
+			updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
+			updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
 	}
 
-	public boolean updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
+	public void updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
 			final JLabel spouseNextLabel){
 		//get list of marriages for the `other spouse`
 		final List<GedcomNode> otherMarriages = store.traverseAsList(otherSpouse, "FAMILY_SPOUSE[]");
@@ -257,20 +259,20 @@ public class FamilyPanel extends JPanel{
 			}
 		final boolean hasMoreFamilies = (otherMarriagesCount > 1);
 
-		spousePreviousLabel.setVisible(hasMoreFamilies);
-		spouseNextLabel.setVisible(hasMoreFamilies);
-		if(hasMoreFamilies){
-			final boolean spousePreviousEnabled = (currentFamilyIndex > 0);
-			spousePreviousLabel.putClientProperty(KEY_ENABLED, spousePreviousEnabled);
-			spousePreviousLabel.setCursor(Cursor.getPredefinedCursor(spousePreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-			spousePreviousLabel.setIcon(spousePreviousEnabled? SPOUSE_PREVIOUS_ENABLED: SPOUSE_PREVIOUS_DISABLED);
+		final boolean spousePreviousEnabled = (currentFamilyIndex > 0);
+		spousePreviousLabel.putClientProperty(KEY_ENABLED, spousePreviousEnabled);
+		spousePreviousLabel.setCursor(Cursor.getPredefinedCursor(spousePreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		ImageIcon icon = null;
+		if(hasMoreFamilies)
+			icon = (spousePreviousEnabled? SPOUSE_PREVIOUS_ENABLED: SPOUSE_PREVIOUS_DISABLED);
+		spousePreviousLabel.setIcon(icon);
 
-			final boolean spouseNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
-			spouseNextLabel.putClientProperty(KEY_ENABLED, spouseNextEnabled);
-			spouseNextLabel.setCursor(Cursor.getPredefinedCursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-			spouseNextLabel.setIcon(spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
-		}
-		return hasMoreFamilies;
+		final boolean spouseNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
+		spouseNextLabel.putClientProperty(KEY_ENABLED, spouseNextEnabled);
+		spouseNextLabel.setCursor(Cursor.getPredefinedCursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		if(hasMoreFamilies)
+			icon = (spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
+		spouseNextLabel.setIcon(icon);
 	}
 
 	public static String extractEarliestMarriageYear(final GedcomNode family, final Flef store){
@@ -389,11 +391,11 @@ public class FamilyPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-//		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
-		final GedcomNode family = null;
+//		final GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 

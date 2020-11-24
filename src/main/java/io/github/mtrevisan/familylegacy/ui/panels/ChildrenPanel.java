@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,6 +47,8 @@ import java.util.concurrent.TimeUnit;
 public class ChildrenPanel extends JPanel{
 
 	private static final long serialVersionUID = -1250057284416778781L;
+
+	private static final int CHILD_SEPARATION = 15;
 
 
 	private List<GedcomNode> children;
@@ -72,19 +75,19 @@ public class ChildrenPanel extends JPanel{
 
 	private void loadData(){
 		if(!children.isEmpty()){
-			final FlowLayout layout = new FlowLayout();
-			layout.setAlignment(FlowLayout.CENTER);
-			setLayout(layout);
+			setLayout(new MigLayout("insets 0", "[]0[]"));
 
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
+				final boolean isSpouse = store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
 				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
 
-				add(individualBox);
-				if(itr.hasNext())
-					add(Box.createHorizontalStrut(FamilyPanel.SPOUSE_SEPARATION));
+				add(individualBox, (itr.hasNext()? "gapright " + CHILD_SEPARATION: ""));
+				if(isSpouse){
+					//TODO
+				}
 			}
 		}
 	}
@@ -93,11 +96,8 @@ public class ChildrenPanel extends JPanel{
 	public Point[] getChildrenPaintingEnterPoints(){
 		final Component[] components = getComponents();
 		final Point[] enterPoints = new Point[components.length];
-		for(int i = 0; i < components.length; i ++){
-			final int x = components[i].getX() + components[i].getWidth() / 2;
-			final int y = components[i].getY();
-			enterPoints[i] = new Point(x, y);
-		}
+		for(int i = 0; i < components.length; i ++)
+			enterPoints[i] = new Point(components[i].getX() + components[i].getWidth() / 2, components[i].getY());
 		return enterPoints;
 	}
 
@@ -112,8 +112,8 @@ public class ChildrenPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
@@ -161,9 +161,9 @@ public class ChildrenPanel extends JPanel{
 			frame.setVisible(true);
 
 
-			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-			final Runnable task = () -> panel.loadData(storeFlef.getFamilies().get(1));
-			scheduler.schedule(task, 3, TimeUnit.SECONDS);
+//			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//			final Runnable task = () -> panel.loadData(storeFlef.getFamilies().get(1));
+//			scheduler.schedule(task, 3, TimeUnit.SECONDS);
 		});
 	}
 
