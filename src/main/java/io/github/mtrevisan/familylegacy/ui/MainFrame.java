@@ -11,6 +11,8 @@ import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
+import io.github.mtrevisan.familylegacy.ui.panels.LinkFamilyDialog;
+import io.github.mtrevisan.familylegacy.ui.panels.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,7 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 
 
-public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface{
+public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface, SelectionListenerInterface{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
 
@@ -30,6 +32,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	private Flef store;
 
 	private TreePanel panel;
+	private LinkFamilyDialog linkFamilyDialog;
 
 
 	public MainFrame(){
@@ -44,6 +47,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			final GedcomNode family = store.getFamilies().get(75);
 //			final GedcomNode family = null;
 
+			linkFamilyDialog = new LinkFamilyDialog(store, this, this);
 
 			getContentPane().setLayout(new BorderLayout());
 			panel = new TreePanel(null, null, family, 4, store, this, this);
@@ -57,7 +61,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 					System.exit(0);
 				}
 			});
-			setSize(1000, 470);
+			setSize(1120, 470);
 			setLocationRelativeTo(null);
 			setVisible(true);
 		}
@@ -74,8 +78,11 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	@Override
 	public void onFamilyLink(final FamilyPanel boxPanel){
-		//TODO
-		System.out.println("onLinkFamily");
+		LOGGER.debug("onLinkFamily");
+
+		linkFamilyDialog.setSize(945, 500);
+		linkFamilyDialog.setLocationRelativeTo(null);
+		linkFamilyDialog.setVisible(true);
 	}
 
 	@Override
@@ -149,6 +156,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		//update primary family
 		panel.loadData(spouse1, spouse2, family);
 	}
+
+
+	@Override
+	public void onNodeSelected(final GedcomNode node){
+		//TODO
+		System.out.println("onNodeSelected " + node.getID());
+	}
+
 
 	private Sex extractSex(final GedcomNode individual){
 		return Sex.fromCode(store.traverse(individual, "SEX")

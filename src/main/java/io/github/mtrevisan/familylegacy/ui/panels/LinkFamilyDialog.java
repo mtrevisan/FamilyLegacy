@@ -6,13 +6,13 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.ui.utilities.BorderedTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -43,9 +43,9 @@ public class LinkFamilyDialog extends JDialog{
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
-	private static final int ID_PREFERRED_WIDTH = 40;
+	private static final int ID_PREFERRED_WIDTH = 43;
 	private static final int SPOUSE_NAME_PREFERRED_WIDTH = 150;
-	private static final int YEAR_PREFERRED_WIDTH = 40;
+	private static final int YEAR_PREFERRED_WIDTH = 43;
 	private static final int MARRIAGE_PLACE_PREFERRED_WIDTH = 250;
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
@@ -91,14 +91,15 @@ public class LinkFamilyDialog extends JDialog{
 		setTitle("Link family");
 
 		familiesTable = new JTable(new FamiliesTableModel());
-		familiesTable.getColumnModel().setColumnMargin(5);
 		familiesTable.setAutoCreateRowSorter(true);
 		familiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		familiesTable.setFocusable(false);
 		familiesTable.setGridColor(GRID_COLOR);
 		familiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		familiesTable.getTableHeader().setFont(familiesTable.getFont().deriveFont(Font.BOLD));
-		final DefaultTableCellRenderer rightAlignedRenderer = new DefaultTableCellRenderer();
+		final BorderedTableCellRenderer nameRenderer = new BorderedTableCellRenderer();
+		familiesTable.setDefaultRenderer(String.class, nameRenderer);
+		final BorderedTableCellRenderer rightAlignedRenderer = new BorderedTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1, 0, SPOUSE_NAME_PREFERRED_WIDTH);
@@ -134,12 +135,6 @@ public class LinkFamilyDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_SPOUSE2_DEATH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_YEAR, dateWithApproximationComparator);
 		familiesTable.setRowSorter(sorter);
-		final ListSelectionModel selectionModel = familiesTable.getSelectionModel();
-		if(listener != null)
-			selectionModel.addListSelectionListener(e -> {
-				if(!e.getValueIsAdjusting() && familiesTable.getRowSelectionAllowed())
-					listener.onNodeSelected(getSelectedFamily());
-			});
 		familiesScrollPane.setViewportView(familiesTable);
 
 		filterSpouseLabel.setLabelFor(filterSpouseField);
