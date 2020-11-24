@@ -92,7 +92,7 @@ public class ChildrenPanel extends JPanel{
 
 
 	//TODO
-	public Point[] getChildrenPaintingEntryPoints(){
+	public Point[] getChildrenPaintingEnterPoints(){
 		//halfway between spouse1 and spouse2 boxes
 //		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
 //		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line

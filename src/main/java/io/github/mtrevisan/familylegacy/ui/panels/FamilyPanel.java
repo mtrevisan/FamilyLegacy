@@ -72,10 +72,14 @@ public class FamilyPanel extends JPanel{
 	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
+	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
 	public static final int HALF_SPOUSE_SEPARATION = 10;
 	static final int SPOUSE_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
 
 	private static final String KEY_ENABLED = "enabled";
+
+	public static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
+		new float[]{2.f}, 0.f);
 
 
 	private IndividualPanel spouse1Panel;
@@ -170,7 +174,7 @@ public class FamilyPanel extends JPanel{
 		add(spouse2PreviousLabel, "split 2");
 		add(spouse2NextLabel, "gapx 10,wrap");
 		add(spouse1Panel, "growx 50");
-		add(marriagePanel, "aligny bottom,gapbottom " + (FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2));
+		add(marriagePanel, "aligny bottom,gapbottom " + FAMILY_EXITING_HEIGHT);
 		add(spouse2Panel, "growx 50");
 	}
 
@@ -204,12 +208,11 @@ public class FamilyPanel extends JPanel{
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+			graphics2D.setStroke(CONNECTION_STROKE);
+
 			final int xFrom = spouse1Panel.getX() + spouse1Panel.getWidth();
 			final int xTo = spouse2Panel.getX();
 			final int yFrom = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
-			if(family == null)
-				graphics2D.setStroke(new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
-					new float[]{1.f}, 0.f));
 			//horizontal line between spouses
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
 
@@ -356,13 +359,26 @@ public class FamilyPanel extends JPanel{
 	}
 
 
+	public Point getFamilyPaintingSpouse1EnterPoint(){
+		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
+		final Point origin = getLocation();
+		return new Point(origin.x + p.x, origin.y + p.y);
+	}
+
+	public Point getFamilyPaintingSpouse2EnterPoint(){
+		final Point p = spouse2Panel.getIndividualPaintingEnterPoint();
+		final Point origin = getLocation();
+		return new Point(origin.x + p.x, origin.y + p.y);
+	}
+
 	public Point getFamilyPaintingExitPoint(){
 		//halfway between spouse1 and spouse2 boxes
 		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
 		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
 		//plus half the size of the marriage panel box)
-		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT + MARRIAGE_PANEL_DIMENSION.height / 2;
-		return new Point(x, y);
+		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_EXITING_HEIGHT;
+		final Point origin = getLocation();
+		return new Point(origin.x + x, origin.y + y);
 	}
 
 

@@ -564,18 +564,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return new Point(x, y);
 	}
 
-	public Point getIndividualPaintingExitRightPoint(){
-		final int x = getX() + getWidth();
-		final int y = getY() + getHeight();
-		return new Point(x, y);
-	}
-
-	public Point getIndividualPaintingExitLeftPoint(){
-		final int x = getX();
-		final int y = getY() + getHeight();
-		return new Point(x, y);
-	}
-
 
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
