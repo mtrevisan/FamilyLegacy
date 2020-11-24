@@ -285,82 +285,45 @@ public class TreePanel extends JPanel{
 
 			graphics2D.setStroke(FamilyPanel.CONNECTION_STROKE);
 
-			Point s1g1p = null;
-			Point s1g2p = null;
-			Point s2g1p = null;
-			Point s2g2p = null;
-			if(spouse1Grandparents1Panel != null){
-				//spouse1's parent1's parent exiting connection
-				s1g1p = spouse1Grandparents1Panel.getFamilyPaintingExitPoint();
-				graphics2D.drawLine(s1g1p.x, s1g1p.y, s1g1p.x, s1g1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
-			}
-			if(spouse1Grandparents2Panel != null){
-				//spouse1's parent2's parent exiting connection
-				s1g2p = spouse1Grandparents2Panel.getFamilyPaintingExitPoint();
-				graphics2D.drawLine(s1g2p.x, s1g2p.y, s1g2p.x, s1g2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
-			}
+			final Point s1g1p = spouseGrandParentsExitingConnection(spouse1Grandparents1Panel, graphics2D);
+			final Point s1g2p = spouseGrandParentsExitingConnection(spouse1Grandparents2Panel, graphics2D);
 
-			if(spouse2Grandparents1Panel != null){
-				//spouse2's parent1's parent exiting connection
-				s2g1p = spouse2Grandparents1Panel.getFamilyPaintingExitPoint();
-				graphics2D.drawLine(s2g1p.x, s2g1p.y, s2g1p.x, s2g1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
-			}
-			if(spouse2Grandparents2Panel != null){
-				//spouse2's parent2's parent exiting connection
-				s2g2p = spouse2Grandparents2Panel.getFamilyPaintingExitPoint();
-				graphics2D.drawLine(s2g2p.x, s2g2p.y, s2g2p.x, s2g2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
-			}
+			final Point s2g1p = spouseGrandParentsExitingConnection(spouse2Grandparents1Panel, graphics2D);
+			final Point s2g2p = spouseGrandParentsExitingConnection(spouse2Grandparents2Panel, graphics2D);
 
 			//spouse1's parent1 entering connection
 			final Point s1p1 = spouse1ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
-			graphics2D.drawLine(s1p1.x, s1p1.y, s1p1.x, s1p1.y - GENERATION_SEPARATOR_SIZE / 2);
-			if(s1g1p != null)
-				//line between spouse1's parent1 and spouse1's parent1's parents
-				graphics2D.drawLine(s1g1p.x, s1g1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-					s1p1.x, s1p1.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsEnteringConnection(s1p1, s1g1p, graphics2D);
 			//spouse1's parent2 entering connection
 			final Point s1p2 = spouse1ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
-			graphics2D.drawLine(s1p2.x, s1p2.y, s1p2.x, s1p2.y - GENERATION_SEPARATOR_SIZE / 2);
-			if(s1g2p != null)
-				//line between spouse1's parent2 and spouse1's parent2's parents
-				graphics2D.drawLine(s1g2p.x, s1g2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-					s1p2.x, s1p2.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsEnteringConnection(s1p2, s1g2p, graphics2D);
 			//spouse2's parent1 entering connection
 			final Point s2p1 = spouse2ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
-			graphics2D.drawLine(s2p1.x, s2p1.y, s2p1.x, s2p1.y - GENERATION_SEPARATOR_SIZE / 2);
-			if(s2g1p != null)
-				//line between spouse2's parent1 and spouse2's parent1's parents
-				graphics2D.drawLine(s2g1p.x, s2g1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-					s2p1.x, s2p1.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsEnteringConnection(s2p1, s2g1p, graphics2D);
 			//spouse2's parent2 entering connection
 			final Point s2p2 = spouse2ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
-			graphics2D.drawLine(s2p2.x, s2p2.y, s2p2.x, s2p2.y - GENERATION_SEPARATOR_SIZE / 2);
-			if(s2g2p != null)
-				//line between spouse2's parent2 and spouse2's parent2's parents
-				graphics2D.drawLine(s2g2p.x, s2g2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-					s2p2.x, s2p2.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsEnteringConnection(s2p2, s2g2p, graphics2D);
 
 			//spouse1's parents exiting connection
 			final Point s1p = spouse1ParentsPanel.getFamilyPaintingExitPoint();
-			graphics2D.drawLine(s1p.x, s1p.y, s1p.x, s1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsExitingConnection(s1p, graphics2D);
 			//spouse2's parents exiting connection
 			final Point s2p = spouse2ParentsPanel.getFamilyPaintingExitPoint();
-			graphics2D.drawLine(s2p.x, s2p.y, s2p.x, s2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsExitingConnection(s2p, graphics2D);
 			//home family spouse1 entering connection
 			final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
-			graphics2D.drawLine(hfs1.x, hfs1.y, hfs1.x, hfs1.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseEnteringConnection(hfs1, graphics2D);
 			//line between spouse1's parents and spouse1
-			graphics2D.drawLine(s1p.x, s1p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-				hfs1.x, hfs1.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsToSpouse(s1p, hfs1, graphics2D);
 			//home family spouse2 entering connection
 			final Point hfs2 = homeFamilyPanel.getFamilyPaintingSpouse2EnterPoint();
-			graphics2D.drawLine(hfs2.x, hfs2.y, hfs2.x, hfs2.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseEnteringConnection(hfs2, graphics2D);
 			//line between spouse2's parents and spouse2
-			graphics2D.drawLine(s2p.x, s2p.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-				hfs2.x, hfs2.y - GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsToSpouse(s2p, hfs2, graphics2D);
 			//home family exiting connection
 			final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
-			graphics2D.drawLine(hf.x, hf.y, hf.x, hf.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
+			spouseParentsExitingConnection(hf, graphics2D);
+
 			//TODO connect the children
 //FIXME
 //graphics2D.setColor(Color.RED);
@@ -370,6 +333,42 @@ public class TreePanel extends JPanel{
 //graphics2D.drawLine(hf.x - rayLength, hf.y + rayLength, hf.x + rayLength, hf.y - rayLength);
 			graphics2D.dispose();
 		}
+	}
+
+	private Point spouseGrandParentsExitingConnection(final FamilyPanel spouseGrandparentsPanel, final Graphics2D graphics2D){
+		Point p = null;
+		if(spouseGrandparentsPanel != null){
+			//spouse's parent's parent exiting connection
+			p = spouseGrandparentsPanel.getFamilyPaintingExitPoint();
+			spouseParentsExitingConnection(p, graphics2D);
+		}
+		return p;
+	}
+
+	private void spouseParentsEnteringConnection(final Point sp, final Point sgp, final Graphics2D graphics2D){
+		//spouse's parent entering connection
+		spouseEnteringConnection(sp, graphics2D);
+		if(sgp != null)
+			//line between spouse's parent and spouse's parent's parents
+			spouseParentsToSpouse(sgp, sp, graphics2D);
+	}
+
+	private void spouseParentsExitingConnection(final Point sp, final Graphics2D graphics2D){
+		//spouse's parents exiting connection
+		graphics2D.drawLine(sp.x, sp.y,
+			sp.x, sp.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
+	}
+
+	private void spouseEnteringConnection(final Point s, final Graphics2D graphics2D){
+		//spouse entering connection
+		graphics2D.drawLine(s.x, s.y,
+			s.x, s.y - GENERATION_SEPARATOR_SIZE / 2);
+	}
+
+	private void spouseParentsToSpouse(final Point sp, final Point s, final Graphics2D graphics2D){
+		//line between spouse's parents and spouse
+		graphics2D.drawLine(sp.x, sp.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
+			s.x, s.y - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily){
