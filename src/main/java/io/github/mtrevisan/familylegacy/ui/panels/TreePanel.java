@@ -312,12 +312,13 @@ public class TreePanel extends JPanel{
 			spouseParentsExitingConnection(s2p, graphics2D);
 			//home family spouse1 entering connection
 			final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
-			spouseEnteringConnection(hfs1, graphics2D);
+			final int offset = (homeFamilyPanel.hasNavigationButtons()? FamilyPanel.NAVIGATION_ARROW_HEIGHT: 0);
+			spouseEnteringConnection(hfs1, offset, graphics2D);
 			//line between spouse1's parents and spouse1
 			spouseParentsToSpouse(s1p, hfs1, graphics2D);
 			//home family spouse2 entering connection
 			final Point hfs2 = homeFamilyPanel.getFamilyPaintingSpouse2EnterPoint();
-			spouseEnteringConnection(hfs2, graphics2D);
+			spouseEnteringConnection(hfs2, offset, graphics2D);
 			//line between spouse2's parents and spouse2
 			spouseParentsToSpouse(s2p, hfs2, graphics2D);
 			//home family exiting connection
@@ -351,7 +352,9 @@ public class TreePanel extends JPanel{
 
 	private void spouseParentsEnteringConnection(final Point sp, final Point sgp, final Graphics2D graphics2D){
 		//spouse's parent entering connection
-		spouseEnteringConnection(sp, graphics2D);
+		graphics2D.drawLine(sp.x, sp.y,
+			sp.x, sp.y - GENERATION_SEPARATOR_SIZE / 2);
+
 		if(sgp != null)
 			//line between spouse's parent and spouse's parent's parents
 			spouseParentsToSpouse(sgp, sp, graphics2D);
@@ -363,9 +366,9 @@ public class TreePanel extends JPanel{
 			sp.x, sp.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
 	}
 
-	private void spouseEnteringConnection(final Point s, final Graphics2D graphics2D){
+	private void spouseEnteringConnection(final Point s, final int offset, final Graphics2D graphics2D){
 		//spouse entering connection
-		graphics2D.drawLine(s.x, s.y,
+		graphics2D.drawLine(s.x, s.y + offset,
 			s.x, s.y - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
@@ -374,6 +377,7 @@ public class TreePanel extends JPanel{
 		graphics2D.drawLine(sp.x, sp.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
 			s.x, s.y - GENERATION_SEPARATOR_SIZE / 2);
 	}
+
 
 	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily){
 		this.spouse1 = spouse1;
@@ -438,11 +442,6 @@ public class TreePanel extends JPanel{
 			@Override
 			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
-			}
-
-			@Override
-			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
-				System.out.println("onAddChildFamily " + family.getID());
 			}
 
 			@Override

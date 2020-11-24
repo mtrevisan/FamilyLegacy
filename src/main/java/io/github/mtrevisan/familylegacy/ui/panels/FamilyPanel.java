@@ -69,6 +69,8 @@ public class FamilyPanel extends JPanel{
 	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
 
+	public static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
+
 	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
@@ -94,6 +96,7 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode spouse1;
 	private GedcomNode spouse2;
 	private GedcomNode family;
+	private boolean hasMoreFamilies;
 	private final Flef store;
 	private final BoxPanelType boxType;
 	private final FamilyListenerInterface familyListener;
@@ -186,11 +189,6 @@ public class FamilyPanel extends JPanel{
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
 
-		final JMenuItem addChildItem = new JMenuItem("Add Child…", 'C');
-		addChildItem.addActionListener(e -> familyListener.onFamilyAddChild(this, family));
-		addChildItem.setEnabled(family != null);
-		popupMenu.add(addChildItem);
-
 		final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
 		linkFamilyItem.setEnabled(family == null);
@@ -239,7 +237,8 @@ public class FamilyPanel extends JPanel{
 		if(boxType == BoxPanelType.PRIMARY){
 			final boolean hasMoreFamilies2 = updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
 			final boolean hasMoreFamilies1 = updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
-			previousNextSpace.setVisible(hasMoreFamilies2 || hasMoreFamilies1);
+			hasMoreFamilies = hasMoreFamilies2 || hasMoreFamilies1;
+			previousNextSpace.setVisible(hasMoreFamilies);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -359,16 +358,20 @@ public class FamilyPanel extends JPanel{
 	}
 
 
+	public boolean hasNavigationButtons(){
+		return hasMoreFamilies;
+	}
+
 	public Point getFamilyPaintingSpouse1EnterPoint(){
 		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y);
+		return new Point(origin.x + p.x, origin.y + p.y - (hasNavigationButtons()? NAVIGATION_ARROW_HEIGHT: 0));
 	}
 
 	public Point getFamilyPaintingSpouse2EnterPoint(){
 		final Point p = spouse2Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y);
+		return new Point(origin.x + p.x, origin.y + p.y - (hasNavigationButtons()? NAVIGATION_ARROW_HEIGHT: 0));
 	}
 
 	public Point getFamilyPaintingExitPoint(){
@@ -409,11 +412,6 @@ public class FamilyPanel extends JPanel{
 			@Override
 			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
-			}
-
-			@Override
-			public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
-				System.out.println("onAddChildFamily " + family.getID());
 			}
 
 			@Override

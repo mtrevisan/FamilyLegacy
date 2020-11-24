@@ -116,12 +116,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyAddChild(final FamilyPanel familyPanel, final GedcomNode family){
-		//TODO
-		System.out.println("onAddChildFamily " + family.getID());
-	}
-
-	@Override
 	public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
 			final GedcomNode currentFamily){
 		LOGGER.debug("onPrevSpouseFamily this: {}, other: {}, family: {}", thisSpouse.getID(), otherCurrentSpouse.getID(),

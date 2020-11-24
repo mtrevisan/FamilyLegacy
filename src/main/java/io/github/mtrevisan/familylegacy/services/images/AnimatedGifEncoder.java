@@ -49,28 +49,41 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Background color for the last added frame and any subsequent frames.
-	 * Since all colors are subject to modification in the quantization process, the color in the final
-	 * palette for each frame closest to the given color becomes the background color for that frame.
-	 * May be set to <code>null</code> to indicate no background color which will default to black.
+	 * <p>Since all colors are subject to modification in the quantization process, the color in the final palette for each frame closest
+	 * to the given color becomes the background color for that frame.</p>
+	 * <p>May be set to <code>null</code> to indicate no background color which will default to black.</p>
 	 */
 	private Color background;
-	private int repeatCount = -1; // no repeat
-	/** Delay [ms] between each frame, or changes it for subsequent frames (applies to last frame added). */
-	private int delay; // frame delay (hundredths)
-	private boolean started; // ready to output frames
+	//no repeat
+	private int repeatCount = -1;
+	/** Delay [100 ms] between each frame, or changes it for subsequent frames (applies to last frame added). */
+	private int delay;
+	//ready to output frames
+	private boolean started;
 	private OutputStream out;
-	private BufferedImage image; // current frame
-	private byte[] pixels; // BGR byte array from frame
-	private byte[] indexedPixels; // converted frame indexed to palette
-	private int colorDepth; // number of bit planes
-	private byte[] colorTab; // RGB palette
-	private final boolean[] usedEntry = new boolean[256]; // active palette entries
-	private int palSize = 7; // color table size (bits-1)
-	private int disposalCode = -1; // disposal code (-1 = use default)
-	private boolean closeStream; // close stream when finished
+	//current frame
+	private BufferedImage image;
+	//BGR byte array from frame
+	private byte[] pixels;
+	//converted frame indexed to palette
+	private byte[] indexedPixels;
+	//number of bit planes
+	private int colorDepth;
+	//RGB palette
+	private byte[] colorTab;
+	//active palette entries
+	private final boolean[] usedEntry = new boolean[256];
+	//color table size (bits-1)
+	private int palSize = 7;
+	//disposal code (-1 = use default)
+	private int disposalCode = -1;
+	//close stream when finished
+	private boolean closeStream;
 	private boolean firstFrameAdded;
-	private boolean sizeSet; // if false, get size from first frame
-	private int sample = 10; // default sample interval for quantizer
+	//if false, get size from first frame
+	private boolean sizeSet;
+	//default sample interval for quantizer
+	private int sample = 10;
 
 
 	public void setBackground(final Color background){
