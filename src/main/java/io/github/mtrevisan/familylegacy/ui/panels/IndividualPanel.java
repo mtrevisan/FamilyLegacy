@@ -141,7 +141,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
 		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
-		if(boxType == BoxPanelType.SECONDARY){
+		if(listener != null && boxType == BoxPanelType.SECONDARY){
 			familyNameLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -295,6 +295,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final Font infoFont = deriveInfoFont(font);
 		if(boxType == BoxPanelType.SECONDARY){
 			//add underline to mark this individual as eligible for primary position
+			@SuppressWarnings("unchecked")
 			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
 			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
 			font = font.deriveFont(attributes);
@@ -330,7 +331,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
 		final List<String[]> completeNames = new ArrayList<>();
 		if(individual != null){
-			final List<GedcomNode> names = individual.getChildrenWithTag("NAME");
+			final List<GedcomNode> names = store.traverseAsList(individual, "NAME[]");
 			for(final GedcomNode name : names){
 				final String title = store.traverse(name, "TITLE")
 					.getValue();

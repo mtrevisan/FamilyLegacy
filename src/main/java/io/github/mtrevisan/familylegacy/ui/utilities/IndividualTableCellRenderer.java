@@ -33,7 +33,6 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.util.Vector;
 
@@ -54,6 +53,7 @@ public class IndividualTableCellRenderer extends JLabel implements TableCellRend
 		}
 		else if(column == LinkIndividualDialog.TABLE_INDEX_NAME){
 			final DefaultTableModel model = (DefaultTableModel)table.getModel();
+			@SuppressWarnings({"UseOfObsoleteCollectionType", "rawtypes"})
 			final Vector rowData = model.getDataVector().get(table.convertRowIndexToModel(row));
 			//set alternative names as tooltip
 			setToolTipText((String)rowData.get(LinkIndividualDialog.TABLE_INDEX_ADDITIONAL_NAMES));

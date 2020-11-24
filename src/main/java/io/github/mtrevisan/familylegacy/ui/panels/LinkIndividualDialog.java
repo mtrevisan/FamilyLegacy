@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -118,7 +119,7 @@ public class LinkIndividualDialog extends JDialog{
 		individualsTable.setGridColor(GRID_COLOR);
 		individualsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		individualsTable.getTableHeader().setFont(individualsTable.getFont().deriveFont(Font.BOLD));
-		final IndividualTableCellRenderer nameRenderer = new IndividualTableCellRenderer();
+		final TableCellRenderer nameRenderer = new IndividualTableCellRenderer();
 		individualsTable.setDefaultRenderer(String.class, nameRenderer);
 		final IndividualTableCellRenderer rightAlignedRenderer = new IndividualTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);

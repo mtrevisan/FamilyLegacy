@@ -30,6 +30,9 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 public interface SelectionListenerInterface{
 
 	//TODO originating family/individual to replace with?
+	//for individual: needs which one (spouse1 or spouse2), and a child, if there is one
+	//for family: needs a child, if there is one
+	//... uhmmm this will not works...
 	void onNodeSelected(final GedcomNode node);
 
 }

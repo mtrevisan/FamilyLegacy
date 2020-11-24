@@ -91,8 +91,6 @@ public class TreePanel extends JPanel{
 		loadData();
 	}
 
-	//https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
-	//TODO remove duplicated code
 	private void initComponents3Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
@@ -126,21 +124,20 @@ public class TreePanel extends JPanel{
 		add(childrenScrollPane, "span 2");
 	}
 
-	//TODO remove duplicated code
 	private void initComponents4Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
 		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
-		final GedcomNode spouse1Grandparents1 = (!spouse1Parents.isEmpty()? extractParents(null, spouse1Parents, "SPOUSE1"):
-			null);
-		final GedcomNode spouse1Grandparents2 = (!spouse1Parents.isEmpty()? extractParents(null, spouse1Parents, "SPOUSE2"):
-			null);
-		final GedcomNode spouse2Grandparents1 = (!spouse2Parents.isEmpty()? extractParents(null, spouse2Parents, "SPOUSE1"):
-			null);
-		final GedcomNode spouse2Grandparents2 = (!spouse2Parents.isEmpty()? extractParents(null, spouse2Parents, "SPOUSE2"):
-			null);
+		final GedcomNode spouse1Grandparents1 = (spouse1Parents != null && !spouse1Parents.isEmpty()? extractParents(null,
+			spouse1Parents, "SPOUSE1"): null);
+		final GedcomNode spouse1Grandparents2 = (spouse1Parents != null && !spouse1Parents.isEmpty()? extractParents(null,
+			spouse1Parents, "SPOUSE2"): null);
+		final GedcomNode spouse2Grandparents1 = (spouse2Parents != null && !spouse2Parents.isEmpty()? extractParents(null,
+			spouse2Parents, "SPOUSE1"): null);
+		final GedcomNode spouse2Grandparents2 = (spouse2Parents != null && !spouse2Parents.isEmpty()? extractParents(null,
+			spouse2Parents, "SPOUSE2"): null);
 
 		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
@@ -184,18 +181,7 @@ public class TreePanel extends JPanel{
 			child = store.getIndividual(store.traverse(family, spouseTag).getXRef());
 		if(child != null && !child.isEmpty()){
 			final List<GedcomNode> familyChilds = store.traverseAsList(child, "FAMILY_CHILD[]");
-			final Collection<GedcomNode> biologicalFamilyChilds = new ArrayList<>(familyChilds.size());
-			//check pedigree (prefers `biological` or <null>)
-			for(final GedcomNode familyChild : familyChilds){
-				final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARENT1").getValue();
-				if(pedigree1 == null || "biological".equalsIgnoreCase(pedigree1))
-					biologicalFamilyChilds.add(familyChild);
-				else{
-					final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARENT2").getValue();
-					if(pedigree2 == null || "biological".equalsIgnoreCase(pedigree2))
-						biologicalFamilyChilds.add(familyChild);
-				}
-			}
+			final Collection<GedcomNode> biologicalFamilyChilds = extractBiologicalFamilyChilds(familyChilds);
 			if(!biologicalFamilyChilds.isEmpty()){
 				familyChilds.clear();
 				familyChilds.addAll(biologicalFamilyChilds);
@@ -206,6 +192,22 @@ public class TreePanel extends JPanel{
 				return store.getFamily(familyChilds.get(0).getXRef());
 		}
 		return null;
+	}
+
+	private Collection<GedcomNode> extractBiologicalFamilyChilds(final Collection<GedcomNode> familyChilds){
+		final Collection<GedcomNode> biologicalFamilyChilds = new ArrayList<>(familyChilds.size());
+		//check pedigree (prefers `biological` or <null>)
+		for(final GedcomNode familyChild : familyChilds){
+			final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARENT1").getValue();
+			if(pedigree1 == null || "biological".equalsIgnoreCase(pedigree1))
+				biologicalFamilyChilds.add(familyChild);
+			else{
+				final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARENT2").getValue();
+				if(pedigree2 == null || "biological".equalsIgnoreCase(pedigree2))
+					biologicalFamilyChilds.add(familyChild);
+			}
+		}
+		return biologicalFamilyChilds;
 	}
 
 	public GedcomNode getPreferredFamily(final GedcomNode individual){

@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import io.github.mtrevisan.familylegacy.ui.panels.LinkFamilyDialog;
-import io.github.mtrevisan.familylegacy.ui.panels.LinkIndividualDialog;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -46,12 +45,14 @@ public class FamilyTableCellRenderer extends JLabel implements TableCellRenderer
 			final int row, final int column){
 		if(column == LinkFamilyDialog.TABLE_INDEX_SPOUSE1_NAME){
 			final DefaultTableModel model = (DefaultTableModel)table.getModel();
+			@SuppressWarnings({"UseOfObsoleteCollectionType", "rawtypes"})
 			final Vector rowData = model.getDataVector().get(table.convertRowIndexToModel(row));
 			//set alternative names as tooltip
 			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES));
 		}
 		else if(column == LinkFamilyDialog.TABLE_INDEX_SPOUSE2_NAME){
 			final DefaultTableModel model = (DefaultTableModel)table.getModel();
+			@SuppressWarnings({"UseOfObsoleteCollectionType", "rawtypes"})
 			final Vector rowData = model.getDataVector().get(table.convertRowIndexToModel(row));
 			//set alternative names as tooltip
 			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES));

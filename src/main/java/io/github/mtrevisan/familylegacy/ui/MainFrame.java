@@ -211,7 +211,8 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	@Override
 	public void onNodeSelected(final GedcomNode node){
 		//TODO
-		System.out.println("onNodeSelected " + node.getID());
+		final String id = node.getID();
+		System.out.println((id.charAt(0) == 'F'? "onFamilySelected ": "onIndividualSelected ") + id);
 	}
 
 

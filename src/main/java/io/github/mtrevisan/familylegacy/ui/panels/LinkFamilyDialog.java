@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -121,7 +122,7 @@ public class LinkFamilyDialog extends JDialog{
 		familiesTable.setGridColor(GRID_COLOR);
 		familiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		familiesTable.getTableHeader().setFont(familiesTable.getFont().deriveFont(Font.BOLD));
-		final FamilyTableCellRenderer nameRenderer = new FamilyTableCellRenderer();
+		final TableCellRenderer nameRenderer = new FamilyTableCellRenderer();
 		familiesTable.setDefaultRenderer(String.class, nameRenderer);
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
