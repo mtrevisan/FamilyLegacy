@@ -78,7 +78,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 	private static final Color BORDER_COLOR = new Color(165, 165, 165);
 	private static final Color BORDER_COLOR_SHADOW = new Color(131, 131, 131, 130);
-	private static final Color BORDER_COLOR_SHADOW_SELECTED = new Color(131, 131, 131, 130);
+	private static final Color BORDER_COLOR_SHADOW_SELECTED = Color.BLACK;
 
 	private static final Color BIRTH_DEATH_AGE_COLOR = new Color(110, 110, 110);
 	private static final Color IMAGE_LABEL_BORDER_COLOR = new Color(255, 255, 255);
@@ -194,7 +194,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		}
 
 		final double shrinkFactor = getShrinkFactor();
-		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]0[]"));
+		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
 		add(familyNameLabel, "cell 0 0,width ::100%-" + (PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3) + ",hidemode 3");
 		add(newIndividualLabel, "cell 0 0,hidemode 3");
 		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
@@ -253,13 +253,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	@Override
 	public void propertyChange(final PropertyChangeEvent evt){
+		//TODO this doesn't work... why??
 		//show tooltips with full names if they are too long to be displayed
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
+			int width = familyNameLabel.getWidth();
 			int requiredWidth = familyNameLabel.getUI().getPreferredSize(familyNameLabel).width;
-			familyNameLabel.setToolTipText(requiredWidth > familyNameLabel.getWidth()? familyNameLabel.getText(): null);
+			familyNameLabel.setToolTipText(width > 0 && requiredWidth > width? familyNameLabel.getText(): null);
 
+			width = personalNameLabel.getWidth();
 			requiredWidth = personalNameLabel.getUI().getPreferredSize(personalNameLabel).width;
-			personalNameLabel.setToolTipText(requiredWidth > personalNameLabel.getWidth()? personalNameLabel.getText(): null);
+			personalNameLabel.setToolTipText(width > 0 && requiredWidth > width? personalNameLabel.getText(): null);
 		}
 	}
 

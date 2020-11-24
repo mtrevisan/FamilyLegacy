@@ -86,7 +86,7 @@ public class ChildrenPanel extends JPanel{
 
 				add(individualBox, (itr.hasNext()? "gapright " + CHILD_SEPARATION: ""));
 				if(isSpouse){
-					//TODO
+					//TODO find a way to mark a child to be a spouse
 				}
 			}
 		}

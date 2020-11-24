@@ -38,10 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
@@ -122,6 +118,7 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
+		//trigger repaint in order to move the connections between children and home family
 		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
 
 		setLayout(new MigLayout("insets 0",
@@ -171,8 +168,9 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setBorder(null);
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
+		//trigger repaint in order to move the connections between children and home family
 		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
-		//FIXME
+		//FIXME center the middle child?
 //		childrenScrollPane.scrollRectToVisible(childrenPanel.getMiddleChildren().getRectangle());
 
 		setLayout(new MigLayout("insets 0",
