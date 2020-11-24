@@ -69,7 +69,7 @@ public class FamilyPanel extends JPanel{
 	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
 
-	public static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
+	private static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
 
 	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
@@ -358,20 +358,20 @@ public class FamilyPanel extends JPanel{
 	}
 
 
-	public boolean hasNavigationButtons(){
-		return hasMoreFamilies;
+	public int getNavigationButtonsHeight(){
+		return (hasMoreFamilies? NAVIGATION_ARROW_HEIGHT: 0);
 	}
 
 	public Point getFamilyPaintingSpouse1EnterPoint(){
 		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y - (hasNavigationButtons()? NAVIGATION_ARROW_HEIGHT: 0));
+		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	public Point getFamilyPaintingSpouse2EnterPoint(){
 		final Point p = spouse2Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y - (hasNavigationButtons()? NAVIGATION_ARROW_HEIGHT: 0));
+		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	public Point getFamilyPaintingExitPoint(){
