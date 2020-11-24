@@ -312,15 +312,14 @@ public class TreePanel extends JPanel{
 			spouseParentsExitingConnection(s2p, graphics2D);
 			//home family spouse1 entering connection
 			final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
-			final int offset = homeFamilyPanel.getNavigationButtonsHeight();
-			spouseEnteringConnection(hfs1, offset, graphics2D);
+			spouseEnteringConnection(hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 			//line between spouse1's parents and spouse1
-			spouseParentsToSpouse(s1p, hfs1, offset, graphics2D);
+			spouseParentsToSpouse(s1p, hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 			//home family spouse2 entering connection
 			final Point hfs2 = homeFamilyPanel.getFamilyPaintingSpouse2EnterPoint();
-			spouseEnteringConnection(hfs2, offset, graphics2D);
+			spouseEnteringConnection(hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 			//line between spouse2's parents and spouse2
-			spouseParentsToSpouse(s2p, hfs2, offset, graphics2D);
+			spouseParentsToSpouse(s2p, hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 			//home family exiting connection
 			final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
 			spouseParentsExitingConnection(hf, graphics2D);
@@ -367,7 +366,7 @@ public class TreePanel extends JPanel{
 
 	private void spouseEnteringConnection(final Point s, final int offset, final Graphics2D graphics2D){
 		//spouse entering connection
-		graphics2D.drawLine(s.x, s.y + offset,
+		graphics2D.drawLine(s.x, s.y + FamilyPanel.NAVIGATION_ARROW_HEIGHT + offset,
 			s.x, s.y - offset - GENERATION_SEPARATOR_SIZE / 2);
 	}
 

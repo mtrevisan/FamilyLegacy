@@ -69,7 +69,7 @@ public class FamilyPanel extends JPanel{
 	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
 
-	private static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
+	public static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
 
 	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
@@ -96,7 +96,6 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode spouse1;
 	private GedcomNode spouse2;
 	private GedcomNode family;
-	private boolean hasMoreFamilies;
 	private final Flef store;
 	private final BoxPanelType boxType;
 	private final FamilyListenerInterface familyListener;
@@ -165,7 +164,7 @@ public class FamilyPanel extends JPanel{
 
 		setMaximumSize(new Dimension(
 			(spouse1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
-			spouse1Panel.getMaximumSize().height + (spouse1PreviousLabel.isVisible()? spouse1PreviousLabel.getMaximumSize().height: 0)
+			spouse1Panel.getMaximumSize().height + spouse1PreviousLabel.getMaximumSize().height
 		));
 
 		setLayout(new MigLayout("insets 0",
@@ -237,8 +236,7 @@ public class FamilyPanel extends JPanel{
 		if(boxType == BoxPanelType.PRIMARY){
 			final boolean hasMoreFamilies2 = updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
 			final boolean hasMoreFamilies1 = updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
-			hasMoreFamilies = hasMoreFamilies2 || hasMoreFamilies1;
-			previousNextSpace.setVisible(hasMoreFamilies);
+			previousNextSpace.setVisible(hasMoreFamilies2 || hasMoreFamilies1);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -357,10 +355,6 @@ public class FamilyPanel extends JPanel{
 		return addressEarliest;
 	}
 
-
-	public int getNavigationButtonsHeight(){
-		return (hasMoreFamilies? NAVIGATION_ARROW_HEIGHT: 0);
-	}
 
 	public Point getFamilyPaintingSpouse1EnterPoint(){
 		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
