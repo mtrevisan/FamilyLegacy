@@ -46,4 +46,8 @@ public enum Sex{
 		this.code = code;
 	}
 
+	public String getCode(){
+		return code;
+	}
+
 }

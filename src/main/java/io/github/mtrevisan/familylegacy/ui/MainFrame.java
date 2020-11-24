@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
@@ -12,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.LinkFamilyDialog;
+import io.github.mtrevisan.familylegacy.ui.panels.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
 import org.slf4j.Logger;
@@ -33,6 +58,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	private TreePanel panel;
 	private LinkFamilyDialog linkFamilyDialog;
+	private LinkIndividualDialog linkIndividualDialog;
 
 
 	public MainFrame(){
@@ -48,6 +74,12 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 //			final GedcomNode family = null;
 
 			linkFamilyDialog = new LinkFamilyDialog(store, this, this);
+			linkFamilyDialog.setSize(945, 500);
+			linkFamilyDialog.setLocationRelativeTo(null);
+
+			linkIndividualDialog = new LinkIndividualDialog(store, this, this);
+			linkIndividualDialog.setSize(850, 500);
+			linkIndividualDialog.setLocationRelativeTo(null);
 
 			getContentPane().setLayout(new BorderLayout());
 			panel = new TreePanel(null, null, family, 4, store, this, this);
@@ -80,8 +112,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onFamilyLink(final FamilyPanel boxPanel){
 		LOGGER.debug("onLinkFamily");
 
-		linkFamilyDialog.setSize(945, 500);
-		linkFamilyDialog.setLocationRelativeTo(null);
 		linkFamilyDialog.setVisible(true);
 	}
 
@@ -144,7 +174,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		//prefer left position if male or unknown, right if female
 		GedcomNode spouse1 = null;
 		GedcomNode spouse2 = null;
-		if(extractSex(individual) == Sex.FEMALE)
+		if(IndividualPanel.extractSex(individual, store) == Sex.FEMALE)
 			//put in the right box
 			spouse2 = individual;
 		else
@@ -159,18 +189,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 
 	@Override
-	public void onNodeSelected(final GedcomNode node){
-		//TODO
-		System.out.println("onNodeSelected " + node.getID());
-	}
-
-
-	private Sex extractSex(final GedcomNode individual){
-		return Sex.fromCode(store.traverse(individual, "SEX")
-			.getValue());
-	}
-
-	@Override
 	public void onIndividualNew(final IndividualPanel boxPanel){
 		//TODO
 		System.out.println("onNewIndividual");
@@ -178,14 +196,22 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	@Override
 	public void onIndividualLink(final IndividualPanel boxPanel){
-		//TODO
-		System.out.println("onLinkIndividual");
+		LOGGER.debug("onLinkIndividual");
+
+		linkIndividualDialog.setVisible(true);
 	}
 
 	@Override
 	public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
 		System.out.println("onAddPreferredImage " + individual.getID());
+	}
+
+
+	@Override
+	public void onNodeSelected(final GedcomNode node){
+		//TODO
+		System.out.println("onNodeSelected " + node.getID());
 	}
 
 

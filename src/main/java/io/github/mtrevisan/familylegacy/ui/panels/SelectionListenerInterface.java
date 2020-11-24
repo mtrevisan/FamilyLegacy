@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
 public interface SelectionListenerInterface{
 
+	//TODO originating family/individual to replace with?
 	void onNodeSelected(final GedcomNode node);
 
 }

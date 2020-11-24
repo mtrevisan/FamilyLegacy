@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import net.miginfocom.swing.MigLayout;
@@ -69,7 +70,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static final Color BACKGROUND_COLOR_FEMALE = new Color(255, 212, 177);
 	private static final Color BACKGROUND_COLOR_UNKNOWN = new Color(221, 221, 221);
 
-	private static final Map<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
+	public static final Map<Sex, Color> BACKGROUND_COLOR_FROM_SEX = new EnumMap<>(Sex.class);
 	static{
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.MALE, BACKGROUND_COLOR_MALE);
 		BACKGROUND_COLOR_FROM_SEX.put(Sex.FEMALE, BACKGROUND_COLOR_FEMALE);
@@ -265,13 +266,13 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private Color getBackgroundColor(){
 		Color backgroundColor = BACKGROUND_COLOR_NO_INDIVIDUAL;
 		if(individual != null){
-			final Sex sex = extractSex();
+			final Sex sex = extractSex(individual, store);
 			backgroundColor = BACKGROUND_COLOR_FROM_SEX.getOrDefault(sex, BACKGROUND_COLOR_UNKNOWN);
 		}
 		return backgroundColor;
 	}
 
-	private Sex extractSex(){
+	public static Sex extractSex(final GedcomNode individual, final Flef store){
 		return Sex.fromCode(store.traverse(individual, "SEX")
 			.getValue());
 	}
@@ -371,6 +372,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return year;
 	}
 
+	public static String extractBirthPlace(final GedcomNode individual, final Flef store){
+		return (individual != null? extractEarliestBirthPlace(individual, store): null);
+	}
+
 	public static String extractDeathYear(final GedcomNode individual, final Flef store){
 		String year = null;
 		if(individual != null){
@@ -379,6 +384,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				year = DateParser.extractYear(deathDate);
 		}
 		return year;
+	}
+
+	public static String extractDeathPlace(final GedcomNode individual, final Flef store){
+		return (individual != null? extractLatestDeathPlace(individual, store): null);
 	}
 
 	private int extractBirthDeathAge(final StringJoiner sj){
@@ -422,6 +431,71 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return birthDate;
 	}
 
+	private static String extractEarliestBirthPlace(final GedcomNode individual, final Flef store){
+		int birthYear = 0;
+		String birthPlace = null;
+		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{BIRTH}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null){
+				final int my = date.getYear();
+				if(birthPlace == null || my < birthYear){
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						final String placeValue = extractPlace(place, store);
+						if(placeValue != null){
+							birthYear = my;
+							birthPlace = placeValue;
+						}
+					}
+				}
+			}
+		}
+		return birthPlace;
+	}
+
+	private static String extractPlace(final GedcomNode place, final Flef store){
+		final GedcomNode addressEarliest = extractEarliestAddress(place, store);
+
+		//extract place as town, county, state, country, otherwise from value
+		String placeValue = place.getValue();
+		if(addressEarliest != null){
+			final GedcomNode town = store.traverse(addressEarliest, "TOWN");
+			final GedcomNode city = store.traverse(addressEarliest, "CITY");
+			final GedcomNode county = store.traverse(addressEarliest, "COUNTY");
+			final GedcomNode state = store.traverse(addressEarliest, "STATE");
+			final GedcomNode country = store.traverse(addressEarliest, "COUNTRY");
+			final StringJoiner sj = new StringJoiner(", ");
+			JavaHelper.addValueIfNotNull(sj, town);
+			JavaHelper.addValueIfNotNull(sj, city);
+			JavaHelper.addValueIfNotNull(sj, county);
+			JavaHelper.addValueIfNotNull(sj, state);
+			JavaHelper.addValueIfNotNull(sj, country);
+			if(sj.length() > 0)
+				placeValue = sj.toString();
+		}
+		return placeValue;
+	}
+
+	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
+		int addressYear = 0;
+		GedcomNode addressEarliest = null;
+		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS");
+		for(final GedcomNode address : addresses){
+			final GedcomNode source = store.getSource(store.traverse(address, "SOURCE").getXRef());
+			final String addressDateValue = store.traverse(source, "DATE").getValue();
+			final LocalDate addressDate = DateParser.parse(addressDateValue);
+			if(addressDate != null){
+				final int ay = addressDate.getYear();
+				if(addressEarliest == null || ay < addressYear){
+					addressYear = ay;
+					addressEarliest = address;
+				}
+			}
+		}
+		return addressEarliest;
+	}
+
 	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
 		int deathYear = 0;
 		String deathDate = null;
@@ -439,6 +513,29 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return deathDate;
 	}
 
+	private static String extractLatestDeathPlace(final GedcomNode individual, final Flef store){
+		int deathYear = 0;
+		String deathPlace = null;
+		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{DEATH}[]")){
+			final String dateValue = store.traverse(node, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null){
+				final int my = date.getYear();
+				if(deathPlace == null || my > deathYear){
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						final String placeValue = extractPlace(place, store);
+						if(placeValue != null){
+							deathYear = my;
+							deathPlace = placeValue;
+						}
+					}
+				}
+			}
+		}
+		return deathPlace;
+	}
+
 	private Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
@@ -446,7 +543,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private ImageIcon getAddPhotoImage(final int years){
 		ImageIcon icon = ADD_PHOTO_UNKNOWN;
 		if(individual != null){
-			final Sex sex = extractSex();
+			final Sex sex = extractSex(individual, store);
 			switch(sex){
 				case MALE:
 					icon = (years >= 0 && years < 11? ADD_PHOTO_BOY: ADD_PHOTO_MAN);

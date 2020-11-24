@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2020 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.ui.panels;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
@@ -6,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.ui.utilities.BorderedTableCellRenderer;
+import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
@@ -49,22 +73,22 @@ public class LinkFamilyDialog extends JDialog{
 	private static final int MARRIAGE_PLACE_PREFERRED_WIDTH = 250;
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
-	private static final int TABLE_INDEX_SPOUSE1 = 1;
+	public static final int TABLE_INDEX_SPOUSE1_NAME = 1;
 	private static final int TABLE_INDEX_SPOUSE1_BIRTH_YEAR = 2;
 	private static final int TABLE_INDEX_SPOUSE1_DEATH_YEAR = 3;
 	private static final int TABLE_INDEX_SPOUSE1_ID = 4;
-	private static final int TABLE_INDEX_SPOUSE2 = 5;
+	public static final int TABLE_INDEX_SPOUSE2_NAME = 5;
 	private static final int TABLE_INDEX_SPOUSE2_BIRTH_YEAR = 6;
 	private static final int TABLE_INDEX_SPOUSE2_DEATH_YEAR = 7;
 	private static final int TABLE_INDEX_SPOUSE2_ID = 8;
 	private static final int TABLE_INDEX_MARRIAGE_YEAR = 9;
 	private static final int TABLE_INDEX_MARRIAGE_PLACE = 10;
-	private static final int TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES = 11;
-	private static final int TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES = 12;
+	public static final int TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES = 11;
+	public static final int TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES = 12;
 
 
-	private final JLabel filterSpouseLabel = new JLabel("Filter:");
-	private final JTextField filterSpouseField = new JTextField();
+	private final JLabel filterLabel = new JLabel("Filter:");
+	private final JTextField filterField = new JTextField();
 	private JTable familiesTable;
 	private final JScrollPane familiesScrollPane = new JScrollPane();
 	private final JButton okButton = new JButton("Ok");
@@ -97,18 +121,18 @@ public class LinkFamilyDialog extends JDialog{
 		familiesTable.setGridColor(GRID_COLOR);
 		familiesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		familiesTable.getTableHeader().setFont(familiesTable.getFont().deriveFont(Font.BOLD));
-		final BorderedTableCellRenderer nameRenderer = new BorderedTableCellRenderer();
+		final FamilyTableCellRenderer nameRenderer = new FamilyTableCellRenderer();
 		familiesTable.setDefaultRenderer(String.class, nameRenderer);
-		final BorderedTableCellRenderer rightAlignedRenderer = new BorderedTableCellRenderer();
+		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1, 0, SPOUSE_NAME_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_NAME, 0, SPOUSE_NAME_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2, 0, SPOUSE_NAME_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_NAME, 0, SPOUSE_NAME_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
@@ -137,9 +161,9 @@ public class LinkFamilyDialog extends JDialog{
 		familiesTable.setRowSorter(sorter);
 		familiesScrollPane.setViewportView(familiesTable);
 
-		filterSpouseLabel.setLabelFor(filterSpouseField);
-		filterSpouseField.setEnabled(false);
-		filterSpouseField.addKeyListener(new KeyAdapter(){
+		filterLabel.setLabelFor(filterField);
+		filterField.setEnabled(false);
+		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(LinkFamilyDialog.this);
 			}
@@ -157,8 +181,8 @@ public class LinkFamilyDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 		setLayout(new MigLayout());
-		add(filterSpouseLabel, "align label,split 2");
-		add(filterSpouseField, "grow");
+		add(filterLabel, "align label,split 2");
+		add(filterField, "grow");
 		add(familiesScrollPane, "newline,width 100%,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -178,20 +202,21 @@ public class LinkFamilyDialog extends JDialog{
 				final GedcomNode family = families.get(row);
 
 				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
-				loadSpouseData(row, familiesModel, family, "SPOUSE1", TABLE_INDEX_SPOUSE1, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES,
+				loadSpouseData(row, familiesModel, family, "SPOUSE1", TABLE_INDEX_SPOUSE1_NAME, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES,
 					TABLE_INDEX_SPOUSE1_BIRTH_YEAR, TABLE_INDEX_SPOUSE1_DEATH_YEAR, TABLE_INDEX_SPOUSE1_ID);
-				loadSpouseData(row, familiesModel, family, "SPOUSE2", TABLE_INDEX_SPOUSE2, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
+				loadSpouseData(row, familiesModel, family, "SPOUSE2", TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
 					TABLE_INDEX_SPOUSE2_BIRTH_YEAR, TABLE_INDEX_SPOUSE2_DEATH_YEAR, TABLE_INDEX_SPOUSE2_ID);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
 			}
 
 			final TableColumnModel columnModel = familiesTable.getColumnModel();
-			final TableColumn additionalNames2Column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES));
-			columnModel.removeColumn(additionalNames2Column);
-			final TableColumn additionalNames1Column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES));
-			columnModel.removeColumn(additionalNames1Column);
-			filterSpouseField.setEnabled(true);
+			TableColumn column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES));
+			columnModel.removeColumn(column);
+			column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES));
+			columnModel.removeColumn(column);
+
+			filterField.setEnabled(true);
 		}
 	}
 
@@ -216,13 +241,13 @@ public class LinkFamilyDialog extends JDialog{
 
 	public void reset(){
 		((DefaultTableModel)familiesTable.getModel()).setRowCount(0);
-		filterSpouseField.setEnabled(false);
+		filterField.setEnabled(false);
 	}
 
 	private void filterTableBy(final LinkFamilyDialog panel){
-		final String text = filterSpouseField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_SPOUSE1,
-			TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2, TABLE_INDEX_SPOUSE2_ID,
+		final String text = filterField.getText();
+		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_SPOUSE1_NAME,
+			TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ID,
 			TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
@@ -294,6 +319,7 @@ public class LinkFamilyDialog extends JDialog{
 		});
 	}
 
+
 	private static class FamiliesTableModel extends DefaultTableModel{
 
 		private static final long serialVersionUID = -2461556718124651678L;
@@ -306,8 +332,7 @@ public class LinkFamilyDialog extends JDialog{
 
 		@Override
 		public Class<?> getColumnClass(final int column){
-			final Object value = getValueAt(0, column);
-			return (value != null? value.getClass(): Object.class);
+			return String.class;
 		}
 
 		@Override
