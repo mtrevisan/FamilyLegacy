@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -49,17 +50,17 @@ public class LinkFamilyDialog extends JDialog{
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
 	private static final int TABLE_INDEX_SPOUSE1 = 1;
-	private static final int TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES = 2;
-	private static final int TABLE_INDEX_SPOUSE1_BIRTH_YEAR = 3;
-	private static final int TABLE_INDEX_SPOUSE1_DEATH_YEAR = 4;
-	private static final int TABLE_INDEX_SPOUSE1_ID = 5;
-	private static final int TABLE_INDEX_SPOUSE2 = 6;
-	private static final int TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES = 7;
-	private static final int TABLE_INDEX_SPOUSE2_BIRTH_YEAR = 8;
-	private static final int TABLE_INDEX_SPOUSE2_DEATH_YEAR = 9;
-	private static final int TABLE_INDEX_SPOUSE2_ID = 10;
-	private static final int TABLE_INDEX_MARRIAGE_YEAR = 11;
-	private static final int TABLE_INDEX_MARRIAGE_PLACE = 12;
+	private static final int TABLE_INDEX_SPOUSE1_BIRTH_YEAR = 2;
+	private static final int TABLE_INDEX_SPOUSE1_DEATH_YEAR = 3;
+	private static final int TABLE_INDEX_SPOUSE1_ID = 4;
+	private static final int TABLE_INDEX_SPOUSE2 = 5;
+	private static final int TABLE_INDEX_SPOUSE2_BIRTH_YEAR = 6;
+	private static final int TABLE_INDEX_SPOUSE2_DEATH_YEAR = 7;
+	private static final int TABLE_INDEX_SPOUSE2_ID = 8;
+	private static final int TABLE_INDEX_MARRIAGE_YEAR = 9;
+	private static final int TABLE_INDEX_MARRIAGE_PLACE = 10;
+	private static final int TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES = 11;
+	private static final int TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES = 12;
 
 
 	private final JLabel filterSpouseLabel = new JLabel("Filter:");
@@ -163,8 +164,8 @@ public class LinkFamilyDialog extends JDialog{
 		setLayout(new MigLayout());
 		add(filterSpouseLabel, "align label,split 2");
 		add(filterSpouseField, "grow");
-		add(familiesScrollPane, "newline,wrap paragraph");
-		add(okButton, "tag ok,sizegroup button");
+		add(familiesScrollPane, "newline,width 100%,wrap paragraph");
+		add(okButton, "tag ok,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
@@ -191,8 +192,10 @@ public class LinkFamilyDialog extends JDialog{
 			}
 
 			final TableColumnModel columnModel = familiesTable.getColumnModel();
-			columnModel.removeColumn(familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES)));
-			columnModel.removeColumn(familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES)));
+			final TableColumn additionalNames2Column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES));
+			columnModel.removeColumn(additionalNames2Column);
+			final TableColumn additionalNames1Column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES));
+			columnModel.removeColumn(additionalNames1Column);
 			filterSpouseField.setEnabled(true);
 		}
 	}
@@ -224,8 +227,8 @@ public class LinkFamilyDialog extends JDialog{
 	private void filterTableBy(final LinkFamilyDialog panel){
 		final String text = filterSpouseField.getText();
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_SPOUSE1,
-			TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
-			TABLE_INDEX_SPOUSE2_ID);
+			TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2, TABLE_INDEX_SPOUSE2_ID,
+			TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
@@ -302,7 +305,8 @@ public class LinkFamilyDialog extends JDialog{
 
 
 		FamiliesTableModel(){
-			super(new String[]{"ID", "Spouse 1", "", "", "", "Spouse 1 ID", "Spouse 2", "", "", "", "Spouse 2 ID", "Date", "Place"}, 0);
+			super(new String[]{"ID", "Spouse 1", "", "", "Spouse 1 ID", "Spouse 2", "", "", "Spouse 2 ID", "Date", "Place",
+				"spouse1 additional names", "spouse2 additional names"}, 0);
 		}
 
 		@Override
