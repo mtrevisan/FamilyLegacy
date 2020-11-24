@@ -94,6 +94,7 @@ public class LinkIndividualDialog extends JDialog{
 
 	private final Debouncer<LinkIndividualDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
+	private SelectionListenerInterface.SelectedNodeType selectionType;
 	private final Flef store;
 	private final SelectionListenerInterface listener;
 
@@ -159,7 +160,7 @@ public class LinkIndividualDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedIndividual = getSelectedIndividual();
-				listener.onNodeSelected(selectedIndividual);
+				listener.onNodeSelected(selectedIndividual, selectionType);
 			}
 
 			dispose();
@@ -253,6 +254,10 @@ public class LinkIndividualDialog extends JDialog{
 		return null;
 	}
 
+	public void setSelectionType(final SelectionListenerInterface.SelectedNodeType selectionType){
+		this.selectionType = selectionType;
+	}
+
 	public GedcomNode getSelectedIndividual(){
 		final int viewRow = individualsTable.getSelectedRow();
 		GedcomNode individual = null;
@@ -275,7 +280,7 @@ public class LinkIndividualDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = node -> System.out.println("onNodeSelected " + node.getID());
+		final SelectionListenerInterface listener = (node, type) -> System.out.println("onNodeSelected " + node.getID() + ", type is " + type);
 
 		EventQueue.invokeLater(() -> {
 			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, listener, new JFrame());

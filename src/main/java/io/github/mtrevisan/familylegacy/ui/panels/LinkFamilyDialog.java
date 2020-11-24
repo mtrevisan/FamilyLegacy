@@ -174,7 +174,7 @@ public class LinkFamilyDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily);
+				listener.onNodeSelected(selectedFamily, SelectionListenerInterface.SelectedNodeType.FAMILY);
 			}
 
 			dispose();
@@ -300,7 +300,7 @@ public class LinkFamilyDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = node -> System.out.println("onNodeSelected " + node.getID());
+		final SelectionListenerInterface listener = (node, type) -> System.out.println("onNodeSelected " + node.getID() + ", type is " + type);
 
 		EventQueue.invokeLater(() -> {
 			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
