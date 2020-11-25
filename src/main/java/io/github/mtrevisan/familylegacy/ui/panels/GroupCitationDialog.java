@@ -35,14 +35,13 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 
 public class GroupCitationDialog extends JDialog{
 
 //	private static final long serialVersionUID = -3246390161022821225L;
 
-	private static final DefaultComboBoxModel CREDIBILITY_MODEL = new DefaultComboBoxModel(new String[]{
+	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		"Unreliable/estimated data",
 		"Questionable reliability of evidence",
 		"Secondary evidence, data officially recorded sometime after event",
@@ -54,16 +53,15 @@ public class GroupCitationDialog extends JDialog{
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
 	private final JLabel credibilityLabel = new JLabel("Restriction:");
-	private final JComboBox credibilityComboBox = new JComboBox(CREDIBILITY_MODEL);
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 
 	private GedcomNode container;
 	private final Flef store;
 
 
-	public GroupCitationDialog(final GedcomNode container, final Flef store, final Frame parent){
+	public GroupCitationDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
-		this.container = container;
 		this.store = store;
 
 		initComponents();
@@ -71,22 +69,14 @@ public class GroupCitationDialog extends JDialog{
 		loadData();
 	}
 
+	//TODO show the list of groups, from which one can select one group, and then edit
 	private void initComponents(){
 		setTitle("Groups");
-
-//		+1 GROUP @<XREF:GROUP>@    {0:M}	/* A GROUP_RECORD() object giving the group in which this family belongs. */
-//			+2 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this family played in the group that is being cited in this context. */
-//			+2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//			+2 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record. */
-//				+3 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
-//				+3 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, etc. */
-//				+3 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//				+3 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-//			+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 
+		//link to group record
 		groupLinkButton.addActionListener(e -> {
 			//TODO go to group_record
 		});
@@ -122,11 +112,8 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 	private void loadData(){
-		final List<GedcomNode> groups = store.getGroups();
-
-		//TODO
-//		roleField.setText(store.traverse(container, "TYPE").getValue());
-//		restrictionField.setText(store.traverse(container, "RESTRICTION").getValue());
+		roleField.setText(store.traverse(container, "ROLE").getValue());
+		credibilityComboBox.setSelectedItem(store.traverse(container, "CREDIBILITY").getValue());
 	}
 
 
@@ -143,7 +130,8 @@ public class GroupCitationDialog extends JDialog{
 		final GedcomNode container = storeFlef.getFamilies().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final GroupCitationDialog dialog = new GroupCitationDialog(container, storeFlef, new JFrame());
+			final GroupCitationDialog dialog = new GroupCitationDialog(storeFlef, new JFrame());
+			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

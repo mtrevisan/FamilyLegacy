@@ -42,24 +42,25 @@ public class FamilyDialog extends JDialog{
 
 //	private static final long serialVersionUID = -3246390161022821225L;
 
-	private static final DefaultComboBoxModel TYPE_MODEL = new DefaultComboBoxModel(new String[]{"", "unknown", "marriage", "not married",
-		"civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership", "living together",
-		"living apart together"});
-	private static final DefaultComboBoxModel RESTRICTION_MODEL = new DefaultComboBoxModel(new String[]{"", "confidential", "locked",
-		"private"});
+	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{"", "unknown", "marriage",
+		"not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",
+		"living together", "living apart together"});
+	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{"", "confidential",
+		"locked", "private"});
 
 	private final JLabel typeLabel = new JLabel("Type:");
-	private final JComboBox typeComboBox = new JComboBox(TYPE_MODEL);
+	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
 	private final JButton groupsButton = new JButton("Groups");
 	private final JButton culturalRulesButton = new JButton("Cultural Rules");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton eventsButton = new JButton("Events");
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
-	private final JComboBox restrictionComboBox = new JComboBox(RESTRICTION_MODEL);
+	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 
 	private GedcomNode family;
 	private final Flef store;
+	private GroupCitationDialog groupCitationDialog;
 
 
 	public FamilyDialog(final GedcomNode family, final Flef store, final Frame parent){
@@ -101,7 +102,7 @@ public class FamilyDialog extends JDialog{
 		typeComboBox.setEditable(true);
 		typeComboBox.addActionListener(e -> {
 			if("comboBoxEdited".equals(e.getActionCommand())){
-				final Object newValue = TYPE_MODEL.getSelectedItem();
+				final String newValue = (String)TYPE_MODEL.getSelectedItem();
 				TYPE_MODEL.addElement(newValue);
 
 				typeComboBox.setSelectedItem(newValue);
@@ -109,8 +110,10 @@ public class FamilyDialog extends JDialog{
 		});
 		typeComboBox.setSelectedIndex(0);
 
+		groupCitationDialog = new GroupCitationDialog(store, (Frame)getParent());
 		groupsButton.addActionListener(e -> {
-			//TODO
+			groupCitationDialog.loadData(family);
+			groupCitationDialog.setVisible(true);
 		});
 
 		culturalRulesButton.addActionListener(e -> {
@@ -133,7 +136,7 @@ public class FamilyDialog extends JDialog{
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
 			if("comboBoxEdited".equals(e.getActionCommand())){
-				final Object newValue = RESTRICTION_MODEL.getSelectedItem();
+				final String newValue = (String)RESTRICTION_MODEL.getSelectedItem();
 				RESTRICTION_MODEL.addElement(newValue);
 
 				restrictionComboBox.setSelectedItem(newValue);

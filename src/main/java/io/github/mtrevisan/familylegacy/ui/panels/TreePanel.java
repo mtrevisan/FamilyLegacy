@@ -145,7 +145,7 @@ public class TreePanel extends JPanel{
 
 	private void initComponents4Generations(final GedcomNode family){
 		spouse1 = (family != null? store.getSpouse1(family): null);
-		spouse2 = ( family != null? store.getSpouse2(family): null);
+		spouse2 = (family != null? store.getSpouse2(family): null);
 
 		final GedcomNode spouse1Parents = extractParents(spouse1);
 		final GedcomNode spouse2Parents = extractParents(spouse2);
