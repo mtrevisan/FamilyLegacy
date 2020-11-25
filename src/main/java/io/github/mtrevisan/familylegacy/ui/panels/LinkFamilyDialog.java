@@ -234,7 +234,7 @@ public class LinkFamilyDialog extends JDialog{
 	private void loadSpouseData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final String spouseTag,
 			final int tableIndexSpouse, final int tableIndexSpouseAdditionalNames, final int tableIndexSpouseBirthYear,
 			final int tableIndexSpouseDeathYear, final int tableIndexSpouseId){
-		final GedcomNode spouse = store.getIndividual(store.traverse(family, spouseTag).getXRef());
+		final GedcomNode spouse = store.getSpouse(family, spouseTag);
 		final List<String[]> spouseName = IndividualPanel.extractCompleteName(spouse, store);
 		if(!spouseName.isEmpty()){
 			final String[] firstPersonalName = spouseName.get(0);

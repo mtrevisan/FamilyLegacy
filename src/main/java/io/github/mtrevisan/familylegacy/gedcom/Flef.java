@@ -320,6 +320,18 @@ public class Flef extends Store{
 		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
 	}
 
+	public GedcomNode getSpouse1(final GedcomNode family){
+		return getSpouse(family, "SPOUSE1");
+	}
+
+	public GedcomNode getSpouse2(final GedcomNode family){
+		return getSpouse(family, "SPOUSE2");
+	}
+
+	public GedcomNode getSpouse(final GedcomNode family, final String spouseTag){
+		return getIndividual(traverse(family, spouseTag).getXRef());
+	}
+
 	public List<GedcomNode> getPlaces(){
 		return (places != null? places: Collections.emptyList());
 	}

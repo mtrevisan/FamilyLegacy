@@ -101,8 +101,8 @@ public class TreePanel extends JPanel{
 	}
 
 	private void initComponents3Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
-		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
+		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): null);
+		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): null);
 
 		final GedcomNode spouse1Parents = extractParents(this.spouse1);
 		final GedcomNode spouse2Parents = extractParents(this.spouse2);
@@ -144,35 +144,35 @@ public class TreePanel extends JPanel{
 	}
 
 	private void initComponents4Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
-		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
+		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): null);
+		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): null);
 
 		final GedcomNode spouse1Parents = extractParents(this.spouse1);
 		final GedcomNode spouse2Parents = extractParents(this.spouse2);
 
-		final GedcomNode spouse1Parent1 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
-		final GedcomNode spouse1Parent2 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+		final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents);
+		final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents);
 		final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
 		final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
 
-		final GedcomNode spouse2Parent1 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
-		final GedcomNode spouse2Parent2 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+		final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents);
+		final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents);
 		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
 		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
 
-		GedcomNode defaultChildReference = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
+		GedcomNode defaultChildReference = store.getSpouse1(spouse1Parents);
 		GedcomNode childReference = extractFirstChild(spouse1Grandparents1, defaultChildReference);
 		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+		defaultChildReference = store.getSpouse2(spouse1Parents);
 		childReference = extractFirstChild(spouse1Grandparents2, defaultChildReference);
 		spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
+		defaultChildReference = store.getSpouse1(spouse2Parents);
 		childReference = extractFirstChild(spouse2Grandparents1, defaultChildReference);
 		spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+		defaultChildReference = store.getSpouse2(spouse2Parents);
 		childReference = extractFirstChild(spouse2Grandparents2, defaultChildReference);
 		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
@@ -445,20 +445,20 @@ public class TreePanel extends JPanel{
 	}
 
 	private void loadData(){
-		spouse1 = (spouse1 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE1").getXRef()): spouse1);
-		spouse2 = (spouse2 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE2").getXRef()): spouse2);
+		spouse1 = (spouse1 == null && homeFamily != null? store.getSpouse1(homeFamily): spouse1);
+		spouse2 = (spouse2 == null && homeFamily != null? store.getSpouse2(homeFamily): spouse2);
 
 		final GedcomNode spouse1Parents = extractParents(spouse1);
 		final GedcomNode spouse2Parents = extractParents(spouse2);
 
 		if(generations > 3){
-			final GedcomNode spouse1Parent1 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
-			final GedcomNode spouse1Parent2 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+			final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents);
+			final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents);
 			final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
 			final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
 
-			final GedcomNode spouse2Parent1 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
-			final GedcomNode spouse2Parent2 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+			final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents);
+			final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents);
 			final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
 			final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
 
@@ -478,9 +478,17 @@ public class TreePanel extends JPanel{
 		homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
 		childrenPanel.loadData(homeFamily);
 
+
 		//TODO remember last scroll position, restore it if present
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
-		if(childrenScrollbarPosition != null){
+		if(childrenScrollbarPosition == null){
+			final Rectangle visibleRect = childrenScrollPane.getVisibleRect();
+			final Rectangle boundsRect = childrenScrollPane.getBounds();
+			//center halfway
+			visibleRect.x = (boundsRect.width - visibleRect.width) / 2;
+			childrenScrollPane.scrollRectToVisible(visibleRect);
+		}
+		else if(childrenScrollbarPosition.intValue() != childrenScrollPane.getHorizontalScrollBar().getValue()){
 			final Rectangle visibleRect = childrenScrollPane.getVisibleRect();
 			final Rectangle boundsRect = childrenScrollPane.getBounds();
 //			visibleRect.x = childrenScrollbarPosition.intValue();

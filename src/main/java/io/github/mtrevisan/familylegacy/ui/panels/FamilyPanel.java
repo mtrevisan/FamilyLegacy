@@ -113,8 +113,8 @@ public class FamilyPanel extends JPanel{
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
 
-		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): spouse1);
-		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): spouse2);
+		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): spouse1);
+		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): spouse2);
 		this.family = family;
 		this.childReference = childReference;
 		if(family != null && this.childReference == null){
@@ -238,8 +238,8 @@ public class FamilyPanel extends JPanel{
 	}
 
 	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): spouse1);
-		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): spouse2);
+		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): spouse1);
+		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): spouse2);
 		this.family = family;
 
 		loadData();
