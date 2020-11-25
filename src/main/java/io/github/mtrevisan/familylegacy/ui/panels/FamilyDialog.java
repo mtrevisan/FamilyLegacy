@@ -42,11 +42,21 @@ public class FamilyDialog extends JDialog{
 
 //	private static final long serialVersionUID = -3246390161022821225L;
 
-	private final JLabel filterLabel = new JLabel("Filter:");
-	private final JTextField filterField = new JTextField();
-	private final JScrollPane familiesScrollPane = new JScrollPane();
-	private final JButton okButton = new JButton("Ok");
-	private final JButton cancelButton = new JButton("Cancel");
+	private static final DefaultComboBoxModel TYPE_MODEL = new DefaultComboBoxModel(new String[]{"", "unknown", "marriage", "not married",
+		"civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership", "living together",
+		"living apart together"});
+	private static final DefaultComboBoxModel RESTRICTION_MODEL = new DefaultComboBoxModel(new String[]{"", "confidential", "locked",
+		"private"});
+
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox typeComboBox = new JComboBox(TYPE_MODEL);
+	private final JButton groupsButton = new JButton("Groups");
+	private final JButton culturalRulesButton = new JButton("Cultural Rules");
+	private final JButton notesButton = new JButton("Notes");
+	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton eventsButton = new JButton("Events");
+	private final JLabel restrictionLabel = new JLabel("Restriction:");
+	private final JComboBox restrictionComboBox = new JComboBox(RESTRICTION_MODEL);
 
 	private GedcomNode family;
 	private final Flef store;
@@ -66,15 +76,6 @@ public class FamilyDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Family record");
 
-/*
-	type: ------
-	groups ?
-	cultural rules ?
-	notes ?
-	sources ?
-	events ?
-	restriction: ---
-*/
 //		+1 TYPE <FAMILY_TYPE>    {1:1}	/* One of 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
 //		+1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband. */
 //		+1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife. */
@@ -101,23 +102,60 @@ public class FamilyDialog extends JDialog{
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 
-		filterLabel.setLabelFor(filterField);
-		filterField.setEnabled(false);
+		typeLabel.setLabelFor(typeComboBox);
+		typeComboBox.setEditable(true);
+		typeComboBox.addActionListener(e -> {
+			if("comboBoxEdited".equals(e.getActionCommand())){
+				final Object newValue = TYPE_MODEL.getSelectedItem();
+				TYPE_MODEL.addElement(newValue);
 
-		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			//TODO
-
-			dispose();
+				typeComboBox.setSelectedItem(newValue);
+			}
 		});
-		cancelButton.addActionListener(evt -> dispose());
+		typeComboBox.setSelectedIndex(0);
+
+		groupsButton.addActionListener(e -> {
+			//TODO
+		});
+
+		culturalRulesButton.addActionListener(e -> {
+			//TODO
+		});
+
+		notesButton.addActionListener(e -> {
+			//TODO
+		});
+
+		sourcesButton.addActionListener(e -> {
+			//TODO
+		});
+
+		eventsButton.addActionListener(e -> {
+			//TODO
+		});
+
+		restrictionLabel.setLabelFor(restrictionComboBox);
+		restrictionComboBox.setEditable(true);
+		restrictionComboBox.addActionListener(e -> {
+			if("comboBoxEdited".equals(e.getActionCommand())){
+				final Object newValue = RESTRICTION_MODEL.getSelectedItem();
+				RESTRICTION_MODEL.addElement(newValue);
+
+				restrictionComboBox.setSelectedItem(newValue);
+			}
+		});
+		restrictionComboBox.setSelectedIndex(0);
 
 		setLayout(new MigLayout());
-		add(filterLabel, "align label,split 2");
-		add(filterField, "grow");
-		add(familiesScrollPane, "newline,width 100%,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(typeLabel, "align label,split 2");
+		add(typeComboBox, "grow,wrap");
+		add(groupsButton, "sizegroup button,grow,wrap");
+		add(culturalRulesButton, "sizegroup button,grow,wrap");
+		add(notesButton, "sizegroup button,grow,wrap");
+		add(sourcesButton, "sizegroup button,grow,wrap");
+		add(eventsButton, "sizegroup button,grow,wrap");
+		add(restrictionLabel, "align label,split 2");
+		add(restrictionComboBox, "grow");
 	}
 
 	public void loadData(final GedcomNode family){
@@ -130,13 +168,12 @@ public class FamilyDialog extends JDialog{
 
 	private void loadData(){
 		final List<GedcomNode> families = store.getFamilies();
-		okButton.setEnabled(!families.isEmpty());
 
 		//TODO
 
 		final int size = families.size();
 		if(size > 0){
-			filterField.setEnabled(true);
+			typeComboBox.setEnabled(true);
 		}
 	}
 
@@ -162,7 +199,7 @@ public class FamilyDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(700, 500);
+			dialog.setSize(200, 250);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 
