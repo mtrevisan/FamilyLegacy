@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -332,15 +333,17 @@ public class TreePanel extends JPanel{
 			spouseParentsExitingConnection(hf, ChildrenPanel.FAMILY_ARROW_HEIGHT, graphics2D);
 
 			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
-			final Point origin = childrenScrollPane.getLocation();
-			origin.x -= childrenScrollPane.getHorizontalScrollBar().getValue();
-			//horizontal line from first to last child
-			graphics2D.drawLine(origin.x + c[0].x, origin.y + c[0].y - GENERATION_SEPARATOR_SIZE / 2,
-				origin.x + c[c.length - 1].x, origin.y + c[c.length - 1].y - GENERATION_SEPARATOR_SIZE / 2);
-			//vertical line connecting the children
-			for(int i = 0; i < c.length; i ++)
-				graphics2D.drawLine(origin.x + c[i].x, origin.y + c[i].y,
-					origin.x + c[i].x, origin.y + c[i].y - GENERATION_SEPARATOR_SIZE / 2);
+			if(c != null){
+				final Point origin = childrenScrollPane.getLocation();
+				origin.x -= childrenScrollPane.getHorizontalScrollBar().getValue();
+				//horizontal line from first to last child
+				graphics2D.drawLine(origin.x + c[0].x, origin.y + c[0].y - GENERATION_SEPARATOR_SIZE / 2,
+					origin.x + c[c.length - 1].x, origin.y + c[c.length - 1].y - GENERATION_SEPARATOR_SIZE / 2);
+				//vertical line connecting the children
+				for(int i = 0; i < c.length; i ++)
+					graphics2D.drawLine(origin.x + c[i].x, origin.y + c[i].y,
+						origin.x + c[i].x, origin.y + c[i].y - GENERATION_SEPARATOR_SIZE / 2);
+			}
 
 			graphics2D.dispose();
 		}
@@ -480,8 +483,8 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel){
-				System.out.println("onLinkIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override

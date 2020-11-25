@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -101,7 +102,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
 
-
 	private final JLabel familyNameLabel = new JLabel();
 	private final JLabel personalNameLabel = new JLabel();
 	private final JLabel infoLabel = new JLabel();
@@ -109,14 +109,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private final JLabel newIndividualLabel = new JLabel();
 	private final JLabel linkIndividualLabel = new JLabel();
 
+	private final SelectedNodeType type;
 	private GedcomNode individual;
 	private final Flef store;
 	private BoxPanelType boxType;
 	private final IndividualListenerInterface listener;
 
 
-	public IndividualPanel(final GedcomNode individual, final Flef store, final BoxPanelType boxType,
-			final IndividualListenerInterface listener){
+	public IndividualPanel(final SelectedNodeType type, final GedcomNode individual, final Flef store, final BoxPanelType boxType,
+								  final IndividualListenerInterface listener){
+		this.type = type;
 		this.store = store;
 		this.listener = listener;
 
@@ -175,7 +177,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			linkIndividualLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualLink(IndividualPanel.this);
+					listener.onIndividualLink(IndividualPanel.this, type);
 				}
 			});
 		}
@@ -600,8 +602,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel){
-				System.out.println("onLinkIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override
@@ -611,7 +613,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final IndividualPanel panel = new IndividualPanel(individual, storeFlef, boxType, listener);
+			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, individual, storeFlef, boxType, listener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

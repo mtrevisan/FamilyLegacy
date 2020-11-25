@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -174,7 +175,7 @@ public class LinkFamilyDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily, SelectionListenerInterface.SelectedNodeType.FAMILY);
+				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY);
 			}
 
 			dispose();

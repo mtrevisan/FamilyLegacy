@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -87,7 +88,7 @@ public class ChildrenPanel extends JPanel{
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final boolean isSpouse = !store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
-				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
+				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY, individualListener);
 
 				final JPanel box = new JPanel();
 				box.setOpaque(false);
@@ -146,8 +147,8 @@ public class ChildrenPanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel){
-				System.out.println("onLinkIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override

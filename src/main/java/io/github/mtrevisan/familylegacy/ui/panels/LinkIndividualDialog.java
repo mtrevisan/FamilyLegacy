@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.IndividualTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -94,7 +95,7 @@ public class LinkIndividualDialog extends JDialog{
 
 	private final Debouncer<LinkIndividualDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
-	private SelectionListenerInterface.SelectedNodeType selectionType;
+	private SelectedNodeType selectionType;
 	private final Flef store;
 	private final SelectionListenerInterface listener;
 
@@ -254,7 +255,7 @@ public class LinkIndividualDialog extends JDialog{
 		return null;
 	}
 
-	public void setSelectionType(final SelectionListenerInterface.SelectedNodeType selectionType){
+	public void setSelectionType(final SelectedNodeType selectionType){
 		this.selectionType = selectionType;
 	}
 

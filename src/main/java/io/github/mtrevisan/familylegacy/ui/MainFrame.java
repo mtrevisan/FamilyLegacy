@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
@@ -189,11 +190,10 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onIndividualLink(final IndividualPanel boxPanel){
+	public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
 		LOGGER.debug("onLinkIndividual");
 
-		//TODO find out if was clicked individual1 or individual2
-		linkIndividualDialog.setSelectionType(SelectionListenerInterface.SelectedNodeType.INDIVIDUAL1);
+		linkIndividualDialog.setSelectionType(type);
 		linkIndividualDialog.setVisible(true);
 	}
 

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -122,8 +123,8 @@ public class FamilyPanel extends JPanel{
 	private void initComponents(){
 		setOpaque(false);
 
-		spouse1Panel = new IndividualPanel(spouse1, store, boxType, individualListener);
-		spouse2Panel = new IndividualPanel(spouse2, store, boxType, individualListener);
+		spouse1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, spouse1, store, boxType, individualListener);
+		spouse2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, spouse2, store, boxType, individualListener);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setInheritsPopupMenu(false);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
@@ -393,11 +394,11 @@ public class FamilyPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
+//		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
-//		final GedcomNode family = null;
+		final GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
@@ -443,8 +444,8 @@ public class FamilyPanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel){
-				System.out.println("onLinkIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.panels;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
 
 public interface IndividualListenerInterface{
@@ -41,7 +42,7 @@ public interface IndividualListenerInterface{
 
 	void onIndividualNew(final IndividualPanel boxPanel);
 
-	void onIndividualLink(final IndividualPanel boxPanel);
+	void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type);
 
 	void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual);
 

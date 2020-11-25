@@ -25,12 +25,10 @@
 package io.github.mtrevisan.familylegacy.ui.panels;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
 
 public interface SelectionListenerInterface{
-
-	enum SelectedNodeType{INDIVIDUAL1, INDIVIDUAL2, FAMILY}
-
 
 	//TODO originating family/individual to replace with?
 	//for individual: needs which one (spouse1 or spouse2), and a child, if there is one
