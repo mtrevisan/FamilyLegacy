@@ -44,6 +44,7 @@ import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -103,12 +104,15 @@ public class TreePanel extends JPanel{
 		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
 		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
 
-		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
-			individualListener);
-		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, store, BoxPanelType.SECONDARY, familyListener,
-			individualListener);
-		homeFamilyPanel = new FamilyPanel(this.spouse1, this.spouse2, homeFamily, store, BoxPanelType.PRIMARY, familyListener,
-			individualListener);
+		GedcomNode childReference = extractFirstChild(spouse1Parents, this.spouse1);
+		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, childReference, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
+		childReference = extractFirstChild(spouse2Parents, this.spouse2);
+		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, childReference, store, BoxPanelType.SECONDARY,
+			familyListener, individualListener);
+		childReference = extractFirstChild(homeFamily, null);
+		homeFamilyPanel = new FamilyPanel(this.spouse1, this.spouse2, homeFamily, childReference, store, BoxPanelType.PRIMARY,
+			familyListener, individualListener);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -146,19 +150,31 @@ public class TreePanel extends JPanel{
 		final GedcomNode spouse2Grandparents2 = (spouse2Parents != null && !spouse2Parents.isEmpty()? extractParents(null,
 			spouse2Parents, "SPOUSE2"): null);
 
-		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, store, BoxPanelType.SECONDARY,
+		GedcomNode defaultChildReference = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
+		GedcomNode childReference = extractFirstChild(spouse1Grandparents1, defaultChildReference);
+		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, childReference, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		defaultChildReference = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+		childReference = extractFirstChild(spouse1Grandparents2, defaultChildReference);
+		spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, childReference, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		defaultChildReference = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
+		childReference = extractFirstChild(spouse2Grandparents1, defaultChildReference);
+		spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, childReference, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		defaultChildReference = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+		childReference = extractFirstChild(spouse2Grandparents2, defaultChildReference);
+		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, childReference, store,
+			BoxPanelType.SECONDARY, familyListener, individualListener);
+		childReference = extractFirstChild(spouse1Parents, this.spouse1);
+		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
-		spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, store, BoxPanelType.SECONDARY,
+		childReference = extractFirstChild(spouse2Parents, this.spouse2);
+		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
-		spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, store, BoxPanelType.SECONDARY,
-			familyListener, individualListener);
-		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, store, BoxPanelType.SECONDARY,
-			familyListener, individualListener);
-		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, store, BoxPanelType.SECONDARY, familyListener,
+		childReference = extractFirstChild(homeFamily, null);
+		homeFamilyPanel = new FamilyPanel(spouse1, spouse2, homeFamily, childReference, store, BoxPanelType.PRIMARY, familyListener,
 			individualListener);
-		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, store, BoxPanelType.SECONDARY, familyListener,
-			individualListener);
-		homeFamilyPanel = new FamilyPanel(spouse1, spouse2, homeFamily, store, BoxPanelType.PRIMARY, familyListener, individualListener);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -186,6 +202,16 @@ public class TreePanel extends JPanel{
 		add(spouse2ParentsPanel, "span 2,growx 50,wrap");
 		add(homeFamilyPanel, "span 4,wrap");
 		add(childrenScrollPane, "span 4,alignx center");
+	}
+
+	private GedcomNode extractFirstChild(final GedcomNode family, GedcomNode defaultChild){
+		final List<GedcomNode> childrenReference = (family != null? family.getChildrenWithTag("CHILD"):
+			Collections.emptyList());
+		if(family != null && defaultChild == null){
+			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
+			defaultChild = (children.size() > 0? children.get(0): null);
+		}
+		return (childrenReference.size() > 0? childrenReference.get(0): defaultChild);
 	}
 
 	private GedcomNode extractParents(GedcomNode child, final GedcomNode family, final String spouseTag){

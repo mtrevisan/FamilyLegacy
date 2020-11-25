@@ -103,9 +103,12 @@ public class FamilyPanel extends JPanel{
 	private final FamilyListenerInterface familyListener;
 	private final IndividualListenerInterface individualListener;
 
+	private GedcomNode childReference;
 
-	public FamilyPanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family, final Flef store,
-			final BoxPanelType boxType, final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
+
+	public FamilyPanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family, final GedcomNode childReference,
+			final Flef store, final BoxPanelType boxType, final FamilyListenerInterface familyListener,
+			final IndividualListenerInterface individualListener){
 		this.store = store;
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
@@ -113,6 +116,11 @@ public class FamilyPanel extends JPanel{
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): spouse1);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): spouse2);
 		this.family = family;
+		this.childReference = childReference;
+		if(family != null && this.childReference == null){
+			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
+			this.childReference = (children.size() > 0? children.get(0): null);
+		}
 		this.boxType = boxType;
 
 		initComponents();
@@ -124,7 +132,9 @@ public class FamilyPanel extends JPanel{
 		setOpaque(false);
 
 		spouse1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, spouse1, store, boxType, individualListener);
+		spouse1Panel.setChildReference(childReference);
 		spouse2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, spouse2, store, boxType, individualListener);
+		spouse2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setInheritsPopupMenu(false);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
@@ -361,6 +371,10 @@ public class FamilyPanel extends JPanel{
 	}
 
 
+	public GedcomNode getChildReference(){
+		return childReference;
+	}
+
 	public Point getFamilyPaintingSpouse1EnterPoint(){
 		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
@@ -394,11 +408,11 @@ public class FamilyPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-//		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
-		final GedcomNode family = null;
+//		final GedcomNode family = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
@@ -455,8 +469,8 @@ public class FamilyPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final FamilyPanel panel = new FamilyPanel(null, null, family, storeFlef, boxType, familyListener,
-				individualListener);
+			final FamilyPanel panel = new FamilyPanel(null, null, family, null, storeFlef, boxType,
+				familyListener, individualListener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

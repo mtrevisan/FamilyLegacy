@@ -115,9 +115,11 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private BoxPanelType boxType;
 	private final IndividualListenerInterface listener;
 
+	private GedcomNode childReference;
+
 
 	public IndividualPanel(final SelectedNodeType type, final GedcomNode individual, final Flef store, final BoxPanelType boxType,
-								  final IndividualListenerInterface listener){
+			final IndividualListenerInterface listener){
 		this.type = type;
 		this.store = store;
 		this.listener = listener;
@@ -561,6 +563,15 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return icon;
 	}
 
+
+	public GedcomNode getChildReference(){
+		return childReference;
+	}
+
+	/** Set the direct child of the family to be linked. */
+	public void setChildReference(final GedcomNode childReference){
+		this.childReference = childReference;
+	}
 
 	public Point getIndividualPaintingEnterPoint(){
 		return new Point(getX() + getWidth() / 2, getY());

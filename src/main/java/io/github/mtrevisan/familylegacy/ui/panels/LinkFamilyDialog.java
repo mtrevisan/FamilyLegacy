@@ -28,8 +28,10 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
@@ -98,6 +100,8 @@ public class LinkFamilyDialog extends JDialog{
 
 	private final Debouncer<LinkFamilyDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
+	//direct child of the family to be linked
+	private GedcomNode childReference;
 	private final Flef store;
 	private final SelectionListenerInterface listener;
 
@@ -111,6 +115,11 @@ public class LinkFamilyDialog extends JDialog{
 		initComponents();
 
 		loadData();
+	}
+
+	/** Set the direct child of the family to be linked. */
+	public void setChildReference(final GedcomNode childReference){
+		this.childReference = childReference;
 	}
 
 	private void initComponents(){
@@ -175,7 +184,7 @@ public class LinkFamilyDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY);
+				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, childReference);
 			}
 
 			dispose();
@@ -301,10 +310,13 @@ public class LinkFamilyDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = (node, type) -> System.out.println("onNodeSelected " + node.getID() + ", type is " + type);
+		final SelectionListenerInterface listener = (node, type, child) -> System.out.println("onNodeSelected " + node.getID()
+			+ ", type is " + type + ", child is " + child.getID());
 
 		EventQueue.invokeLater(() -> {
 			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
+			final GedcomNode child = GedcomNodeBuilder.createWithID(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
+			dialog.setChildReference(child);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

@@ -113,6 +113,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onFamilyLink(final FamilyPanel boxPanel){
 		LOGGER.debug("onLinkFamily");
 
+		linkFamilyDialog.setChildReference(boxPanel.getChildReference());
 		linkFamilyDialog.setVisible(true);
 	}
 
@@ -193,6 +194,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
 		LOGGER.debug("onLinkIndividual");
 
+		linkIndividualDialog.setChildReference(boxPanel.getChildReference());
 		linkIndividualDialog.setSelectionType(type);
 		linkIndividualDialog.setVisible(true);
 	}
@@ -205,14 +207,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 
 	@Override
-	public void onNodeSelected(final GedcomNode node, final SelectedNodeType type){
+	public void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final GedcomNode child){
 		//TODO
 		if(type == SelectedNodeType.FAMILY)
-			System.out.println("onFamilySelected " + node.getID());
+			System.out.println("onFamilySelected " + node.getID() + ", child is " + child.getID());
 		else if(type == SelectedNodeType.INDIVIDUAL1)
-			System.out.println("onIndividual1Selected " + node.getID());
+			System.out.println("onIndividual1Selected " + node.getID() + ", child is " + child.getID());
 		else if(type == SelectedNodeType.INDIVIDUAL2)
-			System.out.println("onIndividual2Selected " + node.getID());
+			System.out.println("onIndividual2Selected " + node.getID() + ", child is " + child.getID());
 	}
 
 

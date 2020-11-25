@@ -30,12 +30,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
 public interface SelectionListenerInterface{
 
-	//TODO originating family/individual to replace with?
-	//for individual: needs which one (spouse1 or spouse2), and a child, if there is one
-	//for family: needs a child, if there is one
-	//... uhmmm this will not works...
-	//node can be an individual, either individual21 or individual22, or a family: how can I differentiate between individual21 and individual22?
-	//how can I differentiate between multiple families, individual1, and individual2?
-	void onNodeSelected(final GedcomNode node, final SelectedNodeType type);
+	void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final GedcomNode Reference);
 
 }
