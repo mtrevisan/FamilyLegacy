@@ -45,6 +45,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -60,6 +61,8 @@ public class TreePanel extends JPanel{
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 
 	private static final int GENERATION_SEPARATOR_SIZE = 40;
+
+	private static final Map<String, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>();
 
 
 	private FamilyPanel spouse1Grandparents1Panel;
@@ -101,8 +104,8 @@ public class TreePanel extends JPanel{
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
-		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
-		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
+		final GedcomNode spouse1Parents = extractParents(this.spouse1);
+		final GedcomNode spouse2Parents = extractParents(this.spouse2);
 
 		GedcomNode childReference = extractFirstChild(spouse1Parents, this.spouse1);
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, childReference, store, BoxPanelType.SECONDARY,
@@ -124,7 +127,12 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 		//trigger repaint in order to move the connections between children and home family
-		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
+		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> {
+			//remember last scroll position, restore it if present
+			CHILDREN_SCROLLBAR_POSITION.put(homeFamily.getID(), childrenScrollPane.getHorizontalScrollBar().getValue());
+
+			repaint();
+		});
 
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + FamilyPanel.FAMILY_SEPARATION + "[grow,center]",
@@ -139,16 +147,18 @@ public class TreePanel extends JPanel{
 		this.spouse1 = (spouse1 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE1").getXRef()): null);
 		this.spouse2 = (spouse2 == null && family != null? store.getIndividual(store.traverse(family, "SPOUSE2").getXRef()): null);
 
-		final GedcomNode spouse1Parents = extractParents(null, family, "SPOUSE1");
-		final GedcomNode spouse2Parents = extractParents(null, family, "SPOUSE2");
-		final GedcomNode spouse1Grandparents1 = (spouse1Parents != null && !spouse1Parents.isEmpty()? extractParents(null,
-			spouse1Parents, "SPOUSE1"): null);
-		final GedcomNode spouse1Grandparents2 = (spouse1Parents != null && !spouse1Parents.isEmpty()? extractParents(null,
-			spouse1Parents, "SPOUSE2"): null);
-		final GedcomNode spouse2Grandparents1 = (spouse2Parents != null && !spouse2Parents.isEmpty()? extractParents(null,
-			spouse2Parents, "SPOUSE1"): null);
-		final GedcomNode spouse2Grandparents2 = (spouse2Parents != null && !spouse2Parents.isEmpty()? extractParents(null,
-			spouse2Parents, "SPOUSE2"): null);
+		final GedcomNode spouse1Parents = extractParents(this.spouse1);
+		final GedcomNode spouse2Parents = extractParents(this.spouse2);
+
+		final GedcomNode spouse1Parent1 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
+		final GedcomNode spouse1Parent2 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+		final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
+		final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
+
+		final GedcomNode spouse2Parent1 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
+		final GedcomNode spouse2Parent2 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
+		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
 
 		GedcomNode defaultChildReference = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
 		GedcomNode childReference = extractFirstChild(spouse1Grandparents1, defaultChildReference);
@@ -186,9 +196,12 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 		childrenScrollPane.setAutoscrolls(true);
 		//trigger repaint in order to move the connections between children and home family
-		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> repaint());
-		//FIXME center the middle child?
-//		childrenScrollPane.scrollRectToVisible(childrenPanel.getMiddleChildren().getRectangle());
+		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> {
+			//remember last scroll position, restore it if present
+			CHILDREN_SCROLLBAR_POSITION.put(homeFamily.getID(), childrenScrollPane.getHorizontalScrollBar().getValue());
+
+			repaint();
+		});
 
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + FamilyPanel.FAMILY_SEPARATION + "[grow,center]" + FamilyPanel.FAMILY_SEPARATION
@@ -214,9 +227,7 @@ public class TreePanel extends JPanel{
 		return (childrenReference.size() > 0? childrenReference.get(0): defaultChild);
 	}
 
-	private GedcomNode extractParents(GedcomNode child, final GedcomNode family, final String spouseTag){
-		if(child == null && family != null)
-			child = store.getIndividual(store.traverse(family, spouseTag).getXRef());
+	private GedcomNode extractParents(final GedcomNode child){
 		if(child != null && !child.isEmpty()){
 			final List<GedcomNode> familyChilds = store.traverseAsList(child, "FAMILY_CHILD[]");
 			final Collection<GedcomNode> biologicalFamilyChilds = extractBiologicalFamilyChilds(familyChilds);
@@ -227,7 +238,7 @@ public class TreePanel extends JPanel{
 
 			//FIXME how to choose between families?
 			if(familyChilds.size() > 1)
-				LOGGER.warn("More than one family to choose from, select the first and hope for the best");
+				LOGGER.warn("More than one family to choose from, select the first and hope for the best, child is {}", child.getID());
 			if(!familyChilds.isEmpty())
 				return store.getFamily(familyChilds.get(0).getXRef());
 		}
@@ -319,47 +330,59 @@ public class TreePanel extends JPanel{
 
 			graphics2D.setStroke(FamilyPanel.CONNECTION_STROKE);
 
-			final Point s1g1p = spouseGrandParentsExitingConnection(spouse1Grandparents1Panel, graphics2D);
-			final Point s1g2p = spouseGrandParentsExitingConnection(spouse1Grandparents2Panel, graphics2D);
+			if(spouse1Grandparents1Panel.isVisible()){
+				//spouse1's parent1 entering connection
+				final Point s1p1 = spouse1ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
+				final Point s1g1p = spouseGrandParentsExitingConnection(spouse1Grandparents1Panel, graphics2D);
+				spouseParentsEnteringConnection(s1p1, s1g1p, graphics2D);
+			}
+			if(spouse1Grandparents2Panel.isVisible()){
+				//spouse1's parent2 entering connection
+				final Point s1p2 = spouse1ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
+				final Point s1g2p = spouseGrandParentsExitingConnection(spouse1Grandparents2Panel, graphics2D);
+				spouseParentsEnteringConnection(s1p2, s1g2p, graphics2D);
+			}
+			if(spouse2Grandparents1Panel.isVisible()){
+				//spouse2's parent1 entering connection
+				final Point s2p1 = spouse2ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
+				final Point s2g1p = spouseGrandParentsExitingConnection(spouse2Grandparents1Panel, graphics2D);
+				spouseParentsEnteringConnection(s2p1, s2g1p, graphics2D);
+			}
+			if(spouse2Grandparents2Panel.isVisible()){
+				//spouse2's parent2 entering connection
+				final Point s2p2 = spouse2ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
+				final Point s2g2p = spouseGrandParentsExitingConnection(spouse2Grandparents2Panel, graphics2D);
+				spouseParentsEnteringConnection(s2p2, s2g2p, graphics2D);
+			}
 
-			final Point s2g1p = spouseGrandParentsExitingConnection(spouse2Grandparents1Panel, graphics2D);
-			final Point s2g2p = spouseGrandParentsExitingConnection(spouse2Grandparents2Panel, graphics2D);
-
-			//spouse1's parent1 entering connection
-			final Point s1p1 = spouse1ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
-			spouseParentsEnteringConnection(s1p1, s1g1p, graphics2D);
-			//spouse1's parent2 entering connection
-			final Point s1p2 = spouse1ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
-			spouseParentsEnteringConnection(s1p2, s1g2p, graphics2D);
-			//spouse2's parent1 entering connection
-			final Point s2p1 = spouse2ParentsPanel.getFamilyPaintingSpouse1EnterPoint();
-			spouseParentsEnteringConnection(s2p1, s2g1p, graphics2D);
-			//spouse2's parent2 entering connection
-			final Point s2p2 = spouse2ParentsPanel.getFamilyPaintingSpouse2EnterPoint();
-			spouseParentsEnteringConnection(s2p2, s2g2p, graphics2D);
-
-			//spouse1's parents exiting connection
 			final Point s1p = spouse1ParentsPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(s1p, 0, graphics2D);
-			//spouse2's parents exiting connection
+			if(spouse1 != null)
+				//spouse1's parents exiting connection
+				spouseParentsExitingConnection(s1p, 0, graphics2D);
 			final Point s2p = spouse2ParentsPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(s2p, 0, graphics2D);
-			//home family spouse1 entering connection
-			final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
-			spouseEnteringConnection(hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
-			//line between spouse1's parents and spouse1
-			spouseParentsToSpouse(s1p, hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
-			//home family spouse2 entering connection
-			final Point hfs2 = homeFamilyPanel.getFamilyPaintingSpouse2EnterPoint();
-			spouseEnteringConnection(hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
-			//line between spouse2's parents and spouse2
-			spouseParentsToSpouse(s2p, hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
-			//home family exiting connection
-			final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(hf, ChildrenPanel.FAMILY_ARROW_HEIGHT, graphics2D);
-
+			if(spouse2 != null)
+				//spouse2's parents exiting connection
+				spouseParentsExitingConnection(s2p, 0, graphics2D);
+			if(spouse1 != null){
+				final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
+				//home family spouse1 entering connection
+				spouseEnteringConnection(hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				//line between spouse1's parents and spouse1
+				spouseParentsToSpouse(s1p, hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+			}
+			if(spouse2 != null){
+				final Point hfs2 = homeFamilyPanel.getFamilyPaintingSpouse2EnterPoint();
+				//home family spouse2 entering connection
+				spouseEnteringConnection(hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				//line between spouse2's parents and spouse2
+				spouseParentsToSpouse(s2p, hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+			}
 			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
-			if(c != null){
+			if(c.length > 0){
+				//home family exiting connection
+				final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
+				spouseParentsExitingConnection(hf, ChildrenPanel.FAMILY_ARROW_HEIGHT, graphics2D);
+
 				final Point origin = childrenScrollPane.getLocation();
 				origin.x -= childrenScrollPane.getHorizontalScrollBar().getValue();
 				//horizontal line from first to last child
@@ -425,28 +448,50 @@ public class TreePanel extends JPanel{
 		spouse1 = (spouse1 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE1").getXRef()): spouse1);
 		spouse2 = (spouse2 == null && homeFamily != null? store.getIndividual(store.traverse(homeFamily, "SPOUSE2").getXRef()): spouse2);
 
-		final GedcomNode spouse1Parents = extractParents(spouse1, homeFamily, "SPOUSE1");
-		final GedcomNode spouse2Parents = extractParents(spouse2, homeFamily, "SPOUSE2");
+		final GedcomNode spouse1Parents = extractParents(spouse1);
+		final GedcomNode spouse2Parents = extractParents(spouse2);
 
 		if(generations > 3){
-			final GedcomNode spouse1Grandparents1 = extractParents(null, spouse1Parents, "SPOUSE1");
-			final GedcomNode spouse1Grandparents2 = extractParents(null, spouse1Parents, "SPOUSE2");
-			final GedcomNode spouse2Grandparents1 = extractParents(null, spouse2Parents, "SPOUSE1");
-			final GedcomNode spouse2Grandparents2 = extractParents(null, spouse2Parents, "SPOUSE2");
+			final GedcomNode spouse1Parent1 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE1").getXRef());
+			final GedcomNode spouse1Parent2 = store.getIndividual(store.traverse(spouse1Parents, "SPOUSE2").getXRef());
+			final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
+			final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
 
-			spouse1Grandparents1Panel.setVisible(spouse1Parents != null && !spouse1Parents.isEmpty());
-			spouse1Grandparents2Panel.setVisible(spouse1Parents != null && !spouse1Parents.isEmpty());
-			spouse2Grandparents1Panel.setVisible(spouse2Parents != null && !spouse2Parents.isEmpty());
-			spouse2Grandparents2Panel.setVisible(spouse2Parents != null && !spouse2Parents.isEmpty());
+			final GedcomNode spouse2Parent1 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE1").getXRef());
+			final GedcomNode spouse2Parent2 = store.getIndividual(store.traverse(spouse2Parents, "SPOUSE2").getXRef());
+			final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
+			final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
+
+			spouse1Grandparents1Panel.setVisible(!store.traverse(spouse1Parents, "SPOUSE1").isEmpty());
+			spouse1Grandparents2Panel.setVisible(!store.traverse(spouse1Parents, "SPOUSE2").isEmpty());
+			spouse2Grandparents1Panel.setVisible(!store.traverse(spouse2Parents, "SPOUSE1").isEmpty());
+			spouse2Grandparents2Panel.setVisible(!store.traverse(spouse2Parents, "SPOUSE2").isEmpty());
 			spouse1Grandparents1Panel.loadData(null, null, spouse1Grandparents1);
 			spouse1Grandparents2Panel.loadData(null, null, spouse1Grandparents2);
 			spouse2Grandparents1Panel.loadData(null, null, spouse2Grandparents1);
 			spouse2Grandparents2Panel.loadData(null, null, spouse2Grandparents2);
 		}
+		spouse1ParentsPanel.setVisible(spouse1 != null);
+		spouse2ParentsPanel.setVisible(spouse2 != null);
 		spouse1ParentsPanel.loadData(null, null, spouse1Parents);
 		spouse2ParentsPanel.loadData(null, null, spouse2Parents);
 		homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
 		childrenPanel.loadData(homeFamily);
+
+		//TODO remember last scroll position, restore it if present
+		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
+		if(childrenScrollbarPosition != null){
+			final Rectangle visibleRect = childrenScrollPane.getVisibleRect();
+			final Rectangle boundsRect = childrenScrollPane.getBounds();
+//			visibleRect.x = childrenScrollbarPosition.intValue();
+//			visibleRect.x += 20;
+			visibleRect.x = (boundsRect.width - visibleRect.width) / 2;
+			childrenScrollPane.scrollRectToVisible(visibleRect);
+//			childrenScrollPane.getHorizontalScrollBar().setValue(20);
+
+//			childrenScrollPane.repaint();
+//			repaint();
+		}
 	}
 
 
@@ -461,10 +506,12 @@ public class TreePanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
+//		final GedcomNode family = storeFlef.getFamily("F585");
+		final GedcomNode family = storeFlef.getFamily("F267");
 //		GedcomNode family = null;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){

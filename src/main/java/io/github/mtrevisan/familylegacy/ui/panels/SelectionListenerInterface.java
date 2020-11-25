@@ -30,6 +30,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
 public interface SelectionListenerInterface{
 
-	void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final GedcomNode Reference);
+	void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final GedcomNode childReference);
 
 }
