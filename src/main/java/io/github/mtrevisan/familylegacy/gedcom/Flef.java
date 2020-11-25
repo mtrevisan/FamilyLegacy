@@ -231,6 +231,10 @@ public class Flef extends Store{
 		return TRANSFORMER.createEmpty();
 	}
 
+	public GedcomNode create(final String tag){
+		return TRANSFORMER.create(tag);
+	}
+
 	/**
 	 * @param origin	Origin node from which to start the traversal.
 	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` or `(tag1|tag2)#id{value}[index]` and separated by dots.
@@ -316,8 +320,32 @@ public class Flef extends Store{
 		return familyID;
 	}
 
+	public void linkFamilyToChild(final GedcomNode child, final GedcomNode family){
+		child.addChild(TRANSFORMER.createWithReference("FAMILY_CHILD", family.getID()));
+	}
+
 	private String getNextFamilyID(){
 		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
+	}
+
+	public List<GedcomNode> getParent1s(final GedcomNode child){
+		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
+		final List<GedcomNode> parent1s = new ArrayList<>(familyChilds.size());
+		for(final GedcomNode familyChild : familyChilds){
+			final GedcomNode family = getFamily(familyChild.getXRef());
+			parent1s.add(getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef()));
+		}
+		return parent1s;
+	}
+
+	public List<GedcomNode> getParent2s(final GedcomNode child){
+		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
+		final List<GedcomNode> parent2s = new ArrayList<>(familyChilds.size());
+		for(final GedcomNode familyChild : familyChilds){
+			final GedcomNode family = getFamily(familyChild.getXRef());
+			parent2s.add(getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef()));
+		}
+		return parent2s;
 	}
 
 	public GedcomNode getSpouse1(final GedcomNode family){

@@ -283,11 +283,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			.getValue());
 	}
 
-	public void loadData(final GedcomNode individual, final BoxPanelType boxType){
+	public void loadData(final GedcomNode individual){
 		this.individual = individual;
-		this.boxType = boxType;
 
 		loadData();
+
+		repaint();
 	}
 
 	private void loadData(){

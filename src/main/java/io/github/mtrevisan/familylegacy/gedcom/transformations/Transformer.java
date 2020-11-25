@@ -83,8 +83,8 @@ public final class Transformer{
 		return GedcomNodeBuilder.createWithID(protocol, tag, id, value);
 	}
 
-	public GedcomNode createWithReference(final String tag, final String xref, final String value){
-		return GedcomNodeBuilder.createWithReference(protocol, tag, xref, value);
+	public GedcomNode createWithReference(final String tag, final String xref){
+		return GedcomNodeBuilder.createWithReference(protocol, tag, xref);
 	}
 
 	String joinIfNotNull(final String separator, final String... components){

@@ -113,7 +113,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onFamilyLink(final FamilyPanel boxPanel){
 		LOGGER.debug("onLinkFamily");
 
-		linkFamilyDialog.setChildReference(boxPanel.getChildReference());
+		linkFamilyDialog.setPanelReference(boxPanel);
 		linkFamilyDialog.setVisible(true);
 	}
 
@@ -194,7 +194,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
 		LOGGER.debug("onLinkIndividual");
 
-		linkIndividualDialog.setChildReference(boxPanel.getChildReference());
+		linkIndividualDialog.setPanelReference(boxPanel);
 		linkIndividualDialog.setSelectionType(type);
 		linkIndividualDialog.setVisible(true);
 	}
@@ -207,14 +207,53 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 
 	@Override
-	public void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final GedcomNode child){
-		//TODO
-		if(type == SelectedNodeType.FAMILY)
-			System.out.println("onFamilySelected " + node.getID() + ", child is " + child.getID());
-		else if(type == SelectedNodeType.INDIVIDUAL1)
-			System.out.println("onIndividual1Selected " + node.getID() + ", child is " + child.getID());
-		else if(type == SelectedNodeType.INDIVIDUAL2)
-			System.out.println("onIndividual2Selected " + node.getID() + ", child is " + child.getID());
+	public void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference){
+		if(type == SelectedNodeType.FAMILY){
+			final FamilyPanel familyPanel = (FamilyPanel)panelReference;
+			final GedcomNode child = familyPanel.getChildReference();
+			linkFamilyToChild(child, node);
+
+			familyPanel.loadData(node);
+		}
+		else{
+			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
+			final GedcomNode child = individualPanel.getChildReference();
+			if(type == SelectedNodeType.INDIVIDUAL1)
+				linkSpouseToFamily(child, node, store.getParent1s(child), "SPOUSE1");
+			else if(type == SelectedNodeType.INDIVIDUAL2)
+				linkSpouseToFamily(child, node, store.getParent2s(child), "SPOUSE2");
+
+			individualPanel.loadData(node);
+		}
+	}
+
+	private void linkFamilyToChild(final GedcomNode child, final GedcomNode family){
+		LOGGER.debug("Add family {} to child {}", family.getID(), child.getID());
+
+		store.linkFamilyToChild(child, family);
+	}
+
+	private void linkSpouseToFamily(final GedcomNode child, final GedcomNode spouse, final List<GedcomNode> parents, final String spouseTag){
+		if(parents.isEmpty())
+			linkSpouseToNewFamily(child, spouse, spouseTag);
+		else if(parents.size() == 1)
+			linkSpouseToExistingFamily(parents.get(0), spouse, spouseTag);
+		else
+			LOGGER.warn("Individual {} belongs to more than one family (this cannot be)", child.getID());
+	}
+
+	private void linkSpouseToNewFamily(final GedcomNode child, final GedcomNode spouse, final String spouseTag){
+		//create new family and add parent
+		final GedcomNode family = store.create("FAMILY")
+			.addChildReference(spouseTag, spouse.getID());
+		store.addFamily(family);
+		store.linkFamilyToChild(child, family);
+	}
+
+	private void linkSpouseToExistingFamily(final GedcomNode family, final GedcomNode spouse, final String spouseTag){
+		//link to existing family as spouse
+		family.addChild(store.create(spouseTag)
+			.withXRef(spouse.getID()));
 	}
 
 

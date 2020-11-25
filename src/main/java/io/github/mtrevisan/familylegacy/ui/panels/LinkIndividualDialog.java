@@ -97,8 +97,8 @@ public class LinkIndividualDialog extends JDialog{
 
 	private final Debouncer<LinkIndividualDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
-	//direct child of the individual to be linked
-	private GedcomNode childReference;
+	//`FamilyPanel` or `IndividualPanel` into which to link the node
+	private JPanel panelReference;
 	private SelectedNodeType selectionType;
 	private final Flef store;
 	private final SelectionListenerInterface listener;
@@ -115,9 +115,8 @@ public class LinkIndividualDialog extends JDialog{
 		loadData();
 	}
 
-	/** Set the direct child of the family to be linked. */
-	public void setChildReference(final GedcomNode childReference){
-		this.childReference = childReference;
+	public void setPanelReference(final JPanel panelReference){
+		this.panelReference = panelReference;
 	}
 
 	private void initComponents(){
@@ -170,7 +169,7 @@ public class LinkIndividualDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedIndividual = getSelectedIndividual();
-				listener.onNodeSelected(selectedIndividual, selectionType, childReference);
+				listener.onNodeSelected(selectedIndividual, selectionType, panelReference);
 			}
 
 			dispose();
@@ -290,13 +289,12 @@ public class LinkIndividualDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = (node, type, child) -> System.out.println("onNodeSelected " + node.getID()
-			+ ", type is " + type + ", child is " + child.getID());
+		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()
+			+ ", type is " + type + ", child is " + ((IndividualPanel)panel).getChildReference().getID());
 
 		EventQueue.invokeLater(() -> {
 			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, listener, new JFrame());
 			final GedcomNode child = GedcomNodeBuilder.createWithID(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
-			dialog.childReference = child;
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

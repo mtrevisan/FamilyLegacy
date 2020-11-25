@@ -100,8 +100,8 @@ public class LinkFamilyDialog extends JDialog{
 
 	private final Debouncer<LinkFamilyDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
-	//direct child of the family to be linked
-	private GedcomNode childReference;
+	//`FamilyPanel` or `IndividualPanel` into which to link the node
+	private JPanel panelReference;
 	private final Flef store;
 	private final SelectionListenerInterface listener;
 
@@ -117,9 +117,8 @@ public class LinkFamilyDialog extends JDialog{
 		loadData();
 	}
 
-	/** Set the direct child of the family to be linked. */
-	public void setChildReference(final GedcomNode childReference){
-		this.childReference = childReference;
+	public void setPanelReference(final JPanel panelReference){
+		this.panelReference = panelReference;
 	}
 
 	private void initComponents(){
@@ -184,7 +183,7 @@ public class LinkFamilyDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, childReference);
+				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 			}
 
 			dispose();
@@ -310,13 +309,12 @@ public class LinkFamilyDialog extends JDialog{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 
-		final SelectionListenerInterface listener = (node, type, child) -> System.out.println("onNodeSelected " + node.getID()
-			+ ", type is " + type + ", child is " + child.getID());
+		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()
+			+ ", type is " + type + ", child is " + ((FamilyPanel)panel).getChildReference().getID());
 
 		EventQueue.invokeLater(() -> {
 			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
 			final GedcomNode child = GedcomNodeBuilder.createWithID(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
-			dialog.childReference = child;
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

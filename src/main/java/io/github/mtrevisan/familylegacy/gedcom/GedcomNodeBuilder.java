@@ -75,13 +75,12 @@ public abstract class GedcomNodeBuilder{
 			.withValue(value);
 	}
 
-	public static GedcomNode createWithReference(final Protocol protocol, final String tag, final String xref, final String value){
+	public static GedcomNode createWithReference(final Protocol protocol, final String tag, final String xref){
 		if(xref == null || xref.isEmpty())
 			throw new IllegalArgumentException("XRef must be present");
 
 		return create(protocol, tag)
-			.withXRef(xref)
-			.withValue(value);
+			.withXRef(xref);
 	}
 
 	public static GedcomNode createCloneWithoutID(final Protocol protocol, final GedcomNode node){

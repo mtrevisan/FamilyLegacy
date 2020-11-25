@@ -236,9 +236,9 @@ public class TreePanel extends JPanel{
 				familyChilds.addAll(biologicalFamilyChilds);
 			}
 
-			//FIXME how to choose between families?
 			if(familyChilds.size() > 1)
-				LOGGER.warn("More than one family to choose from, select the first and hope for the best, child is {}", child.getID());
+				LOGGER.warn("Individual {} belongs to more than one family (this cannot be), select the first and hope for the best",
+					child.getID());
 			if(!familyChilds.isEmpty())
 				return store.getFamily(familyChilds.get(0).getXRef());
 		}
@@ -466,15 +466,15 @@ public class TreePanel extends JPanel{
 			spouse1Grandparents2Panel.setVisible(!store.traverse(spouse1Parents, "SPOUSE2").isEmpty());
 			spouse2Grandparents1Panel.setVisible(!store.traverse(spouse2Parents, "SPOUSE1").isEmpty());
 			spouse2Grandparents2Panel.setVisible(!store.traverse(spouse2Parents, "SPOUSE2").isEmpty());
-			spouse1Grandparents1Panel.loadData(null, null, spouse1Grandparents1);
-			spouse1Grandparents2Panel.loadData(null, null, spouse1Grandparents2);
-			spouse2Grandparents1Panel.loadData(null, null, spouse2Grandparents1);
-			spouse2Grandparents2Panel.loadData(null, null, spouse2Grandparents2);
+			spouse1Grandparents1Panel.loadData(spouse1Grandparents1);
+			spouse1Grandparents2Panel.loadData(spouse1Grandparents2);
+			spouse2Grandparents1Panel.loadData(spouse2Grandparents1);
+			spouse2Grandparents2Panel.loadData(spouse2Grandparents2);
 		}
 		spouse1ParentsPanel.setVisible(spouse1 != null);
 		spouse2ParentsPanel.setVisible(spouse2 != null);
-		spouse1ParentsPanel.loadData(null, null, spouse1Parents);
-		spouse2ParentsPanel.loadData(null, null, spouse2Parents);
+		spouse1ParentsPanel.loadData(spouse1Parents);
+		spouse2ParentsPanel.loadData(spouse2Parents);
 		homeFamilyPanel.loadData(spouse1, spouse2, homeFamily);
 		childrenPanel.loadData(homeFamily);
 
@@ -482,7 +482,6 @@ public class TreePanel extends JPanel{
 		//remember last scroll position, restore it if present
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
 		//center halfway if it's the first time the children are painted
-		//FIXME 4... 7...??
 		final int scrollbarPositionX = (childrenScrollbarPosition == null?
 			(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
 			childrenScrollbarPosition);

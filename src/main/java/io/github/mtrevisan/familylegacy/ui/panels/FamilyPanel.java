@@ -237,17 +237,23 @@ public class FamilyPanel extends JPanel{
 		}
 	}
 
+	public void loadData(final GedcomNode family){
+		loadData(null, null, family);
+	}
+
 	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
 		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): spouse1);
 		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): spouse2);
 		this.family = family;
 
 		loadData();
+
+		repaint();
 	}
 
 	private void loadData(){
-		spouse1Panel.loadData(spouse1, boxType);
-		spouse2Panel.loadData(spouse2, boxType);
+		spouse1Panel.loadData(spouse1);
+		spouse2Panel.loadData(spouse2);
 
 		if(boxType == BoxPanelType.PRIMARY){
 			updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
