@@ -296,7 +296,7 @@ public class LinkIndividualDialog extends JDialog{
 		EventQueue.invokeLater(() -> {
 			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, listener, new JFrame());
 			final GedcomNode child = GedcomNodeBuilder.createWithID(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
-			dialog.setChildReference(child);
+			dialog.childReference = child;
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

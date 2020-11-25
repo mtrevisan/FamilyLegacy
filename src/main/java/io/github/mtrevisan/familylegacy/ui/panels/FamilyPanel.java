@@ -119,7 +119,7 @@ public class FamilyPanel extends JPanel{
 		this.childReference = childReference;
 		if(family != null && this.childReference == null){
 			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
-			this.childReference = (children.size() > 0? children.get(0): null);
+			this.childReference = (!children.isEmpty()? children.get(0): null);
 		}
 		this.boxType = boxType;
 

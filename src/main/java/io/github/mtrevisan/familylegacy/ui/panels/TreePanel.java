@@ -222,9 +222,9 @@ public class TreePanel extends JPanel{
 			Collections.emptyList());
 		if(family != null && defaultChild == null){
 			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
-			defaultChild = (children.size() > 0? children.get(0): null);
+			defaultChild = (!children.isEmpty()? children.get(0): null);
 		}
-		return (childrenReference.size() > 0? childrenReference.get(0): defaultChild);
+		return (!childrenReference.isEmpty()? childrenReference.get(0): defaultChild);
 	}
 
 	private GedcomNode extractParents(final GedcomNode child){
@@ -479,27 +479,14 @@ public class TreePanel extends JPanel{
 		childrenPanel.loadData(homeFamily);
 
 
-		//TODO remember last scroll position, restore it if present
+		//remember last scroll position, restore it if present
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
-		if(childrenScrollbarPosition == null){
-			final Rectangle visibleRect = childrenScrollPane.getVisibleRect();
-			final Rectangle boundsRect = childrenScrollPane.getBounds();
-			//center halfway
-			visibleRect.x = (boundsRect.width - visibleRect.width) / 2;
-			childrenScrollPane.scrollRectToVisible(visibleRect);
-		}
-		else if(childrenScrollbarPosition.intValue() != childrenScrollPane.getHorizontalScrollBar().getValue()){
-			final Rectangle visibleRect = childrenScrollPane.getVisibleRect();
-			final Rectangle boundsRect = childrenScrollPane.getBounds();
-//			visibleRect.x = childrenScrollbarPosition.intValue();
-//			visibleRect.x += 20;
-			visibleRect.x = (boundsRect.width - visibleRect.width) / 2;
-			childrenScrollPane.scrollRectToVisible(visibleRect);
-//			childrenScrollPane.getHorizontalScrollBar().setValue(20);
-
-//			childrenScrollPane.repaint();
-//			repaint();
-		}
+		//center halfway if it's the first time the children are painted
+		//FIXME 4... 7...??
+		final int scrollbarPositionX = (childrenScrollbarPosition == null?
+			(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
+			childrenScrollbarPosition);
+		childrenScrollPane.getViewport().setViewPosition(new Point(scrollbarPositionX, 0));
 	}
 
 
