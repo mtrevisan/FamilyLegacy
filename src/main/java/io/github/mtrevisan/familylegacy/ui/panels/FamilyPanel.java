@@ -69,14 +69,16 @@ public class FamilyPanel extends JPanel{
 	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
 
-	public static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight();
-
 	/** Height of the marriage line from the bottom of the individual panel [px] */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
 	public static final int HALF_SPOUSE_SEPARATION = 10;
 	static final int FAMILY_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
+	/** Distance between navigation arrow and box. */
+	static final int NAVIGATION_ARROW_SEPARATION = 3;
+
+	static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -177,11 +179,11 @@ public class FamilyPanel extends JPanel{
 		setLayout(new MigLayout("insets 0",
 			"[grow]" + HALF_SPOUSE_SEPARATION + "[]" + HALF_SPOUSE_SEPARATION + "[grow]",
 			"[]0[]"));
-		add(spouse1PreviousLabel, "split 2,alignx right,gapx 10");
-		add(spouse1NextLabel);
+		add(spouse1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(spouse1NextLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
 		add(new JLabel());
-		add(spouse2PreviousLabel, "split 2");
-		add(spouse2NextLabel, "gapx 10,wrap");
+		add(spouse2PreviousLabel, "split 2,gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(spouse2NextLabel, "gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION + ",wrap");
 		add(spouse1Panel, "growx 50");
 		add(marriagePanel, "aligny bottom,gapbottom " + FAMILY_EXITING_HEIGHT);
 		add(spouse2Panel, "growx 50");

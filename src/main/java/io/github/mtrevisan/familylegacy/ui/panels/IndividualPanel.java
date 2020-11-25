@@ -253,7 +253,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	@Override
 	public void propertyChange(final PropertyChangeEvent evt){
-		//TODO this doesn't work... why??
 		//show tooltips with full names if they are too long to be displayed
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
 			int width = familyNameLabel.getWidth();

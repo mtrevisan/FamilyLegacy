@@ -358,11 +358,11 @@ public class TreePanel extends JPanel{
 
 	private void spouseParentsEnteringConnection(final Point sp, final Point sgp, final Graphics2D graphics2D){
 		//spouse's parent entering connection
-		spouseEnteringConnection(sp, 0, graphics2D);
+		spouseEnteringConnection(sp, FamilyPanel.NAVIGATION_ARROW_SEPARATION, graphics2D);
 
 		if(sgp != null)
 			//line between spouse's parent and spouse's parent's parents
-			spouseParentsToSpouse(sgp, sp, 0, graphics2D);
+			spouseParentsToSpouse(sgp, sp, FamilyPanel.NAVIGATION_ARROW_SEPARATION, graphics2D);
 	}
 
 	private void spouseParentsExitingConnection(final Point sp, final Graphics2D graphics2D){
