@@ -38,34 +38,32 @@ import java.awt.*;
 import java.util.List;
 
 
-public class FamilyDialog extends JDialog{
+public class GroupCitationDialog extends JDialog{
 
 //	private static final long serialVersionUID = -3246390161022821225L;
 
-	private static final DefaultComboBoxModel TYPE_MODEL = new DefaultComboBoxModel(new String[]{"", "unknown", "marriage", "not married",
-		"civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership", "living together",
-		"living apart together"});
-	private static final DefaultComboBoxModel RESTRICTION_MODEL = new DefaultComboBoxModel(new String[]{"", "confidential", "locked",
-		"private"});
+	private static final DefaultComboBoxModel CREDIBILITY_MODEL = new DefaultComboBoxModel(new String[]{
+		"Unreliable/estimated data",
+		"Questionable reliability of evidence",
+		"Secondary evidence, data officially recorded sometime after event",
+		"Direct and primary evidence used, or by dominance of the evidence"});
 
-	private final JLabel typeLabel = new JLabel("Type:");
-	private final JComboBox typeComboBox = new JComboBox(TYPE_MODEL);
-	private final JButton groupsButton = new JButton("Groups");
-	private final JButton culturalRulesButton = new JButton("Cultural Rules");
+	private final JLabel roleLabel = new JLabel("Role:");
+	private final JTextField roleField = new JTextField();
+	private final JButton groupLinkButton = new JButton("Link");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
-	private final JButton eventsButton = new JButton("Events");
-	private final JLabel restrictionLabel = new JLabel("Restriction:");
-	private final JComboBox restrictionComboBox = new JComboBox(RESTRICTION_MODEL);
+	private final JLabel credibilityLabel = new JLabel("Restriction:");
+	private final JComboBox credibilityComboBox = new JComboBox(CREDIBILITY_MODEL);
 
-	private GedcomNode family;
+	private GedcomNode container;
 	private final Flef store;
 
 
-	public FamilyDialog(final GedcomNode family, final Flef store, final Frame parent){
+	public GroupCitationDialog(final GedcomNode container, final Flef store, final Frame parent){
 		super(parent, true);
 
-		this.family = family;
+		this.container = container;
 		this.store = store;
 
 		initComponents();
@@ -74,7 +72,7 @@ public class FamilyDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setTitle("Family record");
+		setTitle("Groups");
 
 //		+1 GROUP @<XREF:GROUP>@    {0:M}	/* A GROUP_RECORD() object giving the group in which this family belongs. */
 //			+2 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this family played in the group that is being cited in this context. */
@@ -85,37 +83,15 @@ public class FamilyDialog extends JDialog{
 //				+3 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 //				+3 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 //			+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-//		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
-//		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//		+1 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record. */
-//			+2 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
-//			+2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, etc. */
-//			+2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//			+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-//		+1 {EVENT} <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
 
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		typeComboBox.addActionListener(e -> {
-			if("comboBoxEdited".equals(e.getActionCommand())){
-				final Object newValue = TYPE_MODEL.getSelectedItem();
-				TYPE_MODEL.addElement(newValue);
-
-				typeComboBox.setSelectedItem(newValue);
-			}
-		});
-		typeComboBox.setSelectedIndex(0);
-
-		groupsButton.addActionListener(e -> {
-			//TODO
+		groupLinkButton.addActionListener(e -> {
+			//TODO go to group_record
 		});
 
-		culturalRulesButton.addActionListener(e -> {
-			//TODO
-		});
+		roleLabel.setLabelFor(roleField);
 
 		notesButton.addActionListener(e -> {
 			//TODO
@@ -125,36 +101,20 @@ public class FamilyDialog extends JDialog{
 			//TODO
 		});
 
-		eventsButton.addActionListener(e -> {
-			//TODO
-		});
-
-		restrictionLabel.setLabelFor(restrictionComboBox);
-		restrictionComboBox.setEditable(true);
-		restrictionComboBox.addActionListener(e -> {
-			if("comboBoxEdited".equals(e.getActionCommand())){
-				final Object newValue = RESTRICTION_MODEL.getSelectedItem();
-				RESTRICTION_MODEL.addElement(newValue);
-
-				restrictionComboBox.setSelectedItem(newValue);
-			}
-		});
-		restrictionComboBox.setSelectedIndex(0);
+		credibilityLabel.setLabelFor(credibilityComboBox);
 
 		setLayout(new MigLayout());
-		add(typeLabel, "align label,split 2");
-		add(typeComboBox, "grow,wrap");
-		add(groupsButton, "sizegroup button,grow,wrap");
-		add(culturalRulesButton, "sizegroup button,grow,wrap");
+		add(groupLinkButton, "sizegroup button,grow,wrap");
+		add(roleLabel, "align label,split 2");
+		add(roleField, "grow,wrap");
 		add(notesButton, "sizegroup button,grow,wrap");
 		add(sourcesButton, "sizegroup button,grow,wrap");
-		add(eventsButton, "sizegroup button,grow,wrap");
-		add(restrictionLabel, "align label,split 2");
-		add(restrictionComboBox, "grow");
+		add(credibilityLabel, "align label,split 2");
+		add(credibilityComboBox, "grow");
 	}
 
-	public void loadData(final GedcomNode family){
-		this.family = family;
+	public void loadData(final GedcomNode container){
+		this.container = container;
 
 		loadData();
 
@@ -162,10 +122,11 @@ public class FamilyDialog extends JDialog{
 	}
 
 	private void loadData(){
-		final List<GedcomNode> families = store.getFamilies();
+		final List<GedcomNode> groups = store.getGroups();
 
-		typeComboBox.setSelectedItem(store.traverse(family, "TYPE").getValue());
-		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
+		//TODO
+//		roleField.setText(store.traverse(container, "TYPE").getValue());
+//		restrictionField.setText(store.traverse(container, "RESTRICTION").getValue());
 	}
 
 
@@ -179,10 +140,10 @@ public class FamilyDialog extends JDialog{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode container = storeFlef.getFamilies().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final FamilyDialog dialog = new FamilyDialog(family, storeFlef, new JFrame());
+			final GroupCitationDialog dialog = new GroupCitationDialog(container, storeFlef, new JFrame());
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
@@ -190,7 +151,7 @@ public class FamilyDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(200, 250);
+			dialog.setSize(450, 200);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
