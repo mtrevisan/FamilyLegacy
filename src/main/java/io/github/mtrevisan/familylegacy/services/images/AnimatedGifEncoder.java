@@ -473,7 +473,7 @@ public class AnimatedGifEncoder{
 		out.write(0); // block terminator
 	}
 
-	/** Writes Image Descriptor */
+	/** Writes Image Descriptor. */
 	private void writeImageDesc() throws IOException{
 		out.write(0x2c); // image separator
 		writeShort(0); // image position x,y = 0,0

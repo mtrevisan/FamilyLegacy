@@ -70,7 +70,7 @@ public class FamilyPanel extends JPanel{
 	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
 
-	/** Height of the marriage line from the bottom of the individual panel [px] */
+	/** Height of the marriage line from the bottom of the individual panel [px]. */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;

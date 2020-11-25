@@ -63,7 +63,7 @@ class GedcomGrammarLine{
 	private static final Pattern STRUCTURE_REPLACE = Pattern.compile("[<|>]");
 	private static final Pattern VALUE_PATTERN = Pattern.compile("<.*>");
 	private static final Pattern VALUE_REPLACE = Pattern.compile("[<|>]");
-	/** Matches [&lt;EVENT_DESCRIPTOR&gt;|&lt;NULL&gt;] etc */
+	/** Matches [&lt;EVENT_DESCRIPTOR&gt;|&lt;NULL&gt;] etc. */
 	private static final Pattern MULTIPLE_VALUES = Pattern.compile("([\\[|]<[A-Z_]+>\\|?)+\\]");
 	private static final Pattern MULTIPLE_VALUES_REPLACE = Pattern.compile("[\\[\\] <>]");
 	private static final Pattern TAG_PATTERN = Pattern.compile("[_A-Z]+[1-9]*");

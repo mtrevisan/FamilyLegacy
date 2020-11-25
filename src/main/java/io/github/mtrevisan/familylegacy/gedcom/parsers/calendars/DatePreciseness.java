@@ -33,7 +33,7 @@ import java.util.function.BiFunction;
 /** When a range or imprecise date value is found, what is the preference for handling it? */
 enum DatePreciseness{
 
-	/** Return the earliest reasonable value for the interpreted date or range */
+	/** Return the earliest reasonable value for the interpreted date or range. */
 	FAVOR_EARLIEST{
 		@Override
 		LocalDate applyToMonth(final LocalDate date){
@@ -51,7 +51,7 @@ enum DatePreciseness{
 		}
 	},
 
-	/** Return the latest reasonable value for the interpreted date or range */
+	/** Return the latest reasonable value for the interpreted date or range. */
 	FAVOR_LATEST{
 		@Override
 		LocalDate applyToMonth(final LocalDate date){

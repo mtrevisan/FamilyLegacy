@@ -80,12 +80,12 @@ public class NeuralNetQuantizationAlgorithm{
 	private static final int BETA_GAMMA = (int_bias << (GAMMA_EXPONENT - BETA_EXPONENT));
 
 	//definitions for decreasing radius factor:
-	/* for 256 cols, radius starts */
+	/* for 256 cols, radius starts. */
 	private static final int INIT_RAD = (NET_SIZE >> 3);
-	/* at 32. biased by 6 bits */
+	/* at 32. biased by 6 bits. */
 	private static final int RADIUS_BIAS_EXPONENT = 6;
 	private static final int RADIUS_BIAS = (1 << RADIUS_BIAS_EXPONENT);
-	/* and decreases by a */
+	/* and decreases by a. */
 	private static final int INITIAL_RADIUS = (INIT_RAD * RADIUS_BIAS);
 	//factor of 1/30 each cycle
 	private static final int RADIUS_DECRESE_FACTOR = 30;
@@ -104,9 +104,9 @@ public class NeuralNetQuantizationAlgorithm{
 
 	/* Types and Global Variables
 	-------------------------- */
-	/* the input image itself */
+	/* the input image itself. */
 	private final byte[] imageData;
-	/* lengthCount = H*W*3 */
+	/* lengthCount = H*W*3. */
 	private final int length_count;
 
 	//biased by 10 bits
@@ -118,17 +118,17 @@ public class NeuralNetQuantizationAlgorithm{
 	//typedef int pixel[4]; /* BGRc */
 	private final int[][] network = new int[NET_SIZE][];
 
-	/* for network lookup - really 256 */
+	/* for network lookup - really 256. */
 	private final int[] net_index = new int[256];
 
 	private final int[] bias = new int[NET_SIZE];
 	private final int[] frequency = new int[NET_SIZE];
 	private final int[] rad_power = new int[INIT_RAD];
 
-	/* radpower for precomputation */
+	/* radpower for precomputation. */
 
 
-	/* Initialise network in range (0,0,0) to (255,255,255) and set parameters */
+	/* Initialise network in range (0,0,0) to (255,255,255) and set parameters. */
 	public NeuralNetQuantizationAlgorithm(final byte[] imageData, final int len, final int samplingFactor){
 		this.imageData = imageData;
 		length_count = len;
@@ -165,20 +165,20 @@ public class NeuralNetQuantizationAlgorithm{
 			final int[] p = network[i];
 			int smallpos = i;
 			int smallval = p[1];
-			/* index on g */
- 			/* find smallest in i..netsize-1 */
+			/* index on g. */
+ 			/* find smallest in i..netsize-1. */
 			int[] q;
 			for(int j = i + 1; j < NET_SIZE; j ++){
 				q = network[j];
 				if(q[1] < smallval){
-					/* index on g */
+					/* index on g. */
 					smallpos = j;
 					smallval = q[1];
-					/* index on g */
+					/* index on g. */
 				}
 			}
 			q = network[smallpos];
-			/* swap p (i) and q (smallpos) entries */
+			/* swap p (i) and q (smallpos) entries. */
 			if(i != smallpos){
 				int j = q[0];
 				q[0] = p[0];
@@ -193,7 +193,7 @@ public class NeuralNetQuantizationAlgorithm{
 				q[3] = p[3];
 				p[3] = j;
 			}
-			/* smallval entry is now in position i */
+			/* smallval entry is now in position i. */
 			if(smallval != previouscol){
 				net_index[previouscol] = (startpos + i) >> 1;
 				for(int j = previouscol + 1; j < smallval; j ++)
@@ -205,11 +205,11 @@ public class NeuralNetQuantizationAlgorithm{
 		net_index[previouscol] = (startpos + MAX_NET_POS) >> 1;
 		for(int j = previouscol + 1; j < 256; j ++){
 			net_index[j] = MAX_NET_POS;
-			/* really 256 */
+			/* really 256. */
 		}
 	}
 
-	/** Main Learning Loop */
+	/** Main Learning Loop. */
 	public void learn(){
 		if(length_count < MIN_PICTURE_SIZE)
 			samplingFactor = 1;
@@ -273,23 +273,23 @@ public class NeuralNetQuantizationAlgorithm{
 		//fprintf(stderr,"finished 1D learning: final alpha=%f !\n",((float)alpha)/initalpha);
 	}
 
-	/* Search for BGR values 0..255 (after net is unbiased) and return colour index */
+	/* Search for BGR values 0..255 (after net is unbiased) and return colour index. */
 	public int map(final int b, final int g, final int r){
 		int bestd = 1000;
-		/* biggest possible dist is 256*3 */
+		/* biggest possible dist is 256*3. */
 		int best = -1;
 		int i = net_index[g];
-		/* index on g */
+		/* index on g. */
 		int j = i - 1;
-		/* start at netindex[g] and work outwards */
+		/* start at netindex[g] and work outwards. */
 
 		while(i < NET_SIZE || j >= 0){
 			if(i < NET_SIZE){
 				final int[] p = network[i];
 				int dist = p[1] - g;
-				/* inx key */
+				/* inx key. */
 				if(dist >= bestd)
-					/* stop iter */
+					/* stop iter. */
 					i = NET_SIZE;
 
 				else{
@@ -315,9 +315,9 @@ public class NeuralNetQuantizationAlgorithm{
 			if(j >= 0){
 				final int[] p = network[j];
 				int dist = g - p[1];
-				/* inx key - reverse dif */
+				/* inx key - reverse dif. */
 				if(dist >= bestd)
-					/* stop iter */
+					/* stop iter. */
 					j = -1;
 				else{
 					j --;
@@ -350,14 +350,14 @@ public class NeuralNetQuantizationAlgorithm{
 		return colorMap();
 	}
 
-	/* Unbias network to give byte values 0..255 and record position i to prepare for sort */
+	/* Unbias network to give byte values 0..255 and record position i to prepare for sort. */
 	public void unbiasnet(){
 		for(int i = 0; i < NET_SIZE; i ++){
 			network[i][0] >>= NET_BIAS_SHIFT;
 			network[i][1] >>= NET_BIAS_SHIFT;
 			network[i][2] >>= NET_BIAS_SHIFT;
 			network[i][3] = i;
-			/* record colour no */
+			/* record colour no. */
 		}
 	}
 
@@ -399,20 +399,20 @@ public class NeuralNetQuantizationAlgorithm{
 		}
 	}
 
-	/* Move neuron i towards biased (b,g,r) by factor alpha */
+	/* Move neuron i towards biased (b,g,r) by factor alpha. */
 	protected void altersingle(final int alpha, final int i, final int b, final int g, final int r){
-		/* alter hit neuron */
+		/* alter hit neuron. */
 		final int[] n = network[i];
 		n[0] -= (alpha * (n[0] - b)) / INITIAL_ALPHA;
 		n[1] -= (alpha * (n[1] - g)) / INITIAL_ALPHA;
 		n[2] -= (alpha * (n[2] - r)) / INITIAL_ALPHA;
 	}
 
-	/* Search for biased BGR values */
+	/* Search for biased BGR values. */
 	protected int contest(final int b, final int g, final int r){
-		/* finds closest neuron (min dist) and updates freq */
-		 /* finds best neuron (min dist-bias) and returns position */
-		 /* for frequently chosen neurons, freq[i] is high and bias[i] is negative */
+		/* finds closest neuron (min dist) and updates freq. */
+		 /* finds best neuron (min dist-bias) and returns position. */
+		 /* for frequently chosen neurons, freq[i] is high and bias[i] is negative. */
 		 /* bias[i] = gamma*((1/netsize)-freq[i]) */
 		int bestd = ~(1 << 31);
 		int bestbiasd = bestd;

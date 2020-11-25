@@ -85,7 +85,7 @@ n PERSONAL_NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
 n NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
 n NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
 n SURNAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
-n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname */
+n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname. */
 
 
 CHILD_TO_FAMILY_LINK :=

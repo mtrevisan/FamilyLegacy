@@ -44,7 +44,7 @@ public abstract class AbstractCalendarParser{
 	private static final Pattern PATTERN_INTERPRETED = RegexHelper.pattern("(?i)^INT\\.?\\s+((\\d{1,2} )?([A-Z]{3,4} )?(\\d{1,4}(/\\d{2})?)?)\\s+\\([^)]+\\)$");
 	private static final Pattern PATTERN_INTERPRETATION_TEXT = RegexHelper.pattern("\\(?:([^)]+)\\)$");
 
-	/** The regex pattern that identifies two-date range or period. Works for Gregorian, Julian, and Hebrew years */
+	/** The regex pattern that identifies two-date range or period. Works for Gregorian, Julian, and Hebrew years. */
 	private static final Pattern PATTERN_TWO_DATES = RegexHelper.pattern("(?i)^" + FORMAT_RANGE_PREFIX
 		+ FORMAT_DAY_MONTH_YEAR + " (AND|TO) " + FORMAT_DAY_MONTH_YEAR + "$");
 

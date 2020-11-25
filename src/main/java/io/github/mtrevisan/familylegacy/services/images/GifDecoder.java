@@ -49,7 +49,7 @@ public class GifDecoder{
 	public static final int FILE_READ_STATUS_OK = 0;
 	/** Error decoding file (may be partially decoded) */
 	public static final int FILE_READ_STATUS_FORMAT_ERROR = 1;
-	/** Unable to open source */
+	/** Unable to open source. */
 	public static final int FILE_READ_STATUS_OPEN_ERROR = 2;
 
 	private static final int MAX_DECODER_PIXEL_STACK_SIZE = 4096;
@@ -455,12 +455,12 @@ public class GifDecoder{
 			pixels[i] = 0;
 	}
 
-	/** Returns <code>true</code> if an error was encountered during reading/decoding */
+	/** Returns <code>true</code> if an error was encountered during reading/decoding. */
 	private boolean hasErrors(){
 		return (status != FILE_READ_STATUS_OK);
 	}
 
-	/** Initializes or re-initializes reader */
+	/** Initializes or re-initializes reader. */
 	private void init(){
 		status = FILE_READ_STATUS_OK;
 		frameCount = 0;
@@ -469,7 +469,7 @@ public class GifDecoder{
 		localColorTable = null;
 	}
 
-	/** Reads a single byte from the input stream */
+	/** Reads a single byte from the input stream. */
 	private int read(){
 		int currentByte = 0;
 		try{
@@ -598,7 +598,7 @@ public class GifDecoder{
 		}
 	}
 
-	/** Reads Graphics Control Extension values */
+	/** Reads Graphics Control Extension values. */
 	private void readGraphicControlExtension(){
 		//block size
 		read();
@@ -620,7 +620,7 @@ public class GifDecoder{
 		read();
 	}
 
-	/** Reads GIF file header information */
+	/** Reads GIF file header information. */
 	private void readHeader(){
 		final StringBuilder id = new StringBuilder();
 		for(int i = 0; i < 6; i ++)
@@ -724,7 +724,7 @@ public class GifDecoder{
 		pixelAspectRatio = read();
 	}
 
-	/** Reads Netscape extension to obtain iteration count */
+	/** Reads Netscape extension to obtain iteration count. */
 	private void readNetscapeExtension(){
 		do{
 			readBlock();
@@ -737,13 +737,13 @@ public class GifDecoder{
 		}while(blockSize > 0 && !hasErrors());
 	}
 
-	/** Reads next 16-bit value, LSB first */
+	/** Reads next 16-bit value, LSB first. */
 	private int readShort(){
 		//read 16-bit value, LSB first
 		return (read() | (read() << 8));
 	}
 
-	/** Resets frame state for reading next image */
+	/** Resets frame state for reading next image. */
 	private void resetFrame(){
 		lastDispose = dispose;
 		lastFrameRect = new Rectangle(ix, iy, iw, ih);
@@ -755,7 +755,7 @@ public class GifDecoder{
 		localColorTable = null;
 	}
 
-	/** Skips variable length blocks up to and including next zero length block */
+	/** Skips variable length blocks up to and including next zero length block. */
 	private void skip(){
 		do{
 			readBlock();

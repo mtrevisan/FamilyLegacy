@@ -31,7 +31,7 @@ public enum Sex{
 	UNKNOWN("U");
 
 
-	/** The code for the sex of the individual */
+	/** The code for the sex of the individual. */
 	private final String code;
 
 

@@ -106,7 +106,7 @@ n PERSONAL_NAME <NAME_PIECE>    {0:1}	/* Given name(s). */
   +1 NAME_SUFFIX <NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
 n INDIVIDUAL_NICKNAME <NAME_PIECE_NICKNAME>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
 n FAMILY_NAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
-n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname */
+n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname. */
 
 
 INDIVIDUAL_EVENT_STRUCTURE :=
@@ -377,7 +377,7 @@ n <XREF:REPOSITORY> REPOSITORY    {1:1}	/* An xref ID of a repository record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
-/* https://www.evidenceexplained.com/content/sample-quickcheck-models */
+/* https://www.evidenceexplained.com/content/sample-quickcheck-models. */
 SOURCE_RECORD :=
 n <XREF:SOURCE> SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 TYPE [ BIRTH_REGISTRY | CENSUS | GRAVE_MARKER | BOOK | FEDERAL_COURT_RECORDS | <CUSTOM_TYPE> | <NULL> ]    {0:1}

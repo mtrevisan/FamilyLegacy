@@ -17,7 +17,7 @@ n HEAD    {1:1}
     +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
     +2 CORP <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
       +3 <<ADDRESS_STRUCTURE>>    {0:1}	/* An ADDRESS_STRUCTURE() object giving the address of the business. */
-    +2 DATA <NAME_OF_SOURCE_DATA>    {0:1}	/* The name of the electronic data source that was used to obtain the data in this transmission. For example, the data may have been obtained from a CD-ROM disc that was named "U.S. 1880 CENSUS CD-ROM vol. 13." */
+    +2 DATA <NAME_OF_SOURCE_DATA>    {0:1}	/* The name of the electronic data source that was used to obtain the data in this transmission. For example, the data may have been obtained from a CD-ROM disc that was named "U.S. 1880 CENSUS CD-ROM vol. 13". */
       +3 DATE <PUBLICATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was published or created. */
       +3 COPR <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement required by the owner of data from which this information was downloaded. For example, when a GEDCOM down-load is requested from the Ancestral File, this would be the copyright statement to indicate that the data came from a copyrighted source. */
         +4 [ CONC | CONT ] <COPYRIGHT_SOURCE_DATA>    {0:M}
@@ -74,7 +74,7 @@ n @<XREF:FAM>@ FAM    {1:1}	/* An xref ID of a family record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
 INDIVIDUAL_RECORD :=
@@ -100,7 +100,7 @@ n @<XREF:INDI>@ INDI    {1:1}	/* An xref ID of an individual record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
 MULTIMEDIA_RECORD :=
@@ -161,7 +161,7 @@ n @<XREF:SOUR>@ SOUR    {1:1}	/* An xref ID of a source record. */
   +1 RIN <AUTOMATED_RECORD_ID>    {0:1}	/* A unique record identification number assigned to the record by the source system. This number is intended to serve as a more sure means of identification of a record for reconciling differences in data between two interfacing systems. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
 SUBMISSION_RECORD :=
@@ -237,7 +237,7 @@ n CAUS <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons 
 n RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
 n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-n <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+n <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
 FAMILY_EVENT_DETAIL :=
@@ -471,17 +471,17 @@ n SOUR @<XREF:SOUR>@    {1:1}	/* An xref ID of a source record. */
     +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
     +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
       +3 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
-|	/* Systems not using source records */
+  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+|	/* Systems not using source records. */
 n SOUR <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe the source from which information was obtained. This text block is used by those systems which cannot use a pointer to a source record. It must contain a descriptive title, who created the work, where and when it was created, and where the source data stored. */
   +1 [ CONC | CONT ] <SOURCE_DESCRIPTION>    {0:M}
   +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
     +2 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence */
+  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 ]
 
 

@@ -45,7 +45,7 @@ enum FrenchRepublicanMonth{
 	MESSIDOR("Messidor", "MESS"),
 	THERMIDOR("Thermidor", "THER"),
 	FRUCTIDOR("Fructidor", "FRUC"),
-	/** The complementary days at the end of each year */
+	/** The complementary days at the end of each year. */
 	JOUR_COMPLEMENTAIRS("Jour complementairs", "COMP");
 
 
