@@ -33,6 +33,10 @@ public interface FamilyListenerInterface{
 
 	void onFamilyLink(final FamilyPanel boxPanel);
 
+	void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family);
+
+	void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family);
+
 	/**
 	 * Iterate through spouses.
 	 *

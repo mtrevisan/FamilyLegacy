@@ -38,6 +38,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public abstract class Store{
@@ -116,7 +117,7 @@ public abstract class Store{
 	static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
 		final Map<String, GedcomNode> indexes;
 		if(!list.isEmpty()){
-			indexes = new HashMap<>(list.size());
+			indexes = new TreeMap<>();
 			for(final GedcomNode elem : list)
 				indexes.put(elem.getID(), elem);
 		}

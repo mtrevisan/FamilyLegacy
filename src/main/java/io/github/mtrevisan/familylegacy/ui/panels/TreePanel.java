@@ -520,6 +520,16 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
+			public void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family){
+				System.out.println("onUnlinkFamily " + family.getID());
+			}
+
+			@Override
+			public void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family){
+				System.out.println("onRemoveFamily " + family.getID());
+			}
+
+			@Override
 			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
 					final GedcomNode currentFamily){
 				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID()

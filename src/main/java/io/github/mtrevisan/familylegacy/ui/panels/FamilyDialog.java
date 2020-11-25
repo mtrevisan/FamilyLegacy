@@ -106,10 +106,7 @@ public class FamilyDialog extends JDialog{
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-//			if(listener != null){
-//				final GedcomNode selectedFamily = getSelectedFamily();
-//				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
-//			}
+			//TODO
 
 			dispose();
 		});
@@ -134,6 +131,8 @@ public class FamilyDialog extends JDialog{
 	private void loadData(){
 		final List<GedcomNode> families = store.getFamilies();
 		okButton.setEnabled(!families.isEmpty());
+
+		//TODO
 
 		final int size = families.size();
 		if(size > 0){

@@ -35,6 +35,8 @@ import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -94,6 +96,10 @@ public class FamilyPanel extends JPanel{
 	private final JLabel spouse2PreviousLabel = new JLabel();
 	private final JLabel spouse2NextLabel = new JLabel();
 	private final JPanel marriagePanel = new JPanel();
+	private final JMenuItem editFamilyItem = new JMenuItem("Edit Family…", 'E');
+	private final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
+	private final JMenuItem unlinkFamilyItem = new JMenuItem("Unlink Family…", 'U');
+	private final JMenuItem removeFamilyItem = new JMenuItem("Remove Family…", 'R');
 
 	private GedcomNode spouse1;
 	private GedcomNode spouse2;
@@ -126,10 +132,20 @@ public class FamilyPanel extends JPanel{
 		initComponents();
 
 		loadData();
+
+		EventBusService.subscribe(this);
 	}
 
 	private void initComponents(){
 		setOpaque(false);
+		if(familyListener != null)
+			addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
+						familyListener.onFamilyEdit(FamilyPanel.this, family);
+				}
+			});
 
 		spouse1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, spouse1, store, boxType, individualListener);
 		spouse1Panel.setChildReference(childReference);
@@ -143,6 +159,8 @@ public class FamilyPanel extends JPanel{
 
 		if(familyListener != null){
 			attachPopUpMenu(marriagePanel, family, familyListener);
+
+			refresh(Flef.ACTION_COMMAND_FAMILIES);
 
 			spouse1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
@@ -203,15 +221,21 @@ public class FamilyPanel extends JPanel{
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		final JMenuItem editFamilyItem = new JMenuItem("Edit Family…", 'E');
 		editFamilyItem.setEnabled(family != null);
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
 
-		final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
-		linkFamilyItem.setEnabled(family == null);
+//		linkFamilyItem.setEnabled(family == null);
 		popupMenu.add(linkFamilyItem);
+
+		unlinkFamilyItem.addActionListener(e -> familyListener.onFamilyUnlink(this, family));
+		unlinkFamilyItem.setEnabled(family != null);
+		popupMenu.add(unlinkFamilyItem);
+
+		removeFamilyItem.addActionListener(e -> familyListener.onFamilyRemove(this, family));
+		removeFamilyItem.setEnabled(family != null);
+		popupMenu.add(removeFamilyItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
@@ -262,6 +286,15 @@ public class FamilyPanel extends JPanel{
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
+	}
+
+	/** Should be called whenever a modification on the store causes modifications on the UI. */
+	@EventHandler
+	public void refresh(final Integer actionCommand){
+		if(actionCommand != Flef.ACTION_COMMAND_FAMILIES)
+			return;
+
+		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
 	}
 
 	public void updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
@@ -431,6 +464,16 @@ public class FamilyPanel extends JPanel{
 			@Override
 			public void onFamilyLink(final FamilyPanel boxPanel){
 				System.out.println("onLinkFamily");
+			}
+
+			@Override
+			public void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family){
+				System.out.println("onUnlinkFamily " + family.getID());
+			}
+
+			@Override
+			public void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family){
+				System.out.println("onRemoveFamily " + family.getID());
 			}
 
 			@Override

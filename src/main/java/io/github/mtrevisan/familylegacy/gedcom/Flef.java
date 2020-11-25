@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformat
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,9 +48,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class Flef extends Store{
+
+	/** Raised upon changes on the number of individuals in the store. */
+	public static final Integer ACTION_COMMAND_INDIVIDUALS = 0;
+	/** Raised upon changes on the number of families in the store. */
+	public static final Integer ACTION_COMMAND_FAMILIES = 1;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -110,6 +117,9 @@ public class Flef extends Store{
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
 	private Map<GedcomNode, String> sourceValue;
+
+	private static int INDIVIDUAL_ID = 1;
+	private static int FAMILY_ID = 1;
 
 
 
@@ -177,6 +187,11 @@ public class Flef extends Store{
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
 		sourceValue = reverseMap(sourceIndex);
+
+		if(!individualIndex.isEmpty())
+			INDIVIDUAL_ID = Integer.parseInt(((TreeMap<String, GedcomNode>)individualIndex).lastKey().substring(1)) + 1;
+		if(!familyIndex.isEmpty())
+			FAMILY_ID = Integer.parseInt(((TreeMap<String, GedcomNode>)familyIndex).lastKey().substring(1)) + 1;
 	}
 
 	@Override
@@ -288,11 +303,31 @@ public class Flef extends Store{
 
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
+
+		EventBusService.publish(ACTION_COMMAND_INDIVIDUALS);
+
 		return individualID;
 	}
 
+	public String removeIndividual(final GedcomNode individual){
+		if(individuals != null){
+			final String individualID = individual.getID();
+			individuals.remove(individual);
+			individualIndex.remove(individualID);
+
+			EventBusService.publish(ACTION_COMMAND_INDIVIDUALS);
+
+			return individualID;
+		}
+		return null;
+	}
+
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + (individuals != null? individuals.size() + 1: 1);
+		return ID_INDIVIDUAL_PREFIX + INDIVIDUAL_ID ++;
+	}
+
+	public boolean hasFamilies(){
+		return (families != null && !families.isEmpty());
 	}
 
 	public List<GedcomNode> getFamilies(){
@@ -317,6 +352,9 @@ public class Flef extends Store{
 
 		families.add(family);
 		familyIndex.put(family.getID(), family);
+
+		EventBusService.publish(ACTION_COMMAND_FAMILIES);
+
 		return familyID;
 	}
 
@@ -324,8 +362,21 @@ public class Flef extends Store{
 		child.addChild(TRANSFORMER.createWithReference("FAMILY_CHILD", family.getID()));
 	}
 
+	public String removeFamily(final GedcomNode family){
+		if(families != null){
+			final String familyID = family.getID();
+			families.remove(family);
+			familyIndex.remove(familyID);
+
+			EventBusService.publish(ACTION_COMMAND_FAMILIES);
+
+			return familyID;
+		}
+		return null;
+	}
+
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
+		return ID_FAMILY_PREFIX + FAMILY_ID ++;
 	}
 
 	public List<GedcomNode> getParent1s(final GedcomNode child){
