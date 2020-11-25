@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import net.miginfocom.swing.MigLayout;
 
@@ -39,16 +40,20 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 
 public class ChildrenPanel extends JPanel{
 
 	private static final long serialVersionUID = -1250057284416778781L;
 
+	private static final double FAMILY_HEIGHT = 12.;
+	private static final double FAMILY_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension FAMILY_SIZE = new Dimension((int)(FAMILY_HEIGHT / FAMILY_ASPECT_RATIO), (int)FAMILY_HEIGHT);
+
+	private static final ImageIcon FAMILY = ResourceHelper.getImage("/images/family.png", FAMILY_SIZE);
+
 	private static final int CHILD_SEPARATION = 15;
+	static final int FAMILY_ARROW_HEIGHT = FAMILY.getIconHeight() + FamilyPanel.NAVIGATION_ARROW_SEPARATION;
 
 
 	private List<GedcomNode> children;
@@ -81,13 +86,21 @@ public class ChildrenPanel extends JPanel{
 			while(itr.hasNext()){
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
-				final boolean isSpouse = store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
+				final boolean isSpouse = !store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
 				final IndividualPanel individualBox = new IndividualPanel(individual, store, BoxPanelType.SECONDARY, individualListener);
 
-				add(individualBox, (itr.hasNext()? "gapright " + CHILD_SEPARATION: ""));
-				if(isSpouse){
-					//TODO find a way to mark a child to be a spouse
-				}
+				final JPanel box = new JPanel();
+				box.setOpaque(false);
+				box.setLayout(new MigLayout("flowy,insets 0", "[]",
+					"[]" + FamilyPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
+				final JLabel familyLabel = new JLabel();
+				familyLabel.setMinimumSize(new Dimension(FAMILY.getIconWidth(), FAMILY.getIconHeight()));
+				if(isSpouse)
+					familyLabel.setIcon(FAMILY);
+				box.add(familyLabel, "alignx right");
+				box.add(individualBox);
+
+				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: ""));
 			}
 		}
 	}
@@ -97,7 +110,7 @@ public class ChildrenPanel extends JPanel{
 		final Component[] components = getComponents();
 		final Point[] enterPoints = new Point[components.length];
 		for(int i = 0; i < components.length; i ++)
-			enterPoints[i] = new Point(components[i].getX() + components[i].getWidth() / 2, components[i].getY());
+			enterPoints[i] = new Point(components[i].getX() + components[i].getWidth() / 2, components[i].getY() + FAMILY_ARROW_HEIGHT);
 		return enterPoints;
 	}
 
@@ -112,8 +125,8 @@ public class ChildrenPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-//		final GedcomNode family = storeFlef.getFamilies().get(0);
-		final GedcomNode family = storeFlef.getFamilies().get(4);
+		final GedcomNode family = storeFlef.getFamilies().get(0);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){

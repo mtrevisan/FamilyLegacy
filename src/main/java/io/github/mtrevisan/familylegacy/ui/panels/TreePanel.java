@@ -313,10 +313,10 @@ public class TreePanel extends JPanel{
 
 			//spouse1's parents exiting connection
 			final Point s1p = spouse1ParentsPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(s1p, graphics2D);
+			spouseParentsExitingConnection(s1p, 0, graphics2D);
 			//spouse2's parents exiting connection
 			final Point s2p = spouse2ParentsPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(s2p, graphics2D);
+			spouseParentsExitingConnection(s2p, 0, graphics2D);
 			//home family spouse1 entering connection
 			final Point hfs1 = homeFamilyPanel.getFamilyPaintingSpouse1EnterPoint();
 			spouseEnteringConnection(hfs1, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
@@ -329,7 +329,7 @@ public class TreePanel extends JPanel{
 			spouseParentsToSpouse(s2p, hfs2, FamilyPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 			//home family exiting connection
 			final Point hf = homeFamilyPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(hf, graphics2D);
+			spouseParentsExitingConnection(hf, ChildrenPanel.FAMILY_ARROW_HEIGHT, graphics2D);
 
 			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
 			final Point origin = childrenScrollPane.getLocation();
@@ -351,7 +351,7 @@ public class TreePanel extends JPanel{
 		if(spouseGrandparentsPanel != null){
 			//spouse's parent's parent exiting connection
 			p = spouseGrandparentsPanel.getFamilyPaintingExitPoint();
-			spouseParentsExitingConnection(p, graphics2D);
+			spouseParentsExitingConnection(p, 0, graphics2D);
 		}
 		return p;
 	}
@@ -365,10 +365,10 @@ public class TreePanel extends JPanel{
 			spouseParentsToSpouse(sgp, sp, FamilyPanel.NAVIGATION_ARROW_SEPARATION, graphics2D);
 	}
 
-	private void spouseParentsExitingConnection(final Point sp, final Graphics2D graphics2D){
+	private void spouseParentsExitingConnection(final Point sp, final int offset, final Graphics2D graphics2D){
 		//spouse's parents exiting connection
 		graphics2D.drawLine(sp.x, sp.y,
-			sp.x, sp.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
+			sp.x, sp.y + offset + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 	private void spouseEnteringConnection(final Point s, final int offset, final Graphics2D graphics2D){
