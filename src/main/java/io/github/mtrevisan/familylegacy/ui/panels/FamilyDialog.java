@@ -40,7 +40,7 @@ import java.util.List;
 
 public class FamilyDialog extends JDialog{
 
-//	private static final long serialVersionUID = -3246390161022821225L;
+	private static final long serialVersionUID = 2075397360104239479L;
 
 	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{"", "unknown", "marriage",
 		"not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",

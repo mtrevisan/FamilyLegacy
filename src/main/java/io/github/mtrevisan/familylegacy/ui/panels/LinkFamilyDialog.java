@@ -93,8 +93,8 @@ public class LinkFamilyDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private JTable familiesTable;
-	private final JScrollPane familiesScrollPane = new JScrollPane();
+	private final JTable familiesTable = new JTable(new FamiliesTableModel());
+	private final JScrollPane familiesScrollPane = new JScrollPane(familiesTable);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -124,7 +124,6 @@ public class LinkFamilyDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Link family");
 
-		familiesTable = new JTable(new FamiliesTableModel());
 		familiesTable.setAutoCreateRowSorter(true);
 		familiesTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		familiesTable.setFocusable(false);
@@ -169,7 +168,6 @@ public class LinkFamilyDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_SPOUSE2_DEATH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_YEAR, dateWithApproximationComparator);
 		familiesTable.setRowSorter(sorter);
-		familiesScrollPane.setViewportView(familiesTable);
 
 		filterLabel.setLabelFor(filterField);
 		filterField.setEnabled(false);
@@ -202,10 +200,9 @@ public class LinkFamilyDialog extends JDialog{
 		final List<GedcomNode> families = store.getFamilies();
 		okButton.setEnabled(!families.isEmpty());
 
-		final DefaultTableModel familiesModel = (DefaultTableModel)familiesTable.getModel();
-
 		final int size = families.size();
 		if(size > 0){
+			final DefaultTableModel familiesModel = (DefaultTableModel)familiesTable.getModel();
 			familiesModel.setRowCount(size);
 
 			for(int row = 0; row < size; row ++){

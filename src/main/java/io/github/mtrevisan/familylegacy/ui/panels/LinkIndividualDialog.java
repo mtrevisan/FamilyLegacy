@@ -90,8 +90,8 @@ public class LinkIndividualDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private JTable individualsTable;
-	private final JScrollPane individualsScrollPane = new JScrollPane();
+	private final JTable individualsTable = new JTable(new IndividualsTableModel());
+	private final JScrollPane individualsScrollPane = new JScrollPane(individualsTable);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -122,7 +122,6 @@ public class LinkIndividualDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Link individual");
 
-		individualsTable = new JTable(new IndividualsTableModel());
 		individualsTable.setAutoCreateRowSorter(true);
 		individualsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		individualsTable.setFocusable(false);
@@ -155,7 +154,6 @@ public class LinkIndividualDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_BIRTH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_DEATH_YEAR, dateWithApproximationComparator);
 		individualsTable.setRowSorter(sorter);
-		individualsScrollPane.setViewportView(individualsTable);
 
 		filterLabel.setLabelFor(filterField);
 		filterField.setEnabled(false);
