@@ -158,12 +158,6 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 
 	@Override
-	public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
-		//TODO
-		System.out.println("onEditIndividual " + individual.getID());
-	}
-
-	@Override
 	public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
 		LOGGER.debug("onFocusIndividual {}", individual.getID());
 
@@ -183,11 +177,10 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		panel.loadData(spouse1, spouse2, family);
 	}
 
-
 	@Override
-	public void onIndividualNew(final IndividualPanel boxPanel){
+	public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		System.out.println("onNewIndividual");
+		System.out.println("onEditIndividual " + individual.getID());
 	}
 
 	@Override
@@ -197,6 +190,24 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		linkIndividualDialog.setPanelReference(boxPanel);
 		linkIndividualDialog.setSelectionType(type);
 		linkIndividualDialog.setVisible(true);
+	}
+
+	@Override
+	public void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual){
+		//TODO
+		System.out.println("onUnlinkIndividual " + individual.getID());
+	}
+
+	@Override
+	public void onIndividualAdd(final IndividualPanel boxPanel){
+		//TODO
+		System.out.println("onAddIndividual");
+	}
+
+	@Override
+	public void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual){
+		//TODO
+		System.out.println("onRemoveIndividual " + individual.getID());
 	}
 
 	@Override

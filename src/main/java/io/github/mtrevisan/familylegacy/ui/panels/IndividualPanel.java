@@ -106,8 +106,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private final JLabel personalNameLabel = new JLabel();
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel preferredImageLabel = new JLabel();
-	private final JLabel newIndividualLabel = new JLabel();
-	private final JLabel linkIndividualLabel = new JLabel();
+//	private final JLabel newIndividualLabel = new JLabel();
+//	private final JLabel linkIndividualLabel = new JLabel();
 
 	private final SelectedNodeType type;
 	private GedcomNode individual;
@@ -165,23 +165,26 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
-			newIndividualLabel.setText("New individual");
-			newIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			newIndividualLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualNew(IndividualPanel.this);
-				}
-			});
+			attachPopUpMenu(this, individual, listener);
 
-			linkIndividualLabel.setText("Link individual");
-			linkIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			linkIndividualLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					listener.onIndividualLink(IndividualPanel.this, type);
-				}
-			});
+//FIXME
+//			newIndividualLabel.setText("New individual");
+//			newIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+//			newIndividualLabel.addMouseListener(new MouseAdapter(){
+//				@Override
+//				public void mouseClicked(final MouseEvent evt){
+//					listener.onIndividualNew(IndividualPanel.this);
+//				}
+//			});
+
+//			linkIndividualLabel.setText("Link individual");
+//			linkIndividualLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+//			linkIndividualLabel.addMouseListener(new MouseAdapter(){
+//				@Override
+//				public void mouseClicked(final MouseEvent evt){
+//					listener.onIndividualLink(IndividualPanel.this, type);
+//				}
+//			});
 		}
 
 		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
@@ -200,11 +203,39 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final double shrinkFactor = getShrinkFactor();
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
 		add(familyNameLabel, "cell 0 0,width ::100%-" + (PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3) + ",hidemode 3");
-		add(newIndividualLabel, "cell 0 0,hidemode 3");
+//FIXME
+//		add(newIndividualLabel, "cell 0 0,hidemode 3");
 		add(preferredImageLabel, "cell 1 0 1 3,aligny top");
 		add(personalNameLabel, "cell 0 1,width ::100%-" + (PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3) + ",hidemode 3");
-		add(linkIndividualLabel, "cell 0 1,hidemode 3");
+//		add(linkIndividualLabel, "cell 0 1,hidemode 3");
 		add(infoLabel, "cell 0 2");
+	}
+
+	//TODO add popupmenu with "link", "unlink", "add", and "remove"
+	private void attachPopUpMenu(final JComponent component, final GedcomNode individual, final IndividualListenerInterface listener){
+		final JPopupMenu popupMenu = new JPopupMenu();
+
+		final JMenuItem editFamilyItem = new JMenuItem("Link…", 'L');
+		editFamilyItem.setEnabled(individual == null);
+		editFamilyItem.addActionListener(e -> listener.onIndividualLink(this, type));
+		popupMenu.add(editFamilyItem);
+
+		final JMenuItem linkFamilyItem = new JMenuItem("Unlink", 'U');
+		linkFamilyItem.addActionListener(e -> listener.onIndividualUnlink(this, individual));
+		linkFamilyItem.setEnabled(individual != null);
+		popupMenu.add(linkFamilyItem);
+
+		final JMenuItem addFamilyItem = new JMenuItem("Add…", 'A');
+		addFamilyItem.setEnabled(individual == null);
+		addFamilyItem.addActionListener(e -> listener.onIndividualAdd(this));
+		popupMenu.add(addFamilyItem);
+
+		final JMenuItem removeFamilyItem = new JMenuItem("Remove", 'R');
+		removeFamilyItem.addActionListener(e -> listener.onIndividualRemove(this, individual));
+		removeFamilyItem.setEnabled(individual != null);
+		popupMenu.add(removeFamilyItem);
+
+		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
 	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio){
@@ -259,6 +290,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	public void propertyChange(final PropertyChangeEvent evt){
 		//show tooltips with full names if they are too long to be displayed
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
+			//FIXME doesn't work, width is 0 the first time, and there were no further call to propertyChange
 			int width = familyNameLabel.getWidth();
 			int requiredWidth = familyNameLabel.getUI().getPreferredSize(familyNameLabel).width;
 			familyNameLabel.setToolTipText(width > 0 && requiredWidth > width? familyNameLabel.getText(): null);
@@ -330,8 +362,9 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		familyNameLabel.setVisible(individual != null);
 		personalNameLabel.setVisible(individual != null);
 		infoLabel.setVisible(individual != null);
-		newIndividualLabel.setVisible(individual == null);
-		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
+//FIXME
+//		newIndividualLabel.setVisible(individual == null);
+//		linkIndividualLabel.setVisible(individual == null && store.hasIndividuals());
 		preferredImageLabel.setVisible(individual != null);
 	}
 
@@ -594,8 +627,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		//long names
 		final GedcomNode individual = storeFlef.getIndividual("I2365");
 //		final GedcomNode individual = null;
-		final BoxPanelType boxType = BoxPanelType.PRIMARY;
-//		final BoxPanelType boxType = BoxPanelType.SECONDARY;
+//		final BoxPanelType boxType = BoxPanelType.PRIMARY;
+		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){
 			@Override
@@ -609,13 +642,23 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			@Override
-			public void onIndividualNew(final IndividualPanel boxPanel){
-				System.out.println("onNewIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
-				System.out.println("onLinkIndividual " + type);
+			public void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual){
+				System.out.println("onUnlinkIndividual " + individual.getID());
+			}
+
+			@Override
+			public void onIndividualAdd(final IndividualPanel boxPanel){
+				System.out.println("onAddIndividual");
+			}
+
+			@Override
+			public void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual){
+				System.out.println("onRemoveIndividual " + individual.getID());
 			}
 
 			@Override

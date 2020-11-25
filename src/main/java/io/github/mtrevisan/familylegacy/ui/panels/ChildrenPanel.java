@@ -142,13 +142,23 @@ public class ChildrenPanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualNew(final IndividualPanel boxPanel){
-				System.out.println("onNewIndividual");
+			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkIndividual " + type);
 			}
 
 			@Override
-			public void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type){
-				System.out.println("onLinkIndividual " + type);
+			public void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual){
+				System.out.println("onUnlinkIndividual " + individual.getID());
+			}
+
+			@Override
+			public void onIndividualAdd(final IndividualPanel boxPanel){
+				System.out.println("onAddIndividual");
+			}
+
+			@Override
+			public void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual){
+				System.out.println("onRemoveIndividual " + individual.getID());
 			}
 
 			@Override

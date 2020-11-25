@@ -30,8 +30,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
 public interface IndividualListenerInterface{
 
-	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
-
 	/**
 	 * Bring individual to primary position.
 	 *
@@ -40,9 +38,15 @@ public interface IndividualListenerInterface{
 	 */
 	void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual);
 
-	void onIndividualNew(final IndividualPanel boxPanel);
+	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
 
 	void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type);
+
+	void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual);
+
+	void onIndividualAdd(final IndividualPanel boxPanel);
+
+	void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual);
 
 	void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual);
 
