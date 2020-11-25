@@ -84,8 +84,8 @@ public class TreePanel extends JPanel{
 	private final FamilyListenerInterface familyListener;
 
 
-	public TreePanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode homeFamily, final int generations,
-			final Flef store, final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
+	public TreePanel(final GedcomNode homeFamily, final int generations, final Flef store, final FamilyListenerInterface familyListener,
+			final IndividualListenerInterface individualListener){
 		this.homeFamily = homeFamily;
 		this.generations = generations;
 		this.store = store;
@@ -93,28 +93,28 @@ public class TreePanel extends JPanel{
 		this.familyListener = familyListener;
 
 		if(generations <= 3)
-			initComponents3Generations(spouse1, spouse2, homeFamily);
+			initComponents3Generations(homeFamily);
 		else
-			initComponents4Generations(spouse1, spouse2, homeFamily);
+			initComponents4Generations(homeFamily);
 
 		loadData();
 	}
 
-	private void initComponents3Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): null);
-		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): null);
+	private void initComponents3Generations(final GedcomNode family){
+		spouse1 = (family != null? store.getSpouse1(family): null);
+		spouse2 = (family != null? store.getSpouse2(family): null);
 
-		final GedcomNode spouse1Parents = extractParents(this.spouse1);
-		final GedcomNode spouse2Parents = extractParents(this.spouse2);
+		final GedcomNode spouse1Parents = extractParents(spouse1);
+		final GedcomNode spouse2Parents = extractParents(spouse2);
 
-		GedcomNode childReference = extractFirstChild(spouse1Parents, this.spouse1);
+		GedcomNode childReference = extractFirstChild(spouse1Parents, spouse1);
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
-		childReference = extractFirstChild(spouse2Parents, this.spouse2);
+		childReference = extractFirstChild(spouse2Parents, spouse2);
 		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
 		childReference = extractFirstChild(homeFamily, null);
-		homeFamilyPanel = new FamilyPanel(this.spouse1, this.spouse2, homeFamily, childReference, store, BoxPanelType.PRIMARY,
+		homeFamilyPanel = new FamilyPanel(spouse1, spouse2, homeFamily, childReference, store, BoxPanelType.PRIMARY,
 			familyListener, individualListener);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
@@ -143,12 +143,12 @@ public class TreePanel extends JPanel{
 		add(childrenScrollPane, "span 2");
 	}
 
-	private void initComponents4Generations(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): null);
-		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): null);
+	private void initComponents4Generations(final GedcomNode family){
+		spouse1 = (family != null? store.getSpouse1(family): null);
+		spouse2 = ( family != null? store.getSpouse2(family): null);
 
-		final GedcomNode spouse1Parents = extractParents(this.spouse1);
-		final GedcomNode spouse2Parents = extractParents(this.spouse2);
+		final GedcomNode spouse1Parents = extractParents(spouse1);
+		final GedcomNode spouse2Parents = extractParents(spouse2);
 
 		final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents);
 		final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents);
@@ -176,10 +176,10 @@ public class TreePanel extends JPanel{
 		childReference = extractFirstChild(spouse2Grandparents2, defaultChildReference);
 		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		childReference = extractFirstChild(spouse1Parents, this.spouse1);
+		childReference = extractFirstChild(spouse1Parents, spouse1);
 		spouse1ParentsPanel = new FamilyPanel(null, null, spouse1Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
-		childReference = extractFirstChild(spouse2Parents, this.spouse2);
+		childReference = extractFirstChild(spouse2Parents, spouse2);
 		spouse2ParentsPanel = new FamilyPanel(null, null, spouse2Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
 		childReference = extractFirstChild(homeFamily, null);
@@ -561,8 +561,7 @@ public class TreePanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = new TreePanel(null, null, family, 4, storeFlef, familyListener,
-				individualListener);
+			final TreePanel panel = new TreePanel(family, 4, storeFlef, familyListener, individualListener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
