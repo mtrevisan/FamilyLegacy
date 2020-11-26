@@ -145,12 +145,17 @@ public class GroupCitationDialog extends JDialog{
 				groupField.setText(selectedGroupName);
 			}
 		});
+		groupsTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
 
 		addButton.addActionListener(evt -> {
 			//TODO
 		});
+		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
 			//TODO
+			final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
+			model.removeRow(groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow()));
+			removeButton.setEnabled(false);
 		});
 
 		groupLabel.setLabelFor(groupField);
@@ -158,13 +163,9 @@ public class GroupCitationDialog extends JDialog{
 
 		roleLabel.setLabelFor(roleField);
 
-		notesButton.addActionListener(e -> {
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container));
-		});
+		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
 
-		sourcesButton.addActionListener(e -> {
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container));
-		});
+		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container)));
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
@@ -217,8 +218,6 @@ public class GroupCitationDialog extends JDialog{
 		final int size = groups.size();
 		for(int i = 0; i < size; i ++)
 			groups.set(i, store.getGroup(groups.get(i).getXRef()));
-
-		removeButton.setEnabled(size > 0);
 
 		if(size > 0){
 			final DefaultTableModel groupsModel = (DefaultTableModel)groupsTable.getModel();

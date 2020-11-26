@@ -61,7 +61,8 @@ public class SourceCitationDialog extends JDialog{
 	private static final int ID_PREFERRED_WIDTH = 25;
 
 	private static final int TABLE_INDEX_SOURCE_ID = 0;
-	private static final int TABLE_INDEX_SOURCE_NAME = 1;
+	private static final int TABLE_INDEX_SOURCE_TYPE = 1;
+	private static final int TABLE_INDEX_SOURCE_TITLE = 2;
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -113,14 +114,20 @@ public class SourceCitationDialog extends JDialog{
 			return Integer.compare(v1, v2);
 		};
 		sorter.setComparator(TABLE_INDEX_SOURCE_ID, idComparator);
-		sorter.setComparator(TABLE_INDEX_SOURCE_NAME, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_SOURCE_TYPE, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_SOURCE_TITLE, Comparator.naturalOrder());
 		sourcesTable.setRowSorter(sorter);
+		sourcesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
 
 		addButton.addActionListener(evt -> {
 			//TODO
 		});
+		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
 			//TODO
+			final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
+			model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
+			removeButton.setEnabled(false);
 		});
 
 		okButton.setEnabled(false);
@@ -157,9 +164,7 @@ public class SourceCitationDialog extends JDialog{
 		final List<GedcomNode> sources = store.traverseAsList(container, "SOURCE[]");
 		final int size = sources.size();
 		for(int i = 0; i < size; i ++)
-			sources.set(i, store.getNote(sources.get(i).getXRef()));
-
-		removeButton.setEnabled(size > 0);
+			sources.set(i, store.getSource(sources.get(i).getXRef()));
 
 		if(size > 0){
 			final DefaultTableModel sourcesModel = (DefaultTableModel)sourcesTable.getModel();
@@ -175,14 +180,16 @@ public class SourceCitationDialog extends JDialog{
 				final GedcomNode source = sources.get(row);
 
 				sourcesModel.setValueAt(source.getID(), row, TABLE_INDEX_SOURCE_ID);
-				sourcesModel.setValueAt(source.getValue(), row, TABLE_INDEX_SOURCE_NAME);
+				sourcesModel.setValueAt(store.traverse(source, "TYPE").getValue(), row, TABLE_INDEX_SOURCE_TYPE);
+				sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
 			}
 		}
 	}
 
 	private void filterTableBy(final SourceCitationDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_SOURCE_ID, TABLE_INDEX_SOURCE_NAME);
+		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_SOURCE_ID, TABLE_INDEX_SOURCE_TYPE,
+			TABLE_INDEX_SOURCE_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) sourcesTable.getRowSorter();
@@ -247,7 +254,7 @@ public class SourceCitationDialog extends JDialog{
 
 
 		SourcesTableModel(){
-			super(new String[]{"ID", "Text"}, 0);
+			super(new String[]{"ID", "Type", "Title"}, 0);
 		}
 
 		@Override

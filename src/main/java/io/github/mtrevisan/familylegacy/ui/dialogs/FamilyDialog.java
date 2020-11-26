@@ -30,8 +30,9 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -61,7 +62,6 @@ public class FamilyDialog extends JDialog{
 
 	private GedcomNode family;
 	private final Flef store;
-	private GroupCitationDialog groupCitationDialog;
 
 
 	public FamilyDialog(final GedcomNode family, final Flef store, final Frame parent){
@@ -111,23 +111,15 @@ public class FamilyDialog extends JDialog{
 		});
 		typeComboBox.setSelectedIndex(0);
 
-		groupCitationDialog = new GroupCitationDialog(store, (Frame)getParent());
-		groupsButton.addActionListener(e -> {
-			groupCitationDialog.loadData(family);
-			groupCitationDialog.setVisible(true);
-		});
+		groupsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP_CITATION, family)));
 
 		culturalRulesButton.addActionListener(e -> {
 			//TODO
 		});
 
-		notesButton.addActionListener(e -> {
-			//TODO
-		});
+		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, family)));
 
-		sourcesButton.addActionListener(e -> {
-			//TODO
-		});
+		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, family)));
 
 		eventsButton.addActionListener(e -> {
 			//TODO

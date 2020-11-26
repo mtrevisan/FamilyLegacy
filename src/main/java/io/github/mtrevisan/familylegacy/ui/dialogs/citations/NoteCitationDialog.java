@@ -114,12 +114,17 @@ public class NoteCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_NOTE_ID, idComparator);
 		sorter.setComparator(TABLE_INDEX_NOTE_NAME, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
+		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
 
 		addButton.addActionListener(evt -> {
 			//TODO
 		});
+		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
 			//TODO
+			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
+			model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
+			removeButton.setEnabled(false);
 		});
 
 		okButton.setEnabled(false);
@@ -157,8 +162,6 @@ public class NoteCitationDialog extends JDialog{
 		final int size = notes.size();
 		for(int i = 0; i < size; i ++)
 			notes.set(i, store.getNote(notes.get(i).getXRef()));
-
-		removeButton.setEnabled(size > 0);
 
 		if(size > 0){
 			final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();

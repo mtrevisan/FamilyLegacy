@@ -75,16 +75,15 @@
 1 REPOSITORY @R1@
 2 REPOSITORY_LOCATION in that shelf
 2 NOTE @N2@
-1 FILE /images/births/birth.jpg
+1 FILE /images/births/birth01.jpg
 2 FORMAT jpg
 2 MEDIA photo
 2 CUT 0 0 20 30
-2 PREFERRED <PREFERRED_VALUE>	/* Whether this source is the preferred one to show on the individual box. */
-2 ASSOCIATION <DOCUMENT_FILE_REFERENCE>    {0:M}
-3 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. For example it can be 'front'/'back', 'cover'/'inside', etc. */
-1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
-1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
-
+2 PREFERRED
+2 ASSOCIATION /images/births/birth02.jpg
+3 RELATIONSHIP next page
+1 URL www.google.com
+1 NOTE @N2@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
 0 @R1@ REPOSITORY
-
+1 NAME state archive
 0 EOF
