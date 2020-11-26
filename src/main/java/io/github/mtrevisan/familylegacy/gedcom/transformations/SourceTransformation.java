@@ -68,42 +68,11 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 				.withValue(noteAuthorPublication));
 			destinationSource.addChildReference("NOTE", noteID);
 		}
-		documentsTo(source, destinationSource, destination);
+		transformerTo.documentTo(source, destinationSource, destination);
 		transformerTo.noteTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
 
 		destination.addSource(destinationSource);
-	}
-
-	private void documentsTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
-		for(final GedcomNode document : documents){
-			final String documentXRef = document.getXRef();
-			if(documentXRef == null){
-				final String documentFormat = transformerTo.traverse(document, "FORM")
-					.getValue();
-				final String documentMedia = transformerTo.traverse(document, "FORM.MEDI")
-					.getValue();
-
-				final GedcomNode destinationDocument = transformerTo.create("SOURCE")
-					.addChildValue("TITLE", transformerTo.traverse(document, "TITL")
-						.getValue());
-				if(documentFormat != null || documentMedia != null)
-					destinationDocument.addChild(transformerTo.create("FILE")
-						.withValue(transformerTo.traverse(document, "FILE")
-							.getValue())
-						.addChildValue("FORMAT", documentFormat)
-						.addChildValue("MEDIA", documentMedia)
-						.addChildValue("CUT", transformerTo.traverse(document, "_CUTD")
-							.getValue())
-						.addChildValue("PREFERRED", transformerTo.traverse(document, "_PREF")
-							.getValue())
-					);
-
-				destination.addSource(destinationDocument);
-			}
-			destinationNode.addChildReference("SOURCE", documentXRef);
-		}
 	}
 
 	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){

@@ -30,16 +30,22 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
-import io.github.mtrevisan.familylegacy.ui.panels.FamilyListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
-import io.github.mtrevisan.familylegacy.ui.panels.IndividualListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.panels.LinkFamilyDialog;
-import io.github.mtrevisan.familylegacy.ui.panels.LinkIndividualDialog;
-import io.github.mtrevisan.familylegacy.ui.panels.SelectionListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.interfaces.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,9 +103,40 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			setSize(1120, 490);
 			setLocationRelativeTo(null);
 			setVisible(true);
+
+			EventBusService.subscribe(this);
 		}
 		catch(final GedcomParseException | GedcomGrammarParseException e){
 			e.printStackTrace();
+		}
+	}
+
+	/** Should be called whenever a modification on the store causes modifications on the UI. */
+	@EventHandler
+	public void refresh(final EditEvent editCommand){
+		if(editCommand.getType() == EditEvent.EditType.GROUP_CITATION){
+			final GroupCitationDialog groupCitationDialog = new GroupCitationDialog(store, this);
+			groupCitationDialog.loadData(editCommand.getContainer());
+
+			groupCitationDialog.setSize(450, 500);
+			groupCitationDialog.setLocationRelativeTo(this);
+			groupCitationDialog.setVisible(true);
+		}
+		else if(editCommand.getType() == EditEvent.EditType.NOTE_CITATION){
+			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, this);
+			noteCitationDialog.loadData(editCommand.getContainer());
+
+			noteCitationDialog.setSize(450, 500);
+			noteCitationDialog.setLocationRelativeTo(this);
+			noteCitationDialog.setVisible(true);
+		}
+		else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
+			final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
+			sourceCitationDialog.loadData(editCommand.getContainer());
+
+			sourceCitationDialog.setSize(450, 500);
+			sourceCitationDialog.setLocationRelativeTo(this);
+			sourceCitationDialog.setVisible(true);
 		}
 	}
 

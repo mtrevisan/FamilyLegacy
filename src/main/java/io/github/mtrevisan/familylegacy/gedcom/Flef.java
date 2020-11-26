@@ -54,9 +54,9 @@ import java.util.TreeMap;
 public class Flef extends Store{
 
 	/** Raised upon changes on the number of individuals in the store. */
-	public static final Integer ACTION_COMMAND_INDIVIDUALS = 0;
+	public static final Integer ACTION_COMMAND_INDIVIDUALS_COUNT = 0;
 	/** Raised upon changes on the number of families in the store. */
-	public static final Integer ACTION_COMMAND_FAMILIES = 1;
+	public static final Integer ACTION_COMMAND_FAMILIES_COUNT = 1;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -304,7 +304,7 @@ public class Flef extends Store{
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
 
-		EventBusService.publish(ACTION_COMMAND_INDIVIDUALS);
+		EventBusService.publish(ACTION_COMMAND_INDIVIDUALS_COUNT);
 
 		return individualID;
 	}
@@ -315,7 +315,7 @@ public class Flef extends Store{
 			individuals.remove(individual);
 			individualIndex.remove(individualID);
 
-			EventBusService.publish(ACTION_COMMAND_INDIVIDUALS);
+			EventBusService.publish(ACTION_COMMAND_INDIVIDUALS_COUNT);
 
 			return individualID;
 		}
@@ -353,7 +353,7 @@ public class Flef extends Store{
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 
-		EventBusService.publish(ACTION_COMMAND_FAMILIES);
+		EventBusService.publish(ACTION_COMMAND_FAMILIES_COUNT);
 
 		return familyID;
 	}
@@ -368,7 +368,7 @@ public class Flef extends Store{
 			families.remove(family);
 			familyIndex.remove(familyID);
 
-			EventBusService.publish(ACTION_COMMAND_FAMILIES);
+			EventBusService.publish(ACTION_COMMAND_FAMILIES_COUNT);
 
 			return familyID;
 		}

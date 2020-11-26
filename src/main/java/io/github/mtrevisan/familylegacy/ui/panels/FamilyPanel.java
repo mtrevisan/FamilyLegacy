@@ -35,6 +35,8 @@ import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
+import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
@@ -160,7 +162,7 @@ public class FamilyPanel extends JPanel{
 		if(familyListener != null){
 			attachPopUpMenu(marriagePanel, family, familyListener);
 
-			refresh(Flef.ACTION_COMMAND_FAMILIES);
+			refresh(Flef.ACTION_COMMAND_FAMILIES_COUNT);
 
 			spouse1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
@@ -291,7 +293,7 @@ public class FamilyPanel extends JPanel{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final Integer actionCommand){
-		if(actionCommand != Flef.ACTION_COMMAND_FAMILIES)
+		if(actionCommand != Flef.ACTION_COMMAND_FAMILIES_COUNT)
 			return;
 
 		linkFamilyItem.setEnabled(family == null && store.hasFamilies());

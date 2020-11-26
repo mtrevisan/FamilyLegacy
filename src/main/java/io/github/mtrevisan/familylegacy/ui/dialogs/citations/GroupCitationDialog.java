@@ -22,21 +22,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.panels;
+package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
-import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
@@ -63,6 +63,7 @@ public class GroupCitationDialog extends JDialog{
 
 	private static final int TABLE_INDEX_GROUP_ID = 0;
 	private static final int TABLE_INDEX_GROUP_NAME = 1;
+	private static final int TABLE_INDEX_GROUP_TYPE = 2;
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		"",
@@ -77,6 +78,8 @@ public class GroupCitationDialog extends JDialog{
 	private final JTextField filterField = new JTextField();
 	private final JTable groupsTable = new JTable(new GroupsTableModel());
 	private final JScrollPane groupsScrollPane = new JScrollPane(groupsTable);
+	private final JButton addButton = new JButton("Add");
+	private final JButton removeButton = new JButton("Remove");
 	private final JLabel groupLabel = new JLabel("Group:");
 	private final JTextField groupField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
@@ -105,9 +108,8 @@ public class GroupCitationDialog extends JDialog{
 		loadData();
 	}
 
-	//TODO show the list of groups, from which one can select one group, and then edit
 	private void initComponents(){
-		setTitle("Groups");
+		setTitle("Group citations");
 
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
@@ -132,6 +134,7 @@ public class GroupCitationDialog extends JDialog{
 		};
 		sorter.setComparator(TABLE_INDEX_GROUP_ID, idComparator);
 		sorter.setComparator(TABLE_INDEX_GROUP_NAME, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_GROUP_TYPE, Comparator.naturalOrder());
 		groupsTable.setRowSorter(sorter);
 		//clicking on a line links it to current group
 		groupsTable.getSelectionModel().addListSelectionListener(evt -> {
@@ -143,17 +146,24 @@ public class GroupCitationDialog extends JDialog{
 			}
 		});
 
+		addButton.addActionListener(evt -> {
+			//TODO
+		});
+		removeButton.addActionListener(evt -> {
+			//TODO
+		});
+
 		groupLabel.setLabelFor(groupField);
 		groupField.setEnabled(false);
 
 		roleLabel.setLabelFor(roleField);
 
 		notesButton.addActionListener(e -> {
-			//TODO
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container));
 		});
 
 		sourcesButton.addActionListener(e -> {
-			//TODO
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container));
 		});
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
@@ -165,7 +175,11 @@ public class GroupCitationDialog extends JDialog{
 //				final GedcomNode selectedFamily = getSelectedFamily();
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
-			final String groupID = (String)groupField.getClientProperty(KEY_GROUP_ID);
+			final String id = (String)groupField.getClientProperty(KEY_GROUP_ID);
+			final String role = roleField.getText();
+			//TODO notes
+			//TODO source citations
+			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 			dispose();
 		});
@@ -174,8 +188,10 @@ public class GroupCitationDialog extends JDialog{
 		setLayout(new MigLayout());
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
-		add(groupsScrollPane, "grow,wrap paragraph");
-		add(groupNameLabel, "grow,wrap paragraph");
+		add(groupsScrollPane, "grow,wrap related");
+		add(addButton, "tag add,split 2,sizegroup button2");
+		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(groupNameLabel, "grow,wrap");
 		add(groupLabel, "align label,split 2");
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
@@ -197,9 +213,13 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 	private void loadData(){
-		final List<GedcomNode> groups = store.getGroups();
+		final List<GedcomNode> groups = store.traverseAsList(container, "GROUP[]");
+		final int size = groups.size();
+		for(int i = 0; i < size; i ++)
+			groups.set(i, store.getGroup(groups.get(i).getXRef()));
 
-		final int size = (groups != null? groups.size(): 0);
+		removeButton.setEnabled(size > 0);
+
 		if(size > 0){
 			final DefaultTableModel groupsModel = (DefaultTableModel)groupsTable.getModel();
 			groupsModel.setRowCount(size);
@@ -209,6 +229,7 @@ public class GroupCitationDialog extends JDialog{
 
 				groupsModel.setValueAt(group.getID(), row, TABLE_INDEX_GROUP_ID);
 				groupsModel.setValueAt(store.traverse(group, "NAME").getValue(), row, TABLE_INDEX_GROUP_NAME);
+				groupsModel.setValueAt(store.traverse(group, "TYPE").getValue(), row, TABLE_INDEX_GROUP_TYPE);
 			}
 
 			final String groupID = store.traverse(container, "GROUP").getXRef();
@@ -294,7 +315,7 @@ public class GroupCitationDialog extends JDialog{
 
 
 		GroupsTableModel(){
-			super(new String[]{"ID", "Name"}, 0);
+			super(new String[]{"ID", "Name", "Type"}, 0);
 		}
 
 		@Override

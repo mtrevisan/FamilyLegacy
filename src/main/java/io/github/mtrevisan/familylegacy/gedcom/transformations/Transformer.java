@@ -101,7 +101,7 @@ public final class Transformer{
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
 		final GedcomNode node = (GedcomNode)traverseInner(origin, path);
-		return (node != null? node: GedcomNodeBuilder.createEmpty(protocol));
+		return (node != null? node: createEmpty());
 	}
 
 	/**
@@ -202,23 +202,26 @@ public final class Transformer{
 				final String documentMedia = traverse(document, "FORM.MEDI")
 					.getValue();
 
-				final GedcomNode destinationDocument = GedcomNodeBuilder.create(protocol, "SOURCE")
+				final GedcomNode destinationDocument = create("SOURCE")
 					.addChildValue("TITLE", traverse(document, "TITL")
 						.getValue());
 				if(documentFormat != null || documentMedia != null)
-					destinationDocument.addChild(GedcomNodeBuilder.create(protocol, "FILE")
+					destinationDocument.addChild(create("FILE")
 						.withValue(traverse(document, "FILE")
 							.getValue())
 						.addChildValue("FORMAT", documentFormat)
 						.addChildValue("MEDIA", documentMedia)
-						.addChildValue("CUT", traverse(document, "_CUTD")
-							.getValue())
-						.addChildValue("PREFERRED", traverse(document, "_PREF")
-							.getValue())
 					);
+
 				documentXRef = destination.addSource(destinationDocument);
 			}
-			destinationNode.addChildReference("SOURCE", documentXRef);
+
+			destinationNode.addChild(create("SOURCE")
+				.withXRef(documentXRef))
+				.addChildValue("CUT", traverse(document, "_CUTD")
+					.getValue())
+				.addChildValue("PREFERRED", traverse(document, "_PREF")
+					.getValue());
 		}
 	}
 
@@ -228,9 +231,9 @@ public final class Transformer{
 			String sourceCitationXRef = sourceCitation.getXRef();
 			if(sourceCitationXRef == null){
 				//create source:
-				final String noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+				final String noteID = destination.addNote(create("NOTE")
 					.withValue(sourceCitation.getValue()));
-				final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOURCE")
+				final GedcomNode destinationSource = create("SOURCE")
 					.addChildValue("EXTRACT", traverse(sourceCitation, "TEXT")
 						.getValue())
 					.addChildReference("NOTE", noteID);
@@ -239,18 +242,18 @@ public final class Transformer{
 				sourceCitationXRef = destination.addSource(destinationSource);
 
 				//add source citation
-				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")
+				destinationNode.addChild(create("SOURCE")
 					.withXRef(sourceCitationXRef)
 					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY")
 						.getValue()));
 			}
 			else{
 				//create source:
-				final String noteID = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+				final String noteID = destination.addNote(create("NOTE")
 					.withValue(sourceCitation.getValue()));
 				final GedcomNode eventNode = traverse(sourceCitation, "EVEN");
 				final GedcomNode data = traverse(sourceCitation, "DATA");
-				final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOURCE")
+				final GedcomNode destinationSource = create("SOURCE")
 					.addChildValue("EVENT", eventNode.getValue())
 					.addChildValue("DATE", traverse(data, "DATE")
 						.getValue());
@@ -264,11 +267,15 @@ public final class Transformer{
 				sourceCitationXRef = destination.addSource(destinationSource);
 
 				//add source citation
-				destinationNode.addChild(GedcomNodeBuilder.create(protocol, "SOURCE")
+				destinationNode.addChild(create("SOURCE")
 					.withXRef(sourceCitationXRef)
 					.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
 						.getValue())
 					.addChildValue("ROLE", traverse(eventNode, "ROLE")
+						.getValue())
+					.addChildValue("CUT", traverse(eventNode, "_CUTD")
+						.getValue())
+					.addChildValue("PREFERRED", traverse(eventNode, "_PREF")
 						.getValue())
 					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY")
 						.getValue()));
@@ -280,7 +287,7 @@ public final class Transformer{
 		final GedcomNode address = traverse(parent, "ADDR");
 		final String addressValue = extractAddressValue(address);
 
-		final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLACE")
+		final GedcomNode destinationPlace = create("PLACE")
 			.addChildValue("ADDRESS", addressValue)
 			.addChildValue("CITY", traverse(address, "CITY")
 				.getValue())
@@ -293,7 +300,7 @@ public final class Transformer{
 	}
 
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
-		final GedcomNode destinationEvent = GedcomNodeBuilder.create(protocol, "EVENT")
+		final GedcomNode destinationEvent = create("EVENT")
 			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
 			.addChildValue("TYPE", traverse(event, "TYPE")
 				.getValue())
@@ -310,7 +317,7 @@ public final class Transformer{
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN")
 			.getValue())
-			.addChild(GedcomNodeBuilder.create(protocol, "FAMILY_CHILD")
+			.addChild(create("FAMILY_CHILD")
 				.withXRef(familyChild.getXRef())
 				.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP")
 					.getValue())
@@ -325,7 +332,7 @@ public final class Transformer{
 		final GedcomNode place = traverse(parent, "PLAC");
 		if(!address.isEmpty() || !place.isEmpty()){
 			final GedcomNode map = traverse(place, "MAP");
-			final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLACE")
+			final GedcomNode destinationPlace = create("PLACE")
 				.withValue(place.getValue())
 				.addChildValue("ADDRESS", addressValue)
 				.addChildValue("CITY", traverse(address, "CITY")
@@ -334,7 +341,7 @@ public final class Transformer{
 					.getValue())
 				.addChildValue("COUNTRY", traverse(address, "CTRY")
 					.getValue())
-				.addChild(GedcomNodeBuilder.create(protocol, "MAP")
+				.addChild(create("MAP")
 					.addChildValue("LATITUDE", traverse(map, "LATI")
 						.getValue())
 					.addChildValue("LONGITUDE", traverse(map, "LONG")
@@ -363,7 +370,7 @@ public final class Transformer{
 		for(final GedcomNode note : notes){
 			String noteXref = note.getXRef();
 			if(noteXref == null)
-				noteXref = destination.addNote(GedcomNodeBuilder.create(protocol, "NOTE")
+				noteXref = destination.addNote(create("NOTE")
 					.withValue(note.getValue()));
 			destinationNode.addChildReference("NOTE", noteXref);
 		}
@@ -391,19 +398,16 @@ public final class Transformer{
 				.getValue();
 			final String media = traverse(file, "MEDIA")
 				.getValue();
-			final GedcomNode destinationObject = GedcomNodeBuilder.create(protocol, "OBJE")
-				.addChild(GedcomNodeBuilder.create(protocol, "FORM")
+			final GedcomNode destinationObject = create("OBJE")
+				.addChild(create("FORM")
 					.withValue(format)
 					.addChildValue("MEDI", media)
 				)
-				.addChildValue("FILE", file.getValue());
-			final GedcomNode cut = traverse(file, "CUT");
-			if(!cut.isEmpty())
-				destinationObject.addChildValue("CUT", "Y")
-					.addChildValue("_CUTD", cut.getValue());
-			final GedcomNode preferred = traverse(file, "PREFERRED");
-			if(!preferred.isEmpty())
-				destinationObject.addChildValue("_PREF", preferred.getValue());
+				.addChildValue("FILE", file.getValue())
+				.addChildValue("_CUTD", traverse(file, "CUT")
+					.getValue())
+				.addChildValue("_PREF", traverse(file, "PREFERRED")
+					.getValue());
 			destinationNode.addChild(destinationObject);
 		}
 	}
@@ -412,12 +416,16 @@ public final class Transformer{
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
 		for(final GedcomNode sourceCitation : sourceCitations){
 			//create source:
-			final GedcomNode destinationSource = GedcomNodeBuilder.create(protocol, "SOUR")
+			final GedcomNode destinationSource = create("SOUR")
 				.withXRef(sourceCitation.getXRef())
 				.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
 					.getValue())
-				.addChild(GedcomNodeBuilder.create(protocol, "EVEN")
+				.addChild(create("EVEN")
 					.addChildValue("ROLE", traverse(sourceCitation, "ROLE")
+						.getValue())
+					.addChildValue("_CUTD", traverse(sourceCitation, "CUT")
+						.getValue())
+					.addChildValue("_PREF", traverse(sourceCitation, "PREFERRED")
 						.getValue())
 				)
 				.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY")
@@ -428,7 +436,7 @@ public final class Transformer{
 	}
 
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
-		final GedcomNode destinationEvent = GedcomNodeBuilder.create(protocol, tagTo)
+		final GedcomNode destinationEvent = create(tagTo)
 			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
 			.addChildValue("TYPE", traverse(event, "TYPE")
 				.getValue())
@@ -443,7 +451,7 @@ public final class Transformer{
 		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
 		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION")
 			.getValue())
-			.addChild(GedcomNodeBuilder.create(protocol, "FAMC")
+			.addChild(create("FAMC")
 				.withXRef(familyChild.getXRef())
 				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY")
 					.getValue())
@@ -458,7 +466,7 @@ public final class Transformer{
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode address = traverse(placeRecord, "ADDRESS");
-			destinationNode.addChild(GedcomNodeBuilder.create(protocol, "ADDR")
+			destinationNode.addChild(create("ADDR")
 				.withValue(placeRecord.getValue())
 				.addChildValue("CITY", traverse(address, "CITY")
 					.getValue())
@@ -474,10 +482,10 @@ public final class Transformer{
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode map = traverse(placeRecord, "MAP");
-			final GedcomNode destinationPlace = GedcomNodeBuilder.create(protocol, "PLAC")
+			final GedcomNode destinationPlace = create("PLAC")
 				.withValue(traverse(placeRecord, "NAME")
 					.getValue())
-				.addChild(GedcomNodeBuilder.create(protocol, "MAP")
+				.addChild(create("MAP")
 					.addChildValue("LATI", traverse(map, "LATI")
 						.getValue())
 					.addChildValue("LONG", traverse(map, "LONG")

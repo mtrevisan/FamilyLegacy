@@ -22,32 +22,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.panels;
+package io.github.mtrevisan.familylegacy.ui.interfaces;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
+import javax.swing.*;
 
-public interface IndividualListenerInterface{
 
-	/**
-	 * Bring individual to primary position.
-	 *
-	 * @param boxPanel	The box panel that originates the call.
-	 * @param individual	The individual that has to obtain focus.
-	 */
-	void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual);
+public interface SelectionListenerInterface{
 
-	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
-
-	void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type);
-
-	void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual);
-
-	void onIndividualAdd(final IndividualPanel boxPanel);
-
-	void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual);
-
-	void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual);
+	void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference);
 
 }

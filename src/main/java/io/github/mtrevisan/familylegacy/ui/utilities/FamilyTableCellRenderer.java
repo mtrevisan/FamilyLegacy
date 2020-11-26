@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import io.github.mtrevisan.familylegacy.ui.panels.LinkFamilyDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.panels.LinkIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;

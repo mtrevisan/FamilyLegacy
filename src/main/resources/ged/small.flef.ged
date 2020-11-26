@@ -18,6 +18,13 @@
 2 PLACE @P2@
 1 GROUP @G1@
 2 ROLE resident
+1 NOTE @N1@
+1 NOTE @N2@
+1 SOURCE @S1@
+2 PAGE 27
+2 ROLE owner
+2 NOTE @N1@
+2 CREDIBILITY credible
 0 @P1@ PLACE
 1 ADDRESS 5002 MyCorpCampus Dr
 2 CONTINUATION Hometown, ZZ  99999
@@ -50,4 +57,34 @@
 0 @G2@ GROUP
 1 NAME GROUP_NAME2
 1 TYPE literary society
+0 @N1@ NOTE some text
+1 RESTRICTION notice1
+0 @N2@ NOTE some other text
+1 RESTRICTION notice2
+0 @S1@ SOURCE
+1 TYPE BIRTH_REGISTRY
+1 TITLE birth of individual
+1 EVENT birth
+1 DATE 21 JUL 1900
+2 CALENDAR gregorian
+2 ORIGINAL_TEXT birth of individual was on July 21, 1900.
+2 CREDIBILITY 3
+1 LOCALE en_US
+1 EXTRACT was on July 21, 1900
+2 TYPE extract
+1 REPOSITORY @R1@
+2 REPOSITORY_LOCATION in that shelf
+2 NOTE @N2@
+1 FILE /images/births/birth.jpg
+2 FORMAT jpg
+2 MEDIA photo
+2 CUT 0 0 20 30
+2 PREFERRED <PREFERRED_VALUE>	/* Whether this source is the preferred one to show on the individual box. */
+2 ASSOCIATION <DOCUMENT_FILE_REFERENCE>    {0:M}
+3 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. For example it can be 'front'/'back', 'cover'/'inside', etc. */
+1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+
+0 @R1@ REPOSITORY
+
 0 EOF

@@ -28,7 +28,7 @@ import javax.swing.*;
 import java.awt.*;
 
 
-public class ScrollableContainerHost extends JPanel implements Scrollable{
+class ScrollableContainerHost extends JPanel implements Scrollable{
 
 	public ScrollableContainerHost(final JPanel panel){
 		super(new BorderLayout());

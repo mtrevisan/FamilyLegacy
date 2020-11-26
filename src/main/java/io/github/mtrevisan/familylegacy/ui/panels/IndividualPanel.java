@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
+import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
@@ -174,7 +175,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		if(listener != null){
 			attachPopUpMenu(individual, listener);
 
-			refresh(Flef.ACTION_COMMAND_INDIVIDUALS);
+			refresh(Flef.ACTION_COMMAND_INDIVIDUALS_COUNT);
 		}
 
 		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
@@ -353,7 +354,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final Integer actionCommand){
-		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUALS)
+		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUALS_COUNT)
 			return;
 
 		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());

@@ -33,6 +33,8 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
+import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

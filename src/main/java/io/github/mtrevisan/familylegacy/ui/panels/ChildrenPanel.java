@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
+import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
