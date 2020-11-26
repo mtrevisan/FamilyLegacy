@@ -71,6 +71,8 @@ public class GroupCitationDialog extends JDialog{
 		"Secondary evidence, data officially recorded sometime after event",
 		"Direct and primary evidence used, or by dominance of the evidence"});
 
+	private static final String KEY_GROUP_ID = "groupID";
+
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable groupsTable = new JTable(new GroupsTableModel());
@@ -114,9 +116,8 @@ public class GroupCitationDialog extends JDialog{
 			}
 		});
 
-		//TODO clicking on a line links to current citation
 		groupsTable.setAutoCreateRowSorter(true);
-		groupsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		groupsTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		groupsTable.setFocusable(false);
 		groupsTable.setGridColor(GRID_COLOR);
 		groupsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -132,6 +133,15 @@ public class GroupCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_GROUP_ID, idComparator);
 		sorter.setComparator(TABLE_INDEX_GROUP_NAME, Comparator.naturalOrder());
 		groupsTable.setRowSorter(sorter);
+		//clicking on a line links it to current group
+		groupsTable.getSelectionModel().addListSelectionListener(evt -> {
+			final int selectedRow = groupsTable.getSelectedRow();
+			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
+				final String selectedGroupName = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_NAME);
+				groupField.putClientProperty(KEY_GROUP_ID, groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID));
+				groupField.setText(selectedGroupName);
+			}
+		});
 
 		groupLabel.setLabelFor(groupField);
 		groupField.setEnabled(false);
@@ -155,6 +165,7 @@ public class GroupCitationDialog extends JDialog{
 //				final GedcomNode selectedFamily = getSelectedFamily();
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
+			final String groupID = (String)groupField.getClientProperty(KEY_GROUP_ID);
 
 			dispose();
 		});
@@ -200,10 +211,19 @@ public class GroupCitationDialog extends JDialog{
 				groupsModel.setValueAt(store.traverse(group, "NAME").getValue(), row, TABLE_INDEX_GROUP_NAME);
 			}
 
-			//TODO select row whose id match container.id
+			final String groupID = store.traverse(container, "GROUP").getXRef();
+			if(groupID != null)
+				for(int index = 0; index < size; index ++)
+					if(groupsModel.getValueAt(index, TABLE_INDEX_GROUP_ID).equals(groupID)){
+						//select row whose id match container.id
+						groupsTable.setRowSelectionInterval(index, index);
 
-			roleField.setText(store.traverse(container, "ROLE").getValue());
-			credibilityComboBox.setSelectedItem(store.traverse(container, "CREDIBILITY").getValue());
+						final GedcomNode currentGroup = store.getGroup(groupID);
+						groupField.putClientProperty(KEY_GROUP_ID, groupID);
+						groupField.setText(store.traverse(currentGroup, "NAME").getValue());
+						roleField.setText(store.traverse(container, "GROUP.ROLE").getValue());
+						credibilityComboBox.setSelectedItem(store.traverse(container, "GROUP.CREDIBILITY").getValue());
+					}
 		}
 	}
 
