@@ -214,6 +214,12 @@ final class GedcomGrammar{
 			if(!block.isEmpty())
 				//and process the last block
 				parseBlock(block);
+
+			//check for the presence of all records
+			for(final Map.Entry<String, Map<String, List<GedcomGrammarStructure>>> idToLink : idToVariationsLinks.entrySet())
+				for(final String structureName : idToLink.getValue().keySet())
+					if(!idToVariationsLinks.containsKey(structureName) && !variationsLinksToId.containsKey(structureName))
+						throw GedcomGrammarParseException.create("Record {} not found", structureName);
 		}
 		catch(final IOException e){
 			throw GedcomGrammarParseException.create("Failed to read line {}", lineCount);

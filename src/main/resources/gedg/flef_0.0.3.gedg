@@ -36,15 +36,13 @@ n <<PLACE_RECORD>>    {1:1}
 |
 n <<NOTE_RECORD>>    {1:1}
 |
-n <<REPOSITORY_RECORD>>    {1:1}
+n <<REPOSITORY_RECORD>>    {1:1}	/* True repository records and a submitter record. */
 |
 n <<SOURCE_RECORD>>    {1:1}
 |
 n <<CULTURAL_RULE_RECORD>>    {1:1}
 |
 n <<GROUP_RECORD>>    {1:1}
-|
-n <<REPOSITORY_RECORD2>>    {1:1}	/* An xref ID of the submitter record. */
 ]
 
 

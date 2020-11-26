@@ -25,11 +25,9 @@
 package io.github.mtrevisan.familylegacy.ui.panels;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
-import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -61,7 +59,7 @@ public class GroupCitationDialog extends JDialog{
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
-	private static final int ID_PREFERRED_WIDTH = 43;
+	private static final int ID_PREFERRED_WIDTH = 25;
 
 	private static final int TABLE_INDEX_GROUP_ID = 0;
 	private static final int TABLE_INDEX_GROUP_NAME = 1;
@@ -109,9 +107,6 @@ public class GroupCitationDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Groups");
 
-		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
-		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -126,8 +121,6 @@ public class GroupCitationDialog extends JDialog{
 		groupsTable.setGridColor(GRID_COLOR);
 		groupsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		groupsTable.getTableHeader().setFont(groupsTable.getFont().deriveFont(Font.BOLD));
-		final TableCellRenderer nameRenderer = new FamilyTableCellRenderer();
-		groupsTable.setDefaultRenderer(String.class, nameRenderer);
 		TableHelper.setColumnWidth(groupsTable, TABLE_INDEX_GROUP_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(groupsTable.getModel());
 		final Comparator<String> idComparator = (value1, value2) -> {
@@ -204,7 +197,7 @@ public class GroupCitationDialog extends JDialog{
 				final GedcomNode group = groups.get(row);
 
 				groupsModel.setValueAt(group.getID(), row, TABLE_INDEX_GROUP_ID);
-				groupsModel.setValueAt(store.traverse(group, "NAME"), row, TABLE_INDEX_GROUP_NAME);
+				groupsModel.setValueAt(store.traverse(group, "NAME").getValue(), row, TABLE_INDEX_GROUP_NAME);
 			}
 
 			//TODO select row whose id match container.id
@@ -253,13 +246,13 @@ public class GroupCitationDialog extends JDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
+		final Flef store = new Flef();
+		store.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = storeFlef.getFamilies().get(0);
+		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final GroupCitationDialog dialog = new GroupCitationDialog(storeFlef, new JFrame());
+			final GroupCitationDialog dialog = new GroupCitationDialog(store, new JFrame());
 			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
