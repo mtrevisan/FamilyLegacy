@@ -45,7 +45,9 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -152,7 +154,6 @@ public class GroupCitationDialog extends JDialog{
 		});
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
-			//TODO
 			final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
 			model.removeRow(groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow()));
 			removeButton.setEnabled(false);
@@ -181,6 +182,22 @@ public class GroupCitationDialog extends JDialog{
 			//TODO notes
 			//TODO source citations
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
+
+			final Set<GedcomNode> storeGroups = new HashSet<>(store.getGroups());
+			final Set<String> storeSourceIDs = new HashSet<>(storeGroups.size());
+			for(final GedcomNode storeGroup : storeGroups)
+				storeSourceIDs.add(storeGroup.getID());
+			final Set<String> tableGroupsID = new HashSet<>(groupsTable.getRowCount());
+			for(int i = 0; i < groupsTable.getRowCount(); i ++)
+				tableGroupsID.add((String)groupsTable.getValueAt(i, 0));
+			//remove every group that is still in the list
+			final Set<String> removableStoreGroupIDs = new HashSet<>(storeSourceIDs);
+			removableStoreGroupIDs.removeAll(tableGroupsID);
+			//add every group that is new in the list
+			final Set<String> addableStoreGroupIDs = new HashSet<>(tableGroupsID);
+			addableStoreGroupIDs.removeAll(storeSourceIDs);
+			//TODO remove every group not present in the list (because it was deleted)
+			//TODO add every group present in the list but not on the store (because it was added)
 
 			dispose();
 		});

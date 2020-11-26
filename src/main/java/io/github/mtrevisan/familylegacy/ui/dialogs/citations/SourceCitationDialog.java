@@ -43,7 +43,9 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -124,7 +126,6 @@ public class SourceCitationDialog extends JDialog{
 		});
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
-			//TODO
 			final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 			model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
 			removeButton.setEnabled(false);
@@ -137,6 +138,22 @@ public class SourceCitationDialog extends JDialog{
 //				final GedcomNode selectedFamily = getSelectedFamily();
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
+
+			final Set<GedcomNode> storeSources = new HashSet<>(store.getSources());
+			final Set<String> storeSourceIDs = new HashSet<>(storeSources.size());
+			for(final GedcomNode storeSource : storeSources)
+				storeSourceIDs.add(storeSource.getID());
+			final Set<String> tableSourcesID = new HashSet<>(sourcesTable.getRowCount());
+			for(int i = 0; i < sourcesTable.getRowCount(); i ++)
+				tableSourcesID.add((String)sourcesTable.getValueAt(i, 0));
+			//remove every source that is still in the list
+			final Set<String> removableStoreSourceIDs = new HashSet<>(storeSourceIDs);
+			removableStoreSourceIDs.removeAll(tableSourcesID);
+			//add every source that is new in the list
+			final Set<String> addableStoreSourceIDs = new HashSet<>(tableSourcesID);
+			addableStoreSourceIDs.removeAll(storeSourceIDs);
+			//TODO remove every source not present in the list (because it was deleted)
+			//TODO add every source present in the list but not on the store (because it was added)
 
 			dispose();
 		});

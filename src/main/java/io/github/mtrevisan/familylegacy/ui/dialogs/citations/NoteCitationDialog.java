@@ -43,7 +43,10 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -121,7 +124,6 @@ public class NoteCitationDialog extends JDialog{
 		});
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
-			//TODO
 			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
 			model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
 			removeButton.setEnabled(false);
@@ -134,6 +136,22 @@ public class NoteCitationDialog extends JDialog{
 //				final GedcomNode selectedFamily = getSelectedFamily();
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
+
+			final Set<GedcomNode> storeNotes = new HashSet<>(store.getNotes());
+			final Set<String> storeNoteIDs = new HashSet<>(storeNotes.size());
+			for(final GedcomNode storeNote : storeNotes)
+				storeNoteIDs.add(storeNote.getID());
+			final Set<String> tableNotesID = new HashSet<>(notesTable.getRowCount());
+			for(int i = 0; i < notesTable.getRowCount(); i ++)
+				tableNotesID.add((String)notesTable.getValueAt(i, 0));
+			//remove every note that is still in the list
+			final Set<String> removableStoreNoteIDs = new HashSet<>(storeNoteIDs);
+			removableStoreNoteIDs.removeAll(tableNotesID);
+			//add every note that is new in the list
+			final Set<String> addableStoreNoteIDs = new HashSet<>(tableNotesID);
+			addableStoreNoteIDs.removeAll(storeNoteIDs);
+			//TODO remove every note not present in the list (because it was deleted)
+			//TODO add every note present in the list but not on the store (because it was added)
 
 			dispose();
 		});
