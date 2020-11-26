@@ -114,29 +114,62 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final EditEvent editCommand){
-		if(editCommand.getType() == EditEvent.EditType.GROUP_CITATION){
-			final GroupCitationDialog groupCitationDialog = new GroupCitationDialog(store, this);
-			groupCitationDialog.loadData(editCommand.getContainer());
+		switch(editCommand.getType()){
+			case GROUP:
+				//TODO
+//				final GroupDialog groupDialog = new GroupDialog(store, this);
+//				groupDialog.loadData(editCommand.getContainer());
+//
+//				groupDialog.setSize(450, 500);
+//				groupDialog.setLocationRelativeTo(this);
+//				groupDialog.setVisible(true);
+				break;
 
-			groupCitationDialog.setSize(450, 500);
-			groupCitationDialog.setLocationRelativeTo(this);
-			groupCitationDialog.setVisible(true);
-		}
-		else if(editCommand.getType() == EditEvent.EditType.NOTE_CITATION){
-			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, this);
-			noteCitationDialog.loadData(editCommand.getContainer());
+			case GROUP_CITATION:
+				final GroupCitationDialog groupCitationDialog = new GroupCitationDialog(store, this);
+				groupCitationDialog.loadData(editCommand.getContainer());
 
-			noteCitationDialog.setSize(450, 500);
-			noteCitationDialog.setLocationRelativeTo(this);
-			noteCitationDialog.setVisible(true);
-		}
-		else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
-			final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
-			sourceCitationDialog.loadData(editCommand.getContainer());
+				groupCitationDialog.setSize(450, 500);
+				groupCitationDialog.setLocationRelativeTo(this);
+				groupCitationDialog.setVisible(true);
+				break;
 
-			sourceCitationDialog.setSize(450, 500);
-			sourceCitationDialog.setLocationRelativeTo(this);
-			sourceCitationDialog.setVisible(true);
+			case NOTE:
+				//TODO
+//				final NoteDialog noteDialog = new NoteDialog(store, this);
+//				noteDialog.loadData(editCommand.getContainer());
+//
+//				noteDialog.setSize(450, 500);
+//				noteDialog.setLocationRelativeTo(this);
+//				noteDialog.setVisible(true);
+				break;
+
+			case NOTE_CITATION:
+				final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, this);
+				noteCitationDialog.loadData(editCommand.getContainer());
+
+				noteCitationDialog.setSize(450, 500);
+				noteCitationDialog.setLocationRelativeTo(this);
+				noteCitationDialog.setVisible(true);
+				break;
+
+			case SOURCE:
+				//TODO
+//				final SourceDialog sourceDialog = new SourceDialog(store, this);
+//				sourceDialog.loadData(editCommand.getContainer());
+//
+//				sourceDialog.setSize(450, 500);
+//				sourceDialog.setLocationRelativeTo(this);
+//				sourceDialog.setVisible(true);
+				break;
+
+			case SOURCE_CITATION:
+				final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
+				sourceCitationDialog.loadData(editCommand.getContainer());
+
+				sourceCitationDialog.setSize(450, 500);
+				sourceCitationDialog.setLocationRelativeTo(this);
+				sourceCitationDialog.setVisible(true);
 		}
 	}
 

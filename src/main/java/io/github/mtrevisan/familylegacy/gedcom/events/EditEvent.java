@@ -31,9 +31,9 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 public class EditEvent{
 
 	public enum EditType{
-		GROUP_CITATION,
-		NOTE_CITATION,
-		SOURCE_CITATION
+		GROUP, GROUP_CITATION,
+		NOTE, NOTE_CITATION,
+		SOURCE, SOURCE_CITATION
 	}
 
 
