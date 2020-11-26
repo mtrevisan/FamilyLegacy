@@ -40,7 +40,11 @@ n <<REPOSITORY_RECORD>>    {1:1}
 |
 n <<SOURCE_RECORD>>    {1:1}
 |
-n <<SUBMITTER_RECORD>>    {1:1}
+n <<CULTURAL_RULE_RECORD>>    {1:1}
+|
+n <<GROUP_RECORD>>    {1:1}
+|
+n <<REPOSITORY_RECORD2>>    {1:1}	/* An xref ID of the submitter record. */
 ]
 
 
@@ -398,6 +402,8 @@ n <XREF:SOURCE> SOURCE    {1:1}	/* An xref ID of a source record. */
     +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
     +2 CUT <CUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
     +2 PREFERRED <PREFERRED_VALUE>	/* Whether this source is the preferred one to show on the individual box. */
+    +2 ASSOCIATION <DOCUMENT_FILE_REFERENCE>    {0:M}
+      +3 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. For example it can be 'front'/'back', 'cover'/'inside', etc. */
   +1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
 
@@ -415,7 +421,7 @@ n <XREF:RULE> CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
 
 GROUP_RECORD :=	/* A group can be of genealogical, historical, or general interest. Examples of groups that might be useful in genealogy research are households and neighborhoods as found in a census. A biological or legal traditional family (father, mother, children) is documented in a Family record rather than a Group record. Family-like groups such as communes, orphanages, group homes, and so on are documented here. */
 n <XREF:GROUP> GROUP    {1:1}	/* An xref ID of a group record. */
-  +1 NAME <GROUP_NAME>    {0:1}	/* The name of the group. */
+  +1 NAME <GROUP_NAME>    {1:1}	/* The name of the group. */
   +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
   +1 <<EVENT_DETAIL>>    {0:M}	/* An EVENT_DETAIL() object giving details related to a group. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */

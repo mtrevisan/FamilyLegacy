@@ -67,6 +67,7 @@ public class GroupCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_GROUP_NAME = 1;
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
+		"",
 		"Unreliable/estimated data",
 		"Questionable reliability of evidence",
 		"Secondary evidence, data officially recorded sometime after event",
@@ -253,7 +254,7 @@ public class GroupCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = storeFlef.getFamilies().get(0);
 

@@ -1,0 +1,51 @@
+0 HEADER
+1 PROTOCOL FLEF
+2 NAME Family LEgacy Format
+2 VERSION 0.0.2
+1 SOURCE PAF
+2 NAME MyCorporation Gedcom Generator
+2 VERSION 5.2.18.0
+2 CORPORATE MyCorporation, Inc.
+1 DATE 12 Dec 2012 12:12:12
+1 DEFAULT_CALENDAR GREGORIAN
+1 DEFAULT_LOCALE en-US
+0 @I1@ INDIVIDUAL
+1 NAME
+2 PERSONAL_NAME MyGiven1 MyGiven2
+3 NAME_SUFFIX  IV
+2 FAMILY_NAME MySurname
+1 EVENT BURIAL
+2 PLACE @P2@
+0 @P1@ PLACE
+1 ADDRESS 5002 MyCorpCampus Dr
+2 CONTINUATION Hometown, ZZ  99999
+2 CONTINUATION United States - Hometown, ZZ  99999 - United States - 5003 MyCorpCampus Dr
+1 CITY Hometown
+1 STATE ZZ
+1 COUNTRY United States
+0 @P2@ PLACE
+1 ADDRESS Arlington National Cemetery
+2 CONTINUATION State Hwy 110 & Memorial Dr
+2 CONTINUATION Arlington, VA  22211
+2 CONTINUATION United States - State Hwy 110 & Memorial Dr - Arlington, VA  22211 - United States
+1 CITY Arlington
+1 STATE VA
+1 COUNTRY United States
+0 @REPO3@ REPOSITORY
+1 NAME MyCorporation, Inc.
+1 PLACE @P1@
+1 CONTACT
+2 PHONE 866-000-0000
+2 EMAIL info@mycorporation.com
+2 PHONE 866-111-1111
+3 TYPE fax
+2 URL https://www.mycorporation.com/
+0 @SUBM1@ SOURCE
+1 TITLE submitter
+0 @G1@ GROUP
+1 NAME GROUP_NAME
+1 TYPE neighborhood
+0 @G2@ GROUP
+1 NAME GROUP_NAME
+1 TYPE literary society
+0 EOF

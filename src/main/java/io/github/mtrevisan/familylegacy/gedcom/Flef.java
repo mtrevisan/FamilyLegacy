@@ -420,26 +420,29 @@ public class Flef extends Store{
 	}
 
 	public String addPlace(final GedcomNode place){
-		//search place
-		final GedcomNode placeCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
-		String placeID = (placeValue != null? placeValue.get(placeCloned): null);
-		if(placeID == null){
-			//if place is not found:
-			if(places == null){
-				places = new ArrayList<>(1);
-				placeIndex = new HashMap<>(1);
-				placeValue = new HashMap<>(1);
-			}
-
-			placeID = place.getID();
+		String placeID = null;
+		if(!place.isEmpty()){
+			//search place
+			final GedcomNode placeCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
+			placeID = (placeValue != null? placeValue.get(placeCloned): null);
 			if(placeID == null){
-				placeID = getNextPlaceID();
-				place.withID(placeID);
-			}
+				//if place is not found:
+				if(places == null){
+					places = new ArrayList<>(1);
+					placeIndex = new HashMap<>(1);
+					placeValue = new HashMap<>(1);
+				}
 
-			places.add(place);
-			placeIndex.put(placeID, place);
-			placeValue.put(placeCloned, placeID);
+				placeID = place.getID();
+				if(placeID == null){
+					placeID = getNextPlaceID();
+					place.withID(placeID);
+				}
+
+				places.add(place);
+				placeIndex.put(placeID, place);
+				placeValue.put(placeCloned, placeID);
+			}
 		}
 		return placeID;
 	}
