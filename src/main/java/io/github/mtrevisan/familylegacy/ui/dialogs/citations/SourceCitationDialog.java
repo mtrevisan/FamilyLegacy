@@ -139,21 +139,15 @@ public class SourceCitationDialog extends JDialog{
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
 
-			final Set<GedcomNode> storeSources = new HashSet<>(store.getSources());
-			final Set<String> storeSourceIDs = new HashSet<>(storeSources.size());
-			for(final GedcomNode storeSource : storeSources)
-				storeSourceIDs.add(storeSource.getID());
-			final Set<String> tableSourcesID = new HashSet<>(sourcesTable.getRowCount());
-			for(int i = 0; i < sourcesTable.getRowCount(); i ++)
-				tableSourcesID.add((String)sourcesTable.getValueAt(i, 0));
-			//remove every source that is still in the list
-			final Set<String> removableStoreSourceIDs = new HashSet<>(storeSourceIDs);
-			removableStoreSourceIDs.removeAll(tableSourcesID);
-			//add every source that is new in the list
-			final Set<String> addableStoreSourceIDs = new HashSet<>(tableSourcesID);
-			addableStoreSourceIDs.removeAll(storeSourceIDs);
-			//TODO remove every source not present in the list (because it was deleted)
-			//TODO add every source present in the list but not on the store (because it was added)
+			//remove all reference to sources from the container
+			container.removeChildrenWithTag("SOURCE");
+			//add all the remaining references to source to the container
+			//TODO ummm... cannot work, there are other dato apart from the xref
+			for(int i = 0; i < sourcesTable.getRowCount(); i ++){
+				final String id = (String)sourcesTable.getValueAt(i, TABLE_INDEX_SOURCE_ID);
+				container.addChildReference("SOURCE", id);
+			}
+			//TODO remember, when saving, to remove all non-referenced notes!
 
 			dispose();
 		});

@@ -33,6 +33,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -260,6 +261,15 @@ public abstract class GedcomNode{
 		else
 			taggedChildren = Collections.emptyList();
 		return taggedChildren;
+	}
+
+	public void removeChildrenWithTag(final String... tags){
+		if(children != null){
+			final Iterator<GedcomNode> itr = children.iterator();
+			while(itr.hasNext())
+				if(ArrayUtils.contains(tags, itr.next().tag))
+					itr.remove();
+		}
 	}
 
 	public boolean isCustom(){

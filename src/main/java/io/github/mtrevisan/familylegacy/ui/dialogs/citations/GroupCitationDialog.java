@@ -183,21 +183,15 @@ public class GroupCitationDialog extends JDialog{
 			//TODO source citations
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
-			final Set<GedcomNode> storeGroups = new HashSet<>(store.getGroups());
-			final Set<String> storeSourceIDs = new HashSet<>(storeGroups.size());
-			for(final GedcomNode storeGroup : storeGroups)
-				storeSourceIDs.add(storeGroup.getID());
-			final Set<String> tableGroupsID = new HashSet<>(groupsTable.getRowCount());
-			for(int i = 0; i < groupsTable.getRowCount(); i ++)
-				tableGroupsID.add((String)groupsTable.getValueAt(i, 0));
-			//remove every group that is still in the list
-			final Set<String> removableStoreGroupIDs = new HashSet<>(storeSourceIDs);
-			removableStoreGroupIDs.removeAll(tableGroupsID);
-			//add every group that is new in the list
-			final Set<String> addableStoreGroupIDs = new HashSet<>(tableGroupsID);
-			addableStoreGroupIDs.removeAll(storeSourceIDs);
-			//TODO remove every group not present in the list (because it was deleted)
-			//TODO add every group present in the list but not on the store (because it was added)
+			//remove all reference to groups from the container
+			container.removeChildrenWithTag("GROUP");
+			//add all the remaining groups to notes to the container
+			//TODO ummm... cannot work, there are other dato apart from the xref
+			for(int i = 0; i < groupsTable.getRowCount(); i ++){
+				final String id2 = (String)groupsTable.getValueAt(i, TABLE_INDEX_GROUP_ID);
+				container.addChildReference("GROUP", id2);
+			}
+			//TODO remember, when saving, to remove all non-referenced notes!
 
 			dispose();
 		});

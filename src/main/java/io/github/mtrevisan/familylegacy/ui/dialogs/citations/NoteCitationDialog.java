@@ -43,10 +43,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -70,6 +67,7 @@ public class NoteCitationDialog extends JDialog{
 	private final JTable notesTable = new JTable(new GroupsTableModel());
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
+	private final JButton editButton = new JButton("Edit");
 	private final JButton removeButton = new JButton("Remove");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -122,6 +120,11 @@ public class NoteCitationDialog extends JDialog{
 		addButton.addActionListener(evt -> {
 			//TODO
 		});
+		editButton.setEnabled(false);
+		editButton.addActionListener(evt -> {
+			//TODO
+			editButton.setEnabled(false);
+		});
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
 			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
@@ -137,21 +140,14 @@ public class NoteCitationDialog extends JDialog{
 //				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 //			}
 
-			final Set<GedcomNode> storeNotes = new HashSet<>(store.getNotes());
-			final Set<String> storeNoteIDs = new HashSet<>(storeNotes.size());
-			for(final GedcomNode storeNote : storeNotes)
-				storeNoteIDs.add(storeNote.getID());
-			final Set<String> tableNotesID = new HashSet<>(notesTable.getRowCount());
-			for(int i = 0; i < notesTable.getRowCount(); i ++)
-				tableNotesID.add((String)notesTable.getValueAt(i, 0));
-			//remove every note that is still in the list
-			final Set<String> removableStoreNoteIDs = new HashSet<>(storeNoteIDs);
-			removableStoreNoteIDs.removeAll(tableNotesID);
-			//add every note that is new in the list
-			final Set<String> addableStoreNoteIDs = new HashSet<>(tableNotesID);
-			addableStoreNoteIDs.removeAll(storeNoteIDs);
-			//TODO remove every note not present in the list (because it was deleted)
-			//TODO add every note present in the list but not on the store (because it was added)
+			//remove all reference to notes from the container
+			container.removeChildrenWithTag("NOTE");
+			//add all the remaining references to notes to the container
+			for(int i = 0; i < notesTable.getRowCount(); i ++){
+				final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
+				container.addChildReference("NOTE", id);
+			}
+			//TODO remember, when saving, to remove all non-referenced notes!
 
 			dispose();
 		});
@@ -161,7 +157,8 @@ public class NoteCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 2,sizegroup button2");
+		add(addButton, "tag add,split 3,sizegroup button2");
+		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

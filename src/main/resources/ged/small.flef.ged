@@ -83,7 +83,10 @@
 2 ASSOCIATION /images/births/birth02.jpg
 3 RELATIONSHIP next page
 1 URL www.google.com
-1 NOTE @N2@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+1 NOTE @N2@
 0 @R1@ REPOSITORY
 1 NAME state archive
+0 @N1@ NOTE note 1
+1 RESTRICTION confidential
+0 @N2@ NOTE note 2
 0 EOF

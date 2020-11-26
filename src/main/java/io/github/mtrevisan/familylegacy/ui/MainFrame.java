@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
@@ -136,12 +137,12 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 			case NOTE:
 				//TODO
-//				final NoteDialog noteDialog = new NoteDialog(store, this);
-//				noteDialog.loadData(editCommand.getContainer());
-//
-//				noteDialog.setSize(450, 500);
-//				noteDialog.setLocationRelativeTo(this);
-//				noteDialog.setVisible(true);
+				final NoteDialog noteDialog = new NoteDialog(store, this);
+				noteDialog.loadData(editCommand.getContainer());
+
+				noteDialog.setSize(450, 500);
+				noteDialog.setLocationRelativeTo(this);
+				noteDialog.setVisible(true);
 				break;
 
 			case NOTE_CITATION:

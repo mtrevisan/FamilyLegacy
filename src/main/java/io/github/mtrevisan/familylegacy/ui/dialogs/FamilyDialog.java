@@ -37,7 +37,6 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 
 public class FamilyDialog extends JDialog{
@@ -158,8 +157,6 @@ public class FamilyDialog extends JDialog{
 	}
 
 	private void loadData(){
-		final List<GedcomNode> families = store.getFamilies();
-
 		typeComboBox.setSelectedItem(store.traverse(family, "TYPE").getValue());
 		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
 	}
