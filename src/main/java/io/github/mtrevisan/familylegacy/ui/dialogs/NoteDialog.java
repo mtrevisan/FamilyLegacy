@@ -113,7 +113,8 @@ public class NoteDialog extends JDialog{
 
 	private final JTextArea textView = new JTextArea();
 	private final JScrollPane textScroll = new JScrollPane(textView);
-	private final JTextPane previewView = new JTextPane();
+//	private final JTextPane previewView = new JTextPane();
+	private final JEditorPane previewView = new JEditorPane();
 	private final JScrollPane previewScroll = new JScrollPane(previewView);
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
@@ -143,6 +144,13 @@ public class NoteDialog extends JDialog{
 
 		previewView.setEditable(false);
 		//FIXME remove word wrap
+		//https://stackoverflow.com/questions/7156038/jtextpane-line-wrapping
+		//http://www.jguru.com/faq/view.jsp?EID=253404
+		//1. Putting TextPane inside a JPanel, then adding the JPanel inside a JScrollPane
+		//2. Extending the TextPane class and override the getScrollableTracksViewportWidth() and getSize() methods.
+		//https://community.oracle.com/tech/developers/discussion/1353861/disabling-word-wrap-for-jtextpane
+		//https://community.oracle.com/tech/developers/discussion/2376090/word-wraping-behaviour-in-jtextpane-since-java-7
+		//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
 //		previewView.setEditorKit(new NoWrapEditorKit());
 		previewView.setContentType("text/html");
 		//manage links
