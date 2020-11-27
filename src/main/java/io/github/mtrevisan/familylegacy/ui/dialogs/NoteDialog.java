@@ -112,9 +112,7 @@ public class NoteDialog extends JDialog{
 
 
 	private final JTextArea textView = new JTextArea();
-	private final JScrollPane textScroll = new JScrollPane(textView);
 	private final JEditorPane previewView = new JEditorPane();
-	private JScrollPane previewScroll;
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
@@ -139,6 +137,7 @@ public class NoteDialog extends JDialog{
 		attachPopUpMenu(textView);
 		addUndoCapability(textView);
 
+		final JScrollPane textScroll = new JScrollPane(textView);
 		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 		previewView.setEditable(false);
@@ -150,10 +149,10 @@ public class NoteDialog extends JDialog{
 		});
 
 		//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
+		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
 		final JPanel intermediatePreviewPanel = new JPanel();
 		intermediatePreviewPanel.add(previewView);
-		previewScroll = new JScrollPane(intermediatePreviewPanel);
-		previewScroll.putClientProperty(PREVIEW_AUTOHIDE_WIDTH, 600);
+		final JScrollPane previewScroll = new JScrollPane(intermediatePreviewPanel);
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 		final JScrollBar textVerticalScrollBar = textScroll.getVerticalScrollBar();
@@ -195,6 +194,11 @@ public class NoteDialog extends JDialog{
 			}
 		});
 
+		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, textScroll, previewScroll);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setDividerLocation(400);
+		splitPane.putClientProperty(PREVIEW_AUTOHIDE_WIDTH, 600);
+
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
@@ -220,10 +224,11 @@ public class NoteDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		final MigLayout layout = new MigLayout("debug", "[400,grow]0[]");
+		final MigLayout layout = new MigLayout();
 		setLayout(layout);
-		add(textScroll, "grow,split 2");
-		add(previewScroll, "gapx rel,grow,hidemode 3");
+		add(splitPane);
+//		add(textScroll, "grow,split 2");
+//		add(previewScroll, "gapx rel,grow,hidemode 3");
 		add(restrictionLabel, "newline,alignx right,split 2");
 		add(restrictionComboBox, "wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
@@ -233,14 +238,17 @@ public class NoteDialog extends JDialog{
 		layout.addLayoutCallback(new LayoutCallback(){
 			@Override
 			public void correctBounds(final ComponentWrapper wrapper){
-				final Number width = (Number)previewScroll.getClientProperty(PREVIEW_AUTOHIDE_WIDTH);
+				final Number width = (Number)splitPane.getClientProperty(PREVIEW_AUTOHIDE_WIDTH);
 				if(width != null){
-					final int parentWidth = previewScroll.getParent().getWidth();
+					final int parentWidth = splitPane.getParent().getWidth();
 					final int selfWidth = width.intValue();
-					if(previewScroll.isVisible() && parentWidth < selfWidth)
-						previewScroll.setVisible(false);
-					else if(!previewScroll.isVisible() && parentWidth > selfWidth)
-						previewScroll.setVisible(true);
+					final int components = splitPane.getComponentCount();
+					if(components == 3 && parentWidth < selfWidth)
+						splitPane.remove(previewScroll);
+					else if(components == 2 && parentWidth > selfWidth){
+						splitPane.add(previewScroll);
+						splitPane.setDividerLocation(400);
+					}
 				}
 			}
 		});
@@ -266,12 +274,7 @@ public class NoteDialog extends JDialog{
 			PREFERENCES.putBoolean(KEY_PREVIEW, preview);
 
 			//TODO expand component to reveal preview
-			final Dimension size = getSize();
-			size.width = (preview? 800: 400);
-			setSize(size);
-			textScroll.setSize(400, textScroll.getHeight());
-			if(preview)
-				previewScroll.setSize(400, previewScroll.getHeight());
+			setSize((preview? 800: 400), getHeight());
 			repaint();
 		});
 		previewItem.setSelected(PREFERENCES.getBoolean(KEY_PREVIEW, false));
