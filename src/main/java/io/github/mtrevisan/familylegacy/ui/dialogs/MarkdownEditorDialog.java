@@ -39,6 +39,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
+import java.util.StringJoiner;
 import java.util.prefs.Preferences;
 
 
@@ -47,6 +49,7 @@ public class MarkdownEditorDialog extends JDialog{
 
 	private static final Parser MARKDOWN_PARSER;
 	private static final HtmlRenderer HTML_RENDERER;
+
 	static{
 		final MutableDataHolder markdownOptions = new MutableDataSet();
 		/** @see <a href="https://github.com/vsch/flexmark-java/wiki/Extensions">FlexMark Extensions</a> */
@@ -63,8 +66,32 @@ public class MarkdownEditorDialog extends JDialog{
 	private static final String ACTION_MAP_KEY_REDO = "redo";
 
 	private static final File FILE_HTML_CSS = new File("D:\\Mauro\\FamilyLegacy\\src\\main\\resources\\markdown\\css\\markdown-github.css");
-	private static final String HTML_START = "<!DOCTYPE HTML>\n<html>\n<head>\n<title>NOTE</title>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n";
-	private static final String HTML_END = "\n</body>\n</html>";
+	private static final String HTML_NEWLINE = "\n";
+	private static final String HTML_START_LANGUAGE = new StringJoiner(HTML_NEWLINE)
+		.add("<!DOCTYPE HTML>")
+		.add("<html xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"")
+		.toString();
+	private static final String HTML_LANGUAGE_TITLE = new StringJoiner(HTML_NEWLINE)
+		.add("\">")
+		.add("<head>")
+			.add("<title>")
+		.toString();
+	private static final String HTML_TITLE_STYLE = new StringJoiner(HTML_NEWLINE)
+		.add("</title>")
+			.add("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />")
+		.add(StringUtils.EMPTY)
+		.toString();
+	private static final String HTML_STYLE_BODY_BOUNDARY = new StringJoiner(HTML_NEWLINE)
+		.add(StringUtils.EMPTY)
+		.add("</head>")
+		.add("<body>")
+		.add(StringUtils.EMPTY)
+		.toString();
+	private static final String HTML_BODY_END = new StringJoiner(HTML_NEWLINE)
+		.add(StringUtils.EMPTY)
+		.add("</body>")
+		.add("</html>")
+		.toString();
 
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(MarkdownEditorDialog.class);
 	private static final String LINE_WRAP = "word.wrap";
@@ -75,6 +102,7 @@ public class MarkdownEditorDialog extends JDialog{
 	private final JTextPane previewView = new JTextPane();
 	private final JScrollPane previewScroll = new JScrollPane(previewView);
 
+	//show/hide preview
 	private boolean previewVisible = true;
 
 
@@ -248,8 +276,11 @@ public class MarkdownEditorDialog extends JDialog{
 		if(!outputFile.getName().toLowerCase().endsWith(".html"))
 			outputFile = new File(outputFile.getPath() + ".html");
 
+		//FIXME retrieve this data from GedcomNode
+final String title = "NOTE N1";
+final Locale locale = Locale.US;
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
-			out.write(extractHtml().getBytes());
+			out.write(extractHtml(title, locale).getBytes());
 			out.close();
 			JOptionPane.showMessageDialog(this, "Export HTML successful!");
 		}
@@ -258,8 +289,12 @@ public class MarkdownEditorDialog extends JDialog{
 		}
 	}
 
-	private String extractHtml(){
-		return HTML_START + extractStyle() + "\n</head>\n<body>\n" + previewView.getText() + HTML_END;
+	private String extractHtml(final String title, final Locale locale){
+		return HTML_START_LANGUAGE + locale.getLanguage()
+			+ HTML_LANGUAGE_TITLE + title
+			+ HTML_TITLE_STYLE + extractStyle()
+			+ HTML_STYLE_BODY_BOUNDARY + previewView.getText()
+			+ HTML_BODY_END;
 	}
 
 	private String extractStyle(){

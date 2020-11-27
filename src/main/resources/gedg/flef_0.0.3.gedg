@@ -20,7 +20,7 @@ n HEADER    {1:1}
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
   +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was created. */
   +1 DEFAULT_CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
-  +1 DEFAULT_LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the place address form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
+  +1 DEFAULT_LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the place address form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
   +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
   +1 SUBMITTER @<XREF:REPOSITORY>@    {1:1}	/* An xref ID of the submitter of this file. */
   +1 NOTE <CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
@@ -355,6 +355,7 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
 
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter. */
+  +1 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
@@ -410,7 +411,7 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
     +2 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
     +2 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-  +1 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
     +2 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
   +1 REPOSITORY @<XREF:REPOSITORY>@    {0:M}	/* A list of xref ID of repository records who owns this source. */
