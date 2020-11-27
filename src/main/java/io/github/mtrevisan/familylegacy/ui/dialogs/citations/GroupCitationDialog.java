@@ -45,9 +45,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -68,7 +66,7 @@ public class GroupCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_GROUP_TYPE = 2;
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
-		"",
+		StringUtils.EMPTY,
 		"Unreliable/estimated data",
 		"Questionable reliability of evidence",
 		"Secondary evidence, data officially recorded sometime after event",

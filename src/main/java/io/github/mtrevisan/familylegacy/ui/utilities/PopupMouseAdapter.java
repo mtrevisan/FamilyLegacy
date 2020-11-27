@@ -22,37 +22,37 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.panels;
+package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 
-class PopupMouseAdapter extends MouseAdapter{
+public class PopupMouseAdapter extends MouseAdapter{
 
 	private final JPopupMenu popupMenu;
 	private final JComponent component;
 
 
-	PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
+	public PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
 		this.popupMenu = popupMenu;
 		this.component = component;
 	}
 
 	@Override
-	public void mouseClicked(final MouseEvent e){
-		processMouseEvent(e);
+	public void mouseClicked(final MouseEvent event){
+		processMouseEvent(event);
 	}
 
 	@Override
-	public void mouseReleased(final MouseEvent e){
-		processMouseEvent(e);
+	public void mouseReleased(final MouseEvent event){
+		processMouseEvent(event);
 	}
 
-	private void processMouseEvent(final MouseEvent e){
-		if(e.isPopupTrigger()){
-			popupMenu.show(e.getComponent(), e.getX(), e.getY());
+	private void processMouseEvent(final MouseEvent event){
+		if(event.isPopupTrigger()){
+			popupMenu.show(event.getComponent(), event.getX(), event.getY());
 			popupMenu.setInvoker(component);
 		}
 	}

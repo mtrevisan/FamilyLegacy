@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,11 +44,11 @@ public class FamilyDialog extends JDialog{
 
 	private static final long serialVersionUID = 2075397360104239479L;
 
-	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{"", "unknown", "marriage",
-		"not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",
+	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "unknown",
+		"marriage", "not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",
 		"living together", "living apart together"});
-	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{"", "confidential",
-		"locked", "private"});
+	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"confidential", "locked", "private"});
 
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);

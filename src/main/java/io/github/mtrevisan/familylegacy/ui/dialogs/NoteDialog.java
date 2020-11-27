@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,8 +39,8 @@ public class NoteDialog extends JDialog{
 
 	private static final long serialVersionUID = -4482865564398487970L;
 
-	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{"", "confidential",
-		"locked", "private"});
+	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"confidential", "locked", "private"});
 
 	private final JTextArea textArea = new JTextArea(20, 50);
 	private final JScrollPane textAreaScrollPane = new JScrollPane(textArea);

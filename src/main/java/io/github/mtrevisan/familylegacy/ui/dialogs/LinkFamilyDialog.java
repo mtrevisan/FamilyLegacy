@@ -338,7 +338,10 @@ public class LinkFamilyDialog extends JDialog{
 
 
 		FamiliesTableModel(){
-			super(new String[]{"ID", "Spouse 1", "", "", "Spouse 1 ID", "Spouse 2", "", "", "Spouse 2 ID", "Date", "Place",
+			super(new String[]{"ID",
+				"Spouse 1", StringUtils.EMPTY, StringUtils.EMPTY, "Spouse 1 ID",
+				"Spouse 2", StringUtils.EMPTY, StringUtils.EMPTY, "Spouse 2 ID",
+				"Date", "Place",
 				"spouse1 additional names", "spouse2 additional names"}, 0);
 		}
 

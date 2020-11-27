@@ -300,6 +300,14 @@
 			<version>5.2</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-all</artifactId>
+			<version>0.62.2</version>
+		</dependency>
+
+
 		<!-- JSON -->
 <!--		<dependency>-->
 <!--			<groupId>com.google.code.gson</groupId>-->

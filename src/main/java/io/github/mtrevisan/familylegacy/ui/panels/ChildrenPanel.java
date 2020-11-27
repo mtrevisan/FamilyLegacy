@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -102,7 +103,7 @@ public class ChildrenPanel extends JPanel{
 				box.add(familyLabel, "alignx right");
 				box.add(individualBox);
 
-				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: ""));
+				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
 			}
 		}
 	}
