@@ -13,6 +13,8 @@ import com.vladsch.flexmark.util.data.MutableDataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
+import net.miginfocom.layout.ComponentWrapper;
+import net.miginfocom.layout.LayoutCallback;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -96,6 +98,8 @@ public class MarkdownEditorDialog extends JDialog{
 	private static final String KEY_LINE_WRAP = "word.wrap";
 	private static final String KEY_PREVIEW = "preview";
 
+	private static final String PREVIEW_AUTOHIDE_WIDTH = "autohide.width";
+
 	private static final UndoManager UNDO_MANAGER = new UndoManager();
 
 
@@ -129,7 +133,7 @@ public class MarkdownEditorDialog extends JDialog{
 				FileHelper.browseURL(event.getURL().toString());
 		});
 
-		previewScroll.setVisible(false);
+		previewScroll.putClientProperty(PREVIEW_AUTOHIDE_WIDTH, 600);
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(),
 			BorderFactory.createLoweredBevelBorder()));
@@ -174,10 +178,27 @@ public class MarkdownEditorDialog extends JDialog{
 		});
 
 
-		setLayout(new MigLayout("insets 0", "[400,grow]rel[400,grow]"));
+		final MigLayout layout = new MigLayout("debug,insets 0", "[400,grow]0[400,grow]");
+		setLayout(layout);
 		add(textScroll);
 		//FIXME expand/contract windows following previewScroll's visibility
-		add(previewScroll);
+		add(previewScroll, "gapx rel,hidemode 3");
+
+		//NOTE: hide or show `previewScroll` based on dialog width
+		layout.addLayoutCallback(new LayoutCallback(){
+			@Override
+			public void correctBounds(final ComponentWrapper wrapper){
+				final Number width = (Number)previewScroll.getClientProperty(PREVIEW_AUTOHIDE_WIDTH);
+				if(width != null){
+					final int parentWidth = previewScroll.getParent().getWidth();
+					final int selfWidth = width.intValue();
+					if(previewScroll.isVisible() && parentWidth < selfWidth)
+						previewScroll.setVisible(false);
+					else if(!previewScroll.isVisible() && parentWidth > selfWidth)
+						previewScroll.setVisible(true);
+				}
+			}
+		});
 	}
 
 	private void addUndoCapability(final JTextComponent textComponent){
@@ -199,7 +220,14 @@ public class MarkdownEditorDialog extends JDialog{
 			final boolean preview = ((AbstractButton)event.getSource()).isSelected();
 			PREFERENCES.putBoolean(KEY_PREVIEW, preview);
 
-			previewScroll.setVisible(preview);
+			//TODO expand component to reveal preview
+			final Dimension size = getSize();
+			size.width = (preview? 800: 400);
+			setSize(size);
+			textScroll.setSize(400, textScroll.getHeight());
+			if(preview)
+				previewScroll.setSize(400, previewScroll.getHeight());
+			repaint();
 		});
 		previewItem.setSelected(PREFERENCES.getBoolean(KEY_PREVIEW, false));
 		popupMenu.add(previewItem);
