@@ -49,7 +49,6 @@ public class MarkdownEditorDialog extends JDialog{
 
 	private static final Parser MARKDOWN_PARSER;
 	private static final HtmlRenderer HTML_RENDERER;
-
 	static{
 		final MutableDataHolder markdownOptions = new MutableDataSet();
 		/** @see <a href="https://github.com/vsch/flexmark-java/wiki/Extensions">FlexMark Extensions</a> */
@@ -94,16 +93,16 @@ public class MarkdownEditorDialog extends JDialog{
 		.toString();
 
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(MarkdownEditorDialog.class);
-	private static final String LINE_WRAP = "word.wrap";
+	private static final String KEY_LINE_WRAP = "word.wrap";
+	private static final String KEY_PREVIEW = "preview";
+
+	private static final UndoManager UNDO_MANAGER = new UndoManager();
 
 
 	private final JTextArea textView = new JTextArea();
 	private final JScrollPane textScroll = new JScrollPane(textView);
 	private final JTextPane previewView = new JTextPane();
 	private final JScrollPane previewScroll = new JScrollPane(previewView);
-
-	//show/hide preview
-	private boolean previewVisible = true;
 
 
 	public MarkdownEditorDialog(){
@@ -114,8 +113,6 @@ public class MarkdownEditorDialog extends JDialog{
 		textView.setDragEnabled(true);
 		textView.setTabSize(3);
 		attachPopUpMenu(textView);
-
-		//add undo capability
 		addUndoCapability(textView);
 
 		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -132,6 +129,7 @@ public class MarkdownEditorDialog extends JDialog{
 				FileHelper.browseURL(event.getURL().toString());
 		});
 
+		previewScroll.setVisible(false);
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createRaisedBevelBorder(),
 			BorderFactory.createLoweredBevelBorder()));
@@ -157,7 +155,7 @@ public class MarkdownEditorDialog extends JDialog{
 			previewVerticalScrollBar.addAdjustmentListener(listener);
 		});
 		previewVerticalScrollBar.addAdjustmentListener(e -> {
-			if(previewVisible){
+			if(PREFERENCES.getBoolean(KEY_PREVIEW, false)){
 				final double textMin = textVerticalScrollBar.getMinimum();
 				final double textMax = textVerticalScrollBar.getMaximum();
 				final double textVisibleAmount = textVerticalScrollBar.getVisibleAmount();
@@ -178,59 +176,43 @@ public class MarkdownEditorDialog extends JDialog{
 
 		setLayout(new MigLayout("insets 0", "[400,grow]rel[400,grow]"));
 		add(textScroll);
+		//FIXME expand/contract windows following previewScroll's visibility
 		add(previewScroll);
 	}
 
 	private void addUndoCapability(final JTextComponent textComponent){
-		final UndoManager undoManager = new UndoManager();
 		final Document doc = textComponent.getDocument();
-		doc.addUndoableEditListener(event -> undoManager.addEdit(event.getEdit()));
+		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
 		final InputMap textInputMap = textComponent.getInputMap(JComponent.WHEN_FOCUSED);
 		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
 		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
 		final ActionMap textActionMap = textComponent.getActionMap();
-		textActionMap.put(ACTION_MAP_KEY_UNDO, new AbstractAction(){
-			private static final long serialVersionUID = -167659402186653426L;
-
-			@Override
-			public void actionPerformed(final ActionEvent event){
-				try{
-					if(undoManager.canUndo())
-						undoManager.undo();
-				}
-				catch(final CannotUndoException e){
-					e.printStackTrace();
-				}
-			}
-		});
-		textActionMap.put(ACTION_MAP_KEY_REDO, new AbstractAction(){
-			private static final long serialVersionUID = 439250417104078123L;
-
-			@Override
-			public void actionPerformed(final ActionEvent event){
-				try{
-					if(undoManager.canRedo())
-						undoManager.redo();
-				}
-				catch(final CannotUndoException e){
-					e.printStackTrace();
-				}
-			}
-		});
+		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
+		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
 	private void attachPopUpMenu(final JComponent component){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
+		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
+		previewItem.addActionListener(event -> {
+			final boolean preview = ((AbstractButton)event.getSource()).isSelected();
+			PREFERENCES.putBoolean(KEY_PREVIEW, preview);
+
+			previewScroll.setVisible(preview);
+		});
+		previewItem.setSelected(PREFERENCES.getBoolean(KEY_PREVIEW, false));
+		popupMenu.add(previewItem);
+
 		final JCheckBoxMenuItem lineWrapItem = new JCheckBoxMenuItem("Line wrap");
 		lineWrapItem.addActionListener(event -> {
-			final boolean lineWrap = ((AbstractButton) event.getSource()).isSelected();
-			PREFERENCES.putBoolean(LINE_WRAP, lineWrap);
+			final boolean lineWrap = ((AbstractButton)event.getSource()).isSelected();
+			PREFERENCES.putBoolean(KEY_LINE_WRAP, lineWrap);
 
 			textView.setWrapStyleWord(lineWrap);
 			textView.setLineWrap(lineWrap);
 		});
-		lineWrapItem.setSelected(PREFERENCES.getBoolean(LINE_WRAP, false));
+		lineWrapItem.setSelected(PREFERENCES.getBoolean(KEY_LINE_WRAP, false));
 		popupMenu.add(lineWrapItem);
 
 		final JMenuItem htmlExportItem = new JMenuItem("Export to HTML…");
@@ -313,6 +295,36 @@ final Locale locale = Locale.US;
 		return style;
 	}
 
+
+	private static class UndoAction extends AbstractAction{
+		private static final long serialVersionUID = -167659402186653426L;
+
+		@Override
+		public void actionPerformed(final ActionEvent event){
+			try{
+				if(UNDO_MANAGER.canUndo())
+					UNDO_MANAGER.undo();
+			}
+			catch(final CannotUndoException e){
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static class RedoAction extends AbstractAction{
+		private static final long serialVersionUID = 439250417104078123L;
+
+		@Override
+		public void actionPerformed(final ActionEvent event){
+			try{
+				if(UNDO_MANAGER.canRedo())
+					UNDO_MANAGER.redo();
+			}
+			catch(final CannotUndoException e){
+				e.printStackTrace();
+			}
+		}
+	}
 
 	//FIXME
 //	private static final class NoWrapEditorKit extends HTMLEditorKit{
