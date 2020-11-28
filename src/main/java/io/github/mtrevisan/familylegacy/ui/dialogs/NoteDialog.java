@@ -100,9 +100,6 @@ public class NoteDialog extends JDialog{
 
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
 	private static final String KEY_LINE_WRAP = "word.wrap";
-	private static final String KEY_PREVIEW = "preview";
-
-	private static final String PREVIEW_AUTOHIDE_WIDTH = "autohide.width";
 
 	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"confidential", "locked", "private"});
@@ -176,28 +173,26 @@ public class NoteDialog extends JDialog{
 			previewVerticalScrollBar.addAdjustmentListener(listener);
 		});
 		previewVerticalScrollBar.addAdjustmentListener(e -> {
-			if(PREFERENCES.getBoolean(KEY_PREVIEW, false)){
-				final double textMin = textVerticalScrollBar.getMinimum();
-				final double textMax = textVerticalScrollBar.getMaximum();
-				final double textVisibleAmount = textVerticalScrollBar.getVisibleAmount();
-				final double previewMin = previewVerticalScrollBar.getMinimum();
-				final double previewMax = previewVerticalScrollBar.getMaximum();
-				final double previewVisibleAmount = previewVerticalScrollBar.getVisibleAmount();
-				final double percent = previewVerticalScrollBar.getValue() / (previewMax - previewMin - previewVisibleAmount);
-				//remove the AdjustmentListener of textScroll
-				final AdjustmentListener listener = textVerticalScrollBar.getAdjustmentListeners()[0];
-				textVerticalScrollBar.removeAdjustmentListener(listener);
-				//set the value of scrollbar in textScroll
-				textVerticalScrollBar.setValue((int)(textMin + percent * (textMax - textMin - textVisibleAmount)));
-				//add back the AdjustmentListener of textScroll
-				textVerticalScrollBar.addAdjustmentListener(listener);
-			}
+			final double textMin = textVerticalScrollBar.getMinimum();
+			final double textMax = textVerticalScrollBar.getMaximum();
+			final double textVisibleAmount = textVerticalScrollBar.getVisibleAmount();
+			final double previewMin = previewVerticalScrollBar.getMinimum();
+			final double previewMax = previewVerticalScrollBar.getMaximum();
+			final double previewVisibleAmount = previewVerticalScrollBar.getVisibleAmount();
+			final double percent = previewVerticalScrollBar.getValue() / (previewMax - previewMin - previewVisibleAmount);
+			//remove the AdjustmentListener of textScroll
+			final AdjustmentListener listener = textVerticalScrollBar.getAdjustmentListeners()[0];
+			textVerticalScrollBar.removeAdjustmentListener(listener);
+			//set the value of scrollbar in textScroll
+			textVerticalScrollBar.setValue((int)(textMin + percent * (textMax - textMin - textVisibleAmount)));
+			//add back the AdjustmentListener of textScroll
+			textVerticalScrollBar.addAdjustmentListener(listener);
 		});
 
 		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, textScroll, previewScroll);
 		splitPane.setOneTouchExpandable(true);
-		splitPane.setDividerLocation(400);
-		splitPane.putClientProperty(PREVIEW_AUTOHIDE_WIDTH, 600);
+		splitPane.setContinuousLayout(true);
+		splitPane.setVisible(false);
 
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
@@ -224,13 +219,12 @@ public class NoteDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		final MigLayout layout = new MigLayout();
+		final MigLayout layout = new MigLayout("debug");
 		setLayout(layout);
-		add(splitPane);
-//		add(textScroll, "grow,split 2");
-//		add(previewScroll, "gapx rel,grow,hidemode 3");
-		add(restrictionLabel, "newline,alignx right,split 2");
-		add(restrictionComboBox, "wrap paragraph");
+		add(textScroll, "cell 0 0,hidemode 3");
+		add(splitPane, "cell 0 0,hidemode 3");
+		add(restrictionLabel, "cell 0 1,alignx right,split 2");
+		add(restrictionComboBox, "cell 0 1,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 
@@ -238,18 +232,15 @@ public class NoteDialog extends JDialog{
 		layout.addLayoutCallback(new LayoutCallback(){
 			@Override
 			public void correctBounds(final ComponentWrapper wrapper){
-				final Number width = (Number)splitPane.getClientProperty(PREVIEW_AUTOHIDE_WIDTH);
-				if(width != null){
-					final int parentWidth = splitPane.getParent().getWidth();
-					final int selfWidth = width.intValue();
-					final int components = splitPane.getComponentCount();
-					if(components == 3 && parentWidth < selfWidth)
-						splitPane.remove(previewScroll);
-					else if(components == 2 && parentWidth > selfWidth){
-						splitPane.add(previewScroll);
-						splitPane.setDividerLocation(400);
-					}
+				final int parentWidth = textScroll.getParent().getWidth();
+				if(parentWidth > 600 && !splitPane.isVisible()){
+					splitPane.setVisible(true);
+//					splitPane.setDividerLocation(textView.getVisibleRect().width / 2);
+//					splitPane.setDividerLocation(getWidth() / 2);
+//					splitPane.setDividerLocation(0.5);
 				}
+				else if(parentWidth <= 600 && splitPane.isVisible())
+					splitPane.setVisible(false);
 			}
 		});
 	}
@@ -271,13 +262,10 @@ public class NoteDialog extends JDialog{
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
 		previewItem.addActionListener(event -> {
 			final boolean preview = ((AbstractButton)event.getSource()).isSelected();
-			PREFERENCES.putBoolean(KEY_PREVIEW, preview);
-
 			//TODO expand component to reveal preview
 			setSize((preview? 800: 400), getHeight());
 			repaint();
 		});
-		previewItem.setSelected(PREFERENCES.getBoolean(KEY_PREVIEW, false));
 		popupMenu.add(previewItem);
 
 		final JCheckBoxMenuItem lineWrapItem = new JCheckBoxMenuItem("Line wrap");
@@ -432,7 +420,8 @@ public class NoteDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(1000, 500);
+//			dialog.setSize(1000, 500);
+			dialog.setSize(500, 500);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
