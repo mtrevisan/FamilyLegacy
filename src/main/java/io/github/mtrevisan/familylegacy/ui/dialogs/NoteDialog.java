@@ -101,6 +101,19 @@ public class NoteDialog extends JDialog{
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
 	private static final String KEY_LINE_WRAP = "word.wrap";
 
+	private static final String[] LANGUAGE_CODE;
+	private static final DefaultComboBoxModel<String> LOCALE_MODEL = new DefaultComboBoxModel<>();
+	static{
+		final String[] languageCodes = Locale.getISOLanguages();
+		LANGUAGE_CODE = new String[languageCodes.length + 1];
+		LANGUAGE_CODE[0] = StringUtils.EMPTY;
+		LOCALE_MODEL.addElement(StringUtils.EMPTY);
+		for(int i = 0; i < languageCodes.length; i ++){
+			final Locale locale = new Locale(languageCodes[i]);
+			LANGUAGE_CODE[i + 1] = locale.toLanguageTag();
+			LOCALE_MODEL.addElement(locale.getDisplayName());
+		}
+	}
 	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"confidential", "locked", "private"});
 
@@ -110,6 +123,8 @@ public class NoteDialog extends JDialog{
 
 	private final JTextArea textView = new JTextArea();
 	private final JEditorPane previewView = new JEditorPane();
+	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JComboBox<String> localeComboBox = new JComboBox<>(LOCALE_MODEL);
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
@@ -194,6 +209,9 @@ public class NoteDialog extends JDialog{
 		splitPane.setContinuousLayout(true);
 		splitPane.setVisible(false);
 
+		localeLabel.setLabelFor(localeComboBox);
+		localeComboBox.setEditable(true);
+
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
@@ -204,7 +222,6 @@ public class NoteDialog extends JDialog{
 				restrictionComboBox.setSelectedItem(newValue);
 			}
 		});
-		restrictionComboBox.setSelectedIndex(0);
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
@@ -223,8 +240,10 @@ public class NoteDialog extends JDialog{
 		setLayout(layout);
 		add(textScroll, "cell 0 0,hidemode 3");
 		add(splitPane, "cell 0 0,hidemode 3");
-		add(restrictionLabel, "cell 0 1,alignx right,split 2");
-		add(restrictionComboBox, "cell 0 1,wrap paragraph");
+		add(localeLabel, "cell 0 1,alignx right,split 2");
+		add(localeComboBox, "cell 0 1,wrap paragraph");
+		add(restrictionLabel, "cell 0 2,alignx right,split 2");
+		add(restrictionComboBox, "cell 0 2,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 
@@ -296,6 +315,10 @@ public class NoteDialog extends JDialog{
 		previewView.setCaretPosition(0);
 
 		htmlExportItem.addActionListener(event -> exportHtml(note));
+
+		final String locale = store.traverse(note, "LOCALE")
+			.getValue();
+		localeComboBox.setSelectedItem(locale != null? new Locale(locale).getDisplayName(): StringUtils.EMPTY);
 
 		restrictionComboBox.setSelectedItem(store.traverse(note, "RESTRICTION").getValue());
 
