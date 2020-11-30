@@ -36,7 +36,7 @@ import java.io.ObjectOutputStream;
  */
 public final class GedcomParseException extends Exception{
 
-	private static final long serialVersionUID = -9166944783238433522L;
+	private static final long serialVersionUID = 5406838363806389443L;
 
 	private boolean skipAddLineNumber;
 
