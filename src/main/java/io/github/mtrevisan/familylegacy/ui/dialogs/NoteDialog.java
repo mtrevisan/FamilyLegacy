@@ -116,6 +116,8 @@ public class NoteDialog extends JDialog{
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
+	private GedcomNode note;
+	private Runnable onCloseGracefully;
 	private final Flef store;
 
 
@@ -216,11 +218,11 @@ public class NoteDialog extends JDialog{
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-//TODO
-//			if(listener != null){
-//				final GedcomNode selectedFamily = getSelectedFamily();
-//				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
-//			}
+			final String text = textView.getText();
+			note.withValue(text);
+
+			if(onCloseGracefully != null)
+				onCloseGracefully.run();
 
 			dispose();
 		});
@@ -293,7 +295,10 @@ public class NoteDialog extends JDialog{
 		FILE_HTML_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown-github.css").getFile());
 	}
 
-	public void loadData(final GedcomNode note){
+	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){
+		this.note = note;
+		this.onCloseGracefully = onCloseGracefully;
+
 		final String text = note.getValue();
 
 		textView.setText(text);
@@ -422,7 +427,7 @@ public class NoteDialog extends JDialog{
 
 		EventQueue.invokeLater(() -> {
 			final NoteDialog dialog = new NoteDialog(store, new JFrame());
-			dialog.loadData(note);
+			dialog.loadData(note, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
 				@Override

@@ -130,7 +130,16 @@ public class NoteCitationDialog extends JDialog{
 		});
 
 		addButton.addActionListener(evt -> {
-			//TODO
+			final GedcomNode newNote = store.create("NOTE");
+
+			final Runnable onCloseGracefully = () -> {
+				//if ok was pressed, add this note to the parent container
+				final String newNoteID = store.addNote(newNote);
+				container.addChildReference("NOTE", newNoteID);
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
 		});
 		editButton.addActionListener(evt -> editAction());
 		removeButton.setEnabled(false);

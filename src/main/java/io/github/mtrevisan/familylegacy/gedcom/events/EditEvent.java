@@ -39,11 +39,17 @@ public class EditEvent{
 
 	private final EditType type;
 	private final GedcomNode container;
+	private final Runnable onCloseGracefully;
 
 
 	public EditEvent(final EditType type, final GedcomNode container){
+		this(type, container, null);
+	}
+
+	public EditEvent(final EditType type, final GedcomNode container, final Runnable onCloseGracefully){
 		this.type = type;
 		this.container = container;
+		this.onCloseGracefully = onCloseGracefully;
 	}
 
 	public EditType getType(){
@@ -52,6 +58,10 @@ public class EditEvent{
 
 	public GedcomNode getContainer(){
 		return container;
+	}
+
+	public Runnable getOnCloseGracefully(){
+		return onCloseGracefully;
 	}
 
 }
