@@ -69,7 +69,10 @@ public class NoteDialog extends JDialog{
 	private static final String ACTION_MAP_KEY_UNDO = "undo";
 	private static final String ACTION_MAP_KEY_REDO = "redo";
 
-	private static File FILE_HTML_CSS;
+	private static final File FILE_HTML_STANDARD_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown.css")
+		.getFile());
+	private static final File FILE_HTML_GITHUB_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown-github.css")
+		.getFile());
 	private static final String HTML_NEWLINE = "\n";
 	private static final String HTML_START_LANGUAGE = new StringJoiner(HTML_NEWLINE)
 		.add("<!DOCTYPE HTML>")
@@ -96,6 +99,19 @@ public class NoteDialog extends JDialog{
 		.add("</body>")
 		.add("</html>")
 		.toString();
+	private static final JFileChooser EXPORT_FILE_CHOOSER;
+	static{
+		try{
+			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
+			UIManager.setLookAndFeel(lookAndFeelName);
+		}
+		catch(final Exception ignored){}
+
+		EXPORT_FILE_CHOOSER = new JFileChooser();
+		EXPORT_FILE_CHOOSER.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		EXPORT_FILE_CHOOSER.removeChoosableFileFilter(EXPORT_FILE_CHOOSER.getFileFilter());
+		EXPORT_FILE_CHOOSER.setFileFilter(new FileNameExtensionFilter("HTML Files (*.html)", "html"));
+	}
 
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
 	private static final String KEY_LINE_WRAP = "word.wrap";
@@ -104,7 +120,9 @@ public class NoteDialog extends JDialog{
 		"confidential", "locked", "private"});
 
 	private static final UndoManager UNDO_MANAGER = new UndoManager();
-	private final JMenuItem htmlExportItem = new JMenuItem("Export to HTML…");
+
+	private final JMenuItem htmlExportStandardItem = new JMenuItem("Standard…");
+	private final JMenuItem htmlExportGithubItem = new JMenuItem("Github…");
 
 
 	private final JTextArea textView = new JTextArea();
@@ -125,8 +143,6 @@ public class NoteDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
-
-		loadMarkdownGithubStylesheet();
 
 		initComponents();
 	}
@@ -282,17 +298,12 @@ public class NoteDialog extends JDialog{
 		lineWrapItem.setSelected(PREFERENCES.getBoolean(KEY_LINE_WRAP, false));
 		popupMenu.add(lineWrapItem);
 
-		popupMenu.add(htmlExportItem);
+		final JMenu htmlExportMenu = new JMenu("Export to HTML");
+		htmlExportMenu.add(htmlExportStandardItem);
+		htmlExportMenu.add(htmlExportGithubItem);
+		popupMenu.add(htmlExportMenu);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
-	}
-
-	public static void loadMarkdownStylesheet(){
-		FILE_HTML_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown.css").getFile());
-	}
-
-	public static void loadMarkdownGithubStylesheet(){
-		FILE_HTML_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown-github.css").getFile());
 	}
 
 	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){
@@ -308,7 +319,8 @@ public class NoteDialog extends JDialog{
 		textView.setCaretPosition(0);
 		previewView.setCaretPosition(0);
 
-		htmlExportItem.addActionListener(event -> exportHtml(note));
+		htmlExportStandardItem.addActionListener(event -> exportHtml(note, FILE_HTML_STANDARD_CSS));
+		htmlExportGithubItem.addActionListener(event -> exportHtml(note, FILE_HTML_GITHUB_CSS));
 
 		localeComboBox.setSelectedByLanguageTag(store.traverse(note, "LOCALE").getValue());
 
@@ -331,15 +343,11 @@ public class NoteDialog extends JDialog{
 	/**
 	 * Exports the markdown text to an HTML file.
 	 */
-	private void exportHtml(final GedcomNode note){
-		final JFileChooser exportFileChooser = new JFileChooser();
-		exportFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		exportFileChooser.removeChoosableFileFilter(exportFileChooser.getFileFilter());
-		exportFileChooser.setFileFilter(new FileNameExtensionFilter("HTML Files (*.html)", "html"));
-		if(exportFileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
+	private void exportHtml(final GedcomNode note, final File htmlCssFile){
+		if(EXPORT_FILE_CHOOSER.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 
-		File outputFile = exportFileChooser.getSelectedFile();
+		File outputFile = EXPORT_FILE_CHOOSER.getSelectedFile();
 		if(!outputFile.getName().toLowerCase().endsWith(".html"))
 			outputFile = new File(outputFile.getPath() + ".html");
 
@@ -348,7 +356,7 @@ public class NoteDialog extends JDialog{
 		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");
 		final String body = previewView.getText();
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
-			out.write(extractHtml(title, locale, body).getBytes());
+			out.write(extractHtml(locale, htmlCssFile, title, body).getBytes());
 			out.close();
 			JOptionPane.showMessageDialog(this, "Export HTML successful!");
 		}
@@ -357,26 +365,26 @@ public class NoteDialog extends JDialog{
 		}
 	}
 
-	private String extractHtml(final String title, final Locale locale, final String body){
+	private String extractHtml(final Locale locale, final File htmlCssFile, final String title, final String body){
 		return HTML_START_LANGUAGE + locale.getLanguage()
 			+ HTML_LANGUAGE_TITLE + title
-			+ HTML_TITLE_STYLE + extractStyle()
+			+ HTML_TITLE_STYLE + extractStyle(htmlCssFile)
 			+ HTML_STYLE_BODY_BOUNDARY + body
 			+ HTML_BODY_END;
 	}
 
-	private String extractStyle(){
+	private String extractStyle(final File htmlCssFile){
 		String style = StringUtils.EMPTY;
-		try(final DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(FILE_HTML_CSS)))){
-			if(FILE_HTML_CSS != null && FILE_HTML_CSS.exists()){
-				final byte[] fileContent = new byte[(int)FILE_HTML_CSS.length()];
+		if(htmlCssFile != null && htmlCssFile.exists()){
+			try(final DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(htmlCssFile)))){
+				final byte[] fileContent = new byte[(int)htmlCssFile.length()];
 				input.read(fileContent);
 
 				style = "<style type=\"text/css\">\n" + new String(fileContent, StandardCharsets.UTF_8) + "\n</style>";
 			}
-		}
-		catch(final IOException e){
-			e.printStackTrace();
+			catch(final IOException e){
+				e.printStackTrace();
+			}
 		}
 		return style;
 	}

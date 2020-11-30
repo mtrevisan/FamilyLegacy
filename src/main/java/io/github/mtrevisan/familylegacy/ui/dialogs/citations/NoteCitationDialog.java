@@ -34,12 +34,16 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -107,6 +111,9 @@ public class NoteCitationDialog extends JDialog{
 		notesTable.setFocusable(false);
 		notesTable.setGridColor(GRID_COLOR);
 		notesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		notesTable.setDragEnabled(true);
+		notesTable.setDropMode(DropMode.INSERT_ROWS);
+		notesTable.setTransferHandler(new TableTransferHandle(notesTable));
 		notesTable.getTableHeader().setFont(notesTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(notesTable, TABLE_INDEX_NOTE_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(notesTable.getModel());
@@ -251,6 +258,123 @@ public class NoteCitationDialog extends JDialog{
 	}
 
 
+	private static class GroupsTableModel extends DefaultTableModel{
+
+		private static final long serialVersionUID = 981117893723288957L;
+
+
+		GroupsTableModel(){
+			super(new String[]{"ID", "Text"}, 0);
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			return String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(final int row, final int column){
+			return false;
+		}
+	}
+
+	private static class TableTransferHandle extends TransferHandler{
+		private final JTable table;
+
+		TableTransferHandle(final JTable table){
+			this.table = table;
+		}
+
+		@Override
+		public int getSourceActions(final JComponent component){
+			return TransferHandler.COPY_OR_MOVE;
+		}
+
+		@Override
+		protected Transferable createTransferable(final JComponent component){
+			return new StringSelection(Integer.toString(table.getSelectedRow()));
+		}
+
+		@Override
+		public boolean canImport(final TransferHandler.TransferSupport support){
+			final boolean b = (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
+			table.setCursor(Cursor.getPredefinedCursor(b? Cursor.MOVE_CURSOR: Cursor.DEFAULT_CURSOR));
+			return b;
+		}
+
+		@Override
+		public boolean importData(final TransferHandler.TransferSupport support){
+			if(!support.isDrop() || !canImport(support))
+				return false;
+
+			table.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+			int rowTo = ((JTable.DropLocation)support.getDropLocation()).getRow();
+			final int max = table.getModel().getRowCount();
+			if(rowTo < 0 || rowTo > max)
+				rowTo = max;
+
+			try{
+				final int rowFrom = Integer.parseInt((String)support.getTransferable().getTransferData(DataFlavor.stringFlavor));
+				if(rowFrom == rowTo)
+					return false;
+
+				if(rowTo > rowFrom)
+					rowTo --;
+
+				final DefaultTableModel model = (DefaultTableModel)table.getModel();
+				final int size = model.getRowCount();
+				int k = Math.min(rowTo, rowFrom);
+				final List<Object[]> rows = new ArrayList<>(size - k);
+				for(int i = k; i < Math.max(rowTo, rowFrom); i ++){
+					if(i != rowFrom)
+						rows.add(getRowValues(k));
+
+					model.removeRow(k);
+				}
+				k = Math.max(rowTo, rowFrom);
+				for(int i = k; i < size; i ++){
+					rows.add(getRowValues(k));
+
+					model.removeRow(k);
+				}
+//				final Object[] from = getRowValues(rowFrom);
+//				if(rowTo < rowFrom){
+//					rows.add(from);
+//					for(int i = rowTo; i < size; i ++){
+//						if(i != rowFrom)
+//							rows.add(getRowValues(rowTo));
+//
+//						model.removeRow(rowTo);
+//					}
+//				}
+//				else
+//					for(int i = rowFrom; i < size; i ++){
+//						model.removeRow(rowFrom);
+//
+//						rows.add(i != rowTo? getRowValues(rowFrom): from);
+//					}
+				for(final Object[] row : rows)
+					model.addRow(row);
+
+				return true;
+			}
+			catch(final Exception ignored){}
+			return false;
+		}
+
+		private Object[] getRowValues(final int row){
+			return new Object[]{table.getValueAt(row, TABLE_INDEX_NOTE_ID), table.getValueAt(row, TABLE_INDEX_NOTE_NAME)};
+		}
+
+		@Override
+		protected void exportDone(final JComponent component, final Transferable transferable, final int action){
+			if(action == TransferHandler.MOVE)
+				table.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+		}
+	}
+
+
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -277,27 +401,6 @@ public class NoteCitationDialog extends JDialog{
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
-	}
-
-
-	private static class GroupsTableModel extends DefaultTableModel{
-
-		private static final long serialVersionUID = 981117893723288957L;
-
-
-		GroupsTableModel(){
-			super(new String[]{"ID", "Text"}, 0);
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public boolean isCellEditable(final int row, final int column){
-			return false;
-		}
 	}
 
 }

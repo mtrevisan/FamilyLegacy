@@ -137,7 +137,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 			case NOTE:
 				final NoteDialog noteDialog = new NoteDialog(store, this);
-				noteDialog.loadData(editCommand.getContainer());
+				noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				noteDialog.setSize(450, 500);
 				noteDialog.setLocationRelativeTo(this);
