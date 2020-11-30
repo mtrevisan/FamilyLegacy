@@ -18,8 +18,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
-import net.miginfocom.layout.ComponentWrapper;
-import net.miginfocom.layout.LayoutCallback;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -153,6 +151,7 @@ public class NoteDialog extends JDialog{
 		intermediatePreviewPanel.add(previewView);
 		final JScrollPane previewScroll = new JScrollPane(intermediatePreviewPanel);
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		previewScroll.setVisible(false);
 
 		final JScrollBar textVerticalScrollBar = textScroll.getVerticalScrollBar();
 		final JScrollBar previewVerticalScrollBar = previewScroll.getVerticalScrollBar();
@@ -194,8 +193,11 @@ public class NoteDialog extends JDialog{
 		final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, textScroll, previewScroll);
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setContinuousLayout(true);
-		splitPane.setVisible(false);
-		attachPopUpMenu(textView, splitPane);
+		SwingUtilities.invokeLater(() -> {
+			splitPane.setDividerLocation(1.);
+			splitPane.setDividerSize(0);
+		});
+		attachPopUpMenu(textView, splitPane, previewScroll);
 
 		localeLabel.setLabelFor(localeComboBox);
 
@@ -223,28 +225,14 @@ public class NoteDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		final MigLayout layout = new MigLayout("debug");
-		setLayout(layout);
-		add(textScroll, "cell 0 0,hidemode 3");
-		add(splitPane, "cell 0 0,hidemode 3");
+		setLayout(new MigLayout());
+		add(splitPane, "cell 0 0");
 		add(localeLabel, "cell 0 1,alignx right,split 2");
 		add(localeComboBox, "cell 0 1");
 		add(restrictionLabel, "cell 0 2,alignx right,split 2");
 		add(restrictionComboBox, "cell 0 2,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
-
-		//NOTE: hide or show `previewScroll` based on dialog width
-		layout.addLayoutCallback(new LayoutCallback(){
-			@Override
-			public void correctBounds(final ComponentWrapper wrapper){
-				final int parentWidth = textScroll.getParent().getWidth();
-				if(parentWidth > 600 && !splitPane.isVisible())
-					showPreview(splitPane);
-				else if(parentWidth <= 600 && splitPane.isVisible())
-					splitPane.setVisible(false);
-			}
-		});
 	}
 
 	private void addUndoCapability(final JTextComponent textComponent){
@@ -258,16 +246,24 @@ public class NoteDialog extends JDialog{
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
-	private void attachPopUpMenu(final JComponent component, final JSplitPane splitPane){
+	private void attachPopUpMenu(final JComponent component, final JSplitPane splitPane, final JScrollPane previewScroll){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
 		previewItem.addActionListener(event -> {
 			final boolean preview = ((AbstractButton)event.getSource()).isSelected();
-			//TODO expand component to reveal preview
-			setSize((preview? 1000: 400), getHeight());
-
-			showPreview(splitPane);
+			setSize((preview? getWidth() * 2: getWidth() / 2), getHeight());
+			if(preview)
+				SwingUtilities.invokeLater(() -> {
+					splitPane.setDividerLocation(0.5);
+					splitPane.setDividerSize(5);
+				});
+			else
+				SwingUtilities.invokeLater(() -> {
+					splitPane.setDividerLocation(1.);
+					splitPane.setDividerSize(0);
+				});
+			previewScroll.setVisible(preview);
 		});
 		popupMenu.add(previewItem);
 
@@ -285,13 +281,6 @@ public class NoteDialog extends JDialog{
 		popupMenu.add(htmlExportItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
-	}
-
-	private void showPreview(final JSplitPane splitPane){
-		splitPane.setVisible(true);
-//		splitPane.setDividerLocation(textView.getVisibleRect().width / 2);
-//		splitPane.setDividerLocation(getWidth() / 2);
-//		splitPane.setDividerLocation(0.5);
 	}
 
 	public void loadData(final GedcomNode note){
@@ -431,7 +420,6 @@ public class NoteDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-//			dialog.setSize(1000, 500);
 			dialog.setSize(500, 500);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);

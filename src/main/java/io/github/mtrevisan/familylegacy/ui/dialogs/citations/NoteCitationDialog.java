@@ -28,8 +28,10 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,6 +42,8 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -116,15 +120,19 @@ public class NoteCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_NOTE_NAME, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
 		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
+		notesTable.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent evt){
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && notesTable.rowAtPoint(evt.getPoint()) >= 0)
+					//fire edit event
+					editAction();
+			}
+		});
 
 		addButton.addActionListener(evt -> {
 			//TODO
 		});
-		editButton.setEnabled(false);
-		editButton.addActionListener(evt -> {
-			//TODO
-			editButton.setEnabled(false);
-		});
+		editButton.addActionListener(evt -> editAction());
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> {
 			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
@@ -164,6 +172,17 @@ public class NoteCitationDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
+	private void editAction(){
+		//retrieve selected note
+		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
+		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
+		final String noteXref = (String)model.getValueAt(index, TABLE_INDEX_NOTE_ID);
+		final GedcomNode selectedNote = store.getNote(noteXref);
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedNote));
+	}
+
 	public void loadData(final GedcomNode container){
 		this.container = container;
 
@@ -196,9 +215,9 @@ public class NoteCitationDialog extends JDialog{
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_NOTE_ID, TABLE_INDEX_NOTE_NAME);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>) notesTable.getRowSorter();
+		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)notesTable.getRowSorter();
 		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel) notesTable.getModel();
+			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
 			sorter = new TableRowSorter<>(model);
 			notesTable.setRowSorter(sorter);
 		}
