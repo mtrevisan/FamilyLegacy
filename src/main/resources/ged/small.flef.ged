@@ -88,6 +88,7 @@
 1 CONTINUATION    For this reason too, there is no need for the `Init` annotation, thus the annotated file can contain the least amount of data necessary for its decoding (moreover, this annotation has NOT the inverse operation -- so it seems to me... so it's pretty useless anyway).
 1 CONTINUATION  - (By personal experience) enumerations can have different representations, or change between a version and the next of a protocol, even inside the same protocol (!), so having an annotation that tells the value of a particular element of this enum is at least risky. So, for this reason, the `BoundEnumOption` is not present in this library.
 1 CONTINUATION  - Does read and write more than 64 bits at a time (`BitBuffer.readBits`)
+1 LOCALE en-US
 1 RESTRICTION notice1
 0 @N2@ NOTE some other text
 1 RESTRICTION notice2

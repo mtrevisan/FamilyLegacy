@@ -45,9 +45,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.prefs.Preferences;
@@ -104,11 +102,6 @@ public class NoteDialog extends JDialog{
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
 	private static final String KEY_LINE_WRAP = "word.wrap";
 
-	private static final Locale[] LOCALE_ITEMS;
-	static{
-		LOCALE_ITEMS = DateFormat.getAvailableLocales();
-		Arrays.sort(LOCALE_ITEMS, Comparator.comparing(Locale::getDisplayName));
-	}
 	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"confidential", "locked", "private"});
 
@@ -119,7 +112,7 @@ public class NoteDialog extends JDialog{
 	private final JTextArea textView = new JTextArea();
 	private final JEditorPane previewView = new JEditorPane();
 	private final JLabel localeLabel = new JLabel("Locale:");
-	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox(LOCALE_ITEMS);
+	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
@@ -310,9 +303,7 @@ public class NoteDialog extends JDialog{
 
 		htmlExportItem.addActionListener(event -> exportHtml(note));
 
-		final String locale = store.traverse(note, "LOCALE")
-			.getValue();
-		localeComboBox.setSelectedItem(locale != null? new Locale(locale): null);
+		localeComboBox.setSelectedByLanguageTag(store.traverse(note, "LOCALE").getValue());
 
 		restrictionComboBox.setSelectedItem(store.traverse(note, "RESTRICTION").getValue());
 
