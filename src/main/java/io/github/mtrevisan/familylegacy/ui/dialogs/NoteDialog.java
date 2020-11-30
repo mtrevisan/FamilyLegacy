@@ -69,7 +69,7 @@ public class NoteDialog extends JDialog{
 	private static final String ACTION_MAP_KEY_UNDO = "undo";
 	private static final String ACTION_MAP_KEY_REDO = "redo";
 
-	private static final File FILE_HTML_CSS = new File("D:\\Mauro\\FamilyLegacy\\src\\main\\resources\\markdown\\css\\markdown-github.css");
+	private static File FILE_HTML_CSS;
 	private static final String HTML_NEWLINE = "\n";
 	private static final String HTML_START_LANGUAGE = new StringJoiner(HTML_NEWLINE)
 		.add("<!DOCTYPE HTML>")
@@ -123,6 +123,8 @@ public class NoteDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
+
+		loadMarkdownGithubStylesheet();
 
 		initComponents();
 	}
@@ -281,6 +283,14 @@ public class NoteDialog extends JDialog{
 		popupMenu.add(htmlExportItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
+	}
+
+	public static void loadMarkdownStylesheet(){
+		FILE_HTML_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown.css").getFile());
+	}
+
+	public static void loadMarkdownGithubStylesheet(){
+		FILE_HTML_CSS = new File(NoteDialog.class.getResource("/markdown/css/markdown-github.css").getFile());
 	}
 
 	public void loadData(final GedcomNode note){
