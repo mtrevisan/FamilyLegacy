@@ -134,7 +134,6 @@ public class NoteDialog extends JDialog{
 
 		textView.setDragEnabled(true);
 		textView.setTabSize(3);
-		attachPopUpMenu(textView);
 		addUndoCapability(textView);
 
 		final JScrollPane textScroll = new JScrollPane(textView);
@@ -196,6 +195,7 @@ public class NoteDialog extends JDialog{
 		splitPane.setOneTouchExpandable(true);
 		splitPane.setContinuousLayout(true);
 		splitPane.setVisible(false);
+		attachPopUpMenu(textView, splitPane);
 
 		localeLabel.setLabelFor(localeComboBox);
 
@@ -239,12 +239,8 @@ public class NoteDialog extends JDialog{
 			@Override
 			public void correctBounds(final ComponentWrapper wrapper){
 				final int parentWidth = textScroll.getParent().getWidth();
-				if(parentWidth > 600 && !splitPane.isVisible()){
-					splitPane.setVisible(true);
-//					splitPane.setDividerLocation(textView.getVisibleRect().width / 2);
-//					splitPane.setDividerLocation(getWidth() / 2);
-//					splitPane.setDividerLocation(0.5);
-				}
+				if(parentWidth > 600 && !splitPane.isVisible())
+					showPreview(splitPane);
 				else if(parentWidth <= 600 && splitPane.isVisible())
 					splitPane.setVisible(false);
 			}
@@ -262,15 +258,16 @@ public class NoteDialog extends JDialog{
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
-	private void attachPopUpMenu(final JComponent component){
+	private void attachPopUpMenu(final JComponent component, final JSplitPane splitPane){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
 		previewItem.addActionListener(event -> {
 			final boolean preview = ((AbstractButton)event.getSource()).isSelected();
 			//TODO expand component to reveal preview
-			setSize((preview? 800: 400), getHeight());
-			repaint();
+			setSize((preview? 1000: 400), getHeight());
+
+			showPreview(splitPane);
 		});
 		popupMenu.add(previewItem);
 
@@ -290,15 +287,21 @@ public class NoteDialog extends JDialog{
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
+	private void showPreview(final JSplitPane splitPane){
+		splitPane.setVisible(true);
+//		splitPane.setDividerLocation(textView.getVisibleRect().width / 2);
+//		splitPane.setDividerLocation(getWidth() / 2);
+//		splitPane.setDividerLocation(0.5);
+	}
+
 	public void loadData(final GedcomNode note){
 		final String text = note.getValue();
 
 		textView.setText(text);
+		previewView.setText(renderHtml(text));
+
 		//scroll to top
 		textView.setCaretPosition(0);
-
-		previewView.setText(renderHtml(text));
-		//scroll to top
 		previewView.setCaretPosition(0);
 
 		htmlExportItem.addActionListener(event -> exportHtml(note));
