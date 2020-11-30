@@ -226,13 +226,13 @@ public class NoteDialog extends JDialog{
 
 
 		setLayout(new MigLayout());
-		add(splitPane, "cell 0 0");
-		add(localeLabel, "cell 0 1,alignx right,split 2");
-		add(localeComboBox, "cell 0 1");
-		add(restrictionLabel, "cell 0 2,alignx right,split 2");
-		add(restrictionComboBox, "cell 0 2,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(splitPane, "span 2,wrap");
+		add(localeLabel, "align label");
+		add(localeComboBox, "wrap");
+		add(restrictionLabel, "align label");
+		add(restrictionComboBox, "wrap paragraph");
+		add(okButton, "tag ok,span,split 2,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void addUndoCapability(final JTextComponent textComponent){
