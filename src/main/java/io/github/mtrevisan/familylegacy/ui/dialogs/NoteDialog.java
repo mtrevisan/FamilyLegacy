@@ -16,6 +16,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
 import net.miginfocom.layout.ComponentWrapper;
 import net.miginfocom.layout.LayoutCallback;
@@ -44,7 +45,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.prefs.Preferences;
@@ -101,18 +104,10 @@ public class NoteDialog extends JDialog{
 	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
 	private static final String KEY_LINE_WRAP = "word.wrap";
 
-	private static final String[] LANGUAGE_CODE;
-	private static final DefaultComboBoxModel<String> LOCALE_MODEL = new DefaultComboBoxModel<>();
+	private static final Locale[] LOCALE_ITEMS;
 	static{
-		final String[] languageCodes = Locale.getISOLanguages();
-		LANGUAGE_CODE = new String[languageCodes.length + 1];
-		LANGUAGE_CODE[0] = StringUtils.EMPTY;
-		LOCALE_MODEL.addElement(StringUtils.EMPTY);
-		for(int i = 0; i < languageCodes.length; i ++){
-			final Locale locale = new Locale(languageCodes[i]);
-			LANGUAGE_CODE[i + 1] = locale.toLanguageTag();
-			LOCALE_MODEL.addElement(locale.getDisplayName());
-		}
+		LOCALE_ITEMS = DateFormat.getAvailableLocales();
+		Arrays.sort(LOCALE_ITEMS, Comparator.comparing(Locale::getDisplayName));
 	}
 	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"confidential", "locked", "private"});
@@ -124,7 +119,7 @@ public class NoteDialog extends JDialog{
 	private final JTextArea textView = new JTextArea();
 	private final JEditorPane previewView = new JEditorPane();
 	private final JLabel localeLabel = new JLabel("Locale:");
-	private final JComboBox<String> localeComboBox = new JComboBox<>(LOCALE_MODEL);
+	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox(LOCALE_ITEMS);
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
@@ -210,7 +205,6 @@ public class NoteDialog extends JDialog{
 		splitPane.setVisible(false);
 
 		localeLabel.setLabelFor(localeComboBox);
-		localeComboBox.setEditable(true);
 
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
@@ -241,7 +235,7 @@ public class NoteDialog extends JDialog{
 		add(textScroll, "cell 0 0,hidemode 3");
 		add(splitPane, "cell 0 0,hidemode 3");
 		add(localeLabel, "cell 0 1,alignx right,split 2");
-		add(localeComboBox, "cell 0 1,wrap paragraph");
+		add(localeComboBox, "cell 0 1");
 		add(restrictionLabel, "cell 0 2,alignx right,split 2");
 		add(restrictionComboBox, "cell 0 2,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
@@ -318,7 +312,7 @@ public class NoteDialog extends JDialog{
 
 		final String locale = store.traverse(note, "LOCALE")
 			.getValue();
-		localeComboBox.setSelectedItem(locale != null? new Locale(locale).getDisplayName(): StringUtils.EMPTY);
+		localeComboBox.setSelectedItem(locale != null? new Locale(locale): null);
 
 		restrictionComboBox.setSelectedItem(store.traverse(note, "RESTRICTION").getValue());
 
