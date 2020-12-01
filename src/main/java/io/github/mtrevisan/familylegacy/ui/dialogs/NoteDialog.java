@@ -73,7 +73,6 @@ import java.util.StringJoiner;
 import java.util.prefs.Preferences;
 
 
-//https://github.com/admorsus/markdown-pad
 public class NoteDialog extends JDialog{
 
 	private static final Parser MARKDOWN_PARSER;

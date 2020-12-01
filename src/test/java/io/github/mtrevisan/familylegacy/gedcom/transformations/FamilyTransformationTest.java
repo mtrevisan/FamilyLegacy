@@ -112,6 +112,7 @@ class FamilyTransformationTest{
 				.addChildValue("ROLE", "ROLE_IN_GROUP")
 				.addChildReference("NOTE", "N1")
 				.addChildValue("CREDIBILITY", "CREDIBILITY_ASSESSMENT")
+				.addChildValue("RESTRICTION", "RESTRICTION_NOTICE")
 			)
 			.addChildReference("CULTURAL_RULE", "A1")
 			.addChildReference("NOTE", "N2")
@@ -129,7 +130,7 @@ class FamilyTransformationTest{
 		origin.addFamily(family);
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: FAMILY_TYPE}, {tag: SPOUSE1, ref: I1}, {tag: SPOUSE2, ref: I2}, {tag: CHILD, ref: I3}, {tag: GROUP, ref: G1, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}, {tag: CULTURAL_RULE, ref: A1}, {tag: NOTE, ref: N2}, {tag: SOUR, ref: S2}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: FAMILY_TYPE}, {tag: SPOUSE1, ref: I1}, {tag: SPOUSE2, ref: I2}, {tag: CHILD, ref: I3}, {tag: GROUP, ref: G1, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]}, {tag: CULTURAL_RULE, ref: A1}, {tag: NOTE, ref: N2}, {tag: SOUR, ref: S2}, {tag: EVENT, value: MARRIAGE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getFamilies().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new FamilyTransformation();
 		t.from(origin, destination);
