@@ -399,21 +399,12 @@ public class SourceDialog extends JDialog{
 		final String type = store.traverse(source, "TYPE").getValue();
 		final String title = store.traverse(source, "TITLE").getValue();
 		final GedcomNode dateNode = store.traverse(source, "DATE");
-		final String languageTag = store.traverse(source, "LOCALE").getValue();
-		final GedcomNode extractNode = store.traverse(source, "EXTRACT");
-		final String extract = extractNode.getValue();
-		final String extractType = store.traverse(extractNode, "TYPE").getValue();
-		final String url = store.traverse(extractNode, "URL").getValue();
+		final String url = store.traverse(source, "URL").getValue();
 
 		typeField.setText(type);
 		titleField.setText(title);
 		//TODO
 		//date node
-		if(StringUtils.isNotBlank(languageTag))
-			localeComboBox.setSelectedByLanguageTag(languageTag);
-		extractView.setText(extract);
-		previewView.setText(renderHtml(extract));
-		extractTypeComboBox.setSelectedIndex(extractType != null? Integer.parseInt(extractType) + 1: 0);
 		urlField.setText(url);
 
 		//scroll to top
