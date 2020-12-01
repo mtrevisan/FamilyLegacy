@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -108,7 +107,6 @@ public class NoteCitationDialog extends JDialog{
 
 		notesTable.setAutoCreateRowSorter(true);
 		notesTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		notesTable.setFocusable(false);
 		notesTable.setGridColor(GRID_COLOR);
 		notesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		notesTable.setDragEnabled(true);
@@ -127,6 +125,27 @@ public class NoteCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_NOTE_NAME, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
 		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
+		notesTable.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyPressed(final KeyEvent event){
+				final int rowCount = notesTable.getModel().getRowCount();
+				int selectedRow = notesTable.getSelectedRow();
+				if(event.getKeyCode() == KeyEvent.VK_UP){
+					selectedRow = (selectedRow + rowCount - 1) % rowCount;
+					notesTable.setRowSelectionInterval(selectedRow, selectedRow);
+				}
+				else if(event.getKeyCode() == KeyEvent.VK_DOWN){
+					selectedRow = (selectedRow + 1) % rowCount;
+					notesTable.setRowSelectionInterval(selectedRow, selectedRow);
+				}
+			}
+
+			@Override
+			public void keyReleased(final KeyEvent event){
+				if(event.getKeyCode() == KeyEvent.VK_DELETE && notesTable.getSelectedRow() >= 0)
+					deleteAction();
+			}
+		});
 		notesTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
@@ -150,20 +169,10 @@ public class NoteCitationDialog extends JDialog{
 		});
 		editButton.addActionListener(evt -> editAction());
 		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> {
-			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
-			model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
-			removeButton.setEnabled(false);
-		});
+		removeButton.addActionListener(evt -> deleteAction());
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			//TODO
-//			if(listener != null){
-//				final GedcomNode selectedFamily = getSelectedFamily();
-//				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
-//			}
-
 			//remove all reference to notes from the container
 			container.removeChildrenWithTag("NOTE");
 			//add all the remaining references to notes to the container
@@ -171,7 +180,7 @@ public class NoteCitationDialog extends JDialog{
 				final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
 				container.addChildReference("NOTE", id);
 			}
-			//TODO remember, when saving, to remove all non-referenced notes!
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
 
 			dispose();
 		});
@@ -197,6 +206,12 @@ public class NoteCitationDialog extends JDialog{
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedNote));
+	}
+
+	private void deleteAction(){
+		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
+		model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
+		removeButton.setEnabled(false);
 	}
 
 	public void loadData(final GedcomNode container){
@@ -279,6 +294,8 @@ public class NoteCitationDialog extends JDialog{
 	}
 
 	private static class TableTransferHandle extends TransferHandler{
+		private static final long serialVersionUID = 7110295550176057986L;
+
 		private final JTable table;
 
 		TableTransferHandle(final JTable table){
@@ -317,7 +334,7 @@ public class NoteCitationDialog extends JDialog{
 
 				final List<Object[]> rows = new ArrayList<>(size);
 				for(int i = 0; i < size; i ++){
-					rows.add(getRowValues(0));
+					rows.add(new Object[]{table.getValueAt(0, TABLE_INDEX_NOTE_ID), table.getValueAt(0, TABLE_INDEX_NOTE_NAME)});
 
 					model.removeRow(0);
 				}
@@ -339,10 +356,6 @@ public class NoteCitationDialog extends JDialog{
 			}
 			catch(final Exception ignored){}
 			return false;
-		}
-
-		private Object[] getRowValues(final int row){
-			return new Object[]{table.getValueAt(row, TABLE_INDEX_NOTE_ID), table.getValueAt(row, TABLE_INDEX_NOTE_NAME)};
 		}
 	}
 
