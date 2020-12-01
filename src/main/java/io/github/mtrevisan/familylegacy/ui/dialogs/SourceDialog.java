@@ -39,9 +39,12 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,7 +76,14 @@ import java.util.StringJoiner;
 import java.util.prefs.Preferences;
 
 
-public class NoteDialog extends JDialog{
+public class SourceDialog extends JDialog{
+
+	private static final double DATE_HEIGHT = 17.;
+	private static final double DATE_ASPECT_RATIO = 270 / 248.;
+	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
+
+	//https://thenounproject.com/term/weekly-calendar/541199/
+	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
 	private static final Parser MARKDOWN_PARSER;
 	private static final HtmlRenderer HTML_RENDERER;
@@ -105,11 +115,11 @@ public class NoteDialog extends JDialog{
 	private static final String HTML_LANGUAGE_TITLE = new StringJoiner(HTML_NEWLINE)
 		.add("\">")
 		.add("<head>")
-			.add("<title>")
+		.add("<title>")
 		.toString();
 	private static final String HTML_TITLE_STYLE = new StringJoiner(HTML_NEWLINE)
 		.add("</title>")
-			.add("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />")
+		.add("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />")
 		.add(StringUtils.EMPTY)
 		.toString();
 	private static final String HTML_STYLE_BODY_BOUNDARY = new StringJoiner(HTML_NEWLINE)
@@ -137,31 +147,44 @@ public class NoteDialog extends JDialog{
 		EXPORT_FILE_CHOOSER.setFileFilter(new FileNameExtensionFilter("HTML Files (*.html)", "html"));
 	}
 
-	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(NoteDialog.class);
-	private static final String KEY_LINE_WRAP = "note.word.wrap";
+	private static final Preferences PREFERENCES = Preferences.userNodeForPackage(SourceDialog.class);
+	private static final String KEY_LINE_WRAP = "source.word.wrap";
 
-	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
-		"confidential", "locked", "private"});
+	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"transcript", "extract", "abstract"});
 
 	private final JMenuItem htmlExportStandardItem = new JMenuItem("Standard stylesheet…");
 	private final JMenuItem htmlExportGithubItem = new JMenuItem("Github stylesheet…");
 
-
-	private final JTextArea textView = new JTextArea();
-	private final JEditorPane previewView = new JEditorPane();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
+	private final JLabel titleLabel = new JLabel("Title:");
+	private final JTextField titleField = new JTextField();
+	private final JButton eventsButton = new JButton("Events");
+	private final JLabel dateLabel = new JLabel("Date:");
+	private final JTextField dateField = new JTextField();
+	private final JButton dateButton = new JButton(DATE);
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
-	private final JLabel restrictionLabel = new JLabel("Restriction:");
-	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
+	private final JLabel extractLabel = new JLabel("Extract:");
+	private final JTextArea extractView = new JTextArea();
+	private final JEditorPane previewView = new JEditorPane();
+	private final JLabel extractTypeLabel = new JLabel("Extract type:");
+	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
+	private final JButton repositoriesButton = new JButton("Repositories");
+	private final JButton filesButton = new JButton("Files");
+	private final JLabel urlLabel = new JLabel("URL:");
+	private final JTextField urlField = new JTextField();
+	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private GedcomNode note;
+	private GedcomNode source;
 	private Runnable onCloseGracefully;
 	private final Flef store;
 
 
-	public NoteDialog(final Flef store, final Frame parent){
+	public SourceDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -170,13 +193,23 @@ public class NoteDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setTitle("Note");
+		setTitle("Source");
 
-		textView.setDragEnabled(true);
-		textView.setTabSize(3);
-		addUndoCapability(textView);
+		typeLabel.setLabelFor(typeField);
 
-		final JScrollPane textScroll = new JScrollPane(textView);
+		titleLabel.setLabelFor(titleField);
+
+		eventsButton.setEnabled(false);
+		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, source)));
+
+		dateLabel.setLabelFor(dateField);
+
+		localeLabel.setLabelFor(localeComboBox);
+
+		extractView.setTabSize(3);
+		addUndoCapability(extractView);
+
+		final JScrollPane textScroll = new JScrollPane(extractView);
 		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
 		previewView.setEditable(false);
@@ -239,25 +272,40 @@ public class NoteDialog extends JDialog{
 			splitPane.setDividerLocation(1.);
 			splitPane.setDividerSize(0);
 		});
-		attachPopUpMenu(textView, splitPane, previewScroll);
+		attachPopUpMenu(extractView, splitPane, previewScroll);
 
-		localeLabel.setLabelFor(localeComboBox);
+		extractTypeLabel.setLabelFor(extractTypeComboBox);
 
-		restrictionLabel.setLabelFor(restrictionComboBox);
-		restrictionComboBox.setEditable(true);
-		restrictionComboBox.addActionListener(e -> {
-			if("comboBoxEdited".equals(e.getActionCommand())){
-				final String newValue = (String)RESTRICTION_MODEL.getSelectedItem();
-				RESTRICTION_MODEL.addElement(newValue);
+		repositoriesButton.setEnabled(false);
+		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
 
-				restrictionComboBox.setSelectedItem(newValue);
-			}
-		});
+		filesButton.setEnabled(false);
+		filesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.FILE_CITATION, source)));
 
-		okButton.setEnabled(false);
+		urlLabel.setLabelFor(urlField);
+
+		notesButton.setEnabled(false);
+		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
+
 		okButton.addActionListener(evt -> {
-			final String text = textView.getText();
-			note.withValue(text);
+			final String type = typeField.getText();
+			final String title = titleField.getText();
+			final String languageTag = ((Locale)localeComboBox.getModel().getSelectedItem()).toLanguageTag();
+			final String extract = extractView.getText();
+			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
+				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
+			final String url = urlField.getText();
+
+			source.replaceChildValue("TYPE", type);
+			source.replaceChildValue("TITLE", title);
+			//TODO
+			//date
+			source.replaceChildValue("LOCALE", languageTag);
+			source.replaceChildValue("EXTRACT", extract);
+			final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
+			if(!extractTypeNode.isEmpty())
+				extractTypeNode.withValue(extractType);
+			source.replaceChildValue("URL", url);
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
@@ -267,12 +315,26 @@ public class NoteDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout());
-		add(splitPane, "span 2,wrap");
-		add(localeLabel, "align label");
+		setLayout(new MigLayout("", "[400]"));
+		add(typeLabel, "align label,split 2");
+		add(typeField, "grow,wrap");
+		add(titleLabel, "align label,split 2");
+		add(titleField, "grow,wrap paragraph");
+		add(eventsButton, "sizegroup button2,grow,wrap paragraph");
+		add(dateLabel, "align label,split 3");
+		add(dateField, "grow");
+		add(dateButton, "wrap");
+		add(localeLabel, "align label,split 2");
 		add(localeComboBox, "wrap");
-		add(restrictionLabel, "align label");
-		add(restrictionComboBox, "wrap paragraph");
+		add(extractLabel, "align label,wrap");
+		add(splitPane, "span 2,grow,wrap");
+		add(extractTypeLabel, "align label,split 2");
+		add(extractTypeComboBox, "wrap paragraph");
+		add(repositoriesButton, "sizegroup button2,grow,wrap");
+		add(filesButton, "sizegroup button2,grow,wrap paragraph");
+		add(urlLabel, "align label,split 2");
+		add(urlField, "grow,wrap paragraph");
+		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -314,8 +376,8 @@ public class NoteDialog extends JDialog{
 			final boolean lineWrap = ((AbstractButton)event.getSource()).isSelected();
 			PREFERENCES.putBoolean(KEY_LINE_WRAP, lineWrap);
 
-			textView.setWrapStyleWord(lineWrap);
-			textView.setLineWrap(lineWrap);
+			extractView.setWrapStyleWord(lineWrap);
+			extractView.setLineWrap(lineWrap);
 		});
 		lineWrapItem.setSelected(PREFERENCES.getBoolean(KEY_LINE_WRAP, false));
 		popupMenu.add(lineWrapItem);
@@ -328,29 +390,38 @@ public class NoteDialog extends JDialog{
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
-	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){
-		this.note = note;
+	public void loadData(final GedcomNode source, final Runnable onCloseGracefully){
+		this.source = source;
 		this.onCloseGracefully = onCloseGracefully;
 
-		setTitle("Note " + note.getID());
+		setTitle("Source " + source.getID());
 
-		final String text = note.getValue();
-		final String languageTag = store.traverse(note, "LOCALE").getValue();
-		final String restriction = store.traverse(note, "RESTRICTION").getValue();
+		final String type = store.traverse(source, "TYPE").getValue();
+		final String title = store.traverse(source, "TITLE").getValue();
+		final GedcomNode dateNode = store.traverse(source, "DATE");
+		final String languageTag = store.traverse(source, "LOCALE").getValue();
+		final GedcomNode extractNode = store.traverse(source, "EXTRACT");
+		final String extract = extractNode.getValue();
+		final String extractType = store.traverse(extractNode, "TYPE").getValue();
+		final String url = store.traverse(extractNode, "URL").getValue();
 
-		textView.setText(text);
-		previewView.setText(renderHtml(text));
+		typeField.setText(type);
+		titleField.setText(title);
+		//TODO
+		//date node
+		if(StringUtils.isNotBlank(languageTag))
+			localeComboBox.setSelectedByLanguageTag(languageTag);
+		extractView.setText(extract);
+		previewView.setText(renderHtml(extract));
+		extractTypeComboBox.setSelectedIndex(extractType != null? Integer.parseInt(extractType) + 1: 0);
+		urlField.setText(url);
 
 		//scroll to top
-		textView.setCaretPosition(0);
+		extractView.setCaretPosition(0);
 		previewView.setCaretPosition(0);
 
-		htmlExportStandardItem.addActionListener(event -> exportHtml(note, FILE_HTML_STANDARD_CSS));
-		htmlExportGithubItem.addActionListener(event -> exportHtml(note, FILE_HTML_GITHUB_CSS));
-
-		localeComboBox.setSelectedByLanguageTag(languageTag);
-
-		restrictionComboBox.setSelectedItem(restriction);
+		htmlExportStandardItem.addActionListener(event -> exportHtml(source, FILE_HTML_STANDARD_CSS));
+		htmlExportGithubItem.addActionListener(event -> exportHtml(source, FILE_HTML_GITHUB_CSS));
 
 		repaint();
 	}
@@ -369,7 +440,7 @@ public class NoteDialog extends JDialog{
 	/**
 	 * Exports the markdown text to an HTML file.
 	 */
-	private void exportHtml(final GedcomNode note, final File htmlCssFile){
+	private void exportHtml(final GedcomNode source, final File htmlCssFile){
 		if(EXPORT_FILE_CHOOSER.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)
 			return;
 
@@ -377,8 +448,8 @@ public class NoteDialog extends JDialog{
 		if(!outputFile.getName().toLowerCase().endsWith(".html"))
 			outputFile = new File(outputFile.getPath() + ".html");
 
-		final String title = "NOTE " + note.getID();
-		final String languageTag = store.traverse(note, "LOCALE").getValue();
+		final String title = "SOURCE " + source.getID();
+		final String languageTag = store.traverse(source, "LOCALE").getValue();
 		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");
 		final String body = previewView.getText();
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
@@ -417,7 +488,7 @@ public class NoteDialog extends JDialog{
 
 
 	private static class UndoAction extends AbstractAction{
-		private static final long serialVersionUID = -167659402186653426L;
+		private static final long serialVersionUID = -3974682914632160277L;
 
 		@Override
 		public void actionPerformed(final ActionEvent event){
@@ -432,7 +503,7 @@ public class NoteDialog extends JDialog{
 	}
 
 	private static class RedoAction extends AbstractAction{
-		private static final long serialVersionUID = 439250417104078123L;
+		private static final long serialVersionUID = -4415532769601693910L;
 
 		@Override
 		public void actionPerformed(final ActionEvent event){
@@ -457,11 +528,11 @@ public class NoteDialog extends JDialog{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode note = store.getNotes().get(0);
+		final GedcomNode source = store.getSources().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final NoteDialog dialog = new NoteDialog(store, new JFrame());
-			dialog.loadData(note, null);
+			final SourceDialog dialog = new SourceDialog(store, new JFrame());
+			dialog.loadData(source, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
 				@Override

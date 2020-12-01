@@ -167,14 +167,21 @@ public abstract class GedcomNode{
 		if(StringUtils.isBlank(value))
 			removeChildrenWithTag(tag);
 		else if(children != null){
+			boolean found = false;
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
 				final GedcomNode child = itr.next();
 				if(child.tag.equals(tag)){
 					child.withValue(value);
+					found = true;
 					break;
 				}
 			}
+
+			if(!found)
+				//create child
+				addChild(createNewNodeWithTag(tag)
+					.withValue(value));
 		}
 		return this;
 	}

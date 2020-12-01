@@ -36,9 +36,9 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
@@ -154,22 +154,22 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 				break;
 
 			case SOURCE:
-				//TODO
-//				final SourceDialog sourceDialog = new SourceDialog(store, this);
-//				sourceDialog.loadData(editCommand.getContainer());
-//
-//				sourceDialog.setSize(450, 500);
-//				sourceDialog.setLocationRelativeTo(this);
-//				sourceDialog.setVisible(true);
+				final SourceDialog sourceDialog = new SourceDialog(store, this);
+				sourceDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+				sourceDialog.setSize(450, 500);
+				sourceDialog.setLocationRelativeTo(this);
+				sourceDialog.setVisible(true);
 				break;
 
 			case SOURCE_CITATION:
-				final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
-				sourceCitationDialog.loadData(editCommand.getContainer());
-
-				sourceCitationDialog.setSize(450, 500);
-				sourceCitationDialog.setLocationRelativeTo(this);
-				sourceCitationDialog.setVisible(true);
+				//TODO
+//				final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
+//				sourceCitationDialog.loadData(editCommand.getContainer());
+//
+//				sourceCitationDialog.setSize(450, 500);
+//				sourceCitationDialog.setLocationRelativeTo(this);
+//				sourceCitationDialog.setVisible(true);
 				break;
 
 			case EVENT:
