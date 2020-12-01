@@ -77,6 +77,9 @@ public class GroupCitationDialog extends JDialog{
 		"Secondary evidence, data officially recorded sometime after event",
 		"Direct and primary evidence used, or by dominance of the evidence"});
 
+	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"confidential", "locked", "private"});
+
 	private static final String KEY_GROUP_ID = "groupID";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
@@ -94,6 +97,8 @@ public class GroupCitationDialog extends JDialog{
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JLabel restrictionLabel = new JLabel("Restriction:");
+	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -156,11 +161,15 @@ public class GroupCitationDialog extends JDialog{
 				groupField.setText(store.traverse(selectedGroup, "NAME").getValue());
 
 				roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
-				credibilityComboBox.setSelectedItem(store.traverse(selectedGroupCitation, "CREDIBILITY").getValue());
+				credibilityComboBox.setEnabled(true);
+				final String credibility = store.traverse(selectedGroupCitation, "CREDIBILITY").getValue();
+				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+				restrictionComboBox.setEnabled(true);
+				final String restriction = store.traverse(selectedGroupCitation, "RESTRICTION").getValue();
+				restrictionComboBox.setSelectedIndex(restriction != null? Integer.parseInt(restriction) + 1: 0);
 
 				roleField.setEnabled(true);
 				notesButton.setEnabled(!store.traverseAsList(selectedGroupCitation, "NOTE[]").isEmpty());
-				credibilityComboBox.setEnabled(true);
 			}
 		});
 		groupsTable.addMouseListener(new MouseAdapter(){
@@ -200,6 +209,18 @@ public class GroupCitationDialog extends JDialog{
 		credibilityComboBox.setEnabled(false);
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
+		restrictionLabel.setLabelFor(restrictionComboBox);
+		restrictionComboBox.setEnabled(false);
+		restrictionComboBox.setEditable(true);
+		restrictionComboBox.addActionListener(e -> {
+			if("comboBoxEdited".equals(e.getActionCommand())){
+				final String newValue = (String)RESTRICTION_MODEL.getSelectedItem();
+				RESTRICTION_MODEL.addElement(newValue);
+
+				restrictionComboBox.setSelectedItem(newValue);
+			}
+		});
+
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			//TODO
@@ -210,6 +231,7 @@ public class GroupCitationDialog extends JDialog{
 			final String id = (String)groupField.getClientProperty(KEY_GROUP_ID);
 			final String role = roleField.getText();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
+			final int restriction = restrictionComboBox.getSelectedIndex() - 1;
 
 			//remove all reference to groups from the container
 			container.removeChildrenWithTag("GROUP");
@@ -240,6 +262,8 @@ public class GroupCitationDialog extends JDialog{
 		add(notesButton, "sizegroup button,grow,wrap");
 		add(credibilityLabel, "align label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
+		add(restrictionLabel, "align label,split 2");
+		add(restrictionComboBox, "grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}

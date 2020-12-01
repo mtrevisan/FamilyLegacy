@@ -152,7 +152,7 @@ public class NoteDialog extends JDialog{
 	private final JEditorPane previewView = new JEditorPane();
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
-	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -244,7 +244,7 @@ public class NoteDialog extends JDialog{
 
 		localeLabel.setLabelFor(localeComboBox);
 
-		credibilityLabel.setLabelFor(restrictionComboBox);
+		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
 			if("comboBoxEdited".equals(e.getActionCommand())){
@@ -272,7 +272,7 @@ public class NoteDialog extends JDialog{
 		add(splitPane, "span 2,wrap");
 		add(localeLabel, "align label");
 		add(localeComboBox, "wrap");
-		add(credibilityLabel, "align label");
+		add(restrictionLabel, "align label");
 		add(restrictionComboBox, "wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -332,6 +332,8 @@ public class NoteDialog extends JDialog{
 	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){
 		this.note = note;
 		this.onCloseGracefully = onCloseGracefully;
+
+		setTitle("Note " + note.getID());
 
 		final String text = note.getValue();
 
