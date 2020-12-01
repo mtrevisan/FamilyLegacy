@@ -67,11 +67,11 @@ public class NoteCitationDialog extends JDialog{
 	private static final int ID_PREFERRED_WIDTH = 25;
 
 	private static final int TABLE_INDEX_NOTE_ID = 0;
-	private static final int TABLE_INDEX_NOTE_NAME = 1;
+	private static final int TABLE_INDEX_NOTE_TEXT = 1;
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable notesTable = new JTable(new GroupsTableModel());
+	private final JTable notesTable = new JTable(new NotesTableModel());
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
@@ -122,30 +122,9 @@ public class NoteCitationDialog extends JDialog{
 			return Integer.compare(v1, v2);
 		};
 		sorter.setComparator(TABLE_INDEX_NOTE_ID, idComparator);
-		sorter.setComparator(TABLE_INDEX_NOTE_NAME, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_NOTE_TEXT, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
 		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
-		notesTable.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(final KeyEvent event){
-				final int rowCount = notesTable.getModel().getRowCount();
-				int selectedRow = notesTable.getSelectedRow();
-				if(event.getKeyCode() == KeyEvent.VK_UP){
-					selectedRow = (selectedRow + rowCount - 1) % rowCount;
-					notesTable.setRowSelectionInterval(selectedRow, selectedRow);
-				}
-				else if(event.getKeyCode() == KeyEvent.VK_DOWN){
-					selectedRow = (selectedRow + 1) % rowCount;
-					notesTable.setRowSelectionInterval(selectedRow, selectedRow);
-				}
-			}
-
-			@Override
-			public void keyReleased(final KeyEvent event){
-				if(event.getKeyCode() == KeyEvent.VK_DELETE && notesTable.getSelectedRow() >= 0)
-					deleteAction();
-			}
-		});
 		notesTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
@@ -201,8 +180,8 @@ public class NoteCitationDialog extends JDialog{
 		//retrieve selected note
 		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
 		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
-		final String noteXref = (String)model.getValueAt(index, TABLE_INDEX_NOTE_ID);
-		final GedcomNode selectedNote = store.getNote(noteXref);
+		final String noteXRef = (String)model.getValueAt(index, TABLE_INDEX_NOTE_ID);
+		final GedcomNode selectedNote = store.getNote(noteXRef);
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedNote));
@@ -236,14 +215,14 @@ public class NoteCitationDialog extends JDialog{
 				final GedcomNode note = notes.get(row);
 
 				notesModel.setValueAt(note.getID(), row, TABLE_INDEX_NOTE_ID);
-				notesModel.setValueAt(note.getValue(), row, TABLE_INDEX_NOTE_NAME);
+				notesModel.setValueAt(note.getValue(), row, TABLE_INDEX_NOTE_TEXT);
 			}
 		}
 	}
 
 	private void filterTableBy(final NoteCitationDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_NOTE_ID, TABLE_INDEX_NOTE_NAME);
+		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_NOTE_ID, TABLE_INDEX_NOTE_TEXT);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)notesTable.getRowSorter();
@@ -273,12 +252,12 @@ public class NoteCitationDialog extends JDialog{
 	}
 
 
-	private static class GroupsTableModel extends DefaultTableModel{
+	private static class NotesTableModel extends DefaultTableModel{
 
 		private static final long serialVersionUID = 981117893723288957L;
 
 
-		GroupsTableModel(){
+		NotesTableModel(){
 			super(new String[]{"ID", "Text"}, 0);
 		}
 
@@ -334,7 +313,7 @@ public class NoteCitationDialog extends JDialog{
 
 				final List<Object[]> rows = new ArrayList<>(size);
 				for(int i = 0; i < size; i ++){
-					rows.add(new Object[]{table.getValueAt(0, TABLE_INDEX_NOTE_ID), table.getValueAt(0, TABLE_INDEX_NOTE_NAME)});
+					rows.add(new Object[]{table.getValueAt(0, TABLE_INDEX_NOTE_ID), table.getValueAt(0, TABLE_INDEX_NOTE_TEXT)});
 
 					model.removeRow(0);
 				}

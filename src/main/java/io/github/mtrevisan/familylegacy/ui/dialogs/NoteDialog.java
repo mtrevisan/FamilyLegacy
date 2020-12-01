@@ -153,7 +153,7 @@ public class NoteDialog extends JDialog{
 	private final JEditorPane previewView = new JEditorPane();
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
-	private final JLabel restrictionLabel = new JLabel("Restriction:");
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -245,7 +245,7 @@ public class NoteDialog extends JDialog{
 
 		localeLabel.setLabelFor(localeComboBox);
 
-		restrictionLabel.setLabelFor(restrictionComboBox);
+		credibilityLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
 			if("comboBoxEdited".equals(e.getActionCommand())){
@@ -273,7 +273,7 @@ public class NoteDialog extends JDialog{
 		add(splitPane, "span 2,wrap");
 		add(localeLabel, "align label");
 		add(localeComboBox, "wrap");
-		add(restrictionLabel, "align label");
+		add(credibilityLabel, "align label");
 		add(restrictionComboBox, "wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -359,7 +359,7 @@ public class NoteDialog extends JDialog{
 	 * @param markdown	Code string to be rendered.
 	 * @return	HTML string.
 	 */
-	public String renderHtml(final String markdown){
+	private String renderHtml(final String markdown){
 		final Node document = MARKDOWN_PARSER.parse(markdown);
 		return HTML_RENDERER.render(document);
 	}

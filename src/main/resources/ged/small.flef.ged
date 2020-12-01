@@ -18,6 +18,9 @@
 2 PLACE @P2@
 1 GROUP @G1@
 2 ROLE resident
+2 NOTE @N2@
+1 GROUP @G2@
+1 GROUP @G3@
 1 NOTE @N1@
 1 NOTE @N2@
 1 SOURCE @S1@
@@ -57,6 +60,9 @@
 0 @G2@ GROUP
 1 NAME GROUP_NAME2
 1 TYPE literary society
+0 @G3@ GROUP
+1 NAME GROUP_NAME3
+1 TYPE who knows
 0 @N1@ NOTE ### Notable features
 1 CONTINUATION Boxon...
 1 CONTINUATION  - Is easily extensible through the use of [converters](#how-to).

@@ -52,14 +52,17 @@ public final class Transformer{
 	private static final String PARAM_VALUE = "value";
 	private static final String PARAM_INDEX = "index";
 	private static final String PARAM_ID = "id";
-	private static final String PATH_COMPONENT = "[^#{}\\[\\])]+";
+	private static final String PARAM_XREF = "xref";
+	private static final String PATH_COMPONENT = "[^#@{}\\[\\])]+";
 	private static final String PATH_COMPONENT_OPTIONAL = "[^#{}\\[\\])]*";
 	private static final String PATH_COMPONENT_TAG = "(?<" + PARAM_TAG + ">" + PATH_COMPONENT + ")";
 	private static final String PATH_COMPONENT_VALUE = "\\{(?<" + PARAM_VALUE + ">" + PATH_COMPONENT + ")\\}";
 	private static final String PATH_COMPONENT_INDEX = "\\[(?<" + PARAM_INDEX + ">" + PATH_COMPONENT_OPTIONAL + ")\\]";
 	private static final String PATH_COMPONENT_ID = "#(?<" + PARAM_ID + ">" + PATH_COMPONENT + ")";
+	private static final String PATH_COMPONENT_XREF = "@(?<" + PARAM_XREF + ">" + PATH_COMPONENT + ")";
 	private static final Pattern PATH_COMPONENTS = RegexHelper.pattern(
-		PATH_COMPONENT_TAG + "?(?:" + PATH_COMPONENT_ID + ")?(?:" + PATH_COMPONENT_VALUE + ")?(?:" + PATH_COMPONENT_INDEX + ")?"
+		PATH_COMPONENT_TAG + "?(?:" + PATH_COMPONENT_ID + ")?(?:" + PATH_COMPONENT_XREF + ")?(?:" + PATH_COMPONENT_VALUE + ")?(?:"
+			+ PATH_COMPONENT_INDEX + ")?"
 	);
 
 
@@ -96,7 +99,7 @@ public final class Transformer{
 
 	/**
 	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` or `(tag1|tag2)#id{value}[index]` and separated by dots.
+	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[index]` or `(tag1|tag2)#id@xref{value}[index]` and separated by dots.
 	 * @return	The final node.
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
@@ -106,7 +109,7 @@ public final class Transformer{
 
 	/**
 	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id{value}[]` or `(tag1|tag2)#id{value}[]` and separated by dots.
+	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[]` or `(tag1|tag2)#id@xref{value}[]` and separated by dots.
 	 * 	<p>The void array MUST BE last in the sequence.</p>
 	 * @return	The final node list.
 	 */
@@ -136,6 +139,7 @@ public final class Transformer{
 					final String value = m.group(PARAM_VALUE);
 					final String index = m.group(PARAM_INDEX);
 					final String id = m.group(PARAM_ID);
+					final String xref = m.group(PARAM_XREF);
 
 					final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
 					if(tag != null){
@@ -157,6 +161,12 @@ public final class Transformer{
 						final Iterator<GedcomNode> itr = nodes.iterator();
 						while(itr.hasNext())
 							if(!id.equals(itr.next().getID()))
+								itr.remove();
+					}
+					if(xref != null){
+						final Iterator<GedcomNode> itr = nodes.iterator();
+						while(itr.hasNext())
+							if(!xref.equals(itr.next().getXRef()))
 								itr.remove();
 					}
 					if(index == null){

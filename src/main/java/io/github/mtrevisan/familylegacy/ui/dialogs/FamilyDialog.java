@@ -57,7 +57,7 @@ public class FamilyDialog extends JDialog{
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton eventsButton = new JButton("Events");
-	private final JLabel restrictionLabel = new JLabel("Restriction:");
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 
 	private GedcomNode family;
@@ -125,7 +125,7 @@ public class FamilyDialog extends JDialog{
 			//TODO
 		});
 
-		restrictionLabel.setLabelFor(restrictionComboBox);
+		credibilityLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
 		restrictionComboBox.addActionListener(e -> {
 			if("comboBoxEdited".equals(e.getActionCommand())){
@@ -145,7 +145,7 @@ public class FamilyDialog extends JDialog{
 		add(notesButton, "sizegroup button,grow,wrap");
 		add(sourcesButton, "sizegroup button,grow,wrap");
 		add(eventsButton, "sizegroup button,grow,wrap");
-		add(restrictionLabel, "align label,split 2");
+		add(credibilityLabel, "align label,split 2");
 		add(restrictionComboBox, "grow");
 	}
 

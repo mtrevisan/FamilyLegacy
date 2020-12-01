@@ -40,8 +40,13 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -79,6 +84,7 @@ public class GroupCitationDialog extends JDialog{
 	private final JTable groupsTable = new JTable(new GroupsTableModel());
 	private final JScrollPane groupsScrollPane = new JScrollPane(groupsTable);
 	private final JButton addButton = new JButton("Add");
+	private final JButton editButton = new JButton("Edit");
 	private final JButton removeButton = new JButton("Remove");
 	private final JLabel groupLabel = new JLabel("Group:");
 	private final JTextField groupField = new JTextField();
@@ -86,8 +92,7 @@ public class GroupCitationDialog extends JDialog{
 	private final JTextField roleField = new JTextField();
 	private final JLabel groupNameLabel = new JLabel();
 	private final JButton notesButton = new JButton("Notes");
-	private final JButton sourcesButton = new JButton("Sources");
-	private final JLabel credibilityLabel = new JLabel("Restriction:");
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -120,9 +125,11 @@ public class GroupCitationDialog extends JDialog{
 
 		groupsTable.setAutoCreateRowSorter(true);
 		groupsTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		groupsTable.setFocusable(false);
 		groupsTable.setGridColor(GRID_COLOR);
 		groupsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		groupsTable.setDragEnabled(true);
+		groupsTable.setDropMode(DropMode.INSERT_ROWS);
+		groupsTable.setTransferHandler(new TableTransferHandle(groupsTable));
 		groupsTable.getTableHeader().setFont(groupsTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(groupsTable, TABLE_INDEX_GROUP_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(groupsTable.getModel());
@@ -138,34 +145,59 @@ public class GroupCitationDialog extends JDialog{
 		groupsTable.setRowSorter(sorter);
 		//clicking on a line links it to current group
 		groupsTable.getSelectionModel().addListSelectionListener(evt -> {
+			removeButton.setEnabled(true);
+
 			final int selectedRow = groupsTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				final String selectedGroupName = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_NAME);
-				groupField.putClientProperty(KEY_GROUP_ID, groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID));
-				groupField.setText(selectedGroupName);
+				final String selectedGroupID = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID);
+				final GedcomNode selectedGroupCitation = store.traverse(container, "GROUP@" + selectedGroupID);
+				final GedcomNode selectedGroup = store.getGroup(selectedGroupID);
+				groupField.putClientProperty(KEY_GROUP_ID, selectedGroupID);
+				groupField.setText(store.traverse(selectedGroup, "NAME").getValue());
+
+				roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
+				credibilityComboBox.setSelectedItem(store.traverse(selectedGroupCitation, "CREDIBILITY").getValue());
+
+				roleField.setEnabled(true);
+				notesButton.setEnabled(!store.traverseAsList(selectedGroupCitation, "NOTE[]").isEmpty());
+				credibilityComboBox.setEnabled(true);
 			}
 		});
-		groupsTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
+		groupsTable.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent evt){
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && groupsTable.rowAtPoint(evt.getPoint()) >= 0)
+					//fire edit event
+					editAction();
+			}
+		});
 
 		addButton.addActionListener(evt -> {
-			//TODO
+			final GedcomNode newGroup = store.create("GROUP");
+
+			final Runnable onCloseGracefully = () -> {
+				//if ok was pressed, add this note to the parent container
+				final String newGroupID = store.addNote(newGroup);
+				container.addChildReference("GROUP", newGroupID);
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newGroup, onCloseGracefully));
 		});
+		editButton.addActionListener(evt -> editAction());
 		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> {
-			final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
-			model.removeRow(groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow()));
-			removeButton.setEnabled(false);
-		});
+		removeButton.addActionListener(evt -> deleteAction());
 
 		groupLabel.setLabelFor(groupField);
 		groupField.setEnabled(false);
 
+		roleField.setEnabled(false);
 		roleLabel.setLabelFor(roleField);
 
+		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
 
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container)));
-
+		credibilityComboBox.setEnabled(false);
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
 		okButton.setEnabled(false);
@@ -177,19 +209,17 @@ public class GroupCitationDialog extends JDialog{
 //			}
 			final String id = (String)groupField.getClientProperty(KEY_GROUP_ID);
 			final String role = roleField.getText();
-			//TODO notes
-			//TODO source citations
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 			//remove all reference to groups from the container
 			container.removeChildrenWithTag("GROUP");
 			//add all the remaining groups to notes to the container
-			//TODO ummm... cannot work, there are other dato apart from the xref
+			//TODO ummm... cannot work, there are other data apart from the xref
 			for(int i = 0; i < groupsTable.getRowCount(); i ++){
 				final String id2 = (String)groupsTable.getValueAt(i, TABLE_INDEX_GROUP_ID);
 				container.addChildReference("GROUP", id2);
 			}
-			//TODO remember, when saving, to remove all non-referenced notes!
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
 
 			dispose();
 		});
@@ -199,7 +229,8 @@ public class GroupCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(groupsScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 2,sizegroup button2");
+		add(addButton, "tag add,split 3,sizegroup button2");
+		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
 		add(groupNameLabel, "grow,wrap");
 		add(groupLabel, "align label,split 2");
@@ -207,11 +238,27 @@ public class GroupCitationDialog extends JDialog{
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");
 		add(notesButton, "sizegroup button,grow,wrap");
-		add(sourcesButton, "sizegroup button,grow,wrap");
 		add(credibilityLabel, "align label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
+	}
+
+	private void editAction(){
+		//retrieve selected note
+		final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
+		final int index = groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow());
+		final String groupXRef = (String)model.getValueAt(index, TABLE_INDEX_GROUP_ID);
+		final GedcomNode selectedNote = store.getGroup(groupXRef);
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP, selectedNote));
+	}
+
+	private void deleteAction(){
+		final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
+		model.removeRow(groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow()));
+		removeButton.setEnabled(false);
 	}
 
 	public void loadData(final GedcomNode container){
@@ -239,20 +286,6 @@ public class GroupCitationDialog extends JDialog{
 				groupsModel.setValueAt(store.traverse(group, "NAME").getValue(), row, TABLE_INDEX_GROUP_NAME);
 				groupsModel.setValueAt(store.traverse(group, "TYPE").getValue(), row, TABLE_INDEX_GROUP_TYPE);
 			}
-
-			final String groupID = store.traverse(container, "GROUP").getXRef();
-			if(groupID != null)
-				for(int index = 0; index < size; index ++)
-					if(groupsModel.getValueAt(index, TABLE_INDEX_GROUP_ID).equals(groupID)){
-						//select row whose id match container.id
-						groupsTable.setRowSelectionInterval(index, index);
-
-						final GedcomNode currentGroup = store.getGroup(groupID);
-						groupField.putClientProperty(KEY_GROUP_ID, groupID);
-						groupField.setText(store.traverse(currentGroup, "NAME").getValue());
-						roleField.setText(store.traverse(container, "GROUP.ROLE").getValue());
-						credibilityComboBox.setSelectedItem(store.traverse(container, "GROUP.CREDIBILITY").getValue());
-					}
 		}
 	}
 
@@ -288,6 +321,94 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 
+	private static class GroupsTableModel extends DefaultTableModel{
+
+		private static final long serialVersionUID = -2985688516803729157L;
+
+
+		GroupsTableModel(){
+			super(new String[]{"ID", "Name", "Type"}, 0);
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int column){
+			return String.class;
+		}
+
+		@Override
+		public boolean isCellEditable(final int row, final int column){
+			return false;
+		}
+	}
+
+	private static class TableTransferHandle extends TransferHandler{
+		private static final long serialVersionUID = 6100956630293306315L;
+
+		private final JTable table;
+
+		TableTransferHandle(final JTable table){
+			this.table = table;
+		}
+
+		@Override
+		public int getSourceActions(final JComponent component){
+			return TransferHandler.COPY_OR_MOVE;
+		}
+
+		@Override
+		protected Transferable createTransferable(final JComponent component){
+			return new StringSelection(Integer.toString(table.getSelectedRow()));
+		}
+
+		@Override
+		public boolean canImport(final TransferHandler.TransferSupport support){
+			return (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
+		}
+
+		@Override
+		public boolean importData(final TransferHandler.TransferSupport support){
+			if(!support.isDrop() || !canImport(support))
+				return false;
+
+			final DefaultTableModel model = (DefaultTableModel)table.getModel();
+			final int size = model.getRowCount();
+			//bound `rowTo` to be between 0 and `size`
+			final int rowTo = Math.min(Math.max(((JTable.DropLocation)support.getDropLocation()).getRow(), 0), size);
+
+			try{
+				final int rowFrom = Integer.parseInt((String)support.getTransferable().getTransferData(DataFlavor.stringFlavor));
+				if(rowFrom == rowTo - 1)
+					return false;
+
+				final List<Object[]> rows = new ArrayList<>(size);
+				for(int i = 0; i < size; i ++){
+					rows.add(new Object[]{table.getValueAt(0, TABLE_INDEX_GROUP_ID), table.getValueAt(0, TABLE_INDEX_GROUP_NAME),
+						table.getValueAt(0, TABLE_INDEX_GROUP_TYPE)});
+
+					model.removeRow(0);
+				}
+				if(rowTo < size){
+					final Object[] from = rows.get(rowFrom);
+					final Object[] to = rows.get(rowTo);
+					rows.set(rowTo, from);
+					rows.set(rowFrom, to);
+				}
+				else{
+					final Object[] from = rows.get(rowFrom);
+					rows.remove(rowFrom);
+					rows.add(from);
+				}
+				for(final Object[] row : rows)
+					model.addRow(row);
+
+				return true;
+			}
+			catch(final Exception ignored){}
+			return false;
+		}
+	}
+
+
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -314,27 +435,6 @@ public class GroupCitationDialog extends JDialog{
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
-	}
-
-
-	private static class GroupsTableModel extends DefaultTableModel{
-
-		private static final long serialVersionUID = -2985688516803729157L;
-
-
-		GroupsTableModel(){
-			super(new String[]{"ID", "Name", "Type"}, 0);
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public boolean isCellEditable(final int row, final int column){
-			return false;
-		}
 	}
 
 }

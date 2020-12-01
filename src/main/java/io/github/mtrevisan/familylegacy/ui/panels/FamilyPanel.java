@@ -395,7 +395,7 @@ public class FamilyPanel extends JPanel{
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
 		int addressYear = 0;
 		GedcomNode addressEarliest = null;
-		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS");
+		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
 		for(final GedcomNode address : addresses){
 			final GedcomNode source = store.getSource(store.traverse(address, "SOURCE").getXRef());
 			final String addressDateValue = store.traverse(source, "DATE").getValue();
