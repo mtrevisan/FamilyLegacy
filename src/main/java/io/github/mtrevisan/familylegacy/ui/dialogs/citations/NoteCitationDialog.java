@@ -297,9 +297,7 @@ public class NoteCitationDialog extends JDialog{
 
 		@Override
 		public boolean canImport(final TransferHandler.TransferSupport support){
-			final boolean b = (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
-			table.setCursor(Cursor.getPredefinedCursor(b? Cursor.MOVE_CURSOR: Cursor.DEFAULT_CURSOR));
-			return b;
+			return (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
 		}
 
 		@Override
@@ -307,53 +305,33 @@ public class NoteCitationDialog extends JDialog{
 			if(!support.isDrop() || !canImport(support))
 				return false;
 
-			table.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
-			int rowTo = ((JTable.DropLocation)support.getDropLocation()).getRow();
-			final int max = table.getModel().getRowCount();
-			if(rowTo < 0 || rowTo > max)
-				rowTo = max;
+			final DefaultTableModel model = (DefaultTableModel)table.getModel();
+			final int size = model.getRowCount();
+			//bound `rowTo` to be between 0 and `size`
+			final int rowTo = Math.min(Math.max(((JTable.DropLocation)support.getDropLocation()).getRow(), 0), size);
 
 			try{
 				final int rowFrom = Integer.parseInt((String)support.getTransferable().getTransferData(DataFlavor.stringFlavor));
-				if(rowFrom == rowTo)
+				if(rowFrom == rowTo - 1)
 					return false;
 
-				if(rowTo > rowFrom)
-					rowTo --;
+				final List<Object[]> rows = new ArrayList<>(size);
+				for(int i = 0; i < size; i ++){
+					rows.add(getRowValues(0));
 
-				final DefaultTableModel model = (DefaultTableModel)table.getModel();
-				final int size = model.getRowCount();
-				int k = Math.min(rowTo, rowFrom);
-				final List<Object[]> rows = new ArrayList<>(size - k);
-				for(int i = k; i < Math.max(rowTo, rowFrom); i ++){
-					if(i != rowFrom)
-						rows.add(getRowValues(k));
-
-					model.removeRow(k);
+					model.removeRow(0);
 				}
-				k = Math.max(rowTo, rowFrom);
-				for(int i = k; i < size; i ++){
-					rows.add(getRowValues(k));
-
-					model.removeRow(k);
+				if(rowTo < size){
+					final Object[] from = rows.get(rowFrom);
+					final Object[] to = rows.get(rowTo);
+					rows.set(rowTo, from);
+					rows.set(rowFrom, to);
 				}
-//				final Object[] from = getRowValues(rowFrom);
-//				if(rowTo < rowFrom){
-//					rows.add(from);
-//					for(int i = rowTo; i < size; i ++){
-//						if(i != rowFrom)
-//							rows.add(getRowValues(rowTo));
-//
-//						model.removeRow(rowTo);
-//					}
-//				}
-//				else
-//					for(int i = rowFrom; i < size; i ++){
-//						model.removeRow(rowFrom);
-//
-//						rows.add(i != rowTo? getRowValues(rowFrom): from);
-//					}
+				else{
+					final Object[] from = rows.get(rowFrom);
+					rows.remove(rowFrom);
+					rows.add(from);
+				}
 				for(final Object[] row : rows)
 					model.addRow(row);
 
@@ -365,12 +343,6 @@ public class NoteCitationDialog extends JDialog{
 
 		private Object[] getRowValues(final int row){
 			return new Object[]{table.getValueAt(row, TABLE_INDEX_NOTE_ID), table.getValueAt(row, TABLE_INDEX_NOTE_NAME)};
-		}
-
-		@Override
-		protected void exportDone(final JComponent component, final Transferable transferable, final int action){
-			if(action == TransferHandler.MOVE)
-				table.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 	}
 
