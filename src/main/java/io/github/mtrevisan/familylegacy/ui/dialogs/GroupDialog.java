@@ -28,17 +28,27 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 
 public class GroupDialog extends JDialog{
 
-	private final JTextArea textView = new JTextArea();
+	private final JLabel nameLabel = new JLabel("Name:");
+	private final JTextField nameField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
+	private final JButton eventsButton = new JButton("Events");
+	private final JButton notesButton = new JButton("Notes");
+	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -58,16 +68,32 @@ public class GroupDialog extends JDialog{
 	private void initComponents(){
 		setTitle("Group");
 
-		textView.setDragEnabled(true);
-		textView.setTabSize(3);
+		nameLabel.setLabelFor(nameField);
 
-		final JScrollPane textScroll = new JScrollPane(textView);
-		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		nameField.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyReleased(final KeyEvent event){
+				okButton.setEnabled(!nameField.getText().isBlank());
+			}
+		});
 
-		okButton.setEnabled(false);
+		typeLabel.setLabelFor(typeField);
+
+		eventsButton.setEnabled(false);
+		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, group)));
+
+		notesButton.setEnabled(false);
+		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, group)));
+
+		sourcesButton.setEnabled(false);
+		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
+
 		okButton.addActionListener(evt -> {
-			final String text = textView.getText();
-			group.withValue(text);
+			final String name = nameField.getText();
+			final String type = typeField.getText();
+
+			group.replaceChildValue("NAME", name);
+			group.replaceChildValue("TYPE", type);
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
@@ -77,7 +103,14 @@ public class GroupDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout());
+		setLayout(new MigLayout("", "[400]"));
+		add(nameLabel, "align label,split 2");
+		add(nameField, "grow,wrap");
+		add(typeLabel, "align label,split 2");
+		add(typeField, "grow,wrap paragraph");
+		add(eventsButton, "sizegroup button2,grow,wrap");
+		add(notesButton, "sizegroup button2,grow,wrap");
+		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -88,12 +121,11 @@ public class GroupDialog extends JDialog{
 
 		setTitle("Group " + group.getID());
 
-		final String text = group.getValue();
+		final String name = store.traverse(group, "NAME").getValue();
+		final String type = store.traverse(group, "TYPE").getValue();
 
-		textView.setText(text);
-
-		//scroll to top
-		textView.setCaretPosition(0);
+		nameField.setText(name);
+		typeField.setText(type);
 
 		repaint();
 	}
@@ -121,7 +153,7 @@ public class GroupDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 500);
+			dialog.setSize(500, 300);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

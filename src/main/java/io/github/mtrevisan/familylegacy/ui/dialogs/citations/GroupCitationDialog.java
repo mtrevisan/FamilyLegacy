@@ -170,6 +170,8 @@ public class GroupCitationDialog extends JDialog{
 
 				roleField.setEnabled(true);
 				notesButton.setEnabled(!store.traverseAsList(selectedGroupCitation, "NOTE[]").isEmpty());
+
+				okButton.setEnabled(true);
 			}
 		});
 		groupsTable.addMouseListener(new MouseAdapter(){
@@ -223,24 +225,16 @@ public class GroupCitationDialog extends JDialog{
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			//TODO
-//			if(listener != null){
-//				final GedcomNode selectedFamily = getSelectedFamily();
-//				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
-//			}
 			final String id = (String)groupField.getClientProperty(KEY_GROUP_ID);
 			final String role = roleField.getText();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 			final int restriction = restrictionComboBox.getSelectedIndex() - 1;
 
-			//remove all reference to groups from the container
-			container.removeChildrenWithTag("GROUP");
-			//add all the remaining groups to notes to the container
-			//TODO ummm... cannot work, there are other data apart from the xref
-			for(int i = 0; i < groupsTable.getRowCount(); i ++){
-				final String id2 = (String)groupsTable.getValueAt(i, TABLE_INDEX_GROUP_ID);
-				container.addChildReference("GROUP", id2);
-			}
+			final GedcomNode group = store.traverse(container, "GROUP@" + id);
+			group.replaceChildValue("ROLE", role);
+			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
+			group.replaceChildValue("RESTRICTION", (restriction >= 0? Integer.toString(restriction): null));
+
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
 
 			dispose();
@@ -258,7 +252,7 @@ public class GroupCitationDialog extends JDialog{
 		add(groupLabel, "align label,split 2");
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
-		add(roleField, "grow,wrap");
+		add(roleField, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap");
 		add(credibilityLabel, "align label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");

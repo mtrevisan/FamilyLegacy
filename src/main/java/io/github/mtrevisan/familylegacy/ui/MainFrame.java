@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
@@ -117,13 +118,12 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void refresh(final EditEvent editCommand){
 		switch(editCommand.getType()){
 			case GROUP:
-				//TODO
-//				final GroupDialog groupDialog = new GroupDialog(store, this);
-//				groupDialog.loadData(editCommand.getContainer());
-//
-//				groupDialog.setSize(450, 500);
-//				groupDialog.setLocationRelativeTo(this);
-//				groupDialog.setVisible(true);
+				final GroupDialog groupDialog = new GroupDialog(store, this);
+				groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+				groupDialog.setSize(450, 500);
+				groupDialog.setLocationRelativeTo(this);
+				groupDialog.setVisible(true);
 				break;
 
 			case GROUP_CITATION:
@@ -170,6 +170,26 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 				sourceCitationDialog.setSize(450, 500);
 				sourceCitationDialog.setLocationRelativeTo(this);
 				sourceCitationDialog.setVisible(true);
+				break;
+
+			case EVENT:
+				//TODO
+//				final EventDialog eventDialog = new EventDialog(store, this);
+//				eventDialog.loadData(editCommand.getContainer());
+//
+//				eventDialog.setSize(450, 500);
+//				eventDialog.setLocationRelativeTo(this);
+//				eventDialog.setVisible(true);
+				break;
+
+			case EVENT_CITATION:
+				//TODO
+//				final EventCitationDialog eventCitationDialog = new EventCitationDialog(store, this);
+//				eventCitationDialog.loadData(editCommand.getContainer());
+//
+//				eventCitationDialog.setSize(450, 500);
+//				eventCitationDialog.setLocationRelativeTo(this);
+//				eventCitationDialog.setVisible(true);
 		}
 	}
 

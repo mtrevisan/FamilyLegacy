@@ -61,7 +61,7 @@ public final class AgeParser{
 		final Matcher matcher = RegexHelper.matcher(age, PATTERN_AGE);
 		if(matcher.find()){
 			final String instant = matcher.group(PARAM_INSTANT);
-			if(StringUtils.isNotEmpty(instant))
+			if(StringUtils.isNotBlank(instant))
 				ageData.withAgeType(AgeType.createFromText(instant));
 			else{
 				final String relation = matcher.group(PARAM_RELATION);

@@ -156,9 +156,26 @@ public abstract class GedcomNode{
 	}
 
 	public GedcomNode addChildValue(final String tag, final String value){
-		if(StringUtils.isNotEmpty(value))
+		if(StringUtils.isNotBlank(value))
 			addChild(createNewNodeWithTag(tag)
 				.withValue(value));
+		return this;
+	}
+
+	/** Replaces first occurrence of the given tag with the given value. */
+	public GedcomNode replaceChildValue(final String tag, final String value){
+		if(StringUtils.isBlank(value))
+			removeChildrenWithTag(tag);
+		else if(children != null){
+			final Iterator<GedcomNode> itr = children.iterator();
+			while(itr.hasNext()){
+				final GedcomNode child = itr.next();
+				if(child.tag.equals(tag)){
+					child.withValue(value);
+					break;
+				}
+			}
+		}
 		return this;
 	}
 

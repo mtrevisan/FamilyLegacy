@@ -302,7 +302,8 @@ GROUP_RECORD :=	/* A group can be of genealogical, historical, or general intere
 n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
   +1 NAME <GROUP_NAME>    {1:1}	/* The name of the group. */
   +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
-  +1 <<EVENT_DETAIL>>    {0:M}	/* An EVENT_DETAIL() object giving details related to a group. */
+  +1 EVENT [ <EVENT_DESCRIPTOR> | <NULL> ]    {0:M}	/* A code used to indicate the type of event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVENT tag. The classification as to the difference between this specific event and other occurrences of the EVENT tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
+    +2 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 

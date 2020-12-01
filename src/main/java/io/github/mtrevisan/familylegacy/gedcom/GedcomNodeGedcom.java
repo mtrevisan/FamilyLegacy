@@ -88,7 +88,10 @@ public final class GedcomNodeGedcom extends GedcomNode{
 
 			while(offset < length && (cutIndex = Math.min(length - offset, MAX_LINE_LENGTH)) >= 0){
 				final String newLine = value.substring(offset, offset += cutIndex);
-				addValue(tag, newLine);
+				if(offset == cutIndex)
+					this.value = newLine;
+				else
+					addValue(tag, newLine);
 
 				tag = TAG_CONCATENATION;
 			}

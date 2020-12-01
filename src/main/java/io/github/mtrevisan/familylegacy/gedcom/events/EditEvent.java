@@ -33,7 +33,8 @@ public class EditEvent{
 	public enum EditType{
 		GROUP, GROUP_CITATION,
 		NOTE, NOTE_CITATION,
-		SOURCE, SOURCE_CITATION
+		SOURCE, SOURCE_CITATION,
+		EVENT, EVENT_CITATION
 	}
 
 

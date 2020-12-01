@@ -60,7 +60,7 @@ public final class GedcomNodeFlef extends GedcomNode{
 	public GedcomNodeFlef withValue(final String value){
 		if(value != null && !value.isEmpty()){
 			//split line into CONTINUATION if applicable
-		int offset = 0;
+			int offset = 0;
 			int cutIndex;
 			final int length = value.length();
 			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
@@ -70,8 +70,12 @@ public final class GedcomNodeFlef extends GedcomNode{
 				offset = cutIndex + 1;
 			}
 
-			if(offset < length)
-				addValue(TAG_CONTINUATION, value.substring(offset));
+			if(offset < length){
+				if(offset == 0)
+					this.value = value;
+				else
+					addValue(TAG_CONTINUATION, value.substring(offset));
+			}
 		}
 		return this;
 	}
