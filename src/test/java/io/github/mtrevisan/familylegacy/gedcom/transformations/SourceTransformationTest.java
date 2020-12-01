@@ -107,6 +107,10 @@ class SourceTransformationTest{
 				.withValue("ENTRY_RECORDING_DATE")
 				.addChildValue("CALENDAR", "CALENDAR_TYPE")
 			)
+			.addChild(transformerFrom.create("EXTRACT")
+				.withValue("TEXT_FROM_SOURCE")
+				.addChildValue("LOCALE", "en-US")
+			)
 			.addChildReference("NOTE", "N1")
 			.addChild(transformerFrom.create("REPOSITORY")
 				.withXRef("R1")
@@ -132,7 +136,7 @@ class SourceTransformationTest{
 		origin.addSource(source);
 		final Gedcom destination = new Gedcom();
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TYPE, value: DIGITAL_ARCHIVE}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: ENTRY_RECORDING_DATE, children: [{tag: CALENDAR, value: CALENDAR_TYPE}]}, {tag: NOTE, ref: N1}, {tag: REPOSITORY, ref: R1, children: [{tag: REPOSITORY_LOCATION, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: N2}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}, {tag: ASSOCIATION, value: DOCUMENT_FILE_REFERENCE, children: [{tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR}]}, {tag: EXTRACT, value: TEXT_FROM_SOURCE, children: [{tag: LOCALE, value: en-US}]}]}, {tag: URL, value: ADDRESS_WEB_PAGE}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TYPE, value: DIGITAL_ARCHIVE}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: ENTRY_RECORDING_DATE, children: [{tag: CALENDAR, value: CALENDAR_TYPE}]}, {tag: EXTRACT, value: TEXT_FROM_SOURCE, children: [{tag: LOCALE, value: en-US}]}, {tag: NOTE, ref: N1}, {tag: REPOSITORY, ref: R1, children: [{tag: REPOSITORY_LOCATION, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: N2}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: FORMAT, value: DOCUMENT_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}, {tag: ASSOCIATION, value: DOCUMENT_FILE_REFERENCE, children: [{tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR}]}, {tag: EXTRACT, value: TEXT_FROM_SOURCE, children: [{tag: LOCALE, value: en-US}]}]}, {tag: URL, value: ADDRESS_WEB_PAGE}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", origin.getSources().get(0).toString());
 
 		final Transformation<Gedcom, Flef> t = new SourceTransformation();
 		t.from(origin, destination);

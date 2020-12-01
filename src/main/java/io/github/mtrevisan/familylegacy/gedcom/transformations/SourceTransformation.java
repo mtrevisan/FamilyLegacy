@@ -56,7 +56,6 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 			destinationSource.addChildValue("EVENT", event.getValue());
 		}
 		destinationSource.addChildValue("DATE", date);
-		//TODO relocate
 		destinationSource.addChildValue("EXTRACT", transformerTo.traverse(source, "TEXT")
 			.getValue());
 		final String author = transformerTo.traverse(source, "AUTH")
@@ -111,7 +110,6 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		destinationSource.addChild(destinationData);
 		destinationSource.addChildValue("TITL", transformerFrom.traverse(source, "TITLE")
 			.getValue());
-		//TODO relocate
 		destinationSource.addChildValue("TEXT", transformerFrom.traverse(source, "EXTRACT")
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
