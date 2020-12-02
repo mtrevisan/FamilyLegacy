@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
@@ -58,6 +59,7 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -174,6 +176,8 @@ public class SourceDialog extends JDialog{
 	private final JButton filesButton = new JButton("Files");
 	private final JLabel urlLabel = new JLabel("URL:");
 	private final JTextField urlField = new JTextField();
+	private final JMenuItem testLinkItem = new JMenuItem("Test link");
+	private final JMenuItem openLinkItem = new JMenuItem("Open link…");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -202,6 +206,7 @@ public class SourceDialog extends JDialog{
 		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, source)));
 
 		dateLabel.setLabelFor(dateField);
+		dateField.setEditable(false);
 
 		localeLabel.setLabelFor(localeComboBox);
 
@@ -272,13 +277,13 @@ public class SourceDialog extends JDialog{
 			splitPane.setDividerLocation(1.);
 			splitPane.setDividerSize(0);
 		});
-		attachPopUpMenu(extractView, splitPane, previewScroll);
+		attachPreviewPopUpMenu(extractView, splitPane, previewScroll);
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 
 		final JPanel extractPanel = new JPanel();
 		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
-		extractPanel.setLayout(new MigLayout("", "[400]"));
+		extractPanel.setLayout(new MigLayout("", "[grow]"));
 		extractPanel.add(splitPane, "span 2,grow,wrap");
 		extractPanel.add(extractTypeLabel, "align label,split 2");
 		extractPanel.add(extractTypeComboBox);
@@ -290,6 +295,18 @@ public class SourceDialog extends JDialog{
 		filesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.FILE_CITATION, source)));
 
 		urlLabel.setLabelFor(urlField);
+		urlField.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyReleased(final KeyEvent event){
+				super.keyReleased(event);
+
+				final boolean enabled = StringUtils.isNotBlank(urlField.getText());
+				testLinkItem.setEnabled(enabled);
+				openLinkItem.setEnabled(enabled);
+			}
+		});
+		//manage links
+		attachOpenLinkPopUpMenu(urlField);
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
@@ -297,7 +314,7 @@ public class SourceDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			final String type = typeField.getText();
 			final String title = titleField.getText();
-			final String languageTag = ((Locale)localeComboBox.getModel().getSelectedItem()).toLanguageTag();
+			final String languageTag = ((LocaleFilteredComboBox.MyLocale)localeComboBox.getModel().getSelectedItem()).toLanguageTag();
 			final String extract = extractView.getText();
 			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
@@ -322,7 +339,7 @@ public class SourceDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout("", "[400]"));
+		setLayout(new MigLayout("", "[grow]"));
 		add(typeLabel, "align label,split 2");
 		add(typeField, "grow,wrap");
 		add(titleLabel, "align label,split 2");
@@ -333,7 +350,7 @@ public class SourceDialog extends JDialog{
 		add(dateButton, "wrap");
 		add(localeLabel, "align label,split 2");
 		add(localeComboBox, "wrap");
-		add(extractPanel, "grow,wrap");
+		add(extractPanel, "grow,wrap paragraph");
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
 		add(filesButton, "sizegroup button2,grow,wrap paragraph");
 		add(urlLabel, "align label,split 2");
@@ -354,7 +371,7 @@ public class SourceDialog extends JDialog{
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
-	private void attachPopUpMenu(final JComponent component, final JSplitPane splitPane, final JScrollPane previewScroll){
+	private void attachPreviewPopUpMenu(final JComponent component, final JSplitPane splitPane, final JScrollPane previewScroll){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
@@ -394,6 +411,24 @@ public class SourceDialog extends JDialog{
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
+	private void attachOpenLinkPopUpMenu(final JTextField component){
+		final JPopupMenu popupMenu = new JPopupMenu();
+
+		testLinkItem.addActionListener(event -> {
+			final String url = component.getText();
+			final boolean urlReachable = FileHelper.testURL(url);
+			final String message = JavaHelper.format((urlReachable? "Success, the link `{}` is reachable.":
+				"The connection attempt to `{}` failed."), url);
+			JOptionPane.showMessageDialog(this, message, "Test link result",
+				(urlReachable? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
+		});
+		openLinkItem.addActionListener(event -> FileHelper.browseURL(component.getText()));
+		popupMenu.add(testLinkItem);
+		popupMenu.add(openLinkItem);
+
+		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
+	}
+
 	public void loadData(final GedcomNode source, final Runnable onCloseGracefully){
 		this.source = source;
 		this.onCloseGracefully = onCloseGracefully;
@@ -402,18 +437,32 @@ public class SourceDialog extends JDialog{
 
 		final String type = store.traverse(source, "TYPE").getValue();
 		final String title = store.traverse(source, "TITLE").getValue();
+		final boolean hasEvents = !store.traverseAsList(source, "EVENT[]").isEmpty();
 		final GedcomNode dateNode = store.traverse(source, "DATE");
+		final String extract = store.traverse(source, "EXTRACT").getValue();
+		final String extractType = store.traverse(source, "EXTRACT.TYPE").getValue();
+		final String extractLanguageTag = store.traverse(source, "EXTRACT.LOCALE").getValue();
+		final boolean hasRepositories = !store.traverseAsList(source, "REPOSITORY[]").isEmpty();
+		final boolean hasFiles = !store.traverseAsList(source, "FILE[]").isEmpty();
 		final String url = store.traverse(source, "URL").getValue();
+		final boolean hasNotes = !store.traverseAsList(source, "NOTE[]").isEmpty();
 
 		typeField.setText(type);
 		titleField.setText(title);
-		//TODO
-		//date node
-		urlField.setText(url);
-
+		eventsButton.setEnabled(hasEvents);
+		dateField.setText(dateNode.getValue());
+		extractView.setText(extract);
+		previewView.setText(renderHtml(extract));
 		//scroll to top
 		extractView.setCaretPosition(0);
 		previewView.setCaretPosition(0);
+		extractTypeComboBox.setSelectedItem(extractType);
+		localeComboBox.setSelectedByLanguageTag(extractLanguageTag);
+		repositoriesButton.setEnabled(hasRepositories);
+		filesButton.setEnabled(hasFiles);
+		urlField.setText(url);
+		openLinkItem.setEnabled(StringUtils.isNotBlank(url));
+		notesButton.setEnabled(hasNotes);
 
 		htmlExportStandardItem.addActionListener(event -> exportHtml(source, FILE_HTML_STANDARD_CSS));
 		htmlExportGithubItem.addActionListener(event -> exportHtml(source, FILE_HTML_GITHUB_CSS));
@@ -445,7 +494,7 @@ public class SourceDialog extends JDialog{
 
 		final String title = "SOURCE " + source.getID();
 		final String languageTag = store.traverse(source, "LOCALE").getValue();
-		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");
+		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en_US");
 		final String body = previewView.getText();
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
 			out.write(extractHtml(locale, htmlCssFile, title, body).getBytes());
@@ -523,7 +572,7 @@ public class SourceDialog extends JDialog{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode source = store.getSources().get(0);
+		final GedcomNode source = store.getSources().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final SourceDialog dialog = new SourceDialog(store, new JFrame());
@@ -535,7 +584,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 700);
+			dialog.setSize(450, 700);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

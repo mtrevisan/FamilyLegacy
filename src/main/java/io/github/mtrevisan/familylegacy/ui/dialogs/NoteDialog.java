@@ -241,7 +241,7 @@ public class NoteDialog extends JDialog{
 			splitPane.setDividerLocation(1.);
 			splitPane.setDividerSize(0);
 		});
-		attachPopUpMenu(textView, splitPane, previewScroll);
+		attachPreviewPopUpMenu(textView, splitPane, previewScroll);
 
 		localeLabel.setLabelFor(localeComboBox);
 
@@ -290,7 +290,7 @@ public class NoteDialog extends JDialog{
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
-	private void attachPopUpMenu(final JComponent component, final JSplitPane splitPane, final JScrollPane previewScroll){
+	private void attachPreviewPopUpMenu(final JComponent component, final JSplitPane splitPane, final JScrollPane previewScroll){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");

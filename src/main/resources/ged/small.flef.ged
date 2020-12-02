@@ -28,6 +28,8 @@
 1 SOURCE @S1@
 2 PAGE 27
 2 ROLE owner
+2 CUT 0 0 20 30
+2 PREFERRED
 2 NOTE @N1@
 2 CREDIBILITY credible
 0 @P1@ PLACE
@@ -45,7 +47,7 @@
 1 CITY Arlington
 1 STATE VA
 1 COUNTRY United States
-0 @REPO3@ REPOSITORY
+0 @R2@ REPOSITORY
 1 NAME MyCorporation, Inc.
 1 PLACE @P1@
 1 CONTACT
@@ -108,19 +110,20 @@
 2 CALENDAR gregorian
 2 ORIGINAL_TEXT birth of individual was on July 21, 1900.
 2 CREDIBILITY 3
-1 LOCALE en_US
 1 EXTRACT was on July 21, 1900
 2 TYPE extract
+2 LOCALE en-US
 1 REPOSITORY @R1@
 2 REPOSITORY_LOCATION in that shelf
 2 NOTE @N2@
 1 FILE /images/births/birth01.jpg
 2 FORMAT jpg
 2 MEDIA photo
-2 CUT 0 0 20 30
-2 PREFERRED
 2 ASSOCIATION /images/births/birth02.jpg
 3 RELATIONSHIP next page
+2 EXTRACT file extract
+3 TYPE abstract
+3 LOCALE en-US
 1 URL www.google.com
 1 NOTE @N2@
 0 @R1@ REPOSITORY

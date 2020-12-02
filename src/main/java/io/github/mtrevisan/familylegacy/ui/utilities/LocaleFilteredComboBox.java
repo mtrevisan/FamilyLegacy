@@ -48,11 +48,15 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.MyL
 		Arrays.sort(LOCALE_ITEMS, Comparator.comparing(ml -> ml.toString().toLowerCase(Locale.ROOT)));
 	}
 
-	protected static final class MyLocale{
+	public static final class MyLocale{
 		private final Locale locale;
 
 		MyLocale(final Locale locale){
 			this.locale = locale;
+		}
+
+		public String toLanguageTag(){
+			return locale.toLanguageTag();
 		}
 
 		@Override
@@ -120,7 +124,7 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.MyL
 		final DefaultComboBoxModel<MyLocale> model = (DefaultComboBoxModel<MyLocale>)getModel();
 		for(int index = 0; index < model.getSize(); index ++){
 			final MyLocale loc = model.getElementAt(index);
-			if(loc.toString().toLowerCase(Locale.ROOT).equals(languageTag)){
+			if(loc.toLanguageTag().toLowerCase(Locale.ROOT).equals(languageTag)){
 				locale = loc;
 				break;
 			}

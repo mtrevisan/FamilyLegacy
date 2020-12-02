@@ -38,6 +38,7 @@ public final class FileHelper{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileHelper.class);
 
+	private static final String URL_PROTOCOL_HTTP = "http://";
 	private static final String TEST_CONNECTIVITY_URL = "https://www.google.com/";
 
 
@@ -78,13 +79,26 @@ public final class FileHelper{
 	}
 
 	public static boolean hasInternetConnectivity(){
+		return testURL(TEST_CONNECTIVITY_URL);
+	}
+
+	public static boolean testURL(final String url){
 		try{
-			final URL url = new URL(TEST_CONNECTIVITY_URL);
-			final HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
-			final int responseCode = httpConnection.getResponseCode();
+			HttpURLConnection connection = (HttpURLConnection)new URL(url.startsWith(URL_PROTOCOL_HTTP)? url: URL_PROTOCOL_HTTP + url)
+				.openConnection();
+			connection.setRequestMethod("HEAD");
+			int responseCode = connection.getResponseCode();
+
+			if((responseCode != HttpURLConnection.HTTP_OK)){
+				//try with a GET, as some legacy server would not handle a HEAD
+				connection = (HttpURLConnection)new URL(url).openConnection();
+				connection.setRequestMethod("GET");
+				responseCode = connection.getResponseCode();
+			}
+
 			return (responseCode == HttpURLConnection.HTTP_OK);
 		}
-		catch(final Exception e){
+		catch(final Exception ignored){
 			return false;
 		}
 	}
