@@ -96,7 +96,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JButton editButton = new JButton("Edit");
 	private final JButton removeButton = new JButton("Remove");
 	private final JLabel pageLabel = new JLabel("Page/Reference:");
-	private final JTextField pageField = new JTextField();
+	private final JTextField locationField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cutoutButton = new JButton(CUTOUT);
@@ -162,14 +162,14 @@ public class SourceCitationDialog extends JDialog{
 				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
 				final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
 				okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
-				pageField.setEnabled(true);
-				pageField.setText(store.traverse(selectedSourceCitation, "PAGE").getValue());
+				locationField.setEnabled(true);
+				locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
 				roleField.setEnabled(true);
 				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
 				cutoutButton.setEnabled(true);
 				cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
-				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
-				final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
+//				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
+//				final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
 				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
 //				preferredCheckBox.setEnabled(true);
 //				preferredCheckBox.setSelected(preferred);
@@ -211,8 +211,8 @@ public class SourceCitationDialog extends JDialog{
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> deleteAction());
 
-		pageLabel.setLabelFor(pageField);
-		pageField.setEnabled(false);
+		pageLabel.setLabelFor(locationField);
+		locationField.setEnabled(false);
 
 		roleLabel.setLabelFor(roleField);
 		roleField.setEnabled(false);
@@ -223,12 +223,12 @@ public class SourceCitationDialog extends JDialog{
 			//TODO
 			final GedcomNode fileNode = store.create("FILE")
 				.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE))
-				.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
-				.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
+//				.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
+//				.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
 
 			final Runnable onCloseGracefully = () -> {
-				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
-				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
+//				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
+//				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
 
 				//refresh group list
 				loadData();
@@ -248,7 +248,7 @@ public class SourceCitationDialog extends JDialog{
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
-			final String page = pageField.getText();
+			final String location = locationField.getText();
 			final String role = roleField.getText();
 			final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
 			final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
@@ -256,11 +256,11 @@ public class SourceCitationDialog extends JDialog{
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 			final GedcomNode group = store.traverse(container, "SOURCE@" + id);
-			group.replaceChildValue("PAGE", page);
+			group.replaceChildValue("LOCATION", location);
 			group.replaceChildValue("ROLE", role);
-			group.replaceChildValue("CUTOUT", cutout);
+//			group.replaceChildValue("CUTOUT", cutout);
 			group.replaceChildValue("FILE", file);
-			group.removeChildrenWithTag("PREFERRED");
+//			group.removeChildrenWithTag("PREFERRED");
 //			if(preferred)
 //				group.addChild(store.create("PREFERRED"));
 			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
@@ -279,7 +279,7 @@ public class SourceCitationDialog extends JDialog{
 		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
 		add(pageLabel, "align label,split 2");
-		add(pageField, "grow,wrap");
+		add(locationField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");
 		add(cutoutButton, "wrap");
@@ -398,7 +398,7 @@ public class SourceCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.4.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 

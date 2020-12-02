@@ -205,37 +205,24 @@ public final class Transformer{
 	void documentTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
-			final String file = traverse(document, "FILE")
-				.getValue();
-
 			String documentXRef = document.getXRef();
 			if(documentXRef == null){
-				final String documentFormat = traverse(document, "FORM")
-					.getValue();
-				final String documentMedia = traverse(document, "FORM.MEDI")
-					.getValue();
-
 				final GedcomNode destinationDocument = create("SOURCE")
 					.addChildValue("TITLE", traverse(document, "TITL")
 						.getValue());
-				if(documentFormat != null || documentMedia != null){
+				final String documentMediaType = traverse(document, "FORM.MEDI")
+					.getValue();
+				if(documentMediaType != null)
 					destinationDocument.addChild(create("FILE")
-						.withValue(file)
-						.addChildValue("FORMAT", documentFormat)
-						.addChildValue("MEDIA", documentMedia)
+						.withValue(traverse(document, "FILE")
+							.getValue())
+						.addChildValue("MEDIA_TYPE", documentMediaType)
 					);
-				}
 
 				documentXRef = destination.addSource(destinationDocument);
 			}
 
-			destinationNode.addChild(create("SOURCE")
-				.withXRef(documentXRef))
-				.addChildValue("FILE", file)
-				.addChildValue("CUTOUT", traverse(document, "_CUTD")
-					.getValue())
-				.addChildValue("PREFERRED", traverse(document, "_PREF")
-					.getValue());
+			destinationNode.addChildReference("SOURCE", documentXRef);
 		}
 	}
 
@@ -283,7 +270,7 @@ public final class Transformer{
 				//add source citation
 				destinationNode.addChild(create("SOURCE")
 					.withXRef(sourceCitationXRef)
-					.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
+					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE")
 						.getValue())
 					.addChildValue("ROLE", traverse(eventNode, "ROLE")
 						.getValue())
@@ -404,20 +391,13 @@ public final class Transformer{
 	void documentFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> files = parent.getChildrenWithTag("FILE");
 		for(final GedcomNode file : files){
-			final String format = traverse(file, "FORMAT")
-				.getValue();
-			final String media = traverse(file, "MEDIA")
+			final String mediaType = traverse(file, "MEDIA_TYPE")
 				.getValue();
 			final GedcomNode destinationObject = create("OBJE")
 				.addChild(create("FORM")
-					.withValue(format)
-					.addChildValue("MEDI", media)
+					.addChildValue("MEDI", mediaType)
 				)
-				.addChildValue("FILE", file.getValue())
-				.addChildValue("_CUTD", traverse(file, "CUTOUT")
-					.getValue())
-				.addChildValue("_PREF", traverse(file, "PREFERRED")
-					.getValue());
+				.addChildValue("FILE", file.getValue());
 			destinationNode.addChild(destinationObject);
 		}
 	}
@@ -428,14 +408,10 @@ public final class Transformer{
 			//create source:
 			final GedcomNode destinationSource = create("SOUR")
 				.withXRef(sourceCitation.getXRef())
-				.addChildValue("PAGE", traverse(sourceCitation, "PAGE")
+				.addChildValue("PAGE", traverse(sourceCitation, "LOCATION")
 					.getValue())
 				.addChild(create("EVEN")
 					.addChildValue("ROLE", traverse(sourceCitation, "ROLE")
-						.getValue())
-					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT")
-						.getValue())
-					.addChildValue("_PREF", traverse(sourceCitation, "PREFERRED")
 						.getValue())
 				)
 				.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY")

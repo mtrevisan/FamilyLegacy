@@ -40,6 +40,8 @@ n <<REPOSITORY_RECORD>>    {1:1}	/* True repository records and a submitter reco
 |
 n <<SOURCE_RECORD>>    {1:1}
 |
+n <<MEDIA_RECORD>>    {1:1}
+|
 n <<CULTURAL_RULE_RECORD>>    {1:1}
 |
 n <<GROUP_RECORD>>    {1:1}
@@ -78,14 +80,14 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
-    +2 FAMILY @<XREF:FAMILY>@    {0:M}	/* An xref ID of a family record this individual has his name changed due to marriage, adoption, or fostering. */
-    +2 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the attribute. */
   +1 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 <<PERSONAL_NAME_PIECES>>    {1:1}	/* A PERSONAL_NAME_PIECES() object giving the components of the name. */
   +1 PHONETIC    {0:1}
@@ -230,6 +232,8 @@ n KEY <KEY_DESCRIPTION>    {1:1}	/* A property name that identified the type of 
   +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the characteristic is true. "challenged": Characteristic is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this characteristic is true, but the fact has been disproven. "proven" = The linkage has been proven. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
 FAMILY_RECORD :=
@@ -238,11 +242,13 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband. */
   +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
+  +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
   +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION() objects. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. */
+  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
@@ -310,10 +316,7 @@ n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
 
 EVENT_DETAIL :=
 n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVENT or FACT tags are used. The value of this tag is responsible for classifying the generic event or fact being cited. */
-n DATE <DATE_TIME_VALUE>    {0:1}	/* A date_time_value() object giving the date of the event. */
-  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
-  +1 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* Original reference to instant in the source(s). */
-  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+n <<DATE_STRUCTURE>>    {0:1}	/* A date_time_value() object giving the date of the event. */
 n PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
   +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened in the given place. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
@@ -395,50 +398,56 @@ n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. 
 
 SOURCE_CITATION :=
 n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
-  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
   +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, etc. */
-  +1 <<CUTOUT_PREFERRED_STRUCTURE>>    {0:1}	/* Cutout region and preferred marker. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-
-
-CUTOUT_PREFERRED_STRUCTURE :=
-[
-n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-n CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-|
-n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-n PREFERRED    {1:1}	/* Whether this source is the preferred one to show on the individual box. Only one source in the list of source citations of a structure can be the preferred one. */
-|
-n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-n CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-n PREFERRED    {1:1}	/* Whether this source is the preferred one to show on the individual box. Only one source in the list of source citations of a structure can be the preferred one. */
-]
 
 
 /* https://www.evidenceexplained.com/content/sample-quickcheck-models. */
 SOURCE_RECORD :=
 n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
-  +1 TYPE [ BIRTH_REGISTRY | CENSUS | GRAVE_MARKER | BOOK | FEDERAL_COURT_RECORDS | <CUSTOM_TYPE> | <NULL> ]    {0:1}
-  +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
   +1 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as the type of event which was responsible for the source entry being recorded (CASTE, EDUCATION, NATIONALITY, OCCUPATION, PROPERTY, RELIGION, RESIDENCE, TITLE, FACT, ANNULMENT, CENSUS, DIVORCE, DIVORCE_FILED, ENGAGEMENT, MARRIAGE, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, ADOPTION, BIRTH, BURIAL, CREMATION, DEATH, EMIGRATION, GRADUATION, IMMIGRATION, NATURALIZATION, RETIREMENT, DEED, PROBATE, WILL, EVENT, etc). For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
-  +1 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event happened (usually derived from the original input). */
-    +2 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
-    +2 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
-    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-    +2 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
-    +2 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 REPOSITORY @<XREF:REPOSITORY>@    {0:M}	/* A list of xref ID of repository records who owns this source. */
-    +2 REPOSITORY_LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 FILE <DOCUMENT_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +2 FORMAT <DOCUMENT_FORMAT>    {1:1}	/* Indicates the format of the document data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. It can be, for example, 'bmp', 'gif', 'png', 'jpg'/'jpeg', 'ole', 'pcx', 'tiff', 'wav', 'mp3', 'mp4', etc. */
-    +2 MEDIA <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
-    +2 ASSOCIATION <DOCUMENT_FILE_REFERENCE>    {0:M}
-      +3 RELATIONSHIP <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. For example it can be 'front'/'back', 'cover'/'inside', etc. */
+  +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
+  +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_value() object giving the date that this source was recorded. */
+  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
+  +1 FILE <DOCUMENT_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +2 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+    +2 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:M}	/* A description of the source. For example 'cover', 'back', etc. */
     +2 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
       +3 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
       +3 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 URL <ADDRESS_WEB_PAGE>    {0:1}	/* The world wide web page address following RFC 1736 specifications. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+
+
+MEDIA_CITATION :=
+n MEDIA @<XREF:MEDIA>@    {1:1}	/* An xref ID of a media record. */
+  +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+MEDIA_RECORD :=
+n @<XREF:MEDIA>@ MEDIA    {1:1}	/* An xref ID of a media record. */
+  +1 TITLE <DOCUMENT_TITLE>    {0:M}	/* A description of the source. For example 'cover', 'back', 'family reunion', etc. */
+  +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_value() object giving the date that this event happened (usually derived from the original input). */
+  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this media. */
+  +1 FILE <DOCUMENT_FILE_REFERENCE>    {0:1}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +2 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+    +2 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+      +3 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
+      +3 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+
+
+DATE_STRUCTURE :=
+n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date_value() object giving the date that this event happened (usually derived from the original input). */
+  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
+  +1 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+REPOSITORY_CITATION :=
+n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
+  +1 REPOSITORY_LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */

@@ -141,7 +141,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.3.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.4.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode note = store.getNotes().get(0);
 

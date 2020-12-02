@@ -50,8 +50,7 @@ public class DocumentTransformation extends Transformation<Gedcom, Flef>{
 			destinationDocument.addChild(transformerTo.create("FILE")
 				.withValue(fileValue != null? fileValue: transformerTo.traverse(file, "TITLE")
 					.getValue())
-				.addChildValue("FORMAT", format.getValue())
-				.addChildValue("MEDIA", transformerTo.traverse(format, "TYPE")
+				.addChildValue("MEDIA_TYPE", transformerTo.traverse(format, "TYPE")
 					.getValue())
 			);
 		}
