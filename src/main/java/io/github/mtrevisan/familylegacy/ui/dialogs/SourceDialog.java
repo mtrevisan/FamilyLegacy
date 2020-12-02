@@ -69,7 +69,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private final JTextField dateField = new JTextField();
 	private final JButton dateButton = new JButton(DATE);
 	private final JLabel localeLabel = new JLabel("Locale:");
-	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
+	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
 	private TextPreviewPane textPreviewView;
 	private final JLabel extractTypeLabel = new JLabel("Extract type:");
 	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
@@ -109,7 +109,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		dateLabel.setLabelFor(dateField);
 		dateField.setEditable(false);
 
-		localeLabel.setLabelFor(localeComboBox);
+		localeLabel.setLabelFor(extractLocaleComboBox);
 
 		textPreviewView = new TextPreviewPane(this);
 
@@ -148,18 +148,19 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		okButton.addActionListener(evt -> {
 			final String type = typeField.getText();
 			final String title = titleField.getText();
-			final String languageTag = ((LocaleFilteredComboBox.FlefLocale)localeComboBox.getModel().getSelectedItem()).toLanguageTag();
 			final String extract = textPreviewView.getText();
 			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
+			final String extractLanguageTag = ((LocaleFilteredComboBox.FlefLocale)extractLocaleComboBox.getModel().getSelectedItem())
+				.toLanguageTag();
 			final String url = urlField.getText();
 
 			source.replaceChildValue("TYPE", type);
 			source.replaceChildValue("TITLE", title);
-			//TODO
-			//date
-			source.replaceChildValue("LOCALE", languageTag);
 			source.replaceChildValue("EXTRACT", extract);
+			final GedcomNode extractLocaleNode = store.traverse(source, "EXTRACT.LOCALE");
+			if(!extractLocaleNode.isEmpty())
+				extractLocaleNode.withValue(extractLanguageTag);
 			final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
 			if(!extractTypeNode.isEmpty())
 				extractTypeNode.withValue(extractType);
@@ -183,7 +184,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		add(dateField, "grow");
 		add(dateButton, "wrap");
 		add(localeLabel, "align label,split 2");
-		add(localeComboBox, "wrap");
+		add(extractLocaleComboBox, "wrap");
 		add(extractPanel, "grow,wrap paragraph");
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
 		add(filesButton, "sizegroup button2,grow,wrap paragraph");
@@ -213,7 +214,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	}
 
 	@Override
-	public void onPreviewVisibleStateChange(final boolean previewVisible){
+	public void onPreviewStateChange(final boolean previewVisible){
 		setSize((previewVisible? getWidth() * 2: getWidth() / 2), getHeight());
 	}
 
@@ -241,10 +242,11 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		dateField.setText(dateNode.getValue());
 		textPreviewView.setText(getTitle(), extractLanguageTag, extract);
 		extractTypeComboBox.setSelectedItem(extractType);
-		localeComboBox.setSelectedByLanguageTag(extractLanguageTag);
+		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
 		repositoriesButton.setEnabled(hasRepositories);
 		filesButton.setEnabled(hasFiles);
 		urlField.setText(url);
+		testLinkItem.setEnabled(StringUtils.isNotBlank(url));
 		openLinkItem.setEnabled(StringUtils.isNotBlank(url));
 		notesButton.setEnabled(hasNotes);
 

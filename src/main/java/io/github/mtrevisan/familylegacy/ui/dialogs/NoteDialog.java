@@ -109,7 +109,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	}
 
 	@Override
-	public void onPreviewVisibleStateChange(final boolean previewVisible){
+	public void onPreviewStateChange(final boolean previewVisible){
 		setSize((previewVisible? getWidth() * 2: getWidth() / 2), getHeight());
 	}
 

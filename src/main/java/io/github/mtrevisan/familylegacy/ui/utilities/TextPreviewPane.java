@@ -262,7 +262,7 @@ public class TextPreviewPane extends JSplitPane{
 		previewItem.addActionListener(event -> {
 			final boolean previewVisible = ((AbstractButton)event.getSource()).isSelected();
 			if(listener != null)
-				listener.onPreviewVisibleStateChange(previewVisible);
+				listener.onPreviewStateChange(previewVisible);
 			if(previewVisible)
 				SwingUtilities.invokeLater(() -> {
 					setDividerLocation(0.5);
