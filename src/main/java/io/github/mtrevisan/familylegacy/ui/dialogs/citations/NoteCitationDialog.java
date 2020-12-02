@@ -165,7 +165,7 @@ public class NoteCitationDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout());
+		setLayout(new MigLayout("", "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");

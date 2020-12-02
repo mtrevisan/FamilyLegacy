@@ -98,11 +98,11 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout());
+		setLayout(new MigLayout("", "[grow]"));
 		add(textPreviewView, "span 2,wrap");
-		add(localeLabel, "align label");
+		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
-		add(restrictionLabel, "align label");
+		add(restrictionLabel, "align label,split 2,sizegroup label");
 		add(restrictionComboBox, "wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");

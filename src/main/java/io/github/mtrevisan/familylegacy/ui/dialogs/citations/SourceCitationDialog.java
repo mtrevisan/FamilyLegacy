@@ -57,7 +57,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class SourceCitationDialog extends JDialog{
 
-	private static final long serialVersionUID = 4428884121525685915L;
+	private static final long serialVersionUID = 8355033011385629078L;
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -69,6 +69,13 @@ public class SourceCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_SOURCE_ID = 0;
 	private static final int TABLE_INDEX_SOURCE_TEXT = 1;
 
+	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
+		StringUtils.EMPTY,
+		"Unreliable/estimated data",
+		"Questionable reliability of evidence",
+		"Secondary evidence, data officially recorded sometime after event",
+		"Direct and primary evidence used, or by dominance of the evidence"});
+
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable sourcesTable = new JTable(new SourceTableModel());
@@ -76,6 +83,16 @@ public class SourceCitationDialog extends JDialog{
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
 	private final JButton removeButton = new JButton("Remove");
+	private final JLabel pageLabel = new JLabel("Page/Reference:");
+	private final JTextField pageField = new JTextField();
+	private final JLabel roleLabel = new JLabel("Role:");
+	private final JTextField roleField = new JTextField();
+	private final JLabel cutLabel = new JLabel("Cut:");
+	private final JTextField cutField = new JTextField();
+	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
+	private final JButton notesButton = new JButton("Notes");
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -150,6 +167,14 @@ public class SourceCitationDialog extends JDialog{
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> deleteAction());
 
+		pageLabel.setLabelFor(pageField);
+
+		roleLabel.setLabelFor(roleField);
+
+		cutLabel.setLabelFor(cutField);
+
+		credibilityLabel.setLabelFor(credibilityComboBox);
+
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			//remove all reference to sources from the container
@@ -165,18 +190,29 @@ public class SourceCitationDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout());
+		setLayout(new MigLayout("", "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2");
 		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(pageLabel, "align label,split 2");
+		add(pageField, "grow,wrap");
+		add(roleLabel, "align label,split 2");
+		add(roleField, "grow,wrap");
+		add(cutLabel, "align label,split 2");
+		add(cutField, "grow,wrap");
+		add(preferredCheckBox, "grow,wrap paragraph");
+		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(credibilityLabel, "align label,split 2");
+		add(credibilityComboBox, "grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private void editAction(){
+		//TODO
 		//retrieve selected source
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
@@ -188,6 +224,7 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private void deleteAction(){
+		//TODO
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
 		removeButton.setEnabled(false);
@@ -202,6 +239,7 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private void loadData(){
+		//TODO
 		final List<GedcomNode> sources = store.traverseAsList(container, "SOURCE[]");
 		final int size = sources.size();
 		for(int i = 0; i < size; i ++)
@@ -254,7 +292,7 @@ public class SourceCitationDialog extends JDialog{
 
 	private static class SourceTableModel extends DefaultTableModel{
 
-		private static final long serialVersionUID = 981117893723288957L;
+		private static final long serialVersionUID = -3229928471735627084L;
 
 
 		SourceTableModel(){
@@ -273,7 +311,7 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private static class TableTransferHandle extends TransferHandler{
-		private static final long serialVersionUID = 7110295550176057986L;
+		private static final long serialVersionUID = -6559481636889447790L;
 
 		private final JTable table;
 
