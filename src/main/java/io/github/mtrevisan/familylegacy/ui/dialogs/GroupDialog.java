@@ -103,7 +103,7 @@ public class GroupDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout("", "[400]"));
+		setLayout(new MigLayout("", "[grow]"));
 		add(nameLabel, "align label,split 2");
 		add(nameField, "grow,wrap");
 		add(typeLabel, "align label,split 2");
