@@ -57,6 +57,13 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
+	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
+		StringUtils.EMPTY,
+		"Unreliable/estimated data",
+		"Questionable reliability of evidence",
+		"Secondary evidence, data officially recorded sometime after event",
+		"Direct and primary evidence used, or by dominance of the evidence"});
+
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
 
@@ -68,11 +75,17 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private final JLabel dateLabel = new JLabel("Date:");
 	private final JTextField dateField = new JTextField();
 	private final JButton dateButton = new JButton(DATE);
-	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JLabel dateCalendarLabel = new JLabel("Title:");
+	private final JTextField dateCalendarField = new JTextField();
+	private final JLabel dateOriginalTextLabel = new JLabel("Original text:");
+	private final JTextField dateOriginalTextField = new JTextField();
+	private final JLabel dateCredibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
-	private TextPreviewPane textPreviewView;
 	private final JLabel extractTypeLabel = new JLabel("Extract type:");
+	private final JLabel extractLocaleLabel = new JLabel("Locale:");
 	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
+	private TextPreviewPane textPreviewView;
 	private final JButton repositoriesButton = new JButton("Repositories");
 	private final JButton filesButton = new JButton("Files");
 	private final JLabel urlLabel = new JLabel("URL:");
@@ -107,20 +120,36 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, source)));
 
 		dateLabel.setLabelFor(dateField);
-		dateField.setEditable(false);
 
-		localeLabel.setLabelFor(extractLocaleComboBox);
+		dateCredibilityLabel.setLabelFor(dateCredibilityComboBox);
 
-		textPreviewView = new TextPreviewPane(this);
+		final JPanel datePanel = new JPanel();
+		datePanel.setBorder(BorderFactory.createTitledBorder("Date"));
+		datePanel.setLayout(new MigLayout("", "[grow]"));
+		datePanel.add(dateLabel, "align label,split 3,sizegroup label");
+		datePanel.add(dateField, "grow");
+		datePanel.add(dateButton, "wrap");
+		datePanel.add(dateCalendarLabel, "align label,split 2,sizegroup label");
+		datePanel.add(dateCalendarField, "grow,wrap");
+		datePanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
+		datePanel.add(dateOriginalTextField, "grow,wrap");
+		datePanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
+		datePanel.add(dateCredibilityComboBox, "grow,wrap paragraph");
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
+
+		extractLocaleLabel.setLabelFor(extractLocaleComboBox);
+
+		textPreviewView = new TextPreviewPane(this);
 
 		final JPanel extractPanel = new JPanel();
 		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
 		extractPanel.setLayout(new MigLayout("", "[grow]"));
-		extractPanel.add(textPreviewView, "span 2,grow,wrap");
-		extractPanel.add(extractTypeLabel, "align label,split 2");
-		extractPanel.add(extractTypeComboBox);
+		extractPanel.add(extractTypeLabel, "align label,split 2,sizegroup label");
+		extractPanel.add(extractTypeComboBox, "wrap");
+		extractPanel.add(extractLocaleLabel, "align label,split 2,sizegroup label");
+		extractPanel.add(extractLocaleComboBox, "wrap");
+		extractPanel.add(textPreviewView, "span 2,grow");
 
 		repositoriesButton.setEnabled(false);
 		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
@@ -148,11 +177,11 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		okButton.addActionListener(evt -> {
 			final String type = typeField.getText();
 			final String title = titleField.getText();
-			final String extract = textPreviewView.getText();
 			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
 			final String extractLanguageTag = ((LocaleFilteredComboBox.FlefLocale)extractLocaleComboBox.getModel().getSelectedItem())
 				.toLanguageTag();
+			final String extract = textPreviewView.getText();
 			final String url = urlField.getText();
 
 			source.replaceChildValue("TYPE", type);
@@ -180,11 +209,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		add(titleLabel, "align label,split 2");
 		add(titleField, "grow,wrap paragraph");
 		add(eventsButton, "sizegroup button2,grow,wrap paragraph");
-		add(dateLabel, "align label,split 3");
-		add(dateField, "grow");
-		add(dateButton, "wrap");
-		add(localeLabel, "align label,split 2");
-		add(extractLocaleComboBox, "wrap");
+		add(datePanel, "grow,wrap paragraph");
 		add(extractPanel, "grow,wrap paragraph");
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
 		add(filesButton, "sizegroup button2,grow,wrap paragraph");
@@ -276,7 +301,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 700);
+			dialog.setSize(500, 700);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
