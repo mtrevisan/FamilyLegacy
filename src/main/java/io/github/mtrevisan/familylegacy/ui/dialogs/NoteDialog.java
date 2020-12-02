@@ -199,9 +199,7 @@ public class NoteDialog extends JDialog{
 
 		//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
 		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
-		final JPanel intermediatePreviewPanel = new JPanel();
-		intermediatePreviewPanel.add(previewView);
-		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(intermediatePreviewPanel,
+		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(previewView,
 			ScrollableContainerHost.ScrollType.VERTICAL));
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setVisible(false);

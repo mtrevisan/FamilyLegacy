@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.panels;
 
+import net.miginfocom.swing.MigLayout;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -36,14 +38,16 @@ public class ScrollableContainerHost extends JPanel implements Scrollable{
 	private final ScrollType scrollType;
 
 
-	public ScrollableContainerHost(final JPanel panel, final ScrollType scrollType){
-		super(new BorderLayout());
+	public ScrollableContainerHost(final Component component, final ScrollType scrollType){
+		super(new MigLayout("insets 0", "[grow]", "[grow]"));
 
 		setOpaque(false);
 
 		this.scrollType = scrollType;
 
-		add(panel);
+		final JPanel intermediatePanel = new JPanel(new MigLayout("insets 0", "[grow]", "[grow]"));
+		intermediatePanel.add(component, "grow");
+		add(intermediatePanel, "grow");
 	}
 
 	@Override
@@ -52,7 +56,7 @@ public class ScrollableContainerHost extends JPanel implements Scrollable{
 		if(getParent() instanceof JViewport){
 			if(scrollType != ScrollType.VERTICAL)
 				preferredSize.height += ((JScrollPane)getParent().getParent()).getHorizontalScrollBar().getPreferredSize().height;
-			else if(scrollType != ScrollType.HORIZONTAL)
+			if(scrollType != ScrollType.HORIZONTAL)
 				preferredSize.width += ((JScrollPane)getParent().getParent()).getVerticalScrollBar().getPreferredSize().width;
 		}
 		return preferredSize;
