@@ -187,9 +187,12 @@ public class GroupCitationDialog extends JDialog{
 			final GedcomNode newGroup = store.create("GROUP");
 
 			final Runnable onCloseGracefully = () -> {
-				//if ok was pressed, add this note to the parent container
-				final String newGroupID = store.addNote(newGroup);
+				//if ok was pressed, add this group to the parent container
+				final String newGroupID = store.addSource(newGroup);
 				container.addChildReference("GROUP", newGroupID);
+
+				//refresh group list
+				loadData();
 			};
 
 			//fire edit event
