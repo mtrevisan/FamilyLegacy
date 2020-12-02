@@ -86,6 +86,7 @@ public class SourceCitationDialog extends JDialog{
 		"Direct and primary evidence used, or by dominance of the evidence"});
 
 	private static final String KEY_SOURCE_ID = "sourceID";
+	private static final String KEY_SOURCE_CUT = "sourceCut";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -159,22 +160,23 @@ public class SourceCitationDialog extends JDialog{
 			final int selectedRow = sourcesTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
-				final GedcomNode selectedSourceCitation = store.traverse(container, "GROUP@" + selectedSourceID);
-				final GedcomNode selectedSource = store.getGroup(selectedSourceID);
-				sourcesTable.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
-				//TODO
-				groupField.setText(store.traverse(selectedSource, "NAME").getValue());
-
-				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
+				final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
+				final GedcomNode selectedSource = store.getSource(selectedSourceID);
+				okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
+				pageField.setEnabled(true);
+				pageField.setText(store.traverse(selectedSource, "PAGE").getValue());
+				roleField.setEnabled(true);
+				roleField.setText(store.traverse(selectedSource, "ROLE").getValue());
+				cutButton.setEnabled(true);
+				cutButton.putClientProperty(KEY_SOURCE_CUT, store.traverse(selectedSource, "CUT").getValue());
+				preferredCheckBox.setEnabled(true);
+				preferredCheckBox.setSelected(!store.traverse(selectedSource, "PREFERRED").isEmpty());
+				notesButton.setEnabled(true);
+				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
+				credibilityComboBox.setEnabled(true);
 				credibilityComboBox.setEnabled(true);
 				final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
 				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
-				restrictionComboBox.setEnabled(true);
-				final String restriction = store.traverse(selectedSourceCitation, "RESTRICTION").getValue();
-				restrictionComboBox.setSelectedIndex(restriction != null? Integer.parseInt(restriction) + 1: 0);
-
-				roleField.setEnabled(true);
-				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
 
 				okButton.setEnabled(true);
 			}
@@ -208,23 +210,37 @@ public class SourceCitationDialog extends JDialog{
 		removeButton.addActionListener(evt -> deleteAction());
 
 		pageLabel.setLabelFor(pageField);
+		pageField.setEnabled(false);
 
 		roleLabel.setLabelFor(roleField);
+		roleField.setEnabled(false);
+
+		cutButton.setEnabled(false);
+
+		preferredCheckBox.setEnabled(false);
+
+		notesButton.setEnabled(false);
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
+		credibilityComboBox.setEnabled(false);
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
-			//TODO
+			final String page = pageField.getText();
 			final String role = roleField.getText();
+			final String cut = (String)cutButton.getClientProperty(KEY_SOURCE_CUT);
+			final boolean preferred = preferredCheckBox.isSelected();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
-			final int restriction = restrictionComboBox.getSelectedIndex() - 1;
 
-			final GedcomNode group = store.traverse(container, "GROUP@" + id);
+			final GedcomNode group = store.traverse(container, "SOURCE@" + id);
+			group.replaceChildValue("PAGE", page);
 			group.replaceChildValue("ROLE", role);
+			group.replaceChildValue("CUT", cut);
+			group.removeChildrenWithTag("PREFERRED");
+			if(preferred)
+				group.addChild(store.create("PREFERRED"));
 			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
-			group.replaceChildValue("RESTRICTION", (restriction >= 0? Integer.toString(restriction): null));
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
 
