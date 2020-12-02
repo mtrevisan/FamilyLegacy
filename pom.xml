@@ -60,7 +60,7 @@
 		<apache.commons-lang3.version>3.11</apache.commons-lang3.version>
 
 		<!-- Jackson JSON -->
-		<fasterxml.jackson-databind.version>2.11.3</fasterxml.jackson-databind.version>
+		<fasterxml.jackson-databind.version>2.12.0</fasterxml.jackson-databind.version>
 		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>
 
 		<!-- Logging -->
