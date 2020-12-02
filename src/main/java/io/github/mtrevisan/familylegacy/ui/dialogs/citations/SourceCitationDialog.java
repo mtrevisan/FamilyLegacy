@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -41,9 +42,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -362,73 +360,6 @@ public class SourceCitationDialog extends JDialog{
 
 		@Override
 		public boolean isCellEditable(final int row, final int column){
-			return false;
-		}
-	}
-
-	private static class TableTransferHandle extends TransferHandler{
-		private static final long serialVersionUID = -6559481636889447790L;
-
-		private final JTable table;
-
-		TableTransferHandle(final JTable table){
-			this.table = table;
-		}
-
-		@Override
-		public int getSourceActions(final JComponent component){
-			return TransferHandler.COPY_OR_MOVE;
-		}
-
-		@Override
-		protected Transferable createTransferable(final JComponent component){
-			return new StringSelection(Integer.toString(table.getSelectedRow()));
-		}
-
-		@Override
-		public boolean canImport(final TransferSupport support){
-			return (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
-		}
-
-		@Override
-		public boolean importData(final TransferSupport support){
-			if(!support.isDrop() || !canImport(support))
-				return false;
-
-			final DefaultTableModel model = (DefaultTableModel)table.getModel();
-			final int size = model.getRowCount();
-			//bound `rowTo` to be between 0 and `size`
-			final int rowTo = Math.min(Math.max(((JTable.DropLocation)support.getDropLocation()).getRow(), 0), size);
-
-			try{
-				final int rowFrom = Integer.parseInt((String)support.getTransferable().getTransferData(DataFlavor.stringFlavor));
-				if(rowFrom == rowTo - 1)
-					return false;
-
-				final List<Object[]> rows = new ArrayList<>(size);
-				for(int i = 0; i < size; i ++){
-					rows.add(new Object[]{table.getValueAt(0, TABLE_INDEX_SOURCE_ID), table.getValueAt(0, TABLE_INDEX_SOURCE_TYPE),
-						table.getValueAt(0, TABLE_INDEX_SOURCE_TITLE)});
-
-					model.removeRow(0);
-				}
-				if(rowTo < size){
-					final Object[] from = rows.get(rowFrom);
-					final Object[] to = rows.get(rowTo);
-					rows.set(rowTo, from);
-					rows.set(rowFrom, to);
-				}
-				else{
-					final Object[] from = rows.get(rowFrom);
-					rows.remove(rowFrom);
-					rows.add(from);
-				}
-				for(final Object[] row : rows)
-					model.addRow(row);
-
-				return true;
-			}
-			catch(final Exception ignored){}
 			return false;
 		}
 	}
