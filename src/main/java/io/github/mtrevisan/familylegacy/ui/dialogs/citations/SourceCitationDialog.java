@@ -69,12 +69,12 @@ public class SourceCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_SOURCE_TYPE = 1;
 	private static final int TABLE_INDEX_SOURCE_TITLE = 2;
 
-	private static final double CUT_HEIGHT = 17.;
-	private static final double CUT_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension CUT_SIZE = new Dimension((int)(CUT_HEIGHT / CUT_ASPECT_RATIO), (int)CUT_HEIGHT);
+	private static final double CUTOUT_HEIGHT = 17.;
+	private static final double CUTOUT_ASPECT_RATIO = 270 / 248.;
+	private static final Dimension CUTOUT_SIZE = new Dimension((int)(CUTOUT_HEIGHT / CUTOUT_ASPECT_RATIO), (int)CUTOUT_HEIGHT);
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon CUT = ResourceHelper.getImage("/images/cut.png", CUT_SIZE);
+	private static final ImageIcon CUTOUT = ResourceHelper.getImage("/images/cutout.png", CUTOUT_SIZE);
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
@@ -84,7 +84,7 @@ public class SourceCitationDialog extends JDialog{
 		"Direct and primary evidence used, or by dominance of the evidence"});
 
 	private static final String KEY_SOURCE_ID = "sourceID";
-	private static final String KEY_SOURCE_CUT = "sourceCut";
+	private static final String KEY_SOURCE_CUTOUT = "sourceCut";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -97,7 +97,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JTextField pageField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
-	private final JButton cutButton = new JButton(CUT);
+	private final JButton cutoutButton = new JButton(CUTOUT);
 	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
@@ -165,8 +165,8 @@ public class SourceCitationDialog extends JDialog{
 				pageField.setText(store.traverse(selectedSource, "PAGE").getValue());
 				roleField.setEnabled(true);
 				roleField.setText(store.traverse(selectedSource, "ROLE").getValue());
-				cutButton.setEnabled(true);
-				cutButton.putClientProperty(KEY_SOURCE_CUT, store.traverse(selectedSource, "CUT").getValue());
+				cutoutButton.setEnabled(true);
+				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSource, "CUTOUT").getValue());
 				preferredCheckBox.setEnabled(true);
 				preferredCheckBox.setSelected(!store.traverse(selectedSource, "PREFERRED").isEmpty());
 				notesButton.setEnabled(true);
@@ -213,7 +213,8 @@ public class SourceCitationDialog extends JDialog{
 		roleLabel.setLabelFor(roleField);
 		roleField.setEnabled(false);
 
-		cutButton.setEnabled(false);
+		cutoutButton.setToolTipText("Select a region");
+		cutoutButton.setEnabled(false);
 
 		preferredCheckBox.setEnabled(false);
 
@@ -227,14 +228,14 @@ public class SourceCitationDialog extends JDialog{
 			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
 			final String page = pageField.getText();
 			final String role = roleField.getText();
-			final String cut = (String)cutButton.getClientProperty(KEY_SOURCE_CUT);
+			final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
 			final boolean preferred = preferredCheckBox.isSelected();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 			final GedcomNode group = store.traverse(container, "SOURCE@" + id);
 			group.replaceChildValue("PAGE", page);
 			group.replaceChildValue("ROLE", role);
-			group.replaceChildValue("CUT", cut);
+			group.replaceChildValue("CUTOUT", cutout);
 			group.removeChildrenWithTag("PREFERRED");
 			if(preferred)
 				group.addChild(store.create("PREFERRED"));
@@ -257,7 +258,7 @@ public class SourceCitationDialog extends JDialog{
 		add(pageField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");
-		add(cutButton, "wrap");
+		add(cutoutButton, "wrap");
 		add(preferredCheckBox, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,split 2");

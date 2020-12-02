@@ -228,7 +228,7 @@ public final class Transformer{
 
 			destinationNode.addChild(create("SOURCE")
 				.withXRef(documentXRef))
-				.addChildValue("CUT", traverse(document, "_CUTD")
+				.addChildValue("CUTOUT", traverse(document, "_CUTD")
 					.getValue())
 				.addChildValue("PREFERRED", traverse(document, "_PREF")
 					.getValue());
@@ -283,7 +283,7 @@ public final class Transformer{
 						.getValue())
 					.addChildValue("ROLE", traverse(eventNode, "ROLE")
 						.getValue())
-					.addChildValue("CUT", traverse(eventNode, "_CUTD")
+					.addChildValue("CUTOUT", traverse(eventNode, "_CUTD")
 						.getValue())
 					.addChildValue("PREFERRED", traverse(eventNode, "_PREF")
 						.getValue())
@@ -414,7 +414,7 @@ public final class Transformer{
 					.addChildValue("MEDI", media)
 				)
 				.addChildValue("FILE", file.getValue())
-				.addChildValue("_CUTD", traverse(file, "CUT")
+				.addChildValue("_CUTD", traverse(file, "CUTOUT")
 					.getValue())
 				.addChildValue("_PREF", traverse(file, "PREFERRED")
 					.getValue());
@@ -433,7 +433,7 @@ public final class Transformer{
 				.addChild(create("EVEN")
 					.addChildValue("ROLE", traverse(sourceCitation, "ROLE")
 						.getValue())
-					.addChildValue("_CUTD", traverse(sourceCitation, "CUT")
+					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT")
 						.getValue())
 					.addChildValue("_PREF", traverse(sourceCitation, "PREFERRED")
 						.getValue())
