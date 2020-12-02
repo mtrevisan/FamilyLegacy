@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -70,12 +71,21 @@ public class SourceCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_SOURCE_TYPE = 1;
 	private static final int TABLE_INDEX_SOURCE_TITLE = 2;
 
+	private static final double CUT_HEIGHT = 17.;
+	private static final double CUT_ASPECT_RATIO = 270 / 248.;
+	private static final Dimension CUT_SIZE = new Dimension((int)(CUT_HEIGHT / CUT_ASPECT_RATIO), (int)CUT_HEIGHT);
+
+	//https://thenounproject.com/search/?q=cut&i=3132059
+	private static final ImageIcon CUT = ResourceHelper.getImage("/images/cut.png", CUT_SIZE);
+
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
 		"Unreliable/estimated data",
 		"Questionable reliability of evidence",
 		"Secondary evidence, data officially recorded sometime after event",
 		"Direct and primary evidence used, or by dominance of the evidence"});
+
+	private static final String KEY_SOURCE_ID = "sourceID";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -88,8 +98,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JTextField pageField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
-	private final JLabel cutLabel = new JLabel("Cut:");
-	private final JTextField cutField = new JTextField();
+	private final JButton cutButton = new JButton(CUT);
 	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
@@ -143,7 +152,33 @@ public class SourceCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_SOURCE_TYPE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_SOURCE_TITLE, Comparator.naturalOrder());
 		sourcesTable.setRowSorter(sorter);
-		sourcesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
+		//clicking on a line links it to current source citation
+		sourcesTable.getSelectionModel().addListSelectionListener(evt -> {
+			removeButton.setEnabled(true);
+
+			final int selectedRow = sourcesTable.getSelectedRow();
+			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
+				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
+				final GedcomNode selectedSourceCitation = store.traverse(container, "GROUP@" + selectedSourceID);
+				final GedcomNode selectedSource = store.getGroup(selectedSourceID);
+				sourcesTable.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
+				//TODO
+				groupField.setText(store.traverse(selectedSource, "NAME").getValue());
+
+				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
+				credibilityComboBox.setEnabled(true);
+				final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
+				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+				restrictionComboBox.setEnabled(true);
+				final String restriction = store.traverse(selectedSourceCitation, "RESTRICTION").getValue();
+				restrictionComboBox.setSelectedIndex(restriction != null? Integer.parseInt(restriction) + 1: 0);
+
+				roleField.setEnabled(true);
+				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
+
+				okButton.setEnabled(true);
+			}
+		});
 		sourcesTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
@@ -176,21 +211,22 @@ public class SourceCitationDialog extends JDialog{
 
 		roleLabel.setLabelFor(roleField);
 
-		cutLabel.setLabelFor(cutField);
-
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			//remove all reference to sources from the container
-			container.removeChildrenWithTag("SOURCE");
-			//add all the remaining references to sources to the container
-			for(int i = 0; i < sourcesTable.getRowCount(); i ++){
-				final String id = (String)sourcesTable.getValueAt(i, TABLE_INDEX_SOURCE_ID);
-				container.addChildReference("SOURCE", id);
-			}
+			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
+			//TODO
+			final String role = roleField.getText();
+			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
+			final int restriction = restrictionComboBox.getSelectedIndex() - 1;
 
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced sources!
+			final GedcomNode group = store.traverse(container, "GROUP@" + id);
+			group.replaceChildValue("ROLE", role);
+			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
+			group.replaceChildValue("RESTRICTION", (restriction >= 0? Integer.toString(restriction): null));
+
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
 
 			dispose();
 		});
@@ -207,8 +243,7 @@ public class SourceCitationDialog extends JDialog{
 		add(pageField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");
-		add(cutLabel, "align label,split 2");
-		add(cutField, "grow,wrap");
+		add(cutButton, "wrap");
 		add(preferredCheckBox, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,split 2");
@@ -218,7 +253,6 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private void editAction(){
-		//TODO
 		//retrieve selected source
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
@@ -230,7 +264,6 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private void deleteAction(){
-		//TODO
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
 		removeButton.setEnabled(false);

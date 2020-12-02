@@ -148,7 +148,7 @@ public class GroupCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_GROUP_NAME, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_GROUP_TYPE, Comparator.naturalOrder());
 		groupsTable.setRowSorter(sorter);
-		//clicking on a line links it to current group
+		//clicking on a line links it to current group citation
 		groupsTable.getSelectionModel().addListSelectionListener(evt -> {
 			removeButton.setEnabled(true);
 
@@ -157,7 +157,7 @@ public class GroupCitationDialog extends JDialog{
 				final String selectedGroupID = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID);
 				final GedcomNode selectedGroupCitation = store.traverse(container, "GROUP@" + selectedGroupID);
 				final GedcomNode selectedGroup = store.getGroup(selectedGroupID);
-				groupField.putClientProperty(KEY_GROUP_ID, selectedGroupID);
+				okButton.putClientProperty(KEY_GROUP_ID, selectedGroupID);
 				groupField.setText(store.traverse(selectedGroup, "NAME").getValue());
 
 				roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
@@ -228,7 +228,7 @@ public class GroupCitationDialog extends JDialog{
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			final String id = (String)groupField.getClientProperty(KEY_GROUP_ID);
+			final String id = (String)okButton.getClientProperty(KEY_GROUP_ID);
 			final String role = roleField.getText();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 			final int restriction = restrictionComboBox.getSelectedIndex() - 1;
