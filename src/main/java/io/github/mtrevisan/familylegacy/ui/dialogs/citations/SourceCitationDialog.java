@@ -86,6 +86,7 @@ public class SourceCitationDialog extends JDialog{
 	private static final String KEY_SOURCE_ID = "sourceID";
 	private static final String KEY_SOURCE_FILE = "sourceFile";
 	private static final String KEY_SOURCE_CUTOUT = "sourceCut";
+	private static final String KEY_SOURCE_PREFERRED = "sourcePreferred";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -99,7 +100,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cutoutButton = new JButton(CUTOUT);
-	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
+//	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
@@ -168,8 +169,10 @@ public class SourceCitationDialog extends JDialog{
 				cutoutButton.setEnabled(true);
 				cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
 				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
-				preferredCheckBox.setEnabled(true);
-				preferredCheckBox.setSelected(store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null);
+				final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
+				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
+//				preferredCheckBox.setEnabled(true);
+//				preferredCheckBox.setSelected(preferred);
 				notesButton.setEnabled(true);
 				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
 				credibilityComboBox.setEnabled(true);
@@ -216,8 +219,26 @@ public class SourceCitationDialog extends JDialog{
 
 		cutoutButton.setToolTipText("Define a cutout");
 		cutoutButton.setEnabled(false);
+		cutoutButton.addActionListener(evt -> {
+			//TODO
+			final GedcomNode fileNode = store.create("FILE")
+				.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE))
+				.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
+				.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
 
-		preferredCheckBox.setEnabled(false);
+			final Runnable onCloseGracefully = () -> {
+				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
+				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
+
+				//refresh group list
+				loadData();
+			};
+
+			//fire image cutout event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.IMAGE, fileNode, onCloseGracefully));
+		});
+
+//		preferredCheckBox.setEnabled(false);
 
 		notesButton.setEnabled(false);
 
@@ -231,7 +252,7 @@ public class SourceCitationDialog extends JDialog{
 			final String role = roleField.getText();
 			final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
 			final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
-			final boolean preferred = preferredCheckBox.isSelected();
+//			final boolean preferred = preferredCheckBox.isSelected();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 			final GedcomNode group = store.traverse(container, "SOURCE@" + id);
@@ -240,8 +261,8 @@ public class SourceCitationDialog extends JDialog{
 			group.replaceChildValue("CUTOUT", cutout);
 			group.replaceChildValue("FILE", file);
 			group.removeChildrenWithTag("PREFERRED");
-			if(preferred)
-				group.addChild(store.create("PREFERRED"));
+//			if(preferred)
+//				group.addChild(store.create("PREFERRED"));
 			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
@@ -262,7 +283,7 @@ public class SourceCitationDialog extends JDialog{
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");
 		add(cutoutButton, "wrap");
-		add(preferredCheckBox, "grow,wrap paragraph");
+//		add(preferredCheckBox, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
