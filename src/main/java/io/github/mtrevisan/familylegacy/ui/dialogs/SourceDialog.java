@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
@@ -211,7 +212,15 @@ public class SourceDialog extends JDialog{
 		localeLabel.setLabelFor(localeComboBox);
 
 		extractView.setTabSize(3);
-		extractView.setRows(30);
+		extractView.setRows(10);
+		extractView.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyReleased(final KeyEvent event){
+				super.keyReleased(event);
+
+				previewView.setText(renderHtml(extractView.getText()));
+			}
+		});
 		addUndoCapability(extractView);
 
 		final JScrollPane textScroll = new JScrollPane(extractView);
@@ -229,7 +238,8 @@ public class SourceDialog extends JDialog{
 		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
 		final JPanel intermediatePreviewPanel = new JPanel();
 		intermediatePreviewPanel.add(previewView);
-		final JScrollPane previewScroll = new JScrollPane(intermediatePreviewPanel);
+		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(intermediatePreviewPanel,
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setVisible(false);
 
@@ -284,7 +294,7 @@ public class SourceDialog extends JDialog{
 		final JPanel extractPanel = new JPanel();
 		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
 		extractPanel.setLayout(new MigLayout("", "[grow]"));
-		extractPanel.add(splitPane, "span 2,grow,wrap");
+		extractPanel.add(splitPane, "grow,wrap");
 		extractPanel.add(extractTypeLabel, "align label,split 2");
 		extractPanel.add(extractTypeComboBox);
 
@@ -494,7 +504,7 @@ public class SourceDialog extends JDialog{
 
 		final String title = "SOURCE " + source.getID();
 		final String languageTag = store.traverse(source, "LOCALE").getValue();
-		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en_US");
+		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");
 		final String body = previewView.getText();
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
 			out.write(extractHtml(locale, htmlCssFile, title, body).getBytes());

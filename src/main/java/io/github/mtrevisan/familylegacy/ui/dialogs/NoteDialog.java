@@ -56,6 +56,7 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -106,11 +107,11 @@ public class NoteDialog extends JDialog{
 	private static final String HTML_LANGUAGE_TITLE = new StringJoiner(HTML_NEWLINE)
 		.add("\">")
 		.add("<head>")
-			.add("<title>")
+		.add("<title>")
 		.toString();
 	private static final String HTML_TITLE_STYLE = new StringJoiner(HTML_NEWLINE)
 		.add("</title>")
-			.add("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />")
+		.add("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />")
 		.add(StringUtils.EMPTY)
 		.toString();
 	private static final String HTML_STYLE_BODY_BOUNDARY = new StringJoiner(HTML_NEWLINE)
@@ -175,6 +176,14 @@ public class NoteDialog extends JDialog{
 
 		textView.setDragEnabled(true);
 		textView.setTabSize(3);
+		textView.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyReleased(final KeyEvent event){
+				super.keyReleased(event);
+
+				previewView.setText(renderHtml(textView.getText()));
+			}
+		});
 		addUndoCapability(textView);
 
 		final JScrollPane textScroll = new JScrollPane(textView);
@@ -193,7 +202,7 @@ public class NoteDialog extends JDialog{
 		final JPanel intermediatePreviewPanel = new JPanel();
 		intermediatePreviewPanel.add(previewView);
 		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(intermediatePreviewPanel,
-			ScrollableContainerHost.ScrollType.BOTH));
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setVisible(false);
 
