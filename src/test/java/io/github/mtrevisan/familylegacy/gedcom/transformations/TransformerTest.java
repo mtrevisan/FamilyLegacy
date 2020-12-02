@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
+import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -90,6 +92,199 @@ class TransformerTest{
 	void valueConcatenationWithSpace(){
 		final GedcomNode node = transformerFrom.create("NOTE")
 			.withValue("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE Y LONG TEXT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+
+	@Test
+	void sourceCitationToXRefMultimediaLinkXRefNoteXRef(){
+		final GedcomNode parent = transformerFrom.createEmpty()
+			.addChild(transformerFrom.createWithReference("SOUR", "@S1@")
+				.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
+				.addChild(transformerFrom.create("EVEN")
+					.withValue("EVENT_TYPE_CITED_FROM")
+					.addChildValue("ROLE", "ROLE_IN_EVENT")
+				)
+				.addChild(transformerFrom.create("DATA")
+					.addChildValue("DATE", "ENTRY_RECORDING_DATE")
+					.addChildValue("TEXT", "TEXT_FROM_SOURCE")
+				)
+				.addChildReference("OBJE", "@O1@")
+				.addChildReference("NOTE", "@N1@")
+				.addChildValue("QUAY", "CERTAINTY_ASSESSMENT")
+			);
+		final GedcomNode source = transformerFrom.createWithID("SOUR", "@S1@", null);
+		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@", null);
+
+		final Transformer t = new Transformer(Protocol.FLEF);
+		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Flef destination = new Flef();
+		destination.addSource(source);
+		destination.addNote(note);
+		t.sourceCitationTo(parent, destinationNode, destination);
+
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+	}
+
+	@Test
+	void sourceCitationToXRefMultimediaLinkXRefNoteNoXRef(){
+		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
+			.addChild(transformerFrom.create("EVEN")
+				.withValue("EVENT_TYPE_CITED_FROM")
+				.addChildValue("ROLE", "ROLE_IN_EVENT")
+			)
+			.addChild(transformerFrom.create("DATA")
+				.addChildValue("DATE", "ENTRY_RECORDING_DATE")
+				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
+			)
+			.addChildReference("OBJE", "@O1@")
+			.addChildValue("NOTE", "SUBMITTER_TEXT")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToXRefMultimediaLinkNoXRefNoteXRef(){
+		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
+			.addChild(transformerFrom.create("EVEN")
+				.withValue("EVENT_TYPE_CITED_FROM")
+				.addChildValue("ROLE", "ROLE_IN_EVENT")
+			)
+			.addChild(transformerFrom.create("DATA")
+				.addChildValue("DATE", "ENTRY_RECORDING_DATE")
+				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
+			)
+			.addChild(transformerFrom.create("OBJE")
+				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
+				.addChild(transformerFrom.create("FORM")
+					.withValue("MULTIMEDIA_FORMAT")
+					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
+				)
+				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChildValue("_CUTD", "CUT_COORDINATES")
+				.addChildValue("_PREF", "PREFERRED_MEDIA")
+			)
+			.addChildReference("NOTE", "@N1@")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToXRefMultimediaLinkNoXRefNoteNpXRef(){
+		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
+			.addChild(transformerFrom.create("EVEN")
+				.withValue("EVENT_TYPE_CITED_FROM")
+				.addChildValue("ROLE", "ROLE_IN_EVENT")
+			)
+			.addChild(transformerFrom.create("DATA")
+				.addChildValue("DATE", "ENTRY_RECORDING_DATE")
+				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
+			)
+			.addChild(transformerFrom.create("OBJE")
+				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
+				.addChild(transformerFrom.create("FORM")
+					.withValue("MULTIMEDIA_FORMAT")
+					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
+				)
+				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChildValue("_CUTD", "CUT_COORDINATES")
+				.addChildValue("_PREF", "PREFERRED_MEDIA")
+			)
+			.addChildValue("NOTE", "SUBMITTER_TEXT")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToNoXRefMultimediaLinkXRefNoteXRef(){
+		final GedcomNode node = transformerFrom.create("SOUR")
+			.withValue("SOURCE_DESCRIPTION")
+			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
+			.addChildReference("OBJE", "@O1@")
+			.addChildReference("NOTE", "@N1@")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToNoXRefMultimediaLinkXRefNoteNoXRef(){
+		final GedcomNode node = transformerFrom.create("SOUR")
+			.withValue("SOURCE_DESCRIPTION")
+			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
+			.addChildReference("OBJE", "@O1@")
+			.addChildValue("NOTE", "SUBMITTER_TEXT")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToNoXRefMultimediaLinkNoXRefNoteXRef(){
+		final GedcomNode node = transformerFrom.create("SOUR")
+			.withValue("SOURCE_DESCRIPTION")
+			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
+			.addChild(transformerFrom.create("OBJE")
+				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
+				.addChild(transformerFrom.create("FORM")
+					.withValue("MULTIMEDIA_FORMAT")
+					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
+				)
+				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChildValue("_CUTD", "CUT_COORDINATES")
+				.addChildValue("_PREF", "PREFERRED_MEDIA")
+			)
+			.addChildReference("NOTE", "@N1@")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
+
+		Assertions.assertEquals(1, node.getChildren().size());
+		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());
+		Assertions.assertEquals("CONC", node.getChildren().get(0).getTag());
+		Assertions.assertEquals(" Y LONG TEXT", node.getChildren().get(0).getRawValue());
+	}
+
+	@Test
+	void sourceCitationToNoXRefMultimediaLinkNoXRefNoteNpXRef(){
+		final GedcomNode node = transformerFrom.create("SOUR")
+			.withValue("SOURCE_DESCRIPTION")
+			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
+			.addChild(transformerFrom.create("OBJE")
+				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
+				.addChild(transformerFrom.create("FORM")
+					.withValue("MULTIMEDIA_FORMAT")
+					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
+				)
+				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChildValue("_CUTD", "CUT_COORDINATES")
+				.addChildValue("_PREF", "PREFERRED_MEDIA")
+			)
+			.addChildValue("NOTE", "SUBMITTER_TEXT")
+			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 
 		Assertions.assertEquals(1, node.getChildren().size());
 		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VE", node.getRawValue());

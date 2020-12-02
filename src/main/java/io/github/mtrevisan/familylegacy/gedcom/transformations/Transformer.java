@@ -193,6 +193,7 @@ public final class Transformer{
 	}
 
 
+	//FIXME
 	void eventTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
 			final String tagFrom, final String valueTo){
 		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
@@ -202,6 +203,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	void documentTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode document : documents){
@@ -226,60 +228,68 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode sourceCitation : sourceCitations){
 			String sourceCitationXRef = sourceCitation.getXRef();
 			if(sourceCitationXRef == null){
 				//create source:
-				final String noteID = destination.addNote(create("NOTE")
-					.withValue(sourceCitation.getValue()));
 				final GedcomNode destinationSource = create("SOURCE")
-					.addChildValue("EXTRACT", traverse(sourceCitation, "TEXT")
-						.getValue())
-					.addChildReference("NOTE", noteID);
+					.addChildValue("TITLE", sourceCitation.getValue());
+
+				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
 				documentTo(sourceCitation, destinationSource, destination);
+				assignExtractionsTo(extracts, destinationSource);
 				noteTo(sourceCitation, destinationSource, destination);
+
 				sourceCitationXRef = destination.addSource(destinationSource);
 
-				//add source citation
-				destinationNode.addChild(create("SOURCE")
-					.withXRef(sourceCitationXRef)
-					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY")
-						.getValue()));
+				//add source citation:
+				destinationNode.addChild(createWithReference("SOURCE", sourceCitationXRef)
+					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue()));
 			}
 			else{
-				//create source:
-				final String noteID = destination.addNote(create("NOTE")
-					.withValue(sourceCitation.getValue()));
-				final GedcomNode eventNode = traverse(sourceCitation, "EVEN");
-				final GedcomNode data = traverse(sourceCitation, "DATA");
-				final GedcomNode destinationSource = create("SOURCE")
-					.addChildValue("EVENT", eventNode.getValue())
-					.addChildValue("DATE", traverse(data, "DATE")
-						.getValue());
-				final List<GedcomNode> texts = data.getChildrenWithTag( "EXTRACT");
-				for(final GedcomNode text : texts)
-					destinationSource.addChildValue("TEXT", text
-						.getValue());
-				destinationSource.addChildReference("NOTE", noteID);
+				//retrieve source:
+				final GedcomNode destinationSource = destination.getSource(sourceCitationXRef)
+					.addChildValue("EVENT", traverse(sourceCitation, "EVEN").getValue())
+					.addChildValue("DATE", traverse(sourceCitation, "DATA.DATE").getValue());
+				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
 				documentTo(sourceCitation, destinationSource, destination);
+				assignExtractionsTo(extracts, destinationSource);
 				noteTo(sourceCitation, destinationSource, destination);
-				sourceCitationXRef = destination.addSource(destinationSource);
 
-				//add source citation
-				destinationNode.addChild(create("SOURCE")
+				//add source citation:
+				final GedcomNode destinationSourceCitation = create("SOURCE")
 					.withXRef(sourceCitationXRef)
-					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE")
-						.getValue())
-					.addChildValue("ROLE", traverse(eventNode, "ROLE")
-						.getValue())
-					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY")
-						.getValue()));
+					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
+					.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue())
+					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
+				destinationNode.addChild(destinationSourceCitation);
 			}
 		}
 	}
 
+	//FIXME
+	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
+		final List<GedcomNode> destinationSources = traverseAsList(destinationSource, "SOURCE");
+		if(extracts.size() > destinationSources.size()){
+			//collect all extractions and assign to first
+			final StringJoiner sj = new StringJoiner("\n");
+			for(int index = 0; index < extracts.size(); index ++)
+				sj.add("EXTRACT " + index)
+					.add(extracts.get(index).getValue());
+			destinationSources.get(0)
+				.withValue(sj.toString());
+		}
+		else
+			//otherwise distribute extractions
+			for(int index = 0; index < extracts.size(); index ++)
+				destinationSources.get(index)
+					.withValue(extracts.get(index).getValue());
+	}
+
+	//FIXME
 	void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = traverse(parent, "ADDR");
 		final String addressValue = extractAddressValue(address);
@@ -296,6 +306,7 @@ public final class Transformer{
 		destinationNode.addChildReference("PLACE", destinationPlaceID);
 	}
 
+	//FIXME
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
 		final GedcomNode destinationEvent = create("EVENT")
 			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
@@ -322,6 +333,7 @@ public final class Transformer{
 		return destinationEvent;
 	}
 
+	//FIXME
 	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = traverse(parent, "ADDR");
 		final String addressValue = extractAddressValue(address);
@@ -350,6 +362,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	private String extractAddressValue(final GedcomNode address){
 		final StringJoiner sj = new StringJoiner(" - ");
 		final String wholeAddress = address.getValue();
@@ -365,15 +378,17 @@ public final class Transformer{
 	void noteTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
-			String noteXref = note.getXRef();
-			if(noteXref == null)
-				noteXref = destination.addNote(create("NOTE")
+			String noteXRef = note.getXRef();
+			if(noteXRef == null)
+				noteXRef = destination.addNote(create("NOTE")
 					.withValue(note.getValue()));
-			destinationNode.addChildReference("NOTE", noteXref);
+
+			destinationNode.addChildReference("NOTE", noteXRef);
 		}
 	}
 
 
+	//FIXME
 	void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo){
 		final Iterator<GedcomNode> itr = events.iterator();
@@ -388,6 +403,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	void documentFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> files = parent.getChildrenWithTag("FILE");
 		for(final GedcomNode file : files){
@@ -402,6 +418,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
 		for(final GedcomNode sourceCitation : sourceCitations){
@@ -421,6 +438,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = create(tagTo)
 			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
@@ -447,6 +465,7 @@ public final class Transformer{
 		return destinationEvent;
 	}
 
+	//FIXME
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
@@ -463,6 +482,7 @@ public final class Transformer{
 		}
 	}
 
+	//FIXME
 	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){

@@ -534,26 +534,30 @@ public class Flef extends Store{
 	}
 
 	public String addSource(final GedcomNode source){
-		//search source
-		final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
-		String sourceID = (sourceValue != null? sourceValue.get(sourceCloned): null);
-		if(sourceID == null){
-			//if source is not found:
-			if(sources == null){
-				sources = new ArrayList<>(1);
-				sourceIndex = new HashMap<>(1);
-				sourceValue = new HashMap<>(1);
-			}
-
-			sourceID = source.getID();
+		String sourceID = null;
+		if(!source.isEmpty()){
+			//search source
+			final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
+			if(sourceValue != null)
+				sourceID = sourceValue.get(sourceCloned);
 			if(sourceID == null){
-				sourceID = getNextSourceID();
-				source.withID(sourceID);
-			}
+				//if source is not found:
+				if(sources == null){
+					sources = new ArrayList<>(1);
+					sourceIndex = new HashMap<>(1);
+					sourceValue = new HashMap<>(1);
+				}
 
-			sources.add(source);
-			sourceIndex.put(sourceID, source);
-			sourceValue.put(sourceCloned, sourceID);
+				sourceID = source.getID();
+				if(sourceID == null){
+					sourceID = getNextSourceID();
+					source.withID(sourceID);
+				}
+
+				sources.add(source);
+				sourceIndex.put(sourceID, source);
+				sourceValue.put(sourceCloned, sourceID);
+			}
 		}
 		return sourceID;
 	}

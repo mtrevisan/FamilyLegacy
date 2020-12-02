@@ -170,7 +170,7 @@ public class SourceCitationDialog extends JDialog{
 				cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
 //				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
 //				final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
-				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
+//				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
 //				preferredCheckBox.setEnabled(true);
 //				preferredCheckBox.setSelected(preferred);
 				notesButton.setEnabled(true);
@@ -222,7 +222,7 @@ public class SourceCitationDialog extends JDialog{
 		cutoutButton.addActionListener(evt -> {
 			//TODO
 			final GedcomNode fileNode = store.create("FILE")
-				.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE))
+				.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE));
 //				.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
 //				.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
 

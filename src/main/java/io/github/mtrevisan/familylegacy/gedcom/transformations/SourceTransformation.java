@@ -79,11 +79,10 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
 			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			if(repository.getXRef() == null){
+			transformerTo.noteTo(repository, destinationRepository, destination);
+			if(repository.getXRef() == null)
 				destination.addRepository(destinationRepository);
 
-				transformerTo.noteTo(repository, destinationRepository, destination);
-			}
 			destinationNode.addChild(destinationRepository);
 		}
 	}
@@ -121,8 +120,13 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 
 	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
-		for(final GedcomNode repository : repositories)
-			destinationNode.addChildReference("REPO", repository.getXRef());
+		for(final GedcomNode repository : repositories){
+			final GedcomNode destinationRepository = transformerFrom.create("REPO")
+				.withXRef(repository.getXRef());
+			transformerFrom.noteFrom(repository, destinationRepository);
+
+			destinationNode.addChild(destinationRepository);
+		}
 	}
 
 }

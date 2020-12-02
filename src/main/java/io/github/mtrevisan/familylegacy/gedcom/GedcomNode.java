@@ -200,31 +200,33 @@ public abstract class GedcomNode{
 	}
 
 	private GedcomNode addChildInner(final int index, final GedcomNode child){
-		if(children == null)
-			children = new ArrayList<>(1);
+		if(!getChildrenWithTag(tag).contains(child)){
+			if(children == null)
+				children = new ArrayList<>(1);
 
-		if(child.level != level + 1){
-			int currentLevel = level + 1;
-			child.setLevel(currentLevel ++);
-			final Deque<GedcomNode> stack = new ArrayDeque<>();
-			stack.push(child);
-			final Deque<GedcomNode> childrenStack = new ArrayDeque<>();
-			while(!stack.isEmpty()){
+			if(child.level != level + 1){
+				int currentLevel = level + 1;
+				child.setLevel(currentLevel ++);
+				final Deque<GedcomNode> stack = new ArrayDeque<>();
+				stack.push(child);
+				final Deque<GedcomNode> childrenStack = new ArrayDeque<>();
 				while(!stack.isEmpty()){
-					final GedcomNode node = stack.pop();
-					for(final GedcomNode c : node.getChildren()){
-						c.setLevel(currentLevel);
-						childrenStack.push(c);
+					while(!stack.isEmpty()){
+						final GedcomNode node = stack.pop();
+						for(final GedcomNode c : node.getChildren()){
+							c.setLevel(currentLevel);
+							childrenStack.push(c);
+						}
 					}
+
+					while(!childrenStack.isEmpty())
+						stack.push(childrenStack.pop());
+
+					currentLevel ++;
 				}
-
-				while(!childrenStack.isEmpty())
-					stack.push(childrenStack.pop());
-
-				currentLevel ++;
 			}
+			children.add(index, child);
 		}
-		children.add(index, child);
 		return this;
 	}
 
