@@ -89,7 +89,7 @@ class SourceTransformationTest{
 		t.to(origin, destination);
 
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: FORMAT, value: MULTIMEDIA_FORMAT}, {tag: MEDIA, value: SOURCE_MEDIA_TYPE}]}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: DATE_PERIOD}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: D1}, {tag: SOURCE, ref: S1}, {tag: NOTE, ref: N1}, {tag: NOTE, ref: N2}, {id: R1, tag: REPOSITORY, children: [{tag: NOTE, ref: N2}]}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: EVENT, value: EVENTS_RECORDED1}, {tag: EVENT, value: EVENTS_RECORDED2}, {tag: DATE, value: DATE_PERIOD}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: D1}, {tag: SOURCE, ref: S1}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: NOTE, ref: N1}, {tag: NOTE, ref: N2}, {id: R1, tag: REPOSITORY, children: [{tag: NOTE, ref: N2}]}]", destination.getSources().get(1).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SOURCE_ORIGINATOR, SOURCE_PUBLICATION_FACTS", destination.getNotes().get(0).toString());
 		Assertions.assertEquals("id: N2, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(1).toString());
 		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NOTE, ref: N2}]", destination.getRepositories().get(0).toString());

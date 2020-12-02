@@ -84,6 +84,7 @@ public class SourceCitationDialog extends JDialog{
 		"Direct and primary evidence used, or by dominance of the evidence"});
 
 	private static final String KEY_SOURCE_ID = "sourceID";
+	private static final String KEY_SOURCE_FILE = "sourceFile";
 	private static final String KEY_SOURCE_CUTOUT = "sourceCut";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
@@ -159,16 +160,16 @@ public class SourceCitationDialog extends JDialog{
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
 				final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
-				final GedcomNode selectedSource = store.getSource(selectedSourceID);
 				okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
 				pageField.setEnabled(true);
-				pageField.setText(store.traverse(selectedSource, "PAGE").getValue());
+				pageField.setText(store.traverse(selectedSourceCitation, "PAGE").getValue());
 				roleField.setEnabled(true);
-				roleField.setText(store.traverse(selectedSource, "ROLE").getValue());
+				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
 				cutoutButton.setEnabled(true);
-				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSource, "CUTOUT").getValue());
+				cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
+				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
 				preferredCheckBox.setEnabled(true);
-				preferredCheckBox.setSelected(!store.traverse(selectedSource, "PREFERRED").isEmpty());
+				preferredCheckBox.setSelected(store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null);
 				notesButton.setEnabled(true);
 				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
 				credibilityComboBox.setEnabled(true);
@@ -213,7 +214,7 @@ public class SourceCitationDialog extends JDialog{
 		roleLabel.setLabelFor(roleField);
 		roleField.setEnabled(false);
 
-		cutoutButton.setToolTipText("Select a region");
+		cutoutButton.setToolTipText("Define a cutout");
 		cutoutButton.setEnabled(false);
 
 		preferredCheckBox.setEnabled(false);
@@ -228,6 +229,7 @@ public class SourceCitationDialog extends JDialog{
 			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
 			final String page = pageField.getText();
 			final String role = roleField.getText();
+			final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
 			final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
 			final boolean preferred = preferredCheckBox.isSelected();
 			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
@@ -236,6 +238,7 @@ public class SourceCitationDialog extends JDialog{
 			group.replaceChildValue("PAGE", page);
 			group.replaceChildValue("ROLE", role);
 			group.replaceChildValue("CUTOUT", cutout);
+			group.replaceChildValue("FILE", file);
 			group.removeChildrenWithTag("PREFERRED");
 			if(preferred)
 				group.addChild(store.create("PREFERRED"));
