@@ -207,6 +207,7 @@ public class SourceDialog extends JDialog{
 		localeLabel.setLabelFor(localeComboBox);
 
 		extractView.setTabSize(3);
+		extractView.setRows(30);
 		addUndoCapability(extractView);
 
 		final JScrollPane textScroll = new JScrollPane(extractView);
@@ -531,7 +532,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 500);
+			dialog.setSize(500, 700);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

@@ -122,7 +122,7 @@ public class TreePanel extends JPanel{
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
-		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
+		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel, ScrollableContainerHost.ScrollType.VERTICAL));
 		childrenScrollPane.setOpaque(false);
 		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);
@@ -191,7 +191,7 @@ public class TreePanel extends JPanel{
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
-		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel));
+		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel, ScrollableContainerHost.ScrollType.VERTICAL));
 		childrenScrollPane.setOpaque(false);
 		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);

@@ -28,12 +28,20 @@ import javax.swing.*;
 import java.awt.*;
 
 
-class ScrollableContainerHost extends JPanel implements Scrollable{
+public class ScrollableContainerHost extends JPanel implements Scrollable{
 
-	public ScrollableContainerHost(final JPanel panel){
+	public enum ScrollType{HORIZONTAL, VERTICAL, BOTH}
+
+
+	private final ScrollType scrollType;
+
+
+	public ScrollableContainerHost(final JPanel panel, final ScrollType scrollType){
 		super(new BorderLayout());
 
 		setOpaque(false);
+
+		this.scrollType = scrollType;
 
 		add(panel);
 	}
@@ -41,8 +49,12 @@ class ScrollableContainerHost extends JPanel implements Scrollable{
 	@Override
 	public Dimension getPreferredScrollableViewportSize(){
 		final Dimension preferredSize = getPreferredSize();
-		if(getParent() instanceof JViewport)
-			preferredSize.height += ((JScrollPane)getParent().getParent()).getHorizontalScrollBar().getPreferredSize().height;
+		if(getParent() instanceof JViewport){
+			if(scrollType != ScrollType.VERTICAL)
+				preferredSize.height += ((JScrollPane)getParent().getParent()).getHorizontalScrollBar().getPreferredSize().height;
+			else if(scrollType != ScrollType.HORIZONTAL)
+				preferredSize.width += ((JScrollPane)getParent().getParent()).getVerticalScrollBar().getPreferredSize().width;
+		}
 		return preferredSize;
 	}
 
@@ -63,7 +75,7 @@ class ScrollableContainerHost extends JPanel implements Scrollable{
 
 	@Override
 	public boolean getScrollableTracksViewportHeight(){
-		return true;
+		return (getParent() instanceof JViewport && getPreferredSize().height < getParent().getHeight());
 	}
 
 }

@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
@@ -191,7 +192,8 @@ public class NoteDialog extends JDialog{
 		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
 		final JPanel intermediatePreviewPanel = new JPanel();
 		intermediatePreviewPanel.add(previewView);
-		final JScrollPane previewScroll = new JScrollPane(intermediatePreviewPanel);
+		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(intermediatePreviewPanel,
+			ScrollableContainerHost.ScrollType.BOTH));
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setVisible(false);
 
