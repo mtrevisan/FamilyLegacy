@@ -166,7 +166,6 @@ public class SourceDialog extends JDialog{
 	private final JButton dateButton = new JButton(DATE);
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
-	private final JLabel extractLabel = new JLabel("Extract:");
 	private final JTextArea extractView = new JTextArea();
 	private final JEditorPane previewView = new JEditorPane();
 	private final JLabel extractTypeLabel = new JLabel("Extract type:");
@@ -277,6 +276,13 @@ public class SourceDialog extends JDialog{
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 
+		final JPanel extractPanel = new JPanel();
+		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
+		extractPanel.setLayout(new MigLayout("", "[400]"));
+		extractPanel.add(splitPane, "span 2,grow,wrap");
+		extractPanel.add(extractTypeLabel, "align label,split 2");
+		extractPanel.add(extractTypeComboBox);
+
 		repositoriesButton.setEnabled(false);
 		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
 
@@ -327,10 +333,7 @@ public class SourceDialog extends JDialog{
 		add(dateButton, "wrap");
 		add(localeLabel, "align label,split 2");
 		add(localeComboBox, "wrap");
-		add(extractLabel, "align label,wrap");
-		add(splitPane, "span 2,grow,wrap");
-		add(extractTypeLabel, "align label,split 2");
-		add(extractTypeComboBox, "wrap paragraph");
+		add(extractPanel, "grow,wrap");
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
 		add(filesButton, "sizegroup button2,grow,wrap paragraph");
 		add(urlLabel, "align label,split 2");
