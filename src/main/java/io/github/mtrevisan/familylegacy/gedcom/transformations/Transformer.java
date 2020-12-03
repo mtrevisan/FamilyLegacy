@@ -60,48 +60,6 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	//FIXME
-	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
-		for(final GedcomNode sourceCitation : sourceCitations){
-			String sourceCitationXRef = sourceCitation.getXRef();
-			if(sourceCitationXRef == null){
-				//create source:
-				final GedcomNode destinationSource = create("SOURCE")
-					.addChildValue("TITLE", sourceCitation.getValue());
-
-				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
-				multimediaCitationTo(sourceCitation, destinationSource, destination);
-				assignExtractionsTo(extracts, destinationSource);
-				noteCitationTo(sourceCitation, destinationSource, destination);
-
-				sourceCitationXRef = destination.addSource(destinationSource);
-
-				//add source citation:
-				destinationNode.addChild(createWithReference("SOURCE", sourceCitationXRef)
-					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue()));
-			}
-			else{
-				//retrieve source:
-				final GedcomNode destinationSource = destination.getSource(sourceCitationXRef)
-					.addChildValue("EVENT", traverse(sourceCitation, "EVEN").getValue())
-					.addChildValue("DATE", traverse(sourceCitation, "DATA.DATE").getValue());
-				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
-				multimediaCitationTo(sourceCitation, destinationSource, destination);
-				assignExtractionsTo(extracts, destinationSource);
-				noteCitationTo(sourceCitation, destinationSource, destination);
-
-				//add source citation:
-				final GedcomNode destinationSourceCitation = create("SOURCE")
-					.withXRef(sourceCitationXRef)
-					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
-					.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue())
-					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
-				destinationNode.addChild(destinationSourceCitation);
-			}
-		}
-	}
-
-	//FIXME
 	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
 		final List<GedcomNode> destinationSources = traverseAsList(destinationSource, "SOURCE");
 		if(extracts.size() > destinationSources.size()){
@@ -179,46 +137,23 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationHeader);
 	}
 
-//	MULTIMEDIA_LINK :=
-//		[
-//	n OBJE @<XREF:OBJE>@    {1:1}	/* An xref ID of a multimedia record. */
-//|
-//	n OBJE    {1:1}
-//  +1 TITL <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
-//  +1 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
-//    +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
-//  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
-//  +1 _CUTD <CUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-//  +1 _PREF <PREFERRED_MEDIA>    {0:1}	/* Whether this media is the preferred one to show on the individual box. */
-//]
-
-//	MEDIA_CITATION :=
-//	n MEDIA @<XREF:MEDIA>@    {1:1}	/* An xref ID of a media record. */
-//  +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-
 	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> documents = parent.getChildrenWithTag("OBJE");
-		for(final GedcomNode document : documents){
-			String documentXRef = document.getXRef();
+		final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
+		for(final GedcomNode multimedia : multimedias){
+			String documentXRef = multimedia.getXRef();
 			if(documentXRef == null){
-				final GedcomNode destinationMultimedia = create("SOURCE")
-					.addChildValue("TITLE", traverse(document, "TITL")
-						.getValue());
-				final String documentMediaType = traverse(document, "FORM.MEDI")
-					.getValue();
-				if(documentMediaType != null)
-					destinationMultimedia.addChild(create("FILE")
-						.withValue(traverse(document, "FILE")
-							.getValue())
-						.addChildValue("MEDIA_TYPE", documentMediaType)
+				final GedcomNode destinationMultimedia = create("MULTIMEDIA")
+					.addChildValue("TITLE", traverse(multimedia, "TITL").getValue())
+					.addChild(createWithValue("FILE", traverse(multimedia, "FILE").getValue())
+						.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue())
 					);
-
-				documentXRef = destination.addSource(destinationMultimedia);
+				documentXRef = destination.addMultimedia(destinationMultimedia);
 			}
+			//TODO remember to manage _PREF
 
-			destinationNode.addChildReference("SOURCE", documentXRef);
+			destinationNode.addChild(createWithReference("MULTIMEDIA", documentXRef)
+				.addChildValue("CUTOUT", traverse(multimedia, "_CUTD").getValue())
+			);
 		}
 	}
 
@@ -268,6 +203,91 @@ public final class Transformer extends TransformerHelper{
 		for(final GedcomNode url : urls)
 			destinationContact.addChildValue("URL", url.getValue());
 		destinationNode.addChild(destinationContact);
+	}
+
+	//FIXME
+//		[	/* pointer to source record (preferred) */
+//	n SOUR @<XREF:SOUR>@    {1:1}	/* An xref ID of a source record. */
+//  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+//  +1 EVEN <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRT regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
+//    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person played in the event that is being cited in this context. */
+//  +1 DATA    {0:1}
+//    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
+//    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+//      +3 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
+//  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+//  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+//  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+//|	/* Systems not using source records. */
+//	n SOUR <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe the source from which information was obtained. This text block is used by those systems which cannot use a pointer to a source record. It must contain a descriptive title, who created the work, where and when it was created, and where the source data stored. */
+//  +1 [ CONC | CONT ] <SOURCE_DESCRIPTION>    {0:M}
+//  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+//    +2 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
+//  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+//  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+//  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+//]
+
+//	n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
+//  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+//  +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, etc. */
+//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+//  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
+		for(final GedcomNode sourceCitation : sourceCitations){
+			String sourceCitationXRef = sourceCitation.getXRef();
+			if(sourceCitationXRef == null){
+				//create source:
+				final GedcomNode destinationSource = create("SOURCE")
+					.addChildValue("TITLE", sourceCitation.getValue());
+
+				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
+				final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
+				for(final GedcomNode multimedia : multimedias){
+					String documentXRef = multimedia.getXRef();
+					if(documentXRef == null)
+						documentXRef = destination.addMultimedia(create("MULTIMEDIA"));
+					//TODO remember to manage _PREF
+
+					destinationNode.addChildReference("MULTIMEDIA", documentXRef);
+				}
+				assignExtractionsTo(extracts, destinationSource);
+				noteCitationTo(sourceCitation, destinationSource, destination);
+
+				sourceCitationXRef = destination.addSource(destinationSource);
+
+				//add source citation:
+				destinationNode.addChild(createWithReference("SOURCE", sourceCitationXRef)
+					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue()));
+			}
+			else{
+				//retrieve source:
+				final GedcomNode destinationSource = destination.getSource(sourceCitationXRef)
+					.addChildValue("EVENT", traverse(sourceCitation, "EVEN").getValue())
+					.addChildValue("DATE", traverse(sourceCitation, "DATA.DATE").getValue());
+				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
+				final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
+				for(final GedcomNode multimedia : multimedias){
+					String documentXRef = multimedia.getXRef();
+					if(documentXRef == null)
+						documentXRef = destination.addMultimedia(create("MULTIMEDIA"));
+					//TODO remember to manage _PREF
+
+					destinationNode.addChildReference("MULTIMEDIA", documentXRef);
+				}
+				assignExtractionsTo(extracts, destinationSource);
+				noteCitationTo(sourceCitation, destinationSource, destination);
+
+				//add source citation:
+				final GedcomNode destinationSourceCitation = create("SOURCE")
+					.withXRef(sourceCitationXRef)
+					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
+					.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue())
+					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
+				destinationNode.addChild(destinationSourceCitation);
+			}
+		}
 	}
 
 	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
@@ -342,21 +362,6 @@ public final class Transformer extends TransformerHelper{
 
 				itr.remove();
 			}
-		}
-	}
-
-	//FIXME
-	void documentFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> files = parent.getChildrenWithTag("FILE");
-		for(final GedcomNode file : files){
-			final String mediaType = traverse(file, "MEDIA_TYPE")
-				.getValue();
-			final GedcomNode destinationObject = create("OBJE")
-				.addChild(create("FORM")
-					.addChildValue("MEDI", mediaType)
-				)
-				.addChildValue("FILE", file.getValue());
-			destinationNode.addChild(destinationObject);
 		}
 	}
 
@@ -442,6 +447,27 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationHeader);
 	}
 
+	void multimediaCitationFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
+		final List<GedcomNode> multimedias = parent.getChildrenWithTag("MULTIMEDIA");
+		for(final GedcomNode multimedia : multimedias){
+			final String multimediaXRef = multimedia.getXRef();
+			final String cutout = traverse(multimedia, "CUTOUT").getValue();
+			if(cutout == null)
+				destinationNode.addChildReference("OBJE", multimediaXRef);
+			else{
+				final GedcomNode originMultimedia = origin.getMultimedia(multimediaXRef);
+				final GedcomNode file = traverse(originMultimedia, "FILE");
+				destinationNode.addChild(create("OBJE")
+					.addChildValue("TITL", traverse(originMultimedia, "TITLE").getValue())
+					.addChildValue("FILE", file.getValue())
+					.addChild(create("FORM")
+						.addChildValue("TITL", traverse(file, "MEDIA_TYPE").getValue())
+					)
+					.addChildValue("_CUTD", cutout));
+			}
+		}
+	}
+
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
@@ -517,7 +543,7 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode pedigree = traverse(childToFamilyLink, "PEDIGREE");
 			final String pedigreeParent1 = traverse(pedigree, "PARENT1").getValue();
 			final String pedigreeParent2 = traverse(pedigree, "PARENT2").getValue();
-			@SuppressWarnings("StringEquality")
+			@SuppressWarnings({"StringEquality", "ObjectAllocationInLoop"})
 			final String pedigreeValue = (pedigreeParent1 == pedigreeParent2 || pedigreeParent1.equals(pedigreeParent2)?
 				pedigreeParent1: "PARENT1: " + pedigreeParent1 + ", PARENT2: " + pedigreeParent2);
 			final GedcomNode destinationFamilyChild = create("FAMC")

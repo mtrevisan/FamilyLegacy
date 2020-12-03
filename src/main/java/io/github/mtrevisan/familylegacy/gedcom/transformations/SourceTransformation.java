@@ -101,10 +101,10 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceRecordFrom(source, destination);
+			sourceRecordFrom(source, destination, origin);
 	}
 
-	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
+	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination, final Flef origin){
 		final GedcomNode destinationSource = transformerFrom.create("SOUR")
 			.withID(source.getID());
 		final String date = transformerFrom.traverse(source, "DATE")
@@ -122,7 +122,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
 		transformerFrom.noteCitationFrom(source, destinationSource);
-		transformerFrom.documentFrom(source, destinationSource);
+		transformerFrom.multimediaCitationFrom(source, destinationSource, origin);
 
 		destination.addSource(destinationSource);
 	}
