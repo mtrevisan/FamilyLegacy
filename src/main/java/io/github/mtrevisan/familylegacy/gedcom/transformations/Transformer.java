@@ -144,9 +144,8 @@ public final class Transformer extends TransformerHelper{
 			if(documentXRef == null){
 				final GedcomNode destinationMultimedia = create("MULTIMEDIA")
 					.addChildValue("TITLE", traverse(multimedia, "TITL").getValue())
-					.addChild(createWithValue("FILE", traverse(multimedia, "FILE").getValue())
-						.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue())
-					);
+					.addChild(createWithValue("FILE", traverseAsList(multimedia, "FILE").get(0).getValue()))
+					.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue());
 				documentXRef = destination.addMultimedia(destinationMultimedia);
 			}
 			//TODO remember to manage _PREF
@@ -206,7 +205,6 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	//FIXME
-//		[	/* pointer to source record (preferred) */
 //	n SOUR @<XREF:SOUR>@    {1:1}	/* An xref ID of a source record. */
 //  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
 //  +1 EVEN <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRT regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
@@ -214,19 +212,15 @@ public final class Transformer extends TransformerHelper{
 //  +1 DATA    {0:1}
 //    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
 //    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//      +3 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
 //  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 //  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 //  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 //|	/* Systems not using source records. */
 //	n SOUR <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe the source from which information was obtained. This text block is used by those systems which cannot use a pointer to a source record. It must contain a descriptive title, who created the work, where and when it was created, and where the source data stored. */
-//  +1 [ CONC | CONT ] <SOURCE_DESCRIPTION>    {0:M}
 //  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//    +2 [ CONC | CONT ] <TEXT_FROM_SOURCE>    {0:M}
 //  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 //  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 //  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-//]
 
 //	n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
 //  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
@@ -243,15 +237,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("TITLE", sourceCitation.getValue());
 
 				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
-				final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
-				for(final GedcomNode multimedia : multimedias){
-					String documentXRef = multimedia.getXRef();
-					if(documentXRef == null)
-						documentXRef = destination.addMultimedia(create("MULTIMEDIA"));
-					//TODO remember to manage _PREF
-
-					destinationNode.addChildReference("MULTIMEDIA", documentXRef);
-				}
+				sourceCitationXRef = sourceMultimediaCitationTo(parent, destinationSource, destination);
 				assignExtractionsTo(extracts, destinationSource);
 				noteCitationTo(sourceCitation, destinationSource, destination);
 
@@ -267,15 +253,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("EVENT", traverse(sourceCitation, "EVEN").getValue())
 					.addChildValue("DATE", traverse(sourceCitation, "DATA.DATE").getValue());
 				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
-				final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
-				for(final GedcomNode multimedia : multimedias){
-					String documentXRef = multimedia.getXRef();
-					if(documentXRef == null)
-						documentXRef = destination.addMultimedia(create("MULTIMEDIA"));
-					//TODO remember to manage _PREF
-
-					destinationNode.addChildReference("MULTIMEDIA", documentXRef);
-				}
+				sourceMultimediaCitationTo(parent, destinationSource, destination);
 				assignExtractionsTo(extracts, destinationSource);
 				noteCitationTo(sourceCitation, destinationSource, destination);
 
@@ -288,6 +266,25 @@ public final class Transformer extends TransformerHelper{
 				destinationNode.addChild(destinationSourceCitation);
 			}
 		}
+	}
+
+	private String sourceMultimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		String sourceXRef = null;
+		final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
+		for(final GedcomNode multimedia : multimedias){
+			if(multimedia.getXRef() == null){
+				final GedcomNode destinationSource = create("SOURCE")
+					.addChildValue("TITLE", traverse(multimedia, "TITL").getValue());
+				final List<GedcomNode> files = traverseAsList(multimedia, "FILE");
+				for(final GedcomNode file : files)
+					destinationSource.addChild(createWithValue("FILE", file.getValue()));
+				destinationSource.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue());
+				sourceXRef = destination.addSource(destinationSource);
+			}
+			else if(sourceXRef == null)
+				sourceXRef = multimedia.getXRef();
+		}
+		return sourceXRef;
 	}
 
 	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
