@@ -172,9 +172,8 @@ public final class Transformer extends TransformerHelper{
 		return destinationEvent;
 	}
 
-	//FIXME
-	void headerTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final GedcomNode header = parent.getChildrenWithTag("NOTE").get(0);
+	void headerTo(final GedcomNode parent, final GedcomNode destinationNode){
+		final GedcomNode header = parent.getChildrenWithTag("HEAD").get(0);
 		final GedcomNode source = traverse(header, "SOUR");
 		final GedcomNode date = traverse(header, "DATE");
 		final GedcomNode time = traverse(date, "TIME");
@@ -188,28 +187,21 @@ public final class Transformer extends TransformerHelper{
 			.addChild(create("PROTOCOL")
 				.withValue("FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
-				.addChildValue("VERSION", "0.0.2")
+				.addChildValue("VERSION", "0.0.4")
 			)
 			.addChild(create("SOURCE")
 				.withValue(source.getValue())
-				.addChildValue("NAME", traverse(source, "NAME")
-					.getValue())
-				.addChildValue("VERSION", traverse(source, "VERS")
-					.getValue())
-				.addChildValue("CORPORATE", traverse(source, "CORP")
-					.getValue())
+				.addChildValue("NAME", traverse(source, "NAME").getValue())
+				.addChildValue("VERSION", traverse(source, "VERS").getValue())
+				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
 			)
 			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
-			.addChildValue("DEFAULT_CALENDAR", "GREGORIAN")
 			.addChildValue("DEFAULT_LOCALE", locale.toLanguageTag())
-			.addChildValue("COPYRIGHT", traverse(source, "COPR")
-				.getValue())
-			.addChildReference("SUBMITTER", traverse(source, "SUBM")
-				.getXRef())
-			.addChildValue("NOTE", traverse(source, "NOTE")
-				.getValue());
+			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue())
+			.addChildReference("SUBMITTER", traverse(header, "SUBM").getXRef())
+			.addChildValue("NOTE", traverse(header, "NOTE").getValue());
 
-		destination.setHeader(destinationHeader);
+		destinationNode.addChild(destinationHeader);
 	}
 
 	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
@@ -395,6 +387,41 @@ public final class Transformer extends TransformerHelper{
 		noteCitationFrom(event, destinationEvent);
 		sourceCitationFrom(event, destinationEvent);
 		return destinationEvent;
+	}
+
+	void headerFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final GedcomNode header = parent.getChildrenWithTag("HEADER").get(0);
+		final GedcomNode source = traverse(header, "SOURCE");
+		final String date = traverse(header, "DATE")
+			.getValue();
+		final String language = traverse(source, "DEFAULT_LOCALE")
+			.getValue();
+		final Locale locale = Locale.forLanguageTag(language != null? language: "en-US");
+		final GedcomNode destinationHeader = create("HEAD")
+			.addChild(create("SOUR")
+				.withValue(source.getValue())
+				.addChildValue("VERS", traverse(source, "VERSION")
+					.getValue())
+				.addChildValue("NAME", traverse(source, "NAME")
+					.getValue())
+				.addChildValue("CORP", traverse(source, "CORPORATE")
+					.getValue())
+			)
+			.addChildValue("DATE", date)
+			.addChildReference("SUBM", traverse(source, "SUBMITTER")
+				.getXRef())
+			.addChildValue("COPR", traverse(source, "COPYRIGHT")
+				.getValue())
+			.addChild(create("GEDC")
+				.addChildValue("VERS", "5.5.1")
+				.addChildValue("FORM", "LINEAGE-LINKED")
+			)
+			.addChildValue("CHAR", "UTF-8")
+			.addChildValue("LANG", locale.getDisplayLanguage(Locale.ENGLISH))
+			.addChildValue("NOTE", traverse(source, "NOTE")
+				.getValue());
+
+		destinationNode.addChild(destinationHeader);
 	}
 
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){

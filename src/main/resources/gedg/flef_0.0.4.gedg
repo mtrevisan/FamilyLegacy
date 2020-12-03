@@ -19,7 +19,6 @@ n HEADER    {1:1}
     +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
   +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was created. */
-  +1 DEFAULT_CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
   +1 DEFAULT_LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the place address form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
   +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
   +1 SUBMITTER @<XREF:REPOSITORY>@    {1:1}	/* An xref ID of the submitter of this file. */
