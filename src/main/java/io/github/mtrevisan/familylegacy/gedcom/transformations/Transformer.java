@@ -217,6 +217,24 @@ public final class Transformer extends TransformerHelper{
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
+	void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
+		final GedcomNode destinationContact = create("CONTACT");
+		final List<GedcomNode> phones = parent.getChildrenWithTag("PHON");
+		for(final GedcomNode phone : phones)
+			destinationContact.addChildValue("PHONE", phone.getValue());
+		final List<GedcomNode> emails = parent.getChildrenWithTag("EMAIL");
+		for(final GedcomNode email : emails)
+			destinationContact.addChildValue("EMAIL", email.getValue());
+		final List<GedcomNode> faxes = parent.getChildrenWithTag("FAX");
+		for(final GedcomNode fax : faxes)
+			destinationContact.addChild(createWithValue("PHONE", fax.getValue())
+				.addChildValue("TYPE", "fax"));
+		final List<GedcomNode> urls = parent.getChildrenWithTag("WWW");
+		for(final GedcomNode url : urls)
+			destinationContact.addChildValue("URL", url.getValue());
+		destinationNode.addChild(destinationContact);
+	}
+
 	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> citations = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode citation : citations){
@@ -369,6 +387,23 @@ public final class Transformer extends TransformerHelper{
 			noteCitationFrom(place, destinationPlace);
 			destinationNode.addChild(destinationPlace);
 		}
+	}
+
+	void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final GedcomNode contact = traverse(parent, "CONTACT");
+		final List<GedcomNode> phones = contact.getChildrenWithTag("PHONE");
+		for(final GedcomNode phone : phones)
+			if(!"fax".equals(traverse(phone, "TYPE").getValue()))
+				destinationNode.addChildValue("PHONE", phone.getValue());
+		final List<GedcomNode> emails = contact.getChildrenWithTag("EMAIL");
+		for(final GedcomNode email : emails)
+			destinationNode.addChildValue("EMAIL", email.getValue());
+		for(final GedcomNode phone : phones)
+			if("fax".equals(traverse(phone, "TYPE").getValue()))
+				destinationNode.addChildValue("FAX", phone.getValue());
+		final List<GedcomNode> urls = contact.getChildrenWithTag("URL");
+		for(final GedcomNode url : urls)
+			destinationNode.addChildValue("WWW", url.getValue());
 	}
 
 	void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
