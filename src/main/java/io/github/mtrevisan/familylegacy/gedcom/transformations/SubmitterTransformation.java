@@ -57,7 +57,7 @@ public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 				.withValue("Preferred contact language(s): " + sj));
 			destinationSource.addChildReference("NOTE", noteID);
 		}
-		transformerTo.noteTo(submitter, destinationSource, destination);
+		transformerTo.noteCitationTo(submitter, destinationSource, destination);
 
 		destination.addSource(destinationSource);
 	}

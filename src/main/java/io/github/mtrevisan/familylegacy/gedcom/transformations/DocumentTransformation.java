@@ -54,7 +54,7 @@ public class DocumentTransformation extends Transformation<Gedcom, Flef>{
 					.getValue())
 			);
 		}
-		transformerTo.noteTo(document, destinationDocument, destination);
+		transformerTo.noteCitationTo(document, destinationDocument, destination);
 
 		destination.addSource(destinationDocument);
 	}

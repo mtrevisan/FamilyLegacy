@@ -50,7 +50,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> children = family.getChildrenWithTag("CHIL");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHILD", child.getXRef());
-		transformerTo.noteTo(family, destinationFamily, destination);
+		transformerTo.noteCitationTo(family, destinationFamily, destination);
 		transformerTo.sourceCitationTo(family, destinationFamily, destination);
 		transformerTo.documentTo(family, destinationFamily, destination);
 		transformerTo.eventTo(family, destinationFamily, destination, "ANUL", "ANNULMENT");
@@ -105,7 +105,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		final List<GedcomNode> children = family.getChildrenWithTag("CHILD");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
-		transformerFrom.noteFrom(family, destinationFamily);
+		transformerFrom.noteCitationFrom(family, destinationFamily);
 		transformerFrom.sourceCitationFrom(family, destinationFamily);
 
 		destination.addFamily(destinationFamily);

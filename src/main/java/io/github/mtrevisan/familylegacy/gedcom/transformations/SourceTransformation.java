@@ -27,8 +27,10 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 
 import java.util.List;
+import java.util.StringJoiner;
 
 
 public class SourceTransformation extends Transformation<Gedcom, Flef>{
@@ -62,24 +64,31 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 			.getValue();
 		final String publication = transformerTo.traverse(source, "PUBL")
 			.getValue();
-		final String noteAuthorPublication = transformerTo.joinIfNotNull(", ", author, publication);
+		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
 		if(noteAuthorPublication != null){
 			final String noteID = destination.addNote(transformerTo.create("NOTE")
 				.withValue(noteAuthorPublication));
 			destinationSource.addChildReference("NOTE", noteID);
 		}
 		transformerTo.documentTo(source, destinationSource, destination);
-		transformerTo.noteTo(source, destinationSource, destination);
+		transformerTo.noteCitationTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
 
 		destination.addSource(destinationSource);
+	}
+
+	private String joinIfNotNull(final String separator, final String... components){
+		final StringJoiner sj = new StringJoiner(separator);
+		for(final String component : components)
+			JavaHelper.addValueIfNotNull(sj, component);
+		return (sj.length() > 0? sj.toString(): null);
 	}
 
 	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode repository : repositories){
 			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			transformerTo.noteTo(repository, destinationRepository, destination);
+			transformerTo.noteCitationTo(repository, destinationRepository, destination);
 			if(repository.getXRef() == null)
 				destination.addRepository(destinationRepository);
 
@@ -112,7 +121,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		destinationSource.addChildValue("TEXT", transformerFrom.traverse(source, "EXTRACT")
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
-		transformerFrom.noteFrom(source, destinationSource);
+		transformerFrom.noteCitationFrom(source, destinationSource);
 		transformerFrom.documentFrom(source, destinationSource);
 
 		destination.addSource(destinationSource);
@@ -123,7 +132,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode repository : repositories){
 			final GedcomNode destinationRepository = transformerFrom.create("REPO")
 				.withXRef(repository.getXRef());
-			transformerFrom.noteFrom(repository, destinationRepository);
+			transformerFrom.noteCitationFrom(repository, destinationRepository);
 
 			destinationNode.addChild(destinationRepository);
 		}

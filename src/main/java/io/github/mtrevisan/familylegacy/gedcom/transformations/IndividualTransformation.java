@@ -80,7 +80,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		attributeTo(individual, destinationIndividual, destination, "SSN", "SSN");
 		attributeTo(individual, destinationIndividual, destination, "TITL", "TITLE");
 		attributeTo(individual, destinationIndividual, destination, "FACT", null);
-		transformerTo.noteTo(individual, destinationIndividual, destination);
+		transformerTo.noteCitationTo(individual, destinationIndividual, destination);
 		transformerTo.sourceCitationTo(individual, destinationIndividual, destination);
 		transformerTo.documentTo(individual, destinationIndividual, destination);
 		destinationIndividual.addChildValue("RESTRICTION", transformerTo.traverse(individual, "RESN")
@@ -142,7 +142,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("INDIVIDUAL_NICKNAME", transformerTo.traverse(personalNameStructure, "NICK")
 				.getValue())
 			.addChildValue("FAMILY_NAME", (sj.length() > 0? sj.toString(): null));
-		transformerTo.noteTo(personalNameStructure, destinationNode, destination);
+		transformerTo.noteCitationTo(personalNameStructure, destinationNode, destination);
 		transformerTo.sourceCitationTo(personalNameStructure, destinationNode, destination);
 	}
 
@@ -158,7 +158,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				)
 				.addChildValue("CERTAINTY", transformerTo.traverse(childToFamilyLink, "STAT")
 					.getValue());
-			transformerTo.noteTo(childToFamilyLink, destinationFamilyChild, destination);
+			transformerTo.noteCitationTo(childToFamilyLink, destinationFamilyChild, destination);
 			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
@@ -181,7 +181,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("TYPE", type)
 				.addChildValue("RELATIONSHIP", transformerTo.traverse(association, "RELA")
 					.getValue());
-			transformerTo.noteTo(association, destinationAssociation, destination);
+			transformerTo.noteCitationTo(association, destinationAssociation, destination);
 			transformerTo.sourceCitationTo(association, destinationAssociation, destination);
 			destinationNode.addChild(destinationAssociation);
 		}
@@ -197,7 +197,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode node : nodes){
 			final GedcomNode newNode = transformerTo.create(toTag)
 				.withXRef(node.getXRef());
-			transformerTo.noteTo(node, newNode, destination);
+			transformerTo.noteCitationTo(node, newNode, destination);
 			destinationNode.addChild(newNode);
 		}
 	}
@@ -224,7 +224,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.getValue())
 			.addChildValue("RESTRICTION", transformerTo.traverse(attribute, "RESN")
 				.getValue());
-		transformerTo.noteTo(attribute, destinationAttribute, destination);
+		transformerTo.noteCitationTo(attribute, destinationAttribute, destination);
 		transformerTo.sourceCitationTo(attribute, destinationAttribute, destination);
 		transformerTo.documentTo(attribute, destinationAttribute, destination);
 		return destinationAttribute;
@@ -280,7 +280,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		attributeFrom(attributes, destinationIndividual, origin, "SSN", "SSN");
 		attributeFrom(attributes, destinationIndividual, origin, "TITLE", "TITL");
 		attributeFrom(attributes, destinationIndividual, origin, "@ATTRIBUTE@", "FACT");
-		transformerFrom.noteFrom(individual, destinationIndividual);
+		transformerFrom.noteCitationFrom(individual, destinationIndividual);
 		transformerFrom.sourceCitationFrom(individual, destinationIndividual);
 
 		destination.addIndividual(destinationIndividual);
@@ -310,20 +310,20 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			final GedcomNode temporaryNotes = transformerFrom.create("TMP_NOTE");
 			final GedcomNode temporarySourceCitations = transformerFrom.create("TMP_SOURCE_CITATIONS");
 			//collect notes and source citations, they will be added as last elements of NAME
-			transformerFrom.noteFrom(personalNameStructure, temporaryNotes);
+			transformerFrom.noteCitationFrom(personalNameStructure, temporaryNotes);
 			transformerFrom.sourceCitationFrom(personalNameStructure, temporarySourceCitations);
 
 			final GedcomNode destinationPhonetic = transformerFrom.create("FONE");
 			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "PHONETIC"), destinationPhonetic);
 			//collect notes and source citations, they will be added as last elements of NAME
-			transformerFrom.noteFrom(destinationPhonetic, temporaryNotes);
+			transformerFrom.noteCitationFrom(destinationPhonetic, temporaryNotes);
 			transformerFrom.sourceCitationFrom(destinationPhonetic, temporarySourceCitations);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = transformerFrom.create("ROMN");
 			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
 			//collect notes and source citations, they will be added as last elements of NAME
-			transformerFrom.noteFrom(destinationTranscription, temporaryNotes);
+			transformerFrom.noteCitationFrom(destinationTranscription, temporaryNotes);
 			transformerFrom.sourceCitationFrom(destinationTranscription, temporarySourceCitations);
 			destinationName.addChild(destinationTranscription);
 
@@ -381,7 +381,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("PEDI", pedigreeValue)
 				.addChildValue("STAT", transformerFrom.traverse(childToFamilyLink, "CERTAINTY")
 					.getValue());
-			transformerFrom.noteFrom(childToFamilyLink, destinationFamilyChild);
+			transformerFrom.noteCitationFrom(childToFamilyLink, destinationFamilyChild);
 			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
@@ -404,7 +404,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("TYPE", type)
 				.addChildValue("RELA", transformerFrom.traverse(association, "RELATIONSHIP")
 					.getValue());
-			transformerFrom.noteFrom(association, destinationAssociation);
+			transformerFrom.noteCitationFrom(association, destinationAssociation);
 			transformerFrom.sourceCitationFrom(association, destinationAssociation);
 			destinationNode.addChild(destinationAssociation);
 		}
@@ -419,7 +419,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode node : nodes){
 			final GedcomNode newNode = transformerFrom.create(toTag)
 				.withXRef(node.getXRef());
-			transformerFrom.noteFrom(node, newNode);
+			transformerFrom.noteCitationFrom(node, newNode);
 			destinationNode.addChild(newNode);
 		}
 	}
@@ -451,7 +451,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.getValue())
 			.addChildValue("RESTRICTION", transformerFrom.traverse(attribute, "RESN")
 				.getValue());
-		transformerFrom.noteFrom(attribute, destinationAttribute);
+		transformerFrom.noteCitationFrom(attribute, destinationAttribute);
 		transformerFrom.sourceCitationFrom(attribute, destinationAttribute);
 		return destinationAttribute;
 	}

@@ -41,7 +41,7 @@ public class NoteTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordTo(final GedcomNode note, final Flef destination){
-		final GedcomNode destinationNote = transformerTo.createWithID("NOTE", note.getID(), note.getValue());
+		final GedcomNode destinationNote = transformerTo.createWithIDValue("NOTE", note.getID(), note.getValue());
 
 		destination.addNote(destinationNote);
 	}
@@ -55,7 +55,7 @@ public class NoteTransformation extends Transformation<Gedcom, Flef>{
 	}
 
 	private void noteRecordFrom(final GedcomNode note, final Gedcom destination){
-		final GedcomNode destinationNote = transformerFrom.createWithID("NOTE", note.getID(), note.getValue());
+		final GedcomNode destinationNote = transformerFrom.createWithIDValue("NOTE", note.getID(), note.getValue());
 
 		destination.addNote(destinationNote);
 	}

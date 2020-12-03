@@ -26,170 +26,23 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
-public final class Transformer{
+public final class Transformer extends TransformerHelper{
 
 	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
 
-	//tag, or tag{value}, tag[index], or tag{value}[index], or tag#id, or tag#id{value}
-	private static final String PARAM_TAG = "tag";
-	private static final String PARAM_VALUE = "value";
-	private static final String PARAM_INDEX = "index";
-	private static final String PARAM_ID = "id";
-	private static final String PARAM_XREF = "xref";
-	private static final String PATH_COMPONENT = "[^#@{}\\[\\])]+";
-	private static final String PATH_COMPONENT_OPTIONAL = "[^#{}\\[\\])]*";
-	private static final String PATH_COMPONENT_TAG = "(?<" + PARAM_TAG + ">" + PATH_COMPONENT + ")";
-	private static final String PATH_COMPONENT_VALUE = "\\{(?<" + PARAM_VALUE + ">" + PATH_COMPONENT + ")\\}";
-	private static final String PATH_COMPONENT_INDEX = "\\[(?<" + PARAM_INDEX + ">" + PATH_COMPONENT_OPTIONAL + ")\\]";
-	private static final String PATH_COMPONENT_ID = "#(?<" + PARAM_ID + ">" + PATH_COMPONENT + ")";
-	private static final String PATH_COMPONENT_XREF = "@(?<" + PARAM_XREF + ">" + PATH_COMPONENT + ")";
-	private static final Pattern PATH_COMPONENTS = RegexHelper.pattern(
-		PATH_COMPONENT_TAG + "?(?:" + PATH_COMPONENT_ID + ")?(?:" + PATH_COMPONENT_XREF + ")?(?:" + PATH_COMPONENT_VALUE + ")?(?:"
-			+ PATH_COMPONENT_INDEX + ")?"
-	);
-
-
-	private final Protocol protocol;
-
 
 	public Transformer(final Protocol protocol){
-		this.protocol = protocol;
-	}
-
-
-	public GedcomNode createEmpty(){
-		return GedcomNodeBuilder.createEmpty(protocol);
-	}
-
-	public GedcomNode create(final String tag){
-		return GedcomNodeBuilder.create(protocol, tag);
-	}
-
-	public GedcomNode createWithID(final String tag, final String id, final String value){
-		return GedcomNodeBuilder.createWithID(protocol, tag, id, value);
-	}
-
-	public GedcomNode createWithReference(final String tag, final String xref){
-		return GedcomNodeBuilder.createWithReference(protocol, tag, xref);
-	}
-
-	String joinIfNotNull(final String separator, final String... components){
-		final StringJoiner sj = new StringJoiner(separator);
-		for(final String component : components)
-			JavaHelper.addValueIfNotNull(sj, component);
-		return (sj.length() > 0? sj.toString(): null);
-	}
-
-	/**
-	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[index]` or `(tag1|tag2)#id@xref{value}[index]` and separated by dots.
-	 * @return	The final node.
-	 */
-	public GedcomNode traverse(final GedcomNode origin, final String path){
-		final GedcomNode node = (GedcomNode)traverseInner(origin, path);
-		return (node != null? node: createEmpty());
-	}
-
-	/**
-	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[]` or `(tag1|tag2)#id@xref{value}[]` and separated by dots.
-	 * 	<p>The void array MUST BE last in the sequence.</p>
-	 * @return	The final node list.
-	 */
-	@SuppressWarnings("unchecked")
-	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
-		final boolean hasCloseParenthesis = (path.charAt(path.length() - 1) == ']');
-		final boolean hasOpenParenthesis = (path.charAt(path.length() - 2) == '[');
-		if(hasCloseParenthesis && !hasOpenParenthesis)
-			throw new IllegalArgumentException("The array indication `[]` must be last in the path, was " + path);
-		else if(!hasCloseParenthesis && !hasOpenParenthesis)
-			path += "[]";
-		final List<GedcomNode> nodes = (List<GedcomNode>)traverseInner(origin, path);
-		return (nodes != null? nodes: Collections.emptyList());
-	}
-
-	private Object traverseInner(final GedcomNode origin, final String path){
-		Object pointer = origin;
-		if(origin != null){
-			final String[] components = StringUtils.split(path, '.');
-			for(final String component : components){
-				if(pointer instanceof List)
-					throw new IllegalArgumentException("Only the last step of the path can produce an array, was " + path);
-
-				final Matcher m = RegexHelper.matcher(component, PATH_COMPONENTS);
-				if(m.find()){
-					final String tag = m.group(PARAM_TAG);
-					final String value = m.group(PARAM_VALUE);
-					final String index = m.group(PARAM_INDEX);
-					final String id = m.group(PARAM_ID);
-					final String xref = m.group(PARAM_XREF);
-
-					final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
-					if(tag != null){
-						final String[] tags = (tag.charAt(0) == '(' && tag.charAt(tag.length() - 1) == ')'?
-							StringUtils.split(tag.substring(1, tag.length() - 1), '|'): new String[]{tag});
-						Arrays.sort(tags);
-						final Iterator<GedcomNode> itr = nodes.iterator();
-						while(itr.hasNext())
-							if(Arrays.binarySearch(tags, itr.next().getTag()) < 0)
-								itr.remove();
-					}
-					if(value != null){
-						final Iterator<GedcomNode> itr = nodes.iterator();
-						while(itr.hasNext())
-							if(!value.equals(itr.next().getValue()))
-								itr.remove();
-					}
-					if(id != null){
-						final Iterator<GedcomNode> itr = nodes.iterator();
-						while(itr.hasNext())
-							if(!id.equals(itr.next().getID()))
-								itr.remove();
-					}
-					if(xref != null){
-						final Iterator<GedcomNode> itr = nodes.iterator();
-						while(itr.hasNext())
-							if(!xref.equals(itr.next().getXRef()))
-								itr.remove();
-					}
-					if(index == null){
-						final int size = nodes.size();
-						if(size > 1)
-							throw new IllegalArgumentException("More than one node is selected from path " + path);
-						else if(size == 1)
-							pointer = nodes.get(0);
-						else{
-							pointer = null;
-							break;
-						}
-					}
-					else if(index.length() == 0)
-						pointer = nodes;
-					else
-						pointer = nodes.get(Integer.parseInt(index));
-				}
-				else
-					throw new IllegalArgumentException("Illegal path " + path);
-			}
-		}
-		return pointer;
+		super(protocol);
 	}
 
 
@@ -241,7 +94,7 @@ public final class Transformer{
 				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
 				documentTo(sourceCitation, destinationSource, destination);
 				assignExtractionsTo(extracts, destinationSource);
-				noteTo(sourceCitation, destinationSource, destination);
+				noteCitationTo(sourceCitation, destinationSource, destination);
 
 				sourceCitationXRef = destination.addSource(destinationSource);
 
@@ -257,7 +110,7 @@ public final class Transformer{
 				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
 				documentTo(sourceCitation, destinationSource, destination);
 				assignExtractionsTo(extracts, destinationSource);
-				noteTo(sourceCitation, destinationSource, destination);
+				noteCitationTo(sourceCitation, destinationSource, destination);
 
 				//add source citation:
 				final GedcomNode destinationSourceCitation = create("SOURCE")
@@ -319,7 +172,7 @@ public final class Transformer{
 			.getValue())
 			.addChildValue("CAUSE", traverse(event, "CAUS")
 				.getValue());
-		noteTo(event, destinationEvent, destination);
+		noteCitationTo(event, destinationEvent, destination);
 		sourceCitationTo(event, destinationEvent, destination);
 		documentTo(event, destinationEvent, destination);
 		final GedcomNode familyChild = traverse(event, "FAMC");
@@ -356,7 +209,7 @@ public final class Transformer{
 					.addChildValue("LONGITUDE", traverse(map, "LONG")
 						.getValue())
 				);
-			noteTo(place, destinationPlace, destination);
+			noteCitationTo(place, destinationPlace, destination);
 			final String destinationPlaceID = destination.addPlace(destinationPlace);
 			destinationNode.addChildReference("PLACE", destinationPlaceID);
 		}
@@ -375,15 +228,23 @@ public final class Transformer{
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
-	void noteTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
 			String noteXRef = note.getXRef();
 			if(noteXRef == null)
-				noteXRef = destination.addNote(create("NOTE")
-					.withValue(note.getValue()));
+				noteXRef = destination.addNote(createWithValue("NOTE", note.getValue()));
 
 			destinationNode.addChildReference("NOTE", noteXRef);
+		}
+	}
+
+	void noteRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes){
+			final String noteID = destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
+
+			destinationNode.addChildReference("NOTE", noteID);
 		}
 	}
 
@@ -433,7 +294,7 @@ public final class Transformer{
 				)
 				.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY")
 					.getValue());
-			noteFrom(sourceCitation, destinationSource);
+			noteCitationFrom(sourceCitation, destinationSource);
 			destinationNode.addChild(destinationSource);
 		}
 	}
@@ -460,7 +321,7 @@ public final class Transformer{
 				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY")
 					.getValue())
 			);
-		noteFrom(event, destinationEvent);
+		noteCitationFrom(event, destinationEvent);
 		sourceCitationFrom(event, destinationEvent);
 		return destinationEvent;
 	}
@@ -497,15 +358,24 @@ public final class Transformer{
 					.addChildValue("LONG", traverse(map, "LONG")
 						.getValue())
 				);
-			noteFrom(place, destinationPlace);
+			noteCitationFrom(place, destinationPlace);
 			destinationNode.addChild(destinationPlace);
 		}
 	}
 
-	void noteFrom(final GedcomNode parent, final GedcomNode destinationNode){
+	void noteCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			destinationNode.addChildReference("NOTE", note.getXRef());
+	}
+
+	void noteRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
+		for(final GedcomNode note : notes){
+			final String noteID = destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
+
+			destinationNode.addChildReference("NOTE", noteID);
+		}
 	}
 
 }

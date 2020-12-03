@@ -48,7 +48,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 		destinationRepository.addChildValue("NAME", name);
 		transformerTo.addressStructureTo(repository, destinationRepository, destination);
 		contactStructureTo(repository, destinationRepository);
-		transformerTo.noteTo(repository, destinationRepository, destination);
+		transformerTo.noteCitationTo(repository, destinationRepository, destination);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -88,7 +88,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("NAME", name);
 		transformerFrom.addressStructureFrom(repository, destinationRepository, origin);
 		contactStructureFrom(repository, destinationRepository);
-		transformerFrom.noteFrom(repository, destinationRepository);
+		transformerFrom.noteCitationFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
 	}
