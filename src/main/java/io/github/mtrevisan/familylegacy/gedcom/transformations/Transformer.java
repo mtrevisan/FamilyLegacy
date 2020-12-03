@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 
@@ -228,6 +229,29 @@ public final class Transformer extends TransformerHelper{
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
+	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> citations = parent.getChildrenWithTag("REPO");
+		for(final GedcomNode citation : citations){
+			final GedcomNode repositoryCitation = create("REPOSITORY")
+				.withXRef(citation.getXRef())
+				.addChildValue("LOCATION", traverse(citation, "CALN").getValue());
+			noteCitationTo(citation, repositoryCitation, destination);
+
+			destinationNode.addChild(repositoryCitation);
+		}
+	}
+
+	void spouseToFamilyLinkTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> links = parent.getChildrenWithTag("FAMS");
+		for(final GedcomNode link : links){
+			final GedcomNode familySpouse = create("FAMILY_SPOUSE")
+				.withXRef(link.getXRef());
+			noteCitationTo(link, familySpouse, destination);
+
+			destinationNode.addChild(familySpouse);
+		}
+	}
+
 	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
@@ -363,13 +387,36 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> citations = parent.getChildrenWithTag("REPOSITORY");
+		for(final GedcomNode citation : citations){
+			final GedcomNode repositoryCitation = create("REPO")
+				.withXRef(citation.getXRef())
+				.addChildValue("CALN", traverse(citation, "LOCATION").getValue());
+			noteCitationFrom(citation, repositoryCitation);
+
+			destinationNode.addChild(repositoryCitation);
+		}
+	}
+
+	void spouseToFamilyLinkFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> links = parent.getChildrenWithTag("FAMILY_SPOUSE");
+		for(final GedcomNode link : links){
+			final GedcomNode familySpouse = create("FAMS")
+				.withXRef(link.getXRef());
+			noteCitationFrom(link, familySpouse);
+
+			destinationNode.addChild(familySpouse);
+		}
+	}
+
 	void noteCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			destinationNode.addChildReference("NOTE", note.getXRef());
 	}
 
-	void noteRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void noteRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
 			final String noteID = destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));

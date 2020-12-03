@@ -449,5 +449,5 @@ n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date_value() object giving the date 
 
 REPOSITORY_CITATION :=
 n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
-  +1 REPOSITORY_LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
+  +1 LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
