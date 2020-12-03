@@ -52,7 +52,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 			destinationFamily.addChildReference("CHILD", child.getXRef());
 		transformerTo.noteCitationTo(family, destinationFamily, destination);
 		transformerTo.sourceCitationTo(family, destinationFamily, destination);
-		transformerTo.documentTo(family, destinationFamily, destination);
+		transformerTo.multimediaCitationTo(family, destinationFamily, destination);
 		transformerTo.eventTo(family, destinationFamily, destination, "ANUL", "ANNULMENT");
 		transformerTo.eventTo(family, destinationFamily, destination, "CENS", "CENSUS");
 		transformerTo.eventTo(family, destinationFamily, destination, "DIV", "DIVORCE");
