@@ -144,23 +144,6 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	//FIXME
-	void addressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final GedcomNode address = traverse(parent, "ADDR");
-		final String addressValue = extractAddressValue(address);
-
-		final GedcomNode destinationPlace = create("PLACE")
-			.addChildValue("ADDRESS", addressValue)
-			.addChildValue("CITY", traverse(address, "CITY")
-				.getValue())
-			.addChildValue("STATE", traverse(address, "STAE")
-				.getValue())
-			.addChildValue("COUNTRY", traverse(address, "CTRY")
-				.getValue());
-		final String destinationPlaceID = destination.addPlace(destinationPlace);
-		destinationNode.addChildReference("PLACE", destinationPlaceID);
-	}
-
-	//FIXME
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Flef destination){
 		final GedcomNode destinationEvent = create("EVENT")
 			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
@@ -255,6 +238,23 @@ public final class Transformer extends TransformerHelper{
 			noteCitationTo(link, familySpouse, destination);
 
 			destinationNode.addChild(familySpouse);
+		}
+	}
+
+	//FIXME
+	private void childToFamilyLinkTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMC");
+		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
+			final GedcomNode pedigree = traverse(childToFamilyLink, "PEDI");
+			final GedcomNode destinationFamilyChild = create("FAMILY_CHILD")
+				.withXRef(childToFamilyLink.getXRef())
+				.addChild(create("PEDIGREE")
+					.addChildValue("PARENT1", pedigree.getValue())
+					.addChildValue("PARENT2", pedigree.getValue())
+				)
+				.addChildValue("CERTAINTY", traverse(childToFamilyLink, "STAT").getValue());
+			noteCitationTo(childToFamilyLink, destinationFamilyChild, destination);
+			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
 
@@ -369,22 +369,18 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//FIXME
 	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode map = traverse(placeRecord, "MAP");
 			final GedcomNode destinationPlace = create("PLAC")
-				.withValue(traverse(placeRecord, "NAME")
-					.getValue())
+				.withValue(traverse(placeRecord, "NAME").getValue())
 				.addChild(create("MAP")
-					.addChildValue("LATI", traverse(map, "LATI")
-						.getValue())
-					.addChildValue("LONG", traverse(map, "LONG")
-						.getValue())
+					.addChildValue("LATI", traverse(map, "LATITUDE").getValue())
+					.addChildValue("LONG", traverse(map, "LONGITUDE").getValue())
 				);
-			noteCitationFrom(place, destinationPlace);
+			noteCitationFrom(placeRecord, destinationPlace);
 			destinationNode.addChild(destinationPlace);
 		}
 	}
@@ -426,6 +422,24 @@ public final class Transformer extends TransformerHelper{
 			noteCitationFrom(link, familySpouse);
 
 			destinationNode.addChild(familySpouse);
+		}
+	}
+
+	//FIXME
+	private void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
+		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
+		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
+			final GedcomNode pedigree = traverse(childToFamilyLink, "PEDIGREE");
+			final String pedigreeParent1 = traverse(pedigree, "PARENT1").getValue();
+			final String pedigreeParent2 = traverse(pedigree, "PARENT2").getValue();
+			@SuppressWarnings("StringEquality")
+			final String pedigreeValue = (pedigreeParent1 == pedigreeParent2 || pedigreeParent1.equals(pedigreeParent2)?
+				pedigreeParent1: "PARENT1: " + pedigreeParent1 + ", PARENT2: " + pedigreeParent2);
+			final GedcomNode destinationFamilyChild = create("FAMC")
+				.addChildValue("PEDI", pedigreeValue)
+				.addChildValue("STAT", traverse(childToFamilyLink, "CERTAINTY").getValue());
+			noteCitationFrom(childToFamilyLink, destinationFamilyChild);
+			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
 

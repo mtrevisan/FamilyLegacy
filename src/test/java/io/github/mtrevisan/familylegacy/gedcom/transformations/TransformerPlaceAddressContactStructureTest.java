@@ -60,6 +60,33 @@ class TransformerPlaceAddressContactStructureTest{
 	}
 
 	@Test
+	void placeStructureTo(){
+		final GedcomNode parent = transformerTo.createEmpty()
+			.addChild(transformerTo.createWithValue("PLAC", "PLACE_NAME")
+				.addChildValue("FORM", "PLACE_HIERARCHY")
+				.addChildValue("FONE", "PLACE_PHONETIC_VARIATION")
+				.addChildValue("ROMN", "PLACE_ROMANIZED_VARIATION")
+				.addChild(transformerTo.create("MAP")
+					.addChildValue("LATI", "PLACE_LATITUDE")
+					.addChildValue("LONG", "PLACE_LONGITUDE")
+				)
+				.addChildReference("NOTE", "@N1@")
+			);
+		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
+
+		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: FORM, value: PLACE_HIERARCHY}, {tag: FONE, value: PLACE_PHONETIC_VARIATION}, {tag: ROMN, value: PLACE_ROMANIZED_VARIATION}, {tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
+
+		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Flef destination = new Flef();
+		destination.addNote(note);
+		transformerTo.placeAddressStructureTo(parent, destinationNode, destination);
+
+		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATITUDE, value: PLACE_LATITUDE}, {tag: LONGITUDE, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: @N1@}]", destination.getPlaces().get(0).toString());
+	}
+
+	@Test
 	void contactStructureTo(){
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChildValue("PHON", "PHONE_NUMBER")
@@ -74,58 +101,6 @@ class TransformerPlaceAddressContactStructureTest{
 
 		Assertions.assertEquals("children: [{tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER}, {tag: EMAIL, value: ADDRESS_EMAIL}, {tag: PHONE, value: ADDRESS_FAX, children: [{tag: TYPE, value: fax}]}, {tag: URL, value: ADDRESS_WEB_PAGE}]}]", destinationNode.toString());
 	}
-
-//	@Test
-//	void placeStructureTo(){
-//		final GedcomNode parent = transformerTo.createEmpty()
-//			.addChild(transformerTo.createWithReference("REPO", "@R1@")
-//				.addChildReference("NOTE", "@N1@")
-//				.addChild(transformerTo.create("CALN")
-//					.withValue("SOURCE_CALL_NUMBER")
-//					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
-//				)
-//			);
-//		final GedcomNode repository = transformerTo.createWithID("REPO", "@R1@");
-//		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
-//
-//		Assertions.assertEquals("children: [{tag: REPO, ref: @R1@, children: [{tag: NOTE, ref: @N1@}, {tag: CALN, value: SOURCE_CALL_NUMBER, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}]", parent.toString());
-//		Assertions.assertEquals("id: @R1@, tag: REPO", repository.toString());
-//		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
-//
-//		final GedcomNode destinationNode = transformerTo.createEmpty();
-//		final Flef destination = new Flef();
-//		destination.addRepository(repository);
-//		destination.addNote(note);
-//		t.placeAddressStructureTo(parent, destinationNode, destination);
-//
-//		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
-//	}
-//
-//	@Test
-//	void placeAddressStructureTo(){
-//		final GedcomNode parent = transformerTo.createEmpty()
-//			.addChild(transformerTo.createWithReference("REPO", "@R1@")
-//				.addChildReference("NOTE", "@N1@")
-//				.addChild(transformerTo.create("CALN")
-//					.withValue("SOURCE_CALL_NUMBER")
-//					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
-//				)
-//			);
-//		final GedcomNode repository = transformerTo.createWithID("REPO", "@R1@");
-//		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
-//
-//		Assertions.assertEquals("children: [{tag: REPO, ref: @R1@, children: [{tag: NOTE, ref: @N1@}, {tag: CALN, value: SOURCE_CALL_NUMBER, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}]", parent.toString());
-//		Assertions.assertEquals("id: @R1@, tag: REPO", repository.toString());
-//		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
-//
-//		final GedcomNode destinationNode = transformerTo.createEmpty();
-//		final Flef destination = new Flef();
-//		destination.addRepository(repository);
-//		destination.addNote(note);
-//		t.placeAddressStructureTo(parent, destinationNode, destination);
-//
-//		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
-//	}
 
 	@Test
 	void addressStructureFrom(){
@@ -150,6 +125,31 @@ class TransformerPlaceAddressContactStructureTest{
 
 		Assertions.assertEquals("children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: @P1@, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", origin.getNotes().get(0).toString());
+	}
+
+	@Test
+	void placeStructureFrom(){
+		final GedcomNode parent = transformerFrom.createEmpty()
+			.addChild(transformerFrom.createWithReference("PLACE", "@P1@"));
+
+		Assertions.assertEquals("children: [{tag: PLACE, ref: @P1@}]", parent.toString());
+
+		final GedcomNode destinationNode = transformerFrom.createEmpty();
+		final Flef origin = new Flef();
+		origin.addPlace(transformerTo.createWithID("PLACE", "@P1@")
+			.addChildValue("NAME", "PLACE_NAME")
+			.addChild(transformerTo.create("MAP")
+				.addChildValue("LATITUDE", "PLACE_LATITUDE")
+				.addChildValue("LONGITUDE", "PLACE_LONGITUDE")
+			)
+			.addChildReference("NOTE", "N1")
+		);
+		origin.addNote(transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
+		transformerFrom.placeStructureFrom(parent, destinationNode, origin);
+
+		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: @P1@, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: PLACE_LATITUDE}, {tag: LONGITUDE, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", origin.getNotes().get(0).toString());
 	}
 

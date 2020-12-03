@@ -46,7 +46,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 		final String name = transformerTo.traverse(repository, "NAME")
 			.getValue();
 		destinationRepository.addChildValue("NAME", name);
-		transformerTo.addressStructureTo(repository, destinationRepository, destination);
+		transformerTo.placeAddressStructureTo(repository, destinationRepository, destination);
 		contactStructureTo(repository, destinationRepository);
 		transformerTo.noteCitationTo(repository, destinationRepository, destination);
 
