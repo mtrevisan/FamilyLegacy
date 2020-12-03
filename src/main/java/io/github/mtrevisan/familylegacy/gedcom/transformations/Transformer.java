@@ -187,45 +187,33 @@ public final class Transformer extends TransformerHelper{
 		return destinationEvent;
 	}
 
-	//FIXME
 	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = traverse(parent, "ADDR");
-		final String addressValue = extractAddressValue(address);
-
 		final GedcomNode place = traverse(parent, "PLAC");
 		if(!address.isEmpty() || !place.isEmpty()){
 			final GedcomNode map = traverse(place, "MAP");
-			final GedcomNode destinationPlace = create("PLACE")
-				.withValue(place.getValue())
-				.addChildValue("ADDRESS", addressValue)
-				.addChildValue("CITY", traverse(address, "CITY")
-					.getValue())
-				.addChildValue("STATE", traverse(address, "STAE")
-					.getValue())
-				.addChildValue("COUNTRY", traverse(address, "CTRY")
-					.getValue())
+			final GedcomNode destinationPlace = createWithValue("PLACE", place.getValue())
+				.addChildValue("ADDRESS", extractAddressValue(address))
+				.addChildValue("CITY", traverse(address, "CITY").getValue())
+				.addChildValue("STATE", traverse(address, "STAE").getValue())
+				.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
 				.addChild(create("MAP")
-					.addChildValue("LATITUDE", traverse(map, "LATI")
-						.getValue())
-					.addChildValue("LONGITUDE", traverse(map, "LONG")
-						.getValue())
+					.addChildValue("LATITUDE", traverse(map, "LATI").getValue())
+					.addChildValue("LONGITUDE", traverse(map, "LONG").getValue())
 				);
 			noteCitationTo(place, destinationPlace, destination);
+
 			final String destinationPlaceID = destination.addPlace(destinationPlace);
 			destinationNode.addChildReference("PLACE", destinationPlaceID);
 		}
 	}
 
-	//FIXME
 	private String extractAddressValue(final GedcomNode address){
 		final StringJoiner sj = new StringJoiner(" - ");
-		final String wholeAddress = address.getValue();
-		JavaHelper.addValueIfNotNull(sj, wholeAddress);
+		JavaHelper.addValueIfNotNull(sj, address.getValue());
 		for(final GedcomNode child : address.getChildren())
-			if(ADDRESS_TAGS.contains(child.getTag())){
-				final String value = child.getValue();
-				JavaHelper.addValueIfNotNull(sj, value);
-			}
+			if(ADDRESS_TAGS.contains(child.getTag()))
+				JavaHelper.addValueIfNotNull(sj, child.getValue());
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
@@ -350,20 +338,16 @@ public final class Transformer extends TransformerHelper{
 		return destinationEvent;
 	}
 
-	//FIXME
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode address = traverse(placeRecord, "ADDRESS");
 			destinationNode.addChild(create("ADDR")
-				.withValue(placeRecord.getValue())
-				.addChildValue("CITY", traverse(address, "CITY")
-					.getValue())
-				.addChildValue("STAE", traverse(address, "STATE")
-					.getValue())
-				.addChildValue("CTRY", traverse(address, "COUNTRY")
-					.getValue()));
+				.withValue(address.getValue())
+				.addChildValue("CITY", traverse(address, "CITY").getValue())
+				.addChildValue("STAE", traverse(address, "STATE").getValue())
+				.addChildValue("CTRY", traverse(address, "COUNTRY").getValue()));
 		}
 	}
 

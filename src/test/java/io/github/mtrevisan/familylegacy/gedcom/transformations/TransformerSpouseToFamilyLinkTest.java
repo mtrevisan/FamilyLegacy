@@ -49,12 +49,11 @@ class TransformerSpouseToFamilyLinkTest{
 		Assertions.assertEquals("id: @F1@, tag: FAMILY", family.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
 
-		final Transformer t = new Transformer(Protocol.FLEF);
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
 		destination.addFamily(family);
 		destination.addNote(note);
-		t.spouseToFamilyLinkTo(parent, destinationNode, destination);
+		transformerTo.spouseToFamilyLinkTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: FAMILY_SPOUSE, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
@@ -68,9 +67,8 @@ class TransformerSpouseToFamilyLinkTest{
 
 		Assertions.assertEquals("children: [{tag: FAMILY_SPOUSE, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}]", parent.toString());
 
-		final Transformer t = new Transformer(Protocol.FLEF);
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		t.spouseToFamilyLinkFrom(parent, destinationNode);
+		transformerFrom.spouseToFamilyLinkFrom(parent, destinationNode);
 
 		Assertions.assertEquals("children: [{tag: FAMS, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}

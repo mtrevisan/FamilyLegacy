@@ -53,12 +53,11 @@ class TransformerSourceRepositoryCitationTest{
 		Assertions.assertEquals("id: @R1@, tag: REPO", repository.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
 
-		final Transformer t = new Transformer(Protocol.FLEF);
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
 		destination.addRepository(repository);
 		destination.addNote(note);
-		t.sourceRepositoryCitationTo(parent, destinationNode, destination);
+		transformerFrom.sourceRepositoryCitationTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
@@ -66,16 +65,15 @@ class TransformerSourceRepositoryCitationTest{
 	@Test
 	void sourceRepositoryCitationFrom(){
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerTo.createWithReference("REPOSITORY", "@R1@")
+			.addChild(transformerFrom.createWithReference("REPOSITORY", "@R1@")
 				.addChildValue("LOCATION", "REPOSITORY_LOCATION_TEXT")
 				.addChildReference("NOTE", "@N1@")
 			);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
 
-		final Transformer t = new Transformer(Protocol.FLEF);
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		t.sourceRepositoryCitationFrom(parent, destinationNode);
+		transformerFrom.sourceRepositoryCitationFrom(parent, destinationNode);
 
 		Assertions.assertEquals("children: [{tag: REPO, ref: @R1@, children: [{tag: CALN, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
