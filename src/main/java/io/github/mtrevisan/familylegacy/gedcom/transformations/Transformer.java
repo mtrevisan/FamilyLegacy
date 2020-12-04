@@ -229,7 +229,7 @@ public final class Transformer extends TransformerHelper{
 		SOURCE.ROLE.value = SOUR.EVEN.ROLE.value
 		load SOURCE[rec] from SOUR.xref
 		SOURCE[rec].EVENT = SOUR.EVEN.value
-		SOURCE[rec].DATE.ORIGINAL_TEXT = SOUR.DATA.DATE
+		SOURCE[rec].DATE.value = SOUR.DATA.DATE.value
 		for-each SOUR.OBJE xref
 			load OBJE[rec] from SOUR.OBJE.xref
 			for-each OBJE[rec].FILE
@@ -296,13 +296,13 @@ public final class Transformer extends TransformerHelper{
 				}
 				final String sourceCitationDate = traverse(sourceRecord, "DATA.DATE").getValue();
 				if(sourceCitationDate != null){
-					GedcomNode originalText = traverse(sourceRecord, "DATE.ORIGINAL_TEXT");
-					if(originalText.isEmpty()){
-						originalText = createWithValue("DATE.ORIGINAL_TEXT", sourceCitationDate);
-						sourceRecord.addChild(originalText);
+					GedcomNode date = traverse(sourceRecord, "DATE");
+					if(date.isEmpty()){
+						date = createWithValue("DATE", sourceCitationDate);
+						sourceRecord.addChild(date);
 					}
 					else
-						originalText.withValue(originalText.getValue() + "," + sourceCitationDate);
+						date.withValue(date.getValue() + "," + sourceCitationDate);
 				}
 
 				extractObjects(sourceCitation, origin, destination, destinationSource, destinationSourceReference, "DATA.TEXT");
@@ -485,7 +485,23 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//FIXME
+	//TODO
+	/*
+	for-each SOURCE xref create SOUR
+		SOUR.xref = SOUR.xref
+		SOUR.PAGE.value = SOURCE.LOCATION.value
+		SOUR.EVEN.ROLE.value = SOURCE.ROLE.value
+		SOUR.DATA.DATE.value = SOURCE[rec].DATE.value
+		SOUR.DATA.TEXT.value = SOURCE.FILE.EXTRACT.value
+		for-each SOURCE.FILE
+			pick-each: SOUR.OBJE.FILE.value = SOURCE.FILE.value
+			pick-each: SOUR.OBJE.TITL.value = SOURCE.FILE.DESCRIPTION.value
+			pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CUTOUT
+			pick-one: SOUR.OBJE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
+			remember which one has the _PREF tag
+		transfer SOURCE.NOTE to SOUR.NOTE
+		SOUR.QUAY.value = SOURCE.CREDIBILITY.value
+	*/
 	void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
 		for(final GedcomNode sourceCitation : sourceCitations){

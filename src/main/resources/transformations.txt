@@ -5,7 +5,7 @@ for-each SOUR xref create SOURCE
 	SOURCE.ROLE.value = SOUR.EVEN.ROLE.value
 	load SOURCE[rec] from SOUR.xref
 	SOURCE[rec].EVENT = SOUR.EVEN.value
-	SOURCE[rec].DATE.ORIGINAL_TEXT = SOUR.DATA.DATE
+	SOURCE[rec].DATE = SOUR.DATA.DATE
 	for-each SOUR.OBJE xref
 		load OBJE[rec] from SOUR.OBJE.xref
 		for-each OBJE[rec].FILE
@@ -22,7 +22,7 @@ for-each SOUR xref create SOURCE
    for-each SOUR.DATA.TEXT
 		pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
 	transfer SOUR.NOTE to SOURCE.NOTE
-	SOURCE.CREDIBILITY.value = SOUR.QUAY.value
+	SOURCE[ref].CREDIBILITY.value = SOUR.QUAY.value
 for-each SOUR value create SOURCE, SOURCE[ref]
 	SOURCE.TITLE = SOUR.value
 	transfer SOUR.NOTE to SOURCE[ref].NOTE
@@ -40,7 +40,8 @@ for-each SOUR value create SOURCE, SOURCE[ref]
 		pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
 		remember which one has the _PREF tag
 	for-each SOUR.TEXT
-		copy each TEXT onto each SOURCE.FILE[].EXTRACT
+		pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+	transfer SOUR.NOTE to SOURCE.NOTE
 	SOURCE[ref].CREDIBILITY = SOUR.QUAY
 
 
@@ -49,15 +50,13 @@ for-each SOURCE xref create SOUR
 	SOUR.xref = SOUR.xref
 	SOUR.PAGE.value = SOURCE.LOCATION.value
 	SOUR.EVEN.ROLE.value = SOURCE.ROLE.value
-  +1 DATA    {0:1}
-    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
-    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+	SOUR.DATA.DATE.value = SOURCE[rec].DATE.value
+	SOUR.DATA.TEXT.value = SOURCE.FILE.EXTRACT.value
+	for-each SOURCE.FILE
+		pick-each: SOUR.OBJE.FILE.value = SOURCE.FILE.value
+		pick-each: SOUR.OBJE.TITL.value = SOURCE.FILE.DESCRIPTION.value
+		pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CUTOUT
+		pick-one: SOUR.OBJE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
+		remember which one has the _PREF tag
 	transfer SOURCE.NOTE to SOUR.NOTE
 	SOUR.QUAY.value = SOURCE.CREDIBILITY.value
-for-each SOURCE value create SOUR
-  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
-	transfer SOURCE.NOTE to SOUR.NOTE
-	SOUR.QUAY.value = SOURCE.CREDIBILITY.value
-
