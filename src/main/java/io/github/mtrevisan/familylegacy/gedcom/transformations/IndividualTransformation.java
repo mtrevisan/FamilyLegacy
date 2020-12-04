@@ -40,48 +40,48 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> individuals = origin.getIndividuals();
 		for(final GedcomNode individual : individuals)
-			individualRecordTo(individual, destination);
+			individualRecordTo(individual, origin, destination);
 	}
 
-	private void individualRecordTo(final GedcomNode individual, final Flef destination){
+	private void individualRecordTo(final GedcomNode individual, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationIndividual = transformerTo.create("INDIVIDUAL")
 			.withID(individual.getID());
-		personalNameTo(individual, destinationIndividual, destination);
+		personalNameTo(individual, destinationIndividual, origin, destination);
 		destinationIndividual.addChildValue("SEX", transformerTo.traverse(individual, "SEX")
 				.getValue());
 		childToFamilyLinkTo(individual, destinationIndividual, destination);
 		spouseToFamilyLinkTo(individual, destinationIndividual, destination);
-		associationTo(individual, destinationIndividual, destination);
+		associationTo(individual, destinationIndividual, origin, destination);
 		aliasTo(individual, destinationIndividual, destination);
-		transformerTo.eventTo(individual, destinationIndividual, destination, "BIRT", "BIRTH");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "ADOP", "ADOPTION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "DEAT", "DEATH");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "BURI", "BURIAL");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "CREM", "CREMATION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "NATU", "NATURALIZATION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "EMIG", "EMIGRATION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "IMMI", "IMMIGRATION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "CENS", "CENSUS");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "PROB", "PROBATE");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "WILL", "WILL");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "GRAD", "GRADUATION");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "RETI", "RETIREMENT");
-		transformerTo.eventTo(individual, destinationIndividual, destination, "EVEN", "EVENT");
-		attributeTo(individual, destinationIndividual, destination, "CAST", "CASTE");
-		attributeTo(individual, destinationIndividual, destination, "DSCR", "CHARACTERISTIC");
-		attributeTo(individual, destinationIndividual, destination, "EDUC", "EDUCATION");
-		attributeTo(individual, destinationIndividual, destination, "NATI", "ORIGIN");
-		attributeTo(individual, destinationIndividual, destination, "NCHI", "CHILDREN_COUNT");
-		attributeTo(individual, destinationIndividual, destination, "NMR", "MARRIAGES_COUNT");
-		attributeTo(individual, destinationIndividual, destination, "OCCU", "OCCUPATION");
-		attributeTo(individual, destinationIndividual, destination, "PROP", "POSSESSION");
-		attributeTo(individual, destinationIndividual, destination, "RELI", "RELIGION");
-		attributeTo(individual, destinationIndividual, destination, "RESI", "RESIDENCE");
-		attributeTo(individual, destinationIndividual, destination, "SSN", "SSN");
-		attributeTo(individual, destinationIndividual, destination, "TITL", "TITLE");
-		attributeTo(individual, destinationIndividual, destination, "FACT", null);
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "BIRT", "BIRTH");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "ADOP", "ADOPTION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "DEAT", "DEATH");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "BURI", "BURIAL");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "CREM", "CREMATION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "NATU", "NATURALIZATION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "EMIG", "EMIGRATION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "IMMI", "IMMIGRATION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "CENS", "CENSUS");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "PROB", "PROBATE");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "WILL", "WILL");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "GRAD", "GRADUATION");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "RETI", "RETIREMENT");
+		transformerTo.eventTo(individual, destinationIndividual, origin, destination, "EVEN", "EVENT");
+		attributeTo(individual, destinationIndividual, origin, destination, "CAST", "CASTE");
+		attributeTo(individual, destinationIndividual, origin, destination, "DSCR", "CHARACTERISTIC");
+		attributeTo(individual, destinationIndividual, origin, destination, "EDUC", "EDUCATION");
+		attributeTo(individual, destinationIndividual, origin, destination, "NATI", "ORIGIN");
+		attributeTo(individual, destinationIndividual, origin, destination, "NCHI", "CHILDREN_COUNT");
+		attributeTo(individual, destinationIndividual, origin, destination, "NMR", "MARRIAGES_COUNT");
+		attributeTo(individual, destinationIndividual, origin, destination, "OCCU", "OCCUPATION");
+		attributeTo(individual, destinationIndividual, origin, destination, "PROP", "POSSESSION");
+		attributeTo(individual, destinationIndividual, origin, destination, "RELI", "RELIGION");
+		attributeTo(individual, destinationIndividual, origin, destination, "RESI", "RESIDENCE");
+		attributeTo(individual, destinationIndividual, origin, destination, "SSN", "SSN");
+		attributeTo(individual, destinationIndividual, origin, destination, "TITL", "TITLE");
+		attributeTo(individual, destinationIndividual, origin, destination, "FACT", null);
 		transformerTo.noteCitationTo(individual, destinationIndividual, destination);
-		transformerTo.sourceCitationTo(individual, destinationIndividual, destination);
+		transformerTo.sourceCitationTo(individual, destinationIndividual, origin, destination);
 		transformerTo.multimediaCitationTo(individual, destinationIndividual, destination);
 		destinationIndividual.addChildValue("RESTRICTION", transformerTo.traverse(individual, "RESN")
 			.getValue());
@@ -89,25 +89,25 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		destination.addIndividual(destinationIndividual);
 	}
 
-	private void personalNameTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
+	private void personalNameTo(final GedcomNode individual, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> personalNameStructures = individual.getChildrenWithTag("NAME");
 		for(final GedcomNode personalNameStructure : personalNameStructures){
 			final GedcomNode destinationName = transformerTo.create("NAME");
-			personalNamePiecesTo(personalNameStructure, destinationName, destination);
+			personalNamePiecesTo(personalNameStructure, destinationName, origin, destination);
 
 			final GedcomNode destinationPhonetic = transformerTo.create("PHONETIC");
-			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "FONE"), destinationPhonetic, destination);
+			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "FONE"), destinationPhonetic, origin, destination);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = transformerTo.create("TRANSCRIPTION");
-			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "ROMN"), destinationTranscription, destination);
+			personalNamePiecesTo(transformerTo.traverse(personalNameStructure, "ROMN"), destinationTranscription, origin, destination);
 			destinationName.addChild(destinationTranscription);
 
 			destinationNode.addChild(destinationName);
 		}
 	}
 
-	private void personalNamePiecesTo(final GedcomNode personalNameStructure, final GedcomNode destinationNode,
+	private void personalNamePiecesTo(final GedcomNode personalNameStructure, final GedcomNode destinationNode, final Gedcom origin,
 			final Flef destination){
 		String givenName = transformerTo.traverse(personalNameStructure, "GIVN")
 			.getValue();
@@ -143,7 +143,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.getValue())
 			.addChildValue("FAMILY_NAME", (sj.length() > 0? sj.toString(): null));
 		transformerTo.noteCitationTo(personalNameStructure, destinationNode, destination);
-		transformerTo.sourceCitationTo(personalNameStructure, destinationNode, destination);
+		transformerTo.sourceCitationTo(personalNameStructure, destinationNode, origin, destination);
 	}
 
 	private void childToFamilyLinkTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
@@ -167,7 +167,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		structureTo(individual, destinationNode, destination, "FAMS", "FAMILY_SPOUSE");
 	}
 
-	private void associationTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination){
+	private void associationTo(final GedcomNode individual, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSO");
 		for(final GedcomNode association : associations){
 			String type = transformerTo.traverse(association, "TYPE")
@@ -182,7 +182,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("RELATIONSHIP", transformerTo.traverse(association, "RELA")
 					.getValue());
 			transformerTo.noteCitationTo(association, destinationAssociation, destination);
-			transformerTo.sourceCitationTo(association, destinationAssociation, destination);
+			transformerTo.sourceCitationTo(association, destinationAssociation, origin, destination);
 			destinationNode.addChild(destinationAssociation);
 		}
 	}
@@ -202,16 +202,16 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		}
 	}
 
-	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Flef destination,
+	private void attributeTo(final GedcomNode individual, final GedcomNode destinationNode, final Gedcom origin, final Flef destination,
 			final String tagFrom, final String valueTo){
 		final List<GedcomNode> attributes = individual.getChildrenWithTag(tagFrom);
 		for(final GedcomNode attribute : attributes){
-			final GedcomNode destinationAttribute = createAttributeTo(valueTo, attribute, destination);
+			final GedcomNode destinationAttribute = createAttributeTo(valueTo, attribute, origin, destination);
 			destinationNode.addChild(destinationAttribute);
 		}
 	}
 
-	private GedcomNode createAttributeTo(final String valueTo, final GedcomNode attribute, final Flef destination){
+	private GedcomNode createAttributeTo(final String valueTo, final GedcomNode attribute, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationAttribute = transformerTo.create("ATTRIBUTE")
 			.withValue(valueTo)
 			.addChildValue("VALUE", attribute.getValue())
@@ -225,7 +225,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("RESTRICTION", transformerTo.traverse(attribute, "RESN")
 				.getValue());
 		transformerTo.noteCitationTo(attribute, destinationAttribute, destination);
-		transformerTo.sourceCitationTo(attribute, destinationAttribute, destination);
+		transformerTo.sourceCitationTo(attribute, destinationAttribute, origin, destination);
 		transformerTo.multimediaCitationTo(attribute, destinationAttribute, destination);
 		return destinationAttribute;
 	}

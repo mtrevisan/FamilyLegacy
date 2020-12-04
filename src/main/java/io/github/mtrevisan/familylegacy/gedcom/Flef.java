@@ -65,10 +65,9 @@ public class Flef extends Store{
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
-	private static final String ID_MULTIMEDIA_PREFIX = "M";
 	private static final String ID_CULTURAL_RULE_PREFIX = "A";
 	private static final String ID_GROUP_PREFIX = "G";
-	private static final String ID_SUBMITTER_PREFIX = "U";
+	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
@@ -77,7 +76,6 @@ public class Flef extends Store{
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_MULTIMEDIA = "MULTIMEDIA";
 	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
 	private static final String TAG_GROUP = "GROUP";
 	private static final String TAG_SUBMITTER = "SUBMITTER";
@@ -90,7 +88,6 @@ public class Flef extends Store{
 	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
 	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
-	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
 	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
@@ -103,7 +100,6 @@ public class Flef extends Store{
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
-	private List<GedcomNode> multimedias;
 	private List<GedcomNode> culturalRules;
 	private List<GedcomNode> groups;
 	private List<GedcomNode> submitters;
@@ -114,7 +110,6 @@ public class Flef extends Store{
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
-	private Map<String, GedcomNode> multimediaIndex;
 	private Map<String, GedcomNode> culturalRuleIndex;
 	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> submitterIndex;
@@ -123,7 +118,6 @@ public class Flef extends Store{
 	private Map<GedcomNode, String> noteValue;
 	private Map<GedcomNode, String> repositoryValue;
 	private Map<GedcomNode, String> sourceValue;
-	private Map<GedcomNode, String> multimediaValue;
 
 	private static int INDIVIDUAL_ID = 1;
 	private static int FAMILY_ID = 1;
@@ -132,7 +126,7 @@ public class Flef extends Store{
 
 	public static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
-		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(new File(gedcomFile)))){
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;
 			String line;
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
@@ -176,7 +170,6 @@ public class Flef extends Store{
 		notes = root.getChildrenWithTag(TAG_NOTE);
 		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		sources = root.getChildrenWithTag(TAG_SOURCE);
-		multimedias = root.getChildrenWithTag(TAG_MULTIMEDIA);
 		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
 		groups = root.getChildrenWithTag(TAG_GROUP);
 		submitters = root.getChildrenWithTag(TAG_SUBMITTER);
@@ -210,7 +203,6 @@ public class Flef extends Store{
 		NOTE_TRANSFORMATION.from(this, destination);
 		REPOSITORY_TRANSFORMATION.from(this, destination);
 		SOURCE_TRANSFORMATION.from(this, destination);
-		MULTIMEDIA_TRANSFORMATION.from(this, destination);
 		DOCUMENT_TRANSFORMATION.from(this, destination);
 		INDIVIDUAL_TRANSFORMATION.from(this, destination);
 		FAMILY_TRANSFORMATION.from(this, destination);
@@ -274,7 +266,7 @@ public class Flef extends Store{
 	 * 	<p>The void array MUST BE last in the sequence.</p>
 	 * @return	The final node list.
 	 */
-	public List<GedcomNode> traverseAsList(final GedcomNode origin, String path){
+	public List<GedcomNode> traverseAsList(final GedcomNode origin, final String path){
 		return TRANSFORMER.traverseAsList(origin, path);
 	}
 
@@ -538,48 +530,6 @@ public class Flef extends Store{
 
 	private String getNextRepositoryID(){
 		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
-	}
-
-
-	public List<GedcomNode> getMultimedias(){
-		return multimedias;
-	}
-
-	public GedcomNode getMultimedia(final String id){
-		return multimediaIndex.get(id);
-	}
-
-	public String addMultimedia(final GedcomNode multimedia){
-		String multimediaID = null;
-		if(!multimedia.isEmpty()){
-			//search multimedia
-			final GedcomNode multimediaCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, multimedia);
-			if(multimediaValue != null)
-				multimediaID = multimediaValue.get(multimediaCloned);
-			if(multimediaID == null){
-				//if multimedia is not found:
-				if(multimedias == null){
-					multimedias = new ArrayList<>(1);
-					multimediaIndex = new HashMap<>(1);
-					multimediaValue = new HashMap<>(1);
-				}
-
-				multimediaID = multimedia.getID();
-				if(multimediaID == null){
-					multimediaID = getNextMultimediaID();
-					multimedia.withID(multimediaID);
-				}
-
-				multimedias.add(multimedia);
-				multimediaIndex.put(multimediaID, multimedia);
-				multimediaValue.put(multimediaCloned, multimediaID);
-			}
-		}
-		return multimediaID;
-	}
-
-	private String getNextMultimediaID(){
-		return ID_MULTIMEDIA_PREFIX + (multimedias != null? multimedias.size() + 1: 1);
 	}
 
 

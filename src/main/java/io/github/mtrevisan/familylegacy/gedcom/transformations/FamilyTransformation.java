@@ -37,10 +37,10 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> families = origin.getFamilies();
 		for(final GedcomNode family : families)
-			familyRecordTo(family, destination);
+			familyRecordTo(family, origin, destination);
 	}
 
-	private void familyRecordTo(final GedcomNode family, final Flef destination){
+	private void familyRecordTo(final GedcomNode family, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationFamily = transformerTo.create("FAMILY")
 			.withID(family.getID())
 			.addChildReference("SPOUSE1", transformerTo.traverse(family, "HUSB")
@@ -51,20 +51,20 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHILD", child.getXRef());
 		transformerTo.noteCitationTo(family, destinationFamily, destination);
-		transformerTo.sourceCitationTo(family, destinationFamily, destination);
+		transformerTo.sourceCitationTo(family, destinationFamily, origin, destination);
 		transformerTo.multimediaCitationTo(family, destinationFamily, destination);
-		transformerTo.eventTo(family, destinationFamily, destination, "ANUL", "ANNULMENT");
-		transformerTo.eventTo(family, destinationFamily, destination, "CENS", "CENSUS");
-		transformerTo.eventTo(family, destinationFamily, destination, "DIV", "DIVORCE");
-		transformerTo.eventTo(family, destinationFamily, destination, "DIVF", "DIVORCE_FILED");
-		transformerTo.eventTo(family, destinationFamily, destination, "ENGA", "ENGAGEMENT");
-		transformerTo.eventTo(family, destinationFamily, destination, "MARB", "MARRIAGE_BANN");
-		transformerTo.eventTo(family, destinationFamily, destination, "MARC", "MARRIAGE_CONTRACT");
-		transformerTo.eventTo(family, destinationFamily, destination, "MARR", "MARRIAGE");
-		transformerTo.eventTo(family, destinationFamily, destination, "MARL", "MARRIAGE_LICENCE");
-		transformerTo.eventTo(family, destinationFamily, destination, "MARS", "MARRIAGE_SETTLEMENT");
-		transformerTo.eventTo(family, destinationFamily, destination, "RESI", "RESIDENCE");
-		transformerTo.eventTo(family, destinationFamily, destination, "EVEN", "EVENT");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "ANUL", "ANNULMENT");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "CENS", "CENSUS");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIV", "DIVORCE");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIVF", "DIVORCE_FILED");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "ENGA", "ENGAGEMENT");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARB", "MARRIAGE_BANN");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARC", "MARRIAGE_CONTRACT");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARR", "MARRIAGE");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARL", "MARRIAGE_LICENCE");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARS", "MARRIAGE_SETTLEMENT");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "RESI", "RESIDENCE");
+		transformerTo.eventTo(family, destinationFamily, origin, destination, "EVEN", "EVENT");
 		destinationFamily.addChildValue("RESTRICTION", transformerTo.traverse(family, "RESN")
 			.getValue());
 
