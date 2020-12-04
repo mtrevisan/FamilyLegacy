@@ -243,12 +243,12 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			.withID(individual.getID());
 		destinationIndividual.addChildValue("RESN", transformerFrom.traverse(individual, "RESTRICTION")
 			.getValue());
-		personalNameFrom(individual, destinationIndividual);
+		personalNameFrom(individual, destinationIndividual, origin);
 		destinationIndividual.addChildValue("SEX", transformerFrom.traverse(individual, "SEX")
 			.getValue());
 		childToFamilyLinkFrom(individual, destinationIndividual);
 		spouseToFamilyLinkFrom(individual, destinationIndividual);
-		associationFrom(individual, destinationIndividual);
+		associationFrom(individual, destinationIndividual, origin);
 		aliasFrom(individual, destinationIndividual);
 		final List<GedcomNode> events = individual.getChildrenWithTag("EVENT");
 		transformerFrom.eventFrom(events, destinationIndividual, origin, "BIRTH", "BIRT");
@@ -281,12 +281,12 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		attributeFrom(attributes, destinationIndividual, origin, "TITLE", "TITL");
 		attributeFrom(attributes, destinationIndividual, origin, "@ATTRIBUTE@", "FACT");
 		transformerFrom.noteCitationFrom(individual, destinationIndividual);
-		transformerFrom.sourceCitationFrom(individual, destinationIndividual);
+		transformerFrom.sourceCitationFrom(individual, destinationIndividual, origin);
 
 		destination.addIndividual(destinationIndividual);
 	}
 
-	private void personalNameFrom(final GedcomNode individual, final GedcomNode destinationNode){
+	private void personalNameFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin){
 		//extract first ATTRIBUTE, or first NOTE, or first SOURCE, or RESTRICTION, or as last element
 		GedcomNode lastElement = transformerFrom.traverse(individual, "(ATTRIBUTE|NOTE|SOURCE|RESTRICTION)[0]");
 		if(lastElement.isEmpty()){
@@ -304,27 +304,27 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("TYPE", "Family Nickname")
 				.addChildValue("VALUE", transformerFrom.traverse(personalNameStructure, "FAMILY_NICKNAME")
 					.getValue());
-			transformerFrom.sourceCitationFrom(personalNameStructure, attributeNickname);
+			transformerFrom.sourceCitationFrom(personalNameStructure, attributeNickname, origin);
 			//add nickname fact to individual (as first fact)
 			individual.addChildBefore(attributeNickname, lastElement);
 			final GedcomNode temporaryNotes = transformerFrom.create("TMP_NOTE");
 			final GedcomNode temporarySourceCitations = transformerFrom.create("TMP_SOURCE_CITATIONS");
 			//collect notes and source citations, they will be added as last elements of NAME
 			transformerFrom.noteCitationFrom(personalNameStructure, temporaryNotes);
-			transformerFrom.sourceCitationFrom(personalNameStructure, temporarySourceCitations);
+			transformerFrom.sourceCitationFrom(personalNameStructure, temporarySourceCitations, origin);
 
 			final GedcomNode destinationPhonetic = transformerFrom.create("FONE");
 			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "PHONETIC"), destinationPhonetic);
 			//collect notes and source citations, they will be added as last elements of NAME
 			transformerFrom.noteCitationFrom(destinationPhonetic, temporaryNotes);
-			transformerFrom.sourceCitationFrom(destinationPhonetic, temporarySourceCitations);
+			transformerFrom.sourceCitationFrom(destinationPhonetic, temporarySourceCitations, origin);
 			destinationName.addChild(destinationPhonetic);
 
 			final GedcomNode destinationTranscription = transformerFrom.create("ROMN");
 			personalNamePiecesFrom(transformerFrom.traverse(personalNameStructure, "TRANSCRIPTION"), destinationTranscription);
 			//collect notes and source citations, they will be added as last elements of NAME
 			transformerFrom.noteCitationFrom(destinationTranscription, temporaryNotes);
-			transformerFrom.sourceCitationFrom(destinationTranscription, temporarySourceCitations);
+			transformerFrom.sourceCitationFrom(destinationTranscription, temporarySourceCitations, origin);
 			destinationName.addChild(destinationTranscription);
 
 			//add collected notes and source citations as last elements of NAME
@@ -390,7 +390,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		structureFrom(individual, destinationNode, "FAMILY_SPOUSE", "FAMS");
 	}
 
-	private void associationFrom(final GedcomNode individual, final GedcomNode destinationNode){
+	private void associationFrom(final GedcomNode individual, final GedcomNode destinationNode, final Flef origin){
 		final List<GedcomNode> associations = individual.getChildrenWithTag("ASSOCIATION");
 		for(final GedcomNode association : associations){
 			String type = transformerFrom.traverse(association, "TYPE")
@@ -405,7 +405,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.addChildValue("RELA", transformerFrom.traverse(association, "RELATIONSHIP")
 					.getValue());
 			transformerFrom.noteCitationFrom(association, destinationAssociation);
-			transformerFrom.sourceCitationFrom(association, destinationAssociation);
+			transformerFrom.sourceCitationFrom(association, destinationAssociation, origin);
 			destinationNode.addChild(destinationAssociation);
 		}
 	}
@@ -452,7 +452,7 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("RESTRICTION", transformerFrom.traverse(attribute, "RESN")
 				.getValue());
 		transformerFrom.noteCitationFrom(attribute, destinationAttribute);
-		transformerFrom.sourceCitationFrom(attribute, destinationAttribute);
+		transformerFrom.sourceCitationFrom(attribute, destinationAttribute, origin);
 		return destinationAttribute;
 	}
 

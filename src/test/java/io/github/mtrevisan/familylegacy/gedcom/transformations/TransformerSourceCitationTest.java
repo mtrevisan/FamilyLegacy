@@ -181,17 +181,27 @@ class TransformerSourceCitationTest{
 	@Test
 	void sourceCitationFrom(){
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithReference("REPOSITORY", "@R1@")
-				.addChildValue("LOCATION", "REPOSITORY_LOCATION_TEXT")
+			.addChild(transformerFrom.createWithReference("SOURCE", "@S1@")
+				.addChildValue("LOCATION", "WHERE_WITHIN_SOURCE")
+				.addChildValue("ROLE", "ROLE_IN_EVENT")
+				.addChildValue("CUTOUT", "CUTOUT_COORDINATES")
 				.addChildReference("NOTE", "@N1@")
+				.addChildValue("CREDIBILITY", "CREDIBILITY_ASSESSMENT")
 			);
+		final GedcomNode source = transformerFrom.createWithID("SOURCE", "@S1@");
+		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
 
-		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: CUTOUT, value: CUTOUT_COORDINATES}, {tag: NOTE, ref: @N1@}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}]", parent.toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE", source.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		transformerFrom.sourceCitationFrom(parent, destinationNode);
+		final Flef origin = new Flef();
+		origin.addSource(source);
+		origin.addNote(note);
+		transformerFrom.sourceCitationFrom(parent, destinationNode, origin);
 
-		Assertions.assertEquals("children: [{tag: REPO, ref: @R1@, children: [{tag: CALN, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOUR, ref: @S1@, children: [{tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: EVEN, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: QUAY, value: CREDIBILITY_ASSESSMENT}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
 
 }

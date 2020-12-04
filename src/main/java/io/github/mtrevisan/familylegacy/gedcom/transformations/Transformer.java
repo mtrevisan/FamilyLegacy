@@ -110,9 +110,8 @@ public final class Transformer extends TransformerHelper{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		JavaHelper.addValueIfNotNull(sj, date);
 		JavaHelper.addValueIfNotNull(sj, time);
-		final String language = traverse(header, "LANG")
-			.getValue();
-		final Locale locale = (language != null? new Locale(language): Locale.forLanguageTag("en-US"));
+		final List<GedcomNode> languages = traverseAsList(header, "LANG");
+		final Locale locale = (!languages.isEmpty()? new Locale(languages.get(0).getValue()): Locale.forLanguageTag("en-US"));
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(create("PROTOCOL")
 				.withValue("FLEF")
@@ -485,38 +484,36 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//TODO
-	/*
-	for-each SOURCE xref create SOUR
-		SOUR.xref = SOUR.xref
-		SOUR.PAGE.value = SOURCE.LOCATION.value
-		SOUR.EVEN.ROLE.value = SOURCE.ROLE.value
-		SOUR.DATA.DATE.value = SOURCE[rec].DATE.value
-		SOUR.DATA.TEXT.value = SOURCE.FILE.EXTRACT.value
-		for-each SOURCE.FILE
-			pick-each: SOUR.OBJE.FILE.value = SOURCE.FILE.value
-			pick-each: SOUR.OBJE.TITL.value = SOURCE.FILE.DESCRIPTION.value
-			pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CUTOUT
-			pick-one: SOUR.OBJE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
-			remember which one has the _PREF tag
-		transfer SOURCE.NOTE to SOUR.NOTE
-		SOUR.QUAY.value = SOURCE.CREDIBILITY.value
-	*/
-	void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
+	void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOURCE");
 		for(final GedcomNode sourceCitation : sourceCitations){
+			final String sourceCitationXRef = sourceCitation.getXRef();
+			final GedcomNode sourceRecord = origin.getSource(sourceCitationXRef);
 			//create source:
-			final GedcomNode destinationSource = create("SOUR")
-				.withXRef(sourceCitation.getXRef())
-				.addChildValue("PAGE", traverse(sourceCitation, "LOCATION")
-					.getValue())
+			final GedcomNode destinationSource = createWithReference("SOUR", sourceCitationXRef)
+				.addChildValue("PAGE", traverse(sourceCitation, "LOCATION").getValue())
 				.addChild(create("EVEN")
-					.addChildValue("ROLE", traverse(sourceCitation, "ROLE")
-						.getValue())
+					.addChildValue("ROLE", traverse(sourceCitation, "ROLE").getValue())
 				)
-				.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY")
-					.getValue());
+				.addChild(create("DATA")
+					.addChildValue("DATE", traverse(sourceRecord, "DATE").getValue())
+					.addChildValue("TEXT", traverse(sourceCitation, "FILE.EXTRACT").getValue())
+				);
+			final List<GedcomNode> files = sourceRecord.getChildrenWithTag("FILE");
+			final String mediaType = traverse(sourceRecord, "MEDIA_TYPE").getValue();
+			for(final GedcomNode file : files){
+				destinationSource.addChild(create("OBJE"))
+					.addChildValue("FILE", file.getValue())
+					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
+					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT").getValue())
+					.addChild(create("FORM")
+						.addChildValue("MEDI", mediaType)
+					);
+				//TODO restore the one that has the _PREF tag
+			}
+			destinationSource.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY").getValue());
 			noteCitationFrom(sourceCitation, destinationSource);
+
 			destinationNode.addChild(destinationSource);
 		}
 	}
@@ -544,7 +541,7 @@ public final class Transformer extends TransformerHelper{
 					.getValue())
 			);
 		noteCitationFrom(event, destinationEvent);
-		sourceCitationFrom(event, destinationEvent);
+		sourceCitationFrom(event, destinationEvent, origin);
 		return destinationEvent;
 	}
 

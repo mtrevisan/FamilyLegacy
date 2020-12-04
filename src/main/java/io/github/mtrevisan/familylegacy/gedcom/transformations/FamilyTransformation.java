@@ -106,7 +106,7 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
 		transformerFrom.noteCitationFrom(family, destinationFamily);
-		transformerFrom.sourceCitationFrom(family, destinationFamily);
+		transformerFrom.sourceCitationFrom(family, destinationFamily, origin);
 
 		destination.addFamily(destinationFamily);
 	}
