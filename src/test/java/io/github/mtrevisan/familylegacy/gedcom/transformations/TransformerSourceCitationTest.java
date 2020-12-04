@@ -39,7 +39,7 @@ class TransformerSourceCitationTest{
 	@Test
 	void sourceCitationToIDMultimediaXRef(){
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithID("SOUR", "@S1@")
+			.addChild(transformerTo.createWithReference("SOUR", "@S1@")
 				.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
 				.addChild(transformerTo.createWithValue("EVEN", "EVENT_TYPE_CITED_FROM")
 					.addChildValue("ROLE", "ROLE_IN_EVENT")
@@ -54,11 +54,13 @@ class TransformerSourceCitationTest{
 			);
 		final GedcomNode source = transformerTo.createWithID("SOUR", "@S1@");
 		final GedcomNode multimedia = transformerTo.createWithID("OBJE", "@M1@")
-			.addChildValue("FILE", "MULTIMEDIA_FILE_REFN");
+			.addChildValue("TITLE", "DOCUMENT_TITLE")
+			.addChildValue("FILE", "DOCUMENT_FILE_REFERENCE")
+			.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE");
 
-		Assertions.assertEquals("children: [{id: @S1@, tag: SOUR, children: [{tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: EVEN, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}]}, {tag: OBJE, ref: @M1@}, {tag: NOTE, ref: N1}, {tag: QUAY, ref: CERTAINTY_ASSESSMENT}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: SOUR, ref: @S1@, children: [{tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: EVEN, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}]}, {tag: OBJE, ref: @M1@}, {tag: NOTE, ref: N1}, {tag: QUAY, ref: CERTAINTY_ASSESSMENT}]}]", parent.toString());
 		Assertions.assertEquals("id: @S1@, tag: SOUR", source.toString());
-		Assertions.assertEquals("id: @M1@, tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", multimedia.toString());
+		Assertions.assertEquals("id: @M1@, tag: OBJE, children: [{tag: TITLE, value: DOCUMENT_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}]", multimedia.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();

@@ -1,0 +1,63 @@
+direct:
+for-each SOUR xref create SOURCE
+	SOURCE.xref = SOUR.xref
+	SOURCE.LOCATION.value = SOUR.PAGE.value
+	SOURCE.ROLE.value = SOUR.EVEN.ROLE.value
+	load SOURCE[rec] from SOUR.xref
+	SOURCE[rec].EVENT = SOUR.EVEN.value
+	SOURCE[rec].DATE.ORIGINAL_TEXT = SOUR.DATA.DATE
+	for-each SOUR.OBJE xref
+		load OBJE[rec] from SOUR.OBJE.xref
+		for-each OBJE[rec].FILE
+			pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
+			pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+		transfer OBJE[rec].NOTE to SOURCE.NOTE
+	for-each SOUR.OBJE
+		pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+		pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+		pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+		pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+		remember which one has the _PREF tag
+   for-each SOUR.DATA.TEXT
+		pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+	transfer SOUR.NOTE to SOURCE.NOTE
+	SOURCE.CREDIBILITY.value = SOUR.QUAY.value
+for-each SOUR value create SOURCE, SOURCE[ref]
+	SOURCE.TITLE = SOUR.value
+	transfer SOUR.NOTE to SOURCE[ref].NOTE
+	for-each SOUR.OBJE xref
+		load OBJE[rec] from SOUR.OBJE.xref
+		for-each OBJE[rec].FILE
+			pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
+			pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+		transfer OBJE[rec].NOTE to SOURCE.NOTE
+	for-each SOUR.OBJE
+		pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+		pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+		pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+		pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+		remember which one has the _PREF tag
+	for-each SOUR.TEXT
+		copy each TEXT onto each SOURCE.FILE[].EXTRACT
+	SOURCE[ref].CREDIBILITY = SOUR.QUAY
+
+
+reverse:
+for-each SOURCE xref create SOUR
+	SOUR.xref = SOUR.xref
+	SOUR.PAGE.value = SOURCE.LOCATION.value
+	SOUR.EVEN.ROLE.value = SOURCE.ROLE.value
+  +1 DATA    {0:1}
+    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
+    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+	transfer SOURCE.NOTE to SOUR.NOTE
+	SOUR.QUAY.value = SOURCE.CREDIBILITY.value
+for-each SOURCE value create SOUR
+  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
+	transfer SOURCE.NOTE to SOUR.NOTE
+	SOUR.QUAY.value = SOURCE.CREDIBILITY.value
+

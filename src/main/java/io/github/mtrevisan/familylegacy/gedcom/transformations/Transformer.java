@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -105,6 +106,21 @@ public final class Transformer extends TransformerHelper{
 		return destinationEvent;
 	}
 
+	/*
+	for-each HEAD value create HEADER
+		HEADER.PROTOCOL.value = "FLEF"
+		HEADER.PROTOCOL.NAME.value = "Family LEgacy Format"
+		HEADER.PROTOCOL.VERSION.value = "0.04"
+		HEADER.SOURCE.value = HEAD.SOUR.value
+		HEADER.SOURCE.NAME.value = HEAD.SOUR.NAME.value
+		HEADER.SOURCE.VERSION.value = HEAD.SOUR.VERS.value
+		HEADER.SOURCE.CORPORATE.value = HEAD.SOUR.CORP.value
+		HEADER.DATE.value = HEAD.DATE.value + " " + HEAD.DATE.TIME.value
+		HEADER.DEFAULT_LOCALE.value = HEAD.LANG.value
+		HEADER.COPYRIGHT.value = HEAD.COPR.value
+		HEADER.SUBMITTER.xref = HEAD.SUBM.xref
+		HEADER.NOTE.value = HEAD.NOTE.value
+	*/
 	void headerTo(final GedcomNode parent, final GedcomNode destinationNode){
 		final GedcomNode header = parent.getChildrenWithTag("HEAD").get(0);
 		final GedcomNode source = traverse(header, "SOUR");
@@ -113,7 +129,7 @@ public final class Transformer extends TransformerHelper{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		JavaHelper.addValueIfNotNull(sj, date);
 		JavaHelper.addValueIfNotNull(sj, time);
-		final String language = traverse(source, "LANG")
+		final String language = traverse(header, "LANG")
 			.getValue();
 		final Locale locale = (language != null? new Locale(language): Locale.forLanguageTag("en-US"));
 		final GedcomNode destinationHeader = create("HEADER")
@@ -137,6 +153,7 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationHeader);
 	}
 
+	//FIXME
 	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
 		for(final GedcomNode multimedia : multimedias){
@@ -156,12 +173,20 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each PLAC create PLACE
+		PLACE.NAME.value = PLAC.value
+		PLACE.MAP.LATITUDE.value = PLAC.MAP.LATI.value
+		PLACE.MAP.LONGITUDE.value = PLAC.MAP.LONG.value
+		transfer PLAC.NOTE to PLACE.NOTE
+	*/
 	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode address = traverse(parent, "ADDR");
 		final GedcomNode place = traverse(parent, "PLAC");
 		if(!address.isEmpty() || !place.isEmpty()){
 			final GedcomNode map = traverse(place, "MAP");
-			final GedcomNode destinationPlace = createWithValue("PLACE", place.getValue())
+			final GedcomNode destinationPlace = create("PLACE")
+				.addChildValue("NAME", place.getValue())
 				.addChildValue("ADDRESS", extractAddressValue(address))
 				.addChildValue("CITY", traverse(address, "CITY").getValue())
 				.addChildValue("STATE", traverse(address, "STAE").getValue())
@@ -186,6 +211,18 @@ public final class Transformer extends TransformerHelper{
 		return (sj.length() > 0? sj.toString(): null);
 	}
 
+	/*
+	for-each [PHON|EMAIL|FAX|WWW] create CONTACT
+		for-each PHONE value create PHONE
+			PHONE.value = PHON.value
+		for-each EMAIL value create EMAIL
+			EMAIL.value = EMAIL.value
+		for-each FAX value create PHONE
+			PHONE.value = FAX.value
+			PHONE.TYPE.value = "fax"
+		for-each WWW value create URL
+			URL.value = WWW.value
+	*/
 	void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
 		final GedcomNode destinationContact = create("CONTACT");
 		final List<GedcomNode> phones = parent.getChildrenWithTag("PHON");
@@ -204,30 +241,53 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationContact);
 	}
 
-	//FIXME
-//	n SOUR @<XREF:SOUR>@    {1:1}	/* An xref ID of a source record. */
-//  +1 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
-//  +1 EVEN <EVENT_TYPE_CITED_FROM>    {0:1}	/* A code that indicates the type of event which was responsible for the source entry being recorded. For example, if the entry was created to record a birth of a child, then the type would be BIRT regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
-//    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person played in the event that is being cited in this context. */
-//  +1 DATA    {0:1}
-//    +2 DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
-//    +2 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
-//  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-//  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-//|	/* Systems not using source records. */
-//	n SOUR <SOURCE_DESCRIPTION>    {1:1}	/* A free form text block used to describe the source from which information was obtained. This text block is used by those systems which cannot use a pointer to a source record. It must contain a descriptive title, who created the work, where and when it was created, and where the source data stored. */
-//  +1 TEXT <TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-//  +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
-//  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-//  +1 QUAY <CERTAINTY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-
-//	n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
-//  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
-//  +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, etc. */
-//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-//  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	//TODO
+	/*
+	for-each SOUR xref create SOURCE
+		SOURCE.xref = SOUR.xref
+		SOURCE.LOCATION.value = SOUR.PAGE.value
+		SOURCE.ROLE.value = SOUR.EVEN.ROLE.value
+		load SOURCE[rec] from SOUR.xref
+		SOURCE[rec].EVENT = SOUR.EVEN.value
+		SOURCE[rec].DATE.ORIGINAL_TEXT = SOUR.DATA.DATE
+		for-each SOUR.OBJE xref
+			load OBJE[rec] from SOUR.OBJE.xref
+			for-each OBJE[rec].FILE
+				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+			transfer OBJE[rec].NOTE to SOURCE.NOTE
+		for-each SOUR.OBJE
+			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			remember which one has the _PREF tag
+		for-each SOUR.DATA.TEXT
+			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+		transfer SOUR.NOTE to SOURCE.NOTE
+		SOURCE.CREDIBILITY.value = SOUR.QUAY.value
+	for-each SOUR value create SOURCE, SOURCE[ref]
+		SOURCE.TITLE = SOUR.value
+		transfer SOUR.NOTE to SOURCE[ref].NOTE
+		for-each SOUR.OBJE xref
+			load OBJE[rec] from SOUR.OBJE.xref
+			for-each OBJE[rec].FILE
+				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+			transfer OBJE[rec].NOTE to SOURCE.NOTE
+		for-each SOUR.OBJE
+			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			remember which one has the _PREF tag
+		for-each SOUR.TEXT
+			copy each TEXT onto each SOURCE.FILE[].EXTRACT
+		SOURCE[ref].CREDIBILITY = SOUR.QUAY
+	*/
+	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sourceCitations = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode sourceCitation : sourceCitations){
 			String sourceCitationXRef = sourceCitation.getXRef();
@@ -236,16 +296,36 @@ public final class Transformer extends TransformerHelper{
 				final GedcomNode destinationSource = create("SOURCE")
 					.addChildValue("TITLE", sourceCitation.getValue());
 
-				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
-				sourceCitationXRef = sourceMultimediaCitationTo(parent, destinationSource, destination);
-				assignExtractionsTo(extracts, destinationSource);
+				final List<GedcomNode> objects = traverseAsList(sourceCitation, "OBJE");
+				for(final GedcomNode object : objects){
+					final String objectXRef = object.getXRef();
+					if(objectXRef != null){
+						//load object by xref
+						final GedcomNode objectRecord = origin.getSource(objectXRef);
+						final List<GedcomNode> files = traverseAsList(objectRecord, "FILE");
+						String mediaType = null;
+						for(int i = 0; mediaType == null && i < files.size(); i ++)
+							mediaType = files.get(i).getValue();
+						for(final GedcomNode file : files){
+							//TODO
+						}
+						noteCitationTo(objectRecord, destinationSource, destination);
+					}
+					else{
+						//TODO
+					}
+				}
+
+//				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "TEXT");
+//				sourceMultimediaCitationTo(sourceCitation, destinationSource, destination);
+//				assignExtractionsTo(extracts, destinationSource);
 				noteCitationTo(sourceCitation, destinationSource, destination);
 
-				sourceCitationXRef = destination.addSource(destinationSource);
+//				sourceCitationXRef = destination.addSource(destinationSource);
 
 				//add source citation:
-				destinationNode.addChild(createWithReference("SOURCE", sourceCitationXRef)
-					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue()));
+//				destinationNode.addChild(createWithReference("SOURCE", sourceCitationXRef)
+//					.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue()));
 			}
 			else{
 				//retrieve source:
@@ -253,7 +333,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("EVENT", traverse(sourceCitation, "EVEN").getValue())
 					.addChildValue("DATE", traverse(sourceCitation, "DATA.DATE").getValue());
 				final List<GedcomNode> extracts = traverseAsList(sourceCitation, "DATA.TEXT");
-				sourceMultimediaCitationTo(parent, destinationSource, destination);
+				sourceMultimediaCitationTo(sourceCitation, destinationSource, destination);
 				assignExtractionsTo(extracts, destinationSource);
 				noteCitationTo(sourceCitation, destinationSource, destination);
 
@@ -268,37 +348,69 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	private String sourceMultimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		String sourceXRef = null;
+	private void sourceMultimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
+		String title = null;
+		final List<GedcomNode> destinationFiles = new ArrayList<>();
+		String mediaType = null;
 		for(final GedcomNode multimedia : multimedias){
 			if(multimedia.getXRef() == null){
-				final GedcomNode destinationSource = create("SOURCE")
-					.addChildValue("TITLE", traverse(multimedia, "TITL").getValue());
+				if(title == null)
+					title = traverse(multimedia, "TITL").getValue();
 				final List<GedcomNode> files = traverseAsList(multimedia, "FILE");
 				for(final GedcomNode file : files)
-					destinationSource.addChild(createWithValue("FILE", file.getValue()));
-				destinationSource.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue());
-				sourceXRef = destination.addSource(destinationSource);
+					destinationFiles.add(createWithValue("FILE", file.getValue()));
+				if(mediaType == null)
+					mediaType = traverse(multimedia, "FORM.MEDI").getValue();
 			}
-			else if(sourceXRef == null)
-				sourceXRef = multimedia.getXRef();
+			else{
+				final GedcomNode mm = destination.getMultimedia(multimedia.getXRef());
+				if(title == null)
+					title = traverse(mm, "TITLE").getValue();
+				final GedcomNode file = traverse(mm, "FILE");
+				if(!file.isEmpty())
+					destinationFiles.add(createWithValue("FILE", file.getValue()));
+				if(mediaType == null)
+					mediaType = traverse(mm, "MEDIA_TYPE").getValue();
+			}
 		}
-		return sourceXRef;
+		final GedcomNode destinationFile = create("FILE")
+			.addChildValue("TITLE", title);
+		for(final GedcomNode file : destinationFiles)
+			destinationFile.addChild(file);
+		destinationFile.addChildValue("MEDIA_TYPE", mediaType);
+
+//		destinationNode.addChildReference("MULTIMEDIA", sourceXRef);
 	}
 
+	/*
+	for-each REPO xref|NULL create REPOSITORY
+		REPOSITORY.xref = REPO.xref
+		REPOSITORY.LOCATION.value = REPO.CALN.value
+		transfer REPO.NOTE to REPOSITORY.NOTE
+	*/
 	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> citations = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode citation : citations){
+			String citationXRef = citation.getXRef();
 			final GedcomNode repositoryCitation = create("REPOSITORY")
-				.withXRef(citation.getXRef())
 				.addChildValue("LOCATION", traverse(citation, "CALN").getValue());
 			noteCitationTo(citation, repositoryCitation, destination);
+			if(citationXRef == null)
+				citationXRef = destination.addRepository(create("REPOSITORY")
+					.addChildValue("NAME", "-- repository --")
+				);
+			repositoryCitation.withXRef(citationXRef);
 
 			destinationNode.addChild(repositoryCitation);
 		}
 	}
 
+	/*
+	for-each FAMS xref create FAMILY_SPOUSE
+		FAMILY_SPOUSE.xref = FAMS.xref
+		transfer FAMS.NOTE to FAMILY_SPOUSE.NOTE
+	*/
 	void spouseToFamilyLinkTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> links = parent.getChildrenWithTag("FAMS");
 		for(final GedcomNode link : links){
@@ -310,6 +422,14 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each FAMC xref create FAMILY_CHILD
+		FAMILY_CHILD.xref = FAMC.xref
+		FAMILY_CHILD.PEDIGREE.PARENT1.value = FAMC.PEDI.value
+		FAMILY_CHILD.PEDIGREE.PARENT2.value = FAMC.PEDI.value
+		FAMILY_CHILD.CERTAINTY.value = FAMC.STAT.value
+		transfer FAMC.NOTE to FAMILY_CHILD.NOTE
+	*/
 	void childToFamilyLinkTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> links = parent.getChildrenWithTag("FAMC");
 		for(final GedcomNode link : links){
@@ -326,6 +446,10 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each NOTE xref create NOTE
+		NOTE.xref = NOTE.xref
+	*/
 	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
@@ -337,6 +461,10 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each NOTE value create NOTE
+		NOTE.value = NOTE.value
+	*/
 	void noteRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
@@ -409,6 +537,21 @@ public final class Transformer extends TransformerHelper{
 		return destinationEvent;
 	}
 
+	/*
+	for-each HEADER value create HEAD
+		HEAD.SOUR.value = HEADER.SOURCE.value
+		HEAD.SOUR.VERS.value = HEADER.SOURCE.VERSION.value
+		HEAD.SOUR.NAME.value = HEADER.SOURCE.NAME.value
+		HEAD.SOUR.CORP.value = HEADER.SOURCE.CORPORATE.value
+		HEAD.DATE.value = HEADER.DATE.value
+		HEAD.SUBM.xref = HEADER.SUBMITTER.xref
+		HEAD.COPR.value = HEADER.COPYRIGHT.value
+		HEAD.GEDC.VERS.value = "5.5.1"
+		HEAD.GEDC.FORM.value = "LINEAGE-LINKED"
+		HEAD.CHAR.value = "UTF-8"
+		HEAD.LANG.value = HEADER.DEFAULT_LOCALE.value
+		HEAD.NOTE.value = HEADER.NOTE.value
+	*/
 	void headerFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final GedcomNode header = parent.getChildrenWithTag("HEADER").get(0);
 		final GedcomNode source = traverse(header, "SOURCE");
@@ -444,6 +587,7 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationHeader);
 	}
 
+	//FIXME
 	void multimediaCitationFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final List<GedcomNode> multimedias = parent.getChildrenWithTag("MULTIMEDIA");
 		for(final GedcomNode multimedia : multimedias){
@@ -465,6 +609,13 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each PLACE create ADDR
+		ADDR.value = PLACE.ADDRESS.value
+		ADDR.CITY.value = PLACE.ADDRESS.CITY
+		ADDR.STAE.value = PLACE.ADDRESS.STATE
+		ADDR.CTRY.value = PLACE.ADDRESS.COUNTRY
+	*/
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
@@ -478,6 +629,13 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each PLACE create PLAC
+		PLAC.value = PLACE.NAME.value
+		PLAC.MAP.LATI.value = PLACE.MAP.LATITUDE.value
+		PLAC.MAP.LONG.value = PLACE.MAP.LONGITUDE.value
+		transfer PLACE.NOTE to PLAC.NOTE
+	*/
 	void placeStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
@@ -494,6 +652,16 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each CONTACT.PHONE whose TYPE != "fax" create PHON
+		PHON.value = CONTACT.PHONE.value
+	for-each CONTACT.PHONE whose TYPE == "fax" create FAX
+		FAX.value = CONTACT.PHONE.value
+	for-each CONTACT.EMAIL create EMAIL
+		EMAIL.value = CONTACT.EMAIL.value
+	for-each CONTACT.URL create WWW
+		WWW.value = CONTACT.URL.value
+	*/
 	void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final GedcomNode contact = traverse(parent, "CONTACT");
 		final List<GedcomNode> phones = contact.getChildrenWithTag("PHONE");
@@ -511,6 +679,12 @@ public final class Transformer extends TransformerHelper{
 			destinationNode.addChildValue("WWW", url.getValue());
 	}
 
+	/*
+	for-each REPOSITORY xref create REPO
+		REPO.xref = REPOSITORY.xref
+		REPO.CALN.value = REPOSITORY.LOCATION.value
+		transfer REPOSITORY.NOTE to REPO.NOTE
+	*/
 	void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> citations = parent.getChildrenWithTag("REPOSITORY");
 		for(final GedcomNode citation : citations){
@@ -523,6 +697,11 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each FAMILY_SPOUSE xref create FAMS
+		FAMS.xref = FAMILY_SPOUSE.xref
+		transfer FAMIY_SPOUSE.NOTE to FAMS.NOTE
+	*/
 	void spouseToFamilyLinkFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> links = parent.getChildrenWithTag("FAMILY_SPOUSE");
 		for(final GedcomNode link : links){
@@ -534,6 +713,13 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each FAMILY_CHILD xref create FAMC
+		FAMC.xref = FAMILY_CHILD.xref
+		FAMC.PEDI.value = "PARENT1: " + FAMILY_CHILD.PEDIGREE.PARENT1.value + ", PARENT2: " + FAMILY_CHILD.PEDIGREE.PARENT2.value
+		FAMC.STAT.value = FAMILY_CHILD.CERTAINTY.value
+		transfer FAMILY_CHILD.NOTE to FAMC.NOTE
+	*/
 	void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
 		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
 		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
@@ -551,12 +737,20 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each NOTE xref create NOTE
+		NOTE.xref = NOTE.xref
+	*/
 	void noteCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes)
 			destinationNode.addChildReference("NOTE", note.getXRef());
 	}
 
+	/*
+	for-each NOTE value create NOTE
+		NOTE.value = NOTE.value
+	*/
 	void noteRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(final GedcomNode note : notes){
