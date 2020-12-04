@@ -111,6 +111,7 @@ public final class Transformer extends TransformerHelper{
 		JavaHelper.addValueIfNotNull(sj, date);
 		JavaHelper.addValueIfNotNull(sj, time);
 		final List<GedcomNode> languages = traverseAsList(header, "LANG");
+		//FIXME English to en
 		final Locale locale = (!languages.isEmpty()? new Locale(languages.get(0).getValue()): Locale.forLanguageTag("en-US"));
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(create("PROTOCOL")
