@@ -19,7 +19,6 @@ n HEADER    {1:1}
     +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
   +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was created. */
-  +1 DEFAULT_LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the place address form (as defined by ISO 639 here https://www.iso.org/iso-639-language-codes.html). */
   +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
   +1 SUBMITTER @<XREF:REPOSITORY>@    {1:1}	/* An xref ID of the submitter of this file. */
   +1 NOTE <CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
@@ -42,6 +41,8 @@ n <<SOURCE_RECORD>>    {1:1}
 n <<CULTURAL_RULE_RECORD>>    {1:1}
 |
 n <<GROUP_RECORD>>    {1:1}
+|
+n <<CALENDAR_RECORD>>    {1:1}
 ]
 
 
@@ -375,6 +376,7 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 <<CONTACT_STRUCTURE>>
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
+
 CONTACT_STRUCTURE :=
 n CONTACT
   +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
@@ -400,6 +402,7 @@ n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. 
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+/* se vuoi lasciare i nomi in latino devi usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne). */
 
 
 SOURCE_CITATION :=
@@ -416,6 +419,8 @@ SOURCE_RECORD :=
 n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as the type of event which was responsible for the source entry being recorded (CASTE, EDUCATION, NATIONALITY, OCCUPATION, PROPERTY, RELIGION, RESIDENCE, TITLE, FACT, ANNULMENT, CENSUS, DIVORCE, DIVORCE_FILED, ENGAGEMENT, MARRIAGE, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, ADOPTION, BIRTH, BURIAL, CREMATION, DEATH, EMIGRATION, GRADUATION, IMMIGRATION, NATURALIZATION, RETIREMENT, DEED, PROBATE, WILL, EVENT, etc). For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
   +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
+  +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
+  +1 PUBLICATION_FACTS <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
   +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_value() object giving the date that this source was recorded. */
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 <<FILE_STRUCTURE>>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
@@ -433,6 +438,15 @@ n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file ref
 
 DATE_STRUCTURE :=
 n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date_value() object giving the date that this event happened (usually derived from the original input). */
-  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', ...). */
+  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french', 'italic', ...). */
   +1 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+CALENDAR_RECORD :=
+n <XREF:CALENDAR_TYPE> CALENDAR    {1:1}	/* An xref ID of a calendar record. */
+  +1 DESCRIPTION <CALENDAR_DESCRIPTION>    {0:1}	/* The description of the calendar. */
+  +1 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The world wide web page address following RFC 1736 specifications. */
+    +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
+  +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */

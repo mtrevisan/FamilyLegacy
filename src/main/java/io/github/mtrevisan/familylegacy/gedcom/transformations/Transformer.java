@@ -30,13 +30,11 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.StringJoiner;
 
 
@@ -110,9 +108,6 @@ public final class Transformer extends TransformerHelper{
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
 		JavaHelper.addValueIfNotNull(sj, date);
 		JavaHelper.addValueIfNotNull(sj, time);
-		final List<GedcomNode> languages = traverseAsList(header, "LANG");
-		//FIXME English to en
-		final Locale locale = (!languages.isEmpty()? new Locale(languages.get(0).getValue()): Locale.forLanguageTag("en-US"));
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(create("PROTOCOL")
 				.withValue("FLEF")
@@ -126,7 +121,6 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
 			)
 			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
-			.addChildValue("DEFAULT_LOCALE", locale.toLanguageTag())
 			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue())
 			.addChildReference("SUBMITTER", traverse(header, "SUBM").getXRef())
 			.addChildValue("NOTE", traverse(header, "NOTE").getValue());
@@ -151,6 +145,25 @@ public final class Transformer extends TransformerHelper{
 			destinationNode.addChild(createWithReference("MULTIMEDIA", documentXRef)
 				.addChildValue("CUTOUT", traverse(multimedia, "_CUTD").getValue())
 			);
+		}
+	}
+
+	/*
+	for-each REPO id create REPOSITORY
+		REPOSITORY.id = REPO.id
+		REPOSITORY.NAME.value = REPO.NAME.value
+		transfer REPO.ADDR to REPOSITORY.PLACE
+		transfer REPO.NOTE to REPOSITORY.NOTE
+	*/
+	void repositoryRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
+		for(final GedcomNode repository : repositories){
+			final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
+				.addChildValue("NAME", traverse(repository, "NAME").getValue());
+			placeAddressStructureTo(parent, destinationRepository, destination);
+			noteCitationTo(parent, destinationRepository, destination);
+
+			destinationNode.addChild(destinationRepository);
 		}
 	}
 
@@ -316,6 +329,70 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each SOUR id create SOURCE
+		SOURCE.id = SOUR.id
+		SOURCE.EVENT.value = SOUR.DATA.EVEN.value
+		SOURCE.TITLE.value = SOUR.TITL.value
+		SOURCE.DATE.value = SOUR.DATA.EVEN.DATE.value
+		SOURCE.AUTHOR.value = SOUR.AUTH.value
+		SOURCE.PUBLICATION_FACTS.value = SOUR.PUBL.value
+		transfer SOUR.REPO to SOURCE.REPOSITORY
+		for-each SOUR.OBJE xref
+			load OBJE[rec] from SOUR.OBJE.xref
+			for-each OBJE[rec].FILE
+				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+			transfer OBJE[rec].NOTE to SOURCE.NOTE
+		for-each SOUR.OBJE
+			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			remember which one has the _PREF tag
+		for-each SOUR.TEXT
+			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+		transfer SOUR.NOTE to SOURCE.NOTE
+	*/
+	void sourceRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+		final List<GedcomNode> sources = parent.getChildrenWithTag("SOUR");
+		for(final GedcomNode source : sources){
+			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
+				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
+				.addChildValue("TITLE", traverse(source, "TITL").getValue())
+				.addChildValue("DATE", traverse(source, "DATA.EVEN.DATE").getValue())
+				.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
+				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
+			sourceRepositoryCitationTo(parent, destinationNode, destination);
+			final GedcomNode destinationSourceReference = create("SOURCE");
+			extractObjects(source, origin, destination, destinationSource, destinationSourceReference, "TEXT");
+
+			final String sourceID = destination.addSource(destinationSource);
+
+			//add source citation:
+			destinationNode.addChild(destinationSourceReference
+				.withXRef(sourceID));
+
+			destinationNode.addChildReference("SOURCE", sourceID);
+		}
+	}
+
+	/*
+		for-each SOUR.OBJE xref
+			load OBJE[rec] from SOUR.OBJE.xref
+			for-each OBJE[rec].FILE
+				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].FILE.TITL.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+			transfer OBJE[rec].NOTE to SOURCE.NOTE
+		for-each SOUR.OBJE
+			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			remember which one has the _PREF tag
+	*/
 	private void extractObjects(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination,
 			final GedcomNode destinationSource, final GedcomNode destinationSourceReference, final String extractionsTag){
 		final List<GedcomNode> objects = traverseAsList(sourceCitation, "OBJE");
@@ -360,6 +437,10 @@ public final class Transformer extends TransformerHelper{
 		destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
 	}
 
+	/*
+		for-each SOUR.TEXT
+			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+	*/
 	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
 		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE");
 		if(extracts.size() > destinationFiles.size()){
@@ -519,6 +600,64 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+	/*
+	for-each SOURCE id create SOUR
+		SOUR.id = SOURCE.id
+		SOUR.DATA.EVEN.value = SOURCE.EVENT.value
+		SOUR.TITL.value = SOURCE.TITLE.value
+		SOUR.DATA.EVEN.DATE.value = SOURCE.DATE.value
+		SOUR.AUTH.value = SOURCE.AUTHOR.value
+		SOUR.PUBL.value = SOURCE.PUBLICATION_FACTS.value
+		transfer SOURCE.REPOSITORY to SOUR.REPO
+		transfer SOURCE.NOTE to SOUR.OBJE
+		for-each SOURCE.FILE xref
+			load SOURCE[rec] from SOURCE.xref
+			for-each SOURCE[rec].FILE
+				pick-each: OBJE[rec].FILE.value = SOURCE.FILE.value
+				pick-each: OBJE[rec].TITL.value = SOURCE.FILE.DESCRIPTION.value
+				pick-one: OBJE[rec].FORM.TYPE.value = SOURCE.MEDIA_TYPE.value
+			transfer SOURCE.NOTE = OBJE[rec].NOTE
+		for-each SOURCE.FILE
+			pick-each: SOUR.OBJE.FILE.value = SOURCE.FILE.value
+			pick-each: SOUR.OBJE.TITL.value = SOURCE.FILE.DESCRIPTION.value
+			pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CUTOUT
+			pick-each: SOUR.DATA.TEXT.value = SOURCE.FILE.EXTRACT.value
+			pick-one: SOUR.OBJE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
+			remember which one has the PREFERRED tag
+		transfer SOURCE.NOTE to SOUR.NOTE
+	*/
+	void sourceRecordFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final List<GedcomNode> sources = parent.getChildrenWithTag("SOURCE");
+		for(final GedcomNode source : sources){
+			//create source:
+			final GedcomNode destinationSource = createWithID("SOUR", source.getID())
+				.addChildValue("PAGE", traverse(source, "LOCATION").getValue())
+				.addChild(create("EVEN")
+					.addChildValue("ROLE", traverse(source, "ROLE").getValue())
+				)
+				.addChild(create("DATA")
+					.addChildValue("DATE", traverse(source, "DATE").getValue())
+					.addChildValue("TEXT", traverse(source, "FILE.EXTRACT").getValue())
+				);
+			final List<GedcomNode> files = source.getChildrenWithTag("FILE");
+			final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
+			for(final GedcomNode file : files){
+				destinationSource.addChild(create("OBJE"))
+					.addChildValue("FILE", file.getValue())
+					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
+					.addChildValue("_CUTD", traverse(source, "CUTOUT").getValue())
+					.addChild(create("FORM")
+						.addChildValue("MEDI", mediaType)
+					);
+				//TODO restore the one that has the _PREF tag
+			}
+			destinationSource.addChildValue("QUAY", traverse(source, "CREDIBILITY").getValue());
+			noteCitationFrom(source, destinationSource);
+
+			destinationNode.addChild(destinationSource);
+		}
+	}
+
 	//FIXME
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = create(tagTo)
@@ -566,9 +705,6 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode source = traverse(header, "SOURCE");
 		final String date = traverse(header, "DATE")
 			.getValue();
-		final String language = traverse(source, "DEFAULT_LOCALE")
-			.getValue();
-		final Locale locale = Locale.forLanguageTag(language != null? language: "en-US");
 		final GedcomNode destinationHeader = create("HEAD")
 			.addChild(create("SOUR")
 				.withValue(source.getValue())
@@ -589,7 +725,6 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("FORM", "LINEAGE-LINKED")
 			)
 			.addChildValue("CHAR", "UTF-8")
-			.addChildValue("LANG", locale.getDisplayLanguage(Locale.ENGLISH))
 			.addChildValue("NOTE", traverse(source, "NOTE")
 				.getValue());
 
@@ -615,6 +750,26 @@ public final class Transformer extends TransformerHelper{
 //					)
 //					.addChildValue("_CUTD", cutout));
 			}
+		}
+	}
+
+	//TODO
+	/*
+	for-each REPOSITORY id create REPO
+		REPO.id = REPOSITORY.id
+		REPO.NAME.value = REPOSITORY.NAME.value
+		transfer REPOSITORY.PLACE to REPO.ADDR
+		transfer REPOSITORY.NOTE to REPO.NOTE
+	*/
+	void repositoryRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
+		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
+		for(final GedcomNode repository : repositories){
+			final GedcomNode destinationRepository = createWithID("REPO", repository.getID())
+				.addChildValue("NAME", traverse(repository, "NAME").getValue());
+			placeStructureFrom(parent, destinationRepository, origin);
+			noteCitationFrom(parent, destinationRepository);
+
+			destinationNode.addChild(destinationRepository);
 		}
 	}
 

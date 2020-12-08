@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
-class TransformerNoteTest{
+class TransformerNoteRecordTest{
 
 	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
 	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
