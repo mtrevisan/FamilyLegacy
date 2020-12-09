@@ -433,7 +433,7 @@ n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file ref
  +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:M}	/* A description of the source. For example 'cover', 'back', etc. */
  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
 	+2 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
-	+2 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+	+2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
 
 
 DATE_STRUCTURE :=

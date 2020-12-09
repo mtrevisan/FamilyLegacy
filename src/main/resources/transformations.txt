@@ -1,14 +1,16 @@
 direct:
-for-each REPO id create REPOSITORY
-	REPOSITORY.id = REPO.id
-	REPOSITORY.NAME.value = REPO.NAME.value
-	transfer REPO.ADDR to REPOSITORY.PLACE
-	transfer REPO.NOTE to REPOSITORY.NOTE
+for-each OBJE id create SOURCE
+	SOURCE.id = OBJE.id
+	for-each OBJE.FILE create SOURCE.FILE
+		pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE.FILE.TITL.value
+		pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
+	transfer OBJE.NOTE to SOURCE.NOTE
 
 
 reverse:
-for-each REPOSITORY id create REPO
-	REPO.id = REPOSITORY.id
-	REPO.NAME.value = REPOSITORY.NAME.value
-	transfer REPOSITORY.PLACE to REPO.ADDR
-	transfer REPOSITORY.NOTE to REPO.NOTE
+for-each SOURCE id create OBJE
+	OBJE.id = SOURCE.id
+	for-each SOURCE.FILE create OBJE.FILE
+		pick-each: OBJE.FILE.TITL.value = SOURCE.FILE.DESCRIPTION.value
+		pick-each: OBJE.FILE.FORM.TYPE.value = SOURCE.MEDIA_TYPE.value
+	transfer SOURCE.NOTE to OBJE.NOTE

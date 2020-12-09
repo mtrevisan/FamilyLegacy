@@ -149,6 +149,39 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	/*
+	for-each OBJE id create SOURCE
+		SOURCE.id = OBJE.id
+		for-each OBJE.FILE create SOURCE.FILE
+			pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE.FILE.TITL.value
+			pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
+		transfer OBJE.NOTE to SOURCE.NOTE
+	*/
+	void multimediaRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+		final GedcomNode destinationSource = create("SOURCE");
+		final List<GedcomNode> objects = traverseAsList(parent, "OBJE");
+		for(final GedcomNode object : objects){
+			final List<GedcomNode> files = traverseAsList(object, "FILE");
+			String mediaType = null;
+			for(int i = 0; mediaType == null && i < files.size(); i ++)
+				mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
+			destinationSource.addChildValue("MEDIA_TYPE", mediaType);
+			for(final GedcomNode file : files)
+				destinationSource.addChild(createWithValue("FILE", file.getValue())
+					.addChildValue("DESCRIPTION", traverse(file, "TITL").getValue())
+				);
+			noteCitationTo(object, destinationSource, destination);
+		}
+
+		final List<GedcomNode> extracts = traverseAsList(parent, "TEXT");
+		assignExtractionsTo(extracts, destinationSource);
+		noteCitationTo(parent, destinationSource, destination);
+		destinationSource.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
+
+		final String sourceID = destination.addSource(destinationSource);
+		destinationNode.addChildReference("SOURCE", sourceID);
+	}
+
+	/*
 	for-each REPO id create REPOSITORY
 		REPOSITORY.id = REPO.id
 		REPOSITORY.NAME.value = REPO.NAME.value
@@ -404,7 +437,7 @@ public final class Transformer extends TransformerHelper{
 				final List<GedcomNode> files = traverseAsList(multimediaRecord, "FILE");
 				String mediaType = null;
 				for(int i = 0; mediaType == null && i < files.size(); i ++)
-					mediaType = files.get(i).getValue();
+					mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
 				destinationSource.addChildValue("MEDIA_TYPE", mediaType);
 				for(final GedcomNode file : files)
 					destinationSource.addChild(createWithValue("FILE", file.getValue())
@@ -414,10 +447,7 @@ public final class Transformer extends TransformerHelper{
 			}
 			else{
 				final List<GedcomNode> files = traverseAsList(object, "FILE");
-				String mediaType = null;
-				for(int i = 0; mediaType == null && i < files.size(); i ++)
-					mediaType = files.get(i).getValue();
-				destinationSource.addChildValue("MEDIA_TYPE", mediaType);
+				destinationSource.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
 				final String title = traverse(object, "TITL").getValue();
 				for(final GedcomNode file : files)
 					destinationSource.addChild(createWithValue("FILE", file.getValue())
@@ -753,7 +783,33 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//TODO
+	/*
+	for-each SOURCE id create OBJE
+		OBJE.id = SOURCE.id
+		for-each SOURCE.FILE create OBJE.FILE
+			pick-each: OBJE.FILE.TITL.value = SOURCE.FILE.DESCRIPTION.value
+			pick-each: OBJE.FILE.FORM.TYPE.value = SOURCE.MEDIA_TYPE.value
+		transfer SOURCE.NOTE to OBJE.NOTE
+	*/
+	void multimediaRecordFrom(final GedcomNode parent, final GedcomNode destinationNode){
+		final GedcomNode destinationObject = create("OBJE");
+		final List<GedcomNode> sources = traverseAsList(parent, "SOURCE");
+		for(final GedcomNode source : sources){
+			final List<GedcomNode> files = traverseAsList(source, "FILE");
+			final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
+			for(final GedcomNode file : files)
+				destinationObject.addChild(createWithValue("FILE", file.getValue())
+					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
+					.addChild(create("FORM")
+						.addChildValue("TYPE", mediaType)
+					)
+				);
+			noteCitationFrom(source, destinationObject);
+
+			destinationNode.addChild(destinationObject);
+		}
+	}
+
 	/*
 	for-each REPOSITORY id create REPO
 		REPO.id = REPOSITORY.id
