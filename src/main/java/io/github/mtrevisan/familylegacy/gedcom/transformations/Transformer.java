@@ -49,10 +49,9 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
-	//FIXME
-	void eventTo(final GedcomNode individual, final GedcomNode destinationNode, final Gedcom origin, final Flef destination,
+	void eventTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination,
 			final String tagFrom, final String valueTo){
-		final List<GedcomNode> events = individual.getChildrenWithTag(tagFrom);
+		final List<GedcomNode> events = parent.getChildrenWithTag(tagFrom);
 		for(final GedcomNode event : events){
 			final GedcomNode destinationEvent = createEventTo(valueTo, event, origin, destination);
 			destinationNode.addChild(destinationEvent);
@@ -66,7 +65,7 @@ public final class Transformer extends TransformerHelper{
 	AGENCY.value = AGNC.value
 	CAUSE.value = CAUS.value
 	transfer NOTE to NOTE
-	transfer SOUR,OBJE to SOURCE
+	transfer SOUR,OBJE xref to SOURCE
 	FAMILY_CHILD.value = FAMC.value
 	FAMILY_CHILD.ADOPTED_BY.value = FAMC.ADOP.value
 	*/
@@ -591,7 +590,6 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
-	//FIXME
 	void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo){
 		final Iterator<GedcomNode> itr = events.iterator();
@@ -600,10 +598,41 @@ public final class Transformer extends TransformerHelper{
 			if("@EVENT@".equals(valueFrom) || valueFrom.equals(event.getValue())){
 				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
 				destinationNode.addChild(destinationEvent);
-
-				itr.remove();
 			}
 		}
+	}
+
+	/*
+	TYPE.value = DESCRIPTION.value
+	DATE.value = DATE.value
+	transfer PLACE to PLAC,ADDR
+	AGNC.value = AGENCY.value
+	CAUS.value = CAUSE.value
+	transfer NOTE to NOTE
+	transfer SOURCE to SOUR,OBJE
+	FAMC.value = FAMILY_CHILD.value
+	FAMC.ADOP.value = FAMILY_CHILD.ADOPTED_BY.value
+	*/
+	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
+		final GedcomNode destinationEvent = create(tagTo)
+			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
+			.addChildValue("TYPE", traverse(event, "DESCRIPTION").getValue())
+			.addChildValue("DATE", traverse(event, "DATE").getValue());
+		placeStructureFrom(event, destinationEvent, origin);
+		addressStructureFrom(event, destinationEvent, origin);
+		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY").getValue())
+			.addChildValue("CAUS", traverse(event, "CAUSE").getValue());
+		noteCitationFrom(event, destinationEvent);
+		sourceCitationFrom(event, destinationEvent, origin);
+
+		//EVENT BIRTH
+		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
+		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION").getValue())
+			.addChild(createWithReference("FAMC", familyChild.getXRef())
+				//EVENT ADOPTION
+				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY").getValue())
+			);
+		return destinationEvent;
 	}
 
 	void sourceCitationFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
@@ -696,39 +725,6 @@ public final class Transformer extends TransformerHelper{
 
 			destinationNode.addChild(destinationSource);
 		}
-	}
-
-	/*
-	TYPE.value = DESCRIPTION.value
-	DATE.value = DATE.value
-	transfer PLACE to PLAC,ADDR
-	AGNC.value = AGENCY.value
-	CAUS.value = CAUSE.value
-	transfer NOTE to NOTE
-	transfer SOURCE to SOUR,OBJE
-	FAMC.value = FAMILY_CHILD.value
-	FAMC.ADOP.value = FAMILY_CHILD.ADOPTED_BY.value
-	*/
-	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
-		final GedcomNode destinationEvent = create(tagTo)
-			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
-			.addChildValue("TYPE", traverse(event, "DESCRIPTION").getValue())
-			.addChildValue("DATE", traverse(event, "DATE").getValue());
-		placeStructureFrom(event, destinationEvent, origin);
-		addressStructureFrom(event, destinationEvent, origin);
-		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY").getValue())
-			.addChildValue("CAUS", traverse(event, "CAUSE").getValue());
-		noteCitationFrom(event, destinationEvent);
-		sourceCitationFrom(event, destinationEvent, origin);
-
-		//EVENT BIRTH
-		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
-		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION").getValue())
-			.addChild(createWithReference("FAMC", familyChild.getXRef())
-				//EVENT ADOPTION
-				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY").getValue())
-			);
-		return destinationEvent;
 	}
 
 	/*
