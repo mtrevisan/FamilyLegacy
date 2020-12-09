@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -33,19 +34,24 @@ import org.junit.jupiter.api.Test;
 class TransformerMultimediaCitationTest{
 
 	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 
 
 	@Test
 	void multimediaCitationToXRef(){
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("OBJE", "@M1@"));
+		final GedcomNode object = transformerTo.createWithID("OBJE", "@M1@")
+			.addChildValue("FILE", "MULTIMEDIA_FILE_REFN");
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
+		origin.addObject(object);
 		final Flef destination = new Flef();
-		transformerTo.multimediaCitationTo(parent, destinationNode, destination);
+		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
+		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
 
-		Assertions.assertEquals("children: [{tag: MULTIMEDIA, ref: @M1@}]", destinationNode.toString());
+		Assertions.assertEquals("ref: @M1@, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destinationNode.toString());
+		Assertions.assertTrue(destinationSourceReference.isEmpty());
 	}
 
 	@Test
@@ -63,38 +69,14 @@ class TransformerMultimediaCitationTest{
 
 		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}]", parent.toString());
 
-		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final GedcomNode destinationNode = transformerTo.create("SOURCE");
+		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
-		transformerTo.multimediaCitationTo(parent, destinationNode, destination);
+		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
+		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
 
-		Assertions.assertEquals("children: [{tag: MULTIMEDIA, ref: M1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
-	}
-
-	@Test
-	void multimediaCitationFrom(){
-		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithReference("MULTIMEDIA", "@M1@")
-				.addChildValue("CUTOUT", "CUTOUT_COORDINATES")
-				.addChildReference("NOTE", "@N1@")
-				.addChildValue("CREDIBILITY", "CREDIBILITY_ASSESSMENT")
-			);
-		final GedcomNode multimedia = transformerFrom.createWithID("MULTIMEDIA", "@M1@")
-			.addChildValue("TITLE", "DOCUMENT_TITLE")
-			.addChild(transformerFrom.create("FILE")
-				.withValue("DOCUMENT_FILE_REFERENCE")
-				.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE")
-			);
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
-
-		Assertions.assertEquals("children: [{tag: MULTIMEDIA, ref: @M1@, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}, {tag: NOTE, ref: @N1@}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}]", parent.toString());
-		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
-
-		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		final Flef destination = new Flef();
-		destination.addNote(note);
-		transformerFrom.multimediaCitationFrom(parent, destinationNode, destination);
-
-		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DOCUMENT_TITLE}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: FORM, children: [{tag: TITL, value: SOURCE_MEDIA_TYPE}]}, {tag: _CUTD, value: CUTOUT_COORDINATES}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
+		Assertions.assertEquals("tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
 	}
 
 }

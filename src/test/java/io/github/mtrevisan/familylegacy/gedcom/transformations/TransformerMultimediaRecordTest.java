@@ -63,7 +63,7 @@ class TransformerMultimediaRecordTest{
 		origin.addNote(transformerTo.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT"));
 		origin.addNote(transformerTo.createWithID("SOUR", "@S1@"));
 		final Flef destination = new Flef();
-		transformerTo.multimediaRecordTo(parent, destinationNode, origin, destination);
+		transformerTo.multimediaRecordTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: @N1@}]", destination.getSources().get(0).toString());
@@ -99,7 +99,7 @@ class TransformerMultimediaRecordTest{
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		transformerFrom.multimediaRecordFrom(parent, destinationNode);
 
-		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: DOCUMENT_DESCRIPTION}, {tag: FORM, children: [{tag: TYPE, value: SOURCE_MEDIA_TYPE}]}]}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: DOCUMENT_DESCRIPTION}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
 
 }

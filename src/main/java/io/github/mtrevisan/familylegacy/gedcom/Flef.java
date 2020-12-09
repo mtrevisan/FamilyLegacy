@@ -114,10 +114,10 @@ public class Flef extends Store{
 	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
-	private Map<GedcomNode, String> placeValue;
-	private Map<GedcomNode, String> noteValue;
-	private Map<GedcomNode, String> repositoryValue;
-	private Map<GedcomNode, String> sourceValue;
+	private Map<Integer, String> placeValue;
+	private Map<Integer, String> noteValue;
+	private Map<Integer, String> repositoryValue;
+	private Map<Integer, String> sourceValue;
 
 	private static int INDIVIDUAL_ID = 1;
 	private static int FAMILY_ID = 1;
@@ -425,29 +425,25 @@ public class Flef extends Store{
 	}
 
 	public String addPlace(final GedcomNode place){
-		String placeID = null;
-		if(!place.isEmpty()){
-			//search place
-			final GedcomNode placeCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, place);
-			placeID = (placeValue != null? placeValue.get(placeCloned): null);
-			if(placeID == null){
-				//if place is not found:
-				if(places == null){
-					places = new ArrayList<>(1);
-					placeIndex = new HashMap<>(1);
-					placeValue = new HashMap<>(1);
-				}
-
-				placeID = place.getID();
-				if(placeID == null){
-					placeID = getNextPlaceID();
-					place.withID(placeID);
-				}
-
-				places.add(place);
-				placeIndex.put(placeID, place);
-				placeValue.put(placeCloned, placeID);
+		//search place
+		String placeID = (!place.isEmpty() && placeValue != null? placeValue.get(place.hashCode()): null);
+		if(placeID == null){
+			//if place is not found:
+			if(places == null){
+				places = new ArrayList<>(1);
+				placeIndex = new HashMap<>(1);
+				placeValue = new HashMap<>(1);
 			}
+
+			placeID = place.getID();
+			if(placeID == null){
+				placeID = getNextPlaceID();
+				place.withID(placeID);
+			}
+
+			places.add(place);
+			placeIndex.put(placeID, place);
+			placeValue.put(place.hashCode(), placeID);
 		}
 		return placeID;
 	}
@@ -467,8 +463,7 @@ public class Flef extends Store{
 
 	public String addNote(final GedcomNode note){
 		//search note
-		final GedcomNode noteCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, note);
-		String noteID = (noteValue != null? noteValue.get(noteCloned): null);
+		String noteID = (!note.isEmpty() && noteValue != null? noteValue.get(note.hashCode()): null);
 		if(noteID == null){
 			//if note is not found:
 			if(notes == null){
@@ -485,7 +480,7 @@ public class Flef extends Store{
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
-			noteValue.put(noteCloned, noteID);
+			noteValue.put(note.hashCode(), noteID);
 		}
 		return noteID;
 	}
@@ -505,8 +500,7 @@ public class Flef extends Store{
 
 	public String addRepository(final GedcomNode repository){
 		//search repository
-		final GedcomNode repositoryCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, repository);
-		String repositoryID = (repositoryValue != null? repositoryValue.get(repositoryCloned): null);
+		String repositoryID = (!repository.isEmpty() && repositoryValue != null? repositoryValue.get(repository.hashCode()): null);
 		if(repositoryID == null){
 			//if repository is not found:
 			if(repositories == null){
@@ -523,7 +517,7 @@ public class Flef extends Store{
 
 			repositories.add(repository);
 			repositoryIndex.put(repositoryID, repository);
-			repositoryValue.put(repositoryCloned, repositoryID);
+			repositoryValue.put(repository.hashCode(), repositoryID);
 		}
 		return repositoryID;
 	}
@@ -542,30 +536,25 @@ public class Flef extends Store{
 	}
 
 	public String addSource(final GedcomNode source){
-		String sourceID = null;
-		if(!source.isEmpty()){
-			//search source
-			final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
-			if(sourceValue != null)
-				sourceID = sourceValue.get(sourceCloned);
-			if(sourceID == null){
-				//if source is not found:
-				if(sources == null){
-					sources = new ArrayList<>(1);
-					sourceIndex = new HashMap<>(1);
-					sourceValue = new HashMap<>(1);
-				}
-
-				sourceID = source.getID();
-				if(sourceID == null){
-					sourceID = getNextSourceID();
-					source.withID(sourceID);
-				}
-
-				sources.add(source);
-				sourceIndex.put(sourceID, source);
-				sourceValue.put(sourceCloned, sourceID);
+		//search source
+		String sourceID = (!source.isEmpty() && sourceValue != null? sourceValue.get(source.hashCode()): null);
+		if(sourceID == null){
+			//if source is not found:
+			if(sources == null){
+				sources = new ArrayList<>(1);
+				sourceIndex = new HashMap<>(1);
+				sourceValue = new HashMap<>(1);
 			}
+
+			sourceID = source.getID();
+			if(sourceID == null){
+				sourceID = getNextSourceID();
+				source.withID(sourceID);
+			}
+
+			sources.add(source);
+			sourceIndex.put(sourceID, source);
+			sourceValue.put(source.hashCode(), sourceID);
 		}
 		return sourceID;
 	}

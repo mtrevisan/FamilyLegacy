@@ -73,7 +73,9 @@ public final class Transformer extends TransformerHelper{
 				.getValue());
 		noteCitationTo(event, destinationEvent, destination);
 		sourceCitationTo(event, destinationEvent, origin, destination);
-		multimediaCitationTo(event, destinationEvent, destination);
+		//FIXME
+		final GedcomNode destinationSourceReference = create("SOURCE");
+		multimediaCitationTo(event, destinationEvent, destinationSourceReference, origin, destination, "MEDI");
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN")
 			.getValue())
@@ -128,24 +130,89 @@ public final class Transformer extends TransformerHelper{
 		destinationNode.addChild(destinationHeader);
 	}
 
-	//FIXME
-	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> multimedias = parent.getChildrenWithTag("OBJE");
-		for(final GedcomNode multimedia : multimedias){
-			String documentXRef = multimedia.getXRef();
-			if(documentXRef == null){
-				final GedcomNode destinationMultimedia = create("MULTIMEDIA")
-					.addChildValue("TITLE", traverse(multimedia, "TITL").getValue())
-					.addChild(createWithValue("FILE", traverseAsList(multimedia, "FILE").get(0).getValue()))
-					.addChildValue("MEDIA_TYPE", traverse(multimedia, "FORM.MEDI").getValue());
-//				documentXRef = destination.addMultimedia(destinationMultimedia);
+	/*
+		for-each SOUR.OBJE xref
+			load OBJE[rec] from SOUR.OBJE.xref
+			for-each OBJE[rec].FILE
+				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
+				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].FILE.TITL.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+			transfer OBJE[rec].NOTE to SOURCE.NOTE
+		for-each SOUR.OBJE
+			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
+			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
+			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.TYPE.value
+			remember which one has the _PREF tag
+	*/
+	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final GedcomNode destinationSourceReference,
+			final Gedcom origin, final Flef destination, final String extractionsTag){
+		final List<GedcomNode> objects = traverseAsList(parent, "OBJE");
+		for(final GedcomNode object : objects){
+			final List<GedcomNode> files;
+			final String multimediaXRef = object.getXRef();
+			if(multimediaXRef != null){
+				//load object by xref
+				final GedcomNode multimediaRecord = origin.getObject(multimediaXRef);
+				//FIXME source with ID and object with ID: what to do?
+				if(destinationNode.getID() == null)
+					destinationNode.withXRef(multimediaXRef);
+				files = traverseAsList(multimediaRecord, "FILE");
+				String mediaType = null;
+				for(int i = 0; mediaType == null && i < files.size(); i ++)
+					mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
+				destinationNode.addChildValue("MEDIA_TYPE", mediaType);
+				for(final GedcomNode file : files)
+					destinationNode.addChild(createWithValue("FILE", file.getValue())
+						.addChildValue("DESCRIPTION", traverse(file, "TITL").getValue())
+					);
+				noteCitationTo(multimediaRecord, destinationNode, destination);
 			}
-			//TODO remember to manage _PREF
+			else{
+				files = traverseAsList(object, "FILE");
+				destinationNode.addChildValue("MEDIA_TYPE", traverse(object, "FORM.TYPE").getValue());
+				final String title = traverse(object, "TITL").getValue();
+				for(final GedcomNode file : files)
+					destinationNode.addChild(createWithValue("FILE", file.getValue())
+						.addChildValue("DESCRIPTION", title)
+					);
+				if(files.size() == 1){
+					destinationSourceReference.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
+					//TODO remember which one has the _PREF tag
+//					final boolean preferred = ("Y".equals(traverse(object, "_PREF").getValue()));
+				}
 
-			destinationNode.addChild(createWithReference("MULTIMEDIA", documentXRef)
-				.addChildValue("CUTOUT", traverse(multimedia, "_CUTD").getValue())
-			);
+				destination.addSource(destinationNode);
+				destinationSourceReference.withXRef(destinationNode.getID());
+			}
 		}
+
+		final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
+		assignExtractionsTo(extracts, destinationNode);
+		noteCitationTo(parent, destinationNode, destination);
+		destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
+	}
+
+	/*
+		for-each SOUR.TEXT
+			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
+	*/
+	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
+		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE");
+		if(extracts.size() > destinationFiles.size()){
+			//collect all extractions and assign to first
+			final StringJoiner sj = new StringJoiner("\n");
+			for(int index = 0; index < extracts.size(); index ++)
+				sj.add("EXTRACT " + index)
+					.add(extracts.get(index).getValue());
+			destinationFiles.get(0)
+				.addChildValue("EXTRACT", sj.toString());
+		}
+		else
+			//otherwise distribute extractions
+			for(int index = 0; index < extracts.size(); index ++)
+				destinationFiles.get(index)
+					.addChildValue("EXTRACT", extracts.get(index).getValue());
 	}
 
 	/*
@@ -156,7 +223,7 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
 		transfer OBJE.NOTE to SOURCE.NOTE
 	*/
-	void multimediaRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+	void multimediaRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final GedcomNode destinationSource = create("SOURCE");
 		final List<GedcomNode> objects = traverseAsList(parent, "OBJE");
 		for(final GedcomNode object : objects){
@@ -287,7 +354,7 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
 			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
 			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
-			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.TYPE.value
 			remember which one has the _PREF tag
 		for-each SOUR.DATA.TEXT
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
@@ -307,7 +374,7 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
 			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
 			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
-			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
+			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.TYPE.value
 			remember which one has the _PREF tag
 		for-each SOUR.TEXT
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
@@ -322,7 +389,12 @@ public final class Transformer extends TransformerHelper{
 			String sourceCitationXRef = sourceCitation.getXRef();
 			if(sourceCitationXRef == null){
 				destinationSource.addChildValue("TITLE", sourceCitation.getValue());
-				extractObjects(sourceCitation, origin, destination, destinationSource, destinationSourceReference, "TEXT");
+				multimediaCitationTo(sourceCitation, destinationSource, destinationSourceReference, origin, destination,
+					"TEXT");
+
+				//this is in fact a record, not a citation
+				destinationSource.withID(destinationSource.getXRef());
+				destinationSource.clearXRef();
 			}
 			else{
 				destinationSource.withID(sourceCitationXRef)
@@ -351,7 +423,8 @@ public final class Transformer extends TransformerHelper{
 						date.withValue(date.getValue() + "," + sourceCitationDate);
 				}
 
-				extractObjects(sourceCitation, origin, destination, destinationSource, destinationSourceReference, "DATA.TEXT");
+				multimediaCitationTo(sourceCitation, destinationSource, destinationSourceReference, origin, destination,
+					"DATA.TEXT");
 			}
 
 			sourceCitationXRef = destination.addSource(destinationSource);
@@ -376,7 +449,7 @@ public final class Transformer extends TransformerHelper{
 			for-each OBJE[rec].FILE
 				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
 				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].TITL.value
-				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
+				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.MEDI.value
 			transfer OBJE[rec].NOTE to SOURCE.NOTE
 		for-each SOUR.OBJE
 			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
@@ -399,94 +472,14 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
 			sourceRepositoryCitationTo(parent, destinationNode, destination);
 			final GedcomNode destinationSourceReference = create("SOURCE");
-			extractObjects(source, origin, destination, destinationSource, destinationSourceReference, "TEXT");
+			multimediaCitationTo(source, destinationSource, destinationSourceReference, origin, destination, "TEXT");
 
 			final String sourceID = destination.addSource(destinationSource);
 
 			//add source citation:
 			destinationNode.addChild(destinationSourceReference
 				.withXRef(sourceID));
-
-			destinationNode.addChildReference("SOURCE", sourceID);
 		}
-	}
-
-	/*
-		for-each SOUR.OBJE xref
-			load OBJE[rec] from SOUR.OBJE.xref
-			for-each OBJE[rec].FILE
-				pick-each: SOURCE.FILE.value = OBJE[rec].FILE.value
-				pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE[rec].FILE.TITL.value
-				pick-one: SOURCE.MEDIA_TYPE.value = OBJE[rec].FORM.TYPE.value
-			transfer OBJE[rec].NOTE to SOURCE.NOTE
-		for-each SOUR.OBJE
-			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
-			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
-			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
-			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
-			remember which one has the _PREF tag
-	*/
-	private void extractObjects(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination,
-			final GedcomNode destinationSource, final GedcomNode destinationSourceReference, final String extractionsTag){
-		final List<GedcomNode> objects = traverseAsList(sourceCitation, "OBJE");
-		for(final GedcomNode object : objects){
-			final String multimediaXRef = object.getXRef();
-			if(multimediaXRef != null){
-				//load object by xref
-				final GedcomNode multimediaRecord = origin.getObject(multimediaXRef);
-				final List<GedcomNode> files = traverseAsList(multimediaRecord, "FILE");
-				String mediaType = null;
-				for(int i = 0; mediaType == null && i < files.size(); i ++)
-					mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
-				destinationSource.addChildValue("MEDIA_TYPE", mediaType);
-				for(final GedcomNode file : files)
-					destinationSource.addChild(createWithValue("FILE", file.getValue())
-						.addChildValue("DESCRIPTION", traverse(file, "TITL").getValue())
-					);
-				noteCitationTo(multimediaRecord, destinationSource, destination);
-			}
-			else{
-				final List<GedcomNode> files = traverseAsList(object, "FILE");
-				destinationSource.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
-				final String title = traverse(object, "TITL").getValue();
-				for(final GedcomNode file : files)
-					destinationSource.addChild(createWithValue("FILE", file.getValue())
-						.addChildValue("DESCRIPTION", title)
-					);
-				if(files.size() == 1){
-					destinationSourceReference.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
-					//TODO remember which one has the _PREF tag
-//					final boolean preferred = ("Y".equals(traverse(object, "_PREF").getValue()));
-				}
-			}
-		}
-
-		final List<GedcomNode> extracts = traverseAsList(sourceCitation, extractionsTag);
-		assignExtractionsTo(extracts, destinationSource);
-		noteCitationTo(sourceCitation, destinationSource, destination);
-		destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
-	}
-
-	/*
-		for-each SOUR.TEXT
-			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
-	*/
-	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
-		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE");
-		if(extracts.size() > destinationFiles.size()){
-			//collect all extractions and assign to first
-			final StringJoiner sj = new StringJoiner("\n");
-			for(int index = 0; index < extracts.size(); index ++)
-				sj.add("EXTRACT " + index)
-					.add(extracts.get(index).getValue());
-			destinationFiles.get(0)
-				.addChildValue("EXTRACT", sj.toString());
-		}
-		else
-			//otherwise distribute extractions
-			for(int index = 0; index < extracts.size(); index ++)
-				destinationFiles.get(index)
-					.addChildValue("EXTRACT", extracts.get(index).getValue());
 	}
 
 	/*
@@ -788,7 +781,7 @@ public final class Transformer extends TransformerHelper{
 		OBJE.id = SOURCE.id
 		for-each SOURCE.FILE create OBJE.FILE
 			pick-each: OBJE.FILE.TITL.value = SOURCE.FILE.DESCRIPTION.value
-			pick-each: OBJE.FILE.FORM.TYPE.value = SOURCE.MEDIA_TYPE.value
+			pick-each: OBJE.FILE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
 		transfer SOURCE.NOTE to OBJE.NOTE
 	*/
 	void multimediaRecordFrom(final GedcomNode parent, final GedcomNode destinationNode){
@@ -801,7 +794,7 @@ public final class Transformer extends TransformerHelper{
 				destinationObject.addChild(createWithValue("FILE", file.getValue())
 					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
 					.addChild(create("FORM")
-						.addChildValue("TYPE", mediaType)
+						.addChildValue("MEDI", mediaType)
 					)
 				);
 			noteCitationFrom(source, destinationObject);

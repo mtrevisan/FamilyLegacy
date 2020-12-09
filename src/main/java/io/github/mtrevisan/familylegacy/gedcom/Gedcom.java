@@ -102,11 +102,11 @@ public class Gedcom extends Store{
 	private Map<String, GedcomNode> objectIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
-	private Map<GedcomNode, String> documentValue;
-	private Map<GedcomNode, String> noteValue;
-	private Map<GedcomNode, String> repositoryValue;
-	private Map<GedcomNode, String> sourceValue;
-	private Map<GedcomNode, String> objectValue;
+	private Map<Integer, String> documentValue;
+	private Map<Integer, String> noteValue;
+	private Map<Integer, String> repositoryValue;
+	private Map<Integer, String> sourceValue;
+	private Map<Integer, String> objectValue;
 
 
 	public static void main(final String[] args){
@@ -323,8 +323,7 @@ public class Gedcom extends Store{
 
 	public String addDocument(final GedcomNode document){
 		//search document
-		final GedcomNode documentCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, document);
-		String documentID = (documentValue != null? documentValue.get(documentCloned): null);
+		String documentID = (!document.isEmpty() && documentValue != null? documentValue.get(document.hashCode()): null);
 		if(documentID == null){
 			//if document is not found:
 			if(documents == null){
@@ -341,7 +340,7 @@ public class Gedcom extends Store{
 
 			documents.add(document);
 			documentIndex.put(documentID, document);
-			documentValue.put(documentCloned, documentID);
+			documentValue.put(document.hashCode(), documentID);
 		}
 		return documentID;
 	}
@@ -360,8 +359,7 @@ public class Gedcom extends Store{
 
 	public String addNote(final GedcomNode note){
 		//search note
-		final GedcomNode noteCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, note);
-		String noteID = (noteValue != null? noteValue.get(noteCloned): null);
+		String noteID = (!note.isEmpty() && noteValue != null? noteValue.get(note.hashCode()): null);
 		if(noteID == null){
 			//if note is not found:
 			if(notes == null){
@@ -378,7 +376,7 @@ public class Gedcom extends Store{
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
-			noteValue.put(noteCloned, noteID);
+			noteValue.put(note.hashCode(), noteID);
 		}
 		return noteID;
 	}
@@ -397,8 +395,7 @@ public class Gedcom extends Store{
 
 	public String addRepository(final GedcomNode repository){
 		//search repository
-		final GedcomNode repositoryCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, repository);
-		String repositoryID = (repositoryValue != null? repositoryValue.get(repositoryCloned): null);
+		String repositoryID = (!repository.isEmpty() && repositoryValue != null? repositoryValue.get(repository.hashCode()): null);
 		if(repositoryID == null){
 			//if repository is not found:
 			if(repositories == null){
@@ -415,7 +412,7 @@ public class Gedcom extends Store{
 
 			repositories.add(repository);
 			repositoryIndex.put(repositoryID, repository);
-			repositoryValue.put(repositoryCloned, repositoryID);
+			repositoryValue.put(repository.hashCode(), repositoryID);
 		}
 		return repositoryID;
 	}
@@ -435,8 +432,7 @@ public class Gedcom extends Store{
 
 	public String addSource(final GedcomNode source){
 		//search source
-		final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
-		String sourceID = (sourceValue != null? sourceValue.get(sourceCloned): null);
+		String sourceID = (!source.isEmpty() && sourceValue != null? sourceValue.get(source.hashCode()): null);
 		if(sourceID == null){
 			//if source is not found:
 			if(sources == null){
@@ -453,7 +449,7 @@ public class Gedcom extends Store{
 
 			sources.add(source);
 			sourceIndex.put(sourceID, source);
-			sourceValue.put(sourceCloned, sourceID);
+			sourceValue.put(source.hashCode(), sourceID);
 		}
 		return sourceID;
 	}
@@ -473,8 +469,7 @@ public class Gedcom extends Store{
 
 	public String addObject(final GedcomNode object){
 		//search object
-		final GedcomNode objectCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, object);
-		String objectID = (objectValue != null? objectValue.get(objectCloned): null);
+		String objectID = (!object.isEmpty() && objectValue != null? objectValue.get(object.hashCode()): null);
 		if(objectID == null){
 			//if object is not found:
 			if(objects == null){
@@ -491,7 +486,7 @@ public class Gedcom extends Store{
 
 			objects.add(object);
 			objectIndex.put(objectID, object);
-			objectValue.put(objectCloned, objectID);
+			objectValue.put(object.hashCode(), objectID);
 		}
 		return objectID;
 	}
