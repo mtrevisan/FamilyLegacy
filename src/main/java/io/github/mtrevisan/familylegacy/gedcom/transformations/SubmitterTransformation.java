@@ -47,7 +47,8 @@ public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 			.withID(submitter.getID())
 			.addChildValue("TITLE", name.getValue());
 		transformerTo.placeAddressStructureTo(submitter, destinationSource, destination);
-		transformerTo.multimediaCitationTo(submitter, destinationSource, destination);
+		//FIXME
+//		transformerTo.multimediaCitationTo(submitter, destinationSource, destination);
 		final List<GedcomNode> preferredLanguages = submitter.getChildrenWithTag("LANG");
 		final StringJoiner sj = new StringJoiner(", ");
 		for(final GedcomNode preferredLanguage : preferredLanguages)

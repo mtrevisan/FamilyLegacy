@@ -95,7 +95,7 @@ class TransformerSourceRecordTest{
 		transformerTo.sourceRecordTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@}]", destinationNode.toString());
-		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: NOTE, ref: @N2@}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, value: gregorian}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: NOTE, ref: @N2@}]", destination.getSources().get(0).toString());
 	}
 
 	@Test

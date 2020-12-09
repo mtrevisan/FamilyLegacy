@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,32 +59,41 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//FIXME
+	/*
+	DESCRIPTION.value = TYPE.value
+	DATE.value = DATE.value
+	transfer PLAC,ADDR to PLACE
+	AGENCY.value = AGNC.value
+	CAUSE.value = CAUS.value
+	transfer NOTE to NOTE
+	transfer SOUR,OBJE to SOURCE
+	FAMILY_CHILD.value = FAMC.value
+	FAMILY_CHILD.ADOPTED_BY.value = FAMC.ADOP.value
+	*/
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Gedcom origin, final Flef destination){
+		final String value = traverse(event, "DATE").getValue();
 		final GedcomNode destinationEvent = create("EVENT")
 			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
-			.addChildValue("TYPE", traverse(event, "TYPE")
-				.getValue())
-			.addChildValue("DATE", traverse(event, "DATE")
-				.getValue());
+			.addChildValue("DESCRIPTION", traverse(event, "TYPE").getValue())
+			.addChild(create("DATE")
+				.withValue(CalendarParserBuilder.removeCalendarType(value))
+				.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
+			);
 		placeAddressStructureTo(event, destinationEvent, destination);
-		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC")
-			.getValue())
-			.addChildValue("CAUSE", traverse(event, "CAUS")
-				.getValue());
+		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
+			.addChildValue("CAUSE", traverse(event, "CAUS").getValue());
 		noteCitationTo(event, destinationEvent, destination);
 		sourceCitationTo(event, destinationEvent, origin, destination);
-		//FIXME
 		final GedcomNode destinationSourceReference = create("SOURCE");
 		multimediaCitationTo(event, destinationEvent, destinationSourceReference, origin, destination, "MEDI");
+		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN").getValue());
+
+		//EVEN BIRT
 		final GedcomNode familyChild = traverse(event, "FAMC");
-		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN")
-			.getValue())
-			.addChild(create("FAMILY_CHILD")
-				.withXRef(familyChild.getXRef())
-				.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP")
-					.getValue())
-			);
+		destinationEvent.addChild(createWithReference("FAMILY_CHILD", familyChild.getXRef())
+			//EVEN ADOP
+			.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP").getValue())
+		);
 		return destinationEvent;
 	}
 
@@ -401,7 +411,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
 					.addChildValue("ROLE", traverse(sourceCitation, "EVENT.ROLE").getValue());
 				//load source by xref
-				final GedcomNode sourceRecord = origin.getObject(sourceCitationXRef);
+				final GedcomNode sourceRecord = origin.getSource(sourceCitationXRef);
 				final String sourceCitationValue = traverse(sourceCitation, "EVENT").getValue();
 				if(sourceCitationValue != null){
 					GedcomNode event = traverse(sourceRecord, "EVENT");
@@ -412,12 +422,15 @@ public final class Transformer extends TransformerHelper{
 					else
 						event.withValue(event.getValue() + "," + sourceCitationValue);
 				}
-				final String sourceCitationDate = traverse(sourceRecord, "DATA.DATE").getValue();
+				final GedcomNode sourceCitationDate = traverse(sourceRecord, "DATA.DATE");
 				if(sourceCitationDate != null){
-					GedcomNode date = traverse(sourceRecord, "DATE");
+					final GedcomNode date = traverse(sourceRecord, "DATE");
 					if(date.isEmpty()){
-						date = createWithValue("DATE", sourceCitationDate);
-						sourceRecord.addChild(date);
+						final String value = sourceCitationDate.getValue();
+						sourceRecord.addChild(create("DATE")
+							.withValue(CalendarParserBuilder.removeCalendarType(value))
+							.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
+						);
 					}
 					else
 						date.withValue(date.getValue() + "," + sourceCitationDate);
@@ -464,10 +477,14 @@ public final class Transformer extends TransformerHelper{
 	void sourceRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
+			final String value = traverse(source, "DATA.EVEN.DATE").getValue();
 			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
 				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
 				.addChildValue("TITLE", traverse(source, "TITL").getValue())
-				.addChildValue("DATE", traverse(source, "DATA.EVEN.DATE").getValue())
+				.addChild(create("DATE")
+					.withValue(CalendarParserBuilder.removeCalendarType(value))
+					.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
+				)
 				.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
 			sourceRepositoryCitationTo(parent, destinationNode, destination);
@@ -681,30 +698,36 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	//FIXME
+	/*
+	TYPE.value = DESCRIPTION.value
+	DATE.value = DATE.value
+	transfer PLACE to PLAC,ADDR
+	AGNC.value = AGENCY.value
+	CAUS.value = CAUSE.value
+	transfer NOTE to NOTE
+	transfer SOURCE to SOUR,OBJE
+	FAMC.value = FAMILY_CHILD.value
+	FAMC.ADOP.value = FAMILY_CHILD.ADOPTED_BY.value
+	*/
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = create(tagTo)
 			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
-			.addChildValue("TYPE", traverse(event, "TYPE")
-				.getValue())
-			.addChildValue("DATE", traverse(event, "DATE")
-				.getValue());
+			.addChildValue("TYPE", traverse(event, "DESCRIPTION").getValue())
+			.addChildValue("DATE", traverse(event, "DATE").getValue());
 		placeStructureFrom(event, destinationEvent, origin);
 		addressStructureFrom(event, destinationEvent, origin);
-		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY")
-			.getValue())
-			.addChildValue("CAUS", traverse(event, "CAUSE")
-				.getValue());
-		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
-		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION")
-			.getValue())
-			.addChild(create("FAMC")
-				.withXRef(familyChild.getXRef())
-				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY")
-					.getValue())
-			);
+		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY").getValue())
+			.addChildValue("CAUS", traverse(event, "CAUSE").getValue());
 		noteCitationFrom(event, destinationEvent);
 		sourceCitationFrom(event, destinationEvent, origin);
+
+		//EVENT BIRTH
+		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
+		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION").getValue())
+			.addChild(createWithReference("FAMC", familyChild.getXRef())
+				//EVENT ADOPTION
+				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY").getValue())
+			);
 		return destinationEvent;
 	}
 
@@ -752,28 +775,6 @@ public final class Transformer extends TransformerHelper{
 				.getValue());
 
 		destinationNode.addChild(destinationHeader);
-	}
-
-	//FIXME
-	void multimediaCitationFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
-		final List<GedcomNode> multimedias = parent.getChildrenWithTag("MULTIMEDIA");
-		for(final GedcomNode multimedia : multimedias){
-			final String multimediaXRef = multimedia.getXRef();
-			final String cutout = traverse(multimedia, "CUTOUT").getValue();
-			if(cutout == null)
-				destinationNode.addChildReference("OBJE", multimediaXRef);
-			else{
-//				final GedcomNode originMultimedia = origin.getMultimedia(multimediaXRef);
-//				final GedcomNode file = traverse(originMultimedia, "FILE");
-//				destinationNode.addChild(create("OBJE")
-//					.addChildValue("TITL", traverse(originMultimedia, "TITLE").getValue())
-//					.addChildValue("FILE", file.getValue())
-//					.addChild(create("FORM")
-//						.addChildValue("TITL", traverse(file, "MEDIA_TYPE").getValue())
-//					)
-//					.addChildValue("_CUTD", cutout));
-			}
-		}
 	}
 
 	/*

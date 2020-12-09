@@ -1,10 +1,13 @@
 direct:
-for-each OBJE id create SOURCE
-	SOURCE.id = OBJE.id
-	for-each OBJE.FILE create SOURCE.FILE
-		pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE.FILE.TITL.value
-		pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
-	transfer OBJE.NOTE to SOURCE.NOTE
+DESCRIPTION.value = TYPE.value
+DATE.value = DATE.value
+transfer PLAC,ADDR to PLACE
+AGENCY.value = AGNC.value
+CAUSE.value = CAUS.value
+transfer NOTE to NOTE
+transfer SOUR,OBJE to SOURCE
+FAMILY_CHILD.value = FAMC.value
+FAMILY_CHILD.ADOPTED_BY.value = FAMC.ADOP.value
 
 
 reverse:

@@ -70,7 +70,8 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 				.withValue(noteAuthorPublication));
 			destinationSource.addChildReference("NOTE", noteID);
 		}
-		transformerTo.multimediaCitationTo(source, destinationSource, destination);
+		//FIXME
+//		transformerTo.multimediaCitationTo(source, destinationSource, destination);
 		transformerTo.noteCitationTo(source, destinationSource, destination);
 		sourceRepositoryCitationTo(source, destinationSource, destination);
 
@@ -122,7 +123,8 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 			.getValue());
 		sourceRepositoryCitationFrom(source, destinationSource);
 		transformerFrom.noteCitationFrom(source, destinationSource);
-		transformerFrom.multimediaCitationFrom(source, destinationSource, origin);
+		//FIXME
+//		transformerFrom.multimediaCitationFrom(source, destinationSource, origin);
 
 		destination.addSource(destinationSource);
 	}

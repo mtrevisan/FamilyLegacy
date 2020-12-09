@@ -82,7 +82,8 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 		attributeTo(individual, destinationIndividual, origin, destination, "FACT", null);
 		transformerTo.noteCitationTo(individual, destinationIndividual, destination);
 		transformerTo.sourceCitationTo(individual, destinationIndividual, origin, destination);
-		transformerTo.multimediaCitationTo(individual, destinationIndividual, destination);
+		//FIXME
+//		transformerTo.multimediaCitationTo(individual, destinationIndividual, destination);
 		destinationIndividual.addChildValue("RESTRICTION", transformerTo.traverse(individual, "RESN")
 			.getValue());
 
@@ -226,7 +227,8 @@ public class IndividualTransformation extends Transformation<Gedcom, Flef>{
 				.getValue());
 		transformerTo.noteCitationTo(attribute, destinationAttribute, destination);
 		transformerTo.sourceCitationTo(attribute, destinationAttribute, origin, destination);
-		transformerTo.multimediaCitationTo(attribute, destinationAttribute, destination);
+		//FIXME
+//		transformerTo.multimediaCitationTo(attribute, destinationAttribute, destination);
 		return destinationAttribute;
 	}
 
