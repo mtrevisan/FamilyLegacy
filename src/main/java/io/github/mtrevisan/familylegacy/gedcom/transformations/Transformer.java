@@ -57,7 +57,7 @@ public final class Transformer extends TransformerHelper{
 		transfer SOUR,OBJE xref to SOURCE
 		FAMILY.RESTRICTION.value = FAM.RESN.value
 	*/
-	void familyRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+	void familyRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationFamily = create("FAMILY");
 		final List<GedcomNode> families = traverseAsList(parent, "FAM");
 		for(final GedcomNode family : families){
@@ -67,17 +67,27 @@ public final class Transformer extends TransformerHelper{
 			final List<GedcomNode> children = traverseAsList(family, "CHIL");
 			for(final GedcomNode child : children)
 				destinationFamily.addChildReference("CHILD", child.getXRef());
-			eventTo(family, destinationFamily, origin, destination, "tagfrom", "tagto");
+			eventTo(family, destinationFamily, origin, destination, "ANUL", "ANNULMENT");
+			eventTo(family, destinationFamily, origin, destination, "CENS", "CENSUS");
+			eventTo(family, destinationFamily, origin, destination, "DIV", "DIVORCE");
+			eventTo(family, destinationFamily, origin, destination, "DIVF", "DIVORCE_FILED");
+			eventTo(family, destinationFamily, origin, destination, "ENGA", "ENGAGEMENT");
+			eventTo(family, destinationFamily, origin, destination, "MARB", "MARRIAGE_BANN");
+			eventTo(family, destinationFamily, origin, destination, "MARC", "MARRIAGE_CONTRACT");
+			eventTo(family, destinationFamily, origin, destination, "MARR", "MARRIAGE");
+			eventTo(family, destinationFamily, origin, destination, "MARL", "MARRIAGE_LICENCE");
+			eventTo(family, destinationFamily, origin, destination, "MARS", "MARRIAGE_SETTLEMENT");
+			eventTo(family, destinationFamily, origin, destination, "RESI", "RESIDENCE");
+			eventTo(family, destinationFamily, origin, destination, "EVEN", "EVENT");
 			noteCitationTo(family, destinationFamily, destination);
 			sourceCitationTo(family, destinationFamily, origin, destination);
 			multimediaRecordTo(family, destinationFamily, destination);
 			final GedcomNode destinationFamilyReference = create("SOURCE");
 			multimediaCitationTo(family, destinationFamily, destinationFamilyReference, origin, destination, "TEXT");
-		}
-		destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
+			destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
 
-		final String familyID = destination.addFamily(destinationFamily);
-		destinationNode.addChildReference("FAMILY", familyID);
+			destination.addFamily(destinationFamily);
+		}
 	}
 
 	void eventTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination,
@@ -120,7 +130,8 @@ public final class Transformer extends TransformerHelper{
 
 		//EVEN BIRT
 		final GedcomNode familyChild = traverse(event, "FAMC");
-		destinationEvent.addChild(createWithReference("FAMILY_CHILD", familyChild.getXRef())
+		destinationEvent.addChild(create("FAMILY_CHILD")
+			.withXRef(familyChild.getXRef())
 			//EVEN ADOP
 			.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP").getValue())
 		);
@@ -226,11 +237,6 @@ public final class Transformer extends TransformerHelper{
 				destinationSourceReference.withXRef(destinationNode.getID());
 			}
 		}
-
-		final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
-		assignExtractionsTo(extracts, destinationNode);
-		noteCitationTo(parent, destinationNode, destination);
-		destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
 	}
 
 	/*
@@ -620,6 +626,48 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
+
+	/*
+		transfer FAM[EVEN] to FAMILY[EVENT]
+		create EVENT{CHILDREN_COUNT}
+			EVENT{CHILDREN_COUNT}.DESCRIPTION.value = FAM.NCHI.value
+		transfer FAM.NOTE to FAMILY.NOTE
+		transfer SOUR,OBJE xref to SOURCE
+		FAMILY.RESTRICTION.value = FAM.RESN.value
+	*/
+	void familyRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin, final Gedcom destination){
+		final GedcomNode destinationFamily = create("FAM");
+		final List<GedcomNode> families = traverseAsList(parent, "FAMILY");
+		for(final GedcomNode family : families){
+			destinationFamily.withID(family.getID())
+				.addChildValue("HUSB", traverse(family, "SPOUSE1").getXRef())
+				.addChildValue("WIFE", traverse(family, "SPOUSE2").getXRef());
+			final List<GedcomNode> children = traverseAsList(family, "CHILD");
+			for(final GedcomNode child : children)
+				destinationFamily.addChildReference("CHIL", child.getXRef());
+			final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
+			eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
+			eventFrom(events, destinationFamily, origin, "CENSUS", "CENS");
+			eventFrom(events, destinationFamily, origin, "DIVORCE", "DIV");
+			eventFrom(events, destinationFamily, origin, "DIVORCE_FILED", "DIVF");
+			eventFrom(events, destinationFamily, origin, "ENGAGEMENT", "ENGA");
+			eventFrom(events, destinationFamily, origin, "MARRIAGE_BANN", "MARB");
+			eventFrom(events, destinationFamily, origin, "MARRIAGE_CONTRACT", "MARC");
+			eventFrom(events, destinationFamily, origin, "MARRIAGE", "MARR");
+			eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
+			eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
+			eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
+			eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
+			noteCitationFrom(family, destinationFamily);
+			sourceCitationFrom(family, destinationFamily, origin);
+			multimediaRecordFrom(family, destinationFamily);
+			sourceCitationFrom(family, destinationFamily, origin);
+		}
+		destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
+
+		final String familyID = destination.addFamily(destinationFamily);
+		destinationNode.addChildReference("FAMILY", familyID);
+	}
 
 	void eventFrom(final Iterable<GedcomNode> events, final GedcomNode destinationNode, final Flef origin, final String valueFrom,
 			final String tagTo){
