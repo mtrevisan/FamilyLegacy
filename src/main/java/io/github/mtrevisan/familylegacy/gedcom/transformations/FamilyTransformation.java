@@ -54,18 +54,18 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 		transformerTo.sourceCitationTo(family, destinationFamily, origin, destination);
 		//FIXME
 //		transformerTo.multimediaCitationTo(family, destinationFamily, destination);
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "ANUL", "ANNULMENT");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "CENS", "CENSUS");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIV", "DIVORCE");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIVF", "DIVORCE_FILED");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "ENGA", "ENGAGEMENT");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARB", "MARRIAGE_BANN");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARC", "MARRIAGE_CONTRACT");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARR", "MARRIAGE");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARL", "MARRIAGE_LICENCE");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARS", "MARRIAGE_SETTLEMENT");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "RESI", "RESIDENCE");
-		transformerTo.eventTo(family, destinationFamily, origin, destination, "EVEN", "EVENT");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "ANUL", "ANNULMENT");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "CENS", "CENSUS");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIV", "DIVORCE");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "DIVF", "DIVORCE_FILED");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "ENGA", "ENGAGEMENT");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARB", "MARRIAGE_BANN");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARC", "MARRIAGE_CONTRACT");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARR", "MARRIAGE");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARL", "MARRIAGE_LICENCE");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "MARS", "MARRIAGE_SETTLEMENT");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "RESI", "RESIDENCE");
+//		transformerTo.eventTo(family, destinationFamily, origin, destination, "EVEN", "EVENT");
 		destinationFamily.addChildValue("RESTRICTION", transformerTo.traverse(family, "RESN")
 			.getValue());
 
@@ -86,18 +86,18 @@ public class FamilyTransformation extends Transformation<Gedcom, Flef>{
 			.addChildValue("RESN", transformerFrom.traverse(family, "RESTRICTION")
 				.getValue());
 		final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "CENSUS", "CENS");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE", "DIV");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE_FILED", "DIVF");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "ENGAGEMENT", "ENGA");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_BANN", "MARB");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_CONTRACT", "MARC");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE", "MARR");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
-		transformerFrom.eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "ANNULMENT", "ANUL");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "CENSUS", "CENS");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE", "DIV");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "DIVORCE_FILED", "DIVF");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "ENGAGEMENT", "ENGA");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_BANN", "MARB");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_CONTRACT", "MARC");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE", "MARR");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_LICENCE", "MARL");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "MARRIAGE_SETTLEMENT", "MARS");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "RESIDENCE", "RESI");
+//		transformerFrom.eventFrom(events, destinationFamily, origin, "@EVENT@", "EVEN");
 		destinationFamily
 			.addChildValue("HUSB", transformerFrom.traverse(family, "SPOUSE1")
 				.getValue())

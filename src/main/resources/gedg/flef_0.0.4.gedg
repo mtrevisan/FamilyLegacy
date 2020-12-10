@@ -72,8 +72,7 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
     +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 ALIAS @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of individual aliases of this individual. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the alias. */
-  +1 <<INDIVIDUAL_EVENT_STRUCTURE>>    {0:M}	/* A list of INDIVIDUAL_EVENT_STRUCTURE() objects giving the events associated with this individual. */
-  +1 <<EVENT_DETAIL>>    {0:M}	/* A list of EVENT_DETAIL() objects giving the attributes associated with this individual. */
+  +1 <<EVENT_STRUCTURE>>    {0:M}	/* A list of EVENT_STRUCTURE() objects giving the events or attributes associated with this individual. */
   +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION() objects. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -107,65 +106,13 @@ n FAMILY_NAME <SURNAME_PIECE>    {0:M}	/* Surname or family name. */
 n FAMILY_NICKNAME <SURNAME_PIECE_NICKNAME>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname. */
 
 
-INDIVIDUAL_EVENT_STRUCTURE :=
-[
-n EVENT BIRTH    {1:1}	/* The exiting of the womb. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record. */
-|
-n EVENT ADOPTION    {1:1}	/* The creation of a parent-child relationship not associated with birth. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record into which the individual was adopted. */
-    +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* A code which shows which parent in the associated family record adopted this person. Use "SPOUSE1" for husband (usually), "SPOUSE2" for wife (usually), or "BOTH" for both. */
-|
-n EVENT DEATH    {1:1}	/* The end of life. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT BURIAL    {1:1}	/* The depositing of the body (in whole or in part) of the deceased. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT CREMATION    {1:1}	/* The burning of the body (in whole or in part) of the deceased. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT NATURALIZATION    {1:1}	/* The gaining of citizenship in a new nation or land. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT EMIGRATION    {1:1}	/* The departure from the nation or land in which one has nativity or citizenship. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT IMMIGRATION    {1:1}	/* The entering of a nation or land in which one does not have nativity or citizenship. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT CENSUS    {1:1}	/* An inventory of persons or households in a population. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT PROBATE    {1:1}	/* The judicial actions associated with the disposition of the estate of the deceased. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT DEED    {1:1}	/* The judicial actions associated with the transferring (conveyancing) the title to a property. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT WILL    {1:1}	/* The creation of a legal document regarding the disposition of a person’s estate upon death. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT GRADUATION    {1:1}	/* The conclusion of formal education. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT RETIREMENT    {1:1}	/* The cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-|
-n EVENT [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* A code used to indicate the type of individual event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVENT tag. The classification as to the difference between this specific event and other occurrences of the EVENT tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
-  +1 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
-]
-
-
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 TYPE <FAMILY_TYPE>    {1:1}	/* One of 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
   +1 SPOUSE1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the first spouse. In a heterosexual pair union, this is traditionally the husband. */
   +1 SPOUSE2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the second spouse. In a heterosexual pair union, this is traditionally the wife. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
-  +1 <<EVENT_DETAIL>>    {0:M}	/* A list of EVENT_DETAIL() objects giving events associated with this family. */
+  +1 <<EVENT_STRUCTURE>>    {0:M}	/* A list of EVENT_STRUCTURE() objects giving the events associated with this family. */
   +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION() objects. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -187,31 +134,43 @@ GROUP_RECORD :=	/* A group can be of genealogical, historical, or general intere
 n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
   +1 NAME <GROUP_NAME>    {1:1}	/* The name of the group. */
   +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
-  +1 EVENT [ <EVENT_DESCRIPTOR> | <NULL> ]    {0:M}	/* A code used to indicate the type of event. */	/* Text describing a particular event pertaining to the individual or family. This event value is usually assigned to the EVENT tag. The classification as to the difference between this specific event and other occurrences of the EVENT tag is indicated by the use of a subordinate TYPE tag selected from the EVENT_DETAIL structure. */
-    +2 <<EVENT_DETAIL>>    {0:1}	/* An EVENT_DETAIL() object giving details of the event. */
+  +1 <<EVENT_STRUCTURE>>    {0:M}	/* A list of EVENT_STRUCTURE() objects giving the events associated with this group. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
-EVENT_DETAIL :=
+/* https://wiki.phpgedview.net/en/index.php/Facts_and_Events */
+/* Life related types are: BIRTH (the exiting of the womb), CHARACTERISTIC (physical characteristics of a person, in the format `key1: value1, key2: value2`), DEATH (the end of life), BURIAL (the depositing of the body (in whole or in part) of the deceased), CREMATION (the burning of the body (in whole or in part) of the deceased). */
+/* Family related types are: CHILDREN_COUNT (the reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure; this is not necessarily the count of children listed in a family structure), MARRIAGES_COUNT, ADOPTION (the creation of a parent-child relationship not associated with birth), ENGAGEMENT (the agreement of a couple to enter into a marriage in the future), MARRIAGE_BANN (a public notice of an intent to marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE_LICENCE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a legal arrangement to modify property rights upon marriage), , MARRIAGE (the creation of a family unit (via a legal, religious, customary, common-law, or other form of union)), DIVORCE_FILED (the legal action expressing intent to divorce), DIVORCE (the ending of a marriage between still-living individuals), ANNULMENT (declaring a marriage to be invalid, as though it had never occurred). */
+/* Achievements related types are: RESIDENCE, EDUCATION (an educational degree or attainment), GRADUATION (the conclusion of formal education), OCCUPATION (what this person does as a livelihood), RETIREMENT (the cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such), MILITARY_RANK (the military rank acquired by an individual). */
+/* National/government related types are: CASTE (the social, religious, or racial caste tow which an individual belongs), ORIGIN (a group to which a person is associated, typically by birth, like nation or tribe), EMIGRATION (the departure from the nation or land in which one has nativity or citizenship), IMMIGRATION (the entering of a nation or land in which one does not have nativity or citizenship), NATURALIZATION (the gaining of citizenship in a new nation or land), CENSUS (an inventory of persons or households in a population), SSN (Social Security Number). */
+/* Possessions and titles related types are: POSSESSION (a list of objects or land owned by the person), TITLE (a title given a person associated with a local or national notion of nobility or royalty), WILL (the creation of a legal document regarding the disposition of a person’s estate upon death), PROBATE (the judicial actions associated with the disposition of the estate of the deceased), DEED (the judicial actions associated with the transferring (conveyancing) the title to a property). */
+/* Religious and social related types are: RELIGION (the name of a religion with which the event was affiliated). */
+/* Custom type: <EVENT_TYPE> (a descriptive word or phrase used to further classify the parent event or the attribute tag). */
+/* Another classification is: */
 /* FAMILY (event) types are: ANNULMENT (declaring a marriage to be invalid, as though it had never occurred), CENSUS (an inventory of persons or households in a population), DIVORCE (the ending of a marriage between still-living individuals), DIVORCE_FILED (the legal action expressing intent to divorce), ENGAGEMENT (the agreement of a couple to enter into a marriage in the future), MARRIAGE_BANN (a public notice of an intent to marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE (the creation of a family unit (via a legal, religious, customary, common-law, or other form of union)), MARRIAGE_LICENCE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a legal arrangement to modify property rights upon marriage), RESIDENCE, CHILDREN_COUNT (the reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure; this is not necessarily the count of children listed in a family structure), <EVENT_TYPE> (a descriptive word or phrase used to further classify the parent event). */
+/* INDIVIDUAL (event) types are: BIRTH (the exiting of the womb), ADOPTION (the creation of a parent-child relationship not associated with birth), DEATH (the end of life), BURIAL (the depositing of the body (in whole or in part) of the deceased), CREMATION (the burning of the body (in whole or in part) of the deceased), NATURALIZATION (the gaining of citizenship in a new nation or land), EMIGRATION (the departure from the nation or land in which one has nativity or citizenship), IMMIGRATION (the entering of a nation or land in which one does not have nativity or citizenship), CENSUS (an inventory of persons or households in a population), PROBATE (the judicial actions associated with the disposition of the estate of the deceased), DEED (the judicial actions associated with the transferring (conveyancing) the title to a property), WILL (the creation of a legal document regarding the disposition of a person’s estate upon death), GRADUATION (the conclusion of formal education), RETIREMENT (the cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such), <EVENT_TYPE> (a descriptive word or phrase used to further classify the parent event). */
 /* INDIVIDUAL (attribute) types are: CASTE (the social, religious, or racial caste tow which an individual belongs), TITLE (a title given a person associated with a local or national notion of nobility or royalty), MILITARY_RANK (the military rank acquired by an individual), EDUCATION (an educational degree or attainment), ORIGIN (a group to which a person is associated, typically by birth, like nation or tribe), CHILDREN_COUNT (the known number of children of this individual from all marriages, regardless of whether the associated children are represented in the corresponding structure; this is not necessarily the count of children listed in a family structure), MARRIAGES_COUNT, OCCUPATION (what this person does as a livelihood), POSSESSION (a list of objects or land owned by the person), RELIGION (the name of a religion with which the event was affiliated), RESIDENCE, SSN (Social Security Number), CHARACTERISTIC (physical characteristics of a person, in the format `key1: value1, key2: value2`), <ATTRIBUTE_TYPE> (a descriptive word or phrase used to further classify the attribute tag). */
-n TYPE <EVENT_TYPE_OR_ATTRIBUTE_TYPE>    {0:1}	/* Type of a particular event pertaining to the individual or family, or the type of an attribute. */
-n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or family, or the value of an attribute. */
-n <<DATE_STRUCTURE>>    {0:1}	/* A date_time_value() object giving the date of the event. */
-n PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
-  +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened in the given place. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+EVENT_STRUCTURE :=
+n EVENT    {1:1}
+  +1 TYPE <EVENT_TYPE_OR_ATTRIBUTE_TYPE>    {0:1}	/* Type of a particular event pertaining to the individual or family, or the type of an attribute. */
+  +1 DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or family, or the value of an attribute. */
+  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* Only for type `BIRTH`. An xref ID of a family record into which the individual was adopted. */
+    +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* Only for type `ADOPTION`. A code which shows which parent in the associated family record adopted this person. Use "SPOUSE1" for husband (usually), "SPOUSE2" for wife (usually), or "BOTH" for both. */
+  +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_time_value() object giving the date of the event. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the event. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened in the given place. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
+  +1 CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event cause has really caused the event. "challenged": Cause is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this cause caused the event, but the fact has been disproven. "proven" = The cause-effect has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-n AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
-n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
-  +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event cause has really caused the event. "challenged": Cause is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this cause caused the event, but the fact has been disproven. "proven" = The cause-effect has been proven. */
-  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-n CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
-n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
-n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 PLACE_RECORD :=
