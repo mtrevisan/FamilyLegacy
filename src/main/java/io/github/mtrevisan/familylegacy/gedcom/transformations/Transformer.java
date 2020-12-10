@@ -81,7 +81,6 @@ public final class Transformer extends TransformerHelper{
 			eventTo(family, destinationFamily, origin, destination, "EVEN", "EVENT");
 			noteCitationTo(family, destinationFamily, destination);
 			sourceCitationTo(family, destinationFamily, origin, destination);
-			multimediaRecordTo(family, destinationFamily, destination);
 			final GedcomNode destinationFamilyReference = create("SOURCE");
 			multimediaCitationTo(family, destinationFamily, destinationFamilyReference, origin, destination, "TEXT");
 			destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
@@ -100,6 +99,7 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	/*
+	TYPE.value = value
 	DESCRIPTION.value = TYPE.value
 	DATE.value = DATE.value
 	transfer PLAC,ADDR to PLACE
@@ -113,7 +113,7 @@ public final class Transformer extends TransformerHelper{
 	private GedcomNode createEventTo(final String valueTo, final GedcomNode event, final Gedcom origin, final Flef destination){
 		final String value = traverse(event, "DATE").getValue();
 		final GedcomNode destinationEvent = create("EVENT")
-			.withValue("EVENT".equals(valueTo)? event.getValue(): valueTo)
+			.addChildValue("TYPE", ("EVENT".equals(valueTo)? event.getValue(): valueTo))
 			.addChildValue("DESCRIPTION", traverse(event, "TYPE").getValue())
 			.addChild(create("DATE")
 				.withValue(CalendarParserBuilder.removeCalendarType(value))
@@ -237,6 +237,11 @@ public final class Transformer extends TransformerHelper{
 				destinationSourceReference.withXRef(destinationNode.getID());
 			}
 		}
+
+			final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
+			assignExtractionsTo(extracts, destinationNode);
+			noteCitationTo(parent, destinationNode, destination);
+			destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
 	}
 
 	/*
@@ -628,12 +633,17 @@ public final class Transformer extends TransformerHelper{
 
 
 	/*
-		transfer FAM[EVEN] to FAMILY[EVENT]
-		create EVENT{CHILDREN_COUNT}
-			EVENT{CHILDREN_COUNT}.DESCRIPTION.value = FAM.NCHI.value
-		transfer FAM.NOTE to FAMILY.NOTE
-		transfer SOUR,OBJE xref to SOURCE
-		FAMILY.RESTRICTION.value = FAM.RESN.value
+	for-each FAMILY id create FAM
+		FAM.id = FAMILY.id
+		FAM.HUSB.xref = FAMILY.SPOUSE1.xref
+		FAM.WIFE.xref = FAMILY.SPOUSE2.xref
+		for-each CHILD create FAM.CHIL
+			FAM.CHIL.xref = CHILD.xref
+		transfer FAMILY[EVENT] to FAM[EVEN]
+		FAM.NCHI.value = EVENT{CHILDREN_COUNT}.DESCRIPTION.value
+		transfer FAMILY.NOTE to FAM.NOTE
+		transfer SOURCE xref to SOUR,OBJE
+		FAM.RESN.value = FAMILY.RESTRICTION.value
 	*/
 	void familyRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationFamily = create("FAM");
@@ -682,6 +692,7 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	/*
+	value = TYPE.value
 	TYPE.value = DESCRIPTION.value
 	DATE.value = DATE.value
 	transfer PLACE to PLAC,ADDR
@@ -694,7 +705,7 @@ public final class Transformer extends TransformerHelper{
 	*/
 	private GedcomNode createEventFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = create(tagTo)
-			.withValue("EVENT".equals(tagTo)? event.getValue(): null)
+			.withValue("EVEN".equals(tagTo)? traverse(event, "TYPE").getValue(): tagTo)
 			.addChildValue("TYPE", traverse(event, "DESCRIPTION").getValue())
 			.addChildValue("DATE", traverse(event, "DATE").getValue());
 		placeStructureFrom(event, destinationEvent, origin);

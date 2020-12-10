@@ -98,13 +98,13 @@ class TransformerFamilyRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.familyRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("id: @F1@, tag: FAMILY, children: [{tag: SPOUSE1, value: @I1@}, {tag: SPOUSE2, value: @I2@}, {tag: CHILD, ref: @I3@}, {tag: EVENT, value: MARRIAGE, children: [{tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION1}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, value: RESIDENCE, children: [{tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION2}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, value: EVENT_DESCRIPTOR, children: [{tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: SOURCE, ref: S2}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: @F1@, tag: FAMILY, children: [{tag: SPOUSE1, value: @I1@}, {tag: SPOUSE2, value: @I2@}, {tag: CHILD, ref: @I3@}, {tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION1}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION2}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: EVENT_DESCRIPTOR}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: NOTE, ref: @N1@}]", destination.getFamilies().get(0).toString());
 	}
 
 	@Test
 	void familyRecordFrom(){
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithID("REPOSITORY", "@R1@")
+			.addChild(transformerFrom.createWithID("FAMILY", "@F1@")
 				.addChildValue("NAME", "NAME_OF_REPOSITORY")
 				.addChildValue("INDIVIDUAL", "@I1@")
 				.addChildValue("PLACE", "@P1@")
