@@ -76,16 +76,193 @@ public final class Transformer extends TransformerHelper{
 
 
 	//TODO
+	/*
+	for-each INDI id create INDIVIDUAL
+		INDIVIDUAL.id = INDI.id
+		for-each INDI.NAME create INDIVIDUAL.NAME
+			name-components[name, surname, name-suffix] = INDI.NAME.value
+			INDIVIDUAL.NAME.TYPE.value = INDI.NAME.TYPE.value
+			INDIVIDUAL.NAME.TITLE.value = INDI.NAME.NPFX.value
+			INDIVIDUAL.NAME.TITLE.PHONETIC.VALUE.value = INDI.NAME.FONE.NPFX.value
+			INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
+			INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
+			INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NPFX.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.value = INDI.NAME.GIVN.value | name-components[name]
+			INDIVIDUAL.NAME.PERSONAL_NAME.PHONETIC.VALUE.value = INDI.NAME.FONE.GIVN.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.GIVN.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.value = INDI.NAME.NSFX.value | name-components[name-suffix]
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.PHONETIC.VALUE.value = INDI.NAME.FONE.NSFX.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NSFX.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.value = INDI.NAME.NICK.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.PHONETIC.VALUE.value = INDI.NAME.FONE.NICK.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NICK.value
+			INDIVIDUAL.NAME.FAMILY_NAME.value = INDI.NAME.SPFX.value + ' ' + INDI.NAME.SURN.value | name-components[surname]
+			INDIVIDUAL.NAME.FAMILY_NAME.PHONETIC.VALUE.value = INDI.NAME.FONE.SPFX.value + ' ' + INDI.NAME.FONE.SURN.value
+			INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
+			INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
+			INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.SPFX.value + ' ' + INDI.NAME.ROMN.SURN.value
+			transfer INDI.NAME.NOTE to INDIVIDUAL.NAME.NOTE
+			transfer INDI.NAME.FONE.NOTE to INDIVIDUAL.NAME.NOTE
+			transfer INDI.NAME.ROMN.NOTE to INDIVIDUAL.NAME.NOTE
+			transfer INDI.NAME.SOUR to INDIVIDUAL.NAME.SOURCE
+			transfer INDI.NAME.FONE.SOUR to INDIVIDUAL.NAME.SOURCE
+			transfer INDI.NAME.ROMN.SOUR to INDIVIDUAL.NAME.SOURCE
+		INDIVIDUAL.SEX.value = INDI.SEX.value
+		for-each INDI.FAMC create INDIVIDUAL.FAMILY_CHILD
+			INDIVIDUAL.FAMILY_CHILD.xref = INDI.FAMC.xref
+			INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT1.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT2.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.CERTAINTY.value = INDI.FAMC.STAT.value
+			transfer INDI.FAMC.NOTE to INDIVIDUAL.FAMILY_CHILD.NOTE
+		for-each INDI.FAMS create INDIVIDUAL.FAMILY_SPOUSE
+			INDIVIDUAL.FAMILY_SPOUSE.xref = INDI.FAMS.xref
+			transfer INDI.FAMS.NOTE to INDIVIDUAL.FAMILY_SPOUSE.NOTE
+		for-each INDI.ASSO create INDIVIDUAL.ASSOCIATION
+			INDIVIDUAL.ASSOCIATION.xref = INDI.ASSO.xref
+			INDIVIDUAL.ASSOCIATION.TYPE.value = INDI.ASSO.TYPE.value ('FAM'>'family', 'INDI'>'individual', 'SOUR|OBJE|REPO|SUBM|NOTE|SUBN'>nothing)
+			INDIVIDUAL.ASSOCIATION.RELATIONSHIP.value = INDI.ASSO.RELA.value
+			transfer INDI.ASSO.NOTE to INDIVIDUAL.ASSOCIATION.NOTE
+			transfer INDI.ASSO.SOUR to INDIVIDUAL.ASSOCIATION.SOURCE
+		for-each INDI.ALIA create INDIVIDUAL.ALIAS
+			INDIVIDUAL.ALIAS.xref = INDI.ALIA.xref
+		for-each INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDIVIDUAL.EVENT
+		for-each INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDIVIDUAL.EVENT
+		transfer INDI.NOTE to INDIVIDUAL.NOTE
+		transfer INDI.SOUR,OBJE to INDIVIDUAL.SOURCE
+		INDIVIDUAL.RESTRICTION.value = INDI.RESN.value
+	*/
 	void individualRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationIndividual = create("INDIVIDUAL");
 		final List<GedcomNode> individuals = traverseAsList(parent, "INDI");
 		for(final GedcomNode individual : individuals){
-			destinationIndividual.withID(individual.getID())
-				.addChildValue("SPOUSE1", traverse(individual, "HUSB").getXRef())
-				.addChildValue("SPOUSE2", traverse(individual, "WIFE").getXRef());
-			final List<GedcomNode> children = traverseAsList(individual, "CHIL");
-			for(final GedcomNode child : children)
-				destinationIndividual.addChildReference("CHILD", child.getXRef());
+			destinationIndividual.withID(individual.getID());
+			final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
+			for(final GedcomNode nameStructure : nameStructures){
+				String givenName = traverse(nameStructure, "GIVN").getValue();
+				String personalNameSuffix = traverse(nameStructure, "NSFX").getValue();
+				String surname = composeSurname(nameStructure, "SPFX", "SURN");
+				final String nameValue = nameStructure.getValue();
+				if(nameValue != null){
+					final int surnameBeginIndex = nameValue.indexOf('/');
+					final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
+					if(givenName == null && surnameBeginIndex > 0)
+						givenName = nameValue.substring(0, surnameBeginIndex - 1);
+					if(personalNameSuffix == null && surnameEndIndex >= 0)
+						personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
+					if(surname == null && surnameBeginIndex >= 0)
+						surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
+				}
+
+				final GedcomNode destinationName = create("NAME")
+					.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
+					.addChild(createWithValue("TITLE", traverse(nameStructure, "NPFX").getValue())
+						.addChild(create("PHONETIC")
+							.addChildValue("VALUE", traverse(nameStructure, "FONE.NPFX").getValue())
+						)
+						.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+							.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+							.addChildValue("VALUE", traverse(nameStructure, "ROMN.NPFX").getValue())
+						)
+						.addChild(createWithValue("PERSONAL_NAME", givenName)
+							.addChild(create("PHONETIC")
+								.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
+							)
+							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
+							)
+							.addChild(createWithValue("NAME_SUFFIX", personalNameSuffix)
+								.addChild(create("PHONETIC")
+									.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
+								)
+								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
+								)
+							)
+							.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
+								.addChild(create("PHONETIC")
+									.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
+								)
+								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
+								)
+							)
+							.addChild(createWithValue("FAMILY_NAME", surname)
+								.addChild(create("PHONETIC")
+									.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
+								)
+								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+									.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
+								)
+							)
+						)
+					);
+				noteCitationTo(nameStructure, destinationIndividual, destination);
+				noteCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, destination);
+				noteCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, destination);
+				sourceCitationTo(nameStructure, destinationIndividual, origin, destination);
+				sourceCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, origin, destination);
+				sourceCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, origin, destination);
+
+				destinationIndividual.addChild(destinationName);
+			}
+
+			destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
+			final List<GedcomNode> children = traverseAsList(individual, "FAMC");
+			for(final GedcomNode child : children){
+				final String pedigree = traverse(child, "FAMC.PEDI").getValue();
+				final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", child.getXRef())
+					.addChild(create("PEDIGREE")
+						.addChildValue("PARENT1", pedigree)
+						.addChildValue("PARENT2", pedigree)
+					)
+					.addChildValue("CERTAINTY", traverse(child, "FAMC.STAT").getValue());
+				noteCitationTo(child, destinationFamilyChild, destination);
+
+				destinationIndividual.addChild(destinationFamilyChild);
+			}
+			final List<GedcomNode> spouses = traverseAsList(individual, "FAMS");
+			for(final GedcomNode spouse : spouses){
+				final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", spouse.getXRef());
+				noteCitationTo(spouse, destinationFamilySpouse, destination);
+
+				destinationIndividual.addChild(destinationFamilySpouse);
+			}
+			final List<GedcomNode> associations = traverseAsList(individual, "ASSO");
+			for(final GedcomNode association : associations){
+				String type = traverse(association, "ASSO.TYPE").getValue();
+				if("FAM".equals(type))
+					type = "family";
+				else if("INDI".equals(type))
+					type = "individual";
+				//otherwise ignore
+				final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
+					.addChildValue("TYPE", type)
+					.addChildValue("RELATIONSHIP", traverse(association, "ASSO.RELA").getValue());
+				noteCitationTo(association, destinationAssociation, destination);
+				sourceCitationTo(association, destinationAssociation, origin, destination);
+
+				destinationIndividual.addChild(destinationAssociation);
+			}
+			final List<GedcomNode> aliases = traverseAsList(individual, "ALIA");
+			for(final GedcomNode alias : aliases){
+				final GedcomNode destinationAlias = createWithReference("ALIAS", alias.getXRef());
+
+				destinationIndividual.addChild(destinationAlias);
+			}
+
+			//TODO
+//			for-each INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDIVIDUAL.EVENT
+//			for-each INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDIVIDUAL.EVENT
 			//scan events one by one, maintaining order
 			final List<GedcomNode> nodeChildren = individual.getChildren();
 			for(final GedcomNode nodeChild : nodeChildren){
@@ -96,14 +273,26 @@ public final class Transformer extends TransformerHelper{
 					destinationIndividual.addChild(destinationEvent);
 				}
 			}
+
 			noteCitationTo(individual, destinationIndividual, destination);
 			sourceCitationTo(individual, destinationIndividual, origin, destination);
 			final GedcomNode destinationFamilyReference = create("SOURCE");
 			multimediaCitationTo(individual, destinationIndividual, destinationFamilyReference, origin, destination, "TEXT");
-			destinationIndividual.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
+			destinationIndividual.addChildValue("RESTRICTION", traverse(parent, "RESN").getValue());
 
 			destination.addFamily(destinationIndividual);
 		}
+	}
+
+	private String composeSurname(final GedcomNode nameStructure, final String surnamePrefixTag, final String surnameTag){
+		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+		final String surnamePrefix = traverse(nameStructure, surnamePrefixTag).getValue();
+		final String surname = traverse(nameStructure, surnameTag).getValue();
+		if(surnamePrefix != null)
+			sj.add(surnamePrefix);
+		if(surname != null)
+			sj.add(surname);
+		return (sj.length() > 0? sj.toString(): null);
 	}
 
 	/*
