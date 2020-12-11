@@ -75,6 +75,37 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
+	//TODO
+	void individualRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
+		final GedcomNode destinationIndividual = create("INDIVIDUAL");
+		final List<GedcomNode> individuals = traverseAsList(parent, "INDI");
+		for(final GedcomNode individual : individuals){
+			destinationIndividual.withID(individual.getID())
+				.addChildValue("SPOUSE1", traverse(individual, "HUSB").getXRef())
+				.addChildValue("SPOUSE2", traverse(individual, "WIFE").getXRef());
+			final List<GedcomNode> children = traverseAsList(individual, "CHIL");
+			for(final GedcomNode child : children)
+				destinationIndividual.addChildReference("CHILD", child.getXRef());
+			//scan events one by one, maintaining order
+			final List<GedcomNode> nodeChildren = individual.getChildren();
+			for(final GedcomNode nodeChild : nodeChildren){
+				final String tagFrom = nodeChild.getTag();
+				final String valueTo = FAM_TO_FAMILY.get(tagFrom);
+				if(valueTo != null){
+					final GedcomNode destinationEvent = createEventTo(valueTo, nodeChild, origin, destination);
+					destinationIndividual.addChild(destinationEvent);
+				}
+			}
+			noteCitationTo(individual, destinationIndividual, destination);
+			sourceCitationTo(individual, destinationIndividual, origin, destination);
+			final GedcomNode destinationFamilyReference = create("SOURCE");
+			multimediaCitationTo(individual, destinationIndividual, destinationFamilyReference, origin, destination, "TEXT");
+			destinationIndividual.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
+
+			destination.addFamily(destinationIndividual);
+		}
+	}
+
 	/*
 		transfer FAM[EVEN] to FAMILY[EVENT]
 		create EVENT{CHILDREN_COUNT}

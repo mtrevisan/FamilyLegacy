@@ -207,6 +207,7 @@ n WWW <ADDRESS_WEB_PAGE>    {0:3}	/* The world wide web page address. */
 
 ASSOCIATION_STRUCTURE :=
 n ASSO @<XREF:INDI>@    {1:1}	/* An xref ID of an individual record. */
+  +1 TYPE <RELATION_TYPE>    {1:1}	/* Either FAM or INDI. */
   +1 RELA <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
