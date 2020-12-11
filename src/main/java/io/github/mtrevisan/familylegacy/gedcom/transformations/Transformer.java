@@ -46,17 +46,54 @@ public final class Transformer extends TransformerHelper{
 	private static final Map<String, String> FAMILY_TO_FAM = new HashMap<>();
 	private static final String CUSTOM_EVENT_TAG = "@EVENT@";
 	static{
-		FAM_TO_FAMILY.put("ANUL", "ANNULMENT");
-		FAM_TO_FAMILY.put("CENS", "CENSUS");
-		FAM_TO_FAMILY.put("DIV", "DIVORCE");
-		FAM_TO_FAMILY.put("DIVF", "DIVORCE_FILED");
+		//Life related:
+		FAM_TO_FAMILY.put("BIRT", "BIRTH");
+		FAM_TO_FAMILY.put("DSCR", "CHARACTERISTIC");
+		FAM_TO_FAMILY.put("DEAT", "DEATH");
+		FAM_TO_FAMILY.put("BURI", "BURIAL");
+		FAM_TO_FAMILY.put("CREM", "CREMATION");
+
+		//Family related:
+		FAM_TO_FAMILY.put("NCHI", "CHILDREN_COUNT");
+		FAM_TO_FAMILY.put("NMR", "MARRIAGES_COUNT");
+		FAM_TO_FAMILY.put("ADOP", "ADOPTION");
 		FAM_TO_FAMILY.put("ENGA", "ENGAGEMENT");
 		FAM_TO_FAMILY.put("MARB", "MARRIAGE_BANN");
 		FAM_TO_FAMILY.put("MARC", "MARRIAGE_CONTRACT");
-		FAM_TO_FAMILY.put("MARR", "MARRIAGE");
 		FAM_TO_FAMILY.put("MARL", "MARRIAGE_LICENCE");
 		FAM_TO_FAMILY.put("MARS", "MARRIAGE_SETTLEMENT");
+		FAM_TO_FAMILY.put("MARR", "MARRIAGE");
+		FAM_TO_FAMILY.put("DIVF", "DIVORCE_FILED");
+		FAM_TO_FAMILY.put("DIV", "DIVORCE");
+		FAM_TO_FAMILY.put("ANUL", "ANNULMENT");
+
+		//Achievements related:
 		FAM_TO_FAMILY.put("RESI", "RESIDENCE");
+		FAM_TO_FAMILY.put("EDUC", "EDUCATION");
+		FAM_TO_FAMILY.put("GRAD", "GRADUATION");
+		FAM_TO_FAMILY.put("OCCU", "OCCUPATION");
+		FAM_TO_FAMILY.put("RETI", "RETIREMENT");
+
+		//National/government related:
+		FAM_TO_FAMILY.put("CAST", "CASTE");
+		FAM_TO_FAMILY.put("NATI", "NATIONALITY");
+		FAM_TO_FAMILY.put("EMIG", "EMIGRATION");
+		FAM_TO_FAMILY.put("IMMI", "IMMIGRATION");
+		FAM_TO_FAMILY.put("NATU", "NATURALIZATION");
+		FAM_TO_FAMILY.put("CENS", "CENSUS");
+		FAM_TO_FAMILY.put("SSN", "SSN");
+
+		//Possessions and titles related:
+		FAM_TO_FAMILY.put("PROP", "POSSESSION");
+		FAM_TO_FAMILY.put("TITL", "TITLE");
+		FAM_TO_FAMILY.put("WILL", "WILL");
+		FAM_TO_FAMILY.put("PROB", "PROBATE");
+
+		//Religious and social related:
+		FAM_TO_FAMILY.put("RELI", "RELIGION");
+
+		//custom types:
+		FAM_TO_FAMILY.put("FACT", "FACT");
 		FAM_TO_FAMILY.put("EVEN", CUSTOM_EVENT_TAG);
 
 		//fill up inverse relation
@@ -65,6 +102,9 @@ public final class Transformer extends TransformerHelper{
 			if(!CUSTOM_EVENT_TAG.equals(value))
 				FAMILY_TO_FAM.put(value, entry.getKey());
 		}
+
+		//TODO include these ones
+		//[CHR|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|IDNO]
 	}
 
 	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
@@ -75,7 +115,6 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
-	//TODO
 	/*
 	for-each INDI id create INDIVIDUAL
 		INDIVIDUAL.id = INDI.id
@@ -260,9 +299,6 @@ public final class Transformer extends TransformerHelper{
 				destinationIndividual.addChild(destinationAlias);
 			}
 
-			//TODO
-//			for-each INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDIVIDUAL.EVENT
-//			for-each INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDIVIDUAL.EVENT
 			//scan events one by one, maintaining order
 			final List<GedcomNode> nodeChildren = individual.getChildren();
 			for(final GedcomNode nodeChild : nodeChildren){

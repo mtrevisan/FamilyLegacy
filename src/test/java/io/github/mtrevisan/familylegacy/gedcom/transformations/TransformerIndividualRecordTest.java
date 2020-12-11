@@ -31,16 +31,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
-class TransformerFamilyRecordTest{
+class TransformerIndividualRecordTest{
 
 	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
 	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 
 
 	@Test
-	void familyRecordTo(){
+	void individualRecordTo(){
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithID("FAM", "@F1@")
+			.addChild(transformerTo.createWithID("INDI", "@I1@")
+				//TODO
 				.addChildValue("RESN", "RESTRICTION_NOTICE")
 				.addChild(transformerTo.createWithValue("MARR", "Y")
 					.addChild(transformerTo.create("HUSB")
@@ -101,9 +102,9 @@ class TransformerFamilyRecordTest{
 	}
 
 	@Test
-	void familyRecordFrom(){
+	void individualRecordFrom(){
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithID("FAMILY", "@F1@")
+			.addChild(transformerFrom.createWithID("INDIVIDUAL", "@I1@")
 				.addChildValue("TYPE", "marriage")
 				.addChildReference("SPOUSE1", "@I1@")
 				.addChildReference("SPOUSE2", "@I2@")
