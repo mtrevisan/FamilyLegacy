@@ -1,7 +1,11 @@
 direct:
-for-each INDI id create INDIVIDUAL
-	INDIVIDUAL.id = INDI.id
-	for-each INDI.NAME create INDIVIDUAL.NAME
+
+
+reverse:
+for-each INDIVIDUAL id create INDI
+	INDI.id = INDIVIDUAL.id
+	for-each INDIVIDUAL.NAME create INDI.NAME
+		//TODO
 		name-components[name, surname, name-suffix] = INDI.NAME.value
 		INDIVIDUAL.NAME.TYPE.value = INDI.NAME.TYPE.value
 		INDIVIDUAL.NAME.TITLE.value = INDI.NAME.NPFX.value
@@ -58,17 +62,3 @@ for-each INDI id create INDIVIDUAL
 	transfer INDI.NOTE to INDIVIDUAL.NOTE
 	transfer INDI.SOUR,OBJE to INDIVIDUAL.SOURCE
 	INDIVIDUAL.RESTRICTION.value = INDI.RESN.value
-
-
-reverse:
-for-each FAMILY id create FAM
-	FAM.id = FAMILY.id
-	FAM.HUSB.xref = FAMILY.SPOUSE1.xref
-	FAM.WIFE.xref = FAMILY.SPOUSE2.xref
-	for-each CHILD create FAM.CHIL
-		FAM.CHIL.xref = CHILD.xref
-	transfer FAMILY[EVENT] to FAM[EVEN]
-	FAM.NCHI.value = EVENT{CHILDREN_COUNT}.DESCRIPTION.value
-	transfer FAMILY.NOTE to FAM.NOTE
-	transfer SOURCE xref to SOUR,OBJE
-	FAM.RESN.value = FAMILY.RESTRICTION.value

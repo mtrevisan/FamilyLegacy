@@ -907,11 +907,11 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
-	//TODO
 	void individualRecordFrom(final GedcomNode parent, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationIndividual = create("INDI");
 		final List<GedcomNode> individuals = traverseAsList(parent, "INDIVIDUAL");
 		for(final GedcomNode individual : individuals){
+			//TODO
 			destinationIndividual.withID(individual.getID())
 				.addChildValue("HUSB", traverse(individual, "SPOUSE1").getXRef())
 				.addChildValue("WIFE", traverse(individual, "SPOUSE2").getXRef());
