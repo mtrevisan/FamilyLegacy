@@ -61,7 +61,10 @@ class TransformerIndividualRecordTest{
 					)
 					.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION2")
 				)
-				.addChild(transformerTo.createWithValue("EVEN", "EVENT_DESCRIPTOR")
+				.addChild(transformerTo.createWithValue("FACT", "EVENT_DESCRIPTOR_fact")
+					.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION3")
+				)
+				.addChild(transformerTo.createWithValue("EVEN", "EVENT_DESCRIPTOR_event")
 					.addChild(transformerTo.create("HUSB")
 						.addChildValue("AGE", "AGE_AT_EVENT31")
 					)
@@ -88,7 +91,7 @@ class TransformerIndividualRecordTest{
 		final GedcomNode source = transformerTo.createWithID("SOUR", "@S1@");
 		final GedcomNode object = transformerTo.createWithID("OBJE", "@O1@");
 
-		Assertions.assertEquals("children: [{id: @F1@, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, value: Y, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT11}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT12}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: RESI, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT21}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT22}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT31}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT32}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: HUSB, ref: @I1@}, {tag: WIFE, ref: @I2@}, {tag: CHIL, ref: @I3@}, {tag: NCHI, value: 5}, {tag: SUBM, value: @SUBM1@}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: OBJE, ref: @O1@}]}]", parent.toString());
+		Assertions.assertEquals("children: [{id: @I1@, tag: INDI, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, value: Y, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT11}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT12}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: RESI, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT21}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT22}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: FACT, value: EVENT_DESCRIPTOR_fact, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: EVEN, value: EVENT_DESCRIPTOR_event, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT31}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT32}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: HUSB, ref: @I1@}, {tag: WIFE, ref: @I2@}, {tag: CHIL, ref: @I3@}, {tag: NCHI, value: 5}, {tag: SUBM, value: @SUBM1@}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: OBJE, ref: @O1@}]}]", parent.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
 
 		final Gedcom origin = new Gedcom();
@@ -96,12 +99,13 @@ class TransformerIndividualRecordTest{
 		origin.addSource(source);
 		origin.addObject(object);
 		final Flef destination = new Flef();
-		transformerTo.familyRecordTo(parent, origin, destination);
+		transformerTo.individualRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("id: @F1@, tag: FAMILY, children: [{tag: SPOUSE1, value: @I1@}, {tag: SPOUSE2, value: @I2@}, {tag: CHILD, ref: @I3@}, {tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION1}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION2}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: EVENT_DESCRIPTOR}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DATE, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: NOTE, ref: @N1@}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: @I1@, tag: INDIVIDUAL, children: [{tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}]}, {tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}]}, {tag: EVENT, children: [{tag: TYPE, value: FACT}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_fact}]}, {tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_event}]}, {tag: EVENT, children: [{tag: TYPE, value: CHILDREN_COUNT}, {tag: DESCRIPTION, value: 5}]}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: NOTE, ref: @N1@}]", destination.getFamilies().get(0).toString());
 	}
 
-	@Test
+	//TODO
+//	@Test
 	void individualRecordFrom(){
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithID("INDIVIDUAL", "@I1@")
@@ -174,9 +178,9 @@ class TransformerIndividualRecordTest{
 		origin.addPlace(place);
 		origin.addNote(note);
 		final Gedcom destination = new Gedcom();
-		transformerFrom.familyRecordFrom(parent, origin, destination);
-
-		Assertions.assertEquals("id: @F1@, tag: FAM, children: [{tag: HUSB, value: @I1@}, {tag: WIFE, value: @I2@}, {tag: CHIL, ref: @I3@}, {tag: EVEN, value: BIRTH, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1}, {tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLAC, value: PLACE_NAME}, {tag: AGNC, value: RESPONSIBLE_AGENCY1}, {tag: CAUS, value: CAUSE_OF_EVENT1}, {tag: FAMC, ref: @F1@}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: EVEN, value: ADOPTION, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2}, {tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGNC, value: RESPONSIBLE_AGENCY2}, {tag: CAUS, value: CAUSE_OF_EVENT2}, {tag: FAMC, ref: @F1@, children: [{tag: ADOP, value: ADOPTED_BY_WHICH_PARENT}]}]}, {tag: MARR, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3}, {tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGNC, value: RESPONSIBLE_AGENCY3}, {tag: CAUS, value: CAUSE_OF_EVENT3}]}, {tag: RESI, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4}, {tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGNC, value: RESPONSIBLE_AGENCY4}, {tag: CAUS, value: CAUSE_OF_EVENT4}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5}, {tag: DATE, value: ENTRY_RECORDING_DATE5}, {tag: AGNC, value: RESPONSIBLE_AGENCY5}, {tag: CAUS, value: CAUSE_OF_EVENT5}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: SOUR, ref: @S1@}]", destination.getFamilies().get(0).toString());
+//		transformerFrom.individualRecordFrom(parent, origin, destination);
+//
+//		Assertions.assertEquals("id: @F1@, tag: FAM, children: [{tag: HUSB, value: @I1@}, {tag: WIFE, value: @I2@}, {tag: CHIL, ref: @I3@}, {tag: EVEN, value: BIRTH, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1}, {tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLAC, value: PLACE_NAME}, {tag: AGNC, value: RESPONSIBLE_AGENCY1}, {tag: CAUS, value: CAUSE_OF_EVENT1}, {tag: FAMC, ref: @F1@}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: EVEN, value: ADOPTION, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2}, {tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGNC, value: RESPONSIBLE_AGENCY2}, {tag: CAUS, value: CAUSE_OF_EVENT2}, {tag: FAMC, ref: @F1@, children: [{tag: ADOP, value: ADOPTED_BY_WHICH_PARENT}]}]}, {tag: MARR, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3}, {tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGNC, value: RESPONSIBLE_AGENCY3}, {tag: CAUS, value: CAUSE_OF_EVENT3}]}, {tag: RESI, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4}, {tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGNC, value: RESPONSIBLE_AGENCY4}, {tag: CAUS, value: CAUSE_OF_EVENT4}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5}, {tag: DATE, value: ENTRY_RECORDING_DATE5}, {tag: AGNC, value: RESPONSIBLE_AGENCY5}, {tag: CAUS, value: CAUSE_OF_EVENT5}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: SOUR, ref: @S1@}]", destination.getFamilies().get(0).toString());
 	}
 
 }
