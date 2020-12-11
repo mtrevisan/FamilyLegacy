@@ -123,7 +123,7 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
 
 
 GROUP_CITATION :=
-n GROUP @<XREF:GROUP>@    {0:M}	/* An xref ID of a group record. */
+n GROUP @<XREF:GROUP>@    {1:1}	/* An xref ID of a group record. */
   +1 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this person played in the group that is being cited in this context. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
@@ -153,7 +153,7 @@ n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
 /* INDIVIDUAL (attribute) types are: CASTE (the social, religious, or racial caste tow which an individual belongs), TITLE (a title given a person associated with a local or national notion of nobility or royalty), MILITARY_RANK (the military rank acquired by an individual), EDUCATION (an educational degree or attainment), ORIGIN (a group to which a person is associated, typically by birth, like nation or tribe), CHILDREN_COUNT (the known number of children of this individual from all marriages, regardless of whether the associated children are represented in the corresponding structure; this is not necessarily the count of children listed in a family structure), MARRIAGES_COUNT, OCCUPATION (what this person does as a livelihood), POSSESSION (a list of objects or land owned by the person), RELIGION (the name of a religion with which the event was affiliated), RESIDENCE, SSN (Social Security Number), CHARACTERISTIC (physical characteristics of a person, in the format `key1: value1, key2: value2`), <ATTRIBUTE_TYPE> (a descriptive word or phrase used to further classify the attribute tag). */
 EVENT_STRUCTURE :=
 n EVENT    {1:1}
-  +1 TYPE <EVENT_TYPE_OR_ATTRIBUTE_TYPE>    {0:1}	/* Type of a particular event pertaining to the individual or family, or the type of an attribute. */
+  +1 TYPE <EVENT_TYPE_OR_ATTRIBUTE_TYPE>    {1:1}	/* Type of a particular event pertaining to the individual or family, or the type of an attribute. */
   +1 DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or family, or the value of an attribute. */
   +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:1}	/* Only for type `BIRTH`. An xref ID of a family record into which the individual was adopted. */
     +2 ADOPTED_BY <ADOPTED_BY_WHICH_PARENT>    {0:1}	/* Only for type `ADOPTION`. A code which shows which parent in the associated family record adopted this person. Use "SPOUSE1" for husband (usually), "SPOUSE2" for wife (usually), or "BOTH" for both. */
@@ -221,7 +221,7 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
 
 
 CONTACT_STRUCTURE :=
-n CONTACT
+n CONTACT    {1:1}
   +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
     +2 TYPE <PHONE_NUMBER_TYPE>    {0:1}	/* Indicates the phone number type (blog, personal, social, work, etc.). */
     +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
