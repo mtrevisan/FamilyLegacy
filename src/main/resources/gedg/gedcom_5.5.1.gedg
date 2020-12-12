@@ -231,20 +231,6 @@ n FAMC @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 
-EVENT_OR_FACT_DETAIL :=
-n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVEN or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
-n DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
-n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
-n <<ADDRESS_STRUCTURE>>    {0:1}	/* An ADDRESS_STRUCTURE() object giving the address of the event. */
-n AGNC <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
-n RELI <RELIGIOUS_AFFILIATION>    {0:1}	/* A name of the religion with which this person, event, or record was affiliated. */
-n CAUS <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
-n RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
-n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-n <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
-
-
 FAMILY_EVENT_DETAIL :=
 n HUSB    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
@@ -322,11 +308,6 @@ n FACT <ATTRIBUTE_DESCRIPTOR>    {1:1}	/* An attribute which may have caused nam
 ]
 
 
-INDIVIDUAL_EVENT_DETAIL :=
-n <<EVENT_OR_FACT_DETAIL>>    {1:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
-n AGE <AGE_AT_EVENT>    {0:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
-
-
 INDIVIDUAL_EVENT_STRUCTURE :=
 [
 n [ BIRT | CHR ] [ Y | <NULL> ]    {1:1}	/* A code used to indicate the type of individual event. */
@@ -362,6 +343,25 @@ n [ GRAD | RETI ]    {1:1}	/* A code used to indicate the type of individual eve
 n EVEN    {1:1}	/* A code used to indicate the type of individual event. */
   +1 <<INDIVIDUAL_EVENT_DETAIL>>    {0:1}*	/* An INDIVIDUAL_EVENT_DETAIL() object giving details of the event. */
 ]
+
+
+INDIVIDUAL_EVENT_DETAIL :=
+n <<EVENT_OR_FACT_DETAIL>>    {1:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
+n AGE <AGE_AT_EVENT>    {0:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
+
+
+EVENT_OR_FACT_DETAIL :=
+n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVEN or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
+n DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
+n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE_STRUCTURE() object giving the location of the event. */
+n <<ADDRESS_STRUCTURE>>    {0:1}	/* An ADDRESS_STRUCTURE() object giving the address of the event. */
+n AGNC <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
+n RELI <RELIGIOUS_AFFILIATION>    {0:1}	/* A name of the religion with which this person, event, or record was affiliated. */
+n CAUS <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
+n RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
+n <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+n <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
 LDS_INDIVIDUAL_ORDINANCE :=

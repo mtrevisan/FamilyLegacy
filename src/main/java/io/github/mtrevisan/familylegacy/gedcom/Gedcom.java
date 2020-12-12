@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.transformations.DocumentTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
+import io.github.mtrevisan.familylegacy.gedcom.transformations.MultimediaTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
@@ -57,6 +57,7 @@ public class Gedcom extends Store{
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
+	private static final String ID_OBJECT_PREFIX = "O";
 	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEAD";
@@ -66,16 +67,17 @@ public class Gedcom extends Store{
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPO";
 	private static final String TAG_SOURCE = "SOUR";
+	private static final String TAG_OBJECT = "OBJE";
 	private static final String TAG_SUBMITTER = "SUBM";
 	private static final String TAG_CHARSET = "CHAR";
 
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
 	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
 	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
-	private static final Transformation<Gedcom, Flef> DOCUMENT_TRANSFORMATION = new DocumentTransformation();
 	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
 	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
+	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
 	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
 
@@ -86,6 +88,7 @@ public class Gedcom extends Store{
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
 	private List<GedcomNode> sources;
+	private List<GedcomNode> objects;
 	private List<GedcomNode> submitters;
 
 	private Map<String, GedcomNode> individualIndex;
@@ -94,12 +97,14 @@ public class Gedcom extends Store{
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
 	private Map<String, GedcomNode> sourceIndex;
+	private Map<String, GedcomNode> objectIndex;
 	private Map<String, GedcomNode> submitterIndex;
 
-	private Map<GedcomNode, String> documentValue;
-	private Map<GedcomNode, String> noteValue;
-	private Map<GedcomNode, String> repositoryValue;
-	private Map<GedcomNode, String> sourceValue;
+	private Map<Integer, String> documentValue;
+	private Map<Integer, String> noteValue;
+	private Map<Integer, String> repositoryValue;
+	private Map<Integer, String> sourceValue;
+	private Map<Integer, String> objectValue;
 
 
 	public static void main(final String[] args){
@@ -133,7 +138,7 @@ public class Gedcom extends Store{
 
 	public static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
-		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(new File(gedcomFile)))){
+		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;
 			String line;
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
@@ -177,6 +182,7 @@ public class Gedcom extends Store{
 		notes = root.getChildrenWithTag(TAG_NOTE);
 		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
 		sources = root.getChildrenWithTag(TAG_SOURCE);
+		objects = root.getChildrenWithTag(TAG_OBJECT);
 		submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
 		individualIndex = generateIndexes(individuals);
@@ -201,7 +207,7 @@ public class Gedcom extends Store{
 		NOTE_TRANSFORMATION.to(this, destination);
 		REPOSITORY_TRANSFORMATION.to(this, destination);
 		SOURCE_TRANSFORMATION.to(this, destination);
-		DOCUMENT_TRANSFORMATION.to(this, destination);
+		MULTIMEDIA_TRANSFORMATION.to(this, destination);
 		INDIVIDUAL_TRANSFORMATION.to(this, destination);
 		FAMILY_TRANSFORMATION.to(this, destination);
 		return destination;
@@ -314,8 +320,7 @@ public class Gedcom extends Store{
 
 	public String addDocument(final GedcomNode document){
 		//search document
-		final GedcomNode documentCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, document);
-		String documentID = (documentValue != null? documentValue.get(documentCloned): null);
+		String documentID = (!document.isEmpty() && documentValue != null? documentValue.get(document.hashCode()): null);
 		if(documentID == null){
 			//if document is not found:
 			if(documents == null){
@@ -332,7 +337,7 @@ public class Gedcom extends Store{
 
 			documents.add(document);
 			documentIndex.put(documentID, document);
-			documentValue.put(documentCloned, documentID);
+			documentValue.put(document.hashCode(), documentID);
 		}
 		return documentID;
 	}
@@ -351,8 +356,7 @@ public class Gedcom extends Store{
 
 	public String addNote(final GedcomNode note){
 		//search note
-		final GedcomNode noteCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, note);
-		String noteID = (noteValue != null? noteValue.get(noteCloned): null);
+		String noteID = (!note.isEmpty() && noteValue != null? noteValue.get(note.hashCode()): null);
 		if(noteID == null){
 			//if note is not found:
 			if(notes == null){
@@ -369,7 +373,7 @@ public class Gedcom extends Store{
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
-			noteValue.put(noteCloned, noteID);
+			noteValue.put(note.hashCode(), noteID);
 		}
 		return noteID;
 	}
@@ -388,8 +392,7 @@ public class Gedcom extends Store{
 
 	public String addRepository(final GedcomNode repository){
 		//search repository
-		final GedcomNode repositoryCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, repository);
-		String repositoryID = (repositoryValue != null? repositoryValue.get(repositoryCloned): null);
+		String repositoryID = (!repository.isEmpty() && repositoryValue != null? repositoryValue.get(repository.hashCode()): null);
 		if(repositoryID == null){
 			//if repository is not found:
 			if(repositories == null){
@@ -406,7 +409,7 @@ public class Gedcom extends Store{
 
 			repositories.add(repository);
 			repositoryIndex.put(repositoryID, repository);
-			repositoryValue.put(repositoryCloned, repositoryID);
+			repositoryValue.put(repository.hashCode(), repositoryID);
 		}
 		return repositoryID;
 	}
@@ -414,6 +417,7 @@ public class Gedcom extends Store{
 	private String getNextRepositoryID(){
 		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
 	}
+
 
 	public List<GedcomNode> getSources(){
 		return sources;
@@ -425,8 +429,7 @@ public class Gedcom extends Store{
 
 	public String addSource(final GedcomNode source){
 		//search source
-		final GedcomNode sourceCloned = GedcomNodeBuilder.createCloneWithoutID(Protocol.FLEF, source);
-		String sourceID = (sourceValue != null? sourceValue.get(sourceCloned): null);
+		String sourceID = (!source.isEmpty() && sourceValue != null? sourceValue.get(source.hashCode()): null);
 		if(sourceID == null){
 			//if source is not found:
 			if(sources == null){
@@ -443,7 +446,7 @@ public class Gedcom extends Store{
 
 			sources.add(source);
 			sourceIndex.put(sourceID, source);
-			sourceValue.put(sourceCloned, sourceID);
+			sourceValue.put(source.hashCode(), sourceID);
 		}
 		return sourceID;
 	}
@@ -451,6 +454,44 @@ public class Gedcom extends Store{
 	private String getNextSourceID(){
 		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
 	}
+
+
+	public List<GedcomNode> getObjects(){
+		return objects;
+	}
+
+	public GedcomNode getObject(final String id){
+		return objectIndex.get(id);
+	}
+
+	public String addObject(final GedcomNode object){
+		//search object
+		String objectID = (!object.isEmpty() && objectValue != null? objectValue.get(object.hashCode()): null);
+		if(objectID == null){
+			//if object is not found:
+			if(objects == null){
+				objects = new ArrayList<>(1);
+				objectIndex = new HashMap<>(1);
+				objectValue = new HashMap<>(1);
+			}
+
+			objectID = object.getID();
+			if(objectID == null){
+				objectID = getNextObjectID();
+				object.withID(objectID);
+			}
+
+			objects.add(object);
+			objectIndex.put(objectID, object);
+			objectValue.put(object.hashCode(), objectID);
+		}
+		return objectID;
+	}
+
+	private String getNextObjectID(){
+		return ID_OBJECT_PREFIX + (objects != null? objects.size() + 1: 1);
+	}
+
 
 	public List<GedcomNode> getSubmitters(){
 		return submitters;

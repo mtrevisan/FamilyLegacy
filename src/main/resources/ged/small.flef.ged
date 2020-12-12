@@ -1,7 +1,7 @@
 0 HEADER
 1 PROTOCOL FLEF
 2 NAME Family LEgacy Format
-2 VERSION 0.0.2
+2 VERSION 0.0.4
 1 SOURCE PAF
 2 NAME MyCorporation Gedcom Generator
 2 VERSION 5.2.18.0
@@ -115,7 +115,7 @@
 2 TYPE extract
 2 LOCALE en-US
 1 REPOSITORY @R1@
-2 REPOSITORY_LOCATION in that shelf
+2 LOCATION in that shelf
 2 NOTE @N2@
 1 FILE /images/births/birth01.jpg
 2 FORMAT jpg

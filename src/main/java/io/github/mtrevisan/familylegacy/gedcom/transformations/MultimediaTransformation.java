@@ -28,19 +28,19 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
+import java.util.List;
 
-public class HeaderTransformation extends Transformation<Gedcom, Flef>{
+
+public class MultimediaTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
-		final GedcomNode header = origin.getHeader();
-		transformerTo.headerTo(header, destination);
+		final List<GedcomNode> multimedias = origin.getDocuments();
+		for(final GedcomNode multimedia : multimedias)
+			transformerTo.multimediaRecordTo(multimedia, destination);
 	}
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination){
-		final GedcomNode header = origin.getHeader();
-		transformerFrom.headerFrom(header, destination);
-	}
+	public void from(final Flef origin, final Gedcom destination){}
 
 }

@@ -37,92 +37,14 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceRecordTo(source, destination);
+			transformerTo.sourceRecordTo(source, origin, destination);
 	}
-
-	private void sourceRecordTo(final GedcomNode source, final Flef destination){
-		final GedcomNode title = transformerTo.traverse(source, "TITL");
-		final GedcomNode destinationSource = transformerTo.create("SOURCE")
-			.withID(source.getID())
-			.addChildValue("TITLE", title.getValue());
-		String date = null;
-		final List<GedcomNode> events = transformerTo.traverse(source, "DATA")
-			.getChildrenWithTag("EVEN");
-		for(final GedcomNode event : events){
-			if(date == null)
-				date = transformerTo.traverse(event, "DATE")
-					.getValue();
-
-			destinationSource.addChildValue("EVENT", event.getValue());
-		}
-		destinationSource.addChildValue("DATE", date);
-		destinationSource.addChildValue("EXTRACT", transformerTo.traverse(source, "TEXT")
-			.getValue());
-		final String author = transformerTo.traverse(source, "AUTH")
-			.getValue();
-		final String publication = transformerTo.traverse(source, "PUBL")
-			.getValue();
-		final String noteAuthorPublication = transformerTo.joinIfNotNull(", ", author, publication);
-		if(noteAuthorPublication != null){
-			final String noteID = destination.addNote(transformerTo.create("NOTE")
-				.withValue(noteAuthorPublication));
-			destinationSource.addChildReference("NOTE", noteID);
-		}
-		transformerTo.documentTo(source, destinationSource, destination);
-		transformerTo.noteTo(source, destinationSource, destination);
-		sourceRepositoryCitationTo(source, destinationSource, destination);
-
-		destination.addSource(destinationSource);
-	}
-
-	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			if(repository.getXRef() == null){
-				destination.addRepository(destinationRepository);
-
-				transformerTo.noteTo(repository, destinationRepository, destination);
-			}
-			destinationNode.addChild(destinationRepository);
-		}
-	}
-
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceRecordFrom(source, destination);
-	}
-
-	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
-		final GedcomNode destinationSource = transformerFrom.create("SOUR")
-			.withID(source.getID());
-		final String date = transformerFrom.traverse(source, "DATE")
-			.getValue();
-		final GedcomNode destinationData = transformerFrom.create("DATA");
-		final List<GedcomNode> events = source.getChildrenWithTag("EVENT");
-		for(final GedcomNode event : events)
-			destinationData.addChild(transformerFrom.create("EVEN")
-				.withValue(event.getValue())
-				.addChildValue("DATE", date));
-		destinationSource.addChild(destinationData);
-		destinationSource.addChildValue("TITL", transformerFrom.traverse(source, "TITLE")
-			.getValue());
-		destinationSource.addChildValue("TEXT", transformerFrom.traverse(source, "EXTRACT")
-			.getValue());
-		sourceRepositoryCitationFrom(source, destinationSource);
-		transformerFrom.noteFrom(source, destinationSource);
-		transformerFrom.documentFrom(source, destinationSource);
-
-		destination.addSource(destinationSource);
-	}
-
-	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
-		for(final GedcomNode repository : repositories)
-			destinationNode.addChildReference("REPO", repository.getXRef());
+			transformerFrom.sourceRecordFrom(source, destination);
 	}
 
 }

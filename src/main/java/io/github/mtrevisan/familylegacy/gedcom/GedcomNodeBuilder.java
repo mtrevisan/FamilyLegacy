@@ -66,7 +66,20 @@ public abstract class GedcomNodeBuilder{
 			.withTag(tag);
 	}
 
-	public static GedcomNode createWithID(final Protocol protocol, final String tag, final String id, final String value){
+	public static GedcomNode createWithID(final Protocol protocol, final String tag, final String id){
+		if(id == null || id.isEmpty())
+			throw new IllegalArgumentException("ID must be present");
+
+		return create(protocol, tag)
+			.withID(id);
+	}
+
+	public static GedcomNode createWithValue(final Protocol protocol, final String tag, final String value){
+		return create(protocol, tag)
+			.withValue(value);
+	}
+
+	public static GedcomNode createWithIDValue(final Protocol protocol, final String tag, final String id, final String value){
 		if(id == null || id.isEmpty())
 			throw new IllegalArgumentException("ID must be present");
 
@@ -81,15 +94,6 @@ public abstract class GedcomNodeBuilder{
 
 		return create(protocol, tag)
 			.withXRef(xref);
-	}
-
-	public static GedcomNode createCloneWithoutID(final Protocol protocol, final GedcomNode node){
-		final GedcomNode clone = create(protocol, node.getTag())
-			.withXRef(node.getXRef())
-			.withValue(node.getValue());
-		for(final GedcomNode child : node.getChildren())
-			clone.addChild(createCloneWithID(protocol, child));
-		return clone;
 	}
 
 	private static GedcomNode createCloneWithID(final Protocol protocol, final GedcomNode node){
