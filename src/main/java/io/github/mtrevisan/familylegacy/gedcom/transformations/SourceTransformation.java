@@ -27,10 +27,8 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 
 import java.util.List;
-import java.util.StringJoiner;
 
 
 public class SourceTransformation extends Transformation<Gedcom, Flef>{
@@ -39,105 +37,14 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceRecordTo(source, destination);
+			transformerTo.sourceRecordTo(source, origin, destination);
 	}
-
-	private void sourceRecordTo(final GedcomNode source, final Flef destination){
-		final GedcomNode title = transformerTo.traverse(source, "TITL");
-		final GedcomNode destinationSource = transformerTo.create("SOURCE")
-			.withID(source.getID())
-			.addChildValue("TITLE", title.getValue());
-		String date = null;
-		final List<GedcomNode> events = transformerTo.traverse(source, "DATA")
-			.getChildrenWithTag("EVEN");
-		for(final GedcomNode event : events){
-			if(date == null)
-				date = transformerTo.traverse(event, "DATE")
-					.getValue();
-
-			destinationSource.addChildValue("EVENT", event.getValue());
-		}
-		destinationSource.addChildValue("DATE", date);
-		destinationSource.addChildValue("EXTRACT", transformerTo.traverse(source, "TEXT")
-			.getValue());
-		final String author = transformerTo.traverse(source, "AUTH")
-			.getValue();
-		final String publication = transformerTo.traverse(source, "PUBL")
-			.getValue();
-		final String noteAuthorPublication = joinIfNotNull(", ", author, publication);
-		if(noteAuthorPublication != null){
-			final String noteID = destination.addNote(transformerTo.create("NOTE")
-				.withValue(noteAuthorPublication));
-			destinationSource.addChildReference("NOTE", noteID);
-		}
-		//FIXME
-//		transformerTo.multimediaCitationTo(source, destinationSource, destination);
-		transformerTo.noteCitationTo(source, destinationSource, destination);
-		sourceRepositoryCitationTo(source, destinationSource, destination);
-
-		destination.addSource(destinationSource);
-	}
-
-	private String joinIfNotNull(final String separator, final String... components){
-		final StringJoiner sj = new StringJoiner(separator);
-		for(final String component : components)
-			JavaHelper.addValueIfNotNull(sj, component);
-		return (sj.length() > 0? sj.toString(): null);
-	}
-
-	private void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = transformerTo.create("REPOSITORY");
-			transformerTo.noteCitationTo(repository, destinationRepository, destination);
-			if(repository.getXRef() == null)
-				destination.addRepository(destinationRepository);
-
-			destinationNode.addChild(destinationRepository);
-		}
-	}
-
 
 	@Override
 	public void from(final Flef origin, final Gedcom destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			sourceRecordFrom(source, destination, origin);
-	}
-
-	private void sourceRecordFrom(final GedcomNode source, final Gedcom destination, final Flef origin){
-		final GedcomNode destinationSource = transformerFrom.create("SOUR")
-			.withID(source.getID());
-		final String date = transformerFrom.traverse(source, "DATE")
-			.getValue();
-		final GedcomNode destinationData = transformerFrom.create("DATA");
-		final List<GedcomNode> events = source.getChildrenWithTag("EVENT");
-		for(final GedcomNode event : events)
-			destinationData.addChild(transformerFrom.create("EVEN")
-				.withValue(event.getValue())
-				.addChildValue("DATE", date));
-		destinationSource.addChild(destinationData);
-		destinationSource.addChildValue("TITL", transformerFrom.traverse(source, "TITLE")
-			.getValue());
-		destinationSource.addChildValue("TEXT", transformerFrom.traverse(source, "EXTRACT")
-			.getValue());
-		sourceRepositoryCitationFrom(source, destinationSource);
-		transformerFrom.noteCitationFrom(source, destinationSource);
-		//FIXME
-//		transformerFrom.multimediaCitationFrom(source, destinationSource, origin);
-
-		destination.addSource(destinationSource);
-	}
-
-	private void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = transformerFrom.create("REPO")
-				.withXRef(repository.getXRef());
-			transformerFrom.noteCitationFrom(repository, destinationRepository);
-
-			destinationNode.addChild(destinationRepository);
-		}
+			transformerFrom.sourceRecordFrom(source, destination);
 	}
 
 }

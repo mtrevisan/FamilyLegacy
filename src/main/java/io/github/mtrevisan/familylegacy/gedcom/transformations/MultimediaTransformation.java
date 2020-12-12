@@ -35,18 +35,12 @@ public class MultimediaTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
-		//TODO
-//		final List<GedcomNode> multimedias = origin.getDocuments();
-//		for(final GedcomNode multimedia : multimedias)
-//			multimediaRecordTo(multimedia, destination);
+		final List<GedcomNode> multimedias = origin.getDocuments();
+		for(final GedcomNode multimedia : multimedias)
+			transformerTo.multimediaRecordTo(multimedia, destination);
 	}
 
 	@Override
-	public void from(final Flef origin, final Gedcom destination){
-		//TODO
-//		final List<GedcomNode> multimedias = origin.getMultimedias();
-//		for(final GedcomNode multimedia : multimedias)
-//			multimediaRecordFrom(multimedia, destination);
-	}
+	public void from(final Flef origin, final Gedcom destination){}
 
 }

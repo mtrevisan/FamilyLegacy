@@ -39,47 +39,44 @@ class TransformerRepositoryRecordTest{
 
 	@Test
 	void repositoryRecordTo(){
-		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithID("REPO", "@R1@"))
+		final GedcomNode repository = transformerTo.createWithID("REPO", "@R1@")
 			.addChildValue("NAME", "NAME_OF_REPOSITORY")
 			.addChildValue("ADDR", "ADDRESS_LINE")
 			.addChildReference("NOTE", "@N1@");
 		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
 
-		Assertions.assertEquals("children: [{id: @R1@, tag: REPO}, {tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_LINE}, {tag: NOTE, ref: @N1@}]", parent.toString());
+		Assertions.assertEquals("id: @R1@, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_LINE}, {tag: NOTE, ref: @N1@}]", repository.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
 
-		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
-		transformerTo.repositoryRecordTo(parent, destinationNode, destination);
+		transformerTo.repositoryRecordTo(repository, destination);
 
-		Assertions.assertEquals("children: [{id: @R1@, tag: REPOSITORY, children: [{tag: PLACE, ref: P1}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: @R1@, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: @N1@}]", destination.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
 	void repositoryRecordFrom(){
-		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithID("REPOSITORY", "@R1@")
-				.addChildValue("NAME", "NAME_OF_REPOSITORY")
-				.addChildValue("INDIVIDUAL", "@I1@")
-				.addChildValue("PLACE", "@P1@")
-				.addChildValue("PHONE", "PHONE_NUMBER")
-				.addChildReference("NOTE", "@N1@")
-			);
+		final GedcomNode repository = transformerFrom.createWithID("REPOSITORY", "@R1@")
+			.addChildValue("NAME", "NAME_OF_REPOSITORY")
+			.addChildReference("INDIVIDUAL", "@I1@")
+			.addChildReference("PLACE", "@P1@")
+			.addChildValue("PHONE", "PHONE_NUMBER")
+			.addChildReference("NOTE", "@N1@");
 		final GedcomNode place = transformerTo.createWithID("PLACE", "@P1@")
 			.addChildValue("NAME", "PLACE_NAME");
 		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
 
-		Assertions.assertEquals("children: [{id: @R1@, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, value: @I1@}, {tag: PLACE, value: @P1@}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
+		Assertions.assertEquals("id: @R1@, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: @I1@}, {tag: PLACE, ref: @P1@}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: @N1@}]", repository.toString());
 
-		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
+		origin.addRepository(repository);
 		origin.addPlace(place);
 		origin.addNote(note);
-		transformerFrom.repositoryRecordFrom(parent, destinationNode, origin);
+		final Gedcom destination = new Gedcom();
+		transformerFrom.repositoryRecordFrom(repository, origin, destination);
 
-		Assertions.assertEquals("children: [{id: @R1@, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: @R1@, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLAC, value: PLACE_NAME}, {tag: NOTE, ref: @N1@}]", destination.getRepositories().get(0).toString());
 	}
 
 }

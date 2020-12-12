@@ -368,7 +368,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			for(final GedcomNode name : names){
 				final String title = store.traverse(name, "TITLE")
 					.getValue();
-				final GedcomNode personalName = store.traverse(name, "PERSONAL_NAME");
+				final GedcomNode personalName = store.traverse(name, "INDIVIDUAL_NAME");
 				final String nameSuffix = store.traverse(personalName, "NAME_SUFFIX")
 					.getValue();
 				final String familyName = store.traverse(name, "FAMILY_NAME")

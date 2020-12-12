@@ -39,19 +39,15 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteRecordTo(){
-		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT"));
-		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
+		final GedcomNode note = transformerTo.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
 
-		Assertions.assertEquals("children: [{id: @N1@, tag: NOTE, value: SUBMITTER_TEXT}]", parent.toString());
-		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
 
-		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
 		destination.addNote(note);
-		transformerTo.noteRecordTo(parent, destinationNode, destination);
+		transformerTo.noteRecordTo(note, destination);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test
@@ -88,16 +84,13 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteRecordFrom(){
-		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT"));
+		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
 
-		Assertions.assertEquals("children: [{id: @N1@, tag: NOTE, value: SUBMITTER_TEXT}]", parent.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
 
-		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Gedcom destination = new Gedcom();
-		transformerFrom.noteRecordFrom(parent, destinationNode, destination);
+		transformerFrom.noteRecordFrom(note, destination);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 

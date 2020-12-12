@@ -205,7 +205,7 @@ public class TransformerHelper{
 			for(final String component : components){
 				final Matcher m = RegexHelper.matcher(component, PATH_COMPONENTS);
 				if(m.find()){
-					final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
+					final List<GedcomNode> nodes = new ArrayList<>(pointer.getChildren());
 					final String tag = m.group(PARAM_TAG);
 					removeNodeIf(nodes, tag, GedcomNode::getTag);
 					removeNodeIf(nodes, m.group(PARAM_VALUE), GedcomNode::getValue);

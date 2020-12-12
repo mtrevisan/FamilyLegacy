@@ -63,7 +63,6 @@ n <<SUBMITTER_RECORD>>    {1:1}
 ]
 
 
-/* TODO */
 FAMILY_RECORD :=
 n @<XREF:FAM>@ FAM    {1:1}	/* An xref ID of a family record. */
   +1 RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
@@ -83,7 +82,6 @@ n @<XREF:FAM>@ FAM    {1:1}	/* An xref ID of a family record. */
   +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
-/* TODO */
 INDIVIDUAL_RECORD :=
 n @<XREF:INDI>@ INDI    {1:1}	/* An xref ID of an individual record. */
   +1 RESN <RESTRICTION_NOTICE>    {0:1}	/* The restriction notice is defined for Ancestral File usage. Ancestral File download GEDCOM files may contain this data. */
@@ -110,7 +108,6 @@ n @<XREF:INDI>@ INDI    {1:1}	/* An xref ID of an individual record. */
   +1 <<MULTIMEDIA_LINK>>    {0:M}	/* A list of MULTIMEDIA_LINK() objects. */
 
 
-/* TODO */
 MULTIMEDIA_RECORD :=
 n @<XREF:OBJE>@ OBJE    {1:1}	/* An xref ID of a multimedia record. */
   +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
@@ -135,7 +132,6 @@ n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. +
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-/* TODO */
 REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPO>@ REPO    {1:1}	/* An xref ID of a repository record. */
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
@@ -186,7 +182,6 @@ n @<XREF:SUBN>@ SUBN    {1:1}	/* An xref ID of a submission record. */
   +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
 
 
-/* TODO */
 SUBMITTER_RECORD :=
 n @<XREF:SUBM>@ SUBM    {1:1}	/* An xref ID of a submitter record. */
   +1 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
@@ -215,7 +210,6 @@ n FAX <ADDRESS_FAX>    {0:3}	/* A FAX telephone number appropriate for sending d
 n WWW <ADDRESS_WEB_PAGE>    {0:3}	/* The world wide web page address. */
 
 
-/* TODO */
 ASSOCIATION_STRUCTURE :=
 n ASSO @<XREF:INDI>@    {1:1}	/* An xref ID of an individual record. */
   +1 RELA <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. */
@@ -237,7 +231,6 @@ n FAMC @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 
-/* TODO */
 FAMILY_EVENT_DETAIL :=
 n HUSB    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
@@ -246,7 +239,6 @@ n WIFE    {0:1}
 n <<EVENT_OR_FACT_DETAIL>>    {0:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
 
 
-/* TODO */
 FAMILY_EVENT_STRUCTURE :=
 [
 n [ ANUL | CENS | DIV | DIVF ]    {1:1}	/* A code used to indicate the type of family event. */
@@ -269,7 +261,6 @@ n EVEN [ <EVENT_DESCRIPTOR> | <NULL> ]    {1:1}	/* A code used to indicate the t
 ]
 
 
-/* TODO */
 INDIVIDUAL_ATTRIBUTE_STRUCTURE :=
 [
 n CAST <CASTE_NAME>    {1:1}	/* An attribute which may have caused name, addresses, phone numbers, family listings to be recorded. Its application is in helping to classify sources used for information. */
@@ -317,7 +308,6 @@ n FACT <ATTRIBUTE_DESCRIPTOR>    {1:1}	/* An attribute which may have caused nam
 ]
 
 
-/* TODO */
 INDIVIDUAL_EVENT_STRUCTURE :=
 [
 n [ BIRT | CHR ] [ Y | <NULL> ]    {1:1}	/* A code used to indicate the type of individual event. */
@@ -355,13 +345,11 @@ n EVEN    {1:1}	/* A code used to indicate the type of individual event. */
 ]
 
 
-/* TODO */
 INDIVIDUAL_EVENT_DETAIL :=
 n <<EVENT_OR_FACT_DETAIL>>    {1:1}	/* An EVENT_OR_FACT_DETAIL() object giving details of the event. */
 n AGE <AGE_AT_EVENT>    {0:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
 
 
-/* TODO */
 EVENT_OR_FACT_DETAIL :=
 n TYPE <EVENT_OR_FACT_CLASSIFICATION>    {0:1}	/* A descriptive word or phrase used to further classify the parent event or attribute tag. This should be used whenever either of the generic EVEN or FACT tags are used. The value of this primative is responsible for classifying the generic event or fact being cited. */
 n DATE <DATE_VALUE>    {0:1}	/* A date_value() object giving the date of the event. */
@@ -440,7 +428,6 @@ n NOTE [ <SUBMITTER_TEXT> | <NULL> ]    {1:1}	/* Comments or opinions from the s
 ]
 
 
-/* TODO */
 PERSONAL_NAME_STRUCTURE :=
 n NAME <NAME_PERSONAL>    {1:1}	/* The surname of an individual, if known, is enclosed between two slash (/) characters. The order of the name parts should be the order that the person would, by custom of their culture, have used when giving it to a recorder. */
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. */
@@ -452,7 +439,7 @@ n NAME <NAME_PERSONAL>    {1:1}	/* The surname of an individual, if known, is en
     +2 TYPE <ROMANIZED_TYPE>    {1:1}	 /* Indicates the method used in transforming the text to a romanized variation. */
     +2 <<PERSONAL_NAME_PIECES>>    {0:1}	/* A list of PERSONAL_NAME_PIECES() objects giving the components of the romanized name variations. */
 
-/* TODO */
+
 PERSONAL_NAME_PIECES :=
 n NPFX <NAME_PIECE_PREFIX>    {0:1}	/* Non indexing name piece that appears preceding the given name and surname parts. Different name prefix parts are separated by a comma. */
 n GIVN <NAME_PIECE_GIVEN>    {0:1}	/* Given name or earned name. Different given names are separated by a comma. */

@@ -44,7 +44,7 @@ public final class Transformer extends TransformerHelper{
 
 	private static final Map<String, String> FAM_TO_FAMILY = new HashMap<>();
 	private static final Map<String, String> FAMILY_TO_FAM = new HashMap<>();
-	private static final String CUSTOM_EVENT_TAG = "@EVENT@";
+	private static final String CUSTOM_EVENT_TAG = "@event@";
 	static{
 		//Life related:
 		FAM_TO_FAMILY.put("BIRT", "BIRTH");
@@ -155,9 +155,6 @@ public final class Transformer extends TransformerHelper{
 		INDIVIDUAL.SEX.value = INDI.SEX.value
 		for-each INDI.FAMC create INDIVIDUAL.FAMILY_CHILD
 			INDIVIDUAL.FAMILY_CHILD.xref = INDI.FAMC.xref
-			INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT1.value = INDI.FAMC.PEDI.value
-			INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT2.value = INDI.FAMC.PEDI.value
-			INDIVIDUAL.FAMILY_CHILD.CERTAINTY.value = INDI.FAMC.STAT.value
 			transfer INDI.FAMC.NOTE to INDIVIDUAL.FAMILY_CHILD.NOTE
 		for-each INDI.FAMS create INDIVIDUAL.FAMILY_SPOUSE
 			INDIVIDUAL.FAMILY_SPOUSE.xref = INDI.FAMS.xref
@@ -171,152 +168,165 @@ public final class Transformer extends TransformerHelper{
 		for-each INDI.ALIA create INDIVIDUAL.ALIAS
 			INDIVIDUAL.ALIAS.xref = INDI.ALIA.xref
 		for-each INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDIVIDUAL.EVENT
+		for-each INDI.FAMC create INDIVIDUAL.FAMILY_CHILD
+			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT1.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT2.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.CERTAINTY.value = INDI.FAMC.STAT.value
 		for-each INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDIVIDUAL.EVENT
 		transfer INDI.NOTE to INDIVIDUAL.NOTE
 		transfer INDI.SOUR,OBJE to INDIVIDUAL.SOURCE
 		INDIVIDUAL.RESTRICTION.value = INDI.RESN.value
 	*/
-	void individualRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
-		final GedcomNode destinationIndividual = create("INDIVIDUAL");
-		final List<GedcomNode> individuals = traverseAsList(parent, "INDI");
-		for(final GedcomNode individual : individuals){
-			destinationIndividual.withID(individual.getID());
-			final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
-			for(final GedcomNode nameStructure : nameStructures){
-				String givenName = traverse(nameStructure, "GIVN").getValue();
-				String personalNameSuffix = traverse(nameStructure, "NSFX").getValue();
-				String surname = composeSurname(nameStructure, "SPFX", "SURN");
-				final String nameValue = nameStructure.getValue();
-				if(nameValue != null){
-					final int surnameBeginIndex = nameValue.indexOf('/');
-					final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
-					if(givenName == null && surnameBeginIndex > 0)
-						givenName = nameValue.substring(0, surnameBeginIndex - 1);
-					if(personalNameSuffix == null && surnameEndIndex >= 0)
-						personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
-					if(surname == null && surnameBeginIndex >= 0)
-						surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
-				}
+	void individualRecordTo(final GedcomNode individual, final Gedcom origin, final Flef destination){
+		final GedcomNode destinationIndividual = createWithID("INDIVIDUAL", individual.getID());
+		final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
+		for(final GedcomNode nameStructure : nameStructures){
+			String givenName = traverse(nameStructure, "GIVN").getValue();
+			String personalNameSuffix = traverse(nameStructure, "NSFX").getValue();
+			String surname = composeSurname(nameStructure, "SPFX", "SURN");
+			final String nameValue = nameStructure.getValue();
+			if(nameValue != null){
+				final int surnameBeginIndex = nameValue.indexOf('/');
+				final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
+				if(givenName == null && surnameBeginIndex > 0)
+					givenName = nameValue.substring(0, surnameBeginIndex - 1);
+				if(personalNameSuffix == null && surnameEndIndex >= 0)
+					personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
+				if(surname == null && surnameBeginIndex >= 0)
+					surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
+			}
 
-				final GedcomNode destinationName = create("NAME")
-					.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
-					.addChild(createWithValue("TITLE", traverse(nameStructure, "NPFX").getValue())
+			final GedcomNode destinationName = create("NAME")
+				.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
+				.addChild(createWithValue("TITLE", traverse(nameStructure, "NPFX").getValue())
+					.addChild(create("PHONETIC")
+						.addChildValue("VALUE", traverse(nameStructure, "FONE.NPFX").getValue())
+					)
+					.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+						.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+						.addChildValue("VALUE", traverse(nameStructure, "ROMN.NPFX").getValue())
+					)
+					.addChild(createWithValue("INDIVIDUAL_NAME", givenName)
 						.addChild(create("PHONETIC")
-							.addChildValue("VALUE", traverse(nameStructure, "FONE.NPFX").getValue())
+							.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
 						)
 						.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
 							.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-							.addChildValue("VALUE", traverse(nameStructure, "ROMN.NPFX").getValue())
+							.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
 						)
-						.addChild(createWithValue("PERSONAL_NAME", givenName)
+						.addChild(createWithValue("NAME_SUFFIX", personalNameSuffix)
 							.addChild(create("PHONETIC")
-								.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
+								.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
 							)
 							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
 								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-								.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
-							)
-							.addChild(createWithValue("NAME_SUFFIX", personalNameSuffix)
-								.addChild(create("PHONETIC")
-									.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
-								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
-								)
-							)
-							.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
-								.addChild(create("PHONETIC")
-									.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
-								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
-								)
-							)
-							.addChild(createWithValue("FAMILY_NAME", surname)
-								.addChild(create("PHONETIC")
-									.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
-								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-									.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
-								)
+								.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
 							)
 						)
-					);
-				destinationIndividual.addChild(destinationName);
-				noteCitationTo(nameStructure, destinationIndividual, destination);
-				noteCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, destination);
-				noteCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, destination);
-				sourceCitationTo(nameStructure, destinationIndividual, origin, destination);
-				sourceCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, origin, destination);
-				sourceCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, origin, destination);
-			}
-
-			destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
-			final List<GedcomNode> children = traverseAsList(individual, "FAMC");
-			for(final GedcomNode child : children){
-				final String pedigree = traverse(child, "FAMC.PEDI").getValue();
-				final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", child.getXRef())
-					.addChild(create("PEDIGREE")
-						.addChildValue("PARENT1", pedigree)
-						.addChildValue("PARENT2", pedigree)
+						.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
+							.addChild(create("PHONETIC")
+								.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
+							)
+							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
+							)
+						)
+						.addChild(createWithValue("FAMILY_NAME", surname)
+							.addChild(create("PHONETIC")
+								.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
+							)
+							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
+							)
+						)
 					)
-					.addChildValue("CERTAINTY", traverse(child, "FAMC.STAT").getValue());
-				noteCitationTo(child, destinationFamilyChild, destination);
-
-				destinationIndividual.addChild(destinationFamilyChild);
-			}
-			final List<GedcomNode> spouses = traverseAsList(individual, "FAMS");
-			for(final GedcomNode spouse : spouses){
-				final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", spouse.getXRef());
-				noteCitationTo(spouse, destinationFamilySpouse, destination);
-
-				destinationIndividual.addChild(destinationFamilySpouse);
-			}
-			final List<GedcomNode> associations = traverseAsList(individual, "ASSO");
-			for(final GedcomNode association : associations){
-				String type = traverse(association, "ASSO.TYPE").getValue();
-				if("FAM".equals(type))
-					type = "family";
-				else if("INDI".equals(type))
-					type = "individual";
-				//otherwise ignore
-				final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
-					.addChildValue("TYPE", type)
-					.addChildValue("RELATIONSHIP", traverse(association, "ASSO.RELA").getValue());
-				noteCitationTo(association, destinationAssociation, destination);
-				sourceCitationTo(association, destinationAssociation, origin, destination);
-
-				destinationIndividual.addChild(destinationAssociation);
-			}
-			final List<GedcomNode> aliases = traverseAsList(individual, "ALIA");
-			for(final GedcomNode alias : aliases){
-				final GedcomNode destinationAlias = createWithReference("ALIAS", alias.getXRef());
-
-				destinationIndividual.addChild(destinationAlias);
-			}
-
-			//scan events one by one, maintaining order
-			final List<GedcomNode> nodeChildren = individual.getChildren();
-			for(final GedcomNode nodeChild : nodeChildren){
-				final String tagFrom = nodeChild.getTag();
-				final String valueTo = FAM_TO_FAMILY.get(tagFrom);
-				if(valueTo != null){
-					final GedcomNode destinationEvent = createEventTo(valueTo, nodeChild, origin, destination);
-					destinationIndividual.addChild(destinationEvent);
-				}
-			}
-
-			noteCitationTo(individual, destinationIndividual, destination);
-			sourceCitationTo(individual, destinationIndividual, origin, destination);
-			final GedcomNode destinationFamilyReference = create("SOURCE");
-			multimediaCitationTo(individual, destinationIndividual, destinationFamilyReference, origin, destination, "TEXT");
-			destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
-
-			destination.addFamily(destinationIndividual);
+				);
+			destinationIndividual.addChild(destinationName);
+			noteCitationTo(nameStructure, destinationIndividual, destination);
+			noteCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, destination);
+			noteCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, destination);
+			sourceCitationTo(nameStructure, destinationIndividual, origin, destination);
+			sourceCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, origin, destination);
+			sourceCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, origin, destination);
 		}
+
+		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
+		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMC[]");
+		for(final GedcomNode familyChild : familyChildren){
+			final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", familyChild.getXRef());
+			noteCitationTo(familyChild, destinationFamilyChild, destination);
+
+			destinationIndividual.addChild(destinationFamilyChild);
+		}
+		final List<GedcomNode> spouses = traverseAsList(individual, "FAMS[]");
+		for(final GedcomNode spouse : spouses){
+			final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", spouse.getXRef());
+			noteCitationTo(spouse, destinationFamilySpouse, destination);
+
+			destinationIndividual.addChild(destinationFamilySpouse);
+		}
+		final List<GedcomNode> associations = traverseAsList(individual, "ASSO[]");
+		for(final GedcomNode association : associations){
+			String type = traverse(association, "ASSO.TYPE").getValue();
+			if("FAM".equals(type))
+				type = "family";
+			else if("INDI".equals(type))
+				type = "individual";
+			//otherwise ignore
+			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
+				.addChildValue("TYPE", type)
+				.addChildValue("RELATIONSHIP", traverse(association, "ASSO.RELA").getValue());
+			noteCitationTo(association, destinationAssociation, destination);
+			sourceCitationTo(association, destinationAssociation, origin, destination);
+
+			destinationIndividual.addChild(destinationAssociation);
+		}
+		final List<GedcomNode> aliases = traverseAsList(individual, "ALIA[]");
+		for(final GedcomNode alias : aliases){
+			final GedcomNode destinationAlias = createWithReference("ALIAS", alias.getXRef());
+
+			destinationIndividual.addChild(destinationAlias);
+		}
+
+		//scan events one by one, maintaining order
+		final List<GedcomNode> nodeChildren = individual.getChildren();
+		for(final GedcomNode nodeChild : nodeChildren){
+			final String tagFrom = nodeChild.getTag();
+			final String valueTo = FAM_TO_FAMILY.get(tagFrom);
+			if(valueTo != null){
+				final GedcomNode destinationEvent = createEventTo(valueTo, nodeChild, origin, destination);
+
+				//if event is adoption and family is the same, then copy over pedigree
+				final GedcomNode destinationFamilyChild = traverse(destinationEvent, "FAMILY_CHILD");
+				for(final GedcomNode familyChild : familyChildren){
+					if(familyChild.getXRef().equals(destinationFamilyChild.getXRef())){
+						final String pedigree = traverse(familyChild, "FAMC.PEDI").getValue();
+						destinationFamilyChild
+							.addChild(create("PEDIGREE")
+								.addChildValue("PARENT1", pedigree)
+								.addChildValue("PARENT2", pedigree)
+							)
+							.addChildValue("CERTAINTY", traverse(familyChild, "FAMC.STAT").getValue());
+
+						destinationIndividual.addChild(destinationFamilyChild);
+
+						break;
+					}
+				}
+
+				destinationIndividual.addChild(destinationEvent);
+			}
+		}
+
+		noteCitationTo(individual, destinationIndividual, destination);
+		sourceCitationTo(individual, destinationIndividual, origin, destination);
+		final GedcomNode destinationFamilyReference = create("SOURCE");
+		multimediaCitationTo(individual, destinationIndividual, destinationFamilyReference, origin, destination, "TEXT");
+		destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
+
+		destination.addIndividual(destinationIndividual);
 	}
 
 	private String composeSurname(final GedcomNode nameStructure, final String surnamePrefixTag, final String surnameTag){
@@ -338,34 +348,30 @@ public final class Transformer extends TransformerHelper{
 		transfer SOUR,OBJE xref to SOURCE
 		FAMILY.RESTRICTION.value = FAM.RESN.value
 	*/
-	void familyRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
-		final GedcomNode destinationFamily = create("FAMILY");
-		final List<GedcomNode> families = traverseAsList(parent, "FAM");
-		for(final GedcomNode family : families){
-			destinationFamily.withID(family.getID())
-				.addChildValue("SPOUSE1", traverse(family, "HUSB").getXRef())
-				.addChildValue("SPOUSE2", traverse(family, "WIFE").getXRef());
-			final List<GedcomNode> children = traverseAsList(family, "CHIL");
-			for(final GedcomNode child : children)
-				destinationFamily.addChildReference("CHILD", child.getXRef());
-			//scan events one by one, maintaining order
-			final List<GedcomNode> nodeChildren = family.getChildren();
-			for(final GedcomNode nodeChild : nodeChildren){
-				final String tagFrom = nodeChild.getTag();
-				final String valueTo = FAM_TO_FAMILY.get(tagFrom);
-				if(valueTo != null){
-					final GedcomNode destinationEvent = createEventTo(valueTo, nodeChild, origin, destination);
-					destinationFamily.addChild(destinationEvent);
-				}
+	void familyRecordTo(final GedcomNode family, final Gedcom origin, final Flef destination){
+		final GedcomNode destinationFamily = createWithID("FAMILY", family.getID())
+			.addChildValue("SPOUSE1", traverse(family, "HUSB").getXRef())
+			.addChildValue("SPOUSE2", traverse(family, "WIFE").getXRef());
+		final List<GedcomNode> children = traverseAsList(family, "CHIL[]");
+		for(final GedcomNode child : children)
+			destinationFamily.addChildReference("CHILD", child.getXRef());
+		//scan events one by one, maintaining order
+		final List<GedcomNode> nodeChildren = family.getChildren();
+		for(final GedcomNode nodeChild : nodeChildren){
+			final String tagFrom = nodeChild.getTag();
+			final String valueTo = FAM_TO_FAMILY.get(tagFrom);
+			if(valueTo != null){
+				final GedcomNode destinationEvent = createEventTo(valueTo, nodeChild, origin, destination);
+				destinationFamily.addChild(destinationEvent);
 			}
-			noteCitationTo(family, destinationFamily, destination);
-			sourceCitationTo(family, destinationFamily, origin, destination);
-			final GedcomNode destinationFamilyReference = create("SOURCE");
-			multimediaCitationTo(family, destinationFamily, destinationFamilyReference, origin, destination, "TEXT");
-			destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
-
-			destination.addFamily(destinationFamily);
 		}
+		noteCitationTo(family, destinationFamily, destination);
+		sourceCitationTo(family, destinationFamily, origin, destination);
+		final GedcomNode destinationFamilyReference = create("SOURCE");
+		multimediaCitationTo(family, destinationFamily, destinationFamilyReference, origin, destination, "TEXT");
+		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
+
+		destination.addFamily(destinationFamily);
 	}
 
 	/*
@@ -386,13 +392,17 @@ public final class Transformer extends TransformerHelper{
 		if(!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"MARRIAGE".equals(valueTo))
 			destinationEvent.addChildValue("DESCRIPTION", event.getValue());
 		final GedcomNode familyChild = traverse(event, "FAMC");
-		if(!familyChild.isEmpty())
+		if(!familyChild.isEmpty()){
+			final String adoptedBy = traverse(familyChild, "ADOP").getValue();
 			//EVEN BIRT
-			destinationEvent.addChild(create("FAMILY_CHILD")
-				.withXRef(familyChild.getXRef())
+			destinationEvent.addChild(createWithReference("FAMILY_CHILD", familyChild.getXRef())
 				//EVEN ADOP
-				.addChildValue("ADOPTED_BY", traverse(familyChild, "ADOP").getValue())
+				.addChild(create("PEDIGREE")
+					.addChildValue("PARENT1", ("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy)? "adopted": null))
+					.addChildValue("PARENT2", ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy)? "adopted": null))
+				)
 			);
+		}
 		final String value = traverse(event, "DATE").getValue();
 		if(value != null)
 			destinationEvent.addChild(create("DATE")
@@ -426,8 +436,7 @@ public final class Transformer extends TransformerHelper{
 		HEADER.SUBMITTER.xref = HEAD.SUBM.xref
 		HEADER.NOTE.value = HEAD.NOTE.value
 	*/
-	void headerTo(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode header = parent.getChildrenWithTag("HEAD").get(0);
+	void headerTo(final GedcomNode header, final Flef destination){
 		final GedcomNode source = traverse(header, "SOUR");
 		final GedcomNode date = traverse(header, "DATE");
 		final GedcomNode time = traverse(date, "TIME");
@@ -451,7 +460,7 @@ public final class Transformer extends TransformerHelper{
 			.addChildReference("SUBMITTER", traverse(header, "SUBM").getXRef())
 			.addChildValue("NOTE", traverse(header, "NOTE").getValue());
 
-		destinationNode.addChild(destinationHeader);
+		destination.setHeader(destinationHeader);
 	}
 
 	/*
@@ -469,9 +478,10 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.TYPE.value
 			remember which one has the _PREF tag
 	*/
+	//FIXME what to do with destinationSourceReference?
 	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final GedcomNode destinationSourceReference,
 			final Gedcom origin, final Flef destination, final String extractionsTag){
-		final List<GedcomNode> objects = traverseAsList(parent, "OBJE");
+		final List<GedcomNode> objects = traverseAsList(parent, "OBJE[]");
 		for(final GedcomNode object : objects){
 			final List<GedcomNode> files;
 			final String multimediaXRef = object.getXRef();
@@ -481,7 +491,7 @@ public final class Transformer extends TransformerHelper{
 				//FIXME source with ID and object with ID: what to do?
 				if(destinationNode.getID() == null)
 					destinationNode.withXRef(multimediaXRef);
-				files = traverseAsList(multimediaRecord, "FILE");
+				files = traverseAsList(multimediaRecord, "FILE[]");
 				String mediaType = null;
 				for(int i = 0; mediaType == null && i < files.size(); i ++)
 					mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
@@ -493,7 +503,7 @@ public final class Transformer extends TransformerHelper{
 				noteCitationTo(multimediaRecord, destinationNode, destination);
 			}
 			else{
-				files = traverseAsList(object, "FILE");
+				files = traverseAsList(object, "FILE[]");
 				destinationNode.addChildValue("MEDIA_TYPE", traverse(object, "FORM.TYPE").getValue());
 				final String title = traverse(object, "TITL").getValue();
 				for(final GedcomNode file : files)
@@ -511,10 +521,10 @@ public final class Transformer extends TransformerHelper{
 			}
 		}
 
-			final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
-			assignExtractionsTo(extracts, destinationNode);
-			noteCitationTo(parent, destinationNode, destination);
-			destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
+		final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
+		assignExtractionsTo(extracts, destinationNode);
+		noteCitationTo(parent, destinationNode, destination);
+		destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
 	}
 
 	/*
@@ -522,7 +532,7 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
 	*/
 	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
-		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE");
+		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE[]");
 		if(extracts.size() > destinationFiles.size()){
 			//collect all extractions and assign to first
 			final StringJoiner sj = new StringJoiner("\n");
@@ -547,29 +557,24 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
 		transfer OBJE.NOTE to SOURCE.NOTE
 	*/
-	void multimediaRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void multimediaRecordTo(final GedcomNode object, final Flef destination){
 		final GedcomNode destinationSource = create("SOURCE");
-		final List<GedcomNode> objects = traverseAsList(parent, "OBJE");
-		for(final GedcomNode object : objects){
-			final List<GedcomNode> files = traverseAsList(object, "FILE");
-			String mediaType = null;
-			for(int i = 0; mediaType == null && i < files.size(); i ++)
-				mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
-			destinationSource.addChildValue("MEDIA_TYPE", mediaType);
-			for(final GedcomNode file : files)
-				destinationSource.addChild(createWithValue("FILE", file.getValue())
-					.addChildValue("DESCRIPTION", traverse(file, "TITL").getValue())
-				);
-			noteCitationTo(object, destinationSource, destination);
-		}
+		final List<GedcomNode> files = traverseAsList(object, "FILE[]");
+		String mediaType = null;
+		for(int i = 0; mediaType == null && i < files.size(); i ++)
+			mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
+		destinationSource.addChildValue("MEDIA_TYPE", mediaType);
+		for(final GedcomNode file : files)
+			destinationSource.addChild(createWithValue("FILE", file.getValue())
+				.addChildValue("DESCRIPTION", traverse(file, "TITL").getValue())
+			);
 
-		final List<GedcomNode> extracts = traverseAsList(parent, "TEXT");
+		final List<GedcomNode> extracts = traverseAsList(object, "TEXT[]");
 		assignExtractionsTo(extracts, destinationSource);
-		noteCitationTo(parent, destinationSource, destination);
-		destinationSource.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
+		noteCitationTo(object, destinationSource, destination);
+		destinationSource.addChildValue("CREDIBILITY", traverse(object, "QUAY").getValue());
 
-		final String sourceID = destination.addSource(destinationSource);
-		destinationNode.addChildReference("SOURCE", sourceID);
+		destination.addSource(destinationSource);
 	}
 
 	/*
@@ -579,16 +584,13 @@ public final class Transformer extends TransformerHelper{
 		transfer REPO.ADDR to REPOSITORY.PLACE
 		transfer REPO.NOTE to REPOSITORY.NOTE
 	*/
-	void repositoryRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPO");
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
-				.addChildValue("NAME", traverse(repository, "NAME").getValue());
-			placeAddressStructureTo(parent, destinationRepository, destination);
-			noteCitationTo(parent, destinationRepository, destination);
+	void repositoryRecordTo(final GedcomNode repository, final Flef destination){
+		final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
+			.addChildValue("NAME", traverse(repository, "NAME").getValue());
+		placeAddressStructureTo(repository, destinationRepository, destination);
+		noteCitationTo(repository, destinationRepository, destination);
 
-			destinationNode.addChild(destinationRepository);
-		}
+		destination.addRepository(destinationRepository);
 	}
 
 	/*
@@ -789,7 +791,7 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
 		transfer SOUR.NOTE to SOURCE.NOTE
 	*/
-	void sourceRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+	void sourceRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
 			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
@@ -803,15 +805,11 @@ public final class Transformer extends TransformerHelper{
 				);
 			destinationSource.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
-			sourceRepositoryCitationTo(parent, destinationNode, destination);
+			sourceRepositoryCitationTo(parent, destinationSource, destination);
 			final GedcomNode destinationSourceReference = create("SOURCE");
 			multimediaCitationTo(source, destinationSource, destinationSourceReference, origin, destination, "TEXT");
 
-			final String sourceID = destination.addSource(destinationSource);
-
-			//add source citation:
-			destinationNode.addChild(destinationSourceReference
-				.withXRef(sourceID));
+			destination.addSource(destinationSource);
 		}
 	}
 
@@ -846,35 +844,10 @@ public final class Transformer extends TransformerHelper{
 	void spouseToFamilyLinkTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> links = parent.getChildrenWithTag("FAMS");
 		for(final GedcomNode link : links){
-			final GedcomNode destinationFamilySpouse = create("FAMILY_SPOUSE")
-				.withXRef(link.getXRef());
+			final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", link.getXRef());
 			noteCitationTo(link, destinationFamilySpouse, destination);
 
 			destinationNode.addChild(destinationFamilySpouse);
-		}
-	}
-
-	/*
-	for-each FAMC xref create FAMILY_CHILD
-		FAMILY_CHILD.xref = FAMC.xref
-		FAMILY_CHILD.PEDIGREE.PARENT1.value = FAMC.PEDI.value
-		FAMILY_CHILD.PEDIGREE.PARENT2.value = FAMC.PEDI.value
-		FAMILY_CHILD.CERTAINTY.value = FAMC.STAT.value
-		transfer FAMC.NOTE to FAMILY_CHILD.NOTE
-	*/
-	void childToFamilyLinkTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> links = parent.getChildrenWithTag("FAMC");
-		for(final GedcomNode link : links){
-			final String pedigree = traverse(link, "PEDI").getValue();
-			final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", link.getXRef())
-				.addChild(create("PEDIGREE")
-					.addChildValue("PARENT1", pedigree)
-					.addChildValue("PARENT2", pedigree)
-				)
-				.addChildValue("CERTAINTY", traverse(link, "STAT").getValue());
-			noteCitationTo(link, destinationFamilyChild, destination);
-
-			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
 
@@ -897,42 +870,185 @@ public final class Transformer extends TransformerHelper{
 	for-each NOTE value create NOTE
 		NOTE.value = NOTE.value
 	*/
-	void noteRecordTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			final String noteID = destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
-
-			destinationNode.addChildReference("NOTE", noteID);
-		}
+	void noteRecordTo(final GedcomNode note, final Flef destination){
+		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
 	}
 
 
-	void individualRecordFrom(final GedcomNode parent, final Flef origin, final Gedcom destination){
-		final GedcomNode destinationIndividual = create("INDI");
-		final List<GedcomNode> individuals = traverseAsList(parent, "INDIVIDUAL");
-		for(final GedcomNode individual : individuals){
-			//TODO
-			destinationIndividual.withID(individual.getID())
-				.addChildValue("HUSB", traverse(individual, "SPOUSE1").getXRef())
-				.addChildValue("WIFE", traverse(individual, "SPOUSE2").getXRef());
-			final List<GedcomNode> children = traverseAsList(individual, "CHILD");
-			for(final GedcomNode child : children)
-				destinationIndividual.addChildReference("CHIL", child.getXRef());
-			final List<GedcomNode> events = individual.getChildrenWithTag("EVENT");
-			//scan events one by one, maintaining order
-			for(final GedcomNode event : events){
-				final String tagTo = FAMILY_TO_FAM.get(traverse(event, "TYPE").getValue());
-				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
+	/*
+	for-each INDIVIDUAL id create INDI
+		INDI.id = INDIVIDUAL.id
+		for-each INDIVIDUAL.NAME create INDI.NAME
+			INDI.NAME.TYPE.value = INDIVIDUAL.NAME.TYPE.value
+			INDI.NAME.NPFX.value = INDIVIDUAL.NAME.TITLE.value
+			INDI.NAME.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.value
+			INDI.NAME.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.value
+			INDI.NAME.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.value
+			INDI.NAME.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.value
+			INDI.NAME.FONE.NPFX.value = INDIVIDUAL.NAME.TITLE.PHONETIC.VALUE.value
+			INDI.NAME.FONE.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.PHONETIC.VALUE.value
+			INDI.NAME.FONE.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.PHONETIC.VALUE.value
+			INDI.NAME.FONE.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.PHONETIC.VALUE.value
+			INDI.NAME.FONE.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.PHONETIC.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NPFX.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.VALUE.value
+			transfer INDIVIDUAL.NAME.NOTE to INDI.NAME.NOTE
+			transfer INDIVIDUAL.NAME.SOURCE to INDI.NAME.SOUR
+		INDI.SEX.value = INDIVIDUAL.SEX.value
+		for-each INDIVIDUAL.FAMILY_CHILD create INDI.FAMC
+			INDI.FAMC.xref = INDIVIDUAL.FAMILY_CHILD.xref
+			transfer INDIVIDUAL.FAMILY_CHILD.NOTE to INDI.FAMC.NOTE
+		for-each INDIVIDUAL.FAMILY_SPOUSE create INDI.FAMS
+			INDI.FAMS.xref = INDIVIDUAL.FAMILY_SPOUSE.xref
+			transfer INDIVIDUAL.FAMILY_SPOUSE.NOTE to INDI.FAMS.NOTE
+		for-each INDIVIDUAL.ASSOCIATION create INDI.ASSO
+			INDI.ASSO.xref = INDIVIDUAL.ASSOCIATION.xref
+			INDI.ASSO.TYPE.value = INDIVIDUAL.ASSOCIATION.TYPE.value ('family'>'FAM', 'individual'>'INDI')
+			INDI.ASSO.RELA.value = INDIVIDUAL.ASSOCIATION.RELATIONSHIP.value
+			transfer INDIVIDUAL.ASSOCIATION.NOTE to INDI.ASSO.NOTE
+			transfer INDIVIDUAL.ASSOCIATION.SOURCE to INDI.ASSO.SOUR
+		for-each INDIVIDUAL.ALIAS create INDI.ALIA
+			INDI.ALIA.xref = INDIVIDUAL.ALIAS.xref
+		for-each INDIVIDUAL.EVENT create INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN]
+			for-each INDIVIDUAL.FAMILY_CHILD create INDI.FAMC
+				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT1.value
+				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT2.value
+				INDI.FAMC.STAT.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.CERTAINTY.value
+		for-each INDIVIDUAL.EVENT create INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT]
+		transfer INDIVIDUAL.NOTE to INDI.NOTE
+		transfer INDIVIDUAL.SOURCE to INDI.SOUR,OBJE
+		INDI.RESN.value = INDIVIDUAL.RESTRICTION.value
+	*/
+	void individualRecordFrom(final GedcomNode individual, final Flef origin, final Gedcom destination){
+		final GedcomNode destinationIndividual = createWithID("INDI", individual.getID());
+		final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
+		for(final GedcomNode nameStructure : nameStructures){
+			final StringJoiner familyName = new StringJoiner(StringUtils.SPACE);
+			final StringJoiner familyNamePhonetic = new StringJoiner(StringUtils.SPACE);
+			final StringJoiner familyNameTranscription = new StringJoiner(StringUtils.SPACE);
+			for(final GedcomNode name : traverseAsList(nameStructure, "FAMILY_NAME[]")){
+				familyName.add(name.getValue());
+				familyNamePhonetic.add(traverse(name, "PHONETIC.VALUE").getValue());
+				familyNameTranscription.add(traverse(name, "TRANSCRIPTION.VALUE").getValue());
+			}
+			final GedcomNode destinationName = create("NAME")
+				.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
+				.addChildValue("NPFX", traverse(nameStructure, "TITLE").getValue())
+				.addChildValue("GIVN", traverse(nameStructure, "INDIVIDUAL_NAME").getValue())
+				.addChildValue("NSFX", traverse(nameStructure, "INDIVIDUAL_NAME.NAME_SUFFIX").getValue())
+				.addChildValue("NICK", traverse(nameStructure, "INDIVIDUAL_NICKNAME").getValue())
+				.addChildValue("SURN", (familyName.length() > 0? familyName.toString(): null))
+				.addChild(create("FONE")
+					.addChildValue("NPFX", traverse(nameStructure, "TITLE.PHONETIC.VALUE").getValue())
+					.addChildValue("GIVN", traverse(nameStructure, "INDIVIDUAL_NAME.PHONETIC.VALUE").getValue())
+					.addChildValue("NSFX", traverse(nameStructure, "INDIVIDUAL_NAME.NAME_SUFFIX.PHONETIC.VALUE").getValue())
+					.addChildValue("NICK", traverse(nameStructure, "INDIVIDUAL_NICKNAME.PHONETIC.VALUE").getValue())
+					.addChildValue("SURN", (familyNamePhonetic.length() > 0? familyNamePhonetic.toString(): null))
+				)
+				.addChild(createWithValue("ROMN", traverse(nameStructure, "TRANSCRIPTION.TYPE").getValue())
+					.addChildValue("TYPE", traverse(nameStructure, "TRANSCRIPTION").getValue())
+					.addChildValue("NPFX", traverse(nameStructure, "TITLE.TRANSCRIPTION.VALUE").getValue())
+					.addChildValue("GIVN", traverse(nameStructure, "INDIVIDUAL_NAME.TRANSCRIPTION.VALUE").getValue())
+					.addChildValue("NSFX", traverse(nameStructure, "INDIVIDUAL_NAME.NAME_SUFFIX.TRANSCRIPTION.VALUE").getValue())
+					.addChildValue("NICK", traverse(nameStructure, "INDIVIDUAL_NICKNAME.TRANSCRIPTION.VALUE").getValue())
+					.addChildValue("SURN", (familyNameTranscription.length() > 0? familyNameTranscription.toString(): null))
+				);
+			destinationIndividual.addChild(destinationName);
+			noteCitationFrom(nameStructure, destinationIndividual);
+			sourceCitationFrom(nameStructure, destinationIndividual, origin);
+		}
+
+		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
+		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMILY_CHILD[]");
+		for(final GedcomNode familyChild : familyChildren){
+			final GedcomNode destinationFamilyChild = createWithReference("FAMC", familyChild.getXRef());
+			noteCitationFrom(familyChild, destinationFamilyChild);
+
+			destinationIndividual.addChild(destinationFamilyChild);
+		}
+		final List<GedcomNode> spouses = traverseAsList(individual, "FAMILY_SPOUSE[]");
+		for(final GedcomNode spouse : spouses){
+			final GedcomNode destinationFamilySpouse = createWithReference("FAMS", spouse.getXRef());
+			noteCitationFrom(spouse, destinationFamilySpouse);
+
+			destinationIndividual.addChild(destinationFamilySpouse);
+		}
+		final List<GedcomNode> associations = traverseAsList(individual, "ASSOCIATION[]");
+		for(final GedcomNode association : associations){
+			String type = traverse(association, "ASSOCIATION.TYPE").getValue();
+			if("family".equals(type))
+				type = "FAM";
+			else if("individual".equals(type))
+				type = "INDI";
+			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef())
+				.addChildValue("TYPE", type)
+				.addChildValue("ASSO.RELA", traverse(association, "RELATIONSHIP").getValue());
+			noteCitationFrom(association, destinationAssociation);
+			sourceCitationFrom(association, destinationAssociation, origin);
+
+			destinationIndividual.addChild(destinationAssociation);
+		}
+		final List<GedcomNode> aliases = traverseAsList(individual, "ALIAS[]");
+		for(final GedcomNode alias : aliases){
+			final GedcomNode destinationAlias = createWithReference("ALIA", alias.getXRef());
+
+			destinationIndividual.addChild(destinationAlias);
+		}
+
+		//scan events one by one, maintaining order
+		final List<GedcomNode> nodeChildren = individual.getChildrenWithTag("EVENT");
+		for(final GedcomNode nodeChild : nodeChildren){
+			final String tagFrom = traverse(nodeChild, "TYPE").getValue();
+			final String valueTo = FAMILY_TO_FAM.get(tagFrom);
+			if(valueTo != null){
+				final GedcomNode destinationEvent = createEventFrom(valueTo, nodeChild, origin);
+
+				//if event is adoption, then copy over pedigree to individual
+				final GedcomNode destinationFamilyChild = traverse(destinationEvent, "FAMC");
+				for(final GedcomNode familyChild : familyChildren){
+					if(familyChild.getXRef().equals(destinationFamilyChild.getXRef())){
+						final boolean adoptedByParent1 = "adopted".equals(traverse(nodeChild, "FAMILY_CHILD.PEDIGREE.PARENT1").getValue());
+						final boolean adoptedByParent2 = "adopted".equals(traverse(nodeChild, "FAMILY_CHILD.PEDIGREE.PARENT2").getValue());
+						String pedigreeValue = null;
+						if(adoptedByParent1 && adoptedByParent2)
+							pedigreeValue = "BOTH";
+						else if(adoptedByParent1)
+							pedigreeValue = "HUSB";
+						else if(adoptedByParent2)
+							pedigreeValue = "WIFE";
+
+						destinationFamilyChild
+							.addChildValue("PEDI", pedigreeValue)
+							.addChildValue("STAT", traverse(familyChild, "CERTAINTY").getValue());
+
+						destinationIndividual.addChild(destinationFamilyChild);
+
+						break;
+					}
+				}
+
 				destinationIndividual.addChild(destinationEvent);
 			}
-			noteCitationFrom(individual, destinationIndividual);
-			sourceCitationFrom(individual, destinationIndividual, origin);
-			multimediaRecordFrom(individual, destinationIndividual);
-			sourceCitationFrom(individual, destinationIndividual, origin);
 		}
-		destinationIndividual.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
 
-		destination.addFamily(destinationIndividual);
+		noteCitationFrom(individual, destinationIndividual);
+		sourceCitationFrom(individual, destinationIndividual, origin);
+		destinationIndividual.addChildValue("RESN", traverse(individual, "RESTRICTION").getValue());
+
+		destination.addIndividual(destinationIndividual);
 	}
 
 	/*
@@ -948,29 +1064,23 @@ public final class Transformer extends TransformerHelper{
 		transfer SOURCE xref to SOUR,OBJE
 		FAM.RESN.value = FAMILY.RESTRICTION.value
 	*/
-	void familyRecordFrom(final GedcomNode parent, final Flef origin, final Gedcom destination){
-		final GedcomNode destinationFamily = create("FAM");
-		final List<GedcomNode> families = traverseAsList(parent, "FAMILY");
-		for(final GedcomNode family : families){
-			destinationFamily.withID(family.getID())
-				.addChildValue("HUSB", traverse(family, "SPOUSE1").getXRef())
-				.addChildValue("WIFE", traverse(family, "SPOUSE2").getXRef());
-			final List<GedcomNode> children = traverseAsList(family, "CHILD");
-			for(final GedcomNode child : children)
-				destinationFamily.addChildReference("CHIL", child.getXRef());
-			final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
-			//scan events one by one, maintaining order
-			for(final GedcomNode event : events){
-				final String tagTo = FAMILY_TO_FAM.get(traverse(event, "TYPE").getValue());
-				final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
-				destinationFamily.addChild(destinationEvent);
-			}
-			noteCitationFrom(family, destinationFamily);
-			sourceCitationFrom(family, destinationFamily, origin);
-			multimediaRecordFrom(family, destinationFamily);
-			sourceCitationFrom(family, destinationFamily, origin);
+	void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
+		final GedcomNode destinationFamily = createWithID("FAM", family.getID())
+			.addChildValue("HUSB", traverse(family, "SPOUSE1").getXRef())
+			.addChildValue("WIFE", traverse(family, "SPOUSE2").getXRef());
+		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
+		for(final GedcomNode child : children)
+			destinationFamily.addChildReference("CHIL", child.getXRef());
+		final List<GedcomNode> events = family.getChildrenWithTag("EVENT");
+		//scan events one by one, maintaining order
+		for(final GedcomNode event : events){
+			final String tagTo = FAMILY_TO_FAM.get(traverse(event, "TYPE").getValue());
+			final GedcomNode destinationEvent = createEventFrom(tagTo, event, origin);
+			destinationFamily.addChild(destinationEvent);
 		}
-		destinationFamily.addChildValue("CREDIBILITY", traverse(parent, "RESN").getValue());
+		noteCitationFrom(family, destinationFamily);
+		sourceCitationFrom(family, destinationFamily, origin);
+		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
 
 		destination.addFamily(destinationFamily);
 	}
@@ -997,13 +1107,26 @@ public final class Transformer extends TransformerHelper{
 		addressStructureFrom(event, destinationEvent, origin);
 		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY").getValue())
 			.addChildValue("CAUS", traverse(event, "CAUSE").getValue());
-		//EVENT BIRTH
+
 		final GedcomNode familyChild = traverse(event, "FAMILY_CHILD");
-		if(!familyChild.isEmpty())
+		if(!familyChild.isEmpty()){
+			final GedcomNode pedigree = traverse(familyChild, "PEDIGREE");
+			final boolean adoptedByParent1 = "adopted".equals(traverse(pedigree, "PARENT1").getValue());
+			final boolean adoptedByParent2 = "adopted".equals(traverse(pedigree, "PARENT2").getValue());
+			String pedigreeValue = null;
+			if(adoptedByParent1 && adoptedByParent2)
+				pedigreeValue = "BOTH";
+			else if(adoptedByParent1)
+				pedigreeValue = "HUSB";
+			else if(adoptedByParent2)
+				pedigreeValue = "WIFE";
+
+			//EVENT BIRTH
 			destinationEvent.addChild(createWithReference("FAMC", familyChild.getXRef())
 				//EVENT ADOPTION
-				.addChildValue("ADOP", traverse(familyChild, "ADOPTED_BY").getValue())
+				.addChildValue("ADOP", pedigreeValue)
 			);
+		}
 		noteCitationFrom(event, destinationEvent);
 		sourceCitationFrom(event, destinationEvent, origin);
 		destinationEvent.addChildValue("RESN", traverse(event, "RESTRICTION").getValue());
@@ -1070,36 +1193,33 @@ public final class Transformer extends TransformerHelper{
 			remember which one has the PREFERRED tag
 		transfer SOURCE.NOTE to SOUR.NOTE
 	*/
-	void sourceRecordFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> sources = parent.getChildrenWithTag("SOURCE");
-		for(final GedcomNode source : sources){
-			//create source:
-			final GedcomNode destinationSource = createWithID("SOUR", source.getID())
-				.addChildValue("PAGE", traverse(source, "LOCATION").getValue())
-				.addChild(create("EVEN")
-					.addChildValue("ROLE", traverse(source, "ROLE").getValue())
-				)
-				.addChild(create("DATA")
-					.addChildValue("DATE", traverse(source, "DATE").getValue())
-					.addChildValue("TEXT", traverse(source, "FILE.EXTRACT").getValue())
+	void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
+		//create source:
+		final GedcomNode destinationSource = createWithID("SOUR", source.getID())
+			.addChildValue("PAGE", traverse(source, "LOCATION").getValue())
+			.addChild(create("EVEN")
+				.addChildValue("ROLE", traverse(source, "ROLE").getValue())
+			)
+			.addChild(create("DATA")
+				.addChildValue("DATE", traverse(source, "DATE").getValue())
+				.addChildValue("TEXT", traverse(source, "FILE.EXTRACT").getValue())
+			);
+		final List<GedcomNode> files = source.getChildrenWithTag("FILE");
+		final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
+		for(final GedcomNode file : files){
+			destinationSource.addChild(create("OBJE"))
+				.addChildValue("FILE", file.getValue())
+				.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
+				.addChildValue("_CUTD", traverse(source, "CUTOUT").getValue())
+				.addChild(create("FORM")
+					.addChildValue("MEDI", mediaType)
 				);
-			final List<GedcomNode> files = source.getChildrenWithTag("FILE");
-			final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
-			for(final GedcomNode file : files){
-				destinationSource.addChild(create("OBJE"))
-					.addChildValue("FILE", file.getValue())
-					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
-					.addChildValue("_CUTD", traverse(source, "CUTOUT").getValue())
-					.addChild(create("FORM")
-						.addChildValue("MEDI", mediaType)
-					);
-				//TODO restore the one that has the _PREF tag
-			}
-			destinationSource.addChildValue("QUAY", traverse(source, "CREDIBILITY").getValue());
-			noteCitationFrom(source, destinationSource);
-
-			destinationNode.addChild(destinationSource);
+			//TODO restore the one that has the _PREF tag
 		}
+		destinationSource.addChildValue("QUAY", traverse(source, "CREDIBILITY").getValue());
+		noteCitationFrom(source, destinationSource);
+
+		destination.addSource(destinationSource);
 	}
 
 	/*
@@ -1117,8 +1237,7 @@ public final class Transformer extends TransformerHelper{
 		HEAD.LANG.value = HEADER.DEFAULT_LOCALE.value
 		HEAD.NOTE.value = HEADER.NOTE.value
 	*/
-	void headerFrom(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode header = parent.getChildrenWithTag("HEADER").get(0);
+	void headerFrom(final GedcomNode header, final Gedcom destination){
 		final GedcomNode source = traverse(header, "SOURCE");
 		final String date = traverse(header, "DATE")
 			.getValue();
@@ -1145,7 +1264,7 @@ public final class Transformer extends TransformerHelper{
 			.addChildValue("NOTE", traverse(source, "NOTE")
 				.getValue());
 
-		destinationNode.addChild(destinationHeader);
+		destination.setHeader(destinationHeader);
 	}
 
 	/*
@@ -1156,23 +1275,20 @@ public final class Transformer extends TransformerHelper{
 			pick-each: OBJE.FILE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
 		transfer SOURCE.NOTE to OBJE.NOTE
 	*/
-	void multimediaRecordFrom(final GedcomNode parent, final GedcomNode destinationNode){
+	void multimediaRecordFrom(final GedcomNode source, final Gedcom destination){
 		final GedcomNode destinationObject = create("OBJE");
-		final List<GedcomNode> sources = traverseAsList(parent, "SOURCE");
-		for(final GedcomNode source : sources){
-			final List<GedcomNode> files = traverseAsList(source, "FILE");
-			final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
-			for(final GedcomNode file : files)
-				destinationObject.addChild(createWithValue("FILE", file.getValue())
-					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
-					.addChild(create("FORM")
-						.addChildValue("MEDI", mediaType)
-					)
-				);
-			noteCitationFrom(source, destinationObject);
+		final List<GedcomNode> files = traverseAsList(source, "FILE[]");
+		final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
+		for(final GedcomNode file : files)
+			destinationObject.addChild(createWithValue("FILE", file.getValue())
+				.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
+				.addChild(create("FORM")
+					.addChildValue("MEDI", mediaType)
+				)
+			);
+		noteCitationFrom(source, destinationObject);
 
-			destinationNode.addChild(destinationObject);
-		}
+		destination.addObject(destinationObject);
 	}
 
 	/*
@@ -1182,16 +1298,13 @@ public final class Transformer extends TransformerHelper{
 		transfer REPOSITORY.PLACE to REPO.ADDR
 		transfer REPOSITORY.NOTE to REPO.NOTE
 	*/
-	void repositoryRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
-		final List<GedcomNode> repositories = parent.getChildrenWithTag("REPOSITORY");
-		for(final GedcomNode repository : repositories){
-			final GedcomNode destinationRepository = createWithID("REPO", repository.getID())
-				.addChildValue("NAME", traverse(repository, "NAME").getValue());
-			placeStructureFrom(parent, destinationRepository, origin);
-			noteCitationFrom(parent, destinationRepository);
+	void repositoryRecordFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
+		final GedcomNode destinationRepository = createWithID("REPO", repository.getID())
+			.addChildValue("NAME", traverse(repository, "NAME").getValue());
+		placeStructureFrom(repository, destinationRepository, origin);
+		noteCitationFrom(repository, destinationRepository);
 
-			destinationNode.addChild(destinationRepository);
-		}
+		destination.addRepository(destinationRepository);
 	}
 
 	/*
@@ -1273,8 +1386,7 @@ public final class Transformer extends TransformerHelper{
 	void sourceRepositoryCitationFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> citations = parent.getChildrenWithTag("REPOSITORY");
 		for(final GedcomNode citation : citations){
-			final GedcomNode repositoryCitation = create("REPO")
-				.withXRef(citation.getXRef())
+			final GedcomNode repositoryCitation = createWithReference("REPO", citation.getXRef())
 				.addChildValue("CALN", traverse(citation, "LOCATION").getValue());
 			noteCitationFrom(citation, repositoryCitation);
 
@@ -1290,35 +1402,10 @@ public final class Transformer extends TransformerHelper{
 	void spouseToFamilyLinkFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> links = parent.getChildrenWithTag("FAMILY_SPOUSE");
 		for(final GedcomNode link : links){
-			final GedcomNode familySpouse = create("FAMS")
-				.withXRef(link.getXRef());
+			final GedcomNode familySpouse = createWithReference("FAMS", link.getXRef());
 			noteCitationFrom(link, familySpouse);
 
 			destinationNode.addChild(familySpouse);
-		}
-	}
-
-	/*
-	for-each FAMILY_CHILD xref create FAMC
-		FAMC.xref = FAMILY_CHILD.xref
-		FAMC.PEDI.value = "PARENT1: " + FAMILY_CHILD.PEDIGREE.PARENT1.value + ", PARENT2: " + FAMILY_CHILD.PEDIGREE.PARENT2.value
-		FAMC.STAT.value = FAMILY_CHILD.CERTAINTY.value
-		transfer FAMILY_CHILD.NOTE to FAMC.NOTE
-	*/
-	void childToFamilyLinkFrom(final GedcomNode individual, final GedcomNode destinationNode){
-		final List<GedcomNode> childToFamilyLinks = individual.getChildrenWithTag("FAMILY_CHILD");
-		for(final GedcomNode childToFamilyLink : childToFamilyLinks){
-			final GedcomNode pedigree = traverse(childToFamilyLink, "PEDIGREE");
-			final String pedigreeParent1 = traverse(pedigree, "PARENT1").getValue();
-			final String pedigreeParent2 = traverse(pedigree, "PARENT2").getValue();
-			@SuppressWarnings({"StringEquality", "ObjectAllocationInLoop"})
-			final String pedigreeValue = (pedigreeParent1 == pedigreeParent2 || pedigreeParent1.equals(pedigreeParent2)?
-				pedigreeParent1: "PARENT1: " + pedigreeParent1 + ", PARENT2: " + pedigreeParent2);
-			final GedcomNode destinationFamilyChild = create("FAMC")
-				.addChildValue("PEDI", pedigreeValue)
-				.addChildValue("STAT", traverse(childToFamilyLink, "CERTAINTY").getValue());
-			noteCitationFrom(childToFamilyLink, destinationFamilyChild);
-			destinationNode.addChild(destinationFamilyChild);
 		}
 	}
 
@@ -1336,13 +1423,8 @@ public final class Transformer extends TransformerHelper{
 	for-each NOTE value create NOTE
 		NOTE.value = NOTE.value
 	*/
-	void noteRecordFrom(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom destination){
-		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
-			final String noteID = destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
-
-			destinationNode.addChildReference("NOTE", noteID);
-		}
+	void noteRecordFrom(final GedcomNode note, final Gedcom destination){
+		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
 	}
 
 }

@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.transformations.DocumentTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.MultimediaTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
@@ -84,7 +82,6 @@ public class Flef extends Store{
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
 	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
 	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
-	private static final Transformation<Gedcom, Flef> DOCUMENT_TRANSFORMATION = new DocumentTransformation();
 	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
 	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
@@ -203,7 +200,6 @@ public class Flef extends Store{
 		NOTE_TRANSFORMATION.from(this, destination);
 		REPOSITORY_TRANSFORMATION.from(this, destination);
 		SOURCE_TRANSFORMATION.from(this, destination);
-		DOCUMENT_TRANSFORMATION.from(this, destination);
 		INDIVIDUAL_TRANSFORMATION.from(this, destination);
 		FAMILY_TRANSFORMATION.from(this, destination);
 		return destination;

@@ -85,40 +85,36 @@ class TransformerSourceRecordTest{
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note1.toString());
 		Assertions.assertEquals("id: @N2@, tag: NOTE", note2.toString());
 
-		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Gedcom origin = new Gedcom();
 		origin.addRepository(repository);
 		origin.addNote(note1);
 		origin.addNote(note2);
 		origin.addObject(object);
 		final Flef destination = new Flef();
-		transformerTo.sourceRecordTo(parent, destinationNode, origin, destination);
+		transformerTo.sourceRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@}]", destinationNode.toString());
 		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, value: gregorian}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: NOTE, ref: @N2@}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
 	void sourceRecordFrom(){
-		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithID("SOURCE", "@S1@")
-				.addChildValue("EVENT", "EVENTS_RECORDED")
-				.addChildValue("TITLE", "SOURCE_DESCRIPTIVE_TITLE")
-				.addChildValue("AUTHOR", "SOURCE_ORIGINATOR")
-				.addChildValue("PUBLICATION_FACTS", "SOURCE_PUBLICATION_FACTS")
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE")
-				.addChildValue("REPOSITORY", "@R1@")
-				.addChildValue("FILE", "DOCUMENT_FILE_REFERENCE")
-				.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE")
-				.addChildReference("NOTE", "@N1@")
-			);
+		final GedcomNode source = transformerFrom.createWithID("SOURCE", "@S1@")
+			.addChildValue("EVENT", "EVENTS_RECORDED")
+			.addChildValue("TITLE", "SOURCE_DESCRIPTIVE_TITLE")
+			.addChildValue("AUTHOR", "SOURCE_ORIGINATOR")
+			.addChildValue("PUBLICATION_FACTS", "SOURCE_PUBLICATION_FACTS")
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE")
+			.addChildValue("REPOSITORY", "@R1@")
+			.addChildValue("FILE", "DOCUMENT_FILE_REFERENCE")
+			.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE")
+			.addChildReference("NOTE", "@N1@");
 
-		Assertions.assertEquals("children: [{id: @S1@, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, value: @R1@}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, value: @R1@}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: @N1@}]", source.toString());
 
-		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		transformerFrom.sourceRecordFrom(parent, destinationNode);
+		final Gedcom destination = new Gedcom();
+		transformerFrom.sourceRecordFrom(source, destination);
 
-		Assertions.assertEquals("children: [{id: @S1@, tag: SOUR, children: [{tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: @S1@, tag: SOUR, children: [{tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: NOTE, ref: @N1@}]", destination.getSources().get(0).toString());
 	}
 
 }
