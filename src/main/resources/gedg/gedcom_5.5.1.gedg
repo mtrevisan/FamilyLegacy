@@ -6,6 +6,7 @@ field descriptions: https://rdrr.io/github/jl5000/tidygedcom/
 https://fhiso.org/TR/elf-data-model.pdf
 https://github.com/FamilySearch/gedcomx/blob/master/specifications/conceptual-model-specification.md
 https://www.tamurajones.net/index.xhtml
+http://www.gedcomx.org/Specifications.html
 
 
 ROOT :=
