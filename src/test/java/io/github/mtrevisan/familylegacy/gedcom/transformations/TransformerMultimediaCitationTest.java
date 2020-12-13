@@ -33,11 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerMultimediaCitationTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-
-
 	@Test
 	void multimediaCitationToXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("OBJE", "@M1@"));
 		final GedcomNode object = transformerTo.createWithID("OBJE", "@M1@")
@@ -56,6 +54,7 @@ class TransformerMultimediaCitationTest{
 
 	@Test
 	void multimediaCitationToNoXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.create("OBJE")
 				.addChildValue("TITL", "DESCRIPTIVE_TITLE")

@@ -33,12 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerNoteRecordTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void noteRecordTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode note = transformerTo.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
 
 		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
@@ -52,6 +49,7 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteCitationToXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("NOTE", "@N1@"));
 		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
@@ -69,6 +67,7 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteCitationToNoXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("NOTE", "SUBMITTER_TEXT"));
 
@@ -84,6 +83,7 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteRecordFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
 
 		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
@@ -96,6 +96,7 @@ class TransformerNoteRecordTest{
 
 	@Test
 	void noteCitationFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithReference("NOTE", "@N1@"));
 		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");

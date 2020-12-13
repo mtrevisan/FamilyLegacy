@@ -32,12 +32,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerPlaceAddressContactStructureTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void addressStructureTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("ADDR", "ADDRESS_LINE0")
 				.addChildValue("ADR1", "ADDRESS_LINE1")
@@ -61,6 +58,7 @@ class TransformerPlaceAddressContactStructureTest{
 
 	@Test
 	void placeStructureTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("PLAC", "PLACE_NAME")
 				.addChildValue("FORM", "PLACE_HIERARCHY")
@@ -72,7 +70,7 @@ class TransformerPlaceAddressContactStructureTest{
 				)
 				.addChildReference("NOTE", "@N1@")
 			);
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
+		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
 
 		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: FORM, value: PLACE_HIERARCHY}, {tag: FONE, value: PLACE_PHONETIC_VARIATION}, {tag: ROMN, value: PLACE_ROMANIZED_VARIATION}, {tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: @N1@}]}]", parent.toString());
 		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
@@ -88,6 +86,7 @@ class TransformerPlaceAddressContactStructureTest{
 
 	@Test
 	void contactStructureTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChildValue("PHON", "PHONE_NUMBER")
 			.addChildValue("EMAIL", "ADDRESS_EMAIL")
@@ -104,6 +103,7 @@ class TransformerPlaceAddressContactStructureTest{
 
 	@Test
 	void addressStructureFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithReference("PLACE", "@P1@"));
 
@@ -111,8 +111,8 @@ class TransformerPlaceAddressContactStructureTest{
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
-		origin.addPlace(transformerTo.createWithID("PLACE", "@P1@")
-			.addChild(transformerTo.create("ADDRESS")
+		origin.addPlace(transformerFrom.createWithID("PLACE", "@P1@")
+			.addChild(transformerFrom.create("ADDRESS")
 				.withValue("ADDRESS_LINE")
 				.addChildValue("CITY", "ADDRESS_CITY")
 				.addChildValue("STATE", "ADDRESS_STATE")
@@ -120,7 +120,7 @@ class TransformerPlaceAddressContactStructureTest{
 			)
 			.addChildReference("NOTE", "N1")
 		);
-		origin.addNote(transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
+		origin.addNote(transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
 		transformerFrom.addressStructureFrom(parent, destinationNode, origin);
 
 		Assertions.assertEquals("children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}]", destinationNode.toString());
@@ -130,6 +130,7 @@ class TransformerPlaceAddressContactStructureTest{
 
 	@Test
 	void placeStructureFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithReference("PLACE", "@P1@"));
 
@@ -137,15 +138,15 @@ class TransformerPlaceAddressContactStructureTest{
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
-		origin.addPlace(transformerTo.createWithID("PLACE", "@P1@")
+		origin.addPlace(transformerFrom.createWithID("PLACE", "@P1@")
 			.addChildValue("NAME", "PLACE_NAME")
-			.addChild(transformerTo.create("MAP")
+			.addChild(transformerFrom.create("MAP")
 				.addChildValue("LATITUDE", "PLACE_LATITUDE")
 				.addChildValue("LONGITUDE", "PLACE_LONGITUDE")
 			)
 			.addChildReference("NOTE", "N1")
 		);
-		origin.addNote(transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
+		origin.addNote(transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
 		transformerFrom.placeStructureFrom(parent, destinationNode, origin);
 
 		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
@@ -155,6 +156,7 @@ class TransformerPlaceAddressContactStructureTest{
 
 	@Test
 	void contactStructureFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.create("CONTACT")
 				.addChildValue("PHONE", "PHONE_NUMBER")

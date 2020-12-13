@@ -33,12 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerSourceCitationTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void sourceCitationToXRefMultimediaXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("SOUR", "@S1@")
 				.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
@@ -76,11 +73,12 @@ class TransformerSourceCitationTest{
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@}]", destinationNode.toString());
-		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
 	void sourceCitationToXRefMultimediaNoXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithID("SOUR", "@S1@")
 				.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
@@ -115,13 +113,14 @@ class TransformerSourceCitationTest{
 		destination.addSource(source);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: @S1@, tag: SOUR", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
 	}
 
 	@Test
 	void sourceCitationToNoXRefMultimediaXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("SOUR", "SOURCE_DESCRIPTION")
 				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
@@ -131,9 +130,9 @@ class TransformerSourceCitationTest{
 			);
 		final GedcomNode source = transformerTo.createWithID("SOUR", "@S1@");
 		final GedcomNode multimedia = transformerTo.createWithID("OBJE", "@M1@")
-			.addChild(transformerFrom.create("FILE")
+			.addChild(transformerTo.create("FILE")
 				.withValue("MULTIMEDIA_FILE_REFN")
-				.addChild(transformerFrom.create("FORM")
+				.addChild(transformerTo.create("FORM")
 					.withValue("MULTIMEDIA_FORMAT")
 					.addChildValue("TYPE", "SOURCE_MEDIA_TYPE")
 				)
@@ -157,6 +156,7 @@ class TransformerSourceCitationTest{
 
 	@Test
 	void sourceCitationToNoXRefMultimediaNoXRef(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("SOUR", "SOURCE_DESCRIPTION")
 				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
@@ -190,6 +190,7 @@ class TransformerSourceCitationTest{
 
 	@Test
 	void sourceCitationFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithReference("SOURCE", "@S1@")
 				.addChildValue("LOCATION", "WHERE_WITHIN_SOURCE")

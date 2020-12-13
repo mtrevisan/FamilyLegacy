@@ -33,12 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerHeaderTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void headerTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode header = transformerTo.create("HEAD")
 			.addChild(transformerTo.create("SOUR")
 				.withValue("APPROVED_SYSTEM_ID")
@@ -112,6 +109,7 @@ class TransformerHeaderTest{
 
 	@Test
 	void headerFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode header = transformerFrom.create("HEADER")
 			.addChild(transformerFrom.create("SOURCE")
 				.withValue("APPROVED_SYSTEM_ID")
