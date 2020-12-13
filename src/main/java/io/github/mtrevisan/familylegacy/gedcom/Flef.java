@@ -55,9 +55,12 @@ public class Flef extends Store{
 	public static final Integer ACTION_COMMAND_INDIVIDUALS_COUNT = 0;
 	/** Raised upon changes on the number of families in the store. */
 	public static final Integer ACTION_COMMAND_FAMILIES_COUNT = 1;
+	/** Raised upon changes on the number of events in the store. */
+	public static final Integer ACTION_COMMAND_EVENTS_COUNT = 2;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
+	private static final String ID_EVENT_PREFIX = "E";
 	private static final String ID_PLACE_PREFIX = "P";
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
@@ -69,6 +72,7 @@ public class Flef extends Store{
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_FAMILY = "FAMILY";
+	private static final String TAG_EVENT = "EVENT";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
@@ -92,6 +96,7 @@ public class Flef extends Store{
 	private GedcomNode header;
 	private List<GedcomNode> individuals;
 	private List<GedcomNode> families;
+	private List<GedcomNode> events;
 	private List<GedcomNode> places;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
@@ -102,6 +107,7 @@ public class Flef extends Store{
 
 	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
+	private Map<String, GedcomNode> eventIndex;
 	private Map<String, GedcomNode> placeIndex;
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
@@ -115,8 +121,15 @@ public class Flef extends Store{
 	private Map<Integer, String> repositoryValue;
 	private Map<Integer, String> sourceValue;
 
-	private static int INDIVIDUAL_ID = 1;
-	private static int FAMILY_ID = 1;
+	private int individualId = 1;
+	private int familyId = 1;
+	private int eventId = 1;
+	private int placeId = 1;
+	private int noteId = 1;
+	private int repositoryId = 1;
+	private int sourceId = 1;
+	private int culturalRuleId = 1;
+	private int groupId = 1;
 
 
 
@@ -162,6 +175,7 @@ public class Flef extends Store{
 		header = headers.get(0);
 		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		families = root.getChildrenWithTag(TAG_FAMILY);
+		events = root.getChildrenWithTag(TAG_EVENT);
 		places = root.getChildrenWithTag(TAG_PLACE);
 		notes = root.getChildrenWithTag(TAG_NOTE);
 		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
@@ -173,6 +187,7 @@ public class Flef extends Store{
 		individualIndex = generateIndexes(individuals);
 		familyIndex = generateIndexes(families);
 		placeIndex = generateIndexes(places);
+		eventIndex = generateIndexes(events);
 		noteIndex = generateIndexes(notes);
 		repositoryIndex = generateIndexes(repositories);
 		sourceIndex = generateIndexes(sources);
@@ -186,9 +201,23 @@ public class Flef extends Store{
 		sourceValue = reverseMap(sourceIndex);
 
 		if(!individualIndex.isEmpty())
-			INDIVIDUAL_ID = Integer.parseInt(((TreeMap<String, GedcomNode>)individualIndex).lastKey().substring(1)) + 1;
+			individualId = Integer.parseInt(((TreeMap<String, GedcomNode>)individualIndex).lastKey().substring(1)) + 1;
 		if(!familyIndex.isEmpty())
-			FAMILY_ID = Integer.parseInt(((TreeMap<String, GedcomNode>)familyIndex).lastKey().substring(1)) + 1;
+			familyId = Integer.parseInt(((TreeMap<String, GedcomNode>)familyIndex).lastKey().substring(1)) + 1;
+		if(!eventIndex.isEmpty())
+			eventId = Integer.parseInt(((TreeMap<String, GedcomNode>)eventIndex).lastKey().substring(1)) + 1;
+		if(!placeIndex.isEmpty())
+			placeId = Integer.parseInt(((TreeMap<String, GedcomNode>)placeIndex).lastKey().substring(1)) + 1;
+		if(!noteIndex.isEmpty())
+			noteId = Integer.parseInt(((TreeMap<String, GedcomNode>)noteIndex).lastKey().substring(1)) + 1;
+		if(!repositoryIndex.isEmpty())
+			repositoryId = Integer.parseInt(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey().substring(1)) + 1;
+		if(!sourceIndex.isEmpty())
+			sourceId = Integer.parseInt(((TreeMap<String, GedcomNode>)sourceIndex).lastKey().substring(1)) + 1;
+		if(!culturalRuleIndex.isEmpty())
+			culturalRuleId = Integer.parseInt(((TreeMap<String, GedcomNode>)culturalRuleIndex).lastKey().substring(1)) + 1;
+		if(!groupIndex.isEmpty())
+			groupId = Integer.parseInt(((TreeMap<String, GedcomNode>)groupIndex).lastKey().substring(1)) + 1;
 	}
 
 	@Override
@@ -226,6 +255,7 @@ public class Flef extends Store{
 				.addChild(header)
 				.addChildren(individuals)
 				.addChildren(families)
+				.addChildren(events)
 				.addChildren(places)
 				.addChildren(notes)
 				.addChildren(repositories)
@@ -321,7 +351,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + INDIVIDUAL_ID ++;
+		return ID_INDIVIDUAL_PREFIX + individualId++;
 	}
 
 
@@ -358,7 +388,7 @@ public class Flef extends Store{
 	}
 
 	public void linkFamilyToChild(final GedcomNode child, final GedcomNode family){
-		child.addChild(TRANSFORMER.createWithReference("FAMILY_CHILD", family.getID()));
+		child.addChild(TRANSFORMER.createWithReference("FAMILY", family.getID()));
 	}
 
 	public String removeFamily(final GedcomNode family){
@@ -375,7 +405,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + FAMILY_ID ++;
+		return ID_FAMILY_PREFIX + familyId++;
 	}
 
 	public List<GedcomNode> getParent1s(final GedcomNode child){
@@ -408,6 +438,56 @@ public class Flef extends Store{
 
 	public GedcomNode getSpouse(final GedcomNode family, final String spouseTag){
 		return getIndividual(traverse(family, spouseTag).getXRef());
+	}
+
+
+	public boolean hasEvents(){
+		return (events != null && !events.isEmpty());
+	}
+
+	public List<GedcomNode> getEvents(){
+		return events;
+	}
+
+	public GedcomNode getEvent(final String id){
+		return eventIndex.get(id);
+	}
+
+	public String addEvent(final GedcomNode event){
+		if(events == null){
+			events = new ArrayList<>(1);
+			eventIndex = new HashMap<>(1);
+		}
+
+		String eventID = event.getID();
+		if(eventID == null){
+			eventID = getNextEventID();
+			event.withID(eventID);
+		}
+
+		events.add(event);
+		eventIndex.put(event.getID(), event);
+
+		EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
+
+		return eventID;
+	}
+
+	public String removeEvent(final GedcomNode event){
+		if(events != null){
+			final String eventID = event.getID();
+			events.remove(event);
+			eventIndex.remove(eventID);
+
+			EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
+
+			return eventID;
+		}
+		return null;
+	}
+
+	private String getNextEventID(){
+		return ID_EVENT_PREFIX + eventId++;
 	}
 
 
@@ -444,7 +524,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextPlaceID(){
-		return ID_PLACE_PREFIX + (places != null? places.size() + 1: 1);
+		return ID_PLACE_PREFIX + placeId++;
 	}
 
 
@@ -481,7 +561,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextNoteID(){
-		return ID_NOTE_PREFIX + (notes != null? notes.size() + 1: 1);
+		return ID_NOTE_PREFIX + noteId++;
 	}
 
 
@@ -518,7 +598,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
+		return ID_REPOSITORY_PREFIX + repositoryId;
 	}
 
 
@@ -555,7 +635,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextSourceID(){
-		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
+		return ID_SOURCE_PREFIX + sourceId++;
 	}
 
 
@@ -585,7 +665,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextCulturalRuleID(){
-		return ID_CULTURAL_RULE_PREFIX + (culturalRules != null? culturalRules.size() + 1: 1);
+		return ID_CULTURAL_RULE_PREFIX + culturalRuleId++;
 	}
 
 
@@ -615,7 +695,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextGroupID(){
-		return ID_GROUP_PREFIX + (groups != null? groups.size() + 1: 1);
+		return ID_GROUP_PREFIX + groupId++;
 	}
 
 
@@ -645,7 +725,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextSubmitterID(){
-		return ID_SUBMITTER_PREFIX + (submitters != null? submitters.size() + 1: 1);
+		return ID_SUBMITTER_PREFIX + repositoryId++;
 	}
 
 }

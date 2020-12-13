@@ -33,12 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerIndividualRecordTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void individualRecordTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode individual = transformerTo.createWithID("INDI", "@I1@")
 			.addChildValue("RESN", "RESTRICTION_NOTICE")
 			.addChild(transformerTo.createWithValue("NAME", "name /surname/ name_suffix")
@@ -74,18 +71,18 @@ class TransformerIndividualRecordTest{
 				.addChildReference("SOURCE", "@S3@")
 			)
 			.addChildValue("SEX", "SEX_VALUE")
-			.addChild(transformerFrom.createWithValue("BIRTH", "Y")
+			.addChild(transformerTo.createWithValue("BIRTH", "Y")
 				.addChildValue("DATE", "DATE_VALUE1")
 				.addChildReference("FAMC", "@F1@")
 			)
-			.addChild(transformerFrom.create("ADOP")
+			.addChild(transformerTo.create("ADOP")
 				.addChildValue("DATE", "DATE_VALUE2")
-				.addChild(transformerFrom.create("FAMC")
+				.addChild(transformerTo.create("FAMC")
 					.withXRef("@F1@")
 					.addChildValue("ADOP", "WIFE")
 				)
 			)
-			.addChild(transformerFrom.create("EVEN")
+			.addChild(transformerTo.create("EVEN")
 				.addChildValue("TYPE", "EVENT_OR_FACT_CLASSIFICATION")
 				.addChildValue("DATE", "DATE_VALUE3")
 			)
@@ -135,11 +132,18 @@ class TransformerIndividualRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.individualRecordTo(individual, origin, destination);
 
-		Assertions.assertEquals("id: @I1@, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TITLE, value: NAME_PIECE_PREFIX, children: [{tag: INDIVIDUAL_NAME, value: NAME_PIECE_GIVEN, children: [{tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: FAMILY_NAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}]}]}]}, {tag: NOTE, ref: @N1@}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, ref: @F1@, children: [{tag: NOTE, ref: @N4@}]}, {tag: FAMILY_SPOUSE, ref: @F1@, children: [{tag: NOTE, ref: @N5@}]}, {tag: ASSOCIATION, ref: @I1@, children: [{tag: NOTE, ref: @N6@}, {tag: SOURCE, ref: @S1@}]}, {tag: ASSOCIATION, ref: @F1@, children: [{tag: NOTE, ref: @N7@}, {tag: SOURCE, ref: @S1@}]}, {tag: ALIAS, ref: @I1@}, {tag: FAMILY_CHILD, ref: @F1@, children: [{tag: PEDIGREE, children: [{tag: PARENT2, value: adopted}]}]}, {tag: EVENT, children: [{tag: TYPE, value: ADOPTION}, {tag: FAMILY_CHILD, ref: @F1@, children: [{tag: PEDIGREE, children: [{tag: PARENT2, value: adopted}]}]}, {tag: DATE, value: DATE_VALUE2, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION}, {tag: DATE, value: DATE_VALUE3, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: TITLE}, {tag: DESCRIPTION, value: NOBILITY_TYPE_TITLE}, {tag: DATE, value: DATE_VALUE4, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: EVENT, children: [{tag: TYPE, value: FACT}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_fact}, {tag: DATE, value: DATE_VALUE5, children: [{tag: CALENDAR, value: gregorian}]}]}, {tag: NOTE, ref: @N8@}, {tag: SOURCE, ref: @S1@}, {tag: NOTE, ref: @N8@}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: @I1@, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TITLE, value: NAME_PIECE_PREFIX, children: [{tag: INDIVIDUAL_NAME, value: NAME_PIECE_GIVEN, children: [{tag: NAME_SUFFIX, value: NAME_PIECE_SUFFIX}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: FAMILY_NAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}]}]}]}, {tag: NOTE, ref: @N1@}, {tag: SEX, value: SEX_VALUE}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: ASSOCIATION, ref: @I1@, children: [{tag: NOTE, ref: @N6@}, {tag: SOURCE, ref: @S1@}]}, {tag: ASSOCIATION, ref: @F1@, children: [{tag: NOTE, ref: @N7@}, {tag: SOURCE, ref: @S1@}]}, {tag: ALIAS, ref: @I1@}, {tag: FAMILY, ref: @F1@}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: EVENT, ref: E6}, {tag: NOTE, ref: @N8@}, {tag: SOURCE, ref: @S1@}, {tag: NOTE, ref: @N8@}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: E1, tag: EVENT, children: [{tag: TYPE, value: BIRTH}, {tag: NOTE, ref: @N4@}, {tag: INDIVIDUAL, ref: @I1@}, {tag: FAMILY, ref: @F1@}]", destination.getEvents().get(0).toString());
+		Assertions.assertEquals("id: E2, tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: INDIVIDUAL, ref: @I1@}, {tag: FAMILY, ref: @F1@}, {tag: NOTE, ref: @N5@}]", destination.getEvents().get(1).toString());
+		Assertions.assertEquals("id: E3, tag: EVENT, children: [{tag: TYPE, value: ADOPTION}, {tag: INDIVIDUAL, ref: @I1@}, {tag: FAMILY, ref: @F1@}, {tag: PEDIGREE, children: [{tag: PARENT2, value: adopted}]}, {tag: DATE, value: DATE_VALUE2, children: [{tag: CALENDAR, value: gregorian}]}]", destination.getEvents().get(2).toString());
+		Assertions.assertEquals("id: E4, tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION}, {tag: DATE, value: DATE_VALUE3, children: [{tag: CALENDAR, value: gregorian}]}]", destination.getEvents().get(3).toString());
+		Assertions.assertEquals("id: E5, tag: EVENT, children: [{tag: TYPE, value: TITLE}, {tag: DESCRIPTION, value: NOBILITY_TYPE_TITLE}, {tag: DATE, value: DATE_VALUE4, children: [{tag: CALENDAR, value: gregorian}]}]", destination.getEvents().get(4).toString());
+		Assertions.assertEquals("id: E6, tag: EVENT, children: [{tag: TYPE, value: FACT}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_fact}, {tag: DATE, value: DATE_VALUE5, children: [{tag: CALENDAR, value: gregorian}]}]", destination.getEvents().get(5).toString());
 	}
 
 	@Test
 	void individualRecordFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode individual = transformerFrom.createWithID("INDIVIDUAL", "@I1@")
 			.addChild(transformerFrom.create("NAME")
 				.addChildValue("TYPE", "NAME_TYPE")
@@ -212,14 +216,6 @@ class TransformerIndividualRecordTest{
 				.addChildReference("SOURCE", "@S1@")
 			)
 			.addChildValue("SEX", "SEX_VALUE")
-			.addChild(transformerFrom.createWithReference("FAMILY_CHILD", "@F1@")
-				.addChildValue("CERTAINTY", "CERTAINTY_ASSESSMENT")
-				.addChildValue("CREDIBILITY", "CREDIBILITY_ASSESSMENT")
-				.addChildReference("NOTE", "@N1@")
-			)
-			.addChild(transformerFrom.createWithReference("FAMILY_SPOUSE", "@F1@")
-				.addChildReference("NOTE", "@N1@")
-			)
 			.addChild(transformerFrom.createWithReference("ASSOCIATION", "@I1@")
 				.addChildValue("TYPE", "individual")
 				.addChildValue("RELATIONSHIP", "RELATION_IS_DESCRIPTOR1")
@@ -235,51 +231,11 @@ class TransformerIndividualRecordTest{
 			.addChild(transformerFrom.createWithReference("ALIAS", "@I1@")
 				.addChildReference("NOTE", "@N1@")
 			)
-			.addChild(transformerFrom.create("EVENT")
-				.addChildValue("TYPE", "BIRTH")
-				.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1")
-				.addChildReference("FAMILY_CHILD", "@F1@")
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE1")
-				.addChildReference("PLACE", "@P1@")
-				.addChildValue("AGENCY", "RESPONSIBLE_AGENCY1")
-				.addChildValue("CAUSE", "CAUSE_OF_EVENT1")
-				.addChildReference("NOTE", "@N1@")
-				.addChildReference("SOURCE", "@S1@")
-			)
-			.addChild(transformerFrom.create("EVENT")
-				.addChildValue("TYPE", "ADOPTION")
-				.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2")
-				.addChild(transformerFrom.createWithReference("FAMILY_CHILD", "@F1@")
-					.addChild(transformerFrom.create("PEDIGREE")
-						.addChildValue("PARENT1", "birth")
-						.addChildValue("PARENT2", "adopted")
-					)
-				)
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE2")
-				.addChildValue("AGENCY", "RESPONSIBLE_AGENCY2")
-				.addChildValue("CAUSE", "CAUSE_OF_EVENT2")
-			)
-			.addChild(transformerFrom.create("EVENT")
-				.addChildValue("TYPE", "MARRIAGE")
-				.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3")
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE3")
-				.addChildValue("AGENCY", "RESPONSIBLE_AGENCY3")
-				.addChildValue("CAUSE", "CAUSE_OF_EVENT3")
-			)
-			.addChild(transformerFrom.create("EVENT")
-				.addChildValue("TYPE", "RESIDENCE")
-				.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4")
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE4")
-				.addChildValue("AGENCY", "RESPONSIBLE_AGENCY4")
-				.addChildValue("CAUSE", "CAUSE_OF_EVENT4")
-			)
-			.addChild(transformerFrom.create("EVENT")
-				.addChildValue("TYPE", "EVENT_DESCRIPTOR")
-				.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5")
-				.addChildValue("DATE", "ENTRY_RECORDING_DATE5")
-				.addChildValue("AGENCY", "RESPONSIBLE_AGENCY5")
-				.addChildValue("CAUSE", "CAUSE_OF_EVENT5")
-			)
+			.addChildReference("EVENT", "@E1@")
+			.addChildReference("EVENT", "@E2@")
+			.addChildReference("EVENT", "@E3@")
+			.addChildReference("EVENT", "@E4@")
+			.addChildReference("EVENT", "@E5@")
 			.addChild(transformerFrom.createWithReference("GROUP", "@G1@")
 				.addChildValue("ROLE", "ROLE_IN_GROUP")
 				.addChildReference("NOTE", "@N1@")
@@ -294,22 +250,70 @@ class TransformerIndividualRecordTest{
 				.addChildValue("CUTOUT", "CUTOUT_COORDINATES")
 			)
 			.addChildValue("RESTRICTION", "RESTRICTION_NOTICE");
-		final GedcomNode source = transformerTo.createWithID("SOURCE", "@S1@");
-		final GedcomNode place = transformerTo.createWithID("PLACE", "@P1@")
+		final GedcomNode event1 = transformerFrom.createWithID("EVENT", "@E1@")
+			.addChildValue("TYPE", "BIRTH")
+			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1")
+			.addChildReference("INDIVIDUAL", "@I1@")
+			.addChildReference("FAMILY", "@F1@")
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE1")
+			.addChildReference("PLACE", "@P1@")
+			.addChildValue("AGENCY", "RESPONSIBLE_AGENCY1")
+			.addChildValue("CAUSE", "CAUSE_OF_EVENT1")
+			.addChildReference("NOTE", "@N1@")
+			.addChildReference("SOURCE", "@S1@");
+		final GedcomNode event2 = transformerFrom.createWithID("EVENT", "@E2@")
+			.addChildValue("TYPE", "ADOPTION")
+			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2")
+			.addChildReference("INDIVIDUAL", "@I1@")
+			.addChildReference("FAMILY", "@F1@")
+			.addChild(transformerFrom.createWithReference("PARENT_PEDIGREE", "@I1@")
+				.addChildValue("PEDIGREE", "birth")
+			)
+			.addChild(transformerFrom.createWithReference("PARENT_PEDIGREE", "@I2@")
+				.addChildValue("PEDIGREE", "adopted")
+			)
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE2")
+			.addChildValue("AGENCY", "RESPONSIBLE_AGENCY2")
+			.addChildValue("CAUSE", "CAUSE_OF_EVENT2");
+		final GedcomNode event3 = transformerFrom.createWithID("EVENT", "@E3@")
+			.addChildValue("TYPE", "MARRIAGE")
+			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3")
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE3")
+			.addChildValue("AGENCY", "RESPONSIBLE_AGENCY3")
+			.addChildValue("CAUSE", "CAUSE_OF_EVENT3");
+		final GedcomNode event4 = transformerFrom.createWithID("EVENT", "@E4@")
+			.addChildValue("TYPE", "RESIDENCE")
+			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4")
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE4")
+			.addChildValue("AGENCY", "RESPONSIBLE_AGENCY4")
+			.addChildValue("CAUSE", "CAUSE_OF_EVENT4");
+		final GedcomNode event5 = transformerFrom.createWithID("EVENT", "@E5@")
+			.addChildValue("TYPE", "EVENT_DESCRIPTOR")
+			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5")
+			.addChildValue("DATE", "ENTRY_RECORDING_DATE5")
+			.addChildValue("AGENCY", "RESPONSIBLE_AGENCY5")
+			.addChildValue("CAUSE", "CAUSE_OF_EVENT5");
+		final GedcomNode source = transformerFrom.createWithID("SOURCE", "@S1@");
+		final GedcomNode place = transformerFrom.createWithID("PLACE", "@P1@")
 			.addChildValue("NAME", "PLACE_NAME");
-		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
+		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
 
-		Assertions.assertEquals("id: @I1@, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: LOCALE, value: LOCALE_NAME}, {tag: TITLE, value: TITLE_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_title}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_title}]}]}, {tag: INDIVIDUAL_NAME, value: INDIVIDUAL_NAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_individual_name}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_individual_name}]}, {tag: INDIVIDUAL_NAME_SUFFIX, value: INDIVIDUAL_NAME_PIECE_SUFFIX, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_individual_name_suffix}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_individual_name_suffix}]}]}]}, {tag: INDIVIDUAL_NICKNAME, value: NICKNAME_NAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_nickname}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_nickname}]}]}, {tag: FAMILY_NAME, value: FAMILY_NAME1, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_surname1}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_surname1}]}]}, {tag: FAMILY_NAME, value: FAMILY_NAME2, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_surname2}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_surname2}]}]}, {tag: FAMILY_NICKNAME, value: FAMILY_NICKNAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_family_nickname}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_family_nickname}]}]}, {tag: CULTURAL_RULE, ref: @C1@}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, ref: @F1@, children: [{tag: CERTAINTY, value: CERTAINTY_ASSESSMENT}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {tag: NOTE, ref: @N1@}]}, {tag: FAMILY_SPOUSE, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}, {tag: ASSOCIATION, ref: @I1@, children: [{tag: TYPE, value: individual}, {tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR1}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: ASSOCIATION, ref: @F1@, children: [{tag: TYPE, value: family}, {tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR2}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: ALIAS, ref: @I1@, children: [{tag: NOTE, ref: @N1@}]}, {tag: EVENT, children: [{tag: TYPE, value: BIRTH}, {tag: DESCRIPTION, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1}, {tag: FAMILY_CHILD, ref: @F1@}, {tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLACE, ref: @P1@}, {tag: AGENCY, value: RESPONSIBLE_AGENCY1}, {tag: CAUSE, value: CAUSE_OF_EVENT1}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: EVENT, children: [{tag: TYPE, value: ADOPTION}, {tag: DESCRIPTION, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2}, {tag: FAMILY_CHILD, ref: @F1@, children: [{tag: PEDIGREE, children: [{tag: PARENT1, value: birth}, {tag: PARENT2, value: adopted}]}]}, {tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGENCY, value: RESPONSIBLE_AGENCY2}, {tag: CAUSE, value: CAUSE_OF_EVENT2}]}, {tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: DESCRIPTION, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3}, {tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGENCY, value: RESPONSIBLE_AGENCY3}, {tag: CAUSE, value: CAUSE_OF_EVENT3}]}, {tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}, {tag: DESCRIPTION, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4}, {tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGENCY, value: RESPONSIBLE_AGENCY4}, {tag: CAUSE, value: CAUSE_OF_EVENT4}]}, {tag: EVENT, children: [{tag: TYPE, value: EVENT_DESCRIPTOR}, {tag: DESCRIPTION, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5}, {tag: DATE, value: ENTRY_RECORDING_DATE5}, {tag: AGENCY, value: RESPONSIBLE_AGENCY5}, {tag: CAUSE, value: CAUSE_OF_EVENT5}]}, {tag: GROUP, ref: @G1@, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {tag: NOTE, ref: @N1@}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]}, {tag: CULTURAL_RULE, ref: @C1@}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", individual.toString());
+		Assertions.assertEquals("id: @I1@, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: LOCALE, value: LOCALE_NAME}, {tag: TITLE, value: TITLE_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_title}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_title}]}]}, {tag: INDIVIDUAL_NAME, value: INDIVIDUAL_NAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_individual_name}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_individual_name}]}, {tag: INDIVIDUAL_NAME_SUFFIX, value: INDIVIDUAL_NAME_PIECE_SUFFIX, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_individual_name_suffix}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_individual_name_suffix}]}]}]}, {tag: INDIVIDUAL_NICKNAME, value: NICKNAME_NAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_nickname}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_nickname}]}]}, {tag: FAMILY_NAME, value: FAMILY_NAME1, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_surname1}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_surname1}]}]}, {tag: FAMILY_NAME, value: FAMILY_NAME2, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_surname2}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_surname2}]}]}, {tag: FAMILY_NICKNAME, value: FAMILY_NICKNAME_PIECE, children: [{tag: PHONETIC, value: PHONETIC_SYSTEM, children: [{tag: VALUE, value: PHONETIC_NAME_PIECE_family_nickname}]}, {tag: TRANSCRIPTION, value: TRANSCRIPTION_SYSTEM, children: [{tag: TYPE, value: TRANSCRIPTION_TYPE}, {tag: VALUE, value: TRANSCRIPTION_NAME_PIECE_family_nickname}]}]}, {tag: CULTURAL_RULE, ref: @C1@}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: SEX, value: SEX_VALUE}, {tag: ASSOCIATION, ref: @I1@, children: [{tag: TYPE, value: individual}, {tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR1}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: ASSOCIATION, ref: @F1@, children: [{tag: TYPE, value: family}, {tag: RELATIONSHIP, value: RELATION_IS_DESCRIPTOR2}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}]}, {tag: ALIAS, ref: @I1@, children: [{tag: NOTE, ref: @N1@}]}, {tag: EVENT, ref: @E1@}, {tag: EVENT, ref: @E2@}, {tag: EVENT, ref: @E3@}, {tag: EVENT, ref: @E4@}, {tag: EVENT, ref: @E5@}, {tag: GROUP, ref: @G1@, children: [{tag: ROLE, value: ROLE_IN_GROUP}, {tag: NOTE, ref: @N1@}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]}, {tag: CULTURAL_RULE, ref: @C1@}, {tag: NOTE, ref: @N1@}, {tag: SOURCE, ref: @S1@}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", individual.toString());
 
 		final Flef origin = new Flef();
 		origin.addIndividual(individual);
+		origin.addEvent(event1);
+		origin.addEvent(event2);
+		origin.addEvent(event3);
+		origin.addEvent(event4);
+		origin.addEvent(event5);
 		origin.addSource(source);
 		origin.addPlace(place);
 		origin.addNote(note);
 		final Gedcom destination = new Gedcom();
 		transformerFrom.individualRecordFrom(individual, origin, destination);
 
-		Assertions.assertEquals("id: @I1@, tag: INDI, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: NPFX, value: TITLE_PIECE}, {tag: GIVN, value: INDIVIDUAL_NAME_PIECE}, {tag: NICK, value: NICKNAME_NAME_PIECE}, {tag: SURN, value: FAMILY_NAME1 FAMILY_NAME2}, {tag: FONE, children: [{tag: NPFX, value: PHONETIC_NAME_PIECE_title}, {tag: GIVN, value: PHONETIC_NAME_PIECE_individual_name}, {tag: NICK, value: PHONETIC_NAME_PIECE_nickname}, {tag: SURN, value: PHONETIC_NAME_PIECE_surname1 PHONETIC_NAME_PIECE_surname2}]}, {tag: ROMN, children: [{tag: NPFX, value: TRANSCRIPTION_NAME_PIECE_title}, {tag: GIVN, value: TRANSCRIPTION_NAME_PIECE_individual_name}, {tag: NICK, value: TRANSCRIPTION_NAME_PIECE_nickname}, {tag: SURN, value: TRANSCRIPTION_NAME_PIECE_surname1 TRANSCRIPTION_NAME_PIECE_surname2}]}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: SEX, value: SEX_VALUE}, {tag: FAMC, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}, {tag: FAMS, ref: @F1@, children: [{tag: NOTE, ref: @N1@}]}, {tag: ASSO, ref: @I1@, children: [{tag: ASSO.RELA, value: RELATION_IS_DESCRIPTOR1}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: ASSO, ref: @F1@, children: [{tag: ASSO.RELA, value: RELATION_IS_DESCRIPTOR2}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: ALIA, ref: @I1@}, {tag: FAMC, ref: @F1@, children: [{tag: STAT, value: CERTAINTY_ASSESSMENT}]}, {tag: BIRT, children: [{tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLAC, value: PLACE_NAME}, {tag: AGNC, value: RESPONSIBLE_AGENCY1}, {tag: CAUS, value: CAUSE_OF_EVENT1}, {tag: FAMC, ref: @F1@, children: [{tag: STAT, value: CERTAINTY_ASSESSMENT}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: FAMC, ref: @F1@, children: [{tag: ADOP, value: WIFE}, {tag: PEDI, value: WIFE}, {tag: STAT, value: CERTAINTY_ASSESSMENT}]}, {tag: ADOP, children: [{tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGNC, value: RESPONSIBLE_AGENCY2}, {tag: CAUS, value: CAUSE_OF_EVENT2}, {tag: FAMC, ref: @F1@, children: [{tag: ADOP, value: WIFE}, {tag: PEDI, value: WIFE}, {tag: STAT, value: CERTAINTY_ASSESSMENT}]}]}, {tag: MARR, children: [{tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGNC, value: RESPONSIBLE_AGENCY3}, {tag: CAUS, value: CAUSE_OF_EVENT3}]}, {tag: RESI, children: [{tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGNC, value: RESPONSIBLE_AGENCY4}, {tag: CAUS, value: CAUSE_OF_EVENT4}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: RESN, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: @I1@, tag: INDI, children: [{tag: NAME, children: [{tag: TYPE, value: NAME_TYPE}, {tag: NPFX, value: TITLE_PIECE}, {tag: GIVN, value: INDIVIDUAL_NAME_PIECE}, {tag: NICK, value: NICKNAME_NAME_PIECE}, {tag: SURN, value: FAMILY_NAME1 FAMILY_NAME2}, {tag: FONE, children: [{tag: NPFX, value: PHONETIC_NAME_PIECE_title}, {tag: GIVN, value: PHONETIC_NAME_PIECE_individual_name}, {tag: NICK, value: PHONETIC_NAME_PIECE_nickname}, {tag: SURN, value: PHONETIC_NAME_PIECE_surname1 PHONETIC_NAME_PIECE_surname2}]}, {tag: ROMN, children: [{tag: NPFX, value: TRANSCRIPTION_NAME_PIECE_title}, {tag: GIVN, value: TRANSCRIPTION_NAME_PIECE_individual_name}, {tag: NICK, value: TRANSCRIPTION_NAME_PIECE_nickname}, {tag: SURN, value: TRANSCRIPTION_NAME_PIECE_surname1 TRANSCRIPTION_NAME_PIECE_surname2}]}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: SEX, value: SEX_VALUE}, {tag: ASSO, ref: @I1@, children: [{tag: ASSO.RELA, value: RELATION_IS_DESCRIPTOR1}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: ASSO, ref: @F1@, children: [{tag: ASSO.RELA, value: RELATION_IS_DESCRIPTOR2}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: ALIA, ref: @I1@}, {tag: BIRT, children: [{tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLAC, value: PLACE_NAME}, {tag: AGNC, value: RESPONSIBLE_AGENCY1}, {tag: CAUS, value: CAUSE_OF_EVENT1}, {tag: FAMC, ref: @F1@}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}]}, {tag: ADOP, children: [{tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGNC, value: RESPONSIBLE_AGENCY2}, {tag: CAUS, value: CAUSE_OF_EVENT2}, {tag: FAMC, ref: @F1@, children: [{tag: ADOP, value: WIFE}]}]}, {tag: MARR, children: [{tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGNC, value: RESPONSIBLE_AGENCY3}, {tag: CAUS, value: CAUSE_OF_EVENT3}]}, {tag: RESI, children: [{tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGNC, value: RESPONSIBLE_AGENCY4}, {tag: CAUS, value: CAUSE_OF_EVENT4}]}, {tag: NOTE, ref: @N1@}, {tag: SOUR, ref: @S1@}, {tag: RESN, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
 	}
 
 }

@@ -33,12 +33,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerMultimediaRecordTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void multimediaRecordTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode object = transformerTo.createWithID("OBJE", "@M1@")
 			.addChild(transformerTo.create("FILE")
 				.withValue("MULTIMEDIA_FILE_REFN")
@@ -68,6 +65,7 @@ class TransformerMultimediaRecordTest{
 
 	@Test
 	void multimediaRecordFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode source= transformerFrom.create("SOURCE")
 			.addChildValue("EVENT", "EVENTS_RECORDED")
 			.addChildValue("TITLE", "SOURCE_DESCRIPTIVE_TITLE")

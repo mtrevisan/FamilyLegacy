@@ -32,12 +32,9 @@ import org.junit.jupiter.api.Test;
 
 class TransformerSourceRepositoryCitationTest{
 
-	private final Transformer transformerTo = new Transformer(Protocol.FLEF);
-	private final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-
-
 	@Test
 	void sourceRepositoryCitationTo(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("REPO", "@R1@")
 				.addChildReference("NOTE", "@N1@")
@@ -47,7 +44,7 @@ class TransformerSourceRepositoryCitationTest{
 				)
 			);
 		final GedcomNode repository = transformerTo.createWithID("REPO", "@R1@");
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
+		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
 
 		Assertions.assertEquals("children: [{tag: REPO, ref: @R1@, children: [{tag: NOTE, ref: @N1@}, {tag: CALN, value: SOURCE_CALL_NUMBER, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}]", parent.toString());
 		Assertions.assertEquals("id: @R1@, tag: REPO", repository.toString());
@@ -57,13 +54,14 @@ class TransformerSourceRepositoryCitationTest{
 		final Flef destination = new Flef();
 		destination.addRepository(repository);
 		destination.addNote(note);
-		transformerFrom.sourceRepositoryCitationTo(parent, destinationNode, destination);
+		transformerTo.sourceRepositoryCitationTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: @R1@, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: @N1@}]}]", destinationNode.toString());
 	}
 
 	@Test
 	void sourceRepositoryCitationFrom(){
+		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.createWithReference("REPOSITORY", "@R1@")
 				.addChildValue("LOCATION", "REPOSITORY_LOCATION_TEXT")
