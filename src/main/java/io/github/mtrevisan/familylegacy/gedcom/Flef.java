@@ -65,9 +65,8 @@ public class Flef extends Store{
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
-	private static final String ID_CULTURAL_RULE_PREFIX = "A";
+	private static final String ID_CULTURAL_RULE_PREFIX = "C";
 	private static final String ID_GROUP_PREFIX = "G";
-	private static final String ID_SUBMITTER_PREFIX = "M";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
@@ -79,7 +78,6 @@ public class Flef extends Store{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
 	private static final String TAG_GROUP = "GROUP";
-	private static final String TAG_SUBMITTER = "SUBMITTER";
 	private static final String TAG_CHARSET = "CHARSET";
 
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
@@ -103,7 +101,6 @@ public class Flef extends Store{
 	private List<GedcomNode> sources;
 	private List<GedcomNode> culturalRules;
 	private List<GedcomNode> groups;
-	private List<GedcomNode> submitters;
 
 	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
@@ -114,8 +111,8 @@ public class Flef extends Store{
 	private Map<String, GedcomNode> sourceIndex;
 	private Map<String, GedcomNode> culturalRuleIndex;
 	private Map<String, GedcomNode> groupIndex;
-	private Map<String, GedcomNode> submitterIndex;
 
+	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
 	private Map<Integer, String> noteValue;
 	private Map<Integer, String> repositoryValue;
@@ -182,7 +179,6 @@ public class Flef extends Store{
 		sources = root.getChildrenWithTag(TAG_SOURCE);
 		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
 		groups = root.getChildrenWithTag(TAG_GROUP);
-		submitters = root.getChildrenWithTag(TAG_SUBMITTER);
 
 		individualIndex = generateIndexes(individuals);
 		familyIndex = generateIndexes(families);
@@ -193,8 +189,8 @@ public class Flef extends Store{
 		sourceIndex = generateIndexes(sources);
 		culturalRuleIndex = generateIndexes(culturalRules);
 		groupIndex = generateIndexes(groups);
-		submitterIndex = generateIndexes(submitters);
 
+		eventValue = reverseMap(eventIndex);
 		placeValue = reverseMap(placeIndex);
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
@@ -262,7 +258,6 @@ public class Flef extends Store{
 				.addChildren(sources)
 				.addChildren(culturalRules)
 				.addChildren(groups)
-				.addChildren(submitters)
 				.addClosingChild("EOF");
 
 		super.write(os);
@@ -454,22 +449,30 @@ public class Flef extends Store{
 	}
 
 	public String addEvent(final GedcomNode event){
-		if(events == null){
-			events = new ArrayList<>(1);
-			eventIndex = new HashMap<>(1);
-		}
-
-		String eventID = event.getID();
+		//search event
+		String eventID = (!event.isEmpty() && eventValue != null? eventValue.get(event.hashCode()): null);
 		if(eventID == null){
-			eventID = getNextEventID();
-			event.withID(eventID);
+			//if event is not found:
+			if(events == null){
+				events = new ArrayList<>(1);
+				eventIndex = new HashMap<>(1);
+				eventValue = new HashMap<>(1);
+			}
+
+			eventID = event.getID();
+			if(eventID == null){
+				eventID = getNextEventID();
+				event.withID(eventID);
+			}
+
+			events.add(event);
+			eventIndex.put(event.getID(), event);
+			eventValue.put(event.hashCode(), eventID);
+
+			EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
 		}
-
-		events.add(event);
-		eventIndex.put(event.getID(), event);
-
-		EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
-
+		else
+			event.withID(eventID);
 		return eventID;
 	}
 
@@ -704,36 +707,6 @@ public class Flef extends Store{
 
 	private String getNextGroupID(){
 		return ID_GROUP_PREFIX + (groupId ++);
-	}
-
-
-	public List<GedcomNode> getSubmitters(){
-		return submitters;
-	}
-
-	public GedcomNode getSubmitter(final String id){
-		return submitterIndex.get(id);
-	}
-
-	public String addSubmitter(final GedcomNode submitter){
-		if(submitters == null){
-			submitters = new ArrayList<>(1);
-			submitterIndex = new HashMap<>(1);
-		}
-
-		String submitterID = submitter.getID();
-		if(submitterID == null){
-			submitterID = getNextSubmitterID();
-			submitter.withID(submitterID);
-		}
-
-		submitters.add(submitter);
-		submitterIndex.put(submitter.getID(), submitter);
-		return submitterID;
-	}
-
-	private String getNextSubmitterID(){
-		return ID_SUBMITTER_PREFIX + (repositoryId ++);
 	}
 
 }

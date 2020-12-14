@@ -33,7 +33,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -134,7 +133,7 @@ public abstract class Store{
 				indexes.put(elem.getID(), elem);
 		}
 		else
-			indexes = Collections.emptyMap();
+			indexes = new HashMap<>(0);
 		return indexes;
 	}
 
@@ -146,7 +145,7 @@ public abstract class Store{
 				values.put(elem.getValue().hashCode(), elem.getKey());
 		}
 		else
-			values = Collections.emptyMap();
+			values = new HashMap<>(0);
 		return values;
 	}
 

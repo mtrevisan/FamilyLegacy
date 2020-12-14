@@ -51,7 +51,7 @@ class TransformerTest{
 
 		Assertions.assertEquals(1, node.getChildren().size());
 		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY", node.getRawValue());
-		Assertions.assertEquals("CONTINUATION", node.getChildren().get(0).getTag());
+		Assertions.assertEquals("NEW_LINE", node.getChildren().get(0).getTag());
 		Assertions.assertEquals("VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY VERY LONG TEXT", node.getChildren().get(0).getRawValue());
 	}
 

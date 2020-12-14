@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 
 public final class GedcomNodeFlef extends GedcomNode{
 
-	private static final String TAG_CONTINUATION = "CONTINUATION";
+	private static final String TAG_NEW_LINE = "NEW_LINE";
 
 
 	@Override
@@ -45,7 +45,7 @@ public final class GedcomNodeFlef extends GedcomNode{
 			if(value != null)
 				sb.append(value);
 			for(final GedcomNode child : children)
-				if(TAG_CONTINUATION.equals(child.tag)){
+				if(TAG_NEW_LINE.equals(child.tag)){
 					sb.append(NEW_LINE);
 					if(child.value != null)
 						sb.append(child.value);
@@ -65,7 +65,7 @@ public final class GedcomNodeFlef extends GedcomNode{
 			final int length = value.length();
 			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
 				final String subValue = value.substring(offset, cutIndex);
-				addValue(TAG_CONTINUATION, subValue);
+				addValue(TAG_NEW_LINE, subValue);
 
 				offset = cutIndex + 1;
 			}
@@ -74,7 +74,7 @@ public final class GedcomNodeFlef extends GedcomNode{
 				if(offset == 0)
 					this.value = value;
 				else
-					addValue(TAG_CONTINUATION, value.substring(offset));
+					addValue(TAG_NEW_LINE, value.substring(offset));
 			}
 		}
 		return this;

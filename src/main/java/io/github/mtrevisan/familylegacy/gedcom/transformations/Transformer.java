@@ -389,7 +389,8 @@ public final class Transformer extends TransformerHelper{
 			final Flef destination){
 		final GedcomNode destinationEvent = create("EVENT")
 			.addChildValue("TYPE", (CUSTOM_EVENT_TAG.equals(valueTo)? traverse(event, "TYPE").getValue(): valueTo));
-		if(!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"MARRIAGE".equals(valueTo))
+		//skip useless `Y` as description
+		if(!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"BURIAL".equals(valueTo) && !"MARRIAGE".equals(valueTo))
 			destinationEvent.addChildValue("DESCRIPTION", event.getValue());
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		if(!familyChild.isEmpty()){
@@ -606,14 +607,26 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
 				)
 				.addChild(create("MAP")
-					.addChildValue("LATITUDE", traverse(map, "LATI").getValue())
-					.addChildValue("LONGITUDE", traverse(map, "LONG").getValue())
+					.addChildValue("LATITUDE", mapCoordinateTo(map, "LATI"))
+					.addChildValue("LONGITUDE", mapCoordinateTo(map, "LONG"))
 				);
 			noteCitationTo(place, destinationPlace, destination);
 
 			destination.addPlace(destinationPlace);
 			destinationNode.addChildReference("PLACE", destinationPlace.getID());
 		}
+	}
+
+	private String mapCoordinateTo(final GedcomNode map, final String coordinateType){
+		String value = traverse(map, coordinateType).getValue();
+		if(value != null){
+			final char firstCharacter = value.charAt(0);
+			final boolean negative = (firstCharacter == 'S' || firstCharacter == 'W');
+			value = value.substring(1);
+			if(negative)
+				value = "-" + value;
+		}
+		return value;
 	}
 
 	private String extractAddressValue(final GedcomNode address){
@@ -1297,12 +1310,26 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode destinationPlace = create("PLAC")
 				.withValue(traverse(placeRecord, "NAME").getValue())
 				.addChild(create("MAP")
-					.addChildValue("LATI", traverse(map, "LATITUDE").getValue())
-					.addChildValue("LONG", traverse(map, "LONGITUDE").getValue())
+					.addChildValue("LATI", mapCoordinateFrom(map, "LATITUDE"))
+					.addChildValue("LONG", mapCoordinateFrom(map, "LONGITUDE"))
 				);
 			noteCitationFrom(placeRecord, destinationPlace);
 			destinationNode.addChild(destinationPlace);
 		}
+	}
+
+	private String mapCoordinateFrom(final GedcomNode map, final String coordinateType){
+		String value = traverse(map, coordinateType).getValue();
+		if(value != null){
+			final boolean negative = (value.charAt(0) == '-');
+			if(negative)
+				value = value.substring(1);
+			if("LATITUDE".equals(coordinateType))
+				value = (negative? "S" + value: "N" + value);
+			else
+				value = (negative? "W" + value: "E" + value);
+		}
+		return value;
 	}
 
 	/*
