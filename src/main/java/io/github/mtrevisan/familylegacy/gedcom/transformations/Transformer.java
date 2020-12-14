@@ -983,9 +983,10 @@ public final class Transformer extends TransformerHelper{
 				for(final GedcomNode familyChild : familyChildren)
 					if(familyChild.getXRef().equals(destinationFamilyChild.getXRef())){
 						final List<GedcomNode> parentPedigrees = traverseAsList(nodeChild, "PARENT_PEDIGREE[]");
-						if(!parentPedigrees.isEmpty()){
+						final int parentPedigreeCount = parentPedigrees.size();
+						if(parentPedigreeCount > 0){
 							final boolean adoptedByParent1 = "adopted".equals(traverse(parentPedigrees.get(0), "PEDIGREE").getValue());
-							final boolean adoptedByParent2 = (parentPedigrees.size() > 1
+							final boolean adoptedByParent2 = (parentPedigreeCount > 1
 								&& "adopted".equals(traverse(parentPedigrees.get(1), "PEDIGREE").getValue()));
 							String pedigreeValue = null;
 							if(adoptedByParent1 && adoptedByParent2)
@@ -1042,9 +1043,11 @@ public final class Transformer extends TransformerHelper{
 			final String type = traverse(event, "TYPE").getValue();
 			if("MARRIAGE".equals(type)){
 				final List<GedcomNode> spouses = traverseAsList(event, "INDIVIDUAL[]");
-				destinationFamily
-					.addChildReference("HUSB", spouses.get(0).getXRef())
-					.addChildReference("WIFE", spouses.get(1).getXRef());
+				final int spouseCount = spouses.size();
+				if(spouseCount > 0)
+					destinationFamily.addChildReference("HUSB", spouses.get(0).getXRef());
+				if(spouseCount > 1)
+					destinationFamily.addChildReference("WIFE", spouses.get(1).getXRef());
 			}
 			final String tagTo = FAMILY_TO_FAM.get(type);
 			final GedcomNode destinationEvent = eventRecordFrom(tagTo, event, origin);
