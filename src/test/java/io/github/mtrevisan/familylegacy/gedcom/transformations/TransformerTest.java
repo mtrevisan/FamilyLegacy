@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

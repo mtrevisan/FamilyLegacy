@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class Gedcom extends Store{
@@ -106,6 +107,15 @@ public class Gedcom extends Store{
 	private Map<Integer, String> sourceValue;
 	private Map<Integer, String> objectValue;
 
+	private int individualId = 1;
+	private int familyId = 1;
+	private int documentId = 1;
+	private int noteId = 1;
+	private int repositoryId = 1;
+	private int sourceId = 1;
+	private int objectId = 1;
+	private int submitterId = 1;
+
 
 	public static void main(final String[] args){
 		try{
@@ -121,14 +131,14 @@ public class Gedcom extends Store{
 			storeFlef.write(os);
 			os.close();
 
-//			final Store storeFlef2 = new Flef();
-//			storeFlef2.load("/gedg/flef_0.0.4.gedg", outputFile.getPath());
-//
-//			//compare storeFlef and storeFlef2
-//			final File outputFile2 = new File("tmp2.ged");
-//			final OutputStream os2 = new FileOutputStream(outputFile2);
-//			storeFlef.write(os2);
-//			os2.close();
+			final Store storeFlef2 = new Flef();
+			storeFlef2.load("/gedg/flef_0.0.5.gedg", outputFile.getPath());
+
+			//compare storeFlef and storeFlef2
+			final File outputFile2 = new File("tmp2.ged");
+			final OutputStream os2 = new FileOutputStream(outputFile2);
+			storeFlef.write(os2);
+			os2.close();
 		}
 		catch(final Exception e){
 			e.printStackTrace();
@@ -191,12 +201,30 @@ public class Gedcom extends Store{
 		noteIndex = generateIndexes(notes);
 		repositoryIndex = generateIndexes(repositories);
 		sourceIndex = generateIndexes(sources);
+		objectIndex = generateIndexes(objects);
 		submitterIndex = generateIndexes(submitters);
 
 		documentValue = reverseMap(documentIndex);
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
 		sourceValue = reverseMap(sourceIndex);
+
+		if(!individualIndex.isEmpty())
+			individualId = extractLastID(((TreeMap<String, GedcomNode>)individualIndex).lastKey()) + 1;
+		if(!familyIndex.isEmpty())
+			familyId = extractLastID(((TreeMap<String, GedcomNode>)familyIndex).lastKey()) + 1;
+		if(!documentIndex.isEmpty())
+			documentId = extractLastID(((TreeMap<String, GedcomNode>)documentIndex).lastKey()) + 1;
+		if(!noteIndex.isEmpty())
+			noteId = extractLastID(((TreeMap<String, GedcomNode>)noteIndex).lastKey()) + 1;
+		if(!repositoryIndex.isEmpty())
+			repositoryId = extractLastID(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey()) + 1;
+		if(!sourceIndex.isEmpty())
+			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
+		if(!objectIndex.isEmpty())
+			objectId = extractLastID(((TreeMap<String, GedcomNode>)objectIndex).lastKey()) + 1;
+		if(!submitterIndex.isEmpty())
+			submitterId = extractLastID(((TreeMap<String, GedcomNode>)submitterIndex).lastKey()) + 1;
 	}
 
 	@Override
@@ -278,7 +306,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + (individuals != null? individuals.size() + 1: 1);
+		return ID_INDIVIDUAL_PREFIX + individualId ++;
 	}
 
 	public List<GedcomNode> getFamilies(){
@@ -307,7 +335,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + (families != null? families.size() + 1: 1);
+		return ID_FAMILY_PREFIX + familyId ++;
 	}
 
 	public List<GedcomNode> getDocuments(){
@@ -343,7 +371,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextDocumentID(){
-		return ID_DOCUMENT_PREFIX + (documents != null? documents.size() + 1: 1);
+		return ID_DOCUMENT_PREFIX + documentId ++;
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -379,7 +407,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextNoteID(){
-		return ID_NOTE_PREFIX + (notes != null? notes.size() + 1: 1);
+		return ID_NOTE_PREFIX + noteId ++;
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -415,7 +443,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return ID_REPOSITORY_PREFIX + (repositories != null? repositories.size() + 1: 1);
+		return ID_REPOSITORY_PREFIX + repositoryId ++;
 	}
 
 
@@ -452,7 +480,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSourceID(){
-		return ID_SOURCE_PREFIX + (sources != null? sources.size() + 1: 1);
+		return ID_SOURCE_PREFIX + sourceId ++;
 	}
 
 
@@ -489,7 +517,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextObjectID(){
-		return ID_OBJECT_PREFIX + (objects != null? objects.size() + 1: 1);
+		return ID_OBJECT_PREFIX + objectId ++;
 	}
 
 
@@ -519,7 +547,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSubmitterID(){
-		return ID_SUBMITTER_PREFIX + (submitters != null? submitters.size() + 1: 1);
+		return ID_SUBMITTER_PREFIX + submitterId ++;
 	}
 
 }

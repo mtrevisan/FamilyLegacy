@@ -32,7 +32,11 @@ n <<FAMILY_RECORD>>    {1:1}
 |
 n <<GROUP_RECORD>>    {1:1}
 |
-n <<EVENT_RECORD>>    {1:1}
+n <<INDIVIDUAL_EVENT_RECORD>>    {1:1}
+|
+n <<FAMILY_EVENT_RECORD>>    {1:1}
+|
+n <<GROUP_EVENT_RECORD>>    {1:1}
 |
 n <<PLACE_RECORD>>    {1:1}
 |

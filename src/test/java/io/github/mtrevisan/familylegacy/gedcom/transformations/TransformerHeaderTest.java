@@ -104,7 +104,7 @@ class TransformerHeaderTest{
 		final Flef destination = new Flef();
 		transformerTo.headerTo(header, destination);
 
-		Assertions.assertEquals("tag: HEADER, children: [{tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.4}]}, {tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: TRANSMISSION_DATE TIME_VALUE}, {tag: COPYRIGHT, value: COPYRIGHT_GEDCOM_FILE}, {tag: SUBMITTER, ref: SUBM1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION}]", destination.getHeader().toString());
+		Assertions.assertEquals("tag: HEADER, children: [{tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.5}]}, {tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: TRANSMISSION_DATE TIME_VALUE}, {tag: COPYRIGHT, value: COPYRIGHT_GEDCOM_FILE}, {tag: SUBMITTER, ref: SUBM1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION}]", destination.getHeader().toString());
 	}
 
 	@Test

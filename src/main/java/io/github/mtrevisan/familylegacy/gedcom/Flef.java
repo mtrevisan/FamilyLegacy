@@ -201,23 +201,23 @@ public class Flef extends Store{
 		sourceValue = reverseMap(sourceIndex);
 
 		if(!individualIndex.isEmpty())
-			individualId = Integer.parseInt(((TreeMap<String, GedcomNode>)individualIndex).lastKey().substring(1)) + 1;
+			individualId = extractLastID(((TreeMap<String, GedcomNode>)individualIndex).lastKey()) + 1;
 		if(!familyIndex.isEmpty())
-			familyId = Integer.parseInt(((TreeMap<String, GedcomNode>)familyIndex).lastKey().substring(1)) + 1;
+			familyId = extractLastID(((TreeMap<String, GedcomNode>)familyIndex).lastKey()) + 1;
 		if(!eventIndex.isEmpty())
-			eventId = Integer.parseInt(((TreeMap<String, GedcomNode>)eventIndex).lastKey().substring(1)) + 1;
+			eventId = extractLastID(((TreeMap<String, GedcomNode>)eventIndex).lastKey()) + 1;
 		if(!placeIndex.isEmpty())
-			placeId = Integer.parseInt(((TreeMap<String, GedcomNode>)placeIndex).lastKey().substring(1)) + 1;
+			placeId = extractLastID(((TreeMap<String, GedcomNode>)placeIndex).lastKey()) + 1;
 		if(!noteIndex.isEmpty())
-			noteId = Integer.parseInt(((TreeMap<String, GedcomNode>)noteIndex).lastKey().substring(1)) + 1;
+			noteId = extractLastID(((TreeMap<String, GedcomNode>)noteIndex).lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
-			repositoryId = Integer.parseInt(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey().substring(1)) + 1;
+			repositoryId = extractLastID(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
-			sourceId = Integer.parseInt(((TreeMap<String, GedcomNode>)sourceIndex).lastKey().substring(1)) + 1;
+			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
 		if(!culturalRuleIndex.isEmpty())
-			culturalRuleId = Integer.parseInt(((TreeMap<String, GedcomNode>)culturalRuleIndex).lastKey().substring(1)) + 1;
+			culturalRuleId = extractLastID(((TreeMap<String, GedcomNode>)culturalRuleIndex).lastKey()) + 1;
 		if(!groupIndex.isEmpty())
-			groupId = Integer.parseInt(((TreeMap<String, GedcomNode>)groupIndex).lastKey().substring(1)) + 1;
+			groupId = extractLastID(((TreeMap<String, GedcomNode>)groupIndex).lastKey()) + 1;
 	}
 
 	@Override

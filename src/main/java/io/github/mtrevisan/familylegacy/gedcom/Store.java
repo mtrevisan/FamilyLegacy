@@ -39,9 +39,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public abstract class Store{
+
+	private static final Pattern PATTERN_ID = Pattern.compile("[^\\d]+([\\d]+)");
 
 	private static final String CHARSET_X_MAC_ROMAN = "x-MacRoman";
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
@@ -61,6 +65,12 @@ public abstract class Store{
 	}
 
 	protected abstract void create(final GedcomNode root) throws GedcomParseException;
+
+	protected int extractLastID(final String lastKey){
+		final Matcher m = PATTERN_ID.matcher(lastKey);
+		m.find();
+		return Integer.parseInt(m.group(1));
+	}
 
 	public abstract Store transform();
 
