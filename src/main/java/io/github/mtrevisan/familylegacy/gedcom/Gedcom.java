@@ -133,11 +133,11 @@ public class Gedcom extends Store{
 
 			final Store storeFlef2 = new Flef();
 			storeFlef2.load("/gedg/flef_0.0.5.gedg", outputFile.getPath());
+			final Store storeGedcom = storeFlef2.transform();
 
-			//compare storeFlef and storeFlef2
 			final File outputFile2 = new File("tmp2.ged");
 			final OutputStream os2 = new FileOutputStream(outputFile2);
-			storeFlef.write(os2);
+			storeGedcom.write(os2);
 			os2.close();
 		}
 		catch(final Exception e){

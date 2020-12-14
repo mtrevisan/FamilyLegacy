@@ -185,19 +185,19 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode destinationIndividual = createWithID("INDIVIDUAL", individual.getID());
 		final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
 		for(final GedcomNode nameStructure : nameStructures){
-			String givenName = traverse(nameStructure, "GIVN").getValue();
-			String personalNameSuffix = traverse(nameStructure, "NSFX").getValue();
-			String surname = composeSurname(nameStructure, "SPFX", "SURN");
+			String individualName = traverse(nameStructure, "GIVN").getValue();
+			String individualNameSuffix = traverse(nameStructure, "NSFX").getValue();
+			String familyName = composeSurname(nameStructure, "SPFX", "SURN");
 			final String nameValue = nameStructure.getValue();
 			if(nameValue != null){
 				final int surnameBeginIndex = nameValue.indexOf('/');
 				final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
-				if(givenName == null && surnameBeginIndex > 0)
-					givenName = nameValue.substring(0, surnameBeginIndex - 1);
-				if(personalNameSuffix == null && surnameEndIndex >= 0)
-					personalNameSuffix = nameValue.substring(surnameEndIndex + 1);
-				if(surname == null && surnameBeginIndex >= 0)
-					surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
+				if(individualName == null && surnameBeginIndex > 0)
+					individualName = nameValue.substring(0, surnameBeginIndex - 1);
+				if(individualNameSuffix == null && surnameEndIndex >= 0)
+					individualNameSuffix = nameValue.substring(surnameEndIndex + 2);
+				if(familyName == null && surnameBeginIndex >= 0)
+					familyName = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
 			}
 
 			final GedcomNode destinationName = create("NAME")
@@ -210,41 +210,41 @@ public final class Transformer extends TransformerHelper{
 						.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
 						.addChildValue("VALUE", traverse(nameStructure, "ROMN.NPFX").getValue())
 					)
-					.addChild(createWithValue("INDIVIDUAL_NAME", givenName)
+				)
+				.addChild(createWithValue("INDIVIDUAL_NAME", individualName)
+					.addChild(create("PHONETIC")
+						.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
+					)
+					.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+						.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+						.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
+					)
+					.addChild(createWithValue("SUFFIX", individualNameSuffix)
 						.addChild(create("PHONETIC")
-							.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
+							.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
 						)
 						.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
 							.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-							.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
+							.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
 						)
-						.addChild(createWithValue("NAME_SUFFIX", personalNameSuffix)
-							.addChild(create("PHONETIC")
-								.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
-							)
-							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-								.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
-							)
-						)
-						.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
-							.addChild(create("PHONETIC")
-								.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
-							)
-							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-								.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
-							)
-						)
-						.addChild(createWithValue("FAMILY_NAME", surname)
-							.addChild(create("PHONETIC")
-								.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
-							)
-							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
-								.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
-							)
-						)
+					)
+				)
+				.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
+					.addChild(create("PHONETIC")
+						.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
+					)
+					.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+						.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+						.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
+					)
+				)
+				.addChild(createWithValue("FAMILY_NAME", familyName)
+					.addChild(create("PHONETIC")
+						.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
+					)
+					.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
+						.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+						.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
 					)
 				);
 			destinationIndividual.addChild(destinationName);
@@ -423,6 +423,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
 			);
 		placeAddressStructureTo(event, destinationEvent, destination);
+		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
 			.addChildValue("CAUSE", traverse(event, "CAUS").getValue());
 		noteCitationTo(event, destinationEvent, destination);
@@ -622,10 +623,12 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode map = traverse(place, "MAP");
 			final GedcomNode destinationPlace = create("PLACE")
 				.addChildValue("NAME", place.getValue())
-				.addChildValue("ADDRESS", extractAddressValue(address))
-				.addChildValue("CITY", traverse(address, "CITY").getValue())
-				.addChildValue("STATE", traverse(address, "STAE").getValue())
-				.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
+				.addChild(create("ADDRESS")
+					.withValue(extractAddressValue(address))
+					.addChildValue("CITY", traverse(address, "CITY").getValue())
+					.addChildValue("STATE", traverse(address, "STAE").getValue())
+					.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
+				)
 				.addChild(create("MAP")
 					.addChildValue("LATITUDE", traverse(map, "LATI").getValue())
 					.addChildValue("LONGITUDE", traverse(map, "LONG").getValue())
@@ -937,19 +940,29 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode destinationIndividual = createWithID("INDI", individual.getID());
 		final List<GedcomNode> nameStructures = individual.getChildrenWithTag("NAME");
 		for(final GedcomNode nameStructure : nameStructures){
+			final String individualName = traverse(nameStructure, "INDIVIDUAL_NAME").getValue();
+			final String individualNameSuffix = traverse(nameStructure, "INDIVIDUAL_NAME.SUFFIX").getValue();
 			final StringJoiner familyName = new StringJoiner(StringUtils.SPACE);
 			final StringJoiner familyNamePhonetic = new StringJoiner(StringUtils.SPACE);
 			final StringJoiner familyNameTranscription = new StringJoiner(StringUtils.SPACE);
 			for(final GedcomNode name : traverseAsList(nameStructure, "FAMILY_NAME[]")){
-				familyName.add(name.getValue());
-				familyNamePhonetic.add(traverse(name, "PHONETIC.VALUE").getValue());
-				familyNameTranscription.add(traverse(name, "TRANSCRIPTION.VALUE").getValue());
+				JavaHelper.addValueIfNotNull(familyName, name.getValue());
+				JavaHelper.addValueIfNotNull(familyNamePhonetic, traverse(name, "PHONETIC.VALUE").getValue());
+				JavaHelper.addValueIfNotNull(familyNameTranscription, traverse(name, "TRANSCRIPTION.VALUE").getValue());
 			}
+			final StringJoiner nameValue = new StringJoiner(StringUtils.SPACE);
+			if(individualName != null)
+				nameValue.add(individualName);
+			if(familyName.length() > 0)
+				nameValue.add("/" + familyName.toString() + "/");
+			if(individualNameSuffix != null)
+				nameValue.add(individualNameSuffix);
 			final GedcomNode destinationName = create("NAME")
+				.withValue(nameValue.length() > 0? nameValue.toString(): null)
 				.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
 				.addChildValue("NPFX", traverse(nameStructure, "TITLE").getValue())
-				.addChildValue("GIVN", traverse(nameStructure, "INDIVIDUAL_NAME").getValue())
-				.addChildValue("NSFX", traverse(nameStructure, "INDIVIDUAL_NAME.NAME_SUFFIX").getValue())
+				.addChildValue("GIVN", individualName)
+				.addChildValue("NSFX", individualNameSuffix)
 				.addChildValue("NICK", traverse(nameStructure, "INDIVIDUAL_NICKNAME").getValue())
 				.addChildValue("SURN", (familyName.length() > 0? familyName.toString(): null))
 				.addChild(create("FONE")
@@ -1114,6 +1127,7 @@ public final class Transformer extends TransformerHelper{
 		destinationEvent.addChildValue("DATE", traverse(event, "DATE").getValue());
 		placeStructureFrom(event, destinationEvent, origin);
 		addressStructureFrom(event, destinationEvent, origin);
+		contactStructureFrom(event, destinationEvent);
 		destinationEvent.addChildValue("AGNC", traverse(event, "AGENCY").getValue())
 			.addChildValue("CAUS", traverse(event, "CAUSE").getValue());
 
@@ -1250,30 +1264,27 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void headerFrom(final GedcomNode header, final Gedcom destination){
 		final GedcomNode source = traverse(header, "SOURCE");
-		final String date = traverse(header, "DATE")
-			.getValue();
+		final String date = traverse(header, "DATE").getValue();
+		final int timeindex = date.indexOf(' ', 9);
 		final GedcomNode destinationHeader = create("HEAD")
 			.addChild(create("SOUR")
 				.withValue(source.getValue())
-				.addChildValue("VERS", traverse(source, "VERSION")
-					.getValue())
-				.addChildValue("NAME", traverse(source, "NAME")
-					.getValue())
-				.addChildValue("CORP", traverse(source, "CORPORATE")
-					.getValue())
+				.addChildValue("NAME", traverse(source, "NAME").getValue())
+				.addChildValue("VERS", traverse(source, "VERSION").getValue())
+				.addChildValue("CORP", traverse(source, "CORPORATE").getValue())
 			)
-			.addChildValue("DATE", date)
-			.addChildReference("SUBM", traverse(source, "SUBMITTER")
-				.getXRef())
-			.addChildValue("COPR", traverse(source, "COPYRIGHT")
-				.getValue())
+			.addChild(create("DATE")
+				.withValue(timeindex > 0? date.substring(0, timeindex): date)
+				.addChildValue("TIME", (timeindex > 0? date.substring(timeindex + 1): null))
+			)
+			.addChildReference("SUBM", traverse(source, "SUBMITTER").getXRef())
+			.addChildValue("COPR", traverse(source, "COPYRIGHT").getValue())
 			.addChild(create("GEDC")
 				.addChildValue("VERS", "5.5.1")
 				.addChildValue("FORM", "LINEAGE-LINKED")
 			)
 			.addChildValue("CHAR", "UTF-8")
-			.addChildValue("NOTE", traverse(source, "NOTE")
-				.getValue());
+			.addChildValue("NOTE", traverse(source, "NOTE").getValue());
 
 		destination.setHeader(destinationHeader);
 	}
@@ -1376,7 +1387,7 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> phones = contact.getChildrenWithTag("PHONE");
 		for(final GedcomNode phone : phones)
 			if(!"fax".equals(traverse(phone, "TYPE").getValue()))
-				destinationNode.addChildValue("PHONE", phone.getValue());
+				destinationNode.addChildValue("PHON", phone.getValue());
 		final List<GedcomNode> emails = contact.getChildrenWithTag("EMAIL");
 		for(final GedcomNode email : emails)
 			destinationNode.addChildValue("EMAIL", email.getValue());

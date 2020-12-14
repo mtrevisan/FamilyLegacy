@@ -53,7 +53,7 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
@@ -173,7 +173,7 @@ class TransformerPlaceAddressContactStructureTest{
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		transformerFrom.contactStructureFrom(parent, destinationNode);
 
-		Assertions.assertEquals("children: [{tag: PHONE, value: PHONE_NUMBER}, {tag: EMAIL, value: EMAIL_ADDRESS}, {tag: FAX, value: FAX_NUMBER}, {tag: WWW, value: URL_ADDRESS}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: PHON, value: PHONE_NUMBER}, {tag: EMAIL, value: EMAIL_ADDRESS}, {tag: FAX, value: FAX_NUMBER}, {tag: WWW, value: URL_ADDRESS}]", destinationNode.toString());
 	}
 
 }

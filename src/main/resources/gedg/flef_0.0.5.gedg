@@ -87,7 +87,7 @@ n NAME    {1:1}
     +2 <<TRANSCRIBED_NAME_PIECE>>    {0:1}
   +1 INDIVIDUAL_NAME <INDIVIDUAL_NAME_PIECE>    {0:1}	/* Given name(s). */
     +2 <<TRANSCRIBED_NAME_PIECE>>    {0:1}
-    +2 INDIVIDUAL_NAME_SUFFIX <INDIVIDUAL_NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
+    +2 SUFFIX <INDIVIDUAL_NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
       +3 <<TRANSCRIBED_NAME_PIECE>>    {0:1}
   +1 INDIVIDUAL_NICKNAME <NICKNAME_NAME_PIECE>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
     +2 <<TRANSCRIBED_NAME_PIECE>>    {0:1}
