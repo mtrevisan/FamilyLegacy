@@ -92,10 +92,15 @@ public abstract class Store{
 				nodeStack.addFirst(children.get(i));
 
 			out.write(Integer.toString(child.getLevel()));
-			if(child.getLevel() == 0)
-				appendElement(out, child.getID(), child.getTag());
-			else
-				appendElement(out, child.getTag(), child.getXRef(), child.getID());
+			if(child.getLevel() == 0){
+				appendID(out, child.getID());
+				appendElement(out, child.getTag());
+			}
+			else{
+				appendElement(out, child.getTag());
+				appendID(out, child.getXRef());
+				appendID(out, child.getID());
+			}
 			if(child.getValue() != null)
 				appendElement(out, child.getRawValue());
 			out.write(eol);
@@ -105,12 +110,20 @@ public abstract class Store{
 
 	protected abstract String getCharsetName();
 
-	private void appendElement(final Writer out, final String... elems) throws IOException{
-		for(final String elem : elems)
-			if(elem != null){
-				out.write(' ');
-				out.write(elem);
-			}
+	private void appendID(final Writer out, final String id) throws IOException{
+		if(id != null){
+			out.write(' ');
+			out.write('@');
+			out.write(id);
+			out.write('@');
+		}
+	}
+
+	private void appendElement(final Writer out, final String elem) throws IOException{
+		if(elem != null){
+			out.write(' ');
+			out.write(elem);
+		}
 	}
 
 	static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){

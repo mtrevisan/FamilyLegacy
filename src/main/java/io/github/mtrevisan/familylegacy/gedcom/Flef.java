@@ -351,7 +351,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return "@" + ID_INDIVIDUAL_PREFIX + (individualId ++) + "@";
+		return ID_INDIVIDUAL_PREFIX + (individualId ++);
 	}
 
 
@@ -405,7 +405,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return "@" + ID_FAMILY_PREFIX + (familyId ++) + "@";
+		return ID_FAMILY_PREFIX + (familyId ++);
 	}
 
 	public List<GedcomNode> getParent1s(final GedcomNode child){
@@ -487,7 +487,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextEventID(){
-		return "@" + ID_EVENT_PREFIX + (eventId ++) + "@";
+		return ID_EVENT_PREFIX + (eventId ++);
 	}
 
 
@@ -524,7 +524,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextPlaceID(){
-		return "@" + ID_PLACE_PREFIX + (placeId ++) + "@";
+		return ID_PLACE_PREFIX + (placeId ++);
 	}
 
 
@@ -561,7 +561,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextNoteID(){
-		return "@" + ID_NOTE_PREFIX + (noteId ++) + "@";
+		return ID_NOTE_PREFIX + (noteId ++);
 	}
 
 
@@ -598,7 +598,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return "@" + ID_REPOSITORY_PREFIX + (repositoryId ++) + "@";
+		return ID_REPOSITORY_PREFIX + (repositoryId ++);
 	}
 
 
@@ -635,7 +635,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextSourceID(){
-		return "@" + ID_SOURCE_PREFIX + (sourceId ++) + "@";
+		return ID_SOURCE_PREFIX + (sourceId ++);
 	}
 
 
@@ -665,7 +665,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextCulturalRuleID(){
-		return "@" + ID_CULTURAL_RULE_PREFIX + (culturalRuleId ++) + "@";
+		return ID_CULTURAL_RULE_PREFIX + (culturalRuleId ++);
 	}
 
 
@@ -695,7 +695,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextGroupID(){
-		return "@" + ID_GROUP_PREFIX + (groupId ++) + "@";
+		return ID_GROUP_PREFIX + (groupId ++);
 	}
 
 
@@ -725,7 +725,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextSubmitterID(){
-		return "@" + ID_SUBMITTER_PREFIX + (repositoryId ++) + "@";
+		return ID_SUBMITTER_PREFIX + (repositoryId ++);
 	}
 
 }

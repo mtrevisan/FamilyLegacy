@@ -101,7 +101,7 @@ class TransformerTest{
 //	@Test
 //	void sourceCitationToXRefMultimediaLinkXRefNoteXRef(){
 //		final GedcomNode parent = transformerFrom.createEmpty()
-//			.addChild(transformerFrom.createWithReference("SOUR", "@S1@")
+//			.addChild(transformerFrom.createWithReference("SOUR", "S1")
 //				.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
 //				.addChild(transformerFrom.create("EVEN")
 //					.withValue("EVENT_TYPE_CITED_FROM")
@@ -111,12 +111,12 @@ class TransformerTest{
 //					.addChildValue("DATE", "ENTRY_RECORDING_DATE")
 //					.addChildValue("TEXT", "TEXT_FROM_SOURCE")
 //				)
-//				.addChildReference("OBJE", "@O1@")
-//				.addChildReference("NOTE", "@N1@")
+//				.addChildReference("OBJE", "O1")
+//				.addChildReference("NOTE", "N1")
 //				.addChildValue("QUAY", "CERTAINTY_ASSESSMENT")
 //			);
-//		final GedcomNode source = transformerFrom.createWithID("SOUR", "@S1@");
-//		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
+//		final GedcomNode source = transformerFrom.createWithID("SOUR", "S1");
+//		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
 //
 //		final Transformer t = new Transformer(Protocol.FLEF);
 //		final GedcomNode destinationNode = transformerTo.createEmpty();
@@ -125,12 +125,12 @@ class TransformerTest{
 //		destination.addNote(note);
 //		t.sourceCitationTo(parent, destinationNode, destination);
 //
-//		Assertions.assertEquals("children: [{tag: SOURCE, ref: @S1@, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+//		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
 //	}
 //
 //	@Test
 //	void sourceCitationToXRefMultimediaLinkXRefNoteNoXRef(){
-//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "S1")
 //			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
 //			.addChild(transformerFrom.create("EVEN")
 //				.withValue("EVENT_TYPE_CITED_FROM")
@@ -140,7 +140,7 @@ class TransformerTest{
 //				.addChildValue("DATE", "ENTRY_RECORDING_DATE")
 //				.addChildValue("TEXT", "TEXT_FROM_SOURCE")
 //			)
-//			.addChildReference("OBJE", "@O1@")
+//			.addChildReference("OBJE", "O1")
 //			.addChildValue("NOTE", "SUBMITTER_TEXT")
 //			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 //
@@ -152,7 +152,7 @@ class TransformerTest{
 //
 //	@Test
 //	void sourceCitationToXRefMultimediaLinkNoXRefNoteXRef(){
-//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "S1")
 //			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
 //			.addChild(transformerFrom.create("EVEN")
 //				.withValue("EVENT_TYPE_CITED_FROM")
@@ -172,7 +172,7 @@ class TransformerTest{
 //				.addChildValue("_CUTD", "CUT_COORDINATES")
 //				.addChildValue("_PREF", "PREFERRED_MEDIA")
 //			)
-//			.addChildReference("NOTE", "@N1@")
+//			.addChildReference("NOTE", "N1")
 //			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 //
 //		Assertions.assertEquals(1, node.getChildren().size());
@@ -183,7 +183,7 @@ class TransformerTest{
 //
 //	@Test
 //	void sourceCitationToXRefMultimediaLinkNoXRefNoteNpXRef(){
-//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "@S1@")
+//		final GedcomNode node = transformerFrom.createWithReference("SOUR", "S1")
 //			.addChildValue("PAGE", "WHERE_WITHIN_SOURCE")
 //			.addChild(transformerFrom.create("EVEN")
 //				.withValue("EVENT_TYPE_CITED_FROM")
@@ -217,8 +217,8 @@ class TransformerTest{
 //		final GedcomNode node = transformerFrom.create("SOUR")
 //			.withValue("SOURCE_DESCRIPTION")
 //			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
-//			.addChildReference("OBJE", "@O1@")
-//			.addChildReference("NOTE", "@N1@")
+//			.addChildReference("OBJE", "O1")
+//			.addChildReference("NOTE", "N1")
 //			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 //
 //		Assertions.assertEquals(1, node.getChildren().size());
@@ -232,7 +232,7 @@ class TransformerTest{
 //		final GedcomNode node = transformerFrom.create("SOUR")
 //			.withValue("SOURCE_DESCRIPTION")
 //			.addChildValue("TEXT", "TEXT_FROM_SOURCE1")
-//			.addChildReference("OBJE", "@O1@")
+//			.addChildReference("OBJE", "O1")
 //			.addChildValue("NOTE", "SUBMITTER_TEXT")
 //			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 //
@@ -257,7 +257,7 @@ class TransformerTest{
 //				.addChildValue("_CUTD", "CUT_COORDINATES")
 //				.addChildValue("_PREF", "PREFERRED_MEDIA")
 //			)
-//			.addChildReference("NOTE", "@N1@")
+//			.addChildReference("NOTE", "N1")
 //			.addChildValue("QUAY", "CERTAINTY_ASSESSMENT");
 //
 //		Assertions.assertEquals(1, node.getChildren().size());

@@ -36,33 +36,33 @@ class TransformerNoteRecordTest{
 	@Test
 	void noteRecordTo(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
-		final GedcomNode note = transformerTo.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
+		final GedcomNode note = transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT");
 
-		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
 
 		final Flef destination = new Flef();
 		destination.addNote(note);
 		transformerTo.noteRecordTo(note, destination);
 
-		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test
 	void noteCitationToXRef(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithReference("NOTE", "@N1@"));
-		final GedcomNode note = transformerTo.createWithID("NOTE", "@N1@");
+			.addChild(transformerTo.createWithReference("NOTE", "N1"));
+		final GedcomNode note = transformerTo.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", parent.toString());
-		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", parent.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
 		destination.addNote(note);
 		transformerTo.noteCitationTo(parent, destinationNode, destination);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", destinationNode.toString());
 	}
 
 	@Test
@@ -77,39 +77,39 @@ class TransformerNoteRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.noteCitationTo(parent, destinationNode, destination);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
-		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", destinationNode.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test
 	void noteRecordFrom(){
 		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "@N1@", "SUBMITTER_TEXT");
+		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT");
 
-		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", note.toString());
 
 		final Gedcom destination = new Gedcom();
 		transformerFrom.noteRecordFrom(note, destination);
 
-		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test
 	void noteCitationFrom(){
 		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.createWithReference("NOTE", "@N1@"));
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "@N1@");
+			.addChild(transformerFrom.createWithReference("NOTE", "N1"));
+		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", parent.toString());
-		Assertions.assertEquals("id: @N1@, tag: NOTE", note.toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", parent.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Gedcom destination = new Gedcom();
 		destination.addNote(note);
 		transformerFrom.noteCitationFrom(parent, destinationNode);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", destinationNode.toString());
 	}
 
 }

@@ -1093,8 +1093,9 @@ public final class Transformer extends TransformerHelper{
 			final String type = traverse(event, "TYPE").getValue();
 			if("MARRIAGE".equals(type)){
 				final List<GedcomNode> spouses = traverseAsList(event, "INDIVIDUAL[]");
-				destinationFamily.addChildValue("HUSB", spouses.get(0).getXRef())
-					.addChildValue("WIFE", spouses.get(1).getXRef());
+				destinationFamily
+					.addChildReference("HUSB", spouses.get(0).getXRef())
+					.addChildReference("WIFE", spouses.get(1).getXRef());
 			}
 			final String tagTo = FAMILY_TO_FAM.get(type);
 			final GedcomNode destinationEvent = eventRecordFrom(tagTo, event, origin);

@@ -37,8 +37,8 @@ class TransformerMultimediaCitationTest{
 	void multimediaCitationToXRef(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithReference("OBJE", "@M1@"));
-		final GedcomNode object = transformerTo.createWithID("OBJE", "@M1@")
+			.addChild(transformerTo.createWithReference("OBJE", "M1"));
+		final GedcomNode object = transformerTo.createWithID("OBJE", "M1")
 			.addChildValue("FILE", "MULTIMEDIA_FILE_REFN");
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
@@ -48,7 +48,7 @@ class TransformerMultimediaCitationTest{
 		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
 		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
 
-		Assertions.assertEquals("ref: @M1@, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destinationNode.toString());
+		Assertions.assertEquals("ref: M1, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destinationNode.toString());
 		Assertions.assertTrue(destinationSourceReference.isEmpty());
 	}
 
@@ -74,8 +74,8 @@ class TransformerMultimediaCitationTest{
 		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
 		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
 
-		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
-		Assertions.assertEquals("tag: SOURCE, ref: @S1@, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
+		Assertions.assertEquals("tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
 	}
 
 }
