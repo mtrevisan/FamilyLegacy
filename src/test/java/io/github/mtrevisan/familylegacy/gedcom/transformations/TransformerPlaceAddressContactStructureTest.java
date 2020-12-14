@@ -65,14 +65,14 @@ class TransformerPlaceAddressContactStructureTest{
 				.addChildValue("FONE", "PLACE_PHONETIC_VARIATION")
 				.addChildValue("ROMN", "PLACE_ROMANIZED_VARIATION")
 				.addChild(transformerTo.create("MAP")
-					.addChildValue("LATI", "PLACE_LATITUDE")
-					.addChildValue("LONG", "PLACE_LONGITUDE")
+					.addChildValue("LATI", "N45")
+					.addChildValue("LONG", "W12")
 				)
 				.addChildReference("NOTE", "N1")
 			);
 		final GedcomNode note = transformerTo.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: FORM, value: PLACE_HIERARCHY}, {tag: FONE, value: PLACE_PHONETIC_VARIATION}, {tag: ROMN, value: PLACE_ROMANIZED_VARIATION}, {tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: FORM, value: PLACE_HIERARCHY}, {tag: FONE, value: PLACE_PHONETIC_VARIATION}, {tag: ROMN, value: PLACE_ROMANIZED_VARIATION}, {tag: MAP, children: [{tag: LATI, value: N45}, {tag: LONG, value: W12}]}, {tag: NOTE, ref: N1}]}]", parent.toString());
 		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
@@ -81,7 +81,7 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: PLACE_LATITUDE}, {tag: LONGITUDE, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}, {tag: NOTE, ref: N1}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
@@ -141,16 +141,16 @@ class TransformerPlaceAddressContactStructureTest{
 		origin.addPlace(transformerFrom.createWithID("PLACE", "P1")
 			.addChildValue("NAME", "PLACE_NAME")
 			.addChild(transformerFrom.create("MAP")
-				.addChildValue("LATITUDE", "PLACE_LATITUDE")
-				.addChildValue("LONGITUDE", "PLACE_LONGITUDE")
+				.addChildValue("LATITUDE", "45")
+				.addChildValue("LONGITUDE", "-12")
 			)
 			.addChildReference("NOTE", "N1")
 		);
 		origin.addNote(transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
 		transformerFrom.placeStructureFrom(parent, destinationNode, origin);
 
-		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: PLACE_LATITUDE}, {tag: LONG, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: PLACE_LATITUDE}, {tag: LONGITUDE, value: PLACE_LONGITUDE}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
+		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: N45}, {tag: LONG, value: W12}]}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", origin.getNotes().get(0).toString());
 	}
 

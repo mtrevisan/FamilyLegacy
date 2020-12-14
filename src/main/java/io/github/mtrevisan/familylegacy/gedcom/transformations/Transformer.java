@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 
+//TODO manage ID collisions
 public final class Transformer extends TransformerHelper{
 
 	private static final Map<String, String> FAM_TO_FAMILY = new HashMap<>();
@@ -282,7 +283,7 @@ public final class Transformer extends TransformerHelper{
 		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSO[]");
 		for(final GedcomNode association : associations){
-			String type = traverse(association, "ASSO.TYPE").getValue();
+			String type = traverse(association, "TYPE").getValue();
 			if("FAM".equals(type))
 				type = "family";
 			else if("INDI".equals(type))
@@ -290,7 +291,7 @@ public final class Transformer extends TransformerHelper{
 			//otherwise ignore
 			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
 				.addChildValue("TYPE", type)
-				.addChildValue("RELATIONSHIP", traverse(association, "ASSO.RELA").getValue());
+				.addChildValue("RELATIONSHIP", traverse(association, "RELA").getValue());
 			noteCitationTo(association, destinationAssociation, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
 
@@ -392,6 +393,8 @@ public final class Transformer extends TransformerHelper{
 		//skip useless `Y` as description
 		if(!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"BURIAL".equals(valueTo) && !"MARRIAGE".equals(valueTo))
 			destinationEvent.addChildValue("DESCRIPTION", event.getValue());
+		else if(!CUSTOM_EVENT_TAG.equals(valueTo))
+			destinationEvent.addChildValue("DESCRIPTION", traverse(event, "TYPE").getValue());
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		if(!familyChild.isEmpty()){
 			final String adoptedBy = traverse(familyChild, "ADOP").getValue();
@@ -961,14 +964,14 @@ public final class Transformer extends TransformerHelper{
 		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSOCIATION[]");
 		for(final GedcomNode association : associations){
-			String type = traverse(association, "ASSOCIATION.TYPE").getValue();
+			String type = traverse(association, "TYPE").getValue();
 			if("family".equals(type))
 				type = "FAM";
 			else if("individual".equals(type))
 				type = "INDI";
 			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef())
 				.addChildValue("TYPE", type)
-				.addChildValue("ASSO.RELA", traverse(association, "RELATIONSHIP").getValue());
+				.addChildValue("RELA", traverse(association, "RELATIONSHIP").getValue());
 			noteCitationFrom(association, destinationAssociation);
 			sourceCitationFrom(association, destinationAssociation, origin);
 
@@ -1087,10 +1090,9 @@ public final class Transformer extends TransformerHelper{
 	*/
 	private GedcomNode eventRecordFrom(final String tagTo, final GedcomNode event, final Flef origin){
 		final GedcomNode destinationEvent = (tagTo != null? create(tagTo):
-				createWithValue("EVEN", traverse(event, "DESCRIPTION").getValue()));
-		if(tagTo == null)
-			destinationEvent.addChildValue("TYPE", traverse(event, "TYPE").getValue());
-		destinationEvent.addChildValue("DATE", traverse(event, "DATE").getValue());
+				createWithValue("EVEN", traverse(event, "DESCRIPTION").getValue()))
+			.addChildValue("TYPE", traverse(event, (tagTo == null? "TYPE": "DESCRIPTION")).getValue())
+			.addChildValue("DATE", traverse(event, "DATE").getValue());
 		placeStructureFrom(event, destinationEvent, origin);
 		addressStructureFrom(event, destinationEvent, origin);
 		contactStructureFrom(event, destinationEvent);
