@@ -273,14 +273,6 @@ public abstract class GedcomNode{
 		return this;
 	}
 
-	public boolean existChildrenWithID(final String xref){
-		if(xref != null && children != null)
-			for(final GedcomNode child : children)
-				if(xref.equals(child.id))
-					return true;
-		return false;
-	}
-
 	public List<GedcomNode> getChildrenWithTag(final String... tags){
 		final List<GedcomNode> taggedChildren;
 		if(children != null){

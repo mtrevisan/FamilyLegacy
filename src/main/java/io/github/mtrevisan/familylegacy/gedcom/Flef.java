@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransfor
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -137,7 +138,7 @@ public class Flef extends Store{
 			String line;
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
 				//skip empty lines
-				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+				if(Character.isWhitespace(line.charAt(0)) || StringUtils.isBlank(line))
 					continue;
 
 				if(line.charAt(0) == '0')

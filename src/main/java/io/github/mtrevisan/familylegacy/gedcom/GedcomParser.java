@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.gedcom;
 
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
+import io.github.mtrevisan.familylegacy.services.TimeWatch;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +40,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 final class GedcomParser{
@@ -66,6 +70,8 @@ final class GedcomParser{
 		if(!gedcomFile.endsWith(GEDCOM_EXTENSION))
 			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
+		final TimeWatch watch = TimeWatch.start();
+
 		Protocol protocol = Gedcom.extractProtocol(gedcomFile);
 		if(protocol == null)
 			protocol = Flef.extractProtocol(gedcomFile);
@@ -78,6 +84,10 @@ final class GedcomParser{
 		}
 		catch(final IllegalArgumentException | IOException e){
 			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
+		}
+		finally{
+			watch.stop();
+			LOGGER.info("Parsed {} format, version {} in {}", protocol, protocol.getVersion(), watch.toStringMillis());
 		}
 	}
 
@@ -94,7 +104,7 @@ final class GedcomParser{
 			lineCount = 0;
 			startDocument();
 
-			final Collection<String> references = new ArrayList<>();
+			final Set<String> references = new HashSet<>();
 
 			String line;
 			int currentLevel;
@@ -103,7 +113,7 @@ final class GedcomParser{
 				lineCount ++;
 
 				//skip empty lines
-				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+				if(Character.isWhitespace(line.charAt(0)) || StringUtils.isBlank(line))
 					throw GedcomParseException.create("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
 						lineCount);
 
@@ -142,11 +152,14 @@ final class GedcomParser{
 			//end document
 			endElement();
 
-			//check referential integrity
-			for(final String xref : references)
-				if(!root.existChildrenWithID(xref))
-					throw GedcomParseException.create("Cannot find object for ID {}", xref)
-						.skipAddLineNumber();
+			//check referential integrity:
+			final Set<String> ids = new HashSet<>();
+			for(final GedcomNode child : root.getChildren())
+				ids.add(child.getID());
+			references.removeAll(ids);
+			if(!references.isEmpty())
+				throw GedcomParseException.create("Cannot find object for IDs [{}]", String.join(", ", references))
+					.skipAddLineNumber();
 
 			return root;
 		}
