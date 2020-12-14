@@ -63,36 +63,4 @@ class TransformerMultimediaRecordTest{
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
-	@Test
-	void multimediaRecordFrom(){
-		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
-		final GedcomNode source= transformerFrom.create("SOURCE")
-			.addChildValue("EVENT", "EVENTS_RECORDED")
-			.addChildValue("TITLE", "SOURCE_DESCRIPTIVE_TITLE")
-			.addChildValue("AUTHOR", "SOURCE_ORIGINATOR")
-			.addChildValue("PUBLICATION_FACTS", "SOURCE_PUBLICATION_FACTS")
-			.addChildValue("DATE", "ENTRY_RECORDING_DATE")
-			.addChildReference("REPOSITORY", "R1")
-			.addChild(transformerFrom.create("FILE")
-				.withValue("DOCUMENT_FILE_REFERENCE")
-				.addChildValue("DESCRIPTION", "DOCUMENT_DESCRIPTION")
-				.addChild(transformerFrom.create("EXTRACT")
-					.withValue("TEXTED_TEXT_FROM_SOURCE")
-					.addChildValue("TYPE", "EXTRACT_TYPE")
-					.addChildValue("LOCALE", "EXTRACT_LOCALE_CODE")
-				)
-			)
-			.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE")
-			.addChildReference("NOTE", "N1");
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
-
-		Assertions.assertEquals("tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, ref: R1}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: DESCRIPTION, value: DOCUMENT_DESCRIPTION}, {tag: EXTRACT, value: TEXTED_TEXT_FROM_SOURCE, children: [{tag: TYPE, value: EXTRACT_TYPE}, {tag: LOCALE, value: EXTRACT_LOCALE_CODE}]}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: N1}]", source.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
-
-		final Gedcom destination = new Gedcom();
-		transformerFrom.multimediaRecordFrom(source, destination);
-
-		Assertions.assertEquals("id: O1, tag: OBJE, children: [{tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: DOCUMENT_DESCRIPTION}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}, {tag: NOTE, ref: N1}]", destination.getObjects().get(0).toString());
-	}
-
 }

@@ -72,8 +72,8 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: SOURCE, ref: M1}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
@@ -101,21 +101,16 @@ class TransformerSourceCitationTest{
 				.addChildReference("NOTE", "N1")
 				.addChildValue("QUAY", "CERTAINTY_ASSESSMENT")
 			);
-		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 
 		Assertions.assertEquals("children: [{id: S1, tag: SOUR, children: [{tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: EVEN, value: EVENT_TYPE_CITED_FROM, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: TEXT, value: TEXT_FROM_SOURCE}]}, {tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: TYPE, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}, {tag: NOTE, ref: N1}, {tag: QUAY, value: CERTAINTY_ASSESSMENT}]}]", parent.toString());
-		Assertions.assertEquals("id: S1, tag: SOUR", source.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Gedcom origin = new Gedcom();
-		origin.addSource(source);
 		final Flef destination = new Flef();
-		destination.addSource(source);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOUR", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
@@ -150,8 +145,8 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: M1}]", destinationNode.toString());
-		Assertions.assertEquals("id: M1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: SOURCE, ref: M1}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
@@ -163,7 +158,7 @@ class TransformerSourceCitationTest{
 				.addChild(transformerTo.create("OBJE")
 					.addChildValue("TITL", "DESCRIPTIVE_TITLE")
 					.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT")
-						.addChild(transformerTo.createWithValue("TYPE", "SOURCE_MEDIA_TYPE"))
+						.addChild(transformerTo.createWithValue("MEDI", "SOURCE_MEDIA_TYPE"))
 					)
 					.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
 					.addChildValue("_CUTD", "CUT_COORDINATES")
@@ -174,7 +169,7 @@ class TransformerSourceCitationTest{
 			);
 		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 
-		Assertions.assertEquals("children: [{tag: SOUR, value: SOURCE_DESCRIPTION, children: [{tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: TYPE, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}, {tag: NOTE, ref: N1}, {tag: QUAY, value: CERTAINTY_ASSESSMENT}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: SOUR, value: SOURCE_DESCRIPTION, children: [{tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}, {tag: NOTE, ref: N1}, {tag: QUAY, value: CERTAINTY_ASSESSMENT}]}]", parent.toString());
 		Assertions.assertEquals("id: S1, tag: SOUR", source.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
@@ -183,8 +178,9 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
 	}
 
 

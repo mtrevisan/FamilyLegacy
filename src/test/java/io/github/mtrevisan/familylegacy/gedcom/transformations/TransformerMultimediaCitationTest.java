@@ -45,11 +45,9 @@ class TransformerMultimediaCitationTest{
 		final Gedcom origin = new Gedcom();
 		origin.addObject(object);
 		final Flef destination = new Flef();
-		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
-		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
+		transformerTo.multimediaLinkTo(parent, destinationNode, destination);
 
-		Assertions.assertEquals("ref: M1, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destinationNode.toString());
-		Assertions.assertTrue(destinationSourceReference.isEmpty());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: M1}]", destinationNode.toString());
 	}
 
 	@Test
@@ -68,14 +66,11 @@ class TransformerMultimediaCitationTest{
 
 		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}]", parent.toString());
 
-		final GedcomNode destinationNode = transformerTo.create("SOURCE");
-		final Gedcom origin = new Gedcom();
+		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Flef destination = new Flef();
-		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
-		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
+		transformerTo.multimediaLinkTo(parent, destinationNode, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
-		Assertions.assertEquals("tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
 	}
 
 }

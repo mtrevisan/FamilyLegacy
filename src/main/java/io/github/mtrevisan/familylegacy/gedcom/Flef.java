@@ -520,6 +520,8 @@ public class Flef extends Store{
 			placeIndex.put(placeID, place);
 			placeValue.put(place.hashCode(), placeID);
 		}
+		else
+			place.withID(placeID);
 		return placeID;
 	}
 
@@ -557,6 +559,8 @@ public class Flef extends Store{
 			noteIndex.put(noteID, note);
 			noteValue.put(note.hashCode(), noteID);
 		}
+		else
+			note.withID(noteID);
 		return noteID;
 	}
 
@@ -594,6 +598,8 @@ public class Flef extends Store{
 			repositoryIndex.put(repositoryID, repository);
 			repositoryValue.put(repository.hashCode(), repositoryID);
 		}
+		else
+			repository.withID(repositoryID);
 		return repositoryID;
 	}
 
@@ -631,6 +637,8 @@ public class Flef extends Store{
 			sourceIndex.put(sourceID, source);
 			sourceValue.put(source.hashCode(), sourceID);
 		}
+		else
+			source.withID(sourceID);
 		return sourceID;
 	}
 
