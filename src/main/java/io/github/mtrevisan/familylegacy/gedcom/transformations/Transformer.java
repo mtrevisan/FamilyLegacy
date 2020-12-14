@@ -127,21 +127,25 @@ public final class Transformer extends TransformerHelper{
 			INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
 			INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NPFX.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.value = INDI.NAME.GIVN.value | name-components[name]
+			INDIVIDUAL.NAME.PERSONAL_NAME.PHONETIC.TYPE.value = INDI.NAME.FONE.TYPE.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.PHONETIC.VALUE.value = INDI.NAME.FONE.GIVN.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.GIVN.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.value = INDI.NAME.NSFX.value | name-components[name-suffix]
+			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.PHONETIC.TYPE.value = INDI.NAME.FONE.TYPE.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.PHONETIC.VALUE.value = INDI.NAME.FONE.NSFX.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
 			INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NSFX.value
 			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.value = INDI.NAME.NICK.value
+			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.PHONETIC.TYPE.value = INDI.NAME.FONE.TYPE.value
 			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.PHONETIC.VALUE.value = INDI.NAME.FONE.NICK.value
 			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
 			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
 			INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.VALUE.value = INDI.NAME.ROMN.NICK.value
 			INDIVIDUAL.NAME.FAMILY_NAME.value = INDI.NAME.SPFX.value + ' ' + INDI.NAME.SURN.value | name-components[surname]
+			INDIVIDUAL.NAME.FAMILY_NAME.PHONETIC.TYPE.value = INDI.NAME.FONE.TYPE.value
 			INDIVIDUAL.NAME.FAMILY_NAME.PHONETIC.VALUE.value = INDI.NAME.FONE.SPFX.value + ' ' + INDI.NAME.FONE.SURN.value
 			INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.value = INDI.NAME.ROMN.TYPE.value
 			INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.TYPE.value = INDI.NAME.ROMN.value
@@ -198,48 +202,56 @@ public final class Transformer extends TransformerHelper{
 						surname = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
 				}
 
+				final String phoneticType = traverse(nameStructure, "FONE.TYPE").getValue();
+				final String transcriptionSystem = traverse(nameStructure, "ROMN.TYPE").getValue();
+				final String transcriptionType = traverse(nameStructure, "ROMN").getValue();
 				final GedcomNode destinationName = create("NAME")
 					.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
 					.addChild(createWithValue("TITLE", traverse(nameStructure, "NPFX").getValue())
 						.addChild(create("PHONETIC")
+							.addChildValue("TYPE", phoneticType)
 							.addChildValue("VALUE", traverse(nameStructure, "FONE.NPFX").getValue())
 						)
-						.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-							.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+						.addChild(createWithValue("TRANSCRIPTION", transcriptionSystem)
+							.addChildValue("TYPE", transcriptionType)
 							.addChildValue("VALUE", traverse(nameStructure, "ROMN.NPFX").getValue())
 						)
 						.addChild(createWithValue("PERSONAL_NAME", givenName)
 							.addChild(create("PHONETIC")
+								.addChildValue("TYPE", phoneticType)
 								.addChildValue("VALUE", traverse(nameStructure, "FONE.GIVN").getValue())
 							)
-							.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-								.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+							.addChild(createWithValue("TRANSCRIPTION", transcriptionSystem)
+								.addChildValue("TYPE", transcriptionType)
 								.addChildValue("VALUE", traverse(nameStructure, "ROMN.GIVN").getValue())
 							)
 							.addChild(createWithValue("NAME_SUFFIX", personalNameSuffix)
 								.addChild(create("PHONETIC")
+									.addChildValue("TYPE", phoneticType)
 									.addChildValue("VALUE", traverse(nameStructure, "FONE.NSFX").getValue())
 								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChild(createWithValue("TRANSCRIPTION", transcriptionSystem)
+									.addChildValue("TYPE", transcriptionType)
 									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NSFX").getValue())
 								)
 							)
 							.addChild(createWithValue("INDIVIDUAL_NICKNAME", traverse(nameStructure, "NICK").getValue())
 								.addChild(create("PHONETIC")
+									.addChildValue("TYPE", phoneticType)
 									.addChildValue("VALUE", traverse(nameStructure, "FONE.NICK").getValue())
 								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChild(createWithValue("TRANSCRIPTION", transcriptionSystem)
+									.addChildValue("TYPE", transcriptionType)
 									.addChildValue("VALUE", traverse(nameStructure, "ROMN.NICK").getValue())
 								)
 							)
 							.addChild(createWithValue("FAMILY_NAME", surname)
 								.addChild(create("PHONETIC")
+									.addChildValue("TYPE", phoneticType)
 									.addChildValue("VALUE", composeSurname(nameStructure, "FONE.SPFX", "FONE.SURN"))
 								)
-								.addChild(createWithValue("TRANSCRIPTION", traverse(nameStructure, "ROMN.TYPE").getValue())
-									.addChildValue("TYPE", traverse(nameStructure, "ROMN").getValue())
+								.addChild(createWithValue("TRANSCRIPTION", transcriptionSystem)
+									.addChildValue("TYPE", transcriptionType)
 									.addChildValue("VALUE", composeSurname(nameStructure, "ROMN.SPFX", "ROMN.SURN"))
 								)
 							)
@@ -907,6 +919,64 @@ public final class Transformer extends TransformerHelper{
 	}
 
 
+	/*
+	for-each INDIVIDUAL id create INDI
+		INDI.id = INDIVIDUAL.id
+		for-each INDIVIDUAL.NAME create INDI.NAME
+			INDI.NAME.TYPE.value = INDIVIDUAL.NAME.TYPE.value
+			INDI.NAME.NPFX.value = INDIVIDUAL.NAME.TITLE.value
+			INDI.NAME.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.value
+			INDI.NAME.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.value
+			INDI.NAME.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.value
+			INDI.NAME.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.value
+		for-each INDIVIDUAL.NAME create INDI.NAME.FONE
+			INDI.NAME.FONE.TYPE.value = INDIVIDUAL.NAME.TITLE.PHONETIC.value
+			INDI.NAME.FONE.NPFX.value = INDIVIDUAL.NAME.TITLE.PHONETIC.VALUE.value
+			INDI.NAME.FONE.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.PHONETIC.VALUE.value
+			INDI.NAME.FONE.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.PHONETIC.VALUE.value
+			INDI.NAME.FONE.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.PHONETIC.VALUE.value
+			INDI.NAME.FONE.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.PHONETIC.VALUE.value
+		for-each INDIVIDUAL.NAME create INDI.NAME.ROMN
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NPFX.value = INDIVIDUAL.NAME.TITLE.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.GIVN.value = INDIVIDUAL.NAME.PERSONAL_NAME.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NSFX.value = INDIVIDUAL.NAME.PERSONAL_NAME.NAME_SUFFIX.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.NICK.value = INDIVIDUAL.NAME.INDIVIDUAL_NICKNAME.TRANSCRIPTION.VALUE.value
+			INDI.NAME.ROMN.TYPE.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.value
+			INDI.NAME.ROMN.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.TYPE.value
+			INDI.NAME.ROMN.SURN.value = INDIVIDUAL.NAME.FAMILY_NAME.TRANSCRIPTION.VALUE.value
+			transfer INDIVIDUAL.NAME.NOTE to INDI.NAME.NOTE
+			transfer INDIVIDUAL.NAME.SOUR to INDI.NAME.SOURCE
+		INDI.SEX.value = INDIVIDUAL.SEX.value
+		for-each INDIVIDUAL.FAMILY_CHILD create INDI.FAMC
+			INDI.FAMC.xref = INDIVIDUAL.FAMILY_CHILD.xref
+			INDI.FAMC.PEDI.value = 'PARENT1: ' + INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT1.value + ', PARENT2: ' + INDIVIDUAL.FAMILY_CHILD.PEDIGREE.PARENT2.value
+			INDI.FAMC.STAT.value = INDIVIDUAL.FAMILY_CHILD.CERTAINTY.value
+			transfer INDIVIDUAL.FAMILY_CHILD.NOTE to INDI.FAMC.NOTE
+		for-each INDIVIDUAL.FAMILY_SPOUSE create INDI.FAMS
+			INDI.FAMS.xref = INDIVIDUAL.FAMILY_SPOUSE.xref
+			transfer INDIVIDUAL.FAMILY_SPOUSE.NOTE to INDI.FAMS.NOTE
+		for-each INDIVIDUAL.ASSOCIATION create INDI.ASSO
+			INDI.ASSO.xref = INDIVIDUAL.ASSOCIATION.xref
+			INDI.ASSO.TYPE.value = INDIVIDUAL.ASSOCIATION.TYPE.value ('family'>'FAM', 'individual'>'INDI')
+			INDI.ASSO.RELA.value = INDIVIDUAL.ASSOCIATION.RELATIONSHIP.value
+			transfer INDIVIDUAL.ASSOCIATION.NOTE to INDI.ASSO.NOTE
+			transfer INDIVIDUAL.ASSOCIATION.SOURCE to INDI.ASSO.SOUR
+		for-each INDIVIDUAL.ALIAS create INDI.ALIA
+			INDI.ALIA.xref = INDIVIDUAL.ALIAS.xref
+		for-each INDIVIDUAL.EVENT.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDI
+		for-each INDIVIDUAL.EVENT.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDI
+		transfer INDIVIDUAL.NOTE to INDI.NOTE
+		transfer INDIVIDUAL.SOURCE to INDI.SOUR,OBJE
+		INDI.RESN.value = INDIVIDUAL.RESTRICTION.value
+	*/
 	void individualRecordFrom(final GedcomNode parent, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationIndividual = create("INDI");
 		final List<GedcomNode> individuals = traverseAsList(parent, "INDIVIDUAL");
