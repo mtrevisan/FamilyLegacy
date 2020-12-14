@@ -62,7 +62,10 @@ class TransformerRepositoryRecordTest{
 			.addChildValue("PHONE", "PHONE_NUMBER")
 			.addChildReference("NOTE", "N1");
 		final GedcomNode place = transformerFrom.createWithID("PLACE", "P1")
-			.addChildValue("NAME", "PLACE_NAME");
+			.addChildValue("NAME", "PLACE_NAME")
+			.addChild(transformerFrom.create("ADDRESS")
+				.addChildValue("COUNTRY", "ADDRESS_COUNTRY")
+			);
 		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
 
 		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: I1}, {tag: PLACE, ref: P1}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: N1}]", repository.toString());
@@ -74,7 +77,7 @@ class TransformerRepositoryRecordTest{
 		final Gedcom destination = new Gedcom();
 		transformerFrom.repositoryRecordFrom(repository, origin, destination);
 
-		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLAC, value: PLACE_NAME}, {tag: NOTE, ref: N1}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, children: [{tag: CTRY, value: ADDRESS_COUNTRY}]}, {tag: NOTE, ref: N1}]", destination.getRepositories().get(0).toString());
 	}
 
 }

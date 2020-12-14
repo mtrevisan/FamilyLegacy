@@ -604,6 +604,7 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
 		placeAddressStructureTo(repository, destinationRepository, destination);
+		contactStructureTo(repository, destinationRepository);
 		noteCitationTo(repository, destinationRepository, destination);
 
 		destination.addRepository(destinationRepository);
@@ -1325,7 +1326,8 @@ public final class Transformer extends TransformerHelper{
 		final String repositoryID = repository.getID();
 		final GedcomNode destinationRepository = createWithID((repositoryID.startsWith("SUBM")? "SUBM": "REPO"), repositoryID)
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
-		placeStructureFrom(repository, destinationRepository, origin);
+		addressStructureFrom(repository, destinationRepository, origin);
+		contactStructureFrom(repository, destinationRepository);
 		noteCitationFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
