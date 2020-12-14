@@ -441,7 +441,7 @@ public final class Transformer extends TransformerHelper{
 	for-each HEAD value create HEADER
 		HEADER.PROTOCOL.value = "FLEF"
 		HEADER.PROTOCOL.NAME.value = "Family LEgacy Format"
-		HEADER.PROTOCOL.VERSION.value = "0.04"
+		HEADER.PROTOCOL.VERSION.value = "0.05"
 		HEADER.SOURCE.value = HEAD.SOUR.value
 		HEADER.SOURCE.NAME.value = HEAD.SOUR.NAME.value
 		HEADER.SOURCE.VERSION.value = HEAD.SOUR.VERS.value
@@ -463,7 +463,7 @@ public final class Transformer extends TransformerHelper{
 			.addChild(create("PROTOCOL")
 				.withValue("FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
-				.addChildValue("VERSION", "0.0.4")
+				.addChildValue("VERSION", "0.0.5")
 			)
 			.addChild(create("SOURCE")
 				.withValue(source.getValue())
