@@ -1277,7 +1277,7 @@ public final class Transformer extends TransformerHelper{
 				.withValue(timeindex > 0? date.substring(0, timeindex): date)
 				.addChildValue("TIME", (timeindex > 0? date.substring(timeindex + 1): null))
 			)
-			.addChildReference("SUBM", traverse(source, "SUBMITTER").getXRef())
+			.addChildReference("SUBM", traverse(header, "SUBMITTER").getXRef())
 			.addChildValue("COPR", traverse(source, "COPYRIGHT").getValue())
 			.addChild(create("GEDC")
 				.addChildValue("VERS", "5.5.1")
@@ -1321,7 +1321,8 @@ public final class Transformer extends TransformerHelper{
 		transfer REPOSITORY.NOTE to REPO.NOTE
 	*/
 	void repositoryRecordFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
-		final GedcomNode destinationRepository = createWithID("REPO", repository.getID())
+		final String repositoryID = repository.getID();
+		final GedcomNode destinationRepository = createWithID((repositoryID.startsWith("SUBM")? "SUBM": "REPO"), repositoryID)
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
 		placeStructureFrom(repository, destinationRepository, origin);
 		noteCitationFrom(repository, destinationRepository);

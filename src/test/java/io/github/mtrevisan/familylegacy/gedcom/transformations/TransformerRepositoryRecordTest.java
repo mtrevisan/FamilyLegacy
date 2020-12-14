@@ -48,8 +48,8 @@ class TransformerRepositoryRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.repositoryRecordTo(repository, destination);
 
-		Assertions.assertEquals("id: @R1@, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: @N1@}]", destination.getRepositories().get(0).toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: @R1@, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: @P1@}, {tag: NOTE, ref: @N1@}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: @P1@, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test

@@ -60,7 +60,7 @@ class TransformerMultimediaRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.multimediaRecordTo(object, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: @N1@}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: @N1@}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
@@ -92,7 +92,7 @@ class TransformerMultimediaRecordTest{
 		final Gedcom destination = new Gedcom();
 		transformerFrom.multimediaRecordFrom(source, destination);
 
-		Assertions.assertEquals("id: O1, tag: OBJE, children: [{tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: DOCUMENT_DESCRIPTION}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}, {tag: NOTE, ref: @N1@}]", destination.getObjects().get(0).toString());
+		Assertions.assertEquals("id: @O1@, tag: OBJE, children: [{tag: FILE, value: DOCUMENT_FILE_REFERENCE, children: [{tag: TITL, value: DOCUMENT_DESCRIPTION}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}]}, {tag: NOTE, ref: @N1@}]", destination.getObjects().get(0).toString());
 	}
 
 }

@@ -74,8 +74,8 @@ class TransformerMultimediaCitationTest{
 		final GedcomNode destinationSourceReference = transformerTo.create("SOURCE");
 		transformerTo.multimediaCitationTo(parent, destinationNode, destinationSourceReference, origin, destination, "TEXT");
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
-		Assertions.assertEquals("tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
+		Assertions.assertEquals("id: @S1@, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}]", destinationNode.toString());
+		Assertions.assertEquals("tag: SOURCE, ref: @S1@, children: [{tag: CUTOUT, value: CUT_COORDINATES}]", destinationSourceReference.toString());
 	}
 
 }

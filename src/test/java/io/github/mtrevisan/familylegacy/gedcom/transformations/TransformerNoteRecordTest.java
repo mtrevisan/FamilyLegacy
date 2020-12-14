@@ -77,8 +77,8 @@ class TransformerNoteRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.noteCitationTo(parent, destinationNode, destination);
 
-		Assertions.assertEquals("children: [{tag: NOTE, ref: N1}]", destinationNode.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
+		Assertions.assertEquals("children: [{tag: NOTE, ref: @N1@}]", destinationNode.toString());
+		Assertions.assertEquals("id: @N1@, tag: NOTE, value: SUBMITTER_TEXT", destination.getNotes().get(0).toString());
 	}
 
 	@Test

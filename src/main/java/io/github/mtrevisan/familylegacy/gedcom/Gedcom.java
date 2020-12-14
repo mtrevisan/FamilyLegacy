@@ -306,7 +306,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + individualId ++;
+		return "@" + ID_INDIVIDUAL_PREFIX + (individualId ++) + "@";
 	}
 
 	public List<GedcomNode> getFamilies(){
@@ -335,7 +335,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + familyId ++;
+		return "@" + ID_FAMILY_PREFIX + (familyId ++) + "@";
 	}
 
 	public List<GedcomNode> getDocuments(){
@@ -371,7 +371,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextDocumentID(){
-		return ID_DOCUMENT_PREFIX + documentId ++;
+		return "@" + ID_DOCUMENT_PREFIX + (documentId ++) + "@";
 	}
 
 	public List<GedcomNode> getNotes(){
@@ -407,7 +407,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextNoteID(){
-		return ID_NOTE_PREFIX + noteId ++;
+		return "@" + ID_NOTE_PREFIX + (noteId ++) + "@";
 	}
 
 	public List<GedcomNode> getRepositories(){
@@ -443,7 +443,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return ID_REPOSITORY_PREFIX + repositoryId ++;
+		return "@" + ID_REPOSITORY_PREFIX + (repositoryId ++) + "@";
 	}
 
 
@@ -480,7 +480,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSourceID(){
-		return ID_SOURCE_PREFIX + sourceId ++;
+		return "@" + ID_SOURCE_PREFIX + (sourceId ++) + "@";
 	}
 
 
@@ -517,7 +517,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextObjectID(){
-		return ID_OBJECT_PREFIX + objectId ++;
+		return "@" + ID_OBJECT_PREFIX + (objectId ++) + "@";
 	}
 
 
@@ -547,7 +547,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSubmitterID(){
-		return ID_SUBMITTER_PREFIX + submitterId ++;
+		return "@" + ID_SUBMITTER_PREFIX + (submitterId ++) + "@";
 	}
 
 }
