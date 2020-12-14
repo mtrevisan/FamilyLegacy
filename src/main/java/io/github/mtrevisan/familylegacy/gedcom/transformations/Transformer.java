@@ -194,7 +194,7 @@ public final class Transformer extends TransformerHelper{
 				final int surnameEndIndex = nameValue.indexOf('/', surnameBeginIndex + 1);
 				if(individualName == null && surnameBeginIndex > 0)
 					individualName = nameValue.substring(0, surnameBeginIndex - 1);
-				if(individualNameSuffix == null && surnameEndIndex >= 0)
+				if(individualNameSuffix == null && surnameEndIndex >= 0 && nameValue.length() > surnameEndIndex + 2)
 					individualNameSuffix = nameValue.substring(surnameEndIndex + 2);
 				if(familyName == null && surnameBeginIndex >= 0)
 					familyName = nameValue.substring(surnameBeginIndex + 1, (surnameEndIndex > 0? surnameEndIndex: nameValue.length() - 1));
@@ -406,14 +406,15 @@ public final class Transformer extends TransformerHelper{
 				final GedcomNode family = origin.getFamily(familyChild.getXRef());
 				final String spouse1ID = traverse(family, "HUSB").getXRef();
 				final String spouse2ID = traverse(family, "WIFE").getXRef();
-				if("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy))
+				if(spouse1ID != null && ("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
 					destinationEvent.addChild(createWithReference("PARENT_PEDIGREE", spouse1ID)
 						.addChildValue("PEDIGREE", "adopted")
 					);
-				if("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy))
+				if(spouse2ID != null && ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy))){
 					destinationEvent.addChild(createWithReference("PARENT_PEDIGREE", spouse2ID)
 						.addChildValue("PEDIGREE", "adopted")
 					);
+				}
 			}
 		}
 		final String value = traverse(event, "DATE").getValue();
@@ -480,6 +481,56 @@ public final class Transformer extends TransformerHelper{
 		destination.setHeader(destinationHeader);
 	}
 
+//from FAMILY_RECORD, INDIVIDUAL_RECORD, SOURCE_RECORD, SUBMITTER_RECORD, EVENT_OR_FACT_DETAIL, SOURCE_CITATION
+//
+//MULTIMEDIA_LINK :=
+//[
+//n OBJE @<XREF:OBJE>@    {1:1}	/* An xref ID of a multimedia record. */
+//|
+//	n OBJE    {1:1}
+//  +1 TITL <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
+//  +1 _DATE <ENTRY_RECORDING_DATE>    {0:1}	/* A date_value() object giving the date that this event data was entered into the original source document. */
+//  +1 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
+//    +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
+//  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
+//  +1 _CUTD <CUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+//  +1 _PREF <PREFERRED_MEDIA>    {0:1}	/* Whether this media is the preferred one to show on the individual box. */
+//]
+//
+//	MULTIMEDIA_RECORD :=
+//	n @<XREF:OBJE>@ OBJE    {1:1}	/* An xref ID of a multimedia record. */
+//  +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
+//    +2 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
+//      +3 TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
+//    +2 TITL <DESCRIPTIVE_TITLE>    {0:1}	/* The title of a work, record, item, or object. */
+//  +1 REFN <USER_REFERENCE_NUMBER>    {0:M}	/* A user-defined number or text that the submitter uses to identify this record. */
+//    +2 TYPE <USER_REFERENCE_TYPE>    {0:1}	/* A user-defined definition of the user_reference_number. */
+//  +1 RIN <AUTOMATED_RECORD_ID>    {0:1}	/* A unique record identification number assigned to the record by the source system. This number is intended to serve as a more sure means of identification of a record for reconciling differences in data between two interfacing systems. */
+//  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+//  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+//  +1 <<CHANGE_DATE>>    {0:1}	/* A CHANGE_DATE() object giving the time this record was last modified. If not provided, the current date is used. */
+//
+//to
+//	SOURCE_CITATION :=
+//	n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
+//  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+//  +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. */
+//  +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+//  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+//
+//	SOURCE_RECORD :=
+//	n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
+//  +1 EVENT <EVENTS_RECORDED>    {0:M}	/* An enumeration of the different kinds of events that were recorded in a particular source. Each enumeration is separated by a comma. Such as the type of event which was responsible for the source entry being recorded (CASTE, EDUCATION, NATIONALITY, OCCUPATION, PROPERTY, RELIGION, RESIDENCE, TITLE, FACT, ANNULMENT, CENSUS, DIVORCE, DIVORCE_FILED, ENGAGEMENT, MARRIAGE, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, ADOPTION, BIRTH, BURIAL, CREMATION, DEATH, EMIGRATION, GRADUATION, IMMIGRATION, NATURALIZATION, RETIREMENT, DEED, PROBATE, WILL, EVENT, etc). For example, if the entry was created to record a birth of a child, then the type would be BIRTH regardless of the assertions made from that record, such as the mother's name or mother's birth date. This will allow a prioritized best view choice and a determination of the certainty associated with the source used in asserting the cited fact. */
+//  +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
+//  +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
+//  +1 PUBLICATION_FACTS <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
+//  +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_value() object giving the date that this source was recorded. */
+//  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
+//  +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+//  +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+
 	/*
 		for-each SOUR.OBJE xref
 			load OBJE[rec] from SOUR.OBJE.xref
@@ -495,6 +546,7 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.TYPE.value
 			remember which one has the _PREF tag
 	*/
+	//FIXME destination node should be a SOURCE
 	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final GedcomNode destinationSourceReference,
 			final Gedcom origin, final Flef destination, final String extractionsTag){
 		final List<GedcomNode> objects = traverseAsList(parent, "OBJE[]");
@@ -520,13 +572,17 @@ public final class Transformer extends TransformerHelper{
 			}
 			else{
 				files = traverseAsList(object, "FILE[]");
-				destinationNode.addChildValue("MEDIA_TYPE", traverse(object, "FORM.TYPE").getValue());
+				destinationNode
+					.addChildValue("DATE", traverse(object, "_DATE").getValue())
+					.addChildValue("MEDIA_TYPE", traverse(object, "FORM.TYPE").getValue());
 				final String title = traverse(object, "TITL").getValue();
 				for(final GedcomNode file : files)
 					destinationNode.addChild(createWithValue("FILE", file.getValue())
 						.addChildValue("DESCRIPTION", title)
 					);
 				if(files.size() == 1){
+					//FIXME something's wrong a file has 27 cutouts... because there are multiple objects and only one destinationSourceReference...
+
 					destinationSourceReference.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
 					//TODO remember which one has the _PREF tag
 //					final boolean preferred = ("Y".equals(traverse(object, "_PREF").getValue()));
@@ -540,7 +596,6 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> extracts = traverseAsList(parent, extractionsTag);
 		assignExtractionsTo(extracts, destinationNode);
 		noteCitationTo(parent, destinationNode, destination);
-		destinationSourceReference.addChildValue("CREDIBILITY", traverse(parent, "QUAY").getValue());
 	}
 
 	/*
@@ -549,12 +604,15 @@ public final class Transformer extends TransformerHelper{
 	*/
 	private void assignExtractionsTo(final List<GedcomNode> extracts, final GedcomNode destinationSource){
 		final List<GedcomNode> destinationFiles = traverseAsList(destinationSource, "FILE[]");
-		if(extracts.size() > destinationFiles.size()){
+		final int fileCount = destinationFiles.size();
+		if(extracts.size() > fileCount){
 			//collect all extractions and assign to first
 			final StringJoiner sj = new StringJoiner("\n");
 			for(int index = 0; index < extracts.size(); index ++)
 				sj.add("EXTRACT " + index)
 					.add(extracts.get(index).getValue());
+			if(fileCount == 0)
+				destinationFiles.add(create("FILE"));
 			destinationFiles.get(0)
 				.addChildValue("EXTRACT", sj.toString());
 		}

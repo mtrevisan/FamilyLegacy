@@ -72,7 +72,7 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
@@ -113,7 +113,7 @@ class TransformerSourceCitationTest{
 		destination.addSource(source);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: S1, tag: SOUR", destination.getSources().get(0).toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
 	}
@@ -150,7 +150,7 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: M1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: M1}]", destinationNode.toString());
 		Assertions.assertEquals("id: M1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
@@ -183,7 +183,7 @@ class TransformerSourceCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}, {tag: EXTRACT, value: TEXT_FROM_SOURCE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
