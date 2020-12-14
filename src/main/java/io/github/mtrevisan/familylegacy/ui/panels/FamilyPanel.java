@@ -162,7 +162,7 @@ public class FamilyPanel extends JPanel{
 		if(familyListener != null){
 			attachPopUpMenu(marriagePanel, family, familyListener);
 
-			refresh(Flef.ACTION_COMMAND_FAMILIES_COUNT);
+			refresh(Flef.ACTION_COMMAND_FAMILY_COUNT);
 
 			spouse1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
@@ -293,7 +293,7 @@ public class FamilyPanel extends JPanel{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final Integer actionCommand){
-		if(actionCommand != Flef.ACTION_COMMAND_FAMILIES_COUNT)
+		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
 
 		linkFamilyItem.setEnabled(family == null && store.hasFamilies());

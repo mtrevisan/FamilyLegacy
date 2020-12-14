@@ -176,7 +176,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		if(listener != null){
 			attachPopUpMenu(individual, listener);
 
-			refresh(Flef.ACTION_COMMAND_INDIVIDUALS_COUNT);
+			refresh(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
 		}
 
 		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
@@ -355,7 +355,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final Integer actionCommand){
-		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUALS_COUNT)
+		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
 
 		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());

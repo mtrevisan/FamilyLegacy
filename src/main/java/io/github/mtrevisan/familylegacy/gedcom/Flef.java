@@ -53,11 +53,23 @@ import java.util.TreeMap;
 public class Flef extends Store{
 
 	/** Raised upon changes on the number of individuals in the store. */
-	public static final Integer ACTION_COMMAND_INDIVIDUALS_COUNT = 0;
+	public static final Integer ACTION_COMMAND_INDIVIDUAL_COUNT = 0;
 	/** Raised upon changes on the number of families in the store. */
-	public static final Integer ACTION_COMMAND_FAMILIES_COUNT = 1;
+	public static final Integer ACTION_COMMAND_FAMILY_COUNT = 1;
 	/** Raised upon changes on the number of events in the store. */
-	public static final Integer ACTION_COMMAND_EVENTS_COUNT = 2;
+	public static final Integer ACTION_COMMAND_EVENT_COUNT = 2;
+	/** Raised upon changes on the number of places in the store. */
+	public static final Integer ACTION_COMMAND_PLACE_COUNT = 3;
+	/** Raised upon changes on the number of notes in the store. */
+	public static final Integer ACTION_COMMAND_NOTE_COUNT = 4;
+	/** Raised upon changes on the number of repositories in the store. */
+	public static final Integer ACTION_COMMAND_REPOSITORY_COUNT = 5;
+	/** Raised upon changes on the number of sources in the store. */
+	public static final Integer ACTION_COMMAND_SOURCE_COUNT = 6;
+	/** Raised upon changes on the number of cultural rules in the store. */
+	public static final Integer ACTION_COMMAND_CULTURAL_RULE_COUNT = 7;
+	/** Raised upon changes on the number of groups in the store. */
+	public static final Integer ACTION_COMMAND_GROUP_COUNT = 8;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -313,7 +325,7 @@ public class Flef extends Store{
 		return individualIndex.get(id);
 	}
 
-	public String addIndividual(final GedcomNode individual){
+	public void addIndividual(final GedcomNode individual){
 		if(individuals == null){
 			individuals = new ArrayList<>(1);
 			individualIndex = new HashMap<>(1);
@@ -328,9 +340,7 @@ public class Flef extends Store{
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
 
-		EventBusService.publish(ACTION_COMMAND_INDIVIDUALS_COUNT);
-
-		return individualID;
+		EventBusService.publish(ACTION_COMMAND_INDIVIDUAL_COUNT);
 	}
 
 	public String removeIndividual(final GedcomNode individual){
@@ -339,7 +349,7 @@ public class Flef extends Store{
 			individuals.remove(individual);
 			individualIndex.remove(individualID);
 
-			EventBusService.publish(ACTION_COMMAND_INDIVIDUALS_COUNT);
+			EventBusService.publish(ACTION_COMMAND_INDIVIDUAL_COUNT);
 
 			return individualID;
 		}
@@ -363,7 +373,7 @@ public class Flef extends Store{
 		return familyIndex.get(id);
 	}
 
-	public String addFamily(final GedcomNode family){
+	public void addFamily(final GedcomNode family){
 		if(families == null){
 			families = new ArrayList<>(1);
 			familyIndex = new HashMap<>(1);
@@ -378,9 +388,7 @@ public class Flef extends Store{
 		families.add(family);
 		familyIndex.put(family.getID(), family);
 
-		EventBusService.publish(ACTION_COMMAND_FAMILIES_COUNT);
-
-		return familyID;
+		EventBusService.publish(ACTION_COMMAND_FAMILY_COUNT);
 	}
 
 	public void linkFamilyToChild(final GedcomNode child, final GedcomNode family){
@@ -393,7 +401,7 @@ public class Flef extends Store{
 			families.remove(family);
 			familyIndex.remove(familyID);
 
-			EventBusService.publish(ACTION_COMMAND_FAMILIES_COUNT);
+			EventBusService.publish(ACTION_COMMAND_FAMILY_COUNT);
 
 			return familyID;
 		}
@@ -428,17 +436,26 @@ public class Flef extends Store{
 
 	//FIXME
 	public GedcomNode getSpouse1(final GedcomNode family){
-		return getSpouse(family, "SPOUSE1");
+		return getMarriageEvents(family, "SPOUSE1").get(0);
 	}
 
 	//FIXME
 	public GedcomNode getSpouse2(final GedcomNode family){
-		return getSpouse(family, "SPOUSE2");
+		return getMarriageEvents(family, "SPOUSE2").get(1);
 	}
 
 	//FIXME
-	public GedcomNode getSpouse(final GedcomNode family, final String spouseTag){
-		return getIndividual(traverse(family, spouseTag).getXRef());
+	private List<GedcomNode> getMarriageEvents(final GedcomNode family, final String spouseTag){
+		final List<GedcomNode> spouses = new ArrayList<>();
+		final List<GedcomNode> familyEvents = family.getChildrenWithTag("EVENT");
+		for(final GedcomNode familyEvent : familyEvents){
+			final GedcomNode eventRecord = getEvent(familyEvent.getXRef());
+//ENGAGEMENT, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, MARRIAGE, DIVORCE_FILED, DIVORCE_DECREE, DIVORCE,
+//ANNULMENT
+			if("MARRIAGE".equals(traverse(eventRecord, "TYPE")))
+				spouses.add(eventRecord);
+		}
+		return spouses;
 	}
 
 
@@ -454,7 +471,7 @@ public class Flef extends Store{
 		return eventIndex.get(id);
 	}
 
-	public String addEvent(final GedcomNode event){
+	public void addEvent(final GedcomNode event){
 		//search event
 		String eventID = (!event.isEmpty() && eventValue != null? eventValue.get(event.hashCode()): null);
 		if(eventID == null){
@@ -465,21 +482,17 @@ public class Flef extends Store{
 				eventValue = new HashMap<>(1);
 			}
 
-			eventID = event.getID();
-			if(eventID == null){
-				eventID = getNextEventID();
-				event.withID(eventID);
-			}
+			eventID = getNextEventID();
+			event.withID(eventID);
 
 			events.add(event);
 			eventIndex.put(event.getID(), event);
 			eventValue.put(event.hashCode(), eventID);
 
-			EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
+			EventBusService.publish(ACTION_COMMAND_EVENT_COUNT);
 		}
 		else
 			event.withID(eventID);
-		return eventID;
 	}
 
 	public String removeEvent(final GedcomNode event){
@@ -488,7 +501,7 @@ public class Flef extends Store{
 			events.remove(event);
 			eventIndex.remove(eventID);
 
-			EventBusService.publish(ACTION_COMMAND_EVENTS_COUNT);
+			EventBusService.publish(ACTION_COMMAND_EVENT_COUNT);
 
 			return eventID;
 		}
@@ -508,7 +521,7 @@ public class Flef extends Store{
 		return placeIndex.get(id);
 	}
 
-	public String addPlace(final GedcomNode place){
+	public void addPlace(final GedcomNode place){
 		//search place
 		String placeID = (!place.isEmpty() && placeValue != null? placeValue.get(place.hashCode()): null);
 		if(placeID == null){
@@ -519,19 +532,30 @@ public class Flef extends Store{
 				placeValue = new HashMap<>(1);
 			}
 
-			placeID = place.getID();
-			if(placeID == null){
-				placeID = getNextPlaceID();
-				place.withID(placeID);
-			}
+			placeID = getNextPlaceID();
+			place.withID(placeID);
 
 			places.add(place);
 			placeIndex.put(placeID, place);
 			placeValue.put(place.hashCode(), placeID);
+
+			EventBusService.publish(ACTION_COMMAND_PLACE_COUNT);
 		}
 		else
 			place.withID(placeID);
-		return placeID;
+	}
+
+	public String removePlace(final GedcomNode place){
+		if(places != null){
+			final String placeID = place.getID();
+			places.remove(place);
+			placeIndex.remove(placeID);
+
+			EventBusService.publish(ACTION_COMMAND_PLACE_COUNT);
+
+			return placeID;
+		}
+		return null;
 	}
 
 	private String getNextPlaceID(){
@@ -558,19 +582,31 @@ public class Flef extends Store{
 				noteValue = new HashMap<>(1);
 			}
 
-			noteID = note.getID();
-			if(noteID == null){
-				noteID = getNextNoteID();
-				note.withID(noteID);
-			}
+			noteID = getNextNoteID();
+			note.withID(noteID);
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
 			noteValue.put(note.hashCode(), noteID);
+
+			EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
 		}
 		else
 			note.withID(noteID);
 		return noteID;
+	}
+
+	public String removeNote(final GedcomNode note){
+		if(notes != null){
+			final String noteID = note.getID();
+			notes.remove(note);
+			noteIndex.remove(noteID);
+
+			EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
+
+			return noteID;
+		}
+		return null;
 	}
 
 	private String getNextNoteID(){
@@ -597,19 +633,31 @@ public class Flef extends Store{
 				repositoryValue = new HashMap<>(1);
 			}
 
-			repositoryID = repository.getID();
-			if(repositoryID == null){
-				repositoryID = getNextRepositoryID();
-				repository.withID(repositoryID);
-			}
+			repositoryID = getNextRepositoryID();
+			repository.withID(repositoryID);
 
 			repositories.add(repository);
 			repositoryIndex.put(repositoryID, repository);
 			repositoryValue.put(repository.hashCode(), repositoryID);
+
+			EventBusService.publish(ACTION_COMMAND_REPOSITORY_COUNT);
 		}
 		else
 			repository.withID(repositoryID);
 		return repositoryID;
+	}
+
+	public String removeRepository(final GedcomNode repository){
+		if(repositories != null){
+			final String repositoryID = repository.getID();
+			repositories.remove(repository);
+			repositoryIndex.remove(repositoryID);
+
+			EventBusService.publish(ACTION_COMMAND_REPOSITORY_COUNT);
+
+			return repositoryID;
+		}
+		return null;
 	}
 
 	private String getNextRepositoryID(){
@@ -636,19 +684,31 @@ public class Flef extends Store{
 				sourceValue = new HashMap<>(1);
 			}
 
-			sourceID = source.getID();
-			if(sourceID == null){
-				sourceID = getNextSourceID();
-				source.withID(sourceID);
-			}
+			sourceID = getNextSourceID();
+			source.withID(sourceID);
 
 			sources.add(source);
 			sourceIndex.put(sourceID, source);
 			sourceValue.put(source.hashCode(), sourceID);
+
+			EventBusService.publish(ACTION_COMMAND_SOURCE_COUNT);
 		}
 		else
 			source.withID(sourceID);
 		return sourceID;
+	}
+
+	public String removeSource(final GedcomNode source){
+		if(sources != null){
+			final String sourceID = source.getID();
+			sources.remove(source);
+			sourceIndex.remove(sourceID);
+
+			EventBusService.publish(ACTION_COMMAND_SOURCE_COUNT);
+
+			return sourceID;
+		}
+		return null;
 	}
 
 	private String getNextSourceID(){
@@ -664,7 +724,7 @@ public class Flef extends Store{
 		return culturalRuleIndex.get(id);
 	}
 
-	public String addCulturalRule(final GedcomNode culturalRule){
+	public void addCulturalRule(final GedcomNode culturalRule){
 		if(culturalRules == null){
 			culturalRules = new ArrayList<>(1);
 			culturalRuleIndex = new HashMap<>(1);
@@ -678,7 +738,21 @@ public class Flef extends Store{
 
 		culturalRules.add(culturalRule);
 		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
-		return culturalRuleID;
+
+		EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+	}
+
+	public String removeCulturalRule(final GedcomNode culturalRule){
+		if(culturalRules != null){
+			final String culturalRuleID = culturalRule.getID();
+			culturalRules.remove(culturalRule);
+			culturalRuleIndex.remove(culturalRuleID);
+
+			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+
+			return culturalRuleID;
+		}
+		return null;
 	}
 
 	private String getNextCulturalRuleID(){
@@ -694,7 +768,7 @@ public class Flef extends Store{
 		return groupIndex.get(id);
 	}
 
-	public String addGroup(final GedcomNode group){
+	public void addGroup(final GedcomNode group){
 		if(groups == null){
 			groups = new ArrayList<>(1);
 			groupIndex = new HashMap<>(1);
@@ -708,7 +782,21 @@ public class Flef extends Store{
 
 		groups.add(group);
 		groupIndex.put(group.getID(), group);
-		return groupID;
+
+		EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
+	}
+
+	public String removeGroup(final GedcomNode group){
+		if(groups != null){
+			final String groupID = group.getID();
+			groups.remove(group);
+			groupIndex.remove(groupID);
+
+			EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
+
+			return groupID;
+		}
+		return null;
 	}
 
 	private String getNextGroupID(){
