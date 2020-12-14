@@ -43,14 +43,20 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 
 public class Flef extends Store{
+
+	private static final Set<String> FAMILY_EVENT_TYPE = new HashSet<>(Arrays.asList("ENGAGEMENT", "MARRIAGE_BANN", "MARRIAGE_CONTRACT",
+		"MARRIAGE_LICENCE", "MARRIAGE_SETTLEMENT", "MARRIAGE", "DIVORCE_FILED", "DIVORCE_DECREE", "DIVORCE", "ANNULMENT"));
 
 	/** Raised upon changes on the number of individuals in the store. */
 	public static final Integer ACTION_COMMAND_INDIVIDUAL_COUNT = 0;
@@ -434,25 +440,27 @@ public class Flef extends Store{
 		return parent2s;
 	}
 
-	//FIXME
-	public GedcomNode getSpouse1(final GedcomNode family){
-		return getMarriageEvents(family, "SPOUSE1").get(0);
+	public GedcomNode getSpouse1(final GedcomNode family, final int familyIndex){
+		return getSpouse(family, familyIndex, 0);
 	}
 
-	//FIXME
-	public GedcomNode getSpouse2(final GedcomNode family){
-		return getMarriageEvents(family, "SPOUSE2").get(1);
+	public GedcomNode getSpouse2(final GedcomNode family, final int familyIndex){
+		return getSpouse(family, familyIndex, 1);
 	}
 
-	//FIXME
-	private List<GedcomNode> getMarriageEvents(final GedcomNode family, final String spouseTag){
+	public GedcomNode getSpouse(final GedcomNode family, final int familyIndex, final int spouseIndex){
+		final List<GedcomNode> familyEvents = getFamilyEvents(family);
+		final String individualXRef = traverseAsList(familyEvents.get(familyIndex), "INDIVIDUAL[]").get(spouseIndex)
+			.getXRef();
+		return getIndividual(individualXRef);
+	}
+
+	private List<GedcomNode> getFamilyEvents(final GedcomNode family){
 		final List<GedcomNode> spouses = new ArrayList<>();
 		final List<GedcomNode> familyEvents = family.getChildrenWithTag("EVENT");
 		for(final GedcomNode familyEvent : familyEvents){
 			final GedcomNode eventRecord = getEvent(familyEvent.getXRef());
-//ENGAGEMENT, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT, MARRIAGE, DIVORCE_FILED, DIVORCE_DECREE, DIVORCE,
-//ANNULMENT
-			if("MARRIAGE".equals(traverse(eventRecord, "TYPE")))
+			if(FAMILY_EVENT_TYPE.contains(traverse(eventRecord, "TYPE")) && !spouses.contains(eventRecord))
 				spouses.add(eventRecord);
 		}
 		return spouses;

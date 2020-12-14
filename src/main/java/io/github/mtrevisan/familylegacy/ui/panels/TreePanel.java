@@ -103,8 +103,10 @@ public class TreePanel extends JPanel{
 	}
 
 	private void initComponents3Generations(final GedcomNode family){
-		spouse1 = (family != null? store.getSpouse1(family): null);
-		spouse2 = (family != null? store.getSpouse2(family): null);
+		//FIXME familyIndex 0
+		int familyIndex = 0;
+		spouse1 = (family != null? store.getSpouse1(family, familyIndex): null);
+		spouse2 = (family != null? store.getSpouse2(family, familyIndex): null);
 
 		final GedcomNode spouse1Parents = extractParents(spouse1);
 		final GedcomNode spouse2Parents = extractParents(spouse2);
@@ -146,35 +148,37 @@ public class TreePanel extends JPanel{
 	}
 
 	private void initComponents4Generations(final GedcomNode family){
-		spouse1 = (family != null? store.getSpouse1(family): null);
-		spouse2 = (family != null? store.getSpouse2(family): null);
+		//FIXME familyIndex 0
+		int familyIndex = 0;
+		spouse1 = (family != null? store.getSpouse1(family, familyIndex): null);
+		spouse2 = (family != null? store.getSpouse2(family, familyIndex): null);
 
 		final GedcomNode spouse1Parents = extractParents(spouse1);
 		final GedcomNode spouse2Parents = extractParents(spouse2);
 
-		final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents);
-		final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents);
+		final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents, familyIndex);
+		final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents, familyIndex);
 		final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
 		final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
 
-		final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents);
-		final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents);
+		final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents, familyIndex);
+		final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents, familyIndex);
 		final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
 		final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
 
-		GedcomNode defaultChildReference = store.getSpouse1(spouse1Parents);
+		GedcomNode defaultChildReference = store.getSpouse1(spouse1Parents, familyIndex);
 		GedcomNode childReference = extractFirstChild(spouse1Grandparents1, defaultChildReference);
 		spouse1Grandparents1Panel = new FamilyPanel(null, null, spouse1Grandparents1, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getSpouse2(spouse1Parents);
+		defaultChildReference = store.getSpouse2(spouse1Parents, familyIndex);
 		childReference = extractFirstChild(spouse1Grandparents2, defaultChildReference);
 		spouse1Grandparents2Panel = new FamilyPanel(null, null, spouse1Grandparents2, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getSpouse1(spouse2Parents);
+		defaultChildReference = store.getSpouse1(spouse2Parents, familyIndex);
 		childReference = extractFirstChild(spouse2Grandparents1, defaultChildReference);
 		spouse2Grandparents1Panel = new FamilyPanel(null, null, spouse2Grandparents1, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
-		defaultChildReference = store.getSpouse2(spouse2Parents);
+		defaultChildReference = store.getSpouse2(spouse2Parents, familyIndex);
 		childReference = extractFirstChild(spouse2Grandparents2, defaultChildReference);
 		spouse2Grandparents2Panel = new FamilyPanel(null, null, spouse2Grandparents2, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
@@ -447,20 +451,22 @@ public class TreePanel extends JPanel{
 	}
 
 	private void loadData(){
-		spouse1 = (spouse1 == null && homeFamily != null? store.getSpouse1(homeFamily): spouse1);
-		spouse2 = (spouse2 == null && homeFamily != null? store.getSpouse2(homeFamily): spouse2);
+		//FIXME familyIndex 0
+		int familyIndex = 0;
+		spouse1 = (spouse1 == null && homeFamily != null? store.getSpouse1(homeFamily, familyIndex): spouse1);
+		spouse2 = (spouse2 == null && homeFamily != null? store.getSpouse2(homeFamily, familyIndex): spouse2);
 
 		final GedcomNode spouse1Parents = extractParents(spouse1);
 		final GedcomNode spouse2Parents = extractParents(spouse2);
 
 		if(generations > 3){
-			final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents);
-			final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents);
+			final GedcomNode spouse1Parent1 = store.getSpouse1(spouse1Parents, familyIndex);
+			final GedcomNode spouse1Parent2 = store.getSpouse2(spouse1Parents, familyIndex);
 			final GedcomNode spouse1Grandparents1 = extractParents(spouse1Parent1);
 			final GedcomNode spouse1Grandparents2 = extractParents(spouse1Parent2);
 
-			final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents);
-			final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents);
+			final GedcomNode spouse2Parent1 = store.getSpouse1(spouse2Parents, familyIndex);
+			final GedcomNode spouse2Parent2 = store.getSpouse2(spouse2Parents, familyIndex);
 			final GedcomNode spouse2Grandparents1 = extractParents(spouse2Parent1);
 			final GedcomNode spouse2Grandparents2 = extractParents(spouse2Parent2);
 

@@ -387,13 +387,13 @@ public final class Transformer extends TransformerHelper{
 	*/
 	private GedcomNode eventRecordTo(final String individualID, final String valueTo, final GedcomNode event, final Gedcom origin,
 			final Flef destination){
-		final GedcomNode destinationEvent = create("EVENT")
-			.addChildValue("TYPE", (CUSTOM_EVENT_TAG.equals(valueTo)? traverse(event, "TYPE").getValue(): valueTo));
+		final String type = traverse(event, "TYPE").getValue();
 		//skip useless `Y` as description
-		if(!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"BURIAL".equals(valueTo) && !"MARRIAGE".equals(valueTo))
-			destinationEvent.addChildValue("DESCRIPTION", event.getValue());
-		else if(!CUSTOM_EVENT_TAG.equals(valueTo))
-			destinationEvent.addChildValue("DESCRIPTION", traverse(event, "TYPE").getValue());
+		final String description = (!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"BURIAL".equals(valueTo)
+			&& !"MARRIAGE".equals(valueTo)? event.getValue(): type);
+		final GedcomNode destinationEvent = create("EVENT")
+			.addChildValue("TYPE", (CUSTOM_EVENT_TAG.equals(valueTo)? type: valueTo))
+			.addChildValue("DESCRIPTION", description);
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		if(!familyChild.isEmpty()){
 			final String adoptedBy = traverse(familyChild, "ADOP").getValue();
@@ -409,11 +409,10 @@ public final class Transformer extends TransformerHelper{
 					destinationEvent.addChild(createWithReference("PARENT_PEDIGREE", spouse1ID)
 						.addChildValue("PEDIGREE", "adopted")
 					);
-				if(spouse2ID != null && ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy))){
+				if(spouse2ID != null && ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
 					destinationEvent.addChild(createWithReference("PARENT_PEDIGREE", spouse2ID)
 						.addChildValue("PEDIGREE", "adopted")
 					);
-				}
 			}
 		}
 		final String value = traverse(event, "DATE").getValue();
@@ -579,7 +578,6 @@ public final class Transformer extends TransformerHelper{
 		transfer REPO.NOTE to REPOSITORY.NOTE
 	*/
 	void repositoryRecordTo(final GedcomNode repository, final Flef destination){
-		//FIXME manage collisions
 		final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
 		placeAddressStructureTo(repository, destinationRepository, destination);
@@ -776,7 +774,6 @@ public final class Transformer extends TransformerHelper{
 	void sourceRecordTo(final GedcomNode parent, final Flef destination){
 		final List<GedcomNode> sources = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
-			//FIXME manage collisions
 			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
 				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
 				.addChildValue("TITLE", traverse(source, "TITL").getValue());
@@ -838,7 +835,6 @@ public final class Transformer extends TransformerHelper{
 		NOTE.value = NOTE.value
 	*/
 	void noteRecordTo(final GedcomNode note, final Flef destination){
-		//FIXME manage collisions
 		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
 	}
 
@@ -1192,7 +1188,6 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void sourceRecordFrom(final GedcomNode source, final Gedcom destination){
 		//create source:
-		//FIXME manage collisions
 		final GedcomNode destinationSource = createWithID("SOUR", source.getID())
 			.addChildValue("PAGE", traverse(source, "LOCATION").getValue())
 			.addChild(create("EVEN")
@@ -1270,7 +1265,6 @@ public final class Transformer extends TransformerHelper{
 		transfer REPOSITORY.NOTE to REPO.NOTE
 	*/
 	void repositoryRecordFrom(final GedcomNode repository, final Flef origin, final Gedcom destination){
-		//FIXME manage collisions
 		final String repositoryID = repository.getID();
 		final GedcomNode destinationRepository = createWithID((repositoryID.startsWith("SUBM")? "SUBM": "REPO"), repositoryID)
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
@@ -1397,7 +1391,6 @@ public final class Transformer extends TransformerHelper{
 		NOTE.value = NOTE.value
 	*/
 	void noteRecordFrom(final GedcomNode note, final Gedcom destination){
-		//FIXME manage collisions
 		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
 	}
 

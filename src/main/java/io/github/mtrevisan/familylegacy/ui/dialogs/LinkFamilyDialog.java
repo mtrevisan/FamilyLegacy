@@ -212,10 +212,13 @@ public class LinkFamilyDialog extends JDialog{
 				final GedcomNode family = families.get(row);
 
 				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
-				loadSpouseData(row, familiesModel, family, "SPOUSE1", TABLE_INDEX_SPOUSE1_NAME, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES,
-					TABLE_INDEX_SPOUSE1_BIRTH_YEAR, TABLE_INDEX_SPOUSE1_DEATH_YEAR, TABLE_INDEX_SPOUSE1_ID);
-				loadSpouseData(row, familiesModel, family, "SPOUSE2", TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
-					TABLE_INDEX_SPOUSE2_BIRTH_YEAR, TABLE_INDEX_SPOUSE2_DEATH_YEAR, TABLE_INDEX_SPOUSE2_ID);
+				//FIXME familyIndex 0
+				loadSpouseData(row, familiesModel, family, 0, 0, TABLE_INDEX_SPOUSE1_NAME,
+					TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, TABLE_INDEX_SPOUSE1_DEATH_YEAR,
+					TABLE_INDEX_SPOUSE1_ID);
+				loadSpouseData(row, familiesModel, family, 0, 1, TABLE_INDEX_SPOUSE2_NAME,
+					TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, TABLE_INDEX_SPOUSE2_DEATH_YEAR,
+					TABLE_INDEX_SPOUSE2_ID);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
 			}
@@ -230,10 +233,10 @@ public class LinkFamilyDialog extends JDialog{
 		}
 	}
 
-	private void loadSpouseData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final String spouseTag,
-			final int tableIndexSpouse, final int tableIndexSpouseAdditionalNames, final int tableIndexSpouseBirthYear,
+	private void loadSpouseData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final int familyIndex,
+			final int spouseIndex, final int tableIndexSpouse, final int tableIndexSpouseAdditionalNames, final int tableIndexSpouseBirthYear,
 			final int tableIndexSpouseDeathYear, final int tableIndexSpouseId){
-		final GedcomNode spouse = store.getSpouse(family, spouseTag);
+		final GedcomNode spouse = store.getSpouse(family, familyIndex, spouseIndex);
 		final List<String[]> spouseName = IndividualPanel.extractCompleteName(spouse, store);
 		if(!spouseName.isEmpty()){
 			final String[] firstPersonalName = spouseName.get(0);
