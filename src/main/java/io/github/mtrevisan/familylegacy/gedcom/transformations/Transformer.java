@@ -466,17 +466,19 @@ public final class Transformer extends TransformerHelper{
 			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
 			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
 		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
-		final GedcomNode submitterAddress = traverse(submitter, "ADDR");
-		final GedcomNode destinationSubmitter = create("SUBMITTER")
-			.addChildValue("NAME", traverse(submitter, "NAME").getValue())
-			.addChild(create("PLACE")
-				.addChildValue("ADDRESS", extractAddressValue(submitterAddress))
-				.addChildValue("CITY", traverse(submitterAddress, "CITY").getValue())
-				.addChildValue("STATE", traverse(submitterAddress, "STAE").getValue())
-				.addChildValue("COUNTRY", traverse(submitterAddress, "CTRY").getValue())
-			);
-		contactStructureTo(submitter, destinationSubmitter);
-		destinationHeader.addChild(destinationSubmitter);
+		if(submitter != null){
+			final GedcomNode submitterAddress = traverse(submitter, "ADDR");
+			final GedcomNode destinationSubmitter = create("SUBMITTER")
+				.addChildValue("NAME", traverse(submitter, "NAME").getValue())
+				.addChild(create("PLACE")
+					.addChildValue("ADDRESS", extractAddressValue(submitterAddress))
+					.addChildValue("CITY", traverse(submitterAddress, "CITY").getValue())
+					.addChildValue("STATE", traverse(submitterAddress, "STAE").getValue())
+					.addChildValue("COUNTRY", traverse(submitterAddress, "CTRY").getValue())
+				);
+			contactStructureTo(submitter, destinationSubmitter);
+			destinationHeader.addChild(destinationSubmitter);
+		}
 
 		final List<GedcomNode> notes = header.getChildrenWithTag("NOTE");
 		for(GedcomNode note : notes){

@@ -120,8 +120,8 @@ public class Gedcom extends Store{
 	public static void main(final String[] args){
 		try{
 			final Store store = new Gedcom();
-			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
-//			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+//			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
+			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
 			final Store storeFlef = store.transform();
 
@@ -230,8 +230,8 @@ public class Gedcom extends Store{
 	@Override
 	public Flef transform(){
 		final Flef destination = new Flef();
-		HEADER_TRANSFORMATION.to(this, destination);
 		SUBMITTER_TRANSFORMATION.to(this, destination);
+		HEADER_TRANSFORMATION.to(this, destination);
 		NOTE_TRANSFORMATION.to(this, destination);
 		REPOSITORY_TRANSFORMATION.to(this, destination);
 		SOURCE_TRANSFORMATION.to(this, destination);
