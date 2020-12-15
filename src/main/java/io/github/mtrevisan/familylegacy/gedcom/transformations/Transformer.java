@@ -439,13 +439,11 @@ public final class Transformer extends TransformerHelper{
 		JavaHelper.addValueIfNotNull(sj, date);
 		JavaHelper.addValueIfNotNull(sj, time);
 		final GedcomNode destinationHeader = create("HEADER")
-			.addChild(create("PROTOCOL")
-				.withValue("FLEF")
+			.addChild(createWithValue("PROTOCOL", "FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
 				.addChildValue("VERSION", "0.0.5")
 			)
-			.addChild(create("SOURCE")
-				.withValue(source.getValue())
+			.addChild(createWithValue("SOURCE", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
 				.addChildValue("VERSION", traverse(source, "VERS").getValue())
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
@@ -487,8 +485,7 @@ public final class Transformer extends TransformerHelper{
 					destinationSource.addChildValue("FILE", file.getValue());
 
 				destination.addSource(destinationSource);
-				destinationNode.addChild(create("SOURCE")
-					.withXRef(destinationSource.getID())
+				destinationNode.addChild(createWithReference("SOURCE", destinationSource.getID())
 					.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue())
 				);
 
@@ -582,8 +579,7 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode map = traverse(place, "MAP");
 			final GedcomNode destinationPlace = create("PLACE")
 				.addChildValue("NAME", place.getValue())
-				.addChild(create("ADDRESS")
-					.withValue(extractAddressValue(address))
+				.addChild(createWithValue("ADDRESS", extractAddressValue(address))
 					.addChildValue("CITY", traverse(address, "CITY").getValue())
 					.addChildValue("STATE", traverse(address, "STAE").getValue())
 					.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
@@ -722,7 +718,7 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	private void addDateTo(final GedcomNode sourceRecord, final String value, final Flef destination){
+	private void addDateTo(final GedcomNode parent, final String value, final Flef destination){
 		if(value != null){
 			final String calendarType = CalendarParserBuilder.getCalendarType(value);
 			//search for calendar type
@@ -730,11 +726,11 @@ public final class Transformer extends TransformerHelper{
 			if(calendar.isEmpty()){
 				calendar.withTag("CALENDAR")
 					.addChildValue("TYPE", calendarType);
+
 				//insert calendar
 				destination.addCalendar(calendar);
 			}
-			sourceRecord.addChild(create("DATE")
-				.withValue(CalendarParserBuilder.removeCalendarType(value))
+			parent.addChild(createWithValue("DATE", CalendarParserBuilder.removeCalendarType(value))
 				.addChildReference("CALENDAR", calendar.getID())
 			);
 		}
@@ -908,8 +904,7 @@ public final class Transformer extends TransformerHelper{
 				nameValue.add("/" + familyName + "/");
 			if(individualNameSuffix != null)
 				nameValue.add(individualNameSuffix);
-			final GedcomNode destinationName = create("NAME")
-				.withValue(nameValue.length() > 0? nameValue.toString(): null)
+			final GedcomNode destinationName = createWithValue("NAME", (nameValue.length() > 0? nameValue.toString(): null))
 				.addChildValue("TYPE", traverse(nameStructure, "TYPE").getValue())
 				.addChildValue("NPFX", traverse(nameStructure, "TITLE").getValue())
 				.addChildValue("GIVN", individualName)
@@ -1223,14 +1218,12 @@ public final class Transformer extends TransformerHelper{
 		final String date = traverse(header, "DATE").getValue();
 		final int timeindex = date.indexOf(' ', 9);
 		final GedcomNode destinationHeader = create("HEAD")
-			.addChild(create("SOUR")
-				.withValue(source.getValue())
+			.addChild(createWithValue("SOUR", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
 				.addChildValue("VERS", traverse(source, "VERSION").getValue())
 				.addChildValue("CORP", traverse(source, "CORPORATE").getValue())
 			)
-			.addChild(create("DATE")
-				.withValue(timeindex > 0? date.substring(0, timeindex): date)
+			.addChild(createWithValue("DATE", (timeindex > 0? date.substring(0, timeindex): date))
 				.addChildValue("TIME", (timeindex > 0? date.substring(timeindex + 1): null))
 			)
 			.addChildReference("SUBM", traverse(header, "SUBMITTER").getXRef())
@@ -1275,8 +1268,7 @@ public final class Transformer extends TransformerHelper{
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode address = traverse(placeRecord, "ADDRESS");
-			destinationNode.addChild(create("ADDR")
-				.withValue(address.getValue())
+			destinationNode.addChild(createWithValue("ADDR", address.getValue())
 				.addChildValue("CITY", traverse(address, "CITY").getValue())
 				.addChildValue("STAE", traverse(address, "STATE").getValue())
 				.addChildValue("CTRY", traverse(address, "COUNTRY").getValue()));
@@ -1295,8 +1287,7 @@ public final class Transformer extends TransformerHelper{
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode map = traverse(placeRecord, "MAP");
-			final GedcomNode destinationPlace = create("PLAC")
-				.withValue(traverse(placeRecord, "NAME").getValue())
+			final GedcomNode destinationPlace = createWithValue("PLAC", traverse(placeRecord, "NAME").getValue())
 				.addChild(create("MAP")
 					.addChildValue("LATI", mapCoordinateFrom(map, "LATITUDE"))
 					.addChildValue("LONG", mapCoordinateFrom(map, "LONGITUDE"))

@@ -52,10 +52,8 @@ class TransformerSourceCitationTest{
 			);
 		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 		final GedcomNode multimedia = transformerTo.createWithID("OBJE", "M1")
-			.addChild(transformerTo.create("FILE")
-				.withValue("MULTIMEDIA_FILE_REFN")
-				.addChild(transformerTo.create("FORM")
-					.withValue("MULTIMEDIA_FORMAT")
+			.addChild(transformerTo.createWithValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT")
 					.addChildValue("TYPE", "SOURCE_MEDIA_TYPE")
 				)
 				.addChildValue("TITL", "DESCRIPTIVE_TITLE")
@@ -125,10 +123,8 @@ class TransformerSourceCitationTest{
 			);
 		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 		final GedcomNode multimedia = transformerTo.createWithID("OBJE", "M1")
-			.addChild(transformerTo.create("FILE")
-				.withValue("MULTIMEDIA_FILE_REFN")
-				.addChild(transformerTo.create("FORM")
-					.withValue("MULTIMEDIA_FORMAT")
+			.addChild(transformerTo.createWithValue("FILE", "MULTIMEDIA_FILE_REFN")
+				.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT")
 					.addChildValue("TYPE", "SOURCE_MEDIA_TYPE")
 				)
 				.addChildValue("TITL", "DESCRIPTIVE_TITLE")

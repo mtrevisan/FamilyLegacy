@@ -112,8 +112,7 @@ class TransformerPlaceAddressContactStructureTest{
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
 		origin.addPlace(transformerFrom.createWithID("PLACE", "P1")
-			.addChild(transformerFrom.create("ADDRESS")
-				.withValue("ADDRESS_LINE")
+			.addChild(transformerFrom.createWithValue("ADDRESS", "ADDRESS_LINE")
 				.addChildValue("CITY", "ADDRESS_CITY")
 				.addChildValue("STATE", "ADDRESS_STATE")
 				.addChildValue("COUNTRY", "ADDRESS_COUNTRY")
@@ -160,8 +159,7 @@ class TransformerPlaceAddressContactStructureTest{
 		final GedcomNode parent = transformerFrom.createEmpty()
 			.addChild(transformerFrom.create("CONTACT")
 				.addChildValue("PHONE", "PHONE_NUMBER")
-				.addChild(transformerFrom.create("PHONE")
-					.withValue("FAX_NUMBER")
+				.addChild(transformerFrom.createWithValue("PHONE", "FAX_NUMBER")
 					.addChildValue("TYPE", "fax")
 				)
 				.addChildValue("EMAIL", "EMAIL_ADDRESS")

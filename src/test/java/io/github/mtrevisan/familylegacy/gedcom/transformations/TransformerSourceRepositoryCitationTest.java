@@ -38,8 +38,7 @@ class TransformerSourceRepositoryCitationTest{
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithReference("REPO", "R1")
 				.addChildReference("NOTE", "N1")
-				.addChild(transformerTo.create("CALN")
-					.withValue("SOURCE_CALL_NUMBER")
+				.addChild(transformerTo.createWithValue("CALN", "SOURCE_CALL_NUMBER")
 					.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
 				)
 			);

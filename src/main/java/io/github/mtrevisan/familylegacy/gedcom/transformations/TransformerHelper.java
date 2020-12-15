@@ -192,10 +192,9 @@ public class TransformerHelper{
 
 	public void transferValue(final GedcomNode origin, final String originPath, final GedcomNode destination, final String destinationPath){
 		final GedcomNode originNode = traverse(origin, originPath);
-		if(!originNode.isEmpty()){
-			final GedcomNode destinationNode = traverseAndCreate(destination, destinationPath);
-			destinationNode.withValue(originNode.getValue());
-		}
+		if(!originNode.isEmpty())
+			traverseAndCreate(destination, destinationPath)
+				.withValue(originNode.getValue());
 	}
 
 	private GedcomNode traverseAndCreate(final GedcomNode origin, final String path){
