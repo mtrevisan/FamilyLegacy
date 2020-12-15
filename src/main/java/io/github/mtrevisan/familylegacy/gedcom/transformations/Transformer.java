@@ -844,10 +844,9 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
-		for(final GedcomNode note : notes){
+		for(GedcomNode note : notes){
 			String noteXRef = note.getXRef();
-			if(noteXRef == null)
-				noteXRef = destination.addNote(createWithValue("NOTE", note.getValue()));
+			noteXRef = destination.addNote(noteXRef == null? createWithValue("NOTE", note.getValue()): destination.getNote(noteXRef));
 
 			destinationNode.addChildReference("NOTE", noteXRef);
 		}

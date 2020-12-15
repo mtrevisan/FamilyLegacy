@@ -53,8 +53,10 @@ class TransformerMultimediaRecordTest{
 		final Gedcom origin = new Gedcom();
 		origin.addObject(object);
 		origin.addNote(transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
-		origin.addNote(transformerTo.createWithID("SOUR", "S1"));
+		origin.addSource(transformerTo.createWithID("SOUR", "S1"));
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(origin.getNotes().get(0), destination);
+		transformerTo.sourceRecordTo(origin.getSources().get(0), destination);
 		transformerTo.multimediaRecordTo(object, destination);
 
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: DESCRIPTION, value: DESCRIPTIVE_TITLE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());

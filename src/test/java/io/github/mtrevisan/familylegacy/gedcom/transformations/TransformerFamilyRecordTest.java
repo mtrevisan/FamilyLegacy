@@ -77,19 +77,20 @@ class TransformerFamilyRecordTest{
 			.addChildReference("NOTE", "N1")
 			.addChildReference("SOUR", "S1")
 			.addChildReference("OBJE", "O1");
-		final GedcomNode note = transformerTo.createWithID("NOTE", "N1");
+		final GedcomNode note1 = transformerTo.createWithIDValue("NOTE", "N1", "NOTE_1");
 		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 		final GedcomNode object = transformerTo.createWithID("OBJE", "O1");
 
 		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: MARR, value: Y, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT11}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT12}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION1}]}, {tag: RESI, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT21}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT22}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION2}]}, {tag: EVEN, value: EVENT_DESCRIPTOR, children: [{tag: HUSB, children: [{tag: AGE, value: AGE_AT_EVENT31}]}, {tag: WIFE, children: [{tag: AGE, value: AGE_AT_EVENT32}]}, {tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}]}, {tag: HUSB, ref: I1}, {tag: WIFE, ref: I2}, {tag: CHIL, ref: I3}, {tag: NCHI, value: 5}, {tag: SUBM, ref: SUBM1}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: USER_REFERENCE_TYPE}]}, {tag: RIN, value: AUTOMATED_RECORD_ID}, {tag: NOTE, ref: N1}, {tag: SOUR, ref: S1}, {tag: OBJE, ref: O1}]", family.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: NOTE_1", note1.toString());
 
 		final Gedcom origin = new Gedcom();
 		origin.addFamily(family);
-		origin.addNote(note);
+		origin.addNote(note1);
 		origin.addSource(source);
 		origin.addObject(object);
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(note1, destination);
 		transformerTo.familyRecordTo(family, origin, destination);
 
 		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: INDIVIDUAL, ref: I1}, {tag: INDIVIDUAL, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: O1}, {tag: CREDIBILITY, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());

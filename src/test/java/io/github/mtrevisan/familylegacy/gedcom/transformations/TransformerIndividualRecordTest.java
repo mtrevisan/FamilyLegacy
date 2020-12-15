@@ -119,20 +119,29 @@ class TransformerIndividualRecordTest{
 		final GedcomNode family = transformerTo.createWithID("FAM", "F1")
 			.addChildReference("HUSB", "I1")
 			.addChildReference("WIFE", "I2");
-		final GedcomNode note = transformerTo.createWithID("NOTE", "N1");
+		final GedcomNode note1 = transformerTo.createWithID("NOTE", "N1");
 		final GedcomNode source = transformerTo.createWithID("SOUR", "S1");
 		final GedcomNode object = transformerTo.createWithID("OBJE", "O1");
 
 		Assertions.assertEquals("id: I1, tag: INDI, children: [{tag: RESN, value: RESTRICTION_NOTICE}, {tag: NAME, value: name /surname/ name_suffix, children: [{tag: NPFX, value: NAME_PIECE_PREFIX}, {tag: GIVN, value: NAME_PIECE_GIVEN}, {tag: NICK, value: NAME_PIECE_NICKNAME}, {tag: SPFX, value: NAME_PIECE_SURNAME_PREFIX}, {tag: SURN, value: NAME_PIECE_SURNAME}, {tag: NSFX, value: NAME_PIECE_SUFFIX}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}]}, {tag: FONE, children: [{tag: TYPE, value: PHONETIC_TYPE}, {tag: NPFX, value: NAME_PIECE_PREFIX_FONE}, {tag: GIVN, value: NAME_PIECE_GIVEN_FONE}, {tag: NICK, value: NAME_PIECE_NICKNAME_FONE}, {tag: SPFX, value: NAME_PIECE_SURNAME_PREFIX_FONE}, {tag: SURN, value: NAME_PIECE_SURNAME_FONE}, {tag: NSFX, value: NAME_PIECE_SUFFIX_FONE}, {tag: NOTE, ref: N2}, {tag: SOURCE, ref: S2}]}, {tag: ROMN, children: [{tag: TYPE, value: PHONETIC_TYPE}, {tag: NPFX, value: NAME_PIECE_PREFIX_ROMN}, {tag: GIVN, value: NAME_PIECE_GIVEN_ROMN}, {tag: NICK, value: NAME_PIECE_NICKNAME_ROMN}, {tag: SPFX, value: NAME_PIECE_SURNAME_PREFIX_ROMN}, {tag: SURN, value: NAME_PIECE_SURNAME_ROMN}, {tag: NSFX, value: NAME_PIECE_SUFFIX_ROMN}, {tag: NOTE, ref: N3}, {tag: SOURCE, ref: S3}]}, {tag: SEX, value: SEX_VALUE}, {tag: BIRTH, value: Y, children: [{tag: DATE, value: DATE_VALUE1}, {tag: FAMC, ref: F1}]}, {tag: ADOP, children: [{tag: DATE, value: DATE_VALUE2}, {tag: FAMC, ref: F1, children: [{tag: ADOP, value: WIFE}]}]}, {tag: EVEN, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION}, {tag: DATE, value: DATE_VALUE3}]}, {tag: TITL, value: NOBILITY_TYPE_TITLE, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_titl}, {tag: DATE, value: DATE_VALUE4}]}, {tag: FACT, value: EVENT_DESCRIPTOR_fact, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION_fact}, {tag: DATE, value: DATE_VALUE5}]}, {tag: FAMC, ref: F1, children: [{tag: PEDI, value: WIFE}, {tag: STAT, value: CHILD_LINKAGE_STATUS}, {tag: NOTE, ref: N4}]}, {tag: FAMS, ref: F1, children: [{tag: NOTE, ref: N5}]}, {tag: SUBM, ref: SUBM1}, {tag: ASSO, ref: I1, children: [{tag: TYPE, value: INDI}, {tag: NOTE, ref: N6}, {tag: SOUR, ref: S1}]}, {tag: ASSO, ref: F1, children: [{tag: TYPE, value: FAM}, {tag: NOTE, ref: N7}, {tag: SOUR, ref: S1}]}, {tag: ALIA, ref: I1}, {tag: NOTE, ref: N8}, {tag: SOUR, ref: S1}, {tag: OBJE, ref: O1}]", individual.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE", note1.toString());
 
 		final Gedcom origin = new Gedcom();
 		origin.addIndividual(individual);
 		origin.addFamily(family);
-		origin.addNote(note);
+		origin.addNote(note1);
 		origin.addSource(source);
 		origin.addObject(object);
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(note1, destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N1", "NOTE_1"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N2", "NOTE_2"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N3", "NOTE_3"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N4", "NOTE_4"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N5", "NOTE_5"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N6", "NOTE_6"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N7", "NOTE_7"), destination);
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N8", "NOTE_8"), destination);
 		transformerTo.individualRecordTo(individual, origin, destination);
 
 		Assertions.assertEquals("id: I1, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TITLE, value: NAME_PIECE_PREFIX}, {tag: INDIVIDUAL_NAME, value: NAME_PIECE_GIVEN, children: [{tag: SUFFIX, value: NAME_PIECE_SUFFIX}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: FAMILY_NAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}]}, {tag: NOTE, ref: N1}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, ref: F1, children: [{tag: NOTE, ref: N4}]}, {tag: FAMILY_SPOUSE, ref: F1, children: [{tag: NOTE, ref: N5}]}, {tag: ASSOCIATION, ref: I1, children: [{tag: TYPE, value: individual}, {tag: NOTE, ref: N6}, {tag: SOURCE, ref: S1}]}, {tag: ASSOCIATION, ref: F1, children: [{tag: TYPE, value: family}, {tag: NOTE, ref: N7}, {tag: SOURCE, ref: S1}]}, {tag: ALIAS, ref: I1}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N8}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: O1}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());

@@ -105,6 +105,7 @@ class TransformerSourceCitationTest{
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N1", "NOTE_1"), destination);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
@@ -139,6 +140,7 @@ class TransformerSourceCitationTest{
 		origin.addSource(source);
 		origin.addObject(multimedia);
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N1", "NOTE_1"), destination);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
@@ -172,6 +174,7 @@ class TransformerSourceCitationTest{
 		final Gedcom origin = new Gedcom();
 		origin.addSource(source);
 		final Flef destination = new Flef();
+		transformerTo.noteRecordTo(transformerTo.createWithIDValue("NOTE", "N1", "NOTE_1"), destination);
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());

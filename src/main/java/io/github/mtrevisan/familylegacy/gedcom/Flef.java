@@ -622,7 +622,6 @@ public class Flef extends Store{
 				noteValue = new HashMap<>(1);
 			}
 
-			//FIXME what happen to all the references when T1 becomes N2?
 			noteID = getNextNoteID();
 			note.withID(noteID);
 
