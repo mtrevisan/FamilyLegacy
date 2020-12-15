@@ -20,7 +20,28 @@ n HEADER    {1:1}
     +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
   +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this source was created. */
   +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
-  +1 SUBMITTER @<XREF:REPOSITORY>@    {1:1}	/* An xref ID of the submitter of this file. */
+  +1 SUBMITTER    {1:1}	/* The submitter of this file. */
+    +2 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
+    +2 PLACE
+      +3 ADDRESS <ADDRESS_LINE>    {0:1}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
+        +4 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the submitter address (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+        +4 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
+        +4 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
+        +4 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
+        +4 STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
+          +5 TYPE <ADDRESS_STREET_TYPE>    {0:1}	/* Indicates the street type (avenue, terrace, etc.). */
+        +4 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
+        +4 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
+        +4 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
+        +4 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department. */
+        +4 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state. */
+        +4 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country. */
+      +3 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
+        +4 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
+        +4 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+      +3 NOTE <PLACE_NOTE_STRUCTURE>   {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+    +2 <<CONTACT_STRUCTURE>>
+    +2 NOTE <SUBMITTER_NOTE_STRUCTURE>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
   +1 NOTE <CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
 
 
@@ -42,7 +63,7 @@ n <<PLACE_RECORD>>    {1:1}
 |
 n <<NOTE_RECORD>>    {1:1}
 |
-n <<REPOSITORY_RECORD>>    {1:1}	/* True repository records and a submitter record. */
+n <<REPOSITORY_RECORD>>    {1:1}
 |
 n <<CULTURAL_RULE_RECORD>>    {1:1}
 |
@@ -225,9 +246,9 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
     +2 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
     +2 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
     +2 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
-    +2 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department that pertains to the associated address. */
-    +2 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state used in the address. */
-    +2 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country that pertains to the associated address. */
+    +2 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department. */
+    +2 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state. */
+    +2 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
     +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */

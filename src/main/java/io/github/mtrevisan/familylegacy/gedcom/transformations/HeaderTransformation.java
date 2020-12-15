@@ -34,7 +34,7 @@ public class HeaderTransformation extends Transformation<Gedcom, Flef>{
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
 		final GedcomNode header = origin.getHeader();
-		transformerTo.headerTo(header, destination);
+		transformerTo.headerTo(header, origin, destination);
 	}
 
 	@Override

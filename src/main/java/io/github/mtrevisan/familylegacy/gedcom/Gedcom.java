@@ -59,7 +59,7 @@ public class Gedcom extends Store{
 	private static final String ID_REPOSITORY_PREFIX = "R";
 	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_OBJECT_PREFIX = "O";
-	private static final String ID_SUBMITTER_PREFIX = "M";
+	private static final String ID_SUBMITTER_PREFIX = "SUBM";
 
 	private static final String TAG_HEADER = "HEAD";
 	private static final String TAG_INDIVIDUAL = "INDI";
@@ -120,8 +120,8 @@ public class Gedcom extends Store{
 	public static void main(final String[] args){
 		try{
 			final Store store = new Gedcom();
-//			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
-			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
+//			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
 			final Store storeFlef = store.transform();
 

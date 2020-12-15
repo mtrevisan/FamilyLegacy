@@ -428,10 +428,25 @@ public final class Transformer extends TransformerHelper{
 		HEADER.DATE.value = HEAD.DATE.value + " " + HEAD.DATE.TIME.value
 		HEADER.DEFAULT_LOCALE.value = HEAD.LANG.value
 		HEADER.COPYRIGHT.value = HEAD.COPR.value
-		HEADER.SUBMITTER.xref = HEAD.SUBM.xref
+		HEADER.SUBMITTER.NAME = HEAD.SUBM[rec].NAME
+		HEADER.SUBMITTER.PLACE.ADDRESS = HEAD.SUBM[rec].ADDR
+		HEADER.SUBMITTER.PLACE.ADDRESS.CITY = HEAD.SUBM[rec].ADDR.CITY
+		HEADER.SUBMITTER.PLACE.ADDRESS.STATE = HEAD.SUBM[rec].ADDR.STAE
+		HEADER.SUBMITTER.PLACE.ADDRESS.COUNTRY = HEAD.SUBM[rec].ADDR.CTRY
+		for-each HEAD.SUBM[rec].[PHON|EMAIL|FAX|WWW] create HEADER.SUBMITTER.CONTACT
+			for-each HEAD.SUBM[rec].PHONE value create HEADER.SUBMITTER.PHONE
+				HEADER.SUBMITTER.PHONE.value = PHON.value
+			for-each HEAD.SUBM[rec].EMAIL value create HEADER.SUBMITTER.EMAIL
+				HEADER.SUBMITTER.EMAIL.value = EMAIL.value
+			for-each HEAD.SUBM[rec].FAX value create HEADER.SUBMITTER.PHONE
+				HEADER.SUBMITTER.PHONE.value = FAX.value
+				HEADER.SUBMITTER.PHONE.TYPE.value = "fax"
+			for-each HEAD.SUBM[rec].WWW value create HEADER.SUBMITTER.URL
+				HEADER.SUBMITTER.URL.value = WWW.value
+		transfer HEAD.SUBM[rec].NOTE[rec] to HEADER.SUBMITTER.NOTE[rec]
 		HEADER.NOTE.value = HEAD.NOTE.value
 	*/
-	void headerTo(final GedcomNode header, final Flef destination){
+	void headerTo(final GedcomNode header, final Gedcom origin, final Flef destination){
 		final GedcomNode source = traverse(header, "SOUR");
 		final GedcomNode date = traverse(header, "DATE");
 		final GedcomNode time = traverse(date, "TIME");
@@ -449,9 +464,28 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
 			)
 			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
-			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue())
-			.addChildReference("SUBMITTER", traverse(header, "SUBM").getXRef())
-			.addChildValue("NOTE", traverse(header, "NOTE").getValue());
+			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
+		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
+		final GedcomNode submitterAddress = traverse(submitter, "ADDR");
+		final GedcomNode destinationSubmitter = create("SUBMITTER")
+			.addChildValue("NAME", traverse(submitter, "NAME").getValue())
+			.addChild(create("PLACE")
+				.addChildValue("ADDRESS", extractAddressValue(submitterAddress))
+				.addChildValue("CITY", traverse(submitterAddress, "CITY").getValue())
+				.addChildValue("STATE", traverse(submitterAddress, "STAE").getValue())
+				.addChildValue("COUNTRY", traverse(submitterAddress, "CTRY").getValue())
+			);
+		contactStructureTo(submitter, destinationSubmitter);
+		destinationHeader.addChild(destinationSubmitter);
+
+		final List<GedcomNode> notes = header.getChildrenWithTag("NOTE");
+		for(GedcomNode note : notes){
+			final String noteXRef = note.getXRef();
+			if(noteXRef != null)
+				note = origin.getNote(noteXRef);
+
+			destinationHeader.addChildValue("NOTE", note.getValue());
+		}
 
 		destination.setHeader(destinationHeader);
 	}
@@ -1205,7 +1239,20 @@ public final class Transformer extends TransformerHelper{
 		HEAD.SOUR.NAME.value = HEADER.SOURCE.NAME.value
 		HEAD.SOUR.CORP.value = HEADER.SOURCE.CORPORATE.value
 		HEAD.DATE.value = HEADER.DATE.value
-		HEAD.SUBM.xref = HEADER.SUBMITTER.xref
+		HEAD.SUBM[rec].NAME = HEADER.SUBMITTER.NAME
+		HEAD.SUBM[rec].ADDR = HEADER.SUBMITTER.PLACE.ADDRESS
+		HEAD.SUBM[rec].ADDR.CITY = HEADER.SUBMITTER.PLACE.ADDRESS.CITY
+		HEAD.SUBM[rec].ADDR.STAE = HEADER.SUBMITTER.PLACE.ADDRESS.STATE
+		HEAD.SUBM[rec].ADDR.CTRY = HEADER.SUBMITTER.PLACE.ADDRESS.COUNTRY
+		for-each HEADER.SUBMITTER.CONTACT.PHONE whose TYPE != "fax" create HEAD.SUBM[rec].PHON
+			HEAD.SUBM[rec].PHON.value = HEADER.SUBMITTER.CONTACT.PHONE.value
+		for-each HEADER.SUBMITTER.CONTACT.PHONE whose TYPE == "fax" create HEAD.SUBM[rec].FAX
+			HEAD.SUBM[rec].FAX.value = HEADER.SUBMITTER.CONTACT.PHONE.value
+		for-each HEADER.SUBMITTER.CONTACT.EMAIL create HEAD.SUBM[rec].EMAIL
+			HEAD.SUBM[rec].EMAIL.value = HEADER.SUBMITTER.CONTACT.EMAIL.value
+		for-each HEADER.SUBMITTER.CONTACT.URL create HEAD.SUBM[rec].WWW
+			HEAD.SUBM[rec].WWW.value = HEADER.SUBMITTER.CONTACT.URL.value
+		transfer HEADER.SUBMITTER.NOTE[rec] to HEAD.SUBM[rec].NOTE[rec]
 		HEAD.COPR.value = HEADER.COPYRIGHT.value
 		HEAD.GEDC.VERS.value = "5.5.1"
 		HEAD.GEDC.FORM.value = "LINEAGE-LINKED"
@@ -1214,19 +1261,34 @@ public final class Transformer extends TransformerHelper{
 		HEAD.NOTE.value = HEADER.NOTE.value
 	*/
 	void headerFrom(final GedcomNode header, final Gedcom destination){
+		final GedcomNode submitter = traverse(header, "SUBMITTER");
+		final GedcomNode destinationSubmitter = create("SUBM")
+			.addChildValue("NAME", traverse(submitter, "NAME").getValue())
+			.addChild(create("ADDR")
+				.withValue(traverse(submitter, "PLACE.ADDRESS").getValue())
+				.addChildValue("CITY", traverse(submitter, "PLACE.ADDRESS.CITY").getValue())
+				.addChildValue("STAE", traverse(submitter, "PLACE.ADDRESS.STATE").getValue())
+				.addChildValue("CTRY", traverse(submitter, "PLACE.ADDRESS.COUNTRY").getValue())
+			);
+		contactStructureFrom(submitter, destinationSubmitter);
+		noteCitationFrom(submitter, destinationSubmitter);
+
+		destination.addSubmitter(destinationSubmitter);
+
+
 		final GedcomNode source = traverse(header, "SOURCE");
 		final String date = traverse(header, "DATE").getValue();
-		final int timeindex = date.indexOf(' ', 9);
+		final int timeIndex = date.indexOf(' ', 9);
 		final GedcomNode destinationHeader = create("HEAD")
 			.addChild(createWithValue("SOUR", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
 				.addChildValue("VERS", traverse(source, "VERSION").getValue())
 				.addChildValue("CORP", traverse(source, "CORPORATE").getValue())
 			)
-			.addChild(createWithValue("DATE", (timeindex > 0? date.substring(0, timeindex): date))
-				.addChildValue("TIME", (timeindex > 0? date.substring(timeindex + 1): null))
+			.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
 			)
-			.addChildReference("SUBM", traverse(header, "SUBMITTER").getXRef())
+			.addChildReference("SUBM", destinationSubmitter.getID())
 			.addChildValue("COPR", traverse(source, "COPYRIGHT").getValue())
 			.addChild(create("GEDC")
 				.addChildValue("VERS", "5.5.1")
@@ -1234,7 +1296,6 @@ public final class Transformer extends TransformerHelper{
 			)
 			.addChildValue("CHAR", "UTF-8")
 			.addChildValue("NOTE", traverse(source, "NOTE").getValue());
-
 		destination.setHeader(destinationHeader);
 	}
 

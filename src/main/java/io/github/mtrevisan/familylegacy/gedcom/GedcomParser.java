@@ -152,8 +152,9 @@ final class GedcomParser{
 			endElement();
 
 			//check referential integrity:
-			final Set<String> ids = new HashSet<>();
-			for(final GedcomNode child : root.getChildren())
+			final List<GedcomNode> children = root.getChildren();
+			final Set<String> ids = new HashSet<>(children.size());
+			for(final GedcomNode child : children)
 				ids.add(child.getID());
 			references.removeAll(ids);
 			if(!references.isEmpty())
