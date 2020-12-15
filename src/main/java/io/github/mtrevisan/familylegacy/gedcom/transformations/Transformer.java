@@ -672,7 +672,7 @@ public final class Transformer extends TransformerHelper{
 		for(final GedcomNode sourceCitation : sourceCitations){
 			final GedcomNode destinationSource = create("SOURCE");
 			final GedcomNode destinationSourceReference = create("SOURCE");
-			String sourceCitationXRef = sourceCitation.getXRef();
+			final String sourceCitationXRef = sourceCitation.getXRef();
 			if(sourceCitationXRef == null){
 				destinationSource.addChildValue("TITLE", sourceCitation.getValue());
 				multimediaLinkTo(sourceCitation, destinationSource, destination);
