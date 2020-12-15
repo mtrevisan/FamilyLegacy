@@ -259,26 +259,17 @@ public final class Transformer extends TransformerHelper{
 		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
 		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMC[]");
 		for(final GedcomNode familyChild : familyChildren){
-			final GedcomNode destinationEventBirth = create("EVENT")
-				.addChildValue("TYPE", "BIRTH");
-			noteCitationTo(familyChild, destinationEventBirth, destination);
-			destinationEventBirth
-				.addChildReference("INDIVIDUAL", individual.getID())
-				.addChildReference("FAMILY", familyChild.getXRef());
+			final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", familyChild.getXRef());
+			noteCitationTo(familyChild, destinationFamilyChild, destination);
 
-			destination.addEvent(destinationEventBirth);
-			destinationIndividual.addChildReference("EVENT", destinationEventBirth.getID());
+			destinationIndividual.addChild(destinationFamilyChild);
 		}
 		final List<GedcomNode> spouses = traverseAsList(individual, "FAMS[]");
 		for(final GedcomNode spouse : spouses){
-			final GedcomNode destinationFamilySpouse = create("EVENT")
-				.addChildValue("TYPE", "MARRIAGE")
-				.addChildReference("INDIVIDUAL", individual.getID())
-				.addChildReference("FAMILY", spouse.getXRef());
+			final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", spouse.getXRef());
 			noteCitationTo(spouse, destinationFamilySpouse, destination);
 
-			destination.addEvent(destinationFamilySpouse);
-			destinationIndividual.addChildReference("EVENT", destinationFamilySpouse.getID());
+			destinationIndividual.addChild(destinationFamilySpouse);
 		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSO[]");
 		for(final GedcomNode association : associations){
@@ -343,14 +334,9 @@ public final class Transformer extends TransformerHelper{
 		FAMILY.RESTRICTION.value = FAM.RESN.value
 	*/
 	void familyRecordTo(final GedcomNode family, final Gedcom origin, final Flef destination){
-		final GedcomNode destinationFamily = createWithID("FAMILY", family.getID());
-		final GedcomNode marriageEvent = create("EVENT")
-			.addChildValue("TYPE", "MARRIAGE")
+		final GedcomNode destinationFamily = createWithID("FAMILY", family.getID())
 			.addChildReference("INDIVIDUAL", traverse(family, "HUSB").getXRef())
-			.addChildReference("INDIVIDUAL", traverse(family, "WIFE").getXRef())
-			.addChildReference("FAMILY", family.getID());
-		destination.addEvent(marriageEvent);
-		destinationFamily.addChildReference("EVENT", marriageEvent.getID());
+			.addChildReference("INDIVIDUAL", traverse(family, "WIFE").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHIL[]");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHILD", child.getXRef());
@@ -398,7 +384,6 @@ public final class Transformer extends TransformerHelper{
 		if(!familyChild.isEmpty()){
 			final String adoptedBy = traverse(familyChild, "ADOP").getValue();
 			if(individualID != null){
-				destinationEvent.addChildReference("INDIVIDUAL", individualID);
 				//EVEN BIRT
 				destinationEvent.addChildReference("FAMILY", familyChild.getXRef());
 				//EVEN ADOP
@@ -1046,6 +1031,12 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationFamily = createWithID("FAM", family.getID());
+		final List<GedcomNode> individuals = traverseAsList(family, "INDIVIDUAL[]");
+		final int individualCount = individuals.size();
+		if(individualCount > 0)
+			destinationFamily.addChildReference("HUSB", individuals.get(0).getXRef());
+		if(individualCount > 1)
+			destinationFamily.addChildReference("WIFE", individuals.get(1).getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
@@ -1054,16 +1045,7 @@ public final class Transformer extends TransformerHelper{
 		for(GedcomNode event : events){
 			event = origin.getEvent(event.getXRef());
 
-			final String type = traverse(event, "TYPE").getValue();
-			if("MARRIAGE".equals(type)){
-				final List<GedcomNode> spouses = traverseAsList(event, "INDIVIDUAL[]");
-				final int spouseCount = spouses.size();
-				if(spouseCount > 0)
-					destinationFamily.addChildReference("HUSB", spouses.get(0).getXRef());
-				if(spouseCount > 1)
-					destinationFamily.addChildReference("WIFE", spouses.get(1).getXRef());
-			}
-			final String tagTo = FAMILY_TO_FAM.get(type);
+			final String tagTo = FAMILY_TO_FAM.get(traverse(event, "TYPE").getValue());
 			final GedcomNode destinationEvent = eventRecordFrom(tagTo, event, origin);
 			destinationFamily.addChild(destinationEvent);
 		}

@@ -418,7 +418,6 @@ public class Flef extends Store{
 		return ID_FAMILY_PREFIX + (familyId ++);
 	}
 
-	//FIXME
 	public List<GedcomNode> getParent1s(final GedcomNode child){
 		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
 		final List<GedcomNode> parent1s = new ArrayList<>(familyChilds.size());
@@ -429,7 +428,6 @@ public class Flef extends Store{
 		return parent1s;
 	}
 
-	//FIXME
 	public List<GedcomNode> getParent2s(final GedcomNode child){
 		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
 		final List<GedcomNode> parent2s = new ArrayList<>(familyChilds.size());
@@ -440,30 +438,18 @@ public class Flef extends Store{
 		return parent2s;
 	}
 
-	public GedcomNode getSpouse1(final GedcomNode family, final int familyIndex){
-		return getSpouse(family, familyIndex, 0);
+	public GedcomNode getSpouse1(final GedcomNode family){
+		return getSpouse(family, 0);
 	}
 
-	public GedcomNode getSpouse2(final GedcomNode family, final int familyIndex){
-		return getSpouse(family, familyIndex, 1);
+	public GedcomNode getSpouse2(final GedcomNode family){
+		return getSpouse(family, 1);
 	}
 
-	public GedcomNode getSpouse(final GedcomNode family, final int familyIndex, final int spouseIndex){
-		final List<GedcomNode> familyEvents = getFamilyEvents(family);
-		final String individualXRef = traverseAsList(familyEvents.get(familyIndex), "INDIVIDUAL[]").get(spouseIndex)
+	public GedcomNode getSpouse(final GedcomNode family, final int spouseIndex){
+		final String individualXRef = traverseAsList(family, "INDIVIDUAL[]").get(spouseIndex)
 			.getXRef();
 		return getIndividual(individualXRef);
-	}
-
-	private List<GedcomNode> getFamilyEvents(final GedcomNode family){
-		final List<GedcomNode> spouses = new ArrayList<>();
-		final List<GedcomNode> familyEvents = family.getChildrenWithTag("EVENT");
-		for(final GedcomNode familyEvent : familyEvents){
-			final GedcomNode eventRecord = getEvent(familyEvent.getXRef());
-			if(FAMILY_EVENT_TYPE.contains(traverse(eventRecord, "TYPE")) && !spouses.contains(eventRecord))
-				spouses.add(eventRecord);
-		}
-		return spouses;
 	}
 
 

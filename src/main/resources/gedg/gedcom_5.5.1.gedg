@@ -232,6 +232,11 @@ n FAMC @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 
+SPOUSE_TO_FAMILY_LINK :=
+n FAMS @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
+  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
+
+
 FAMILY_EVENT_DETAIL :=
 n HUSB    {0:1}
   +1 AGE <AGE_AT_EVENT>    {1:1}	/* A string that indicates the age in years, months, and days that the principal was at the time of the associated event. Any labels must come after their corresponding number, for example; 4y 8m 10d. */
@@ -494,11 +499,6 @@ n REPO [ @<XREF:REPO>@ | <NULL> ]    {1:1}	/* An xref ID of a repository record.
   +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
   +1 CALN <SOURCE_CALL_NUMBER>    {0:M}	/* An identification or reference description used to file and retrieve items from the holdings of a repository. */
     +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
-
-
-SPOUSE_TO_FAMILY_LINK :=
-n FAMS @<XREF:FAM>@    {1:1}	/* An xref ID of a family record. */
-  +1 <<NOTE_STRUCTURE>>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
 
 
 END_OF_FILE :=
