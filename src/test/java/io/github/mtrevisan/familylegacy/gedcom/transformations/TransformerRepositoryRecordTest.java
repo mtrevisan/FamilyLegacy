@@ -45,9 +45,10 @@ class TransformerRepositoryRecordTest{
 		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_LINE}, {tag: NOTE, ref: N1}]", repository.toString());
 		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
+		final Gedcom origin = new Gedcom();
+		origin.addNote(note);
 		final Flef destination = new Flef();
-		transformerTo.noteRecordTo(note, destination);
-		transformerTo.repositoryRecordTo(repository, destination);
+		transformerTo.repositoryRecordTo(repository, origin, destination);
 
 		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: N1}]", destination.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());

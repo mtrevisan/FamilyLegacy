@@ -37,7 +37,7 @@ public class SubmitterTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> submitters = origin.getSubmitters();
 		for(final GedcomNode submitter : submitters)
-			transformerTo.repositoryRecordTo(submitter, destination);
+			transformerTo.repositoryRecordTo(submitter, origin, destination);
 	}
 
 	@Override

@@ -248,9 +248,9 @@ public final class Transformer extends TransformerHelper{
 					)
 				);
 			destinationIndividual.addChild(destinationName);
-			noteCitationTo(nameStructure, destinationIndividual, destination);
-			noteCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, destination);
-			noteCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, destination);
+			noteCitationTo(nameStructure, destinationIndividual, origin, destination);
+			noteCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, origin, destination);
+			noteCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, origin, destination);
 			sourceCitationTo(nameStructure, destinationIndividual, origin, destination);
 			sourceCitationTo(traverse(nameStructure, "FONE"), destinationIndividual, origin, destination);
 			sourceCitationTo(traverse(nameStructure, "ROMN"), destinationIndividual, origin, destination);
@@ -260,14 +260,14 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMC[]");
 		for(final GedcomNode familyChild : familyChildren){
 			final GedcomNode destinationFamilyChild = createWithReference("FAMILY_CHILD", familyChild.getXRef());
-			noteCitationTo(familyChild, destinationFamilyChild, destination);
+			noteCitationTo(familyChild, destinationFamilyChild, origin, destination);
 
 			destinationIndividual.addChild(destinationFamilyChild);
 		}
 		final List<GedcomNode> spouses = traverseAsList(individual, "FAMS[]");
 		for(final GedcomNode spouse : spouses){
 			final GedcomNode destinationFamilySpouse = createWithReference("FAMILY_SPOUSE", spouse.getXRef());
-			noteCitationTo(spouse, destinationFamilySpouse, destination);
+			noteCitationTo(spouse, destinationFamilySpouse, origin, destination);
 
 			destinationIndividual.addChild(destinationFamilySpouse);
 		}
@@ -282,7 +282,7 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
 				.addChildValue("TYPE", type)
 				.addChildValue("RELATIONSHIP", traverse(association, "RELA").getValue());
-			noteCitationTo(association, destinationAssociation, destination);
+			noteCitationTo(association, destinationAssociation, origin, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
 
 			destinationIndividual.addChild(destinationAssociation);
@@ -306,7 +306,7 @@ public final class Transformer extends TransformerHelper{
 			}
 		}
 
-		noteCitationTo(individual, destinationIndividual, destination);
+		noteCitationTo(individual, destinationIndividual, origin, destination);
 		sourceCitationTo(individual, destinationIndividual, origin, destination);
 		multimediaLinkTo(individual, destinationIndividual, destination);
 		destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
@@ -351,7 +351,7 @@ public final class Transformer extends TransformerHelper{
 				destinationFamily.addChildReference("EVENT", destinationEvent.getID());
 			}
 		}
-		noteCitationTo(family, destinationFamily, destination);
+		noteCitationTo(family, destinationFamily, origin, destination);
 		sourceCitationTo(family, destinationFamily, origin, destination);
 		multimediaLinkTo(family, destinationFamily, destination);
 		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
@@ -402,11 +402,11 @@ public final class Transformer extends TransformerHelper{
 		}
 		final String value = traverse(event, "DATE").getValue();
 		addDateTo(destinationEvent, value, destination);
-		placeAddressStructureTo(event, destinationEvent, destination);
+		placeAddressStructureTo(event, destinationEvent, origin, destination);
 		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
 			.addChildValue("CAUSE", traverse(event, "CAUS").getValue());
-		noteCitationTo(event, destinationEvent, destination);
+		noteCitationTo(event, destinationEvent, origin, destination);
 		sourceCitationTo(event, destinationEvent, origin, destination);
 		multimediaLinkTo(event, destinationEvent, destination);
 		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN").getValue());
@@ -564,7 +564,7 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
 		transfer OBJE.NOTE to SOURCE.NOTE
 	*/
-	void multimediaRecordTo(final GedcomNode object, final Flef destination){
+	void multimediaRecordTo(final GedcomNode object, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationSource = create("SOURCE");
 		final List<GedcomNode> files = traverseAsList(object, "FILE[]");
 		String mediaType = null;
@@ -578,7 +578,7 @@ public final class Transformer extends TransformerHelper{
 
 		final List<GedcomNode> extracts = traverseAsList(object, "TEXT[]");
 		assignExtractionsTo(extracts, destinationSource);
-		noteCitationTo(object, destinationSource, destination);
+		noteCitationTo(object, destinationSource, origin, destination);
 		destinationSource.addChildValue("CREDIBILITY", traverse(object, "QUAY").getValue());
 
 		destination.addSource(destinationSource);
@@ -591,12 +591,12 @@ public final class Transformer extends TransformerHelper{
 		transfer REPO.ADDR to REPOSITORY.PLACE
 		transfer REPO.NOTE to REPOSITORY.NOTE
 	*/
-	void repositoryRecordTo(final GedcomNode repository, final Flef destination){
+	void repositoryRecordTo(final GedcomNode repository, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationRepository = createWithID("REPOSITORY", repository.getID())
 			.addChildValue("NAME", traverse(repository, "NAME").getValue());
-		placeAddressStructureTo(repository, destinationRepository, destination);
+		placeAddressStructureTo(repository, destinationRepository, origin, destination);
 		contactStructureTo(repository, destinationRepository);
-		noteCitationTo(repository, destinationRepository, destination);
+		noteCitationTo(repository, destinationRepository, origin, destination);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -608,7 +608,7 @@ public final class Transformer extends TransformerHelper{
 		PLACE.MAP.LONGITUDE.value = PLAC.MAP.LONG.value
 		transfer PLAC.NOTE to PLACE.NOTE
 	*/
-	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void placeAddressStructureTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final GedcomNode address = traverse(parent, "ADDR");
 		final GedcomNode place = traverse(parent, "PLAC");
 		if(!address.isEmpty() || !place.isEmpty()){
@@ -624,7 +624,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("LATITUDE", mapCoordinateTo(map, "LATI"))
 					.addChildValue("LONGITUDE", mapCoordinateTo(map, "LONG"))
 				);
-			noteCitationTo(place, destinationPlace, destination);
+			noteCitationTo(place, destinationPlace, origin, destination);
 
 			destination.addPlace(destinationPlace);
 			destinationNode.addChildReference("PLACE", destinationPlace.getID());
@@ -712,7 +712,7 @@ public final class Transformer extends TransformerHelper{
 			if(sourceCitationXRef == null){
 				destinationSource.addChildValue("TITLE", sourceCitation.getValue());
 				multimediaLinkTo(sourceCitation, destinationSource, destination);
-				noteCitationTo(sourceCitation, destinationSource, destination);
+				noteCitationTo(sourceCitation, destinationSource, origin, destination);
 			}
 			else{
 				destinationSource.withID(sourceCitationXRef)
@@ -798,7 +798,7 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
 		transfer SOUR.NOTE to SOURCE.NOTE
 	*/
-	void sourceRecordTo(final GedcomNode parent, final Flef destination){
+	void sourceRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = parent.getChildrenWithTag("SOUR");
 		for(final GedcomNode source : sources){
 			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
@@ -808,7 +808,7 @@ public final class Transformer extends TransformerHelper{
 			addDateTo(destinationSource, value, destination);
 			destinationSource.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
-			sourceRepositoryCitationTo(parent, destinationSource, destination);
+			sourceRepositoryCitationTo(parent, destinationSource, origin, destination);
 			multimediaLinkTo(source, destinationSource, destination);
 
 			destination.addSource(destinationSource);
@@ -821,13 +821,13 @@ public final class Transformer extends TransformerHelper{
 		REPOSITORY.LOCATION.value = REPO.CALN.value
 		transfer REPO.NOTE to REPOSITORY.NOTE
 	*/
-	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void sourceRepositoryCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> citations = parent.getChildrenWithTag("REPO");
 		for(final GedcomNode citation : citations){
 			String citationXRef = citation.getXRef();
 			final GedcomNode repositoryCitation = create("REPOSITORY")
 				.addChildValue("LOCATION", traverse(citation, "CALN").getValue());
-			noteCitationTo(citation, repositoryCitation, destination);
+			noteCitationTo(citation, repositoryCitation, origin, destination);
 			if(citationXRef == null)
 				citationXRef = destination.addRepository(create("REPOSITORY")
 					.addChildValue("NAME", "-- repository --")
@@ -842,11 +842,11 @@ public final class Transformer extends TransformerHelper{
 	for-each NOTE xref create NOTE
 		NOTE.xref = NOTE.xref
 	*/
-	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Flef destination){
+	void noteCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> notes = parent.getChildrenWithTag("NOTE");
 		for(GedcomNode note : notes){
 			String noteXRef = note.getXRef();
-			noteXRef = destination.addNote(noteXRef == null? createWithValue("NOTE", note.getValue()): destination.getNote(noteXRef));
+			noteXRef = destination.addNote(noteXRef == null? createWithValue("NOTE", note.getValue()): origin.getNote(noteXRef));
 
 			destinationNode.addChildReference("NOTE", noteXRef);
 		}

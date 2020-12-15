@@ -74,8 +74,9 @@ class TransformerSourceRecordTest{
 		Assertions.assertEquals("id: N1, tag: NOTE", note1.toString());
 		Assertions.assertEquals("id: N2, tag: NOTE", note2.toString());
 
+		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
-		transformerTo.sourceRecordTo(parent, destination);
+		transformerTo.sourceRecordTo(parent, origin, destination);
 
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(0).toString());
 		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, ref: K1}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: SOURCE, ref: O1}, {tag: SOURCE, ref: S1}]", destination.getSources().get(1).toString());

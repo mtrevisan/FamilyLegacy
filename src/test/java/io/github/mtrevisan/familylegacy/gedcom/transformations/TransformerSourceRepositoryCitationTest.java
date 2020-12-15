@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -50,10 +51,11 @@ class TransformerSourceRepositoryCitationTest{
 		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
+		origin.addNote(note);
 		final Flef destination = new Flef();
 		destination.addRepository(repository);
-		destination.addNote(note);
-		transformerTo.sourceRepositoryCitationTo(parent, destinationNode, destination);
+		transformerTo.sourceRepositoryCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: R1, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
 	}

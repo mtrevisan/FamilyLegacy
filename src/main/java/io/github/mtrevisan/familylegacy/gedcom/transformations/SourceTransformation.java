@@ -37,7 +37,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sources = origin.getSources();
 		for(final GedcomNode source : sources)
-			transformerTo.sourceRecordTo(source, destination);
+			transformerTo.sourceRecordTo(source, origin, destination);
 	}
 
 	@Override

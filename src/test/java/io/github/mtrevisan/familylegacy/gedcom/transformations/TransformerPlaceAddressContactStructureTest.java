@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.gedcom.transformations;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
+import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -49,8 +50,9 @@ class TransformerPlaceAddressContactStructureTest{
 		Assertions.assertEquals("children: [{tag: ADDR, value: ADDRESS_LINE0, children: [{tag: ADR1, value: ADDRESS_LINE1}, {tag: ADR2, value: ADDRESS_LINE2}, {tag: ADR3, value: ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: POST, value: ADDRESS_POSTAL_CODE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
-		transformerTo.placeAddressStructureTo(parent, destinationNode, destination);
+		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]}]", destination.getPlaces().get(0).toString());
@@ -76,9 +78,10 @@ class TransformerPlaceAddressContactStructureTest{
 		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
+		origin.addNote(note);
 		final Flef destination = new Flef();
-		destination.addNote(note);
-		transformerTo.placeAddressStructureTo(parent, destinationNode, destination);
+		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}, {tag: NOTE, ref: N1}]", destination.getPlaces().get(0).toString());

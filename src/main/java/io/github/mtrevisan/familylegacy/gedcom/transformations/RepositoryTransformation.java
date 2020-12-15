@@ -37,7 +37,7 @@ public class RepositoryTransformation extends Transformation<Gedcom, Flef>{
 	public void to(final Gedcom origin, final Flef destination){
 		final List<GedcomNode> repositories = origin.getRepositories();
 		for(final GedcomNode repository : repositories)
-			transformerTo.repositoryRecordTo(repository, destination);
+			transformerTo.repositoryRecordTo(repository, origin, destination);
 	}
 
 	@Override
