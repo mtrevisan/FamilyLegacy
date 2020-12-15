@@ -43,20 +43,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 
 public class Flef extends Store{
-
-	private static final Set<String> FAMILY_EVENT_TYPE = new HashSet<>(Arrays.asList("ENGAGEMENT", "MARRIAGE_BANN", "MARRIAGE_CONTRACT",
-		"MARRIAGE_LICENCE", "MARRIAGE_SETTLEMENT", "MARRIAGE", "DIVORCE_FILED", "DIVORCE_DECREE", "DIVORCE", "ANNULMENT"));
 
 	/** Raised upon changes on the number of individuals in the store. */
 	public static final Integer ACTION_COMMAND_INDIVIDUAL_COUNT = 0;
@@ -149,7 +143,7 @@ public class Flef extends Store{
 
 
 
-	public static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
+	static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;
@@ -447,9 +441,13 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getSpouse(final GedcomNode family, final int spouseIndex){
-		final String individualXRef = traverseAsList(family, "INDIVIDUAL[]").get(spouseIndex)
-			.getXRef();
-		return getIndividual(individualXRef);
+		final List<GedcomNode> individuals = traverseAsList(family, "INDIVIDUAL[]");
+		GedcomNode individual = TRANSFORMER.createEmpty();
+		if(spouseIndex < individuals.size()){
+			final String individualXRef = individuals.get(spouseIndex).getXRef();
+			individual = getIndividual(individualXRef);
+		}
+		return individual;
 	}
 
 

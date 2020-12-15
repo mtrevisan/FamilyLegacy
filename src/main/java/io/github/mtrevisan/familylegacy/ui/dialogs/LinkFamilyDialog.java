@@ -212,7 +212,6 @@ public class LinkFamilyDialog extends JDialog{
 				final GedcomNode family = families.get(row);
 
 				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
-				//FIXME familyIndex 0
 				loadSpouseData(row, familiesModel, family, 0, TABLE_INDEX_SPOUSE1_NAME, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES,
 					TABLE_INDEX_SPOUSE1_BIRTH_YEAR, TABLE_INDEX_SPOUSE1_DEATH_YEAR, TABLE_INDEX_SPOUSE1_ID);
 				loadSpouseData(row, familiesModel, family, 1, TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,

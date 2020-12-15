@@ -65,7 +65,7 @@ public abstract class Store{
 
 	protected abstract void create(final GedcomNode root) throws GedcomParseException;
 
-	protected int extractLastID(final String lastKey){
+	int extractLastID(final CharSequence lastKey){
 		final Matcher m = PATTERN_ID.matcher(lastKey);
 		m.find();
 		return Integer.parseInt(m.group(1));

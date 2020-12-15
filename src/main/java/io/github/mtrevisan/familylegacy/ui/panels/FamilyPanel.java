@@ -49,6 +49,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -207,14 +208,15 @@ public class FamilyPanel extends JPanel{
 			spouse1Panel.getMaximumSize().height + minimumSize.height
 		));
 
+		final int navigationArrowGap = (boxType == BoxPanelType.PRIMARY? NAVIGATION_ARROW_SEPARATION: 0);
 		setLayout(new MigLayout("insets 0",
 			"[grow]" + HALF_SPOUSE_SEPARATION + "[]" + HALF_SPOUSE_SEPARATION + "[grow]",
 			"[]0[]"));
-		add(spouse1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION);
-		add(spouse1NextLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(spouse1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
+		add(spouse1NextLabel, "gapbottom " + navigationArrowGap);
 		add(new JLabel());
-		add(spouse2PreviousLabel, "split 2,gapbottom " + NAVIGATION_ARROW_SEPARATION);
-		add(spouse2NextLabel, "gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION + ",wrap");
+		add(spouse2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
+		add(spouse2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
 		add(spouse1Panel, "growx 50");
 		add(marriagePanel, "aligny bottom,gapbottom " + FAMILY_EXITING_HEIGHT);
 		add(spouse2Panel, "growx 50");
@@ -332,7 +334,8 @@ public class FamilyPanel extends JPanel{
 	public static String extractEarliestMarriageYear(final GedcomNode family, final Flef store){
 		int marriageYear = 0;
 		String marriageDate = null;
-		for(final GedcomNode node : store.traverseAsList(family, "EVENT{MARRIAGE}[]")){
+		final List<GedcomNode> marriageEvents = extractTaggedEvents(family, "MARRIAGE", store);
+		for(final GedcomNode node : marriageEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -349,7 +352,8 @@ public class FamilyPanel extends JPanel{
 	public static String extractEarliestMarriagePlace(final GedcomNode family, final Flef store){
 		int marriageYear = 0;
 		String marriagePlace = null;
-		for(final GedcomNode node : store.traverseAsList(family, "EVENT{MARRIAGE}[]")){
+		final List<GedcomNode> marriageEvents = extractTaggedEvents(family, "MARRIAGE", store);
+		for(final GedcomNode node : marriageEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -367,6 +371,16 @@ public class FamilyPanel extends JPanel{
 			}
 		}
 		return marriagePlace;
+	}
+
+	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
+		final List<GedcomNode> birthEvents = new ArrayList<>();
+		for(GedcomNode event : store.traverseAsList(node, "EVENT[]")){
+			event = store.getEvent(event.getXRef());
+			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
+				birthEvents.add(event);
+		}
+		return birthEvents;
 	}
 
 	private static String extractPlace(final GedcomNode place, final Flef store){
@@ -389,7 +403,7 @@ public class FamilyPanel extends JPanel{
 			if(sj.length() > 0)
 				placeValue = sj.toString();
 		}
-		return placeValue;
+		return (placeValue != null || addressEarliest == null? placeValue: addressEarliest.getValue());
 	}
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
@@ -407,6 +421,12 @@ public class FamilyPanel extends JPanel{
 					addressEarliest = address;
 				}
 			}
+		}
+		if(addressEarliest == null){
+			addressEarliest = store.traverse(place, "ADDRESS");
+			//TCGB
+			if(addressEarliest.getValue() == null)
+				addressEarliest = store.traverse(place, "NAME");
 		}
 		return addressEarliest;
 	}

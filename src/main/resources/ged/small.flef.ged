@@ -1,7 +1,7 @@
 0 HEADER
 1 PROTOCOL FLEF
 2 NAME Family LEgacy Format
-2 VERSION 0.0.4
+2 VERSION 0.0.5
 1 SOURCE PAF
 2 NAME MyCorporation Gedcom Generator
 2 VERSION 5.2.18.0
@@ -104,9 +104,9 @@
 0 @N2@ NOTE some other text
 1 RESTRICTION notice2
 0 @S1@ SOURCE
-1 TYPE BIRTH_REGISTRY
 1 TITLE birth of individual
 1 EVENT birth
+1 EVENT birth-record
 1 DATE 21 JUL 1900
 2 CALENDAR gregorian
 2 ORIGINAL_TEXT birth of individual was on July 21, 1900.

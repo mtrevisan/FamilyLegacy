@@ -191,7 +191,7 @@ public class TreePanel extends JPanel{
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
-		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel, ScrollableContainerHost.ScrollType.VERTICAL));
+		childrenScrollPane = new JScrollPane(new ScrollableContainerHost(childrenPanel, ScrollableContainerHost.ScrollType.HORIZONTAL));
 		childrenScrollPane.setOpaque(false);
 		childrenScrollPane.getViewport().setOpaque(false);
 		childrenScrollPane.setBorder(null);
@@ -502,12 +502,12 @@ public class TreePanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		final GedcomNode family = storeFlef.getFamilies().get(4);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		final GedcomNode family = storeFlef.getFamily("F585");
-		final GedcomNode family = storeFlef.getFamily("F267");
+//		final GedcomNode family = storeFlef.getFamily("F267");
 //		GedcomNode family = null;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){

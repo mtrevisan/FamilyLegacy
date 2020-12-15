@@ -391,7 +391,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				});
 			}
 		}
-		else
+		if(completeNames.isEmpty())
 			completeNames.add(new String[]{NO_DATA, NO_DATA});
 		return completeNames;
 	}
@@ -451,7 +451,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static String extractEarliestBirthDate(final GedcomNode individual, final Flef store){
 		int birthYear = 0;
 		String birthDate = null;
-		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{BIRTH}[]")){
+		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
+		for(final GedcomNode node : birthEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -468,7 +469,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static String extractEarliestBirthPlace(final GedcomNode individual, final Flef store){
 		int birthYear = 0;
 		String birthPlace = null;
-		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{BIRTH}[]")){
+		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
+		for(final GedcomNode node : birthEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -508,6 +510,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			if(sj.length() > 0)
 				placeValue = sj.toString();
 		}
+		if(addressEarliest == null){
+			placeValue = store.traverse(place, "ADDRESS").getValue();
+			//TCGB
+			if(placeValue == null)
+				placeValue = store.traverse(place, "NAME").getValue();
+		}
 		return placeValue;
 	}
 
@@ -533,7 +541,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
 		int deathYear = 0;
 		String deathDate = null;
-		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{DEATH}[]")){
+		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
+		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -550,7 +559,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static String extractLatestDeathPlace(final GedcomNode individual, final Flef store){
 		int deathYear = 0;
 		String deathPlace = null;
-		for(final GedcomNode node : store.traverseAsList(individual, "EVENT{DEATH}[]")){
+		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
+		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
@@ -568,6 +578,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 		}
 		return deathPlace;
+	}
+
+	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
+		final List<GedcomNode> birthEvents = new ArrayList<>();
+		for(GedcomNode event : store.traverseAsList(node, "EVENT[]")){
+			event = store.getEvent(event.getXRef());
+			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
+				birthEvents.add(event);
+		}
+		return birthEvents;
 	}
 
 	private Font deriveInfoFont(final Font baseFont){

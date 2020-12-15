@@ -146,7 +146,7 @@ public class Gedcom extends Store{
 	}
 
 
-	public static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
+	static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;

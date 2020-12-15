@@ -243,21 +243,21 @@ public class GroupCitationDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 		setLayout(new MigLayout("", "[grow]"));
-		add(filterLabel, "align label,split 2");
+		add(filterLabel, "align label,sizegroup label,split 2");
 		add(filterField, "grow,wrap");
 		add(groupsScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2");
 		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
 		add(groupNameLabel, "grow,wrap");
-		add(groupLabel, "align label,split 2");
+		add(groupLabel, "align label,sizegroup label,split 2");
 		add(groupField, "grow,wrap");
-		add(roleLabel, "align label,split 2");
+		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap paragraph");
-		add(notesButton, "sizegroup button,grow,wrap");
-		add(credibilityLabel, "align label,split 2");
-		add(credibilityComboBox, "grow,wrap paragraph");
-		add(restrictionLabel, "align label,split 2");
+		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(credibilityLabel, "align label,sizegroup label,split 2");
+		add(credibilityComboBox, "grow,wrap");
+		add(restrictionLabel, "align label,sizegroup label,split 2");
 		add(restrictionComboBox, "grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
@@ -369,7 +369,7 @@ public class GroupCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.4.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 

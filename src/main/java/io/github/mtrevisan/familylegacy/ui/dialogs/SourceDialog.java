@@ -29,11 +29,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
-import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -42,10 +39,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.StringJoiner;
 
 
 public class SourceDialog extends JDialog implements TextPreviewListenerInterface{
@@ -57,26 +53,30 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
+	private static final DefaultComboBoxModel<String> CALENDAR_MODEL = new DefaultComboBoxModel<>(new String[]{
+		StringUtils.EMPTY, "gregorian", "julian", "hebrew", "french-republican", "italic"});
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
 		"Unreliable/estimated data",
 		"Questionable reliability of evidence",
 		"Secondary evidence, data officially recorded sometime after event",
 		"Direct and primary evidence used, or by dominance of the evidence"});
-
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
 
-	private final JLabel typeLabel = new JLabel("Type:");
-	private final JTextField typeField = new JTextField();
+	private final JLabel eventLabel = new JLabel("Event(s):");
+	private final JTextField eventField = new JTextField();
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
-	private final JButton eventsButton = new JButton("Events");
+	private final JLabel authorLabel = new JLabel("Author:");
+	private final JTextField authorField = new JTextField();
+	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
+	private final JTextField publicationFactsField = new JTextField();
 	private final JLabel dateLabel = new JLabel("Date:");
 	private final JTextField dateField = new JTextField();
 	private final JButton dateButton = new JButton(DATE);
-	private final JLabel dateCalendarLabel = new JLabel("Title:");
-	private final JTextField dateCalendarField = new JTextField();
+	private final JLabel dateCalendarLabel = new JLabel("Calendar:");
+	private final JComboBox<String> dateCalendarField = new JComboBox<>(CALENDAR_MODEL);
 	private final JLabel dateOriginalTextLabel = new JLabel("Original text:");
 	private final JTextField dateOriginalTextField = new JTextField();
 	private final JLabel dateCredibilityLabel = new JLabel("Credibility:");
@@ -88,10 +88,6 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private TextPreviewPane textPreviewView;
 	private final JButton repositoriesButton = new JButton("Repositories");
 	private final JButton filesButton = new JButton("Files");
-	private final JLabel urlLabel = new JLabel("URL:");
-	private final JTextField urlField = new JTextField();
-	private final JMenuItem testLinkItem = new JMenuItem("Test link");
-	private final JMenuItem openLinkItem = new JMenuItem("Open link…");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -112,12 +108,9 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private void initComponents(){
 		setTitle("Source");
 
-		typeLabel.setLabelFor(typeField);
+		eventLabel.setLabelFor(eventField);
 
 		titleLabel.setLabelFor(titleField);
-
-		eventsButton.setEnabled(false);
-		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, source)));
 
 		dateLabel.setLabelFor(dateField);
 
@@ -134,7 +127,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		datePanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
 		datePanel.add(dateOriginalTextField, "grow,wrap");
 		datePanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
-		datePanel.add(dateCredibilityComboBox, "grow,wrap paragraph");
+		datePanel.add(dateCredibilityComboBox, "grow");
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 
@@ -157,34 +150,19 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		filesButton.setEnabled(false);
 		filesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.FILE_CITATION, source)));
 
-		urlLabel.setLabelFor(urlField);
-		urlField.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyReleased(final KeyEvent event){
-				super.keyReleased(event);
-
-				final boolean enabled = StringUtils.isNotBlank(urlField.getText());
-				testLinkItem.setEnabled(enabled);
-				openLinkItem.setEnabled(enabled);
-			}
-		});
-		//manage links
-		attachOpenLinkPopUpMenu(urlField);
-
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
 
 		okButton.addActionListener(evt -> {
-			final String type = typeField.getText();
+			final String event = eventField.getText();
 			final String title = titleField.getText();
 			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
 			final String extractLanguageTag = ((LocaleFilteredComboBox.FlefLocale)extractLocaleComboBox.getModel().getSelectedItem())
 				.toLanguageTag();
 			final String extract = textPreviewView.getText();
-			final String url = urlField.getText();
 
-			source.replaceChildValue("TYPE", type);
+			source.replaceChildValue("EVENT", event);
 			source.replaceChildValue("TITLE", title);
 			source.replaceChildValue("EXTRACT", extract);
 			final GedcomNode extractLocaleNode = store.traverse(source, "EXTRACT.LOCALE");
@@ -193,7 +171,6 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 			final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
 			if(!extractTypeNode.isEmpty())
 				extractTypeNode.withValue(extractType);
-			source.replaceChildValue("URL", url);
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
@@ -204,38 +181,20 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 
 
 		setLayout(new MigLayout("", "[grow]"));
-		add(typeLabel, "align label,split 2");
-		add(typeField, "grow,wrap");
+		add(eventLabel, "align label,split 2");
+		add(eventField, "grow,wrap");
 		add(titleLabel, "align label,split 2");
-		add(titleField, "grow,wrap paragraph");
-		add(eventsButton, "sizegroup button2,grow,wrap paragraph");
+		add(titleField, "grow,wrap");
+		add(authorLabel, "align label,split 2");
+		add(authorField, "grow,wrap");
+		add(publicationFactsLabel, "align label,split 2");
+		add(publicationFactsField, "grow,wrap paragraph");
 		add(datePanel, "grow,wrap paragraph");
-		add(extractPanel, "grow,wrap paragraph");
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
-		add(filesButton, "sizegroup button2,grow,wrap paragraph");
-		add(urlLabel, "align label,split 2");
-		add(urlField, "grow,wrap paragraph");
+		add(filesButton, "sizegroup button2,grow,wrap");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
-	}
-
-	private void attachOpenLinkPopUpMenu(final JTextField component){
-		final JPopupMenu popupMenu = new JPopupMenu();
-
-		testLinkItem.addActionListener(event -> {
-			final String url = component.getText();
-			final boolean urlReachable = FileHelper.testURL(url);
-			final String message = JavaHelper.format((urlReachable? "Success, the link `{}` is reachable.":
-				"The connection attempt to `{}` failed."), url);
-			JOptionPane.showMessageDialog(this, message, "Test link result",
-				(urlReachable? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
-		});
-		openLinkItem.addActionListener(event -> FileHelper.browseURL(component.getText()));
-		popupMenu.add(testLinkItem);
-		popupMenu.add(openLinkItem);
-
-		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
 	@Override
@@ -249,9 +208,12 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 
 		setTitle("Source " + source.getID());
 
-		final String type = store.traverse(source, "TYPE").getValue();
 		final String title = store.traverse(source, "TITLE").getValue();
-		final boolean hasEvents = !store.traverseAsList(source, "EVENT[]").isEmpty();
+		final StringJoiner events = new StringJoiner(", ");
+		for(final GedcomNode event : store.traverseAsList(source, "EVENT[]"))
+			events.add(event.getValue());
+		final String author = store.traverse(source, "AUTHOR").getValue();
+		final String publicationFacts = store.traverse(source, "PUBLICATION_FACTS").getValue();
 		final GedcomNode dateNode = store.traverse(source, "DATE");
 		final String extract = store.traverse(source, "EXTRACT").getValue();
 		final String extractType = store.traverse(source, "EXTRACT.TYPE").getValue();
@@ -261,18 +223,16 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		final String url = store.traverse(source, "URL").getValue();
 		final boolean hasNotes = !store.traverseAsList(source, "NOTE[]").isEmpty();
 
-		typeField.setText(type);
+		eventField.setText(events.toString());
 		titleField.setText(title);
-		eventsButton.setEnabled(hasEvents);
+		authorField.setText(author);
+		publicationFactsField.setText(publicationFacts);
 		dateField.setText(dateNode.getValue());
 		textPreviewView.setText(getTitle(), extractLanguageTag, extract);
 		extractTypeComboBox.setSelectedItem(extractType);
 		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
 		repositoriesButton.setEnabled(hasRepositories);
 		filesButton.setEnabled(hasFiles);
-		urlField.setText(url);
-		testLinkItem.setEnabled(StringUtils.isNotBlank(url));
-		openLinkItem.setEnabled(StringUtils.isNotBlank(url));
 		notesButton.setEnabled(hasNotes);
 
 		repaint();
@@ -287,7 +247,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.4.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode source = store.getSources().get(1);
 
@@ -301,7 +261,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 700);
+			dialog.setSize(500, 500);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
