@@ -65,7 +65,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	private Flef store;
 
-	private TreePanel panel;
+	private TreePanel treePanel;
 	private LinkFamilyDialog linkFamilyDialog;
 	private LinkIndividualDialog linkIndividualDialog;
 
@@ -91,8 +91,8 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			linkIndividualDialog.setLocationRelativeTo(null);
 
 			getContentPane().setLayout(new BorderLayout());
-			panel = new TreePanel(family, 4, store, this, this);
-			getContentPane().add(panel, BorderLayout.NORTH);
+			treePanel = new TreePanel(family, 4, store, this, this);
+			getContentPane().add(treePanel, BorderLayout.NORTH);
 			pack();
 
 			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -235,7 +235,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			}
 
 		//update primary family
-		panel.loadData(null, null, nextFamily);
+		treePanel.loadData(null, null, nextFamily);
 	}
 
 	@Override
@@ -255,7 +255,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		}
 
 		//update primary family
-		panel.loadData(null, null, nextFamily);
+		treePanel.loadData(null, null, nextFamily);
 	}
 
 
@@ -273,10 +273,10 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			//put in the left box
 			spouse1 = individual;
 
-		final GedcomNode family = panel.getPreferredFamily(individual);
+		final GedcomNode family = treePanel.getPreferredFamily(individual);
 
 		//update primary family
-		panel.loadData(spouse1, spouse2, family);
+		treePanel.loadData(spouse1, spouse2, family);
 	}
 
 	@Override

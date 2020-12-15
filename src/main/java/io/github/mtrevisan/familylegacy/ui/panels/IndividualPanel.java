@@ -69,6 +69,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String NO_DATA = "?";
 
+	public static final int SECONDARY_MAX_HEIGHT = 65;
+
 	private static final Color BACKGROUND_COLOR_NO_INDIVIDUAL = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_MALE = new Color(180, 197, 213);
@@ -312,7 +314,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private void loadData(){
 		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(260, 90):
-			new Dimension(170, 65));
+			new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
 		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(420, size.height):
 			new Dimension(240, size.height));

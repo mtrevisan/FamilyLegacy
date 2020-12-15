@@ -90,7 +90,8 @@ public class ChildrenPanel extends JPanel{
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final boolean isSpouse = !store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
-				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY, individualListener);
+				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY,
+					individualListener);
 
 				final JPanel box = new JPanel();
 				box.setOpaque(false);
@@ -106,6 +107,9 @@ public class ChildrenPanel extends JPanel{
 				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
 			}
 		}
+		else
+			setLayout(new MigLayout("insets 0", "[]",
+				"[" + IndividualPanel.SECONDARY_MAX_HEIGHT + "]"));
 	}
 
 
@@ -128,8 +132,8 @@ public class ChildrenPanel extends JPanel{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode family = storeFlef.getFamilies().get(0);
-//		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(0);
+		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		GedcomNode family = null;
 
 		final IndividualListenerInterface listener = new IndividualListenerInterface(){

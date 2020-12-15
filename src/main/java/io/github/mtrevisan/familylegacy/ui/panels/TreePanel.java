@@ -199,10 +199,12 @@ public class TreePanel extends JPanel{
 		childrenScrollPane.setAutoscrolls(true);
 		//trigger repaint in order to move the connections between children and home family
 		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> {
-			//remember last scroll position, restore it if present
-			CHILDREN_SCROLLBAR_POSITION.put(homeFamily.getID(), childrenScrollPane.getHorizontalScrollBar().getValue());
+			if(homeFamily != null){
+				//remember last scroll position, restore it if present
+				CHILDREN_SCROLLBAR_POSITION.put(homeFamily.getID(), childrenScrollPane.getHorizontalScrollBar().getValue());
 
-			repaint();
+				repaint();
+			}
 		});
 
 		setLayout(new MigLayout("insets 0",
@@ -481,13 +483,15 @@ public class TreePanel extends JPanel{
 		childrenPanel.loadData(homeFamily);
 
 
-		//remember last scroll position, restore it if present
-		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
-		//center halfway if it's the first time the children are painted
-		final int scrollbarPositionX = (childrenScrollbarPosition == null?
-			(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
-			childrenScrollbarPosition);
-		childrenScrollPane.getViewport().setViewPosition(new Point(scrollbarPositionX, 0));
+		if(homeFamily != null){
+			//remember last scroll position, restore it if present
+			final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeFamily.getID());
+			//center halfway if it's the first time the children are painted
+			final int scrollbarPositionX = (childrenScrollbarPosition == null?
+				(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
+				childrenScrollbarPosition);
+			childrenScrollPane.getViewport().setViewPosition(new Point(scrollbarPositionX, 0));
+		}
 	}
 
 
@@ -502,12 +506,12 @@ public class TreePanel extends JPanel{
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode family = storeFlef.getFamilies().get(0);
-		final GedcomNode family = storeFlef.getFamilies().get(4);
+//		final GedcomNode family = storeFlef.getFamilies().get(4);
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
 //		final GedcomNode family = storeFlef.getFamily("F585");
-//		final GedcomNode family = storeFlef.getFamily("F267");
+		final GedcomNode family = storeFlef.getFamily("F267");
 //		GedcomNode family = null;
 
 		final FamilyListenerInterface familyListener = new FamilyListenerInterface(){
