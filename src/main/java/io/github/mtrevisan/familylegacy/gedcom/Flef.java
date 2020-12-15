@@ -56,42 +56,45 @@ public class Flef extends Store{
 	public static final Integer ACTION_COMMAND_INDIVIDUAL_COUNT = 0;
 	/** Raised upon changes on the number of families in the store. */
 	public static final Integer ACTION_COMMAND_FAMILY_COUNT = 1;
+	/** Raised upon changes on the number of groups in the store. */
+	public static final Integer ACTION_COMMAND_GROUP_COUNT = 2;
 	/** Raised upon changes on the number of events in the store. */
-	public static final Integer ACTION_COMMAND_EVENT_COUNT = 2;
+	public static final Integer ACTION_COMMAND_EVENT_COUNT = 3;
 	/** Raised upon changes on the number of places in the store. */
-	public static final Integer ACTION_COMMAND_PLACE_COUNT = 3;
+	public static final Integer ACTION_COMMAND_PLACE_COUNT = 4;
 	/** Raised upon changes on the number of notes in the store. */
-	public static final Integer ACTION_COMMAND_NOTE_COUNT = 4;
+	public static final Integer ACTION_COMMAND_NOTE_COUNT = 5;
 	/** Raised upon changes on the number of repositories in the store. */
-	public static final Integer ACTION_COMMAND_REPOSITORY_COUNT = 5;
-	/** Raised upon changes on the number of sources in the store. */
-	public static final Integer ACTION_COMMAND_SOURCE_COUNT = 6;
+	public static final Integer ACTION_COMMAND_REPOSITORY_COUNT = 6;
 	/** Raised upon changes on the number of cultural rules in the store. */
 	public static final Integer ACTION_COMMAND_CULTURAL_RULE_COUNT = 7;
-	/** Raised upon changes on the number of groups in the store. */
-	public static final Integer ACTION_COMMAND_GROUP_COUNT = 8;
+	/** Raised upon changes on the number of sources in the store. */
+	public static final Integer ACTION_COMMAND_SOURCE_COUNT = 8;
+	/** Raised upon changes on the number of calendar in the store. */
+	public static final Integer ACTION_COMMAND_CALENDAR_COUNT = 9;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
+	private static final String ID_GROUP_PREFIX = "G";
 	private static final String ID_EVENT_PREFIX = "E";
 	private static final String ID_PLACE_PREFIX = "P";
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
-	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_CULTURAL_RULE_PREFIX = "C";
-	private static final String ID_GROUP_PREFIX = "G";
+	private static final String ID_SOURCE_PREFIX = "S";
+	private static final String ID_CALENDAR_PREFIX = "K";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_FAMILY = "FAMILY";
+	private static final String TAG_GROUP = "GROUP";
 	private static final String TAG_EVENT = "EVENT";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
-	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
-	private static final String TAG_GROUP = "GROUP";
-	private static final String TAG_CHARSET = "CHARSET";
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_CALENDAR = "CALENDAR";
 
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
 	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
@@ -107,39 +110,43 @@ public class Flef extends Store{
 	private GedcomNode header;
 	private List<GedcomNode> individuals;
 	private List<GedcomNode> families;
+	private List<GedcomNode> groups;
 	private List<GedcomNode> events;
 	private List<GedcomNode> places;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
-	private List<GedcomNode> sources;
 	private List<GedcomNode> culturalRules;
-	private List<GedcomNode> groups;
+	private List<GedcomNode> sources;
+	private List<GedcomNode> calendars;
 
 	private Map<String, GedcomNode> individualIndex;
 	private Map<String, GedcomNode> familyIndex;
+	private Map<String, GedcomNode> groupIndex;
 	private Map<String, GedcomNode> eventIndex;
 	private Map<String, GedcomNode> placeIndex;
 	private Map<String, GedcomNode> noteIndex;
 	private Map<String, GedcomNode> repositoryIndex;
-	private Map<String, GedcomNode> sourceIndex;
 	private Map<String, GedcomNode> culturalRuleIndex;
-	private Map<String, GedcomNode> groupIndex;
+	private Map<String, GedcomNode> sourceIndex;
+	private Map<String, GedcomNode> calendarIndex;
 
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
 	private Map<Integer, String> noteValue;
 	private Map<Integer, String> repositoryValue;
 	private Map<Integer, String> sourceValue;
+	private Map<Integer, String> calendarValue;
 
 	private int individualId = 1;
 	private int familyId = 1;
+	private int groupId = 1;
 	private int eventId = 1;
 	private int placeId = 1;
 	private int noteId = 1;
 	private int repositoryId = 1;
-	private int sourceId = 1;
 	private int culturalRuleId = 1;
-	private int groupId = 1;
+	private int sourceId = 1;
+	private int calendarId = 1;
 
 
 
@@ -182,37 +189,43 @@ public class Flef extends Store{
 		final List<GedcomNode> headers = root.getChildrenWithTag(TAG_HEADER);
 		if(headers.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
+
 		header = headers.get(0);
 		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		families = root.getChildrenWithTag(TAG_FAMILY);
+		groups = root.getChildrenWithTag(TAG_GROUP);
 		events = root.getChildrenWithTag(TAG_EVENT);
 		places = root.getChildrenWithTag(TAG_PLACE);
 		notes = root.getChildrenWithTag(TAG_NOTE);
 		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
-		sources = root.getChildrenWithTag(TAG_SOURCE);
 		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
-		groups = root.getChildrenWithTag(TAG_GROUP);
+		sources = root.getChildrenWithTag(TAG_SOURCE);
+		calendars = root.getChildrenWithTag(TAG_CALENDAR);
 
 		individualIndex = generateIndexes(individuals);
 		familyIndex = generateIndexes(families);
-		placeIndex = generateIndexes(places);
+		groupIndex = generateIndexes(groups);
 		eventIndex = generateIndexes(events);
+		placeIndex = generateIndexes(places);
 		noteIndex = generateIndexes(notes);
 		repositoryIndex = generateIndexes(repositories);
-		sourceIndex = generateIndexes(sources);
 		culturalRuleIndex = generateIndexes(culturalRules);
-		groupIndex = generateIndexes(groups);
+		sourceIndex = generateIndexes(sources);
+		calendarIndex = generateIndexes(calendars);
 
 		eventValue = reverseMap(eventIndex);
 		placeValue = reverseMap(placeIndex);
 		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
 		sourceValue = reverseMap(sourceIndex);
+		calendarValue = reverseMap(calendarIndex);
 
 		if(!individualIndex.isEmpty())
 			individualId = extractLastID(((TreeMap<String, GedcomNode>)individualIndex).lastKey()) + 1;
 		if(!familyIndex.isEmpty())
 			familyId = extractLastID(((TreeMap<String, GedcomNode>)familyIndex).lastKey()) + 1;
+		if(!groupIndex.isEmpty())
+			groupId = extractLastID(((TreeMap<String, GedcomNode>)groupIndex).lastKey()) + 1;
 		if(!eventIndex.isEmpty())
 			eventId = extractLastID(((TreeMap<String, GedcomNode>)eventIndex).lastKey()) + 1;
 		if(!placeIndex.isEmpty())
@@ -221,12 +234,12 @@ public class Flef extends Store{
 			noteId = extractLastID(((TreeMap<String, GedcomNode>)noteIndex).lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
 			repositoryId = extractLastID(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey()) + 1;
-		if(!sourceIndex.isEmpty())
-			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
 		if(!culturalRuleIndex.isEmpty())
 			culturalRuleId = extractLastID(((TreeMap<String, GedcomNode>)culturalRuleIndex).lastKey()) + 1;
-		if(!groupIndex.isEmpty())
-			groupId = extractLastID(((TreeMap<String, GedcomNode>)groupIndex).lastKey()) + 1;
+		if(!sourceIndex.isEmpty())
+			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
+		if(!calendarIndex.isEmpty())
+			calendarId = extractLastID(((TreeMap<String, GedcomNode>)calendarIndex).lastKey()) + 1;
 	}
 
 	@Override
@@ -244,17 +257,7 @@ public class Flef extends Store{
 
 	@Override
 	protected String getCharsetName(){
-		final List<GedcomNode> source = header.getChildrenWithTag(TAG_SOURCE);
-		final String generator = (!source.isEmpty()? source.get(0).getValue(): null);
-		final List<GedcomNode> characterSet = header.getChildrenWithTag(TAG_CHARSET);
-		String charset = (!characterSet.isEmpty()? characterSet.get(0).getValue(): null);
-		final List<GedcomNode> characterSetVersion = (!characterSet.isEmpty()? characterSet.get(0).getChildren(): Collections.emptyList());
-		final String version = (!characterSetVersion.isEmpty()? characterSetVersion.get(0).getValue(): null);
-		charset = GedcomHelper.getCorrectedCharsetName(generator, charset, version);
-		if(charset.isEmpty())
-			//default
-			charset = StandardCharsets.UTF_8.name();
-		return charset;
+		return StandardCharsets.UTF_8.name();
 	}
 
 	@Override
@@ -448,6 +451,50 @@ public class Flef extends Store{
 			individual = getIndividual(individualXRef);
 		}
 		return individual;
+	}
+
+
+	public List<GedcomNode> getGroups(){
+		return groups;
+	}
+
+	public GedcomNode getGroup(final String id){
+		return groupIndex.get(id);
+	}
+
+	public void addGroup(final GedcomNode group){
+		if(groups == null){
+			groups = new ArrayList<>(1);
+			groupIndex = new HashMap<>(1);
+		}
+
+		String groupID = group.getID();
+		if(groupID == null){
+			groupID = getNextGroupID();
+			group.withID(groupID);
+		}
+
+		groups.add(group);
+		groupIndex.put(group.getID(), group);
+
+		EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
+	}
+
+	public String removeGroup(final GedcomNode group){
+		if(groups != null){
+			final String groupID = group.getID();
+			groups.remove(group);
+			groupIndex.remove(groupID);
+
+			EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
+
+			return groupID;
+		}
+		return null;
+	}
+
+	private String getNextGroupID(){
+		return ID_GROUP_PREFIX + (groupId ++);
 	}
 
 
@@ -657,6 +704,50 @@ public class Flef extends Store{
 	}
 
 
+	public List<GedcomNode> getCulturalRules(){
+		return culturalRules;
+	}
+
+	public GedcomNode getCulturalRule(final String id){
+		return culturalRuleIndex.get(id);
+	}
+
+	public void addCulturalRule(final GedcomNode culturalRule){
+		if(culturalRules == null){
+			culturalRules = new ArrayList<>(1);
+			culturalRuleIndex = new HashMap<>(1);
+		}
+
+		String culturalRuleID = culturalRule.getID();
+		if(culturalRuleID == null){
+			culturalRuleID = getNextCulturalRuleID();
+			culturalRule.withID(culturalRuleID);
+		}
+
+		culturalRules.add(culturalRule);
+		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
+
+		EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+	}
+
+	public String removeCulturalRule(final GedcomNode culturalRule){
+		if(culturalRules != null){
+			final String culturalRuleID = culturalRule.getID();
+			culturalRules.remove(culturalRule);
+			culturalRuleIndex.remove(culturalRuleID);
+
+			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+
+			return culturalRuleID;
+		}
+		return null;
+	}
+
+	private String getNextCulturalRuleID(){
+		return ID_CULTURAL_RULE_PREFIX + (culturalRuleId ++);
+	}
+
+
 	public List<GedcomNode> getSources(){
 		return sources;
 	}
@@ -708,91 +799,62 @@ public class Flef extends Store{
 	}
 
 
-	public List<GedcomNode> getCulturalRules(){
-		return culturalRules;
+	public List<GedcomNode> getCalendars(){
+		return calendars;
 	}
 
-	public GedcomNode getCulturalRule(final String id){
-		return culturalRuleIndex.get(id);
+	public GedcomNode getCalendar(final String id){
+		return calendarIndex.get(id);
 	}
 
-	public void addCulturalRule(final GedcomNode culturalRule){
-		if(culturalRules == null){
-			culturalRules = new ArrayList<>(1);
-			culturalRuleIndex = new HashMap<>(1);
+	public GedcomNode getCalendarByType(final String type){
+		if(calendars != null)
+			for(final GedcomNode calendar : calendars)
+				if(type.equals(traverse(calendar, "TYPE").getValue()))
+					return calendar;
+		return createEmptyNode();
+	}
+
+	public String addCalendar(final GedcomNode calendar){
+		//search calendar
+		String calendarID = (!calendar.isEmpty() && calendarValue != null? calendarValue.get(calendar.hashCode()): null);
+		if(calendarID == null){
+			//if calendar is not found:
+			if(calendars == null){
+				calendars = new ArrayList<>(1);
+				calendarIndex = new HashMap<>(1);
+				calendarValue = new HashMap<>(1);
+			}
+
+			calendarID = getNextCalendarID();
+			calendar.withID(calendarID);
+
+			calendars.add(calendar);
+			calendarIndex.put(calendarID, calendar);
+			calendarValue.put(calendar.hashCode(), calendarID);
+
+			EventBusService.publish(ACTION_COMMAND_CALENDAR_COUNT);
 		}
-
-		String culturalRuleID = culturalRule.getID();
-		if(culturalRuleID == null){
-			culturalRuleID = getNextCulturalRuleID();
-			culturalRule.withID(culturalRuleID);
-		}
-
-		culturalRules.add(culturalRule);
-		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
-
-		EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+		else
+			calendar.withID(calendarID);
+		return calendarID;
 	}
 
-	public String removeCulturalRule(final GedcomNode culturalRule){
-		if(culturalRules != null){
-			final String culturalRuleID = culturalRule.getID();
-			culturalRules.remove(culturalRule);
-			culturalRuleIndex.remove(culturalRuleID);
+	public String removeCalendar(final GedcomNode calendar){
+		if(calendars != null){
+			final String calendarID = calendar.getID();
+			calendars.remove(calendar);
+			calendarIndex.remove(calendarID);
 
-			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+			EventBusService.publish(ACTION_COMMAND_CALENDAR_COUNT);
 
-			return culturalRuleID;
-		}
-		return null;
-	}
-
-	private String getNextCulturalRuleID(){
-		return ID_CULTURAL_RULE_PREFIX + (culturalRuleId ++);
-	}
-
-
-	public List<GedcomNode> getGroups(){
-		return groups;
-	}
-
-	public GedcomNode getGroup(final String id){
-		return groupIndex.get(id);
-	}
-
-	public void addGroup(final GedcomNode group){
-		if(groups == null){
-			groups = new ArrayList<>(1);
-			groupIndex = new HashMap<>(1);
-		}
-
-		String groupID = group.getID();
-		if(groupID == null){
-			groupID = getNextGroupID();
-			group.withID(groupID);
-		}
-
-		groups.add(group);
-		groupIndex.put(group.getID(), group);
-
-		EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
-	}
-
-	public String removeGroup(final GedcomNode group){
-		if(groups != null){
-			final String groupID = group.getID();
-			groups.remove(group);
-			groupIndex.remove(groupID);
-
-			EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
-
-			return groupID;
+			return calendarID;
 		}
 		return null;
 	}
 
-	private String getNextGroupID(){
-		return ID_GROUP_PREFIX + (groupId ++);
+	private String getNextCalendarID(){
+		return ID_CALENDAR_PREFIX + (calendarId ++);
 	}
 
 }

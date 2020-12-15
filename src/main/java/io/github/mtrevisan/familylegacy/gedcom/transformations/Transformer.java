@@ -401,11 +401,7 @@ public final class Transformer extends TransformerHelper{
 			}
 		}
 		final String value = traverse(event, "DATE").getValue();
-		if(value != null)
-			destinationEvent.addChild(create("DATE")
-				.withValue(CalendarParserBuilder.removeCalendarType(value))
-				.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
-			);
+		addDateTo(destinationEvent, value, destination);
 		placeAddressStructureTo(event, destinationEvent, destination);
 		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
@@ -707,11 +703,7 @@ public final class Transformer extends TransformerHelper{
 					final GedcomNode date = traverse(sourceRecord, "DATE");
 					if(date.isEmpty()){
 						final String value = sourceCitationDate.getValue();
-						if(value != null)
-							sourceRecord.addChild(create("DATE")
-								.withValue(CalendarParserBuilder.removeCalendarType(value))
-								.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
-							);
+						addDateTo(sourceRecord, value, destination);
 					}
 					else
 						date.withValue(date.getValue() + "," + sourceCitationDate);
@@ -726,6 +718,24 @@ public final class Transformer extends TransformerHelper{
 			destinationNode.addChild(destinationSourceReference
 				.withXRef(destinationSource.getID())
 				.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue())
+			);
+		}
+	}
+
+	private void addDateTo(final GedcomNode sourceRecord, final String value, final Flef destination){
+		if(value != null){
+			final String calendarType = CalendarParserBuilder.getCalendarType(value);
+			//search for calendar type
+			final GedcomNode calendar = destination.getCalendarByType(calendarType);
+			if(calendar.isEmpty()){
+				calendar.withTag("CALENDAR")
+					.addChildValue("TYPE", calendarType);
+				//insert calendar
+				destination.addCalendar(calendar);
+			}
+			sourceRecord.addChild(create("DATE")
+				.withValue(CalendarParserBuilder.removeCalendarType(value))
+				.addChildReference("CALENDAR", calendar.getID())
 			);
 		}
 	}
@@ -763,11 +773,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
 				.addChildValue("TITLE", traverse(source, "TITL").getValue());
 			final String value = traverse(source, "DATA.EVEN.DATE").getValue();
-			if(value != null)
-				destinationSource.addChild(create("DATE")
-					.withValue(CalendarParserBuilder.removeCalendarType(value))
-					.addChildValue("CALENDAR", CalendarParserBuilder.getCalendarType(value))
-				);
+			addDateTo(destinationSource, value, destination);
 			destinationSource.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
 			sourceRepositoryCitationTo(parent, destinationSource, destination);

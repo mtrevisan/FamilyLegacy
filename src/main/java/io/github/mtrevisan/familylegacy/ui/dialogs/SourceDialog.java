@@ -53,8 +53,6 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
-	private static final DefaultComboBoxModel<String> CALENDAR_MODEL = new DefaultComboBoxModel<>(new String[]{
-		StringUtils.EMPTY, "gregorian", "julian", "hebrew", "french-republican", "italic"});
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
 		"Unreliable/estimated data",
@@ -75,8 +73,6 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private final JLabel dateLabel = new JLabel("Date:");
 	private final JTextField dateField = new JTextField();
 	private final JButton dateButton = new JButton(DATE);
-	private final JLabel dateCalendarLabel = new JLabel("Calendar:");
-	private final JComboBox<String> dateCalendarField = new JComboBox<>(CALENDAR_MODEL);
 	private final JLabel dateOriginalTextLabel = new JLabel("Original text:");
 	private final JTextField dateOriginalTextField = new JTextField();
 	private final JLabel dateCredibilityLabel = new JLabel("Credibility:");
@@ -122,8 +118,6 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		datePanel.add(dateLabel, "align label,split 3,sizegroup label");
 		datePanel.add(dateField, "grow");
 		datePanel.add(dateButton, "wrap");
-		datePanel.add(dateCalendarLabel, "align label,split 2,sizegroup label");
-		datePanel.add(dateCalendarField, "grow,wrap");
 		datePanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
 		datePanel.add(dateOriginalTextField, "grow,wrap");
 		datePanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
@@ -261,7 +255,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 500);
+			dialog.setSize(500, 460);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
