@@ -526,7 +526,7 @@ public class Gedcom extends Store{
 	}
 
 	public GedcomNode getSubmitter(final String id){
-		return submitterIndex.get(id);
+		return (id != null? submitterIndex.get(id): null);
 	}
 
 	public String addSubmitter(final GedcomNode submitter){

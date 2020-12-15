@@ -119,16 +119,16 @@ public class Flef extends Store{
 	private List<GedcomNode> sources;
 	private List<GedcomNode> calendars;
 
-	private Map<String, GedcomNode> individualIndex;
-	private Map<String, GedcomNode> familyIndex;
-	private Map<String, GedcomNode> groupIndex;
-	private Map<String, GedcomNode> eventIndex;
-	private Map<String, GedcomNode> placeIndex;
-	private Map<String, GedcomNode> noteIndex;
-	private Map<String, GedcomNode> repositoryIndex;
-	private Map<String, GedcomNode> culturalRuleIndex;
-	private Map<String, GedcomNode> sourceIndex;
-	private Map<String, GedcomNode> calendarIndex;
+	private TreeMap<String, GedcomNode> individualIndex;
+	private TreeMap<String, GedcomNode> familyIndex;
+	private TreeMap<String, GedcomNode> groupIndex;
+	private TreeMap<String, GedcomNode> eventIndex;
+	private TreeMap<String, GedcomNode> placeIndex;
+	private TreeMap<String, GedcomNode> noteIndex;
+	private TreeMap<String, GedcomNode> repositoryIndex;
+	private TreeMap<String, GedcomNode> culturalRuleIndex;
+	private TreeMap<String, GedcomNode> sourceIndex;
+	private TreeMap<String, GedcomNode> calendarIndex;
 
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
@@ -221,25 +221,25 @@ public class Flef extends Store{
 		calendarValue = reverseMap(calendarIndex);
 
 		if(!individualIndex.isEmpty())
-			individualId = extractLastID(((TreeMap<String, GedcomNode>)individualIndex).lastKey()) + 1;
+			individualId = extractLastID(individualIndex.lastKey()) + 1;
 		if(!familyIndex.isEmpty())
-			familyId = extractLastID(((TreeMap<String, GedcomNode>)familyIndex).lastKey()) + 1;
+			familyId = extractLastID(familyIndex.lastKey()) + 1;
 		if(!groupIndex.isEmpty())
-			groupId = extractLastID(((TreeMap<String, GedcomNode>)groupIndex).lastKey()) + 1;
+			groupId = extractLastID(groupIndex.lastKey()) + 1;
 		if(!eventIndex.isEmpty())
-			eventId = extractLastID(((TreeMap<String, GedcomNode>)eventIndex).lastKey()) + 1;
+			eventId = extractLastID(eventIndex.lastKey()) + 1;
 		if(!placeIndex.isEmpty())
-			placeId = extractLastID(((TreeMap<String, GedcomNode>)placeIndex).lastKey()) + 1;
+			placeId = extractLastID(placeIndex.lastKey()) + 1;
 		if(!noteIndex.isEmpty())
-			noteId = extractLastID(((TreeMap<String, GedcomNode>)noteIndex).lastKey()) + 1;
+			noteId = extractLastID(noteIndex.lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
-			repositoryId = extractLastID(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey()) + 1;
+			repositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
 		if(!culturalRuleIndex.isEmpty())
-			culturalRuleId = extractLastID(((TreeMap<String, GedcomNode>)culturalRuleIndex).lastKey()) + 1;
+			culturalRuleId = extractLastID(culturalRuleIndex.lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
-			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
+			sourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!calendarIndex.isEmpty())
-			calendarId = extractLastID(((TreeMap<String, GedcomNode>)calendarIndex).lastKey()) + 1;
+			calendarId = extractLastID(calendarIndex.lastKey()) + 1;
 	}
 
 	@Override
@@ -267,13 +267,14 @@ public class Flef extends Store{
 				.addChild(header)
 				.addChildren(individuals)
 				.addChildren(families)
+				.addChildren(groups)
 				.addChildren(events)
 				.addChildren(places)
 				.addChildren(notes)
 				.addChildren(repositories)
-				.addChildren(sources)
 				.addChildren(culturalRules)
-				.addChildren(groups)
+				.addChildren(sources)
+				.addChildren(calendars)
 				.addClosingChild("EOF");
 
 		super.write(os);
@@ -331,7 +332,7 @@ public class Flef extends Store{
 	public void addIndividual(final GedcomNode individual){
 		if(individuals == null){
 			individuals = new ArrayList<>(1);
-			individualIndex = new HashMap<>(1);
+			individualIndex = new TreeMap<>();
 		}
 
 		String individualID = individual.getID();
@@ -379,7 +380,7 @@ public class Flef extends Store{
 	public void addFamily(final GedcomNode family){
 		if(families == null){
 			families = new ArrayList<>(1);
-			familyIndex = new HashMap<>(1);
+			familyIndex = new TreeMap<>();
 		}
 
 		String familyID = family.getID();
@@ -465,7 +466,7 @@ public class Flef extends Store{
 	public void addGroup(final GedcomNode group){
 		if(groups == null){
 			groups = new ArrayList<>(1);
-			groupIndex = new HashMap<>(1);
+			groupIndex = new TreeMap<>();
 		}
 
 		String groupID = group.getID();
@@ -517,7 +518,7 @@ public class Flef extends Store{
 			//if event is not found:
 			if(events == null){
 				events = new ArrayList<>(1);
-				eventIndex = new HashMap<>(1);
+				eventIndex = new TreeMap<>();
 				eventValue = new HashMap<>(1);
 			}
 
@@ -567,7 +568,7 @@ public class Flef extends Store{
 			//if place is not found:
 			if(places == null){
 				places = new ArrayList<>(1);
-				placeIndex = new HashMap<>(1);
+				placeIndex = new TreeMap<>();
 				placeValue = new HashMap<>(1);
 			}
 
@@ -617,10 +618,11 @@ public class Flef extends Store{
 			//if note is not found:
 			if(notes == null){
 				notes = new ArrayList<>(1);
-				noteIndex = new HashMap<>(1);
+				noteIndex = new TreeMap<>();
 				noteValue = new HashMap<>(1);
 			}
 
+			//FIXME what happend to all the references when T1 becomes N2?
 			noteID = getNextNoteID();
 			note.withID(noteID);
 
@@ -668,7 +670,7 @@ public class Flef extends Store{
 			//if repository is not found:
 			if(repositories == null){
 				repositories = new ArrayList<>(1);
-				repositoryIndex = new HashMap<>(1);
+				repositoryIndex = new TreeMap<>();
 				repositoryValue = new HashMap<>(1);
 			}
 
@@ -715,7 +717,7 @@ public class Flef extends Store{
 	public void addCulturalRule(final GedcomNode culturalRule){
 		if(culturalRules == null){
 			culturalRules = new ArrayList<>(1);
-			culturalRuleIndex = new HashMap<>(1);
+			culturalRuleIndex = new TreeMap<>();
 		}
 
 		String culturalRuleID = culturalRule.getID();
@@ -763,7 +765,7 @@ public class Flef extends Store{
 			//if source is not found:
 			if(sources == null){
 				sources = new ArrayList<>(1);
-				sourceIndex = new HashMap<>(1);
+				sourceIndex = new TreeMap<>();
 				sourceValue = new HashMap<>(1);
 			}
 
@@ -822,7 +824,7 @@ public class Flef extends Store{
 			//if calendar is not found:
 			if(calendars == null){
 				calendars = new ArrayList<>(1);
-				calendarIndex = new HashMap<>(1);
+				calendarIndex = new TreeMap<>();
 				calendarValue = new HashMap<>(1);
 			}
 

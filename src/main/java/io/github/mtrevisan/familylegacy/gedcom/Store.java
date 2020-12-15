@@ -125,15 +125,11 @@ public abstract class Store{
 		}
 	}
 
-	static Map<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
-		final Map<String, GedcomNode> indexes;
-		if(!list.isEmpty()){
-			indexes = new TreeMap<>();
+	static TreeMap<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
+		final TreeMap<String, GedcomNode> indexes = new TreeMap<>();
+		if(list != null)
 			for(final GedcomNode elem : list)
 				indexes.put(elem.getID(), elem);
-		}
-		else
-			indexes = new HashMap<>(0);
 		return indexes;
 	}
 
