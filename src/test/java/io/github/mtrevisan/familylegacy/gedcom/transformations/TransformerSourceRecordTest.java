@@ -37,7 +37,7 @@ class TransformerSourceRecordTest{
 	void sourceRecordTo(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChild(transformerTo.createWithID("SOUR", "S2")
+			.addChild(transformerTo.createWithID("SOUR", "S1")
 				.addChild(transformerTo.create("DATA")
 					.addChild(transformerTo.createWithValue("EVEN", "EVENTS_RECORDED")
 						.addChildValue("DATE", "DATE_PERIOD")
@@ -54,11 +54,11 @@ class TransformerSourceRecordTest{
 				.addChildReference("REPO", "R1")
 				.addChild(transformerTo.createWithReference("OBJE", "O1"))
 				.addChild(transformerTo.create("OBJE")
-					.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
-					.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT")
-						.addChildValue("MEDI", "SOURCE_MEDIA_TYPE")
+					.addChildValue("FILE", "MULTIMEDIA_FILE_REFN2")
+					.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT2")
+						.addChildValue("MEDI", "SOURCE_MEDIA_TYPE2")
 					)
-					.addChildValue("TITL", "DESCRIPTIVE_TITLE")
+					.addChildValue("TITL", "DESCRIPTIVE_TITLE2")
 				)
 				.addChild(transformerTo.createWithValue("REFN", "USER_REFERENCE_NUMBER")
 					.addChildValue("TYPE", "AUTOMATED_RECORD_ID")
@@ -69,17 +69,30 @@ class TransformerSourceRecordTest{
 		final GedcomNode note1 = transformerTo.createWithID("NOTE", "N1");
 		final GedcomNode note2 = transformerTo.createWithID("NOTE", "N2");
 
-		Assertions.assertEquals("children: [{id: S2, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: DATE_PERIOD}, {tag: PLAC, value: SOURCE_JURISDICTION_PLACE}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: NOTE, ref: N1}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: ABBR, value: SOURCE_FILED_BY_ENTRY}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: REPO, ref: R1}, {tag: OBJE, ref: O1}, {tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: TITL, value: DESCRIPTIVE_TITLE}]}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: AUTOMATED_RECORD_ID}]}, {tag: NOTE, ref: N2}]}]", parent.toString());
+		Assertions.assertEquals("children: [{id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: DATE_PERIOD}, {tag: PLAC, value: SOURCE_JURISDICTION_PLACE}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: NOTE, ref: N1}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: ABBR, value: SOURCE_FILED_BY_ENTRY}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: REPO, ref: R1}, {tag: OBJE, ref: O1}, {tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}, {tag: FORM, value: MULTIMEDIA_FORMAT2, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE2}]}, {tag: TITL, value: DESCRIPTIVE_TITLE2}]}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: AUTOMATED_RECORD_ID}]}, {tag: NOTE, ref: N2}]}]", parent.toString());
 		Assertions.assertEquals("id: R1, tag: REPO", repository.toString());
 		Assertions.assertEquals("id: N1, tag: NOTE", note1.toString());
 		Assertions.assertEquals("id: N2, tag: NOTE", note2.toString());
 
 		final Gedcom origin = new Gedcom();
+		origin.addRepository(repository);
+		origin.addObject(transformerTo.createWithID("OBJE", "O1")
+			.addChild(transformerTo.createWithValue("FILE", "MULTIMEDIA_FILE_REFN1")
+				.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT1")
+					.addChildValue("TYPE", "SOURCE_MEDIA_TYPE1")
+				)
+				.addChildValue("TITL", "DESCRIPTIVE_TITLE1")
+			)
+			.addChild(transformerTo.createWithValue("REFN", "USER_REFERENCE_NUMBER1")
+				.addChildValue("TYPE", "USER_REFERENCE_TYPE1")
+			)
+		);
 		final Flef destination = new Flef();
 		transformerTo.sourceRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, ref: K1}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: SOURCE, ref: O1}, {tag: SOURCE, ref: S1}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN1}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE1}, {tag: TITLE, value: DESCRIPTIVE_TITLE1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S3, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, ref: K1}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: REPOSITORY, ref: R1}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}]", destination.getSources().get(2).toString());
 		Assertions.assertEquals("id: K1, tag: CALENDAR, children: [{tag: TYPE, value: gregorian}]", destination.getCalendars().get(0).toString());
 	}
 

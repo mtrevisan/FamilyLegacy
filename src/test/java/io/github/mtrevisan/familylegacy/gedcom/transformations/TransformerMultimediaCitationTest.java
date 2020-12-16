@@ -45,9 +45,9 @@ class TransformerMultimediaCitationTest{
 		final Gedcom origin = new Gedcom();
 		origin.addObject(object);
 		final Flef destination = new Flef();
-		transformerTo.multimediaLinkTo(parent, destinationNode, destination);
+		transformerTo.multimediaLinkTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: M1}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
 	}
 
 	@Test
@@ -67,8 +67,9 @@ class TransformerMultimediaCitationTest{
 		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
-		transformerTo.multimediaLinkTo(parent, destinationNode, destination);
+		transformerTo.multimediaLinkTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
 	}

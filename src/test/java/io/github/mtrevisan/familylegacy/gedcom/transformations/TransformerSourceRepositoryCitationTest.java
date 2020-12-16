@@ -53,8 +53,8 @@ class TransformerSourceRepositoryCitationTest{
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Gedcom origin = new Gedcom();
 		origin.addNote(note);
+		origin.addRepository(repository);
 		final Flef destination = new Flef();
-		destination.addRepository(repository);
 		transformerTo.sourceRepositoryCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: R1, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
