@@ -401,7 +401,7 @@ public final class Transformer extends TransformerHelper{
 			}
 		}
 		final String value = traverse(event, "DATE").getValue();
-		addDateTo(destinationEvent, value, destination);
+		addDateTo(value, destinationEvent, destination);
 		placeAddressStructureTo(event, destinationEvent, origin, destination);
 		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
@@ -492,7 +492,6 @@ public final class Transformer extends TransformerHelper{
 		destination.setHeader(destinationHeader);
 	}
 
-	//TODO MULTIMEDIA_LINK to DOCUMENT_STRUCTURE inside a SOURCE_RECORD
 	/*
 	for-each OBJE create SOURCE
 		if OBJE.xref != null
@@ -776,15 +775,8 @@ public final class Transformer extends TransformerHelper{
 					event.withValue(event.getValue() + "," + sourceCitationValue);
 			}
 			final GedcomNode sourceCitationDate = traverse(destinationSourceRecord, "DATA.DATE");
-			if(sourceCitationDate != null){
-				final GedcomNode date = traverse(destinationSourceRecord, "DATE");
-				if(date.isEmpty()){
-					final String value = sourceCitationDate.getValue();
-					addDateTo(destinationSourceRecord, value, destination);
-				}
-				else
-					date.withValue(date.getValue() + "," + sourceCitationDate);
-			}
+			if(sourceCitationDate != null)
+				addDateTo(destinationSourceRecord.getValue(), destinationSourceRecord, destination);
 
 			multimediaLinkTo(sourceCitation, destinationSourceReference, origin, destination);
 		}
@@ -792,7 +784,7 @@ public final class Transformer extends TransformerHelper{
 		return new GedcomNode[]{destinationSourceReference, destinationSourceRecord};
 	}
 
-	private void addDateTo(final GedcomNode node, final String value, final Flef destination){
+	private void addDateTo(final String value, final GedcomNode destinationNode, final Flef destination){
 		if(value != null){
 			final String calendarType = CalendarParserBuilder.getCalendarType(value);
 			//search for calendar type
@@ -804,7 +796,7 @@ public final class Transformer extends TransformerHelper{
 				//insert calendar
 				destination.addCalendar(calendar);
 			}
-			node.addChild(createWithValue("DATE", CalendarParserBuilder.removeCalendarType(value))
+			destinationNode.addChild(createWithValue("DATE", CalendarParserBuilder.removeCalendarType(value))
 				.addChildReference("CALENDAR", calendar.getID())
 			);
 		}
@@ -843,7 +835,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
 				.addChildValue("TITLE", traverse(source, "TITL").getValue());
 			final String value = traverse(source, "DATA.EVEN.DATE").getValue();
-			addDateTo(destinationSource, value, destination);
+			addDateTo(value, destinationSource, destination);
 			destinationSource.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
 				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
 			sourceRepositoryCitationTo(source, destinationSource, origin, destination);
