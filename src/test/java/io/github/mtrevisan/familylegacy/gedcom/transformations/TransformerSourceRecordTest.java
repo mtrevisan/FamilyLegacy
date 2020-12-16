@@ -102,7 +102,7 @@ class TransformerSourceRecordTest{
 		final Gedcom destination = new Gedcom();
 		transformerFrom.sourceRecordFrom(source, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: REPO, ref: R1}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
 	}
 
 }
