@@ -530,19 +530,21 @@ public class Gedcom extends Store{
 	}
 
 	public String addSubmitter(final GedcomNode submitter){
-		if(submitters == null){
-			submitters = new ArrayList<>(1);
-			submitterIndex = new HashMap<>(1);
-		}
-
 		String submitterID = submitter.getID();
-		if(submitterID == null){
-			submitterID = getNextSubmitterID();
-			submitter.withID(submitterID);
-		}
+		if(!submitter.isEmpty()){
+			if(submitters == null){
+				submitters = new ArrayList<>(1);
+				submitterIndex = new HashMap<>(1);
+			}
 
-		submitters.add(submitter);
-		submitterIndex.put(submitter.getID(), submitter);
+			if(submitterID == null){
+				submitterID = getNextSubmitterID();
+				submitter.withID(submitterID);
+			}
+
+			submitters.add(submitter);
+			submitterIndex.put(submitter.getID(), submitter);
+		}
 		return submitterID;
 	}
 

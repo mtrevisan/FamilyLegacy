@@ -708,18 +708,23 @@ public final class Transformer extends TransformerHelper{
 		for(final GedcomNode sourceCitation : sourceCitations){
 			final GedcomNode destinationSource = create("SOURCE");
 			final GedcomNode destinationSourceReference = create("SOURCE");
-			final String sourceCitationXRef = sourceCitation.getXRef();
+			String sourceCitationXRef = sourceCitation.getXRef();
 			if(sourceCitationXRef == null){
 				destinationSource.addChildValue("TITLE", sourceCitation.getValue());
 				multimediaLinkTo(sourceCitation, destinationSource, destination);
 				noteCitationTo(sourceCitation, destinationSource, origin, destination);
 			}
 			else{
+				GedcomNode source = origin.getSource(sourceCitationXRef);
+				sourceRecordTo(createEmpty().addChild(source), origin, destination);
+				source = destination.getSources().get(destination.getSources().size() - 1);
+				sourceCitationXRef = source.getID();
+
 				destinationSource.withID(sourceCitationXRef)
 					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
 					.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue());
 				//load source by xref
-				final GedcomNode sourceRecord = origin.getSource(sourceCitationXRef);
+				final GedcomNode sourceRecord = destination.getSource(sourceCitationXRef);
 				final String sourceCitationValue = traverse(sourceCitation, "EVEN").getValue();
 				if(sourceCitationValue != null){
 					GedcomNode event = traverse(sourceRecord, "EVENT");
@@ -830,7 +835,7 @@ public final class Transformer extends TransformerHelper{
 			noteCitationTo(citation, repositoryCitation, origin, destination);
 			if(citationXRef == null)
 				citationXRef = destination.addRepository(create("REPOSITORY")
-					.addChildValue("NAME", "-- repository --")
+					.addChildValue("NAME", "-- repository " + destination.getRepositories().size() + " --")
 				);
 			repositoryCitation.withXRef(citationXRef);
 
@@ -967,20 +972,6 @@ public final class Transformer extends TransformerHelper{
 		}
 
 		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
-		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMILY_CHILD[]");
-		for(final GedcomNode familyChild : familyChildren){
-			final GedcomNode destinationFamilyChild = createWithReference("FAMC", familyChild.getXRef());
-			noteCitationFrom(familyChild, destinationFamilyChild);
-
-			destinationIndividual.addChild(destinationFamilyChild);
-		}
-		final List<GedcomNode> spouses = traverseAsList(individual, "FAMILY_SPOUSE[]");
-		for(final GedcomNode spouse : spouses){
-			final GedcomNode destinationFamilySpouse = createWithReference("FAMS", spouse.getXRef());
-			noteCitationFrom(spouse, destinationFamilySpouse);
-
-			destinationIndividual.addChild(destinationFamilySpouse);
-		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSOCIATION[]");
 		for(final GedcomNode association : associations){
 			String type = traverse(association, "TYPE").getValue();
@@ -1001,6 +992,20 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode destinationAlias = createWithReference("ALIA", alias.getXRef());
 
 			destinationIndividual.addChild(destinationAlias);
+		}
+		final List<GedcomNode> spouses = traverseAsList(individual, "FAMILY_SPOUSE[]");
+		for(final GedcomNode spouse : spouses){
+			final GedcomNode destinationFamilySpouse = createWithReference("FAMS", spouse.getXRef());
+			noteCitationFrom(spouse, destinationFamilySpouse);
+
+			destinationIndividual.addChild(destinationFamilySpouse);
+		}
+		final List<GedcomNode> familyChildren = traverseAsList(individual, "FAMILY_CHILD[]");
+		for(final GedcomNode familyChild : familyChildren){
+			final GedcomNode destinationFamilyChild = createWithReference("FAMC", familyChild.getXRef());
+			noteCitationFrom(familyChild, destinationFamilyChild);
+
+			destinationIndividual.addChild(destinationFamilyChild);
 		}
 
 		//scan events one by one, maintaining order
