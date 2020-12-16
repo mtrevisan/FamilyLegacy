@@ -338,6 +338,7 @@ n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file ref
  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
 	+2 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
 	+2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+ +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 DATE_STRUCTURE :=

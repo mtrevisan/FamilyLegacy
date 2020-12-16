@@ -413,8 +413,9 @@ n OBJE    {1:1}
   +1 FORM <MULTIMEDIA_FORMAT>    {1:1}	/* Indicates the format of the multimedia data associated with the specific GEDCOM context. This allows processors to determine whether they can process the data object. Any linked files should contain the data required, in the indicated format, to process the file data. */
     +2 MEDI <SOURCE_MEDIA_TYPE>    {0:1}	/* A code, selected from one of the media classifications choices above, that indicates the type of material in which the referenced source is stored. */
   +1 FILE <MULTIMEDIA_FILE_REFN>    {1:M}	/* A complete local or remote file reference to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the multimedia data may be obtained. */
+  +1 _PREF Y    {0:1}	/* Whether this media is the preferred one to show on the individual box. */
+  +1 _PUBL Y    {0:1}
   +1 _CUTD <CUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-  +1 _PREF <PREFERRED_MEDIA>    {0:1}	/* Whether this media is the preferred one to show on the individual box. */
 ]
 
 

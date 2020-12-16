@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformatio
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -102,7 +101,6 @@ public class Flef extends Store{
 	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
 	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
-	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
 	private static final Transformer TRANSFORMER = new Transformer(Protocol.FLEF);
 
@@ -246,7 +244,6 @@ public class Flef extends Store{
 	public Gedcom transform(){
 		final Gedcom destination = new Gedcom();
 		HEADER_TRANSFORMATION.from(this, destination);
-		SUBMITTER_TRANSFORMATION.from(this, destination);
 		NOTE_TRANSFORMATION.from(this, destination);
 		REPOSITORY_TRANSFORMATION.from(this, destination);
 		SOURCE_TRANSFORMATION.from(this, destination);
