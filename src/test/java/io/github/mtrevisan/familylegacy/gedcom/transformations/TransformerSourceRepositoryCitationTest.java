@@ -55,7 +55,7 @@ class TransformerSourceRepositoryCitationTest{
 		origin.addNote(note);
 		origin.addRepository(repository);
 		final Flef destination = new Flef();
-		transformerTo.sourceRepositoryCitationTo(parent, destinationNode, origin, destination);
+		transformerTo.repositoryCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: R1, children: [{tag: LOCATION, value: SOURCE_CALL_NUMBER}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
 	}
@@ -72,7 +72,7 @@ class TransformerSourceRepositoryCitationTest{
 		Assertions.assertEquals("children: [{tag: REPOSITORY, ref: R1, children: [{tag: LOCATION, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: N1}]}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
-		transformerFrom.sourceRepositoryCitationFrom(parent, destinationNode);
+		transformerFrom.repositoryCitationFrom(parent, destinationNode);
 
 		Assertions.assertEquals("children: [{tag: REPO, ref: R1, children: [{tag: CALN, value: REPOSITORY_LOCATION_TEXT}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
 	}
