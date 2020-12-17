@@ -401,8 +401,8 @@ public final class Transformer extends TransformerHelper{
 					);
 			}
 		}
-		final String value = traverse(event, "DATE").getValue();
-		addDateTo(value, destinationEvent, destination);
+		final String dateValue = traverse(event, "DATE").getValue();
+		addDateTo(dateValue, destinationEvent, destination);
 		placeAddressStructureTo(event, destinationEvent, origin, destination);
 		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
@@ -541,23 +541,24 @@ public final class Transformer extends TransformerHelper{
 			sourceCitationTo(object, destinationSource, origin, destination);
 			final List<GedcomNode> sourceCitations = traverseAsList(object, "SOUR[]");
 			for(final GedcomNode sourceCitation : sourceCitations){
-				//FIXME to revise
-				final GedcomNode[] referenceRecord = singleSourceCitationTo(sourceCitation, origin, destination);
-				final GedcomNode destinationSourceReference = referenceRecord[0];
-				final GedcomNode destinationSourceRecord = referenceRecord[1];
+				final List<GedcomNode[]> addedSources = singleSourceCitationTo(sourceCitation, origin, destination);
+				for(final GedcomNode[] addedSource : addedSources){
+					final GedcomNode destinationSourceReference = addedSource[0];
+					final GedcomNode destinationSourceRecord = addedSource[1];
 
-				destinationSourceRecord
-					.addChildValue("TITLE", traverse(object, "TITL").getValue())
-					.addChildValue("DATE", traverse(object, "_DATE").getValue())
-					.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
-				final List<GedcomNode> files2 = traverseAsList(object, "FILE[]");
-				for(final GedcomNode file : files2)
-					destinationSource.addChild(createWithValue("FILE", file.getValue())
-						.addChildValue("RESTRICTION", restriction)
-					);
+					destinationSourceRecord
+						.addChildValue("TITLE", traverse(object, "TITL").getValue())
+						.addChildValue("DATE", traverse(object, "_DATE").getValue())
+						.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
+					final List<GedcomNode> files2 = traverseAsList(object, "FILE[]");
+					for(final GedcomNode file : files2)
+						destinationSource.addChild(createWithValue("FILE", file.getValue())
+							.addChildValue("RESTRICTION", restriction)
+						);
 
-				//add source citation:
-				destinationNode.addChild(destinationSourceReference);
+					//add source citation:
+					destinationNode.addChild(destinationSourceReference);
+				}
 			}
 
 			destination.addSource(destinationSource);
@@ -743,58 +744,57 @@ public final class Transformer extends TransformerHelper{
 	void sourceCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> sourceCitations = traverseAsList(parent, "SOUR[]");
 		for(final GedcomNode sourceCitation : sourceCitations){
-			final GedcomNode destinationSourceReference = singleSourceCitationTo(sourceCitation, origin, destination)[0];
-
+			final List<GedcomNode[]> addedSources = singleSourceCitationTo(sourceCitation, origin, destination);
 			//add source citation:
-			destinationNode.addChild(destinationSourceReference);
+			for(final GedcomNode[] addedSource : addedSources)
+				destinationNode.addChild(addedSource[0]);
 		}
 	}
 
 	/**
 	 * @return	An array of reference and record sources.
 	 */
-	private GedcomNode[] singleSourceCitationTo(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination){
-		final GedcomNode destinationSourceRecord;
-		final GedcomNode destinationSourceReference = create("SOURCE");
+	private List<GedcomNode[]> singleSourceCitationTo(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination){
+		final List<GedcomNode[]> response = new ArrayList<>();
 		String sourceCitationXRef = sourceCitation.getXRef();
 		if(sourceCitationXRef == null){
-			destinationSourceRecord = create("SOURCE")
+			final GedcomNode destinationSourceRecord = create("SOURCE")
 				.addChildValue("TITLE", sourceCitation.getValue());
 			multimediaLinkTo(sourceCitation, destinationSourceRecord, origin, destination);
 			noteCitationTo(sourceCitation, destinationSourceRecord, origin, destination);
 
 			destination.addSource(destinationSourceRecord);
-			destinationSourceReference.withXRef(destinationSourceRecord.getID());
+			final GedcomNode destinationSourceReference = createWithReference("SOURCE", destinationSourceRecord.getID())
+				.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
+			response.add(new GedcomNode[]{destinationSourceReference, destinationSourceRecord});
 		}
 		else{
 			final List<GedcomNode> sourcesAdded = sourceRecordTo(createEmpty().addChild(origin.getSource(sourceCitationXRef)), origin,
 				destination);
-			//FIXME ke ròba bruta... `sourcesAdded` has to be managed
-			destinationSourceRecord = destination.getSources().get(destination.getSources().size() - 1);
-			sourceCitationXRef = destinationSourceRecord.getID();
-
-			destinationSourceReference.withXRef(sourceCitationXRef)
-				.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
-				.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue());
-			//load source by xref
-			final String sourceCitationValue = traverse(sourceCitation, "EVEN").getValue();
-			if(sourceCitationValue != null){
-				GedcomNode event = traverse(destinationSourceRecord, "EVENT");
-				if(event.isEmpty()){
-					event = createWithValue("EVENT", sourceCitationValue);
-					destinationSourceRecord.addChild(event);
+			for(final GedcomNode destinationSourceRecord : sourcesAdded){
+				final GedcomNode destinationSourceReference = createWithReference("SOURCE", destinationSourceRecord.getID())
+					.addChildValue("LOCATION", traverse(sourceCitation, "PAGE").getValue())
+					.addChildValue("ROLE", traverse(sourceCitation, "EVEN.ROLE").getValue());
+				//load source by xref
+				final String sourceCitationValue = traverse(sourceCitation, "EVEN").getValue();
+				if(sourceCitationValue != null){
+					GedcomNode event = traverse(destinationSourceRecord, "EVENT");
+					if(event.isEmpty()){
+						event = createWithValue("EVENT", sourceCitationValue);
+						destinationSourceRecord.addChild(event);
+					}
+					else
+						event.withValue(event.getValue() + "," + sourceCitationValue);
 				}
-				else
-					event.withValue(event.getValue() + "," + sourceCitationValue);
-			}
-			final GedcomNode sourceCitationDate = traverse(destinationSourceRecord, "DATA.DATE");
-			if(sourceCitationDate != null)
-				addDateTo(destinationSourceRecord.getValue(), destinationSourceRecord, destination);
+				final String sourceCitationDateValue = traverse(destinationSourceRecord, "DATA.DATE").getValue();
+				addDateTo(sourceCitationDateValue, destinationSourceRecord, destination);
 
-			multimediaLinkTo(sourceCitation, destinationSourceReference, origin, destination);
+				multimediaLinkTo(sourceCitation, destinationSourceReference, origin, destination);
+				destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
+				response.add(new GedcomNode[]{destinationSourceReference, destinationSourceRecord});
+			}
 		}
-		destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
-		return new GedcomNode[]{destinationSourceReference, destinationSourceRecord};
+		return response;
 	}
 
 	private void addDateTo(final String value, final GedcomNode destinationNode, final Flef destination){
@@ -875,8 +875,7 @@ public final class Transformer extends TransformerHelper{
 						.addChildValue("TITLE", title)
 						.addChildValue("AUTHOR", author)
 						.addChildValue("PUBLICATION_FACTS", publicationFacts);
-
-					destination.addSource(destinationSubSource);
+					multimediaLinkTo(source, destinationSubSource, origin, destination);
 
 					sourcesAdded.add(destinationSubSource);
 				}
