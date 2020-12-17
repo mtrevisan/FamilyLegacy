@@ -90,9 +90,10 @@ class TransformerSourceRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN1}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE1}, {tag: TITLE, value: DESCRIPTIVE_TITLE1}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}]", destination.getSources().get(1).toString());
-		Assertions.assertEquals("id: S3, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: DATE, value: DATE_PERIOD, children: [{tag: CALENDAR, ref: K1}]}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: REPOSITORY, ref: R1}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}]", destination.getSources().get(2).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN1, children: [{tag: RESTRICTION, value: private}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE1}, {tag: TITLE, value: DESCRIPTIVE_TITLE1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2, children: [{tag: RESTRICTION, value: private}]}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S3, tag: SOURCE, ref: S1, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}]", destination.getSources().get(2).toString());
+		Assertions.assertEquals("id: S4, tag: SOURCE, ref: S2, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}]", destination.getSources().get(3).toString());
 		Assertions.assertEquals("id: K1, tag: CALENDAR, children: [{tag: TYPE, value: gregorian}]", destination.getCalendars().get(0).toString());
 	}
 

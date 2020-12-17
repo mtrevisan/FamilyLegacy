@@ -111,7 +111,7 @@ class TransformerSourceCitationTest{
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: SOURCE, ref: S2, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENT_TYPE_CITED_FROM}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: RESTRICTION, value: private}]}]", destination.getSources().get(1).toString());
 	}
 
 	@Test
@@ -146,7 +146,7 @@ class TransformerSourceCitationTest{
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: TITLE, value: DESCRIPTIVE_TITLE}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: RESTRICTION, value: private}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: TITLE, value: DESCRIPTIVE_TITLE}]", destination.getSources().get(0).toString());
 		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: SOURCE, ref: S1}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
 	}
 
@@ -181,7 +181,7 @@ class TransformerSourceCitationTest{
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S2, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN, children: [{tag: RESTRICTION, value: private}]}]", destination.getSources().get(0).toString());
 		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}, {tag: NOTE, ref: N1}]", destination.getSources().get(1).toString());
 	}
 

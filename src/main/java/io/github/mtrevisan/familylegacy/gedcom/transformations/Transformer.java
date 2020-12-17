@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserB
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -503,10 +504,10 @@ public final class Transformer extends TransformerHelper{
 			concat-all SOURCE[rec].TITLE.value = OBJE[rec].FILE.TITL.value
 		transfer OBJE[rec].NOTE to SOURCE[rec].NOTE
 		transfer OBJE[rec].SOUR to SOURCE,SOURCE[rec]
-		SOURCE[rec].TITLE.value = OBJE.TITL.value
-		SOURCE[rec].DATE.value = OBJE._DATE.value
-		SOURCE[rec].MEDIA_TYPE.value = OBJE.FORM.MEDI.value
 		for-each OBJE.FILE
+			SOURCE[rec].TITLE.value = OBJE.TITL.value
+			SOURCE[rec].DATE.value = OBJE._DATE.value
+			SOURCE[rec].MEDIA_TYPE.value = OBJE.FORM.MEDI.value
 			SOURCE[rec].FILE.value = OBJE.FILE.value
 			SOURCE[rec].FILE.RESTRICTION.value = OBJE._PUBL.value
 		SOURCE.CUTOUT.value = OBJE._CUTD.value
@@ -523,7 +524,7 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode destinationSource = create("SOURCE");
 			String mediaType = null;
 			final StringJoiner title = new StringJoiner(", ");
-			final String restriction = (traverse(object, "_PUBL").isEmpty()? null: "private");
+			final String restriction = ("Y".equals(traverse(object, "_PUBL").getValue())? null: "private");
 			final List<GedcomNode> files = traverseAsList(object, "FILE[]");
 			for(final GedcomNode file : files){
 				destinationSource.addChild(createWithValue("FILE", file.getValue())
@@ -538,9 +539,9 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("TITLE", title.toString());
 			noteCitationTo(object, destinationSource, origin, destination);
 			sourceCitationTo(object, destinationSource, origin, destination);
-			//FIXME to revise
 			final List<GedcomNode> sourceCitations = traverseAsList(object, "SOUR[]");
 			for(final GedcomNode sourceCitation : sourceCitations){
+				//FIXME to revise
 				final GedcomNode[] referenceRecord = singleSourceCitationTo(sourceCitation, origin, destination);
 				final GedcomNode destinationSourceReference = referenceRecord[0];
 				final GedcomNode destinationSourceRecord = referenceRecord[1];
@@ -549,6 +550,11 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("TITLE", traverse(object, "TITL").getValue())
 					.addChildValue("DATE", traverse(object, "_DATE").getValue())
 					.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
+				final List<GedcomNode> files2 = traverseAsList(object, "FILE[]");
+				for(final GedcomNode file : files2)
+					destinationSource.addChild(createWithValue("FILE", file.getValue())
+						.addChildValue("RESTRICTION", restriction)
+					);
 
 				//add source citation:
 				destinationNode.addChild(destinationSourceReference);
@@ -761,7 +767,9 @@ public final class Transformer extends TransformerHelper{
 			destinationSourceReference.withXRef(destinationSourceRecord.getID());
 		}
 		else{
-			sourceRecordTo(createEmpty().addChild(origin.getSource(sourceCitationXRef)), origin, destination);
+			final List<GedcomNode> sourcesAdded = sourceRecordTo(createEmpty().addChild(origin.getSource(sourceCitationXRef)), origin,
+				destination);
+			//FIXME ke ròba bruta... `sourcesAdded` has to be managed
 			destinationSourceRecord = destination.getSources().get(destination.getSources().size() - 1);
 			sourceCitationXRef = destinationSourceRecord.getID();
 
@@ -833,21 +841,47 @@ public final class Transformer extends TransformerHelper{
 			pick-each: SOURCE.FILE.EXTRACT.value = SOUR.DATA.TEXT.value
 		transfer SOUR.NOTE to SOURCE.NOTE
 	*/
-	void sourceRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
+	List<GedcomNode> sourceRecordTo(final GedcomNode parent, final Gedcom origin, final Flef destination){
+		final List<GedcomNode> sourcesAdded = new ArrayList<>(0);
 		final List<GedcomNode> sources = traverseAsList(parent, "SOUR[]");
 		for(final GedcomNode source : sources){
-			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), source.getValue())
-				.addChildValue("EVENT", traverse(source, "DATA.EVEN").getValue())
-				.addChildValue("TITLE", traverse(source, "TITL").getValue());
-			final String value = traverse(source, "DATA.EVEN.DATE").getValue();
-			addDateTo(value, destinationSource, destination);
-			destinationSource.addChildValue("AUTHOR", traverse(source, "AUTH").getValue())
-				.addChildValue("PUBLICATION_FACTS", traverse(source, "PUBL").getValue());
+			final String event = traverse(source, "DATA.EVEN").getValue();
+			final String title = traverse(source, "TITL").getValue();
+			final String value = source.getValue();
+			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value)
+				.addChildValue("EVENT", event)
+				.addChildValue("TITLE", title);
+			final String dateValue = traverse(source, "DATA.EVEN.DATE").getValue();
+			addDateTo(dateValue, destinationSource, destination);
+			final String author = traverse(source, "AUTH").getValue();
+			final String publicationFacts = traverse(source, "PUBL").getValue();
+			destinationSource.addChildValue("AUTHOR", author)
+				.addChildValue("PUBLICATION_FACTS", publicationFacts);
 			sourceRepositoryCitationTo(source, destinationSource, origin, destination);
 			multimediaLinkTo(source, destinationSource, origin, destination);
 
-			destination.addSource(destinationSource);
+			//if destination source contains multiple sources, splits them
+			final List<GedcomNode> destinationSubSources = traverseAsList(destinationSource, "SOURCE[]");
+			if(destinationSubSources.isEmpty()){
+				destination.addSource(destinationSource);
+
+				sourcesAdded.add(destinationSource);
+			}
+			else
+				for(final GedcomNode destinationSubSource : destinationSubSources){
+					//transfer common data
+					destinationSubSource.withValue(value)
+						.addChildValue("EVENT", event)
+						.addChildValue("TITLE", title)
+						.addChildValue("AUTHOR", author)
+						.addChildValue("PUBLICATION_FACTS", publicationFacts);
+
+					destination.addSource(destinationSubSource);
+
+					sourcesAdded.add(destinationSubSource);
+				}
 		}
+		return sourcesAdded;
 	}
 
 	/*
@@ -1211,12 +1245,13 @@ public final class Transformer extends TransformerHelper{
 			final String mediaType = traverse(sourceRecord, "MEDIA_TYPE").getValue();
 			for(final GedcomNode file : files){
 				destinationSource.addChild(create("OBJE"))
-					.addChildValue("FILE", file.getValue())
 					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
-					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT").getValue())
+					.addChildValue("_DATE", traverse(sourceRecord, "DATE").getValue())
 					.addChild(create("FORM")
 						.addChildValue("MEDI", mediaType)
-					);
+					)
+					.addChildValue("FILE", file.getValue())
+					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT").getValue());
 				//TODO restore the one that has the _PREF tag
 			}
 			destinationSource.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY").getValue());
