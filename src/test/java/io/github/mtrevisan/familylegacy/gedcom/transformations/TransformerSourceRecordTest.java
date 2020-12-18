@@ -66,16 +66,16 @@ class TransformerSourceRecordTest{
 				.addChildReference("NOTE", "N2")
 			);
 		final GedcomNode repository = transformerTo.createWithID("REPO", "R1");
-		final GedcomNode note1 = transformerTo.createWithID("NOTE", "N1");
-		final GedcomNode note2 = transformerTo.createWithID("NOTE", "N2");
+		final GedcomNode note1 = transformerTo.createWithIDValue("NOTE", "N1", "NOTE 1");
+		final GedcomNode note2 = transformerTo.createWithIDValue("NOTE", "N2", "NOTE 2");
 
 		Assertions.assertEquals("children: [{id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: DATE_PERIOD}, {tag: PLAC, value: SOURCE_JURISDICTION_PLACE}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: NOTE, ref: N1}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: ABBR, value: SOURCE_FILED_BY_ENTRY}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: REPO, ref: R1}, {tag: OBJE, ref: O1}, {tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}, {tag: FORM, value: MULTIMEDIA_FORMAT2, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE2}]}, {tag: TITL, value: DESCRIPTIVE_TITLE2}]}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: AUTOMATED_RECORD_ID}]}, {tag: NOTE, ref: N2}]}]", parent.toString());
 		Assertions.assertEquals("id: R1, tag: REPO", repository.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE", note1.toString());
-		Assertions.assertEquals("id: N2, tag: NOTE", note2.toString());
 
 		final Gedcom origin = new Gedcom();
 		origin.addRepository(repository);
+		origin.addNote(note1);
+		origin.addNote(note2);
 		origin.addObject(transformerTo.createWithID("OBJE", "O1")
 			.addChild(transformerTo.createWithValue("FILE", "MULTIMEDIA_FILE_REFN1")
 				.addChild(transformerTo.createWithValue("FORM", "MULTIMEDIA_FORMAT1")

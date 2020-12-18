@@ -34,6 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -498,27 +499,37 @@ public final class Transformer extends TransformerHelper{
 		if OBJE.xref != null
 			load OBJE[rec] from OBJE.xref
 
-		for-each OBJE[rec].FILE
-			SOURCE[rec].FILE.value = OBJE[rec].FILE.value
-			pick-one SOURCE[rec].MEDIA_TYPE.value = OBJE[rec].FILE.FORM.TYPE.value
-			concat-all SOURCE[rec].TITLE.value = OBJE[rec].FILE.TITL.value
-		transfer OBJE[rec].NOTE to SOURCE[rec].NOTE
-		transfer OBJE[rec].SOUR to SOURCE,SOURCE[rec]
-		for-each OBJE.FILE
-			SOURCE[rec].TITLE.value = OBJE.TITL.value
-			SOURCE[rec].DATE.value = OBJE._DATE.value
-			SOURCE[rec].MEDIA_TYPE.value = OBJE.FORM.MEDI.value
-			SOURCE[rec].FILE.value = OBJE.FILE.value
-			SOURCE[rec].FILE.RESTRICTION.value = OBJE._PUBL.value
+		for-each OBJE[rec].SOUR
+			pick-one: SOURCE.LOCATION.value = OBJE[rec].SOUR.PAGE.value
+			pick-one: SOURCE.ROLE.value = OBJE[rec].SOUR.EVEN.ROLE.value
+			transfer OBJE[rec].SOUR.NOTE to SOURCE.NOTE
 		SOURCE.CUTOUT.value = OBJE._CUTD.value
 		//FIXME
-		remember = OBJE._PREF Y
+		remember = OBJE._PREF{Y}
+		transfer OBJE[rec].NOTE to SOURCE.NOTE
+		SOURCE.CREDIBILITY.value = OBJE[rec].QUAY.value
+
+		for-each OBJE[rec].FILE create SOURCE[rec]
+			SOURCE[rec].FILE.DESCRIPTION.value = OBJE[rec].SOUR.value
+			SOURCE[rec].EVENT.value = OBJE[rec].SOUR.EVEN.value
+			SOURCE[rec].TITLE.value = OBJE[rec].SOUR.FILE.TITL.value
+			SOURCE[rec].DATE.value = OBJE[rec].SOUR.DATA.DATE.value
+			SOURCE[rec].FILE.value = OBJE[rec].FILE.value
+			pick-one: SOURCE[rec].MEDIA_TYPE.value = OBJE[rec].FILE.FORM.TYPE.value
+			SOURCE[rec].FILE.EXTRACT.value = OBJE[rec].SOUR.DATA.TEXT.value | SOUR.TEXT.value
+		for-each OBJE.FILE create SOURCE[rec]
+			SOURCE[rec].TITLE.value = OBJE.TITL.value
+			SOURCE[rec].DATE.value = OBJE._DATE.value
+			SOURCE[rec].FILE.value = OBJE.FILE.value
+			pick-one: SOURCE[rec].MEDIA_TYPE.value = OBJE.FORM.MEDI.value
+			SOURCE[rec].FILE.RESTRICTION.value = OBJE.FORM._PUBL{Y}? null: 'private'
 	*/
 	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
 		final List<GedcomNode> objects = traverseAsList(parent, "OBJE[]");
 		for(GedcomNode object : objects){
 			final String objectXRef = object.getXRef();
 			if(objectXRef != null)
+				//load record
 				object = origin.getObject(objectXRef);
 
 			final GedcomNode destinationSource = create("SOURCE");
@@ -596,7 +607,7 @@ public final class Transformer extends TransformerHelper{
 	/*
 	for-each OBJE id create SOURCE
 		SOURCE.id = OBJE.id
-		for-each OBJE.FILE create SOURCE.FILE
+		for-each OBJE.FILE create SOURCE
 			pick-each: SOURCE.FILE.value = OBJE.FILE.value
 			pick-each: SOURCE.FILE.DESCRIPTION.value = OBJE.FILE.TITL.value
 			pick-one: SOURCE.MEDIA_TYPE.value = OBJE.FILE.FORM.TYPE.value
@@ -845,20 +856,27 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> sourcesAdded = new ArrayList<>(0);
 		final List<GedcomNode> sources = traverseAsList(parent, "SOUR[]");
 		for(final GedcomNode source : sources){
-			final String event = traverse(source, "DATA.EVEN").getValue();
-			final String title = traverse(source, "TITL").getValue();
 			final String value = source.getValue();
-			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value)
-				.addChildValue("EVENT", event)
-				.addChildValue("TITLE", title);
-			final String dateValue = traverse(source, "DATA.EVEN.DATE").getValue();
-			addDateTo(dateValue, destinationSource, destination);
+			final GedcomNode sourceData = traverse(source, "DATA");
+			final GedcomNode sourceDataEvent = traverse(sourceData, "EVEN");
+			final String event = sourceDataEvent.getValue();
+			final String title = traverse(source, "TITL").getValue();
 			final String author = traverse(source, "AUTH").getValue();
 			final String publicationFacts = traverse(source, "PUBL").getValue();
-			destinationSource.addChildValue("AUTHOR", author)
+			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value)
+				.addChildValue("EVENT", event)
+				.addChildValue("TITLE", title)
+				.addChildValue("AUTHOR", author)
 				.addChildValue("PUBLICATION_FACTS", publicationFacts);
+			final String dateValue = traverse(sourceDataEvent, "DATE").getValue();
+			addDateTo(dateValue, destinationSource, destination);
 			repositoryCitationTo(source, destinationSource, origin, destination);
 			multimediaCitationTo(source, destinationSource, origin, destination);
+			noteCitationTo(sourceData, destinationSource, origin, destination);
+			noteCitationTo(source, destinationSource, origin, destination);
+			final GedcomNode extract = traverse(source, "TEXT");
+			assignExtractionsTo(Collections.singletonList(extract), destinationSource);
+
 
 			//if destination source contains multiple sources, splits them
 			final List<GedcomNode> destinationSubSources = traverseAsList(destinationSource, "SOURCE[]");
@@ -875,7 +893,10 @@ public final class Transformer extends TransformerHelper{
 						.addChildValue("TITLE", title)
 						.addChildValue("AUTHOR", author)
 						.addChildValue("PUBLICATION_FACTS", publicationFacts);
+					addDateTo(dateValue, destinationSubSource, destination);
 					multimediaCitationTo(source, destinationSubSource, origin, destination);
+					noteCitationTo(sourceData, destinationSource, origin, destination);
+					noteCitationTo(source, destinationSource, origin, destination);
 
 					sourcesAdded.add(destinationSubSource);
 				}
