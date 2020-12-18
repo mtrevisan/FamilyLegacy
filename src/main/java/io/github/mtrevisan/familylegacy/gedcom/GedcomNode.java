@@ -188,6 +188,8 @@ public abstract class GedcomNode{
 				addChild(createNewNodeWithTag(tag)
 					.withValue(value));
 		}
+		else
+			addChildValue(tag, value);
 		return this;
 	}
 
