@@ -193,6 +193,43 @@ n @<XREF:EVENT>@ EVENT    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
 
 
+/*types
+2 TYPE 28 JUL
+2 TYPE Anecdote
+2 TYPE Citizenship
+2 TYPE Commemoration
+2 TYPE Comment
+2 TYPE DEED
+2 TYPE Deed
+2 TYPE Degree
+2 TYPE Deportation
+2 TYPE Emigration
+2 TYPE Employer
+2 TYPE FAM
+2 TYPE Family Address
+2 TYPE Family nickname
+2 TYPE Hospitalization
+2 TYPE INDI
+2 TYPE Illness
+2 TYPE Immigration
+2 TYPE Membership
+2 TYPE Midwife
+2 TYPE Military Enlistment
+2 TYPE Military Service
+2 TYPE Move
+2 TYPE Name Change
+2 TYPE Named After
+2 TYPE Nickname
+2 TYPE Physical Description
+2 TYPE Retirement Home
+2 TYPE Separation
+2 TYPE Twin
+2 TYPE WAR
+2 TYPE civil
+2 TYPE deed
+2 TYPE really happened?
+2 TYPE religious
+*/
 INDIVIDUAL_EVENT_RECORD :=
 [
 n @<XREF:EVENT>@ EVENT    {1:1}
