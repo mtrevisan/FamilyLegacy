@@ -782,7 +782,7 @@ public final class Transformer extends TransformerHelper{
 	 */
 	private List<GedcomNode[]> singleSourceCitationTo(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination){
 		final List<GedcomNode[]> response = new ArrayList<>();
-		String sourceCitationXRef = sourceCitation.getXRef();
+		final String sourceCitationXRef = sourceCitation.getXRef();
 		if(sourceCitationXRef == null){
 			final GedcomNode destinationSourceRecord = create("SOURCE")
 				.addChildValue("TITLE", sourceCitation.getValue());

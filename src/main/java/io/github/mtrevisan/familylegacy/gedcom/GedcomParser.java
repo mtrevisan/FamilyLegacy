@@ -37,13 +37,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 final class GedcomParser{
@@ -104,7 +104,7 @@ final class GedcomParser{
 			lineCount = 0;
 			startDocument();
 
-			final Set<String> references = new HashSet<>();
+			final Collection<String> references = new HashSet<>();
 
 			String line;
 			int currentLevel;
@@ -154,7 +154,7 @@ final class GedcomParser{
 
 			//check referential integrity:
 			final List<GedcomNode> children = root.getChildren();
-			final Set<String> ids = new HashSet<>(children.size());
+			final Collection<String> ids = new HashSet<>(children.size());
 			for(final GedcomNode child : children)
 				ids.add(child.getID());
 			ids.add(CalendarParserBuilder.CALENDAR_HEBREW.substring(1, CalendarParserBuilder.CALENDAR_HEBREW.length() - 1));

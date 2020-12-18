@@ -32,7 +32,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +124,7 @@ public abstract class Store{
 		}
 	}
 
-	static TreeMap<String, GedcomNode> generateIndexes(final Collection<GedcomNode> list){
+	static TreeMap<String, GedcomNode> generateIndexes(final Iterable<GedcomNode> list){
 		final TreeMap<String, GedcomNode> indexes = new TreeMap<>();
 		if(list != null)
 			for(final GedcomNode elem : list)

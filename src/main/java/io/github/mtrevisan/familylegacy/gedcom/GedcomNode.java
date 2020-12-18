@@ -39,7 +39,7 @@ import java.util.List;
 
 public abstract class GedcomNode{
 
-	protected static final char NEW_LINE = '\n';
+	static final char NEW_LINE = '\n';
 
 
 	protected int level;
@@ -120,7 +120,7 @@ public abstract class GedcomNode{
 	 * Returns the value associated with this node.
 	 */
 	public String getRawValue(){
-		return value;
+		return StringUtils.replace(value, "@", "@@");
 	}
 
 	/**
@@ -173,15 +173,12 @@ public abstract class GedcomNode{
 			removeChildrenWithTag(tag);
 		else if(children != null){
 			boolean found = false;
-			final Iterator<GedcomNode> itr = children.iterator();
-			while(itr.hasNext()){
-				final GedcomNode child = itr.next();
+			for(final GedcomNode child : children)
 				if(child.tag.equals(tag)){
 					child.withValue(value);
 					found = true;
 					break;
 				}
-			}
 
 			if(!found)
 				//create child
@@ -243,29 +240,6 @@ public abstract class GedcomNode{
 
 	GedcomNode addChildEvenIfEmpty(final GedcomNode child){
 		return addChildInner((children != null? children.size(): 0), child);
-	}
-
-	/**
-	 * Inserts a child after a given node.
-	 * <p>WARNING: THE NODE AFTER MUST BE PRESENT!!!</p>.
-	 * <p>WARNING: DOES NOT INSERTS AS FIRST ELEMENT!!!</p>.
-	 *
-	 * @param child	Node to add.
-	 * @param nodeAfter	Node that should be after the inserted node.
-	 */
-	public void addChildBefore(final GedcomNode child, final GedcomNode nodeAfter){
-		if(!child.isEmpty() && (child.value != null || child.hasChildren())){
-			if(children == null){
-				children = new ArrayList<>(1);
-				addChild(child);
-			}
-			else if(nodeAfter != null){
-				final int index = children.indexOf(nodeAfter);
-				addChild(index, child);
-			}
-			else
-				addChild(child);
-		}
 	}
 
 	public GedcomNode addChildren(final Iterable<GedcomNode> children){
