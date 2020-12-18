@@ -272,6 +272,7 @@ public class Gedcom extends Store{
 		super.write(os);
 	}
 
+
 	public GedcomNode getHeader(){
 		return header;
 	}
@@ -279,6 +280,7 @@ public class Gedcom extends Store{
 	public void setHeader(final GedcomNode header){
 		this.header = header;
 	}
+
 
 	public List<GedcomNode> getIndividuals(){
 		return individuals;
@@ -294,11 +296,8 @@ public class Gedcom extends Store{
 			individualIndex = new HashMap<>(1);
 		}
 
-		String individualID = individual.getID();
-		if(individualID == null){
-			individualID = getNextIndividualID();
-			individual.withID(individualID);
-		}
+		final String individualID = getNextIndividualID();
+		individual.withID(individualID);
 
 		individuals.add(individual);
 		individualIndex.put(individual.getID(), individual);
@@ -308,6 +307,7 @@ public class Gedcom extends Store{
 	private String getNextIndividualID(){
 		return ID_INDIVIDUAL_PREFIX + (individualId ++);
 	}
+
 
 	public List<GedcomNode> getFamilies(){
 		return families;
@@ -323,11 +323,8 @@ public class Gedcom extends Store{
 			familyIndex = new HashMap<>(1);
 		}
 
-		String familyID = family.getID();
-		if(familyID == null){
-			familyID = getNextFamilyID();
-			family.withID(familyID);
-		}
+		final String familyID = getNextFamilyID();
+		family.withID(familyID);
 
 		families.add(family);
 		familyIndex.put(family.getID(), family);
@@ -337,6 +334,7 @@ public class Gedcom extends Store{
 	private String getNextFamilyID(){
 		return ID_FAMILY_PREFIX + (familyId ++);
 	}
+
 
 	public List<GedcomNode> getDocuments(){
 		return documents;
@@ -357,11 +355,8 @@ public class Gedcom extends Store{
 				documentValue = new HashMap<>(1);
 			}
 
-			documentID = document.getID();
-			if(documentID == null){
-				documentID = getNextDocumentID();
-				document.withID(documentID);
-			}
+			documentID = getNextDocumentID();
+			document.withID(documentID);
 
 			documents.add(document);
 			documentIndex.put(documentID, document);
@@ -373,6 +368,7 @@ public class Gedcom extends Store{
 	private String getNextDocumentID(){
 		return ID_DOCUMENT_PREFIX + (documentId ++);
 	}
+
 
 	public List<GedcomNode> getNotes(){
 		return notes;
@@ -393,11 +389,8 @@ public class Gedcom extends Store{
 				noteValue = new HashMap<>(1);
 			}
 
-			noteID = note.getID();
-			if(noteID == null){
-				noteID = getNextNoteID();
-				note.withID(noteID);
-			}
+			noteID = getNextNoteID();
+			note.withID(noteID);
 
 			notes.add(note);
 			noteIndex.put(noteID, note);
@@ -409,6 +402,7 @@ public class Gedcom extends Store{
 	private String getNextNoteID(){
 		return ID_NOTE_PREFIX + (noteId ++);
 	}
+
 
 	public List<GedcomNode> getRepositories(){
 		return repositories;
@@ -429,11 +423,8 @@ public class Gedcom extends Store{
 				repositoryValue = new HashMap<>(1);
 			}
 
-			repositoryID = repository.getID();
-			if(repositoryID == null){
-				repositoryID = getNextRepositoryID();
-				repository.withID(repositoryID);
-			}
+			repositoryID = getNextRepositoryID();
+			repository.withID(repositoryID);
 
 			repositories.add(repository);
 			repositoryIndex.put(repositoryID, repository);
@@ -455,6 +446,10 @@ public class Gedcom extends Store{
 		return sourceIndex.get(id);
 	}
 
+	public String retrieveSourceID(final GedcomNode source){
+		return (!source.isEmpty() && sourceValue != null? sourceValue.get(source.hashCode()): null);
+	}
+
 	public String addSource(final GedcomNode source){
 		//search source
 		String sourceID = (!source.isEmpty() && sourceValue != null? sourceValue.get(source.hashCode()): null);
@@ -466,11 +461,8 @@ public class Gedcom extends Store{
 				sourceValue = new HashMap<>(1);
 			}
 
-			sourceID = source.getID();
-			if(sourceID == null){
-				sourceID = getNextSourceID();
-				source.withID(sourceID);
-			}
+			sourceID = getNextSourceID();
+			source.withID(sourceID);
 
 			sources.add(source);
 			sourceIndex.put(sourceID, source);
@@ -503,11 +495,8 @@ public class Gedcom extends Store{
 				objectValue = new HashMap<>(1);
 			}
 
-			objectID = object.getID();
-			if(objectID == null){
-				objectID = getNextObjectID();
-				object.withID(objectID);
-			}
+			objectID = getNextObjectID();
+			object.withID(objectID);
 
 			objects.add(object);
 			objectIndex.put(objectID, object);
@@ -537,10 +526,8 @@ public class Gedcom extends Store{
 				submitterIndex = new HashMap<>(1);
 			}
 
-			if(submitterID == null){
-				submitterID = getNextSubmitterID();
-				submitter.withID(submitterID);
-			}
+			submitterID = getNextSubmitterID();
+			submitter.withID(submitterID);
 
 			submitters.add(submitter);
 			submitterIndex.put(submitter.getID(), submitter);

@@ -198,17 +198,20 @@ class TransformerSourceCitationTest{
 				.addChildValue("CREDIBILITY", "CREDIBILITY_ASSESSMENT")
 			);
 		final GedcomNode source = transformerFrom.createWithID("SOURCE", "S1");
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
+		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "N1", "NOTE 1");
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: LOCATION, value: WHERE_WITHIN_SOURCE}, {tag: ROLE, value: ROLE_IN_EVENT}, {tag: CUTOUT, value: CUTOUT_COORDINATES}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CREDIBILITY_ASSESSMENT}]}]", parent.toString());
 		Assertions.assertEquals("id: S1, tag: SOURCE", source.toString());
-		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
+		Assertions.assertEquals("id: N1, tag: NOTE, value: NOTE 1", note.toString());
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
 		origin.addSource(source);
 		origin.addNote(note);
-		transformerFrom.sourceCitationFrom(parent, destinationNode, origin);
+		final Gedcom destination = new Gedcom();
+		destination.addSource(source);
+		destination.addNote(note);
+		transformerFrom.sourceCitationFrom(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOUR, ref: S1, children: [{tag: PAGE, value: WHERE_WITHIN_SOURCE}, {tag: EVEN, children: [{tag: ROLE, value: ROLE_IN_EVENT}]}, {tag: QUAY, value: CREDIBILITY_ASSESSMENT}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
 	}

@@ -161,7 +161,7 @@ class TransformerFamilyRecordTest{
 		final GedcomNode source = transformerFrom.createWithID("SOURCE", "S1");
 		final GedcomNode place = transformerFrom.createWithID("PLACE", "P1")
 			.addChildValue("NAME", "PLACE_NAME");
-		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
+		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "N1", "NOTE 1");
 
 		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: marriage}, {tag: INDIVIDUAL, ref: I1}, {tag: INDIVIDUAL, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: GROUP, ref: G1}, {tag: CULTURAL_RULE, ref: C1}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", family.toString());
 
@@ -176,6 +176,8 @@ class TransformerFamilyRecordTest{
 		origin.addPlace(place);
 		origin.addNote(note);
 		final Gedcom destination = new Gedcom();
+		destination.addSource(source);
+		destination.addNote(note);
 		transformerFrom.familyRecordFrom(family, origin, destination);
 
 		Assertions.assertEquals("id: F1, tag: FAM, children: [{tag: HUSB, ref: I1}, {tag: WIFE, ref: I2}, {tag: CHIL, ref: I3}, {tag: BIRT, value: Y, children: [{tag: TYPE, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE1}, {tag: DATE, value: ENTRY_RECORDING_DATE1}, {tag: PLAC, value: PLACE_NAME}, {tag: AGNC, value: RESPONSIBLE_AGENCY1}, {tag: CAUS, value: CAUSE_OF_EVENT1}, {tag: NOTE, ref: N1}, {tag: SOUR, ref: S1}]}, {tag: ADOP, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2, children: [{tag: DATE, value: ENTRY_RECORDING_DATE2}, {tag: AGNC, value: RESPONSIBLE_AGENCY2}, {tag: CAUS, value: CAUSE_OF_EVENT2}]}, {tag: RESI, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE3, children: [{tag: DATE, value: ENTRY_RECORDING_DATE3}, {tag: AGNC, value: RESPONSIBLE_AGENCY3}, {tag: CAUS, value: CAUSE_OF_EVENT3}]}, {tag: EVEN, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE4, children: [{tag: TYPE, value: EVENT_DESCRIPTOR}, {tag: DATE, value: ENTRY_RECORDING_DATE4}, {tag: AGNC, value: RESPONSIBLE_AGENCY4}, {tag: CAUS, value: CAUSE_OF_EVENT4}]}, {tag: EVEN, value: EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE5, children: [{tag: TYPE, value: custom}, {tag: DATE, value: ENTRY_RECORDING_DATE5}, {tag: AGNC, value: RESPONSIBLE_AGENCY5}, {tag: CAUS, value: CAUSE_OF_EVENT5}]}, {tag: NOTE, ref: N1}, {tag: SOUR, ref: S1}]", destination.getFamilies().get(0).toString());
