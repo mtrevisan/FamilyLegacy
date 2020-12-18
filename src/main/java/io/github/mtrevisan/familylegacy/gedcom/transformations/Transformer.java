@@ -502,11 +502,11 @@ public final class Transformer extends TransformerHelper{
 		for-each OBJE[rec].SOUR
 			pick-one: SOURCE.LOCATION.value = OBJE[rec].SOUR.PAGE.value
 			pick-one: SOURCE.ROLE.value = OBJE[rec].SOUR.EVEN.ROLE.value
-			transfer OBJE[rec].SOUR.NOTE to SOURCE.NOTE
+			transfer OBJE[rec].SOUR.NOTE to SOURCE[rec].NOTE
 		SOURCE.CUTOUT.value = OBJE._CUTD.value
 		//FIXME
 		remember = OBJE._PREF{Y}
-		transfer OBJE[rec].NOTE to SOURCE.NOTE
+		transfer OBJE[rec].NOTE to SOURCE[rec].NOTE
 		SOURCE.CREDIBILITY.value = OBJE[rec].QUAY.value
 
 		for-each OBJE[rec].FILE create SOURCE[rec]
@@ -516,7 +516,7 @@ public final class Transformer extends TransformerHelper{
 			SOURCE[rec].DATE.value = OBJE[rec].SOUR.DATA.DATE.value
 			SOURCE[rec].FILE.value = OBJE[rec].FILE.value
 			pick-one: SOURCE[rec].MEDIA_TYPE.value = OBJE[rec].FILE.FORM.TYPE.value
-			SOURCE[rec].FILE.EXTRACT.value = OBJE[rec].SOUR.DATA.TEXT.value | SOUR.TEXT.value
+			SOURCE[rec].FILE.EXTRACT.value = OBJE[rec].SOUR.DATA.TEXT.value | OBJE.SOUR.TEXT.value
 		for-each OBJE.FILE create SOURCE[rec]
 			SOURCE[rec].TITLE.value = OBJE.TITL.value
 			SOURCE[rec].DATE.value = OBJE._DATE.value
@@ -532,45 +532,53 @@ public final class Transformer extends TransformerHelper{
 				//load record
 				object = origin.getObject(objectXRef);
 
-			final GedcomNode destinationSource = create("SOURCE");
-			String mediaType = null;
-			final StringJoiner title = new StringJoiner(", ");
+			final List<GedcomNode> sources = traverseAsList(object, "SOUR[]");
+			String location = null;
+			for(int i = 0; location == null && i < sources.size(); i ++)
+				location = traverse(sources.get(i), "PAGE").getValue();
+			String role = null;
+			for(int i = 0; role == null && i < sources.size(); i ++)
+				role = traverse(sources.get(i), "EVEN.ROLE").getValue();
+
+			final GedcomNode source = traverse(object, "SOUR");
+			final GedcomNode sourceData = traverse(source, "DATA");
+			final String sourceEvent = traverse(source, "EVEN").getValue();
+			final String sourceTitle = traverse(object, "TITL").getValue();
+			String sourceDate = traverse(object, "_DATE").getValue();
+			if(sourceDate == null)
+				sourceDate = traverse(sourceData, "DATE").getValue();
+			final String sourceDescription = source.getValue();
 			final String restriction = ("Y".equals(traverse(object, "_PUBL").getValue())? null: "private");
 			final List<GedcomNode> files = traverseAsList(object, "FILE[]");
+			String mediaType = traverse(object, "FORM.MEDI").getValue();
+			if(mediaType == null)
+				for(int i = 0; mediaType == null && i < files.size(); i ++)
+					mediaType = traverse(files.get(i), "FORM.TYPE").getValue();
+			final GedcomNode extraction = traverse(source, "TEXT");
+			final GedcomNode destinationSource = create("SOURCE");
 			for(final GedcomNode file : files){
-				destinationSource.addChild(createWithValue("FILE", file.getValue())
-					.addChildValue("RESTRICTION", restriction)
-				);
-				if(mediaType == null)
-					mediaType = traverse(file, "FORM.TYPE").getValue();
-				JavaHelper.addValueIfNotNull(title, traverse(file, "TITL").getValue());
+				final String sourceFileTitle = traverse(file, "TITL").getValue();
+				destinationSource.addChildValue("EVENT", sourceEvent)
+					.addChildValue("TITLE", (sourceFileTitle != null? sourceFileTitle: sourceTitle));
+				addDateTo(sourceDate, destinationSource, destination);
+				final GedcomNode destinationFile = createWithValue("FILE", file.getValue())
+					.addChildValue("DESCRIPTION", sourceDescription)
+					.addChildValue("RESTRICTION", restriction);
+				destinationSource.addChild(destinationFile)
+					.addChildValue("MEDIA_TYPE", mediaType);
 			}
-			destinationSource
-				.addChildValue("MEDIA_TYPE", mediaType)
-				.addChildValue("TITLE", title.toString());
+			final List<GedcomNode> extracts = (!extraction.isEmpty()? Collections.singletonList(extraction):
+				traverseAsList(sourceData, "TEXT[]"));
+			assignExtractionsTo(extracts, destinationSource);
+
+			destinationSource.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
+			//FIXME remember "Y".equals(traverse(object, "_PREF").getValue())
+
+			for(final GedcomNode s : sources)
+				noteCitationTo(s, destinationSource, origin, destination);
 			noteCitationTo(object, destinationSource, origin, destination);
-			sourceCitationTo(object, destinationSource, origin, destination);
-			final List<GedcomNode> sourceCitations = traverseAsList(object, "SOUR[]");
-			for(final GedcomNode sourceCitation : sourceCitations){
-				final List<GedcomNode[]> addedSources = singleSourceCitationTo(sourceCitation, origin, destination);
-				for(final GedcomNode[] addedSource : addedSources){
-					final GedcomNode destinationSourceReference = addedSource[0];
-					final GedcomNode destinationSourceRecord = addedSource[1];
+			destinationSource.addChildValue("CREDIBILITY", traverse(object, "QUAY").getValue());
 
-					destinationSourceRecord
-						.addChildValue("TITLE", traverse(object, "TITL").getValue())
-						.addChildValue("DATE", traverse(object, "_DATE").getValue())
-						.addChildValue("MEDIA_TYPE", traverse(object, "FORM.MEDI").getValue());
-					final List<GedcomNode> files2 = traverseAsList(object, "FILE[]");
-					for(final GedcomNode file : files2)
-						destinationSource.addChild(createWithValue("FILE", file.getValue())
-							.addChildValue("RESTRICTION", restriction)
-						);
-
-					//add source citation:
-					destinationNode.addChild(destinationSourceReference);
-				}
-			}
 
 			destination.addSource(destinationSource);
 			destinationNode.addChild(createWithReference("SOURCE", destinationSource.getID())
