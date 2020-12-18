@@ -121,7 +121,7 @@ public class Gedcom extends Store{
 		try{
 			final Store store = new Gedcom();
 //			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
-			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large2.ged");
 
 			final Store storeFlef = store.transform();
 
@@ -379,23 +379,18 @@ public class Gedcom extends Store{
 	}
 
 	public String addNote(final GedcomNode note){
-		//search note
-		String noteID = (!note.isEmpty() && noteValue != null? noteValue.get(note.hashCode()): null);
-		if(noteID == null){
-			//if note is not found:
-			if(notes == null){
-				notes = new ArrayList<>(1);
-				noteIndex = new HashMap<>(1);
-				noteValue = new HashMap<>(1);
-			}
-
-			noteID = getNextNoteID();
-			note.withID(noteID);
-
-			notes.add(note);
-			noteIndex.put(noteID, note);
-			noteValue.put(note.hashCode(), noteID);
+		if(notes == null){
+			notes = new ArrayList<>(1);
+			noteIndex = new HashMap<>(1);
+			noteValue = new HashMap<>(1);
 		}
+
+		final String noteID = getNextNoteID();
+		note.withID(noteID);
+
+		notes.add(note);
+		noteIndex.put(noteID, note);
+		noteValue.put(note.hashCode(), noteID);
 		return noteID;
 	}
 

@@ -12877,7 +12877,6 @@
 3 DATA
 4 DATE 30 MAR 1816
 1 SEX F
-1 ASSO @@
 2 TYPE INDI
 2 RELA
 1 FAMS @F72@
@@ -50452,7 +50451,6 @@
 2 PLAC Ospedaletto di Istrana, Treviso, Italy
 1 EVEN Porcelengo /porθeˈlengo/
 2 TYPE Family nickname
-2 SOUR @@
 1 OCCU kanpanèr
 2 SOUR @S436@
 3 PAGE pag 27, #88
@@ -53586,6 +53584,7 @@
 2 PEDI birth
 1 BIRT Y
 2 TYPE religious
+3 MAP
 4 LATI N45.65056
 4 LONG E12.21333
 1 DEAT Y
@@ -83617,7 +83616,6 @@
 3 DATA
 4 DATE 11 JUN 1658
 1 SEX M
-1 ALIA @I2624@
 1 ALIA @I2583@
 1 ALIA @I2620@
 1 FAMS @F1080@

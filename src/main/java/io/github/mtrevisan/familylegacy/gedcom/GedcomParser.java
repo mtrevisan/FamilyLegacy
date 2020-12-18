@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.services.TimeWatch;
 import org.apache.commons.lang3.StringUtils;
@@ -125,11 +126,11 @@ final class GedcomParser{
 				currentLevel = child.getLevel();
 				//if `currentLevel` is greater than `previousLevel+1`, ignore it until it comes back down
 				if(currentLevel > previousLevel + 1)
-					throw GedcomParseException.create("Current-level > previous-level + 1 at line {}", lineCount);
+					throw GedcomParseException.create("current-level > previous-level + 1");
 				if(currentLevel < 0)
-					throw GedcomParseException.create("Current-level < 0 at line {}", lineCount);
+					throw GedcomParseException.create("current-level < 0");
 				if(child.getTag() == null)
-					throw GedcomParseException.create("Tag not found at line {}", lineCount);
+					throw GedcomParseException.create("Tag not found");
 
 				//close pending levels
 				while(currentLevel <= previousLevel){
@@ -156,6 +157,10 @@ final class GedcomParser{
 			final Set<String> ids = new HashSet<>(children.size());
 			for(final GedcomNode child : children)
 				ids.add(child.getID());
+			ids.add(CalendarParserBuilder.CALENDAR_HEBREW.substring(1, CalendarParserBuilder.CALENDAR_HEBREW.length() - 1));
+			ids.add(CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN.substring(1, CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN.length() - 1));
+			ids.add(CalendarParserBuilder.CALENDAR_GREGORIAN.substring(1, CalendarParserBuilder.CALENDAR_GREGORIAN.length() - 1));
+			ids.add(CalendarParserBuilder.CALENDAR_JULIAN.substring(1, CalendarParserBuilder.CALENDAR_JULIAN.length() - 1));
 			references.removeAll(ids);
 			if(!references.isEmpty())
 				throw GedcomParseException.create("Cannot find object for IDs [{}]", String.join(", ", references))

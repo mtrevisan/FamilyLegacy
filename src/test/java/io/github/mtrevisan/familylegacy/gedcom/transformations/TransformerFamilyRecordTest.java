@@ -93,7 +93,7 @@ class TransformerFamilyRecordTest{
 		transformerTo.noteRecordTo(note1, destination);
 		transformerTo.familyRecordTo(family, origin, destination);
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: INDIVIDUAL, ref: I1}, {tag: INDIVIDUAL, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: CREDIBILITY, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: INDIVIDUAL, ref: I1}, {tag: INDIVIDUAL, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N2}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: CREDIBILITY, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
 		Assertions.assertEquals("id: E1, tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION1}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(0).toString());
 		Assertions.assertEquals("id: E2, tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(1).toString());
 		Assertions.assertEquals("id: E3, tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(2).toString());

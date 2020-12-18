@@ -609,27 +609,20 @@ public class Flef extends Store{
 	}
 
 	public String addNote(final GedcomNode note){
-		//search note
-		String noteID = (!note.isEmpty() && noteValue != null? noteValue.get(note.hashCode()): null);
-		if(noteID == null){
-			//if note is not found:
-			if(notes == null){
-				notes = new ArrayList<>(1);
-				noteIndex = new TreeMap<>();
-				noteValue = new HashMap<>(1);
-			}
-
-			noteID = getNextNoteID();
-			note.withID(noteID);
-
-			notes.add(note);
-			noteIndex.put(noteID, note);
-			noteValue.put(note.hashCode(), noteID);
-
-			EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
+		if(notes == null){
+			notes = new ArrayList<>(1);
+			noteIndex = new TreeMap<>();
+			noteValue = new HashMap<>(1);
 		}
-		else
-			note.withID(noteID);
+
+		final String noteID = getNextNoteID();
+		note.withID(noteID);
+
+		notes.add(note);
+		noteIndex.put(noteID, note);
+		noteValue.put(note.hashCode(), noteID);
+
+		EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
 		return noteID;
 	}
 

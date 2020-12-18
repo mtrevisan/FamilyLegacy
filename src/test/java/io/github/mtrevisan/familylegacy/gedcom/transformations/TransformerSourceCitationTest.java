@@ -146,7 +146,7 @@ class TransformerSourceCitationTest{
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}, {tag: NOTE, ref: N2}]", destination.getSources().get(0).toString());
 	}
 
 	@Test
@@ -180,7 +180,7 @@ class TransformerSourceCitationTest{
 		transformerTo.sourceCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: SOURCE_DESCRIPTION}, {tag: NOTE, ref: N1}, {tag: CREDIBILITY, value: CERTAINTY_ASSESSMENT}, {tag: NOTE, ref: N2}]", destination.getSources().get(0).toString());
 	}
 
 
