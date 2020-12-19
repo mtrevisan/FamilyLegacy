@@ -221,8 +221,8 @@ final class GedcomGrammar{
 					if(!idToVariationsLinks.containsKey(structureName) && !variationsLinksToId.containsKey(structureName))
 						throw GedcomGrammarParseException.create("Record {} not found", structureName);
 		}
-		catch(final IOException e){
-			throw GedcomGrammarParseException.create("Failed to read line {}", lineCount);
+		catch(final Exception e){
+			throw GedcomGrammarParseException.create("Failed to read line {}: {}", lineCount, e.getMessage(), e);
 		}
 
 		LOGGER.info("Adding objects done ({} objects parsed)", structures.size());

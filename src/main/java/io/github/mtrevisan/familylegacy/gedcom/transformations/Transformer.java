@@ -402,8 +402,7 @@ public final class Transformer extends TransformerHelper{
 					);
 			}
 		}
-		final String dateValue = traverse(event, "DATE").getValue();
-		addDateTo(dateValue, destinationEvent, destination);
+		addDateTo(traverse(event, "DATE"), destinationEvent, destination);
 		placeAddressStructureTo(event, destinationEvent, origin, destination);
 		contactStructureTo(event, destinationEvent);
 		destinationEvent.addChildValue("AGENCY", traverse(event, "AGNC").getValue())
@@ -558,9 +557,9 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode sourceData = traverse(source, "DATA");
 		final String sourceEvent = traverse(source, "EVEN").getValue();
 		final String sourceTitle = traverse(object, "TITL").getValue();
-		String sourceDate = traverse(object, "_DATE").getValue();
-		if(sourceDate == null)
-			sourceDate = traverse(sourceData, "DATE").getValue();
+		GedcomNode sourceDate = traverse(object, "_DATE");
+		if(sourceDate.isEmpty())
+			sourceDate = traverse(sourceData, "DATE");
 		final String sourceDescription = source.getValue();
 		final String restriction = ("Y".equals(traverse(object, "_PUBL").getValue())? null: "private");
 		final List<GedcomNode> files = traverseAsList(object, "FILE[]");
@@ -812,8 +811,7 @@ public final class Transformer extends TransformerHelper{
 					else
 						event.withValue(event.getValue() + "," + sourceCitationValue);
 				}
-				final String sourceCitationDateValue = traverse(destinationSourceRecord, "DATA.DATE").getValue();
-				addDateTo(sourceCitationDateValue, destinationSourceRecord, destination);
+				addDateTo(traverse(destinationSourceRecord, "DATA.DATE"), destinationSourceRecord, destination);
 
 				multimediaCitationTo(sourceCitation, destinationSourceReference, origin, destination);
 				destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
@@ -823,9 +821,9 @@ public final class Transformer extends TransformerHelper{
 		return response;
 	}
 
-	private void addDateTo(final String value, final GedcomNode destinationNode, final Flef destination){
-		if(value != null){
-			final String calendarType = CalendarParserBuilder.getCalendarType(value);
+	private void addDateTo(final GedcomNode date, final GedcomNode destinationNode, final Flef destination){
+		if(!date.isEmpty()){
+			final String calendarType = date.getXRef();
 			//search for calendar type
 			final GedcomNode calendar = destination.getCalendarByType(calendarType);
 			if(calendar.isEmpty()){
@@ -835,7 +833,7 @@ public final class Transformer extends TransformerHelper{
 				//insert calendar
 				destination.addCalendar(calendar);
 			}
-			destinationNode.addChild(createWithValue("DATE", CalendarParserBuilder.removeCalendarType(value))
+			destinationNode.addChild(createWithValue("DATE", date.getValue())
 				.addChildReference("CALENDAR", calendar.getID())
 			);
 		}
@@ -883,8 +881,8 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("TITLE", title)
 				.addChildValue("AUTHOR", author)
 				.addChildValue("PUBLICATION_FACTS", publicationFacts);
-			final String dateValue = traverse(sourceDataEvent, "DATE").getValue();
-			addDateTo(dateValue, destinationSource, destination);
+			final GedcomNode date = traverse(sourceDataEvent, "DATE");
+			addDateTo(date, destinationSource, destination);
 			repositoryCitationTo(source, destinationSource, origin, destination);
 			multimediaCitationTo(source, destinationSource, origin, destination);
 			noteCitationTo(sourceData, destinationSource, origin, destination);
@@ -910,7 +908,7 @@ public final class Transformer extends TransformerHelper{
 						.replaceChildValue("EVENT", event)
 						.replaceChildValue("AUTHOR", author)
 						.replaceChildValue("PUBLICATION_FACTS", publicationFacts);
-					addDateTo(dateValue, destinationSubSource, destination);
+					addDateTo(date, destinationSubSource, destination);
 					final GedcomNode object = objects.get(i);
 					sourceRecordMultimediaCitationTo(object, destinationSubSource, origin, destination);
 					createWithReference("SOURCE", destinationSource.getID())

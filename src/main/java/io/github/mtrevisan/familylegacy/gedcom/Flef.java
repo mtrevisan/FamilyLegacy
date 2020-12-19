@@ -799,7 +799,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getCalendarByType(final String type){
-		if(calendars != null)
+		if(calendars != null && type != null)
 			for(final GedcomNode calendar : calendars)
 				if(type.equals(traverse(calendar, "TYPE").getValue()))
 					return calendar;
@@ -808,7 +808,7 @@ public class Flef extends Store{
 
 	public String addCalendar(final GedcomNode calendar){
 		//search calendar
-		String calendarID = (!calendar.isEmpty() && calendarValue != null? calendarValue.get(calendar.hashCode()): null);
+		String calendarID = (calendarValue != null? calendarValue.get(calendar.hashCode()): null);
 		if(calendarID == null){
 			//if calendar is not found:
 			if(calendars == null){
