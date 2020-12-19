@@ -359,12 +359,15 @@ public class FamilyPanel extends JPanel{
 			if(date != null){
 				final int my = date.getYear();
 				if(marriagePlace == null || my < marriageYear){
-					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						final String placeValue = extractPlace(place, store);
-						if(placeValue != null){
-							marriageYear = my;
-							marriagePlace = placeValue;
+					GedcomNode place = store.traverse(node, "PLACE");
+					if(!place.isEmpty()){
+						place = store.getPlace(place.getXRef());
+						if(place != null){
+							final String placeValue = extractPlace(place, store);
+							if(placeValue != null){
+								marriageYear = my;
+								marriagePlace = placeValue;
+							}
 						}
 					}
 				}
@@ -407,28 +410,8 @@ public class FamilyPanel extends JPanel{
 	}
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
-		int addressYear = 0;
-		GedcomNode addressEarliest = null;
 		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
-		for(final GedcomNode address : addresses){
-			final GedcomNode source = store.getSource(store.traverse(address, "SOURCE").getXRef());
-			final String addressDateValue = store.traverse(source, "DATE").getValue();
-			final LocalDate addressDate = DateParser.parse(addressDateValue);
-			if(addressDate != null){
-				final int ay = addressDate.getYear();
-				if(addressEarliest == null || ay < addressYear){
-					addressYear = ay;
-					addressEarliest = address;
-				}
-			}
-		}
-		if(addressEarliest == null){
-			addressEarliest = store.traverse(place, "ADDRESS");
-			//TCGB
-			if(addressEarliest.getValue() == null)
-				addressEarliest = store.traverse(place, "NAME");
-		}
-		return addressEarliest;
+		return (addresses.isEmpty()? null: addresses.get(0));
 	}
 
 

@@ -136,8 +136,8 @@ public class Flef extends Store{
 
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
-	private Map<Integer, String> noteValue;
 	private Map<Integer, String> repositoryValue;
+	private Map<Integer, String> culturalRuleValue;
 	private Map<Integer, String> sourceValue;
 	private Map<Integer, String> calendarValue;
 
@@ -206,6 +206,7 @@ public class Flef extends Store{
 		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
 		sources = root.getChildrenWithTag(TAG_SOURCE);
 		calendars = root.getChildrenWithTag(TAG_CALENDAR);
+		historicEvents = root.getChildrenWithTag(TAG_HISTORIC_EVENT);
 
 		individualIndex = generateIndexes(individuals);
 		familyIndex = generateIndexes(families);
@@ -217,11 +218,12 @@ public class Flef extends Store{
 		culturalRuleIndex = generateIndexes(culturalRules);
 		sourceIndex = generateIndexes(sources);
 		calendarIndex = generateIndexes(calendars);
+		historicEventIndex = generateIndexes(historicEvents);
 
 		eventValue = reverseMap(eventIndex);
 		placeValue = reverseMap(placeIndex);
-		noteValue = reverseMap(noteIndex);
 		repositoryValue = reverseMap(repositoryIndex);
+		culturalRuleValue = reverseMap(culturalRuleIndex);
 		sourceValue = reverseMap(sourceIndex);
 		calendarValue = reverseMap(calendarIndex);
 
@@ -245,6 +247,8 @@ public class Flef extends Store{
 			sourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!calendarIndex.isEmpty())
 			calendarId = extractLastID(calendarIndex.lastKey()) + 1;
+		if(!historicEventIndex.isEmpty())
+			historicEventId = extractLastID(historicEventIndex.lastKey()) + 1;
 	}
 
 	@Override
@@ -620,7 +624,6 @@ public class Flef extends Store{
 		if(notes == null){
 			notes = new ArrayList<>(1);
 			noteIndex = new TreeMap<>();
-			noteValue = new HashMap<>(1);
 		}
 
 		final String noteID = getNextNoteID();
@@ -628,7 +631,6 @@ public class Flef extends Store{
 
 		notes.add(note);
 		noteIndex.put(noteID, note);
-		noteValue.put(note.hashCode(), noteID);
 
 		EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
 		return noteID;
@@ -712,21 +714,27 @@ public class Flef extends Store{
 	}
 
 	public void addCulturalRule(final GedcomNode culturalRule){
-		if(culturalRules == null){
-			culturalRules = new ArrayList<>(1);
-			culturalRuleIndex = new TreeMap<>();
-		}
-
-		String culturalRuleID = culturalRule.getID();
+		//search cultural rule
+		String culturalRuleID = (!culturalRule.isEmpty() && culturalRuleValue != null? culturalRuleValue.get(culturalRule.hashCode()): null);
 		if(culturalRuleID == null){
+			//if cultural rule is not found:
+			if(culturalRules == null){
+				culturalRules = new ArrayList<>(1);
+				culturalRuleIndex = new TreeMap<>();
+				culturalRuleValue = new HashMap<>(1);
+			}
+
 			culturalRuleID = getNextCulturalRuleID();
 			culturalRule.withID(culturalRuleID);
+
+			culturalRules.add(culturalRule);
+			culturalRuleIndex.put(culturalRuleID, culturalRule);
+			culturalRuleValue.put(culturalRule.hashCode(), culturalRuleID);
+
+			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
 		}
-
-		culturalRules.add(culturalRule);
-		culturalRuleIndex.put(culturalRule.getID(), culturalRule);
-
-		EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+		else
+			culturalRule.withID(culturalRuleID);
 	}
 
 	public String removeCulturalRule(final GedcomNode culturalRule){

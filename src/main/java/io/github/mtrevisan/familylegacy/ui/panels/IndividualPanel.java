@@ -478,12 +478,15 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			if(date != null){
 				final int my = date.getYear();
 				if(birthPlace == null || my < birthYear){
-					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						final String placeValue = extractPlace(place, store);
-						if(placeValue != null){
-							birthYear = my;
-							birthPlace = placeValue;
+					GedcomNode place = store.traverse(node, "PLACE");
+					if(!place.isEmpty()){
+						place = store.getPlace(place.getXRef());
+						if(place != null){
+							final String placeValue = extractPlace(place, store);
+							if(placeValue != null){
+								birthYear = my;
+								birthPlace = placeValue;
+							}
 						}
 					}
 				}
@@ -522,22 +525,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
-		int addressYear = 0;
-		GedcomNode addressEarliest = null;
 		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
-		for(final GedcomNode address : addresses){
-			final GedcomNode source = store.getSource(store.traverse(address, "SOURCE").getXRef());
-			final String addressDateValue = store.traverse(source, "DATE").getValue();
-			final LocalDate addressDate = DateParser.parse(addressDateValue);
-			if(addressDate != null){
-				final int ay = addressDate.getYear();
-				if(addressEarliest == null || ay < addressYear){
-					addressYear = ay;
-					addressEarliest = address;
-				}
-			}
-		}
-		return addressEarliest;
+		return (addresses.isEmpty()? null: addresses.get(0));
 	}
 
 	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
@@ -568,12 +557,15 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			if(date != null){
 				final int my = date.getYear();
 				if(deathPlace == null || my > deathYear){
-					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						final String placeValue = extractPlace(place, store);
-						if(placeValue != null){
-							deathYear = my;
-							deathPlace = placeValue;
+					GedcomNode place = store.traverse(node, "PLACE");
+					if(!place.isEmpty()){
+						place = store.getPlace(place.getXRef());
+						if(place != null){
+							final String placeValue = extractPlace(place, store);
+							if(placeValue != null){
+								deathYear = my;
+								deathPlace = placeValue;
+							}
 						}
 					}
 				}

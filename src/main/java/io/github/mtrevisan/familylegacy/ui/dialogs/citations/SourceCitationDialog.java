@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -330,7 +331,11 @@ public class SourceCitationDialog extends JDialog{
 				final GedcomNode source = sources.get(row);
 
 				sourcesModel.setValueAt(source.getID(), row, TABLE_INDEX_SOURCE_ID);
-				sourcesModel.setValueAt(store.traverse(source, "TYPE").getValue(), row, TABLE_INDEX_SOURCE_TYPE);
+				final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
+				final StringJoiner sj = new StringJoiner(", ");
+				for(final GedcomNode event : events)
+					sj.add(event.getValue());
+				sourcesModel.setValueAt(sj.toString(), row, TABLE_INDEX_SOURCE_TYPE);
 				sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
 			}
 		}

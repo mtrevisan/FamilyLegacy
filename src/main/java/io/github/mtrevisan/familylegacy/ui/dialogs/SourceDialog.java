@@ -202,19 +202,20 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 
 		setTitle("Source " + source.getID());
 
-		final String title = store.traverse(source, "TITLE").getValue();
 		final StringJoiner events = new StringJoiner(", ");
 		for(final GedcomNode event : store.traverseAsList(source, "EVENT[]"))
 			events.add(event.getValue());
+		final String title = store.traverse(source, "TITLE").getValue();
 		final String author = store.traverse(source, "AUTHOR").getValue();
 		final String publicationFacts = store.traverse(source, "PUBLICATION_FACTS").getValue();
 		final GedcomNode dateNode = store.traverse(source, "DATE");
-		final String extract = store.traverse(source, "EXTRACT").getValue();
-		final String extractType = store.traverse(source, "EXTRACT.TYPE").getValue();
-		final String extractLanguageTag = store.traverse(source, "EXTRACT.LOCALE").getValue();
+		final GedcomNode place = store.traverse(source, "PLACE");
+		final GedcomNode placeCertainty = store.traverse(source, "PLACE.CERTAINTY");
+		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
 		final boolean hasRepositories = !store.traverseAsList(source, "REPOSITORY[]").isEmpty();
+		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
 		final boolean hasFiles = !store.traverseAsList(source, "FILE[]").isEmpty();
-		final String url = store.traverse(source, "URL").getValue();
+		final boolean hasSources = !store.traverseAsList(source, "SOURCE[]").isEmpty();
 		final boolean hasNotes = !store.traverseAsList(source, "NOTE[]").isEmpty();
 
 		eventField.setText(events.toString());
@@ -222,9 +223,9 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		dateField.setText(dateNode.getValue());
-		textPreviewView.setText(getTitle(), extractLanguageTag, extract);
-		extractTypeComboBox.setSelectedItem(extractType);
-		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
+//		textPreviewView.setText(getTitle(), extractLanguageTag, extract);
+//		extractTypeComboBox.setSelectedItem(extractType);
+//		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
 		repositoriesButton.setEnabled(hasRepositories);
 		filesButton.setEnabled(hasFiles);
 		notesButton.setEnabled(hasNotes);
@@ -243,7 +244,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode source = store.getSources().get(1);
+		final GedcomNode source = store.getSources().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final SourceDialog dialog = new SourceDialog(store, new JFrame());

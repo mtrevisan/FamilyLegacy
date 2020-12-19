@@ -121,7 +121,7 @@ public class Gedcom extends Store{
 		try{
 			final Store store = new Gedcom();
 //			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
-			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large2.ged");
+			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
 			final Store storeFlef = store.transform();
 

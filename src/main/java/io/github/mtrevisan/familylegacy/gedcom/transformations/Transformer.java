@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -863,13 +862,15 @@ public final class Transformer extends TransformerHelper{
 			final String value = source.getValue();
 			final GedcomNode sourceData = traverse(source, "DATA");
 			final GedcomNode sourceDataEvent = traverse(sourceData, "EVEN");
-			final String event = sourceDataEvent.getValue();
+			final String[] events = StringUtils.split(sourceDataEvent.getValue(), ',');
 			final String title = traverse(source, "TITL").getValue();
 			final String author = traverse(source, "AUTH").getValue();
 			final String publicationFacts = traverse(source, "PUBL").getValue();
-			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value)
-				.addChildValue("EVENT", event)
-				.addChildValue("TITLE", title)
+			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value);
+			if(events != null)
+				for(final String event : events)
+					destinationSource.addChildValue("EVENT", event.trim());
+			destinationSource.addChildValue("TITLE", title)
 				.addChildValue("AUTHOR", author)
 				.addChildValue("PUBLICATION_FACTS", publicationFacts);
 			final GedcomNode date = traverse(sourceDataEvent, "DATE");
@@ -895,9 +896,12 @@ public final class Transformer extends TransformerHelper{
 					final GedcomNode destinationSubSource = destinationSubSources.get(i)
 						.clearXRef();
 					//transfer common data
-					destinationSubSource.withValue(value)
-						.replaceChildValue("EVENT", event)
-						.replaceChildValue("AUTHOR", author)
+					destinationSubSource.withValue(value);
+					destinationSubSource.removeChildrenWithTag("EVENT");
+					if(events != null)
+						for(final String event : events)
+							destinationSource.addChildValue("EVENT", event.trim());
+					destinationSubSource.replaceChildValue("AUTHOR", author)
 						.replaceChildValue("PUBLICATION_FACTS", publicationFacts);
 					addDateTo(date, destinationSubSource, destination);
 					final GedcomNode object = objects.get(i);
@@ -1328,9 +1332,12 @@ public final class Transformer extends TransformerHelper{
 	*/
 	GedcomNode sourceRecordFrom(final GedcomNode source, final Gedcom destination){
 		//create source:
+		final StringJoiner events = new StringJoiner(", ");
+		for(final GedcomNode event : traverseAsList(source, "EVENT[]"))
+			JavaHelper.addValueIfNotNull(events, event.getValue());
 		final GedcomNode destinationSource = createWithID("SOUR", source.getID())
 			.addChild(create("DATA")
-				.addChild(createWithValue("EVEN", traverse(source, "EVENT").getValue())
+				.addChild(createWithValue("EVEN", events.toString())
 					.addChildValue("DATE", traverse(source, "DATE").getValue())
 				)
 			)
