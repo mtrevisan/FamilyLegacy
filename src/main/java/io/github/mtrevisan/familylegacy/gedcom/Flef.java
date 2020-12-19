@@ -71,6 +71,8 @@ public class Flef extends Store{
 	public static final Integer ACTION_COMMAND_SOURCE_COUNT = 8;
 	/** Raised upon changes on the number of calendar in the store. */
 	public static final Integer ACTION_COMMAND_CALENDAR_COUNT = 9;
+	/** Raised upon changes on the number of historical events in the store. */
+	public static final Integer ACTION_COMMAND_HISTORIC_EVENT_COUNT = 10;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -82,6 +84,7 @@ public class Flef extends Store{
 	private static final String ID_CULTURAL_RULE_PREFIX = "C";
 	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_CALENDAR_PREFIX = "K";
+	private static final String ID_HISTORIC_EVENT_PREFIX = "H";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
@@ -94,6 +97,7 @@ public class Flef extends Store{
 	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CALENDAR = "CALENDAR";
+	private static final String TAG_HISTORIC_EVENT = "HISTORIC_EVENT";
 
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
 	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
@@ -116,6 +120,7 @@ public class Flef extends Store{
 	private List<GedcomNode> culturalRules;
 	private List<GedcomNode> sources;
 	private List<GedcomNode> calendars;
+	private List<GedcomNode> historicEvents;
 
 	private TreeMap<String, GedcomNode> individualIndex;
 	private TreeMap<String, GedcomNode> familyIndex;
@@ -127,6 +132,7 @@ public class Flef extends Store{
 	private TreeMap<String, GedcomNode> culturalRuleIndex;
 	private TreeMap<String, GedcomNode> sourceIndex;
 	private TreeMap<String, GedcomNode> calendarIndex;
+	private TreeMap<String, GedcomNode> historicEventIndex;
 
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
@@ -145,6 +151,7 @@ public class Flef extends Store{
 	private int culturalRuleId = 1;
 	private int sourceId = 1;
 	private int calendarId = 1;
+	private int historicEventId = 1;
 
 
 
@@ -272,6 +279,7 @@ public class Flef extends Store{
 				.addChildren(culturalRules)
 				.addChildren(sources)
 				.addChildren(calendars)
+				.addChildren(historicEvents)
 				.addClosingChild("EOF");
 
 		super.write(os);
@@ -846,6 +854,48 @@ public class Flef extends Store{
 
 	private String getNextCalendarID(){
 		return ID_CALENDAR_PREFIX + (calendarId ++);
+	}
+
+
+	public List<GedcomNode> getHistoricEvents(){
+		return historicEvents;
+	}
+
+	public GedcomNode getHistoricEvent(final String id){
+		return historicEventIndex.get(id);
+	}
+
+	public String addHistoricEvent(final GedcomNode historicEvent){
+		if(historicEvents == null){
+			historicEvents = new ArrayList<>(1);
+			historicEventIndex = new TreeMap<>();
+		}
+
+		final String historicEventID = getNextHistoricEventID();
+		historicEvent.withID(historicEventID);
+
+		historicEvents.add(historicEvent);
+		historicEventIndex.put(historicEventID, historicEvent);
+
+		EventBusService.publish(ACTION_COMMAND_HISTORIC_EVENT_COUNT);
+		return historicEventID;
+	}
+
+	public String removeHistoricEvent(final GedcomNode historicEvent){
+		if(historicEvents != null){
+			final String historicEventID = historicEvent.getID();
+			historicEvents.remove(historicEvent);
+			historicEventIndex.remove(historicEventID);
+
+			EventBusService.publish(ACTION_COMMAND_HISTORIC_EVENT_COUNT);
+
+			return historicEventID;
+		}
+		return null;
+	}
+
+	private String getNextHistoricEventID(){
+		return ID_HISTORIC_EVENT_PREFIX + (historicEventId ++);
 	}
 
 }

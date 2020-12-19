@@ -545,14 +545,6 @@ public final class Transformer extends TransformerHelper{
 			//load record
 			object = origin.getObject(objectXRef);
 
-		final List<GedcomNode> sources = traverseAsList(object, "SOUR[]");
-		String location = null;
-		for(int i = 0; location == null && i < sources.size(); i++)
-			location = traverse(sources.get(i), "PAGE").getValue();
-		String role = null;
-		for(int i = 0; role == null && i < sources.size(); i++)
-			role = traverse(sources.get(i), "EVEN.ROLE").getValue();
-
 		final GedcomNode source = traverse(object, "SOUR");
 		final GedcomNode sourceData = traverse(source, "DATA");
 		final String sourceEvent = traverse(source, "EVEN").getValue();
@@ -586,8 +578,7 @@ public final class Transformer extends TransformerHelper{
 		destinationSource.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
 		//FIXME remember "Y".equals(traverse(object, "_PREF").getValue())
 
-		for(final GedcomNode s : sources)
-			noteCitationTo(s, destinationSource, origin, destination);
+		noteCitationTo(traverse(object, "SOUR"), destinationSource, origin, destination);
 		noteCitationTo(object, destinationSource, origin, destination);
 		destinationSource.addChildValue("CREDIBILITY", traverse(object, "QUAY").getValue());
 		return object;

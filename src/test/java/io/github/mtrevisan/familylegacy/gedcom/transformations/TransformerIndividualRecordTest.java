@@ -148,7 +148,7 @@ class TransformerIndividualRecordTest{
 		Assertions.assertEquals("id: E2, tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION}, {tag: DATE, value: DATE_VALUE3, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(1).toString());
 		Assertions.assertEquals("id: E3, tag: EVENT, children: [{tag: TYPE, value: TITLE}, {tag: DESCRIPTION, value: NOBILITY_TYPE_TITLE}, {tag: DATE, value: DATE_VALUE4, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(2).toString());
 		Assertions.assertEquals("id: E4, tag: EVENT, children: [{tag: TYPE, value: FACT}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_fact}, {tag: DATE, value: DATE_VALUE5, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(3).toString());
-		Assertions.assertEquals("id: K1, tag: CALENDAR, children: [{tag: TYPE, value: gregorian}]", destination.getCalendars().get(0).toString());
+		Assertions.assertEquals("id: K1, tag: CALENDAR", destination.getCalendars().get(0).toString());
 	}
 
 	@Test

@@ -24,7 +24,7 @@ n HEADER    {1:1}
     +2 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
     +2 PLACE
       +3 ADDRESS <ADDRESS_LINE>    {0:1}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-        +4 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the submitter address (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+        +4 LOCALE <LOCALE_NAME>    {0:1}	/* The locale identifier for the submitter address (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
         +4 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
         +4 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
         +4 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
@@ -70,6 +70,8 @@ n <<CULTURAL_RULE_RECORD>>    {1:1}
 n <<SOURCE_RECORD>>    {1:1}
 |
 n <<CALENDAR_RECORD>>    {1:1}
+|
+n <<HISTORIC_EVENT_RECORD>>    {1:1}
 ]
 
 
@@ -104,14 +106,16 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+    +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality). */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
-  +1 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 LOCALE <LOCALE_NAME>    {0:1}	/* The locale identifier for the name form (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 TITLE <TITLE_PIECE>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
     +2 <<TRANSCRIBED_NAME_PIECE>>    {0:1}
   +1 INDIVIDUAL_NAME <INDIVIDUAL_NAME_PIECE>    {0:1}	/* Given name(s). */
@@ -149,8 +153,10 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+    +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 GROUP_CITATION :=
@@ -168,6 +174,8 @@ n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
   +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of GROUP_EVENT_RECORD() objects giving the events associated with this group. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 /* https://wiki.phpgedview.net/en/index.php/Facts_and_Events */
@@ -232,13 +240,15 @@ n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
 n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+n RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
   +1 ADDRESS <ADDRESS_LINE>    {0:M}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-    +2 LOCALE <LOCALE_NAME>    {0:1}    /* The locale identifier for the place address (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+    +2 LOCALE <LOCALE_NAME>    {0:1}	/* The locale identifier for the place address (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
     +2 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
     +2 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
     +2 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
@@ -258,18 +268,20 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 NOTE_RECORD :=
-n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter. */
-  +1 LOCALE <LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "sensitive" data can be enclosed by the HTML tags `<span class="sensitive">Sensitive text</span>`. */
+  +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The World Wide Web page address following RFC 1736 specifications. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 REPOSITORY_CITATION :=
 n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
-  +1 LOCATION <REPOSITORY_LOCATION_TEXT>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
+  +1 LOCATION <WHERE_WITHIN_REPOSITORY>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
@@ -307,12 +319,14 @@ n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. 
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 /* per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne). */
 
 
 SOURCE_CITATION :=
 n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
-  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
   +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND, MOTHER, WIFE, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. */
   +1 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -327,19 +341,23 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 PUBLICATION_FACTS <SOURCE_PUBLICATION_FACTS>    {0:1}	/* When and where the record was created. */
   +1 <<DATE_STRUCTURE>>    {0:1}	/* A date_value() object giving the date that this source was recorded. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects referenced by this source. */
   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
 
 
 DOCUMENT_STRUCTURE :=
 n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
- +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}	/* A description of the source. For example 'cover', 'back', etc. */
- +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-	+2 TYPE <EXTRACT_TYPE>    {0:1}    /* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
-	+2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}    /* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
- +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}	/* A description of the source. For example 'cover', 'back', etc. */
+  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+    +2 TYPE <EXTRACT_TYPE>    {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
+    +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
 
 
 DATE_STRUCTURE :=
@@ -356,3 +374,18 @@ n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+
+
+HISTORIC_EVENT_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
+n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
+  +1 TITLE <CULTURAL_RULE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+  +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
+  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
