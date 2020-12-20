@@ -96,7 +96,9 @@ public class SourceCitationDialog extends JDialog{
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
 	private final JButton removeButton = new JButton("Remove");
-	private final JLabel pageLabel = new JLabel("Page/Reference:");
+	private final JLabel sourceTitleLabel = new JLabel("Title:");
+	private final JTextField sourceTitleField = new JTextField();
+	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
@@ -162,7 +164,10 @@ public class SourceCitationDialog extends JDialog{
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
 				final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
+				final GedcomNode selectedSource = store.getSource(selectedSourceID);
 				okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
+				sourceTitleField.setText(store.traverse(selectedSource, "TITLE").getValue());
+
 				locationField.setEnabled(true);
 				locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
 				roleField.setEnabled(true);
@@ -212,7 +217,10 @@ public class SourceCitationDialog extends JDialog{
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> deleteAction());
 
-		pageLabel.setLabelFor(locationField);
+		sourceTitleLabel.setLabelFor(sourceTitleField);
+		sourceTitleField.setEnabled(false);
+
+		locationLabel.setLabelFor(locationField);
 		locationField.setEnabled(false);
 
 		roleLabel.setLabelFor(roleField);
@@ -279,7 +287,9 @@ public class SourceCitationDialog extends JDialog{
 		add(addButton, "tag add,split 3,sizegroup button2");
 		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
-		add(pageLabel, "align label,split 2");
+		add(sourceTitleLabel, "align label,sizegroup label,split 2");
+		add(sourceTitleField, "grow,wrap");
+		add(locationLabel, "align label,split 2");
 		add(locationField, "grow,wrap");
 		add(roleLabel, "align label,split 2");
 		add(roleField, "grow,wrap");

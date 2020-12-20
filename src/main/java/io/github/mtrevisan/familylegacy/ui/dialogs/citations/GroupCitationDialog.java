@@ -91,7 +91,6 @@ public class GroupCitationDialog extends JDialog{
 	private final JTextField groupField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
-	private final JLabel groupNameLabel = new JLabel();
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
@@ -249,7 +248,6 @@ public class GroupCitationDialog extends JDialog{
 		add(addButton, "tag add,split 3,sizegroup button2");
 		add(editButton, "tag edit,sizegroup button2");
 		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
-		add(groupNameLabel, "grow,wrap");
 		add(groupLabel, "align label,sizegroup label,split 2");
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
