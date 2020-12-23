@@ -203,9 +203,10 @@ public class FamilyPanel extends JPanel{
 			parent2NextLabel.setMinimumSize(minimumSize);
 		}
 
+		final Dimension parentPanelMaximumSize = parent1Panel.getMaximumSize();
 		setMaximumSize(new Dimension(
-			(parent1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
-			parent1Panel.getMaximumSize().height + minimumSize.height
+			parentPanelMaximumSize.width * 2 + MARRIAGE_PANEL_DIMENSION.width,
+			parentPanelMaximumSize.height + minimumSize.height
 		));
 
 		final int navigationArrowGap = (boxType == BoxPanelType.PRIMARY? NAVIGATION_ARROW_SEPARATION: 0);
