@@ -153,7 +153,6 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 			final int selectedRow = rulesTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedRuleID = (String)rulesTable.getValueAt(selectedRow, TABLE_INDEX_RULE_ID);
-				final GedcomNode selectedRuleCitation = store.traverse(container, "RULE@" + selectedRuleID);
 				final GedcomNode selectedRule = store.getCulturalRule(selectedRuleID);
 				okButton.putClientProperty(KEY_RULE_ID, selectedRuleID);
 				ruleTitleField.setText(store.traverse(selectedRule, "TITLE").getValue());
@@ -280,7 +279,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 	@Override
 	public void onPreviewStateChange(final boolean previewVisible){
-		setSize((previewVisible? getWidth() * 2: getWidth() / 2), getHeight());
+		TextPreviewListenerInterface.centerDivider(this, previewVisible);
 	}
 
 	public void loadData(final GedcomNode container){

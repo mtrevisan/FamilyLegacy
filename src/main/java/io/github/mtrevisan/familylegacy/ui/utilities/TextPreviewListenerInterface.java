@@ -24,9 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import java.awt.*;
+
 
 public interface TextPreviewListenerInterface{
 
 	void onPreviewStateChange(final boolean previewVisible);
+
+
+	static void centerDivider(final Component component, final boolean previewVisible){
+		component.setSize((previewVisible? component.getWidth() * 2: component.getWidth() / 2), component.getHeight());
+	}
 
 }

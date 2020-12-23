@@ -193,7 +193,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 
 	@Override
 	public void onPreviewStateChange(final boolean previewVisible){
-		setSize((previewVisible? getWidth() * 2: getWidth() / 2), getHeight());
+		TextPreviewListenerInterface.centerDivider(this, previewVisible);
 	}
 
 	public void loadData(final GedcomNode source, final Runnable onCloseGracefully){
