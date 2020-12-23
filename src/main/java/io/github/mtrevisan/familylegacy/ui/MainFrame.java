@@ -220,14 +220,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+	public void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 			final GedcomNode currentFamily){
-		LOGGER.debug("onPrevSpouseFamily this: {}, other: {}, family: {}", thisSpouse.getID(), otherCurrentSpouse.getID(),
+		LOGGER.debug("onPrevparentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
 		GedcomNode nextFamily = null;
 		final String currentFamilyID = currentFamily.getID();
-		final List<GedcomNode> familyXRefs = store.traverseAsList(thisSpouse, "FAMILY_SPOUSE[]");
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARENT[]");
 		for(int familyIndex = 1; familyIndex < familyXRefs.size(); familyIndex ++)
 			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
 				nextFamily = store.getFamily(familyXRefs.get(familyIndex - 1).getXRef());
@@ -239,14 +239,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+	public void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 			final GedcomNode currentFamily){
-		LOGGER.debug("onNextSpouseFamily this: {}, other: {}, family: {}", thisSpouse.getID(), otherCurrentSpouse.getID(),
+		LOGGER.debug("onNextParentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
 		GedcomNode nextFamily = null;
 		final String currentFamilyID = currentFamily.getID();
-		final List<GedcomNode> familyXRefs = store.traverseAsList(thisSpouse, "FAMILY_SPOUSE[]");
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARENT[]");
 		for(int familyIndex = 0; familyIndex < familyXRefs.size() - 1; familyIndex ++){
 			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
 				nextFamily = store.getFamily(familyXRefs.get(familyIndex + 1).getXRef());
@@ -264,19 +264,19 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		LOGGER.debug("onFocusIndividual {}", individual.getID());
 
 		//prefer left position if male or unknown, right if female
-		GedcomNode spouse1 = null;
-		GedcomNode spouse2 = null;
+		GedcomNode parent1 = null;
+		GedcomNode parent2 = null;
 		if(IndividualPanel.extractSex(individual, store) == Sex.FEMALE)
 			//put in the right box
-			spouse2 = individual;
+			parent2 = individual;
 		else
 			//put in the left box
-			spouse1 = individual;
+			parent1 = individual;
 
 		final GedcomNode family = treePanel.getPreferredFamily(individual);
 
 		//update primary family
-		treePanel.loadData(spouse1, spouse2, family);
+		treePanel.loadData(parent1, parent2, family);
 	}
 
 	@Override
@@ -332,9 +332,9 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
 			final GedcomNode child = individualPanel.getChildReference();
 			if(type == SelectedNodeType.INDIVIDUAL1)
-				linkSpouseToFamily(child, node, store.getParent1s(child), "SPOUSE1");
+				linkParentToFamily(child, node, store.getParent1s(child), "PARENT1");
 			else if(type == SelectedNodeType.INDIVIDUAL2)
-				linkSpouseToFamily(child, node, store.getParent2s(child), "SPOUSE2");
+				linkParentToFamily(child, node, store.getParent2s(child), "PARENT2");
 
 			individualPanel.loadData(node);
 		}
@@ -346,27 +346,27 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkSpouseToFamily(final GedcomNode child, final GedcomNode spouse, final List<GedcomNode> parents, final String spouseTag){
+	private void linkParentToFamily(final GedcomNode child, final GedcomNode parent, final List<GedcomNode> parents, final String parentTag){
 		if(parents.isEmpty())
-			linkSpouseToNewFamily(child, spouse, spouseTag);
+			linkParentToNewFamily(child, parent, parentTag);
 		else if(parents.size() == 1)
-			linkSpouseToExistingFamily(parents.get(0), spouse, spouseTag);
+			linkParentToExistingFamily(parents.get(0), parent, parentTag);
 		else
 			LOGGER.warn("Individual {} belongs to more than one family (this cannot be)", child.getID());
 	}
 
-	private void linkSpouseToNewFamily(final GedcomNode child, final GedcomNode spouse, final String spouseTag){
+	private void linkParentToNewFamily(final GedcomNode child, final GedcomNode parent, final String parentTag){
 		//create new family and add parent
 		final GedcomNode family = store.create("FAMILY")
-			.addChildReference(spouseTag, spouse.getID());
+			.addChildReference(parentTag, parent.getID());
 		store.addFamily(family);
 		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkSpouseToExistingFamily(final GedcomNode family, final GedcomNode spouse, final String spouseTag){
-		//link to existing family as spouse
-		family.addChild(store.create(spouseTag)
-			.withXRef(spouse.getID()));
+	private void linkParentToExistingFamily(final GedcomNode family, final GedcomNode parent, final String parentTag){
+		//link to existing family as parent
+		family.addChild(store.create(parentTag)
+			.withXRef(parent.getID()));
 	}
 
 

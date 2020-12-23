@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 
@@ -79,16 +78,16 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
 
-		final JPanel datePanel = new JPanel();
-		datePanel.setBorder(BorderFactory.createTitledBorder("Date"));
-		datePanel.setLayout(new MigLayout("", "[grow]"));
-		datePanel.add(dateLabel, "align label,split 3,sizegroup label");
-		datePanel.add(dateField, "grow");
-		datePanel.add(dateButton, "wrap");
-		datePanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
-		datePanel.add(dateOriginalTextField, "grow,wrap");
-		datePanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
-		datePanel.add(dateCredibilityComboBox, "grow");
+		final JPanel contactPanel = new JPanel();
+		contactPanel.setBorder(BorderFactory.createTitledBorder("Contact"));
+		contactPanel.setLayout(new MigLayout("", "[grow]"));
+//		contactPanel.add(dateLabel, "align label,split 3,sizegroup label");
+//		contactPanel.add(dateField, "grow");
+//		contactPanel.add(dateButton, "wrap");
+//		contactPanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
+//		contactPanel.add(dateOriginalTextField, "grow,wrap");
+//		contactPanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
+//		contactPanel.add(dateCredibilityComboBox, "grow");
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
@@ -118,8 +117,7 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		add(nameField, "grow,wrap paragraph");
 		add(individualButton, "sizegroup button2,grow,wrap");
 		add(placeButton, "sizegroup button2,grow,wrap");
-		//TODO contact
-//		add(filesButton, "sizegroup button2,grow,wrap");
+		add(contactPanel, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");

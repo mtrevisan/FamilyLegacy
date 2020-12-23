@@ -65,27 +65,27 @@ public class FamilyPanel extends JPanel{
 
 	private static final Color BORDER_COLOR = Color.BLACK;
 
-	private static final double SPOUSE_PREV_NEXT_WIDTH = 12.;
-	private static final double SPOUSE_PREV_NEXT_ASPECT_RATIO = 3501. / 2662.;
-	private static final Dimension SPOUSE_PREVIOUS_NEXT_SIZE = new Dimension((int)SPOUSE_PREV_NEXT_WIDTH,
-		(int)(SPOUSE_PREV_NEXT_WIDTH * SPOUSE_PREV_NEXT_ASPECT_RATIO));
+	private static final double PARENT_PREV_NEXT_WIDTH = 12.;
+	private static final double PARENT_PREV_NEXT_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension PARENT_PREVIOUS_NEXT_SIZE = new Dimension((int)PARENT_PREV_NEXT_WIDTH,
+		(int)(PARENT_PREV_NEXT_WIDTH * PARENT_PREV_NEXT_ASPECT_RATIO));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon SPOUSE_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png", SPOUSE_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon SPOUSE_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon SPOUSE_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", SPOUSE_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon SPOUSE_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(SPOUSE_NEXT_ENABLED.getImage()));
+	private static final ImageIcon PARENT_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png", PARENT_PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon PARENT_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(PARENT_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon PARENT_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARENT_PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon PARENT_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(PARENT_NEXT_ENABLED.getImage()));
 
 	/** Height of the marriage line from the bottom of the individual panel [px]. */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
-	public static final int HALF_SPOUSE_SEPARATION = 10;
-	static final int FAMILY_SEPARATION = HALF_SPOUSE_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_SPOUSE_SEPARATION;
+	public static final int HALF_PARENT_SEPARATION = 10;
+	static final int FAMILY_SEPARATION = HALF_PARENT_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_PARENT_SEPARATION;
 	/** Distance between navigation arrow and box. */
 	static final int NAVIGATION_ARROW_SEPARATION = 3;
 
-	static final int NAVIGATION_ARROW_HEIGHT = SPOUSE_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
+	static final int NAVIGATION_ARROW_HEIGHT = PARENT_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -93,20 +93,20 @@ public class FamilyPanel extends JPanel{
 		new float[]{2.f}, 0.f);
 
 
-	private IndividualPanel spouse1Panel;
-	private IndividualPanel spouse2Panel;
-	private final JLabel spouse1PreviousLabel = new JLabel();
-	private final JLabel spouse1NextLabel = new JLabel();
-	private final JLabel spouse2PreviousLabel = new JLabel();
-	private final JLabel spouse2NextLabel = new JLabel();
+	private IndividualPanel parent1Panel;
+	private IndividualPanel parent2Panel;
+	private final JLabel parent1PreviousLabel = new JLabel();
+	private final JLabel parent1NextLabel = new JLabel();
+	private final JLabel parent2PreviousLabel = new JLabel();
+	private final JLabel parent2NextLabel = new JLabel();
 	private final JPanel marriagePanel = new JPanel();
 	private final JMenuItem editFamilyItem = new JMenuItem("Edit Family…", 'E');
 	private final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
 	private final JMenuItem unlinkFamilyItem = new JMenuItem("Unlink Family…", 'U');
 	private final JMenuItem removeFamilyItem = new JMenuItem("Remove Family…", 'R');
 
-	private GedcomNode spouse1;
-	private GedcomNode spouse2;
+	private GedcomNode parent1;
+	private GedcomNode parent2;
 	private GedcomNode family;
 	private final Flef store;
 	private final BoxPanelType boxType;
@@ -116,15 +116,15 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode childReference;
 
 
-	public FamilyPanel(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family, final GedcomNode childReference,
+	public FamilyPanel(final GedcomNode parent1, final GedcomNode parent2, final GedcomNode family, final GedcomNode childReference,
 			final Flef store, final BoxPanelType boxType, final FamilyListenerInterface familyListener,
 			final IndividualListenerInterface individualListener){
 		this.store = store;
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
 
-		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): spouse1);
-		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): spouse2);
+		this.parent1 = (parent1 == null && family != null? store.getParent1(family): parent1);
+		this.parent2 = (parent2 == null && family != null? store.getParent2(family): parent2);
 		this.family = family;
 		this.childReference = childReference;
 		if(family != null && this.childReference == null){
@@ -151,10 +151,10 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 
-		spouse1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, spouse1, store, boxType, individualListener);
-		spouse1Panel.setChildReference(childReference);
-		spouse2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, spouse2, store, boxType, individualListener);
-		spouse2Panel.setChildReference(childReference);
+		parent1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, parent1, store, boxType, individualListener);
+		parent1Panel.setChildReference(childReference);
+		parent2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, parent2, store, boxType, individualListener);
+		parent2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
 		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
@@ -165,61 +165,61 @@ public class FamilyPanel extends JPanel{
 
 			refresh(Flef.ACTION_COMMAND_FAMILY_COUNT);
 
-			spouse1PreviousLabel.addMouseListener(new MouseAdapter(){
+			parent1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse2, spouse1, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent1PreviousLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyPreviousParent(FamilyPanel.this, parent2, parent1, family);
 				}
 			});
-			spouse1NextLabel.addMouseListener(new MouseAdapter(){
+			parent1NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse1NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse2, spouse1, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent1NextLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyNextParent(FamilyPanel.this, parent2, parent1, family);
 				}
 			});
-			spouse2PreviousLabel.addMouseListener(new MouseAdapter(){
+			parent2PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousSpouse(FamilyPanel.this, spouse1, spouse2, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent2PreviousLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyPreviousParent(FamilyPanel.this, parent1, parent2, family);
 				}
 			});
-			spouse2NextLabel.addMouseListener(new MouseAdapter(){
+			parent2NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)spouse2NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextSpouse(FamilyPanel.this, spouse1, spouse2, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent2NextLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyNextParent(FamilyPanel.this, parent1, parent2, family);
 				}
 			});
 		}
 
-		final Dimension minimumSize = new Dimension(SPOUSE_PREVIOUS_ENABLED.getIconWidth(), SPOUSE_PREVIOUS_ENABLED.getIconHeight());
+		final Dimension minimumSize = new Dimension(PARENT_PREVIOUS_ENABLED.getIconWidth(), PARENT_PREVIOUS_ENABLED.getIconHeight());
 		if(boxType == BoxPanelType.PRIMARY){
-			spouse1PreviousLabel.setMinimumSize(minimumSize);
-			spouse1NextLabel.setMinimumSize(minimumSize);
-			spouse2PreviousLabel.setMinimumSize(minimumSize);
-			spouse2NextLabel.setMinimumSize(minimumSize);
+			parent1PreviousLabel.setMinimumSize(minimumSize);
+			parent1NextLabel.setMinimumSize(minimumSize);
+			parent2PreviousLabel.setMinimumSize(minimumSize);
+			parent2NextLabel.setMinimumSize(minimumSize);
 		}
 
 		setMaximumSize(new Dimension(
-			(spouse1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
-			spouse1Panel.getMaximumSize().height + minimumSize.height
+			(parent1Panel.getMaximumSize().width + FAMILY_CONNECTION_HEIGHT) * 2 + MARRIAGE_PANEL_DIMENSION.height,
+			parent1Panel.getMaximumSize().height + minimumSize.height
 		));
 
 		final int navigationArrowGap = (boxType == BoxPanelType.PRIMARY? NAVIGATION_ARROW_SEPARATION: 0);
 		setLayout(new MigLayout("insets 0",
-			"[grow]" + HALF_SPOUSE_SEPARATION + "[]" + HALF_SPOUSE_SEPARATION + "[grow]",
+			"[grow]" + HALF_PARENT_SEPARATION + "[]" + HALF_PARENT_SEPARATION + "[grow]",
 			"[]0[]"));
-		add(spouse1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
-		add(spouse1NextLabel, "gapbottom " + navigationArrowGap);
+		add(parent1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
+		add(parent1NextLabel, "gapbottom " + navigationArrowGap);
 		add(new JLabel());
-		add(spouse2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
-		add(spouse2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
-		add(spouse1Panel, "growx 50");
+		add(parent2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
+		add(parent2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
+		add(parent1Panel, "growx 50");
 		add(marriagePanel, "aligny bottom,gapbottom " + FAMILY_EXITING_HEIGHT);
-		add(spouse2Panel, "growx 50");
+		add(parent2Panel, "growx 50");
 	}
 
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
@@ -248,17 +248,17 @@ public class FamilyPanel extends JPanel{
 	protected void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
-		if(g instanceof Graphics2D && spouse1Panel != null && spouse2Panel != null){
+		if(g instanceof Graphics2D && parent1Panel != null && parent2Panel != null){
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 			graphics2D.setStroke(CONNECTION_STROKE);
 
-			final int xFrom = spouse1Panel.getX() + spouse1Panel.getWidth();
-			final int xTo = spouse2Panel.getX();
-			final int yFrom = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
-			//horizontal line between spouses
+			final int xFrom = parent1Panel.getX() + parent1Panel.getWidth();
+			final int xTo = parent2Panel.getX();
+			final int yFrom = parent1Panel.getY() + parent1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
+			//horizontal line between parents
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
 
 			graphics2D.dispose();
@@ -269,9 +269,9 @@ public class FamilyPanel extends JPanel{
 		loadData(null, null, family);
 	}
 
-	public void loadData(final GedcomNode spouse1, final GedcomNode spouse2, final GedcomNode family){
-		this.spouse1 = (spouse1 == null && family != null? store.getSpouse1(family): spouse1);
-		this.spouse2 = (spouse2 == null && family != null? store.getSpouse2(family): spouse2);
+	public void loadData(final GedcomNode parent1, final GedcomNode parent2, final GedcomNode family){
+		this.parent1 = (parent1 == null && family != null? store.getParent1(family): parent1);
+		this.parent2 = (parent2 == null && family != null? store.getParent2(family): parent2);
 		this.family = family;
 
 		loadData();
@@ -280,12 +280,12 @@ public class FamilyPanel extends JPanel{
 	}
 
 	private void loadData(){
-		spouse1Panel.loadData(spouse1);
-		spouse2Panel.loadData(spouse2);
+		parent1Panel.loadData(parent1);
+		parent2Panel.loadData(parent2);
 
 		if(boxType == BoxPanelType.PRIMARY){
-			updatePreviousNextSpouseIcons(family, spouse2, spouse1PreviousLabel, spouse1NextLabel);
-			updatePreviousNextSpouseIcons(family, spouse1, spouse2PreviousLabel, spouse2NextLabel);
+			updatePreviousNextParentIcons(family, parent2, parent1PreviousLabel, parent1NextLabel);
+			updatePreviousNextParentIcons(family, parent1, parent2PreviousLabel, parent2NextLabel);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -301,10 +301,10 @@ public class FamilyPanel extends JPanel{
 		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
 	}
 
-	public void updatePreviousNextSpouseIcons(final GedcomNode family, final GedcomNode otherSpouse, final JLabel spousePreviousLabel,
-			final JLabel spouseNextLabel){
-		//get list of marriages for the `other spouse`
-		final List<GedcomNode> otherMarriages = store.traverseAsList(otherSpouse, "FAMILY_SPOUSE[]");
+	public void updatePreviousNextParentIcons(final GedcomNode family, final GedcomNode otherParent, final JLabel parentPreviousLabel,
+			final JLabel parentNextLabel){
+		//get list of marriages for the `other parent`
+		final List<GedcomNode> otherMarriages = store.traverseAsList(otherParent, "FAMILY_PARENT[]");
 		//find current marriage in list
 		int currentFamilyIndex = -1;
 		final int otherMarriagesCount = otherMarriages.size();
@@ -315,20 +315,20 @@ public class FamilyPanel extends JPanel{
 			}
 		final boolean hasMoreFamilies = (otherMarriagesCount > 1);
 
-		final boolean spousePreviousEnabled = (currentFamilyIndex > 0);
-		spousePreviousLabel.putClientProperty(KEY_ENABLED, spousePreviousEnabled);
-		spousePreviousLabel.setCursor(Cursor.getPredefinedCursor(spousePreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		final boolean parentPreviousEnabled = (currentFamilyIndex > 0);
+		parentPreviousLabel.putClientProperty(KEY_ENABLED, parentPreviousEnabled);
+		parentPreviousLabel.setCursor(Cursor.getPredefinedCursor(parentPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		ImageIcon icon = null;
 		if(hasMoreFamilies)
-			icon = (spousePreviousEnabled? SPOUSE_PREVIOUS_ENABLED: SPOUSE_PREVIOUS_DISABLED);
-		spousePreviousLabel.setIcon(icon);
+			icon = (parentPreviousEnabled? PARENT_PREVIOUS_ENABLED: PARENT_PREVIOUS_DISABLED);
+		parentPreviousLabel.setIcon(icon);
 
-		final boolean spouseNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
-		spouseNextLabel.putClientProperty(KEY_ENABLED, spouseNextEnabled);
-		spouseNextLabel.setCursor(Cursor.getPredefinedCursor(spouseNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		final boolean parentNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
+		parentNextLabel.putClientProperty(KEY_ENABLED, parentNextEnabled);
+		parentNextLabel.setCursor(Cursor.getPredefinedCursor(parentNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		if(hasMoreFamilies)
-			icon = (spouseNextEnabled? SPOUSE_NEXT_ENABLED: SPOUSE_NEXT_DISABLED);
-		spouseNextLabel.setIcon(icon);
+			icon = (parentNextEnabled? PARENT_NEXT_ENABLED: PARENT_NEXT_DISABLED);
+		parentNextLabel.setIcon(icon);
 	}
 
 	public static String extractEarliestMarriageYear(final GedcomNode family, final Flef store){
@@ -419,24 +419,24 @@ public class FamilyPanel extends JPanel{
 		return childReference;
 	}
 
-	public Point getFamilyPaintingSpouse1EnterPoint(){
-		final Point p = spouse1Panel.getIndividualPaintingEnterPoint();
+	public Point getFamilyPaintingParent1EnterPoint(){
+		final Point p = parent1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
-	public Point getFamilyPaintingSpouse2EnterPoint(){
-		final Point p = spouse2Panel.getIndividualPaintingEnterPoint();
+	public Point getFamilyPaintingParent2EnterPoint(){
+		final Point p = parent2Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	public Point getFamilyPaintingExitPoint(){
-		//halfway between spouse1 and spouse2 boxes
-		final int x = (spouse1Panel.getX() + spouse1Panel.getWidth() + spouse2Panel.getX()) / 2;
-		//the bottom point of the marriage panel (that is: bottom point of spouse1 box minus the height of the horizontal connection line
+		//halfway between parent1 and parent2 boxes
+		final int x = (parent1Panel.getX() + parent1Panel.getWidth() + parent2Panel.getX()) / 2;
+		//the bottom point of the marriage panel (that is: bottom point of parent1 box minus the height of the horizontal connection line
 		//plus half the size of the marriage panel box)
-		final int y = spouse1Panel.getY() + spouse1Panel.getHeight() - FAMILY_EXITING_HEIGHT;
+		final int y = parent1Panel.getY() + parent1Panel.getHeight() - FAMILY_EXITING_HEIGHT;
 		final Point origin = getLocation();
 		return new Point(origin.x + x, origin.y + y);
 	}
@@ -482,16 +482,16 @@ public class FamilyPanel extends JPanel{
 			}
 
 			@Override
-			public void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
+			public void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 					final GedcomNode currentFamily){
-				System.out.println("onPrevSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID()
+				System.out.println("onPrevParentFamily this: " + thisParent.getID() + ", other: " + otherCurrentParent.getID()
 					+ ", family: " + currentFamily.getID());
 			}
 
 			@Override
-			public void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherSpouse,
+			public void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 					final GedcomNode currentFamily){
-				System.out.println("onNextSpouseFamily this: " + thisSpouse.getID() + ", other: " + otherSpouse.getID()
+				System.out.println("onNextParentFamily this: " + thisParent.getID() + ", other: " + otherCurrentParent.getID()
 					+ ", family: " + currentFamily.getID());
 			}
 		};

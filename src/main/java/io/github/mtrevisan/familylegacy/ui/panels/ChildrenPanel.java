@@ -89,7 +89,7 @@ public class ChildrenPanel extends JPanel{
 			while(itr.hasNext()){
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
-				final boolean isSpouse = !store.traverseAsList(individual, "FAMILY_SPOUSE[]").isEmpty();
+				final boolean isParent = !store.traverseAsList(individual, "FAMILY_PARENT[]").isEmpty();
 				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY,
 					individualListener);
 
@@ -99,7 +99,7 @@ public class ChildrenPanel extends JPanel{
 					"[]" + FamilyPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
 				final JLabel familyLabel = new JLabel();
 				familyLabel.setMinimumSize(new Dimension(FAMILY.getIconWidth(), FAMILY.getIconHeight()));
-				if(isSpouse)
+				if(isParent)
 					familyLabel.setIcon(FAMILY);
 				box.add(familyLabel, "alignx right");
 				box.add(individualBox);

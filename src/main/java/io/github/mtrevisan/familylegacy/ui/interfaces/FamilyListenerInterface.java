@@ -39,25 +39,25 @@ public interface FamilyListenerInterface{
 	void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family);
 
 	/**
-	 * Iterate through spouses.
+	 * Iterate through parents.
 	 *
-	 * @param familyPanel	The current family panel from which to iterate through spouses.
-	 * @param thisSpouse	The current spouse (that remain the same).
-	 * @param otherCurrentSpouse	The spouse that has to change.
-	 * @param currentFamily	Current family `thisSpouse` is in.
+	 * @param familyPanel	The current family panel from which to iterate through parents.
+	 * @param thisParent	The current parent (that remain the same).
+	 * @param otherCurrentParent	The parent that has to change.
+	 * @param currentFamily	Current family `thisParent` is in.
 	 */
-	void onFamilyPreviousSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+	void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 		final GedcomNode currentFamily);
 
 	/**
-	 * Iterate through spouses.
+	 * Iterate through parents.
 	 *
-	 * @param familyPanel	The current family panel from which to iterate through spouses.
-	 * @param thisSpouse	The current spouse (that remain the same).
-	 * @param otherCurrentSpouse	The spouse that has to change.
-	 * @param currentFamily	Current family `thisSpouse` is in.
+	 * @param familyPanel	The current family panel from which to iterate through parents.
+	 * @param thisParent	The current parent (that remain the same).
+	 * @param otherCurrentParent	The parent that has to change.
+	 * @param currentFamily	Current family `thisParent` is in.
 	 */
-	void onFamilyNextSpouse(final FamilyPanel familyPanel, final GedcomNode thisSpouse, final GedcomNode otherCurrentSpouse,
+	void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
 		final GedcomNode currentFamily);
 
 }

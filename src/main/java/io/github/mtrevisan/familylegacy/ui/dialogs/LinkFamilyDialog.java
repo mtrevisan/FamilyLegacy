@@ -75,23 +75,23 @@ public class LinkFamilyDialog extends JDialog{
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
 	private static final int ID_PREFERRED_WIDTH = 43;
-	private static final int SPOUSE_NAME_PREFERRED_WIDTH = 150;
+	private static final int PARENT_NAME_PREFERRED_WIDTH = 150;
 	private static final int YEAR_PREFERRED_WIDTH = 43;
 	private static final int MARRIAGE_PLACE_PREFERRED_WIDTH = 250;
 
 	private static final int TABLE_INDEX_MARRIAGE_ID = 0;
-	public static final int TABLE_INDEX_SPOUSE1_NAME = 1;
-	private static final int TABLE_INDEX_SPOUSE1_BIRTH_YEAR = 2;
-	private static final int TABLE_INDEX_SPOUSE1_DEATH_YEAR = 3;
-	private static final int TABLE_INDEX_SPOUSE1_ID = 4;
-	public static final int TABLE_INDEX_SPOUSE2_NAME = 5;
-	private static final int TABLE_INDEX_SPOUSE2_BIRTH_YEAR = 6;
-	private static final int TABLE_INDEX_SPOUSE2_DEATH_YEAR = 7;
-	private static final int TABLE_INDEX_SPOUSE2_ID = 8;
+	public static final int TABLE_INDEX_PARENT1_NAME = 1;
+	private static final int TABLE_INDEX_PARENT1_BIRTH_YEAR = 2;
+	private static final int TABLE_INDEX_PARENT1_DEATH_YEAR = 3;
+	private static final int TABLE_INDEX_PARENT1_ID = 4;
+	public static final int TABLE_INDEX_PARENT2_NAME = 5;
+	private static final int TABLE_INDEX_PARENT2_BIRTH_YEAR = 6;
+	private static final int TABLE_INDEX_PARENT2_DEATH_YEAR = 7;
+	private static final int TABLE_INDEX_PARENT2_ID = 8;
 	private static final int TABLE_INDEX_MARRIAGE_YEAR = 9;
 	private static final int TABLE_INDEX_MARRIAGE_PLACE = 10;
-	public static final int TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES = 11;
-	public static final int TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES = 12;
+	public static final int TABLE_INDEX_PARENT1_ADDITIONAL_NAMES = 11;
+	public static final int TABLE_INDEX_PARENT2_ADDITIONAL_NAMES = 12;
 
 
 	private final JLabel filterLabel = new JLabel("Filter:");
@@ -138,18 +138,18 @@ public class LinkFamilyDialog extends JDialog{
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_NAME, 0, SPOUSE_NAME_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT1_NAME, 0, PARENT_NAME_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE1_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_NAME, 0, SPOUSE_NAME_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT1_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT2_NAME, 0, PARENT_NAME_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_SPOUSE2_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARENT2_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, 0, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, MARRIAGE_PLACE_PREFERRED_WIDTH);
@@ -163,12 +163,12 @@ public class LinkFamilyDialog extends JDialog{
 		//put approximated years after exact years
 		final Comparator<String> dateWithApproximationComparator = idDateComparator.thenComparingInt(year -> year.charAt(0));
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_ID, idDateComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE1_ID, idDateComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE2_ID, idDateComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE1_BIRTH_YEAR, dateWithApproximationComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE1_DEATH_YEAR, dateWithApproximationComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE2_BIRTH_YEAR, dateWithApproximationComparator);
-		sorter.setComparator(TABLE_INDEX_SPOUSE2_DEATH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT1_ID, idDateComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT2_ID, idDateComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT1_BIRTH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT1_DEATH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT2_BIRTH_YEAR, dateWithApproximationComparator);
+		sorter.setComparator(TABLE_INDEX_PARENT2_DEATH_YEAR, dateWithApproximationComparator);
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_YEAR, dateWithApproximationComparator);
 		familiesTable.setRowSorter(sorter);
 
@@ -212,41 +212,40 @@ public class LinkFamilyDialog extends JDialog{
 				final GedcomNode family = families.get(row);
 
 				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
-				loadSpouseData(row, familiesModel, family, 0, TABLE_INDEX_SPOUSE1_NAME, TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES,
-					TABLE_INDEX_SPOUSE1_BIRTH_YEAR, TABLE_INDEX_SPOUSE1_DEATH_YEAR, TABLE_INDEX_SPOUSE1_ID);
-				loadSpouseData(row, familiesModel, family, 1, TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES,
-					TABLE_INDEX_SPOUSE2_BIRTH_YEAR, TABLE_INDEX_SPOUSE2_DEATH_YEAR, TABLE_INDEX_SPOUSE2_ID);
+				loadParentData(row, familiesModel, family, 1, TABLE_INDEX_PARENT1_NAME, TABLE_INDEX_PARENT1_ADDITIONAL_NAMES, TABLE_INDEX_PARENT1_BIRTH_YEAR, TABLE_INDEX_PARENT1_DEATH_YEAR, TABLE_INDEX_PARENT1_ID);
+				loadParentData(row, familiesModel, family, 2, TABLE_INDEX_PARENT2_NAME, TABLE_INDEX_PARENT2_ADDITIONAL_NAMES, TABLE_INDEX_PARENT2_BIRTH_YEAR, TABLE_INDEX_PARENT2_DEATH_YEAR, TABLE_INDEX_PARENT2_ID);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
 			}
 
 			final TableColumnModel columnModel = familiesTable.getColumnModel();
-			TableColumn column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES));
+			TableColumn column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_PARENT2_ADDITIONAL_NAMES));
 			columnModel.removeColumn(column);
-			column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES));
+			column = familiesTable.getColumn(familiesTable.getColumnName(TABLE_INDEX_PARENT1_ADDITIONAL_NAMES));
 			columnModel.removeColumn(column);
 
 			filterField.setEnabled(true);
 		}
 	}
 
-	private void loadSpouseData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final int spouseIndex,
-			final int tableIndexSpouse, final int tableIndexSpouseAdditionalNames, final int tableIndexSpouseBirthYear,
-			final int tableIndexSpouseDeathYear, final int tableIndexSpouseId){
-		final GedcomNode spouse = store.getSpouse(family, spouseIndex);
-		final List<String[]> spouseName = IndividualPanel.extractCompleteName(spouse, store);
-		if(!spouseName.isEmpty()){
-			final String[] firstPersonalName = spouseName.get(0);
-			familiesModel.setValueAt(firstPersonalName[0] + NAMES_SEPARATOR + firstPersonalName[1], row, tableIndexSpouse);
-			for(int i = 1; i < spouseName.size(); i ++){
-				final String[] nthPersonalName = spouseName.get(i);
-				familiesModel.setValueAt(nthPersonalName[0] + NAMES_SEPARATOR + nthPersonalName[1], row, tableIndexSpouseAdditionalNames);
+	private void loadParentData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final int parentIndex,
+			final int tableIndexParent, final int tableIndexParentAdditionalNames, final int tableIndexParentBirthYear,
+			final int tableIndexParentDeathYear, final int tableIndexParentId){
+		final GedcomNode parent = store.getParent(family, parentIndex);
+		final List<String[]> parentName = IndividualPanel.extractCompleteName(parent, store);
+		if(!parentName.isEmpty()){
+			final String[] firstPersonalName = parentName.get(0);
+			familiesModel.setValueAt(firstPersonalName[0] + NAMES_SEPARATOR + firstPersonalName[1], row, tableIndexParent);
+			for(int i = 1; i < parentName.size(); i ++){
+				final String[] nthPersonalName = parentName.get(i);
+				familiesModel.setValueAt(nthPersonalName[0] + NAMES_SEPARATOR + nthPersonalName[1], row,
+					tableIndexParentAdditionalNames);
 			}
 		}
-		familiesModel.setValueAt(IndividualPanel.extractBirthYear(spouse, store), row, tableIndexSpouseBirthYear);
-		familiesModel.setValueAt(IndividualPanel.extractDeathYear(spouse, store), row, tableIndexSpouseDeathYear);
-		if(spouse != null)
-			familiesModel.setValueAt(spouse.getID(), row, tableIndexSpouseId);
+		familiesModel.setValueAt(IndividualPanel.extractBirthYear(parent, store), row, tableIndexParentBirthYear);
+		familiesModel.setValueAt(IndividualPanel.extractDeathYear(parent, store), row, tableIndexParentDeathYear);
+		if(parent != null)
+			familiesModel.setValueAt(parent.getID(), row, tableIndexParentId);
 	}
 
 	public void reset(){
@@ -256,9 +255,9 @@ public class LinkFamilyDialog extends JDialog{
 
 	private void filterTableBy(final LinkFamilyDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_SPOUSE1_NAME,
-			TABLE_INDEX_SPOUSE1_ID, TABLE_INDEX_SPOUSE2_NAME, TABLE_INDEX_SPOUSE2_ID,
-			TABLE_INDEX_SPOUSE1_ADDITIONAL_NAMES, TABLE_INDEX_SPOUSE2_ADDITIONAL_NAMES);
+		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_PARENT1_NAME,
+			TABLE_INDEX_PARENT1_ID, TABLE_INDEX_PARENT2_NAME, TABLE_INDEX_PARENT2_ID,
+			TABLE_INDEX_PARENT1_ADDITIONAL_NAMES, TABLE_INDEX_PARENT2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
@@ -339,10 +338,10 @@ public class LinkFamilyDialog extends JDialog{
 
 		FamiliesTableModel(){
 			super(new String[]{"ID",
-				"Spouse 1", StringUtils.EMPTY, StringUtils.EMPTY, "Spouse 1 ID",
-				"Spouse 2", StringUtils.EMPTY, StringUtils.EMPTY, "Spouse 2 ID",
+				"Parent 1", StringUtils.EMPTY, StringUtils.EMPTY, "Parent 1 ID",
+				"Parent 2", StringUtils.EMPTY, StringUtils.EMPTY, "Parent 2 ID",
 				"Date", "Place",
-				"spouse1 additional names", "spouse2 additional names"}, 0);
+				"Parent 1 additional names", "Parent 2 additional names"}, 0);
 		}
 
 		@Override

@@ -430,7 +430,7 @@ public class Flef extends Store{
 		final List<GedcomNode> parent1s = new ArrayList<>(familyChilds.size());
 		for(final GedcomNode familyChild : familyChilds){
 			final GedcomNode family = getFamily(familyChild.getXRef());
-			parent1s.add(getIndividual(TRANSFORMER.traverse(family, "SPOUSE1").getXRef()));
+			parent1s.add(getIndividual(TRANSFORMER.traverse(family, "PARENT1").getXRef()));
 		}
 		return parent1s;
 	}
@@ -440,27 +440,24 @@ public class Flef extends Store{
 		final List<GedcomNode> parent2s = new ArrayList<>(familyChilds.size());
 		for(final GedcomNode familyChild : familyChilds){
 			final GedcomNode family = getFamily(familyChild.getXRef());
-			parent2s.add(getIndividual(TRANSFORMER.traverse(family, "SPOUSE2").getXRef()));
+			parent2s.add(getIndividual(TRANSFORMER.traverse(family, "PARENT2").getXRef()));
 		}
 		return parent2s;
 	}
 
-	public GedcomNode getSpouse1(final GedcomNode family){
-		return getSpouse(family, 0);
+	public GedcomNode getParent1(final GedcomNode family){
+		final String individualXRef = traverse(family, "PARENT1").getXRef();
+		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 
-	public GedcomNode getSpouse2(final GedcomNode family){
-		return getSpouse(family, 1);
+	public GedcomNode getParent2(final GedcomNode family){
+		final String individualXRef = traverse(family, "PARENT2").getXRef();
+		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 
-	public GedcomNode getSpouse(final GedcomNode family, final int spouseIndex){
-		final List<GedcomNode> individuals = traverseAsList(family, "INDIVIDUAL[]");
-		GedcomNode individual = TRANSFORMER.createEmpty();
-		if(spouseIndex < individuals.size()){
-			final String individualXRef = individuals.get(spouseIndex).getXRef();
-			individual = getIndividual(individualXRef);
-		}
-		return individual;
+	public GedcomNode getParent(final GedcomNode family, final int parentIndex){
+		final String individualXRef = traverse(family, "PARENT" + parentIndex).getXRef();
+		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 
 

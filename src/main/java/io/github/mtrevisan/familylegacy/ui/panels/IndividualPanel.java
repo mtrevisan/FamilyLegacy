@@ -370,8 +370,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			for(final GedcomNode name : names){
 				final String title = store.traverse(name, "TITLE")
 					.getValue();
-				final GedcomNode personalName = store.traverse(name, "INDIVIDUAL_NAME");
-				final String nameSuffix = store.traverse(personalName, "SUFFIX")
+				final GedcomNode individualName = store.traverse(name, "INDIVIDUAL_NAME");
+				final String individualNameSuffix = store.traverse(individualName, "SUFFIX")
 					.getValue();
 				final String familyName = store.traverse(name, "FAMILY_NAME")
 					.getValueOrDefault(NO_DATA);
@@ -380,12 +380,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				final StringJoiner family = new StringJoiner(StringUtils.SPACE);
 				if(title != null)
 					personal.add(title);
-				if(!personalName.isEmpty())
-					personal.add(personalName.getValueOrDefault(NO_DATA));
+				if(!individualName.isEmpty())
+					personal.add(individualName.getValueOrDefault(NO_DATA));
 				if(familyName != null)
 					family.add(familyName);
-				if(nameSuffix != null)
-					family.add(nameSuffix);
+				if(individualNameSuffix != null)
+					family.add(individualNameSuffix);
 
 				completeNames.add(new String[]{
 					(family.length() > 0? family.toString(): NO_DATA),
