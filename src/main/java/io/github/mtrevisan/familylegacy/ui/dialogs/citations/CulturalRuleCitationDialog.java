@@ -72,6 +72,18 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 	private static final String KEY_RULE_ID = "ruleID";
 
+	private static final DefaultComboBoxModel<String> CERTAINTY_MODEL = new DefaultComboBoxModel<>(new String[]{
+		StringUtils.EMPTY,
+		"Challenged",
+		"Disproven",
+		"Proven"});
+	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
+		StringUtils.EMPTY,
+		"Unreliable/estimated data",
+		"Questionable reliability of evidence",
+		"Secondary evidence, data officially recorded sometime after event",
+		"Direct and primary evidence used, or by dominance of the evidence"});
+
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable rulesTable = new JTable(new CulturalRuleTableModel());
@@ -85,12 +97,13 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
 	private final JLabel descriptionLabel = new JLabel("Description:");
 	private TextPreviewPane descriptionPreviewView;
-//	private final JLabel roleLabel = new JLabel("Role:");
-//	private final JTextField roleField = new JTextField();
-//	private final JButton cutoutButton = new JButton(CUTOUT);
-//	private final JButton notesButton = new JButton("Notes");
-//	private final JLabel credibilityLabel = new JLabel("Credibility:");
-//	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JButton placeButton = new JButton("Place");
+	private final JLabel placeCertaintyLabel = new JLabel("Certainty:");
+	private final JComboBox<String> placeCertaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
+	private final JLabel placeCredibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JButton notesButton = new JButton("Notes");
+	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -204,6 +217,25 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 		descriptionPreviewView = new TextPreviewPane(this);
 
+		//TODO
+//		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
+		final JPanel placePanel = new JPanel();
+		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
+		placePanel.setLayout(new MigLayout("", "[grow]"));
+		placePanel.add(placeButton, "sizegroup button2,grow,wrap");
+		placePanel.add(placeCertaintyLabel, "align label,split 2");
+		placePanel.add(placeCertaintyComboBox, "grow,wrap");
+		placePanel.add(placeCredibilityLabel, "align label,split 2");
+		placePanel.add(placeCredibilityComboBox, "grow,wrap paragraph");
+
+		notesButton.setEnabled(false);
+		//TODO
+//		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
+
+		sourcesButton.setEnabled(false);
+		//TODO
+//		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
+
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			//remove all reference to rules from the container
@@ -216,7 +248,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 			//TODO
 			final String text = descriptionPreviewView.getText();
-			//			container.withValue(text);
+//			container.withValue(text);
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced rules!
 
@@ -237,14 +269,9 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		add(localeComboBox, "wrap");
 		add(descriptionLabel, "wrap");
 		add(descriptionPreviewView, "span 2,grow,wrap");
-//		add(locationLabel, "align label,split 2");
-//		add(locationField, "grow,wrap");
-//		add(roleLabel, "align label,split 2");
-//		add(roleField, "grow,wrap");
-//		add(cutoutButton, "wrap");
-//		add(notesButton, "sizegroup button,grow,wrap paragraph");
-//		add(credibilityLabel, "align label,split 2");
-//		add(credibilityComboBox, "grow,wrap paragraph");
+		add(placePanel, "grow,wrap paragraph");
+		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}

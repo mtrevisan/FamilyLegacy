@@ -72,6 +72,8 @@ n <<SOURCE_RECORD>>    {1:1}
 n <<CALENDAR_RECORD>>    {1:1}
 |
 n <<HISTORIC_EVENT_RECORD>>    {1:1}
+|
+n <<RESEARCH_STATUS_RECORD>>    {1:1}
 ]
 
 
@@ -108,8 +110,6 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
     +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality). */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 PERSONAL_NAME_STRUCTURE :=
@@ -156,8 +156,6 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
     +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 GROUP_CITATION :=
@@ -175,8 +173,6 @@ n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
   +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of GROUP_EVENT_RECORD() objects giving the events associated with this group. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 /* https://wiki.phpgedview.net/en/index.php/Facts_and_Events */
@@ -241,8 +237,6 @@ n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
 n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
-n RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 PLACE_RECORD :=
@@ -269,8 +263,6 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 NOTE_RECORD :=
@@ -321,8 +313,6 @@ n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. 
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 /* per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne). */
 
 
@@ -376,18 +366,23 @@ n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 
 
 HISTORIC_EVENT_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
-n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
-  +1 TITLE <CULTURAL_RULE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+n @<XREF:HISTORIC>@ HISTORIC_EVENT    {1:1}	/* An xref ID of a cultural rule record. */
+  +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 RESEARCH_STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+
+
+RESEARCH_STATUS_RECORD :=
+n @<XREF:RESEARCH>@ RESEARCH_STATUS    {1:1}	/* An xref ID of a research status record. */
+  +1 STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+  +1 ASSOCIATION @<XREF:ID>@    {0:M}	/* An xref ID of a record that lacks research. */
+    +2 TYPE <ASSOCIATION_TYPE>    {1:1}	/* The type of associated record. May be 'individual', 'family', 'group', 'event', 'place', 'cultural rule', 'source', 'calendar', or 'historic event'. */
+  +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the research status. */
+  +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this record was created. */
