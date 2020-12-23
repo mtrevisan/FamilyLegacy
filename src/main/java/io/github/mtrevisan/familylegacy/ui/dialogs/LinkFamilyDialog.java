@@ -154,12 +154,7 @@ public class LinkFamilyDialog extends JDialog{
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, MARRIAGE_PLACE_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
-		final Comparator<String> idDateComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
+		final Comparator<String> idDateComparator = GedcomNode::compareID;
 		//put approximated years after exact years
 		final Comparator<String> dateWithApproximationComparator = idDateComparator.thenComparingInt(year -> year.charAt(0));
 		sorter.setComparator(TABLE_INDEX_MARRIAGE_ID, idDateComparator);

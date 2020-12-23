@@ -146,13 +146,7 @@ public class SourceCitationDialog extends JDialog{
 		sourcesTable.getTableHeader().setFont(sourcesTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(sourcesTable, TABLE_INDEX_SOURCE_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(sourcesTable.getModel());
-		final Comparator<String> idComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
-		sorter.setComparator(TABLE_INDEX_SOURCE_ID, idComparator);
+		sorter.setComparator(TABLE_INDEX_SOURCE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_SOURCE_TYPE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_SOURCE_TITLE, Comparator.naturalOrder());
 		sourcesTable.setRowSorter(sorter);

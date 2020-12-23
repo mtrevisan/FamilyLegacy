@@ -385,4 +385,4 @@ n @<XREF:RESEARCH>@ RESEARCH_STATUS    {1:1}	/* An xref ID of a research status 
   +1 ASSOCIATION @<XREF:ID>@    {0:M}	/* An xref ID of a record that lacks research. */
     +2 TYPE <ASSOCIATION_TYPE>    {1:1}	/* The type of associated record. May be 'individual', 'family', 'group', 'event', 'place', 'cultural rule', 'source', 'calendar', or 'historic event'. */
   +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the research status. */
-  +1 DATE <CREATION_DATE>    {0:1}	/* A date_exact() object giving the date this record was created. */
+  +1 DATE <CREATION_DATE>    {1:1}	/* A date_exact() object giving the date this record was created. */

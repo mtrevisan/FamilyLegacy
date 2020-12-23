@@ -113,13 +113,7 @@ public class NoteCitationDialog extends JDialog{
 		notesTable.getTableHeader().setFont(notesTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(notesTable, TABLE_INDEX_NOTE_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(notesTable.getModel());
-		final Comparator<String> idComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
-		sorter.setComparator(TABLE_INDEX_NOTE_ID, idComparator);
+		sorter.setComparator(TABLE_INDEX_NOTE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_NOTE_TEXT, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
 		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));

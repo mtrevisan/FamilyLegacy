@@ -121,13 +121,7 @@ public class RepositoryCitationDialog extends JDialog{
 		repositoryTable.getTableHeader().setFont(repositoryTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(repositoryTable, TABLE_INDEX_REPOSITORY_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(repositoryTable.getModel());
-		final Comparator<String> idComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
-		sorter.setComparator(TABLE_INDEX_REPOSITORY_ID, idComparator);
+		sorter.setComparator(TABLE_INDEX_REPOSITORY_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_REPOSITORY_NAME, Comparator.naturalOrder());
 		repositoryTable.setRowSorter(sorter);
 		//clicking on a line links it to current repository citation

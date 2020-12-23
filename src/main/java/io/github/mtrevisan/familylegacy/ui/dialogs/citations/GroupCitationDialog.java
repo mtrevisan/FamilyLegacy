@@ -135,13 +135,7 @@ public class GroupCitationDialog extends JDialog{
 		groupsTable.getTableHeader().setFont(groupsTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(groupsTable, TABLE_INDEX_GROUP_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(groupsTable.getModel());
-		final Comparator<String> idComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
-		sorter.setComparator(TABLE_INDEX_GROUP_ID, idComparator);
+		sorter.setComparator(TABLE_INDEX_GROUP_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_GROUP_NAME, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_GROUP_TYPE, Comparator.naturalOrder());
 		groupsTable.setRowSorter(sorter);

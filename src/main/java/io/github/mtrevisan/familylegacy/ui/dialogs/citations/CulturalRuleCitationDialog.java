@@ -143,13 +143,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		rulesTable.getTableHeader().setFont(rulesTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(rulesTable, TABLE_INDEX_RULE_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(rulesTable.getModel());
-		final Comparator<String> idComparator = (value1, value2) -> {
-			//NOTE: here it is assumed that all the IDs starts with a character followed by a number, and that years can begin with `~`
-			final int v1 = Integer.parseInt(Character.isDigit(value1.charAt(0))? value1: value1.substring(1));
-			final int v2 = Integer.parseInt(Character.isDigit(value2.charAt(0))? value2: value2.substring(1));
-			return Integer.compare(v1, v2);
-		};
-		sorter.setComparator(TABLE_INDEX_RULE_ID, idComparator);
+		sorter.setComparator(TABLE_INDEX_RULE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_RULE_TITLE, Comparator.naturalOrder());
 		rulesTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
@@ -168,16 +162,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 				final String text = store.traverse(selectedRule, "DESCRIPTION").getValue();
 				descriptionPreviewView.setText(getTitle(), languageTag, text);
 
-//				roleField.setEnabled(true);
-//				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
-//				cutoutButton.setEnabled(true);
-//				cutoutButton.putClientProperty(KEY_RULE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
-//				notesButton.setEnabled(true);
-//				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
-//				credibilityComboBox.setEnabled(true);
-//				credibilityComboBox.setEnabled(true);
-//				final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
-//				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+				//TODO
 
 				okButton.setEnabled(true);
 			}
@@ -226,7 +211,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		placePanel.add(placeCertaintyLabel, "align label,split 2");
 		placePanel.add(placeCertaintyComboBox, "grow,wrap");
 		placePanel.add(placeCredibilityLabel, "align label,split 2");
-		placePanel.add(placeCredibilityComboBox, "grow,wrap paragraph");
+		placePanel.add(placeCredibilityComboBox, "grow");
 
 		notesButton.setEnabled(false);
 		//TODO
@@ -260,20 +245,20 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(rulesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2");
-		add(editButton, "tag edit,sizegroup button2");
-		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button");
+		add(editButton, "tag edit,sizegroup button");
+		add(removeButton, "tag remove,sizegroup button,wrap paragraph");
 		add(ruleTitleLabel, "align label,sizegroup label,split 2");
 		add(ruleTitleField, "grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
 		add(descriptionLabel, "wrap");
-		add(descriptionPreviewView, "span 2,grow,wrap");
+		add(descriptionPreviewView, "span 2,grow,wrap paragraph");
 		add(placePanel, "grow,wrap paragraph");
-		add(notesButton, "sizegroup button,grow,wrap paragraph");
-		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(notesButton, "grow,wrap");
+		add(sourcesButton, "grow,wrap paragraph");
+		add(okButton, "tag ok,split 2,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void editAction(){
@@ -400,7 +385,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 700);
+			dialog.setSize(500, 700);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

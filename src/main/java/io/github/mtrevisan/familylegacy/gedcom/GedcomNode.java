@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -35,11 +36,14 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 public abstract class GedcomNode{
 
 	static final char NEW_LINE = '\n';
+
+	private static final Pattern PATTERN_ID = RegexHelper.pattern("[^0-9]");
 
 
 	protected int level;
@@ -58,6 +62,7 @@ public abstract class GedcomNode{
 		return (tag == null || id == null && xref == null && value == null && (children == null || children.isEmpty()));
 	}
 
+
 	private void setLevel(final int level){
 		if(level < 0)
 			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
@@ -73,6 +78,7 @@ public abstract class GedcomNode{
 		return this;
 	}
 
+
 	public int getLevel(){
 		return level;
 	}
@@ -86,6 +92,7 @@ public abstract class GedcomNode{
 			this.id = id;
 		return this;
 	}
+
 
 	public boolean isCustomTag(){
 		return (tag.charAt(0) == '_');
@@ -101,6 +108,7 @@ public abstract class GedcomNode{
 		return this;
 	}
 
+
 	public String getXRef(){
 		return xref;
 	}
@@ -115,6 +123,7 @@ public abstract class GedcomNode{
 		xref = null;
 		return this;
 	}
+
 
 	/**
 	 * Returns the value associated with this node.
@@ -145,6 +154,7 @@ public abstract class GedcomNode{
 			addChildInner((children != null? children.size(): 0), conNode);
 		}
 	}
+
 
 	public boolean hasChildren(){
 		return (children != null && !children.isEmpty());
@@ -270,6 +280,16 @@ public abstract class GedcomNode{
 					itr.remove();
 		}
 	}
+
+
+	public static int compareID(final String id1, final String id2){
+		return Integer.compare(extractNumberFromID(id1), extractNumberFromID(id2));
+	}
+
+	private static int extractNumberFromID(final String id){
+		return Integer.parseInt(PATTERN_ID.matcher(id).replaceAll(StringUtils.EMPTY));
+	}
+
 
 	public boolean isCustom(){
 		return custom;
