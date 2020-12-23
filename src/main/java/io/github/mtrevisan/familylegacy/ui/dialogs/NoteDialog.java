@@ -162,8 +162,8 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 		setTitle("Note " + note.getID());
 
-		final String text = note.getValue();
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
+		final String text = note.getValue();
 		//FIXME this is an array
 		final String url = store.traverse(note, "URL").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();

@@ -69,7 +69,7 @@ public class NoteCitationDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable notesTable = new JTable(new NotesTableModel());
+	private final JTable notesTable = new JTable(new NoteTableModel());
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
@@ -254,12 +254,12 @@ public class NoteCitationDialog extends JDialog{
 	}
 
 
-	private static class NotesTableModel extends DefaultTableModel{
+	private static class NoteTableModel extends DefaultTableModel{
 
 		private static final long serialVersionUID = 981117893723288957L;
 
 
-		NotesTableModel(){
+		NoteTableModel(){
 			super(new String[]{"ID", "Text"}, 0);
 		}
 

@@ -144,7 +144,6 @@ n TRANSCRIPTION <TRANSCRIPTION_SYSTEM>    {0:1}	/* Indicates the system used in 
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 TYPE <FAMILY_TYPE>    {1:1}	/* One of 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
-  /* FIXME what if husband or wife is missing? how can I be sure is a husband or a wife? */
   +1 PARENT1 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
   +1 PARENT2 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
@@ -315,6 +314,7 @@ n CONTACT    {1:1}
 CULTURAL_RULE_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
 n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
   +1 TITLE <CULTURAL_RULE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+  +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */

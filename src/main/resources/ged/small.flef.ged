@@ -18,6 +18,7 @@
 1 EVENT @E1@
 1 GROUP @G1@
 2 ROLE resident
+1 CULTURAL_RULE @C1@
 2 NOTE @N2@
 2 CREDIBILITY 1
 2 RESTRICTION 2
@@ -122,4 +123,12 @@
 1 NOTE @N2@
 0 @R1@ REPOSITORY
 1 NAME state archive
+0 @C1@ CULTURAL_RULE
+1 TITLE Latin names
+1 DESCRIPTION Per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
+1 PLACE @P1@
+2 CREDIBILITY 1
+1 NOTE @N1@
+1 SOURCE @S1@
+1 RESEARCH_STATUS ended
 0 EOF

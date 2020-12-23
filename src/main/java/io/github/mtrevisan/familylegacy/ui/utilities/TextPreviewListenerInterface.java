@@ -27,6 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 public interface TextPreviewListenerInterface{
 
-	void onPreviewStateChange(final boolean visible);
+	void onPreviewStateChange(final boolean previewVisible);
 
 }

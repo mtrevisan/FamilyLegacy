@@ -710,7 +710,7 @@ public class Flef extends Store{
 		return culturalRuleIndex.get(id);
 	}
 
-	public void addCulturalRule(final GedcomNode culturalRule){
+	public String addCulturalRule(final GedcomNode culturalRule){
 		//search cultural rule
 		String culturalRuleID = (!culturalRule.isEmpty() && culturalRuleValue != null? culturalRuleValue.get(culturalRule.hashCode()): null);
 		if(culturalRuleID == null){
@@ -732,6 +732,7 @@ public class Flef extends Store{
 		}
 		else
 			culturalRule.withID(culturalRuleID);
+		return culturalRuleID;
 	}
 
 	public String removeCulturalRule(final GedcomNode culturalRule){

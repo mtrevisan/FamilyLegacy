@@ -82,7 +82,7 @@ public class GroupCitationDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable groupsTable = new JTable(new GroupsTableModel());
+	private final JTable groupsTable = new JTable(new GroupTableModel());
 	private final JScrollPane groupsScrollPane = new JScrollPane(groupsTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
@@ -338,12 +338,12 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 
-	private static class GroupsTableModel extends DefaultTableModel{
+	private static class GroupTableModel extends DefaultTableModel{
 
 		private static final long serialVersionUID = -2985688516803729157L;
 
 
-		GroupsTableModel(){
+		GroupTableModel(){
 			super(new String[]{"ID", "Name", "Type"}, 0);
 		}
 
