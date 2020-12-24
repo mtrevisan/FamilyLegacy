@@ -29,10 +29,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,6 +43,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -72,8 +75,6 @@ public class NoteCitationDialog extends JDialog{
 	private final JTable notesTable = new JTable(new NoteTableModel());
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
-	private final JButton editButton = new JButton("Edit");
-	private final JButton removeButton = new JButton("Remove");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -116,7 +117,6 @@ public class NoteCitationDialog extends JDialog{
 		sorter.setComparator(TABLE_INDEX_NOTE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_NOTE_TEXT, Comparator.naturalOrder());
 		notesTable.setRowSorter(sorter);
-		notesTable.getSelectionModel().addListSelectionListener(event -> removeButton.setEnabled(true));
 		notesTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
@@ -125,6 +125,17 @@ public class NoteCitationDialog extends JDialog{
 					editAction();
 			}
 		});
+		notesTable.getInputMap(JComponent.WHEN_FOCUSED)
+			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		notesTable.getActionMap()
+			.put("delete", new AbstractAction(){
+				@Override
+				public void actionPerformed(final ActionEvent evt){
+					deleteAction();
+				}
+			});
+		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
+			notesTable.getRowHeight() * 5));
 
 		addButton.addActionListener(evt -> {
 			final GedcomNode newNote = store.create("NOTE");
@@ -141,19 +152,9 @@ public class NoteCitationDialog extends JDialog{
 			//fire edit event
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
 		});
-		editButton.addActionListener(evt -> editAction());
-		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> deleteAction());
 
-		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			//remove all reference to notes from the container
-			container.removeChildrenWithTag("NOTE");
-			//add all the remaining references to notes to the container
-			for(int i = 0; i < notesTable.getRowCount(); i ++){
-				final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
-				container.addChildReference("NOTE", id);
-			}
+			transferListToContainer();
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
 
@@ -165,11 +166,19 @@ public class NoteCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2");
-		add(editButton, "tag edit,sizegroup button2");
-		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(addButton, "sizegroup button2,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
+	}
+
+	private void transferListToContainer(){
+		//remove all reference to notes from the container
+		container.removeChildrenWithTag("NOTE");
+		//add all the remaining references to notes to the container
+		for(int i = 0; i < notesTable.getRowCount(); i ++){
+			final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
+			container.addChildReference("NOTE", id);
+		}
 	}
 
 	private void editAction(){
@@ -186,7 +195,9 @@ public class NoteCitationDialog extends JDialog{
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
 		model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
-		removeButton.setEnabled(false);
+
+		//remove from container
+		transferListToContainer();
 	}
 
 	public void loadData(final GedcomNode container){
@@ -282,7 +293,23 @@ public class NoteCitationDialog extends JDialog{
 		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final NoteCitationDialog dialog = new NoteCitationDialog(store, new JFrame());
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					if(editCommand.getType() == EditEvent.EditType.NOTE){
+						final NoteDialog noteDialog = new NoteDialog(store, parent);
+						noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+						noteDialog.setSize(550, 350);
+						noteDialog.setLocationRelativeTo(parent);
+						noteDialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
 			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -291,7 +318,7 @@ public class NoteCitationDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 500);
+			dialog.setSize(450, 260);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

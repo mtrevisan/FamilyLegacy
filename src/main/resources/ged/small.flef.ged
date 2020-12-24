@@ -21,7 +21,7 @@
 1 CULTURAL_RULE @C1@
 2 NOTE @N2@
 2 CREDIBILITY 1
-2 RESTRICTION 2
+2 RESTRICTION confidential
 1 NOTE @N1@
 1 NOTE @N2@
 1 SOURCE @S1@
@@ -104,9 +104,8 @@
 1 NEW_LINE  - (By personal experience) enumerations can have different representations, or change between a version and the next of a protocol, even inside the same protocol (!), so having an annotation that tells the value of a particular element of this enum is at least risky. So, for this reason, the `BoundEnumOption` is not present in this library.
 1 NEW_LINE  - Does read and write more than 64 bits at a time (`BitBuffer.readBits`)
 1 LOCALE en-US
-1 RESTRICTION notice1
+1 RESTRICTION confidential
 0 @N2@ NOTE some other text
-1 RESTRICTION notice2
 0 @S1@ SOURCE
 1 EVENT birth
 1 EVENT birth-record

@@ -52,11 +52,11 @@ public class FamilyDialog extends JDialog{
 
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
+	private final JButton eventsButton = new JButton("Events");
 	private final JButton groupsButton = new JButton("Groups");
 	private final JButton culturalRulesButton = new JButton("Cultural Rules");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
-	private final JButton eventsButton = new JButton("Events");
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 
@@ -111,6 +111,10 @@ public class FamilyDialog extends JDialog{
 		});
 		typeComboBox.setSelectedIndex(0);
 
+		eventsButton.addActionListener(e -> {
+			//TODO
+		});
+
 		groupsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP_CITATION, family)));
 
 		culturalRulesButton.addActionListener(e -> {
@@ -120,10 +124,6 @@ public class FamilyDialog extends JDialog{
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, family)));
 
 		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, family)));
-
-		eventsButton.addActionListener(e -> {
-			//TODO
-		});
 
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
@@ -140,11 +140,11 @@ public class FamilyDialog extends JDialog{
 		setLayout(new MigLayout());
 		add(typeLabel, "align label,split 2");
 		add(typeComboBox, "grow,wrap");
+		add(eventsButton, "sizegroup button,grow,wrap");
 		add(groupsButton, "sizegroup button,grow,wrap");
 		add(culturalRulesButton, "sizegroup button,grow,wrap");
 		add(notesButton, "sizegroup button,grow,wrap");
 		add(sourcesButton, "sizegroup button,grow,wrap");
-		add(eventsButton, "sizegroup button,grow,wrap");
 		add(restrictionLabel, "align label,split 2");
 		add(restrictionComboBox, "grow");
 	}

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.ui.dialogs.FamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
@@ -197,6 +198,11 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
 		//TODO
 		System.out.println("onEditFamily " + family.getID());
+
+		final FamilyDialog familyDialog = new FamilyDialog(family, store, this);
+		familyDialog.setSize(200, 250);
+		familyDialog.setLocationRelativeTo(this);
+		familyDialog.setVisible(true);
 	}
 
 	@Override

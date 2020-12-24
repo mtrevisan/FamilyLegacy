@@ -37,6 +37,7 @@ import java.util.Locale;
 
 public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.FlefLocale>{
 
+	//TODO preload on startup (progress bar)
 	private static final FlefLocale[] LOCALE_ITEMS;
 	static{
 		final Locale[] availableLocales = DateFormat.getAvailableLocales();
@@ -116,6 +117,11 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 
 			field.setText(enteredText);
 		}
+	}
+
+	public String getSelectedLanguageTag(){
+		return ((LocaleFilteredComboBox.FlefLocale)getModel().getSelectedItem())
+			.toLanguageTag();
 	}
 
 	public void setSelectedByLanguageTag(String languageTag){

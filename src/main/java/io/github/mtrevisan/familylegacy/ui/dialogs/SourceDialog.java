@@ -152,8 +152,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 			final String title = titleField.getText();
 			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
-			final String extractLanguageTag = ((LocaleFilteredComboBox.FlefLocale)extractLocaleComboBox.getModel().getSelectedItem())
-				.toLanguageTag();
+			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
 			final String extract = textPreviewView.getText();
 
 			source.replaceChildValue("EVENT", event);
@@ -192,8 +191,14 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	}
 
 	@Override
-	public void onPreviewStateChange(final boolean previewVisible){
-		TextPreviewListenerInterface.centerDivider(this, previewVisible);
+	public void textChanged(){
+		//TODO
+		okButton.setEnabled(true);
+	}
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 	public void loadData(final GedcomNode source, final Runnable onCloseGracefully){

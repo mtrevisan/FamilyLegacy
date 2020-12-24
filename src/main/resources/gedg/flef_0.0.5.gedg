@@ -109,7 +109,7 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
     +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality). */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 PERSONAL_NAME_STRUCTURE :=
@@ -134,11 +134,11 @@ n NAME    {1:1}
 
 
 TRANSCRIBED_NAME_PIECE :=
-n PHONETIC <PHONETIC_SYSTEM>    {0:1}	/* Usually IPA, but other systems canbe used (ex. canIPA). */
+n PHONETIC <PHONETIC_SYSTEM>    {0:1}	/* Usually IPA, but other systems can be used (ex. canIPA). */
   +1 VALUE <PHONETIC_NAME_PIECE>    {1:1}	/* Phonetic/phonematic component of the title. */
 n TRANSCRIPTION <TRANSCRIPTION_SYSTEM>    {0:1}	/* Indicates the system used in transcript the text to the romanized variation (eg. 'romaji', 'pinyin', 'wagegiles', ...). */
   +1 TYPE <TRANSCRIPTION_TYPE>    {0:1}	/* Type of transcription, usually 'romanized' (but it can be 'anglicized', 'cyrillized', 'francized', 'gairaigized', 'latinized', etc). */
-  +1 VALUE <TRANSCRIPTION_NAME_PIECE>    {1:1}	/* Transcripted component of the title. */
+  +1 VALUE <TRANSCRIPTION_NAME_PIECE>    {1:1}	/* Transcribed component of the title. */
 
 
 FAMILY_RECORD :=
@@ -155,7 +155,7 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
     +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 GROUP_CITATION :=
@@ -163,7 +163,7 @@ n GROUP @<XREF:GROUP>@    {1:1}	/* An xref ID of a group record. */
   +1 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this person played in the group that is being cited in this context. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 GROUP_RECORD :=	/* A group can be of genealogical, historical, or general interest. Examples of groups that might be useful in genealogy research are households and neighborhoods as found in a census. A biological or legal traditional family (father, mother, children) is documented in a Family record rather than a Group record. Family-like groups such as communes, orphanages, group homes, and so on are documented here. */
@@ -236,7 +236,7 @@ n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
 n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
 n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
-n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+n RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 PLACE_RECORD :=
@@ -266,10 +266,9 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
 
 
 NOTE_RECORD :=
-n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "sensitive" data can be enclosed by the HTML tags `<span class="sensitive">Sensitive text</span>`. */
+n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The World Wide Web page address following RFC 1736 specifications. */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
 
 
 REPOSITORY_CITATION :=
@@ -293,12 +292,12 @@ n CONTACT    {1:1}
     +2 TYPE <PHONE_NUMBER_TYPE>    {0:1}	/* Indicates the phone number type (blog, personal, social, work, etc.). */
     +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-    +2 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+    +2 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
   +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
     +2 TYPE <ADDRESS_EMAIL_TYPE>    {0:1}	/* Indicates the email type (blog, personal, social, work, etc.). */
     +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-    +2 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+    +2 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
   +1 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The World Wide Web page address following RFC 1736 specifications. */
     +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
 
@@ -349,7 +348,7 @@ n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file ref
   +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
     +2 TYPE <EXTRACT_TYPE>    {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
     +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "locked" (should not be edited), "private" (has had information omitted to maintain confidentiality) */
+  +1 RESTRICTION <RESTRICTION_NOTICE>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 DATE_STRUCTURE :=

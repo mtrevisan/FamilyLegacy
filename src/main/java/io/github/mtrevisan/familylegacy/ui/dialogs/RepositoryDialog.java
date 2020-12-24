@@ -95,8 +95,7 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		okButton.addActionListener(evt -> {
 			final String name = nameField.getText();
 			final String title = titleField.getText();
-			final String extractLanguageTag = ((LocaleFilteredComboBox.FlefLocale)extractLocaleComboBox.getModel().getSelectedItem())
-				.toLanguageTag();
+			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
 
 			repository.replaceChildValue("NAME", name);
 			repository.replaceChildValue("TITLE", title);
@@ -124,8 +123,14 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 	}
 
 	@Override
-	public void onPreviewStateChange(final boolean previewVisible){
-		TextPreviewListenerInterface.centerDivider(this, previewVisible);
+	public void textChanged(){
+		//TODO
+		okButton.setEnabled(true);
+	}
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 	public void loadData(final GedcomNode repository, final Runnable onCloseGracefully){

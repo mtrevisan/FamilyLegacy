@@ -39,6 +39,8 @@ import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.Document;
@@ -143,6 +145,7 @@ public class TextPreviewPane extends JSplitPane{
 
 		this.listener = listener;
 
+		//TODO add inner padding
 		previewView.setEditable(false);
 		previewView.setContentType("text/html");
 		//manage links
@@ -153,6 +156,23 @@ public class TextPreviewPane extends JSplitPane{
 
 		textView.setTabSize(3);
 		textView.setRows(10);
+		if(listener != null)
+			textView.getDocument().addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent documentEvent){
+					listener.textChanged();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent documentEvent){
+					listener.textChanged();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent documentEvent){
+					listener.textChanged();
+				}
+			});
 		textView.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyReleased(final KeyEvent event){
@@ -297,12 +317,15 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 
-	public void setText(final String title, final String languageTag, final String text){
+	public void setText(final String title, String text, final String languageTag){
 		htmlExportStandardItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_STANDARD_CSS));
 		htmlExportGithubItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_GITHUB_CSS));
 
+		if(text == null)
+			text = StringUtils.EMPTY;
 		final String html = renderHtml(text);
 
+		//store original text to change the ok button state
 		textView.setText(text);
 		previewView.setText(html);
 

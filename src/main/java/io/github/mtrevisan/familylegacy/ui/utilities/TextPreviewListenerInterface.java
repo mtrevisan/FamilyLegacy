@@ -29,7 +29,9 @@ import java.awt.*;
 
 public interface TextPreviewListenerInterface{
 
-	void onPreviewStateChange(final boolean previewVisible);
+	void textChanged();
+
+	void onPreviewStateChange(final boolean visible);
 
 
 	static void centerDivider(final Component component, final boolean previewVisible){

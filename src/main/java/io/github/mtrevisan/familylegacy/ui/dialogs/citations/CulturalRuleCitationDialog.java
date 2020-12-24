@@ -159,7 +159,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 				final String languageTag = store.traverse(selectedRule, "LOCALE").getValue();
 				final String text = store.traverse(selectedRule, "DESCRIPTION").getValue();
-				descriptionPreviewView.setText(getTitle(), languageTag, text);
+				descriptionPreviewView.setText(getTitle(), text, languageTag);
 
 				//TODO
 
@@ -278,8 +278,14 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	}
 
 	@Override
-	public void onPreviewStateChange(final boolean previewVisible){
-		TextPreviewListenerInterface.centerDivider(this, previewVisible);
+	public void textChanged(){
+		//TODO
+		okButton.setEnabled(true);
+	}
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 	public void loadData(final GedcomNode container){
