@@ -469,7 +469,7 @@ public class Flef extends Store{
 		return groupIndex.get(id);
 	}
 
-	public void addGroup(final GedcomNode group){
+	public String addGroup(final GedcomNode group){
 		if(groups == null){
 			groups = new ArrayList<>(1);
 			groupIndex = new TreeMap<>();
@@ -485,6 +485,7 @@ public class Flef extends Store{
 		groupIndex.put(group.getID(), group);
 
 		EventBusService.publish(ACTION_COMMAND_GROUP_COUNT);
+		return groupID;
 	}
 
 	public String removeGroup(final GedcomNode group){

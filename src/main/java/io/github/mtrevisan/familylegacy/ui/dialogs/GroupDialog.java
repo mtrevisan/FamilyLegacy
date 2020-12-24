@@ -29,8 +29,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -38,6 +42,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Objects;
 
 
 public class GroupDialog extends JDialog{
@@ -53,6 +58,8 @@ public class GroupDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode group;
+	private int groupHash;
+
 	private Runnable onCloseGracefully;
 	private final Flef store;
 
@@ -79,13 +86,10 @@ public class GroupDialog extends JDialog{
 
 		typeLabel.setLabelFor(typeField);
 
-		eventsButton.setEnabled(false);
 		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, group)));
 
-		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, group)));
 
-		sourcesButton.setEnabled(false);
 		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
 
 		okButton.addActionListener(evt -> {
@@ -119,10 +123,15 @@ public class GroupDialog extends JDialog{
 		this.group = group;
 		this.onCloseGracefully = onCloseGracefully;
 
-		setTitle("Group " + group.getID());
+		final String id = group.getID();
+		setTitle(id != null? "Group " + id: "New Group");
 
 		final String name = store.traverse(group, "NAME").getValue();
 		final String type = store.traverse(group, "TYPE").getValue();
+
+		final int nameHash = Objects.requireNonNullElse(name, StringUtils.EMPTY).hashCode();
+		final int typeHash = Objects.requireNonNullElse(type, StringUtils.EMPTY).hashCode();
+		groupHash = nameHash ^ typeHash;
 
 		nameField.setText(name);
 		typeField.setText(type);
@@ -143,8 +152,59 @@ public class GroupDialog extends JDialog{
 			.transform();
 		final GedcomNode group = store.getGroups().get(0);
 
+
+		JFrame parent = new JFrame();
 		EventQueue.invokeLater(() -> {
-			final GroupDialog dialog = new GroupDialog(store, new JFrame());
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					JDialog dialog = null;
+					switch(editCommand.getType()){
+						case EVENT:
+							//TODO
+//							dialog = new EventDialog(store, parent);
+//							((EventDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+//
+//							dialog.setSize(550, 250);
+							break;
+
+						case NOTE_CITATION:
+							dialog = new NoteCitationDialog(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
+						case NOTE:
+							dialog = new NoteDialog(store, parent);
+							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+							break;
+
+						case SOURCE_CITATION:
+							//TODO
+							dialog = new SourceCitationDialog(store, parent);
+							((SourceCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 450);
+
+						case SOURCE:
+							//TODO
+							dialog = new SourceDialog(store, parent);
+							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(500, 460);
+					}
+					if(dialog != null){
+						dialog.setLocationRelativeTo(parent);
+						dialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final GroupDialog dialog = new GroupDialog(store, parent);
 			dialog.loadData(group, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
@@ -153,7 +213,7 @@ public class GroupDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 300);
+			dialog.setSize(300, 250);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

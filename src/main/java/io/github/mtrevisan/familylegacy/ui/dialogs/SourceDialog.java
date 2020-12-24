@@ -205,7 +205,8 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		this.source = source;
 		this.onCloseGracefully = onCloseGracefully;
 
-		setTitle("Source " + source.getID());
+		final String id = source.getID();
+		setTitle(id != null? "Source " + id: "New Source");
 
 		final StringJoiner events = new StringJoiner(", ");
 		for(final GedcomNode event : store.traverseAsList(source, "EVENT[]"))

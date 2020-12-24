@@ -120,13 +120,14 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		this.note = note;
 		this.onCloseGracefully = onCloseGracefully;
 
-		setTitle("Note " + note.getID());
+		final String id = note.getID();
+		setTitle(id != null? "Note " + id: "New Note");
 
 		final String text = note.getValue();
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();
 
-		final int textHash = text.hashCode();
+		final int textHash = Objects.requireNonNullElse(text, StringUtils.EMPTY).hashCode();
 		final int languageTagHash = Objects.requireNonNullElse(languageTag, StringUtils.EMPTY).hashCode();
 		final int restrictionHash = Objects.requireNonNullElse(restriction, StringUtils.EMPTY).hashCode();
 		noteHash = textHash ^ languageTagHash ^ restrictionHash;

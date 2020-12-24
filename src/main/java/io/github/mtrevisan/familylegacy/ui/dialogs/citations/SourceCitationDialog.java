@@ -30,10 +30,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +44,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -94,8 +97,6 @@ public class SourceCitationDialog extends JDialog{
 	private final JTable sourcesTable = new JTable(new SourceTableModel());
 	private final JScrollPane sourcesScrollPane = new JScrollPane(sourcesTable);
 	private final JButton addButton = new JButton("Add");
-	private final JButton editButton = new JButton("Edit");
-	private final JButton removeButton = new JButton("Remove");
 	private final JLabel sourceTitleLabel = new JLabel("Title:");
 	private final JTextField sourceTitleField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
@@ -152,8 +153,6 @@ public class SourceCitationDialog extends JDialog{
 		sourcesTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
 		sourcesTable.getSelectionModel().addListSelectionListener(evt -> {
-			removeButton.setEnabled(true);
-
 			final int selectedRow = sourcesTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
@@ -191,6 +190,17 @@ public class SourceCitationDialog extends JDialog{
 					editAction();
 			}
 		});
+		sourcesTable.getInputMap(JComponent.WHEN_FOCUSED)
+			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		sourcesTable.getActionMap()
+			.put("delete", new AbstractAction(){
+				@Override
+				public void actionPerformed(final ActionEvent evt){
+					deleteAction();
+				}
+			});
+		sourcesTable.setPreferredScrollableViewportSize(new Dimension(sourcesTable.getPreferredSize().width,
+			sourcesTable.getRowHeight() * 5));
 
 		addButton.addActionListener(evt -> {
 			final GedcomNode newSource = store.create("SOURCE");
@@ -207,9 +217,6 @@ public class SourceCitationDialog extends JDialog{
 			//fire edit event
 			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, newSource, onCloseGracefully));
 		});
-		editButton.addActionListener(evt -> editAction());
-		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> deleteAction());
 
 		sourceTitleLabel.setLabelFor(sourceTitleField);
 		sourceTitleField.setEnabled(false);
@@ -278,9 +285,7 @@ public class SourceCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2");
-		add(editButton, "tag edit,sizegroup button2");
-		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
 		add(sourceTitleLabel, "align label,sizegroup label,split 2");
 		add(sourceTitleField, "grow,wrap");
 		add(locationLabel, "align label,split 2");
@@ -310,7 +315,6 @@ public class SourceCitationDialog extends JDialog{
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
-		removeButton.setEnabled(false);
 	}
 
 	public void loadData(final GedcomNode container){
@@ -412,7 +416,23 @@ public class SourceCitationDialog extends JDialog{
 		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final SourceCitationDialog dialog = new SourceCitationDialog(store, new JFrame());
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					if(editCommand.getType() == EditEvent.EditType.SOURCE){
+						final SourceDialog sourceDialog = new SourceDialog(store, parent);
+						sourceDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+						sourceDialog.setSize(550, 440);
+						sourceDialog.setLocationRelativeTo(parent);
+						sourceDialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
 			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -421,7 +441,7 @@ public class SourceCitationDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 500);
+			dialog.setSize(450, 460);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

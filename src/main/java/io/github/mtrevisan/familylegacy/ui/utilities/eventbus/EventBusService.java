@@ -40,7 +40,7 @@ import java.util.ServiceLoader;
  */
 public final class EventBusService{
 
-	private static final EventBusInterface EVENT_BUS = new BasicEventBus(true);
+	private static final EventBusInterface EVENT_BUS = new BasicEventBus(false);
 
 
 	private EventBusService(){}
