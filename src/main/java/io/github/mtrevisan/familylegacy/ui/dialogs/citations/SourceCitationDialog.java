@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -90,21 +91,19 @@ public class SourceCitationDialog extends JDialog{
 	private static final String KEY_SOURCE_ID = "sourceID";
 	private static final String KEY_SOURCE_FILE = "sourceFile";
 	private static final String KEY_SOURCE_CUTOUT = "sourceCut";
-	private static final String KEY_SOURCE_PREFERRED = "sourcePreferred";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable sourcesTable = new JTable(new SourceTableModel());
 	private final JScrollPane sourcesScrollPane = new JScrollPane(sourcesTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel sourceTitleLabel = new JLabel("Title:");
-	private final JTextField sourceTitleField = new JTextField();
+	private final JLabel titleLabel = new JLabel("Title:");
+	private final JTextField titleField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cutoutButton = new JButton(CUTOUT);
-//	private final JCheckBox preferredCheckBox = new JCheckBox("Preferred");
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
@@ -114,6 +113,7 @@ public class SourceCitationDialog extends JDialog{
 	private final Debouncer<SourceCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
+	private Runnable onCloseGracefully;
 	private final Flef store;
 
 
@@ -154,33 +154,8 @@ public class SourceCitationDialog extends JDialog{
 		//clicking on a line links it to current source citation
 		sourcesTable.getSelectionModel().addListSelectionListener(evt -> {
 			final int selectedRow = sourcesTable.getSelectedRow();
-			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
-				final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
-				final GedcomNode selectedSource = store.getSource(selectedSourceID);
-				okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
-				sourceTitleField.setText(store.traverse(selectedSource, "TITLE").getValue());
-
-				locationField.setEnabled(true);
-				locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
-				roleField.setEnabled(true);
-				roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
-				cutoutButton.setEnabled(true);
-				cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
-//				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
-//				final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
-//				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
-//				preferredCheckBox.setEnabled(true);
-//				preferredCheckBox.setSelected(preferred);
-				notesButton.setEnabled(true);
-				notesButton.setEnabled(!store.traverseAsList(selectedSourceCitation, "NOTE[]").isEmpty());
-				credibilityComboBox.setEnabled(true);
-				credibilityComboBox.setEnabled(true);
-				final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
-				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
-
-				okButton.setEnabled(true);
-			}
+			if(!evt.getValueIsAdjusting() && selectedRow >= 0)
+				selectAction(selectedRow);
 		});
 		sourcesTable.addMouseListener(new MouseAdapter(){
 			@Override
@@ -202,24 +177,10 @@ public class SourceCitationDialog extends JDialog{
 		sourcesTable.setPreferredScrollableViewportSize(new Dimension(sourcesTable.getPreferredSize().width,
 			sourcesTable.getRowHeight() * 5));
 
-		addButton.addActionListener(evt -> {
-			final GedcomNode newSource = store.create("SOURCE");
+		addButton.addActionListener(evt -> addAction());
 
-			final Runnable onCloseGracefully = () -> {
-				//if ok was pressed, add this source to the parent container
-				final String newSourceID = store.addSource(newSource);
-				container.addChildReference("SOURCE", newSourceID);
-
-				//refresh group list
-				loadData();
-			};
-
-			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, newSource, onCloseGracefully));
-		});
-
-		sourceTitleLabel.setLabelFor(sourceTitleField);
-		sourceTitleField.setEnabled(false);
+		titleLabel.setLabelFor(titleField);
+		titleField.setEnabled(false);
 
 		locationLabel.setLabelFor(locationField);
 		locationField.setEnabled(false);
@@ -229,53 +190,23 @@ public class SourceCitationDialog extends JDialog{
 
 		cutoutButton.setToolTipText("Define a cutout");
 		cutoutButton.setEnabled(false);
-		cutoutButton.addActionListener(evt -> {
-			//TODO
-			final GedcomNode fileNode = store.create("FILE")
-				.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE));
-//				.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
-//				.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
-
-			final Runnable onCloseGracefully = () -> {
-//				cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
-//				cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
-
-				//refresh group list
-				loadData();
-			};
-
-			//fire image cutout event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.IMAGE, fileNode, onCloseGracefully));
-		});
-
-//		preferredCheckBox.setEnabled(false);
+		cutoutButton.addActionListener(evt -> cutoutAction());
 
 		notesButton.setEnabled(false);
+		//FIXME pass selected source as container
+		notesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		credibilityComboBox.setEnabled(false);
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
-			final String location = locationField.getText();
-			final String role = roleField.getText();
-			final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
-			final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
-//			final boolean preferred = preferredCheckBox.isSelected();
-			final int credibility = credibilityComboBox.getSelectedIndex() - 1;
+			okAction();
 
-			final GedcomNode group = store.traverse(container, "SOURCE@" + id);
-			group.replaceChildValue("LOCATION", location);
-			group.replaceChildValue("ROLE", role);
-//			group.replaceChildValue("CUTOUT", cutout);
-			group.replaceChildValue("FILE", file);
-//			group.removeChildrenWithTag("PREFERRED");
-//			if(preferred)
-//				group.addChild(store.create("PREFERRED"));
-			group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
+			if(onCloseGracefully != null)
+				onCloseGracefully.run();
 
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced groups!
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced source citations!
 
 			dispose();
 		});
@@ -286,19 +217,97 @@ public class SourceCitationDialog extends JDialog{
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
-		add(sourceTitleLabel, "align label,sizegroup label,split 2");
-		add(sourceTitleField, "grow,wrap");
-		add(locationLabel, "align label,split 2");
+		add(titleLabel, "align label,sizegroup label,split 2");
+		add(titleField, "grow,wrap");
+		add(locationLabel, "align label,sizegroup label,split 2");
 		add(locationField, "grow,wrap");
-		add(roleLabel, "align label,split 2");
+		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap");
 		add(cutoutButton, "wrap");
-//		add(preferredCheckBox, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
-		add(credibilityLabel, "align label,split 2");
+		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
+	}
+
+	private void cutoutAction(){
+		//TODO
+		final GedcomNode fileNode = store.create("FILE")
+			.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE));
+//			.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
+//			.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
+
+		final Runnable onCloseGracefully = () -> {
+//			cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
+//			cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
+
+			//refresh group list
+			loadData();
+		};
+
+		//fire image cutout event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.IMAGE, fileNode, onCloseGracefully));
+	}
+
+	private void okAction(){
+		final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
+		final String location = locationField.getText();
+		final String role = roleField.getText();
+		final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
+		final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
+		final int credibility = credibilityComboBox.getSelectedIndex() - 1;
+
+		final GedcomNode group = store.traverse(container, "SOURCE@" + id);
+		group.replaceChildValue("LOCATION", location);
+		group.replaceChildValue("ROLE", role);
+		//			group.replaceChildValue("CUTOUT", cutout);
+		group.replaceChildValue("FILE", file);
+		//			group.removeChildrenWithTag("PREFERRED");
+		//			if(preferred)
+		//				group.addChild(store.create("PREFERRED"));
+		group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
+	}
+
+	private void selectAction(final int selectedRow){
+		final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
+		final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
+		final GedcomNode selectedSource = store.getSource(selectedSourceID);
+		okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
+		titleField.setText(store.traverse(selectedSource, "TITLE").getValue());
+
+		locationField.setEnabled(true);
+		locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
+		roleField.setEnabled(true);
+		roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
+		cutoutButton.setEnabled(true);
+		cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
+//		cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
+//		final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
+//		cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
+		notesButton.setEnabled(true);
+		credibilityComboBox.setEnabled(true);
+		credibilityComboBox.setEnabled(true);
+		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
+		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+
+		okButton.setEnabled(true);
+	}
+
+	private void addAction(){
+		final GedcomNode newSource = store.create("SOURCE");
+
+		final Runnable onCloseGracefully = () -> {
+			//if ok was pressed, add this source to the parent container
+			final String newSourceID = store.addSource(newSource);
+			container.addChildReference("SOURCE", newSourceID);
+
+			//refresh group list
+			loadData();
+		};
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, newSource, onCloseGracefully));
 	}
 
 	private void editAction(){
@@ -317,8 +326,9 @@ public class SourceCitationDialog extends JDialog{
 		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
 	}
 
-	public void loadData(final GedcomNode container){
+	public void loadData(final GedcomNode container, final Runnable onCloseGracefully){
 		this.container = container;
+		this.onCloseGracefully = onCloseGracefully;
 
 		loadData();
 
@@ -420,20 +430,38 @@ public class SourceCitationDialog extends JDialog{
 			final Object listener = new Object(){
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
-					if(editCommand.getType() == EditEvent.EditType.SOURCE){
-						final SourceDialog sourceDialog = new SourceDialog(store, parent);
-						sourceDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+					JDialog dialog = null;
+					switch(editCommand.getType()){
+						case SOURCE:
+							dialog = new SourceDialog(store, parent);
+							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-						sourceDialog.setSize(550, 440);
-						sourceDialog.setLocationRelativeTo(parent);
-						sourceDialog.setVisible(true);
+							dialog.setSize(550, 440);
+							break;
+
+						case NOTE_CITATION:
+							dialog = new NoteCitationDialog(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
+						case NOTE:
+							dialog = new NoteDialog(store, parent);
+							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+					}
+					if(dialog != null){
+						dialog.setLocationRelativeTo(parent);
+						dialog.setVisible(true);
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
 
 			final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-			dialog.loadData(container);
+			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

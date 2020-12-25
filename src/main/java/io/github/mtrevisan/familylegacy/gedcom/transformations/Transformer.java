@@ -548,7 +548,7 @@ public final class Transformer extends TransformerHelper{
 		if(sourceDate.isEmpty())
 			sourceDate = traverse(sourceData, "DATE");
 		final String sourceDescription = source.getValue();
-		final String restriction = ("Y".equals(traverse(object, "_PUBL").getValue())? null: "private");
+		final String restriction = ("Y".equals(traverse(object, "_PUBL").getValue())? null: "confidential");
 		final List<GedcomNode> files = traverseAsList(object, "FILE[]");
 		String mediaType = traverse(object, "FORM.MEDI").getValue();
 		if(mediaType == null)

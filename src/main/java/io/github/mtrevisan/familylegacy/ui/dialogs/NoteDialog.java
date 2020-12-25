@@ -77,11 +77,12 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			final String text = textPreviewView.getText();
-			note.withValue(text);
+			okAction();
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
+
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
 
 			dispose();
 		});
@@ -114,6 +115,11 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	@Override
 	public void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
+	}
+
+	private void okAction(){
+		final String text = textPreviewView.getText();
+		note.withValue(text);
 	}
 
 	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){

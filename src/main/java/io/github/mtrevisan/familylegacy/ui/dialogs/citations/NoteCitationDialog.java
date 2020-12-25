@@ -137,21 +137,7 @@ public class NoteCitationDialog extends JDialog{
 		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
 			notesTable.getRowHeight() * 5));
 
-		addButton.addActionListener(evt -> {
-			final GedcomNode newNote = store.create("NOTE");
-
-			final Runnable onCloseGracefully = () -> {
-				//if ok was pressed, add this note to the parent container
-				final String newNoteID = store.addNote(newNote);
-				container.addChildReference("NOTE", newNoteID);
-
-				//refresh note list
-				loadData();
-			};
-
-			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
-		});
+		addButton.addActionListener(evt -> addAction());
 
 		okButton.addActionListener(evt -> {
 			transferListToContainer();
@@ -179,6 +165,22 @@ public class NoteCitationDialog extends JDialog{
 			final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
 			container.addChildReference("NOTE", id);
 		}
+	}
+
+	private void addAction(){
+		final GedcomNode newNote = store.create("NOTE");
+
+		final Runnable onCloseGracefully = () -> {
+			//if ok was pressed, add this note to the parent container
+			final String newNoteID = store.addNote(newNote);
+			container.addChildReference("NOTE", newNoteID);
+
+			//refresh note list
+			loadData();
+		};
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
 	}
 
 	private void editAction(){

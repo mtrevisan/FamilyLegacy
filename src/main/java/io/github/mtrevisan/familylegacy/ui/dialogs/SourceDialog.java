@@ -148,25 +148,12 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
 
 		okButton.addActionListener(evt -> {
-			final String event = eventField.getText();
-			final String title = titleField.getText();
-			final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
-				Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
-			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
-			final String extract = textPreviewView.getText();
-
-			source.replaceChildValue("EVENT", event);
-			source.replaceChildValue("TITLE", title);
-			source.replaceChildValue("EXTRACT", extract);
-			final GedcomNode extractLocaleNode = store.traverse(source, "EXTRACT.LOCALE");
-			if(!extractLocaleNode.isEmpty())
-				extractLocaleNode.withValue(extractLanguageTag);
-			final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
-			if(!extractTypeNode.isEmpty())
-				extractTypeNode.withValue(extractType);
+			okAction();
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
+
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced sources!
 
 			dispose();
 		});
@@ -188,6 +175,25 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
+	}
+
+	private void okAction(){
+		final String event = eventField.getText();
+		final String title = titleField.getText();
+		final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
+			Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
+		final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
+		final String extract = textPreviewView.getText();
+
+		source.replaceChildValue("EVENT", event);
+		source.replaceChildValue("TITLE", title);
+		source.replaceChildValue("EXTRACT", extract);
+		final GedcomNode extractLocaleNode = store.traverse(source, "EXTRACT.LOCALE");
+		if(!extractLocaleNode.isEmpty())
+			extractLocaleNode.withValue(extractLanguageTag);
+		final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
+		if(!extractTypeNode.isEmpty())
+			extractTypeNode.withValue(extractType);
 	}
 
 	@Override

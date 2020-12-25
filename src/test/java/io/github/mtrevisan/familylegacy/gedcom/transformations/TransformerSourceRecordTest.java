@@ -90,8 +90,8 @@ class TransformerSourceRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.sourceRecordTo(parent, origin, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE1}, {tag: FILE, value: MULTIMEDIA_FILE_REFN1, children: [{tag: RESTRICTION, value: private}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE1}]", destination.getSources().get(0).toString());
-		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE2}, {tag: FILE, value: MULTIMEDIA_FILE_REFN2, children: [{tag: RESTRICTION, value: private}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE2}]", destination.getSources().get(1).toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE1}, {tag: FILE, value: MULTIMEDIA_FILE_REFN1, children: [{tag: RESTRICTION, value: confidential}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S2, tag: SOURCE, children: [{tag: TITLE, value: DESCRIPTIVE_TITLE2}, {tag: FILE, value: MULTIMEDIA_FILE_REFN2, children: [{tag: RESTRICTION, value: confidential}]}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE2}]", destination.getSources().get(1).toString());
 		Assertions.assertEquals("id: K1, tag: CALENDAR", destination.getCalendars().get(0).toString());
 	}
 
