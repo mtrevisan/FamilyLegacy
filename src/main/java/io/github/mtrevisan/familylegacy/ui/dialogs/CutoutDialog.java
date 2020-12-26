@@ -36,6 +36,8 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -49,14 +51,16 @@ import java.util.StringJoiner;
 
 
 //https://github.com/wzhwcp/CutOutPicture
-public class CutoutDialog extends JDialog{
+public class CutoutDialog extends JDialog implements ChangeListener{
 
 	private static final double DATE_HEIGHT = 17.;
 	private static final double DATE_ASPECT_RATIO = 270 / 248.;
 	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
 
 
-	private final ScaledImageLabel imageHolder = new ScaledImageLabel(ImageDrawer.ALIGNMENT_X_CENTER, ImageDrawer.ALIGNMENT_Y_TOP);
+	private BufferedImage image;
+	private final ScaledImageLabel imageHolder = new ScaledImageLabel(ImageDrawer.ALIGNMENT_X_CENTER, ImageDrawer.ALIGNMENT_Y_MIDDLE);
+	private final JSlider zoomSlider = new JSlider(20, 200);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -80,6 +84,13 @@ public class CutoutDialog extends JDialog{
 		imageHolder.addMouseListener(listener);
 		imageHolder.addMouseMotionListener(listener);
 
+		zoomSlider.setValue(100);
+		zoomSlider.setMajorTickSpacing(20);
+		zoomSlider.setMinorTickSpacing(10);
+		zoomSlider.setPaintTicks(true);
+		zoomSlider.setPaintLabels(true);
+		zoomSlider.addChangeListener(this);
+
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			okAction();
@@ -91,8 +102,9 @@ public class CutoutDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("debug", "[grow]", "[top]"));
-		add(imageHolder, "grow,wrap paragraph");
+		setLayout(new MigLayout("", "[grow,shrink]", "[grow,shrink][][]"));
+		add(imageHolder, "grow,shrink,wrap");
+		add(zoomSlider, "growx,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -101,16 +113,15 @@ public class CutoutDialog extends JDialog{
 		this.onCloseGracefully = onCloseGracefully;
 
 		try(final ImageInputStream input = ImageIO.createImageInputStream(new File(file))){
-			//get the reader
 			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
 			if(!readers.hasNext())
-				throw new IllegalArgumentException("No reader for: " + file);
+				throw new IllegalArgumentException("No reader for " + file);
 
 			final ImageReader reader = readers.next();
 			try{
 				reader.setInput(input);
 
-				final BufferedImage image = reader.read(0);
+				image = reader.read(0);
 
 				imageHolder.setIcon(new ImageIcon(image));
 			}
@@ -141,6 +152,12 @@ public class CutoutDialog extends JDialog{
 
 			graphics2D.dispose();
 		}
+	}
+
+	@Override
+	public void stateChanged(final ChangeEvent event){
+		final int value = ((JSlider)event.getSource()).getValue();
+		imageHolder.setZoom(value / 100.f);
 	}
 
 	private int limit(final int value, final int max){
@@ -200,8 +217,8 @@ public class CutoutDialog extends JDialog{
 		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
-		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
-//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
+//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
+		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
 			final CutoutDialog dialog = new CutoutDialog(null);
@@ -218,7 +235,7 @@ public class CutoutDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 430);
+			dialog.setSize(500, 480);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

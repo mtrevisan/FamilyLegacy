@@ -33,6 +33,8 @@ public class ScaledImageLabel extends JLabel{
 	private final int alignmentX;
 	private final int alignmentY;
 
+	private float zoom = 1.f;
+
 
 	public ScaledImageLabel(final int alignmentX, final int alignmentY){
 		super();
@@ -41,11 +43,18 @@ public class ScaledImageLabel extends JLabel{
 		this.alignmentY = alignmentY;
 	}
 
+	public void setZoom(final float zoom){
+		this.zoom = zoom;
+
+		repaint();
+	}
+
 	@Override
 	protected void paintComponent(final Graphics g){
 		final ImageIcon icon = (ImageIcon)getIcon();
 		if(icon != null){
-			ImageDrawer.drawScaledImage(icon.getImage(), getParent(), g, alignmentX, alignmentY);
+			final Component parent = (getSize().width < getParent().getSize().width? this: getParent());
+			ImageDrawer.drawScaledImage(icon.getImage(), parent, g, alignmentX, alignmentY, zoom);
 
 			g.dispose();
 		}

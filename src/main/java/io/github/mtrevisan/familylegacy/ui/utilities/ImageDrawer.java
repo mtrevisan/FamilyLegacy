@@ -43,61 +43,42 @@ public class ImageDrawer{
 
 
 	public static void drawScaledImage(final Image image, final Component parent, final Graphics g,
-			final int alignmentX, final int alignmentY){
-		final int imageWidth = image.getWidth(null);
-		final int imageHeight = image.getHeight(null);
-		final float imageAspect = (float)imageHeight / imageWidth;
+			final int alignmentX, final int alignmentY, final float zoom){
+		final int originalImageWidth = image.getWidth(null);
+		final int originalImageHeight = image.getHeight(null);
+		final double imageAspect = (double)originalImageHeight / originalImageWidth;
+		int imageWidth = originalImageWidth;
+		int imageHeight = originalImageHeight;
+		final int parentWidth = parent.getWidth();
+		final int parentHeight = parent.getHeight();
+		if(imageWidth > parentWidth){
+			//constrain width
+			imageWidth = parentWidth;
+			imageHeight = (int)(parentWidth * imageAspect);
+		}
+		if(imageHeight > parentHeight){
+			//constrain height
+			imageWidth = (int)(parentHeight / imageAspect);
+			imageHeight = parentHeight;
+		}
 
-		int parentWidth = parent.getWidth();
-		int parentHeight = parent.getHeight();
-		final float parentAspect = (float)parentHeight / parentWidth;
+		imageWidth *= zoom;
+		imageHeight *= zoom;
 
-		//top left X position
+		//top left X, Y position
 		int x1 = 0;
-		//top left Y position
 		int y1 = 0;
-		//bottom right X position
-		int x2;
-		//bottom right Y position
-		int y2;
-		if(imageWidth < parentWidth && imageHeight < parentHeight){
-			//the image is smaller than the canvas:
-			if(alignmentX == ALIGNMENT_X_CENTER)
-				x1 = (parentWidth - imageWidth) / 2;
-			else if(alignmentX == ALIGNMENT_X_RIGHT)
-				x1 = parentWidth - imageWidth;
-			if(alignmentY == ALIGNMENT_Y_MIDDLE)
-				y1 = (parentHeight - imageHeight) / 2;
-			else if(alignmentY == ALIGNMENT_Y_BOTTOM)
-				y1 = parentHeight - imageHeight;
-			x2 = x1 + imageWidth;
-			y2 = y1 + imageHeight;
-		}
-		else{
-			if(parentAspect > imageAspect){
-				y1 = parentHeight;
-				//keep image aspect ratio
-				parentHeight = (int)(parentWidth * imageAspect);
-				if(alignmentY == ALIGNMENT_Y_MIDDLE)
-					y1 = (y1 - parentHeight) / 2;
-				else if(alignmentY == ALIGNMENT_Y_BOTTOM)
-					y1 = y1 - parentHeight;
-			}
-			else{
-				x1 = parentWidth;
-				//keep image aspect ratio
-				parentWidth = (int)(parentHeight / imageAspect);
-				if(alignmentX == ALIGNMENT_X_CENTER)
-					x1 = (x1 - parentWidth) / 2;
-				else if(alignmentX == ALIGNMENT_X_RIGHT)
-					x1 = x1 - parentWidth;
-			}
+		if(alignmentX == ALIGNMENT_X_CENTER)
+			x1 = (parentWidth - imageWidth) / 2;
+		else if(alignmentX == ALIGNMENT_X_RIGHT)
+			x1 = parentWidth - imageWidth;
+		if(alignmentY == ALIGNMENT_Y_MIDDLE)
+			y1 = (parentHeight - imageHeight) / 2;
+		else if(alignmentY == ALIGNMENT_Y_BOTTOM)
+			y1 = parentHeight - imageHeight;
 
-			x2 = x1 + parentWidth;
-			y2 = y1 + parentHeight;
-		}
-
-		g.drawImage(image, x1, y1, x2, y2, 0, 0, imageWidth, imageHeight, null);
+		g.drawImage(image, x1, y1, x1 + imageWidth, y1 + imageHeight,
+			0, 0, originalImageWidth, originalImageHeight, null);
 	}
 
 }
