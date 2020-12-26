@@ -161,7 +161,6 @@ public class SourceCitationDialog extends JDialog{
 			@Override
 			public void mousePressed(final MouseEvent evt){
 				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && sourcesTable.rowAtPoint(evt.getPoint()) >= 0)
-					//fire edit event
 					editAction();
 			}
 		});
@@ -193,8 +192,11 @@ public class SourceCitationDialog extends JDialog{
 		cutoutButton.addActionListener(evt -> cutoutAction());
 
 		notesButton.setEnabled(false);
-		//FIXME pass selected source as container
-		notesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
+		notesButton.addActionListener(evt -> {
+			final String selectedSourceID = (String)okButton.getClientProperty(KEY_SOURCE_ID);
+			final GedcomNode selectedSource = store.getSource(selectedSourceID);
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedSource));
+		});
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		credibilityComboBox.setEnabled(false);
@@ -261,11 +263,8 @@ public class SourceCitationDialog extends JDialog{
 		final GedcomNode group = store.traverse(container, "SOURCE@" + id);
 		group.replaceChildValue("LOCATION", location);
 		group.replaceChildValue("ROLE", role);
-		//			group.replaceChildValue("CUTOUT", cutout);
+//		group.replaceChildValue("CUTOUT", cutout);
 		group.replaceChildValue("FILE", file);
-		//			group.removeChildrenWithTag("PREFERRED");
-		//			if(preferred)
-		//				group.addChild(store.create("PREFERRED"));
 		group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
 	}
 
@@ -281,10 +280,8 @@ public class SourceCitationDialog extends JDialog{
 		roleField.setEnabled(true);
 		roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
 		cutoutButton.setEnabled(true);
-		cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSourceCitation, "FILE").getValue());
-//		cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
-//		final boolean preferred = store.traverse(selectedSourceCitation, "PREFERRED").getTag() != null;
-//		cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, (preferred? "true": "false"));
+		cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
+		cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
 		notesButton.setEnabled(true);
 		credibilityComboBox.setEnabled(true);
 		credibilityComboBox.setEnabled(true);

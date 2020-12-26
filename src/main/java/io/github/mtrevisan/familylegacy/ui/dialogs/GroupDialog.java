@@ -185,7 +185,7 @@ public class GroupDialog extends JDialog{
 						case SOURCE_CITATION:
 							//TODO
 							dialog = new SourceCitationDialog(store, parent);
-							((SourceCitationDialog)dialog).loadData(editCommand.getContainer());
+							((SourceCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(450, 450);
 

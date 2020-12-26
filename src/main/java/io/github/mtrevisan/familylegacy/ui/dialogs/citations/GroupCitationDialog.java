@@ -164,7 +164,6 @@ public class GroupCitationDialog extends JDialog{
 			@Override
 			public void mousePressed(final MouseEvent evt){
 				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && groupsTable.rowAtPoint(evt.getPoint()) >= 0)
-					//fire edit event
 					editAction();
 			}
 		});
