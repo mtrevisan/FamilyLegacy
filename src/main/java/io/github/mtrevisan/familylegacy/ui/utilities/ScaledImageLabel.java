@@ -45,8 +45,6 @@ public class ScaledImageLabel extends JLabel{
 
 	public void setZoom(final float zoom){
 		this.zoom = zoom;
-
-		repaint();
 	}
 
 	@Override

@@ -58,7 +58,6 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
 
 
-	private BufferedImage image;
 	private final ScaledImageLabel imageHolder = new ScaledImageLabel(ImageDrawer.ALIGNMENT_X_CENTER, ImageDrawer.ALIGNMENT_Y_MIDDLE);
 	private final JSlider zoomSlider = new JSlider(20, 200);
 	private final JButton okButton = new JButton("Ok");
@@ -121,7 +120,7 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 			try{
 				reader.setInput(input);
 
-				image = reader.read(0);
+				final BufferedImage image = reader.read(0);
 
 				imageHolder.setIcon(new ImageIcon(image));
 			}
@@ -141,14 +140,17 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 		if(g2 instanceof Graphics2D){
 			final Graphics2D graphics2D = (Graphics2D)g2.create();
 
+			final float zoom = zoomSlider.getValue() / 100.f;
+
 			graphics2D.setColor(Color.RED);
 			x2 = limit(x2, imageHolder.getWidth() - 1);
 			y2 = limit(y2, imageHolder.getHeight() - 1);
 			final int x = Math.min(x1, x2);
 			final int y = Math.min(y1, y2);
-			final int width = Math.abs(x1 - x2);
-			final int height = Math.abs(y1 - y2);
-			graphics2D.drawRect(x, y, width, height);
+			final int width = Math.abs(x2 - x1);
+			final int height = Math.abs(y2 - y1);
+			graphics2D.drawRect(x, y,
+				width, height);
 
 			graphics2D.dispose();
 		}
@@ -156,8 +158,9 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 
 	@Override
 	public void stateChanged(final ChangeEvent event){
-		final int value = ((JSlider)event.getSource()).getValue();
-		imageHolder.setZoom(value / 100.f);
+		imageHolder.setZoom(zoomSlider.getValue() / 100.f);
+
+		repaint();
 	}
 
 	private int limit(final int value, final int max){
@@ -217,8 +220,8 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
-//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
-		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
+		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
+//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
 			final CutoutDialog dialog = new CutoutDialog(null);
