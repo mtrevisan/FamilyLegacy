@@ -30,11 +30,22 @@ import java.awt.*;
 
 public class ScaledImageLabel extends JLabel{
 
+	private final int alignmentX;
+	private final int alignmentY;
+
+
+	public ScaledImageLabel(final int alignmentX, final int alignmentY){
+		super();
+
+		this.alignmentX = alignmentX;
+		this.alignmentY = alignmentY;
+	}
+
 	@Override
 	protected void paintComponent(final Graphics g){
 		final ImageIcon icon = (ImageIcon)getIcon();
 		if(icon != null){
-			ImageDrawer.drawScaledImage(icon.getImage(), getParent(), g);
+			ImageDrawer.drawScaledImage(icon.getImage(), getParent(), g, alignmentX, alignmentY);
 
 			g.dispose();
 		}

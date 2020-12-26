@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.ui.utilities.ImageDrawer;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImageLabel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ public class CutoutDialog extends JDialog{
 	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
 
 
-	private final ScaledImageLabel imageHolder = new ScaledImageLabel();
+	private final ScaledImageLabel imageHolder = new ScaledImageLabel(ImageDrawer.ALIGNMENT_X_CENTER, ImageDrawer.ALIGNMENT_Y_TOP);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -79,8 +80,19 @@ public class CutoutDialog extends JDialog{
 		imageHolder.addMouseListener(listener);
 		imageHolder.addMouseMotionListener(listener);
 
-		setLayout(new MigLayout("debug,insets 0"));
-//		add(imageHolder, "wrap paragraph");
+		okButton.setEnabled(false);
+		okButton.addActionListener(evt -> {
+			okAction();
+
+			if(onCloseGracefully != null)
+				onCloseGracefully.run();
+
+			dispose();
+		});
+		cancelButton.addActionListener(evt -> dispose());
+
+		setLayout(new MigLayout("debug", "[grow]", "[top]"));
+		add(imageHolder, "grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -188,8 +200,8 @@ public class CutoutDialog extends JDialog{
 		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
-//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
-		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
+		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
+//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
 			final CutoutDialog dialog = new CutoutDialog(null);
