@@ -27,8 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.ui.utilities.ImageDrawer;
-import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImageLabel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,13 +34,16 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -51,23 +52,29 @@ import java.util.StringJoiner;
 
 
 //https://github.com/wzhwcp/CutOutPicture
-public class CutoutDialog extends JDialog implements ChangeListener{
+//https://www.onooks.com/zoom-and-pan-in-java-using-affinetransform/
+public class CutoutDialog extends JDialog{
 
-	private static final double DATE_HEIGHT = 17.;
-	private static final double DATE_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
+	private static final int MIN_ZOOM_LEVEL = -20;
+	private static final int MAX_ZOOM_LEVEL = 10;
+	private static final double ZOOM_MULTIPLICATION_FACTOR = 1.2;
+	private static final double INITIAL_ZOOM = 1.;
 
 
-	private final ScaledImageLabel imageHolder = new ScaledImageLabel(ImageDrawer.ALIGNMENT_X_CENTER, ImageDrawer.ALIGNMENT_Y_MIDDLE);
-	private final JSlider zoomSlider = new JSlider(20, 200);
+	private BufferedImage image;
+	private final JLabel imageHolder = new JLabel();
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private Runnable onCloseGracefully;
 
-	//cutout coordinates:
-	private int x1, y1;
-	private int x2, y2;
+	private boolean initialized = false;
+	private final AffineTransform coordTransform = new AffineTransform();
+	private Point cutoutStartPoint;
+	private Point cutoutEndPoint;
+	private Point dragStartPoint;
+	private Point dragEndPoint;
+	private int zoomLevel = 0;
 
 
 	public CutoutDialog(final Frame parent){
@@ -82,13 +89,7 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 		final MyMouseListener listener = new MyMouseListener();
 		imageHolder.addMouseListener(listener);
 		imageHolder.addMouseMotionListener(listener);
-
-		zoomSlider.setValue(100);
-		zoomSlider.setMajorTickSpacing(20);
-		zoomSlider.setMinorTickSpacing(10);
-		zoomSlider.setPaintTicks(true);
-		zoomSlider.setPaintLabels(true);
-		zoomSlider.addChangeListener(this);
+		imageHolder.addMouseWheelListener(listener);
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
@@ -101,9 +102,8 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("", "[grow,shrink]", "[grow,shrink][][]"));
+		setLayout(new MigLayout("debug", "[grow,shrink]", "[grow,shrink][][]"));
 		add(imageHolder, "grow,shrink,wrap");
-		add(zoomSlider, "growx,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -120,9 +120,7 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 			try{
 				reader.setInput(input);
 
-				final BufferedImage image = reader.read(0);
-
-				imageHolder.setIcon(new ImageIcon(image));
+				image = reader.read(0);
 			}
 			finally{
 				reader.dispose();
@@ -140,67 +138,130 @@ public class CutoutDialog extends JDialog implements ChangeListener{
 		if(g2 instanceof Graphics2D){
 			final Graphics2D graphics2D = (Graphics2D)g2.create();
 
-			final float zoom = zoomSlider.getValue() / 100.f;
+			//image:
+			if(!initialized){
+				final int x = (int)(imageHolder.getWidth() - (image.getWidth() * INITIAL_ZOOM)) / 2;
+				final int y = (int)(imageHolder.getHeight() - (image.getHeight() * INITIAL_ZOOM)) / 2;
+				coordTransform.translate(x, y);
+				coordTransform.scale(INITIAL_ZOOM, INITIAL_ZOOM);
 
-			graphics2D.setColor(Color.RED);
-			x2 = limit(x2, imageHolder.getWidth() - 1);
-			y2 = limit(y2, imageHolder.getHeight() - 1);
-			final int x = Math.min(x1, x2);
-			final int y = Math.min(y1, y2);
-			final int width = Math.abs(x2 - x1);
-			final int height = Math.abs(y2 - y1);
-			graphics2D.drawRect(x, y,
-				width, height);
+				initialized = true;
+			}
+			graphics2D.setTransform(coordTransform);
+			graphics2D.drawImage(image, 0, 0, this);
+
+			//cutout box:
+			if(cutoutEndPoint != null){
+				graphics2D.setColor(Color.RED);
+				cutoutEndPoint.x = limit(cutoutEndPoint.x, imageHolder.getWidth() - 1);
+				cutoutEndPoint.y = limit(cutoutEndPoint.y, imageHolder.getHeight() - 1);
+				final double zoomFactor = coordTransform.getScaleX();
+				final int x = (int)((Math.min(cutoutStartPoint.x, cutoutEndPoint.x)) / zoomFactor);
+				final int y = (int)((Math.min(cutoutStartPoint.y, cutoutEndPoint.y)) / zoomFactor);
+				final int width = (int)(Math.abs(cutoutEndPoint.x - cutoutStartPoint.x) * zoomFactor);
+				final int height = (int)(Math.abs(cutoutEndPoint.y - cutoutStartPoint.y) * zoomFactor);
+				graphics2D.drawRect(x, y, width, height);
+			}
 
 			graphics2D.dispose();
 		}
-	}
-
-	@Override
-	public void stateChanged(final ChangeEvent event){
-		imageHolder.setZoom(zoomSlider.getValue() / 100.f);
-
-		repaint();
 	}
 
 	private int limit(final int value, final int max){
 		return Math.min(Math.max(value, 0), max);
 	}
 
-	private void setStartPoint(final int x, final int y){
-		x1 = x;
-		y1 = y;
-	}
-
-	private void setEndPoint(final int x, final int y){
-		x2 = x;
-		y2 = y;
-	}
-
-	class MyMouseListener extends MouseAdapter{
+	class MyMouseListener extends MouseAdapter implements MouseWheelListener{
 
 		@Override
-		public void mousePressed(final MouseEvent e){
-			if(SwingUtilities.isLeftMouseButton(e))
-				setStartPoint(e.getX(), e.getY());
+		public void mousePressed(final MouseEvent evt){
+			if(SwingUtilities.isLeftMouseButton(evt)){
+				if(evt.isControlDown()){
+					dragStartPoint = evt.getPoint();
+					dragEndPoint = null;
+				}
+				else{
+					final int x = (int)(evt.getX() - coordTransform.getTranslateX());
+					final int y = (int)(evt.getY() - coordTransform.getTranslateY());
+					cutoutStartPoint = new Point(x, y);
+				}
+			}
 		}
 
 		@Override
-		public void mouseDragged(final MouseEvent e){
-			if(SwingUtilities.isLeftMouseButton(e)){
-				setEndPoint(e.getX(), e.getY());
+		public void mouseDragged(final MouseEvent evt){
+			if(SwingUtilities.isLeftMouseButton(evt)){
+				if(evt.isControlDown()){
+					//pan
+					try{
+						dragEndPoint = evt.getPoint();
+						final Point2D dragStart = transformPoint(dragStartPoint);
+						final Point2D dragEnd = transformPoint(dragEndPoint);
+						final double dx = dragEnd.getX() - dragStart.getX();
+						final double dy = dragEnd.getY() - dragStart.getY();
+						coordTransform.translate(dx, dy);
+						dragStartPoint = dragEndPoint;
+						dragEndPoint = null;
+					}
+					catch(final NoninvertibleTransformException ignored){}
+				}
+				else{
+					//cutout start point
+//					final double zoomFactor = coordTransform.getScaleX();
+					final int x = (int)(evt.getX() - coordTransform.getTranslateX());
+					final int y = (int)(evt.getY() - coordTransform.getTranslateY());
+					cutoutEndPoint = new Point(x, y);
+				}
 
 				repaint();
 			}
 		}
+
+		@Override
+		public void mouseWheelMoved(final MouseWheelEvent evt){
+			if(evt.isControlDown()){
+				//zoom
+				final int wheelRotation = evt.getWheelRotation();
+				double zoomFactor = 0.;
+				if(wheelRotation > 0 && zoomLevel < MAX_ZOOM_LEVEL){
+					zoomLevel ++;
+					zoomFactor = 1. / ZOOM_MULTIPLICATION_FACTOR;
+				}
+				else if(wheelRotation < 0 && zoomLevel > MIN_ZOOM_LEVEL){
+					zoomLevel --;
+					zoomFactor = ZOOM_MULTIPLICATION_FACTOR;
+				}
+
+				if(zoomFactor != 0.){
+					try{
+						final Point p = evt.getPoint();
+						final Point2D p1 = transformPoint(p);
+						coordTransform.scale(zoomFactor, zoomFactor);
+						final Point2D p2 = transformPoint(p);
+						coordTransform.translate(p2.getX() - p1.getX(), p2.getY() - p1.getY());
+
+						repaint();
+					}
+					catch(final NoninvertibleTransformException ignored){}
+				}
+			}
+		}
+
+		private Point2D transformPoint(final Point point) throws NoninvertibleTransformException{
+			final AffineTransform inverse = coordTransform.createInverse();
+			final Point2D transformedPoint = new Point2D.Float();
+			inverse.transform(point, transformedPoint);
+			return transformedPoint;
+		}
+
 	}
 
 	public String getCutoutCoordinates(){
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(Integer.toString(x1));
-		sj.add(Integer.toString(y1));
-		sj.add(Integer.toString(x2));
-		sj.add(Integer.toString(y2));
+		sj.add(Integer.toString(cutoutStartPoint.x));
+		sj.add(Integer.toString(cutoutStartPoint.y));
+		sj.add(Integer.toString(cutoutEndPoint.x));
+		sj.add(Integer.toString(cutoutEndPoint.y));
 		return sj.toString();
 	}
 
