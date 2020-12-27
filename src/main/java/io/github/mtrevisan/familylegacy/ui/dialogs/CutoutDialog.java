@@ -76,8 +76,8 @@ public class CutoutDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("", "[grow,shrink]", "[grow,shrink][][]"));
-		add(imageHolder, "grow,shrink,wrap");
+		setLayout(new MigLayout("debug", "[grow]", "[grow][][]"));
+		add(imageHolder, "grow,wrap");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
