@@ -63,6 +63,9 @@
 		<fasterxml.jackson-databind.version>2.12.0</fasterxml.jackson-databind.version>
 		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>
 
+		<!-- TwelveMonkeys ImageIO -->
+		<twelvemonkeys.imageio-core.version>3.6.1</twelvemonkeys.imageio-core.version>
+
 		<!-- Logging -->
 		<slf4j.slf4j-api.version>1.7.30</slf4j.slf4j-api.version>
 		<logback.logback-classic.version>1.2.3</logback.logback-classic.version>
@@ -311,13 +314,13 @@
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>
-			<version>3.6.1</version>
+			<version>${twelvemonkeys.imageio-core.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-psd -->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-psd</artifactId>
-			<version>3.6.1</version>
+			<version>${twelvemonkeys.imageio-core.version}</version>
 		</dependency>
 
 		<!-- JSON -->

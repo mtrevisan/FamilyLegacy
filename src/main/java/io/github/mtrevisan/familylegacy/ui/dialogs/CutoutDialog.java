@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImageLabel;
+import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -49,7 +49,7 @@ import java.util.StringJoiner;
 //https://www.onooks.com/zoom-and-pan-in-java-using-affinetransform/
 public class CutoutDialog extends JDialog{
 
-	private final ScaledImageLabel imageHolder = new ScaledImageLabel();
+	private final ScaledImage imageHolder = new ScaledImage();
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -76,7 +76,7 @@ public class CutoutDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("debug", "[grow]", "[grow][][]"));
+		setLayout(new MigLayout("", "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -96,7 +96,7 @@ public class CutoutDialog extends JDialog{
 
 				final BufferedImage image = reader.read(0);
 
-				imageHolder.setIcon(new ImageIcon(image));
+				imageHolder.setImage(image);
 			}
 			finally{
 				reader.dispose();
@@ -119,6 +119,7 @@ public class CutoutDialog extends JDialog{
 
 	private void okAction(){
 		//TODO
+		final String cutoutCoordinates = getCutoutCoordinates();
 	}
 
 
