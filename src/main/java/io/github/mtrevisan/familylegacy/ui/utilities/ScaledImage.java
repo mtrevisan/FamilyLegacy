@@ -30,9 +30,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.NoninvertibleTransformException;
-import java.awt.geom.Point2D;
 
 
 public class ScaledImage extends JLabel{
@@ -42,18 +39,21 @@ public class ScaledImage extends JLabel{
 	private static final double MIN_ABSOLUTE_ZOOM = 0.5;
 
 	private Image image;
-	private double minZoom;
-	private double maxZoom;
 	private int imageWidth;
 	private int imageHeight;
-	private boolean initialized = false;
+	private double minZoom;
+	private double maxZoom;
+	private boolean initialized;
 	private final AffineTransform transformation = new AffineTransform();
 
 
-	private Point cutoutStartPoint;
-	private Point cutoutEndPoint;
-	private Point dragStartPoint;
-	private Point dragEndPoint;
+	private boolean cutoutDefinition;
+	private int cutoutStartPointX = -1;
+	private int cutoutStartPointY;
+	private int cutoutEndPointX;
+	private int cutoutEndPointY;
+	private int dragStartPointX;
+	private int dragStartPointY;
 
 
 	public ScaledImage(){
@@ -101,18 +101,14 @@ public class ScaledImage extends JLabel{
 
 				initialized = true;
 			}
-			//NOTE: if the transformer is used here, like in the example below, there is a problem on the second repaint with insets
-			//top and left not zero (the image shifts down and right by the insets amount).
-			//`graphics2D.setTransform(transformation);`
-			//`graphics2D.drawImage(image, 0, 0, null);`
 			graphics2D.drawImage(image,
 				(int)transformation.getTranslateX(), (int)transformation.getTranslateY(),
-				(int)(transformation.getTranslateX() + imageWidth * transformation.getScaleX()),
-				(int)(transformation.getTranslateY() + imageHeight * transformation.getScaleY()),
+				transformation.transformX(imageWidth),
+				transformation.transformY(imageHeight),
 				0, 0, imageWidth, imageHeight, null);
 
 			//cutout rectangle:
-			if(cutoutStartPoint != null && cutoutEndPoint != null){
+			if(cutoutStartPointX >= 0){
 				graphics2D.setColor(Color.RED);
 				drawCutoutRectangle(graphics2D);
 			}
@@ -129,180 +125,92 @@ public class ScaledImage extends JLabel{
 		minZoom = Math.min(current / 2., MIN_ABSOLUTE_ZOOM);
 		maxZoom = Math.max(current * 2., MAX_ABSOLUTE_ZOOM);
 
-		//zoom to fit
-		final double initialZoom = Math.min(current, 1.);
+		//scale to fit
+		final double scale = Math.min(current, 1.);
 		//center image
-		final double x = (parentWidth - imageWidth * initialZoom) / 2.;
-		final double y = (parentHeight - imageHeight * initialZoom) / 2.;
+		final double x = (parentWidth - imageWidth * scale) / 2.;
+		final double y = (parentHeight - imageHeight * scale) / 2.;
 
-		transformation.translate(x, y);
-		transformation.scale(initialZoom, initialZoom);
+		transformation.setScale(scale);
+		transformation.setTranslation(x, y);
 	}
 
 	private void drawCutoutRectangle(final Graphics2D g){
-		final int x1 = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-		final int y1 = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
-		final int x2 = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-		final int y2 = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
+		final int x1 = transformation.transformX(Math.min(cutoutStartPointX, cutoutEndPointX));
+		final int y1 = transformation.transformY(Math.min(cutoutStartPointY, cutoutEndPointY));
+		final int x2 = transformation.transformX(Math.max(cutoutStartPointX, cutoutEndPointX));
+		final int y2 = transformation.transformY(Math.max(cutoutStartPointY, cutoutEndPointY));
 		final int width = Math.abs(x2 - x1);
 		final int height = Math.abs(y2 - y1);
-		g.setTransform(transformation);
+
 		g.drawRect(x1, y1, width, height);
 	}
 
 	public Point getCutoutStartPoint(){
-		final int x = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-		final int y = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
+		final int x = Math.min(cutoutStartPointX, cutoutEndPointX);
+		final int y = Math.min(cutoutStartPointY, cutoutEndPointY);
 		return new Point(x, y);
 	}
 
 	public Point getCutoutEndPoint(){
-		final int x = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-		final int y = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
+		final int x = Math.max(cutoutStartPointX, cutoutEndPointX);
+		final int y = Math.max(cutoutStartPointY, cutoutEndPointY);
 		return new Point(x, y);
 	}
 
 
 	private class ImageMouseListener extends MouseAdapter implements MouseWheelListener{
 
-		private static final double CUTOUT_MOVE_WIDTH = 5.;
-
-		@Override
-		public void mouseMoved(final MouseEvent evt){
-			//if point is near a cutout edge, change cursor shape
-			if(cutoutStartPoint != null && cutoutEndPoint != null){
-				try{
-					final Point2D p = transformation.createInverse()
-						.transform(evt.getPoint(), null);
-					int cursorType = Cursor.DEFAULT_CURSOR;
-					//top edge
-					if(nearTopEdge(p))
-						cursorType = Cursor.N_RESIZE_CURSOR;
-					//right edge
-					else if(nearRightEdge(p))
-						cursorType = Cursor.E_RESIZE_CURSOR;
-					//bottom edge
-					else if(nearBottomEdge(p))
-						cursorType = Cursor.S_RESIZE_CURSOR;
-					//left edge
-					else if(nearLeftEdge(p))
-						cursorType = Cursor.W_RESIZE_CURSOR;
-					setCursor(Cursor.getPredefinedCursor(cursorType));
-				}
-				catch(final NoninvertibleTransformException ignored){}
-			}
-		}
-
-		private boolean nearTopEdge(final Point2D point){
-			final int x1 = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y1 = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
-			final int x2 = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y2 = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
-			return (distanceFromEdge(point, new Point(x1, y1), new Point(x2, y1)) < CUTOUT_MOVE_WIDTH);
-		}
-
-		private boolean nearRightEdge(final Point2D point){
-			final int x1 = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y1 = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
-			final int x2 = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y2 = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
-			return (distanceFromEdge(point, new Point(x2, y1), new Point(x2, y2)) < CUTOUT_MOVE_WIDTH);
-		}
-
-		private boolean nearBottomEdge(final Point2D point){
-			final int x1 = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y1 = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
-			final int x2 = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y2 = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
-			return (distanceFromEdge(point, new Point(x1, y2), new Point(x2, y2)) < CUTOUT_MOVE_WIDTH);
-		}
-
-		private boolean nearLeftEdge(final Point2D point){
-			final int x1 = Math.min(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y1 = Math.min(cutoutStartPoint.y, cutoutEndPoint.y);
-			final int x2 = Math.max(cutoutStartPoint.x, cutoutEndPoint.x);
-			final int y2 = Math.max(cutoutStartPoint.y, cutoutEndPoint.y);
-			return (distanceFromEdge(point, new Point(x1, y1), new Point(x1, y2)) < CUTOUT_MOVE_WIDTH);
-		}
-
-		private double distanceFromEdge(final Point2D point, final Point vertex1, final Point vertex2){
-			final double edgeX = vertex2.x - vertex1.x;
-			final double edgeY = vertex2.y - vertex1.y;
-			final double u = ((point.getX() - vertex1.x) * edgeX + (point.getY() - vertex1.y) * edgeY) / (edgeX * edgeX + edgeY * edgeY);
-			if(u < 0. || u > 1.)
-				return Double.MAX_VALUE;
-
-			final double x = vertex1.x + edgeX * u;
-			final double y = vertex1.y + edgeY * u;
-			final double dx = x - point.getX();
-			final double dy = y - point.getY();
-			return Math.sqrt(dx * dx + dy * dy);
-		}
-
 		@Override
 		public void mousePressed(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
-				if(evt.isControlDown()){
-					//TODO change cursor shape if near a pre-existing line, plus, change only the edge if dragged
-					dragStartPoint = evt.getPoint();
-					dragEndPoint = null;
+				//double click with left button resets zoom and translation
+				if(evt.getClickCount() == 2){
+					zoomToFitAndCenter();
+
+					repaint();
 				}
+				else if(evt.isControlDown()){
+					dragStartPointX = evt.getX();
+					dragStartPointY = evt.getY();
 				}
 				else{
 					//cutout start point
-					try{
-						final Point2D p = transformation.createInverse()
-							.transform(evt.getPoint(), null);
+					final int x = transformation.transformInverseX(evt.getX());
+					final int y = transformation.transformInverseY(evt.getY());
+					final boolean insideX = (x >= 0 && x <= imageWidth);
+					final boolean insideY = (y >= 0 && y <= imageHeight);
+					if(insideX && insideY){
+						cutoutStartPointX = x;
+						cutoutStartPointY = y;
 
-						final int x = (int)p.getX();
-						final int y = (int)p.getY();
-						final boolean insideX = (x >= 0. && x < imageWidth);
-						final boolean insideY = y >= 0. && y < imageHeight;
-						cutoutStartPoint = (insideX && insideY? new Point(x, y): null);
+						cutoutDefinition = true;
 					}
-					catch(final NoninvertibleTransformException ignored){}
 				}
 			}
+		}
+
+		@Override
+		public void mouseReleased(final MouseEvent e){
+			cutoutDefinition = false;
 		}
 
 		@Override
 		public void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
-				if(!evt.isControlDown()){
-					//cutout end point
-					try{
-						final Point2D p = transformation.createInverse()
-							.transform(evt.getPoint(), null);
-						final int x = (int)p.getX();
-						final int y = (int)p.getY();
-						final boolean insideX = (x >= 0. && x < imageWidth);
-						final boolean insideY = y >= 0. && y < imageHeight;
-						if(cutoutEndPoint != null){
-							if(insideX)
-								cutoutEndPoint.x = x;
-							if(insideY)
-								cutoutEndPoint.y = y;
-						}
-						else if(insideX && insideY)
-							cutoutEndPoint = new Point(x, y);
-					}
-					catch(final NoninvertibleTransformException ignored){}
-				}
-				else if(cutoutStartPoint != null){
-					try{
-						//pan
-						dragEndPoint = evt.getPoint();
-						final AffineTransform inverse = transformation.createInverse();
-						final Point2D dragStart = inverse.transform(dragStartPoint, null);
-						final Point2D dragEnd = inverse.transform(dragEndPoint, null);
+				if(evt.isControlDown()){
+					//pan
+					transformation.addTranslation(evt.getX() - dragStartPointX, evt.getY() - dragStartPointY);
 
-						final double dx = dragEnd.getX() - dragStart.getX();
-						final double dy = dragEnd.getY() - dragStart.getY();
-						transformation.translate(dx, dy);
-						dragStartPoint = dragEndPoint;
-						dragEndPoint = null;
-					}
-					catch(final NoninvertibleTransformException ignored){}
+					dragStartPointX = evt.getX();
+					dragStartPointY = evt.getY();
+				}
+				else if(cutoutDefinition && cutoutStartPointX >= 0){
+					//cutout end point
+					final int x = transformation.transformInverseX(evt.getX());
+					final int y = transformation.transformInverseY(evt.getY());
+					cutoutEndPointX = Math.max(Math.min(x, imageWidth), 0);
+					cutoutEndPointY = Math.max(Math.min(y, imageHeight), 0);
 				}
 
 				repaint();
@@ -313,22 +221,9 @@ public class ScaledImage extends JLabel{
 		public void mouseWheelMoved(final MouseWheelEvent evt){
 			if(evt.isControlDown()){
 				//zoom
-				final double zoomFactor = (evt.getWheelRotation() > 0? 1. / ZOOM_MULTIPLICATION_FACTOR: ZOOM_MULTIPLICATION_FACTOR);
-				final double newZoom = transformation.getScaleX() * zoomFactor;
-				if(minZoom <= newZoom && newZoom <= maxZoom){
-					try{
-						final Point p = evt.getPoint();
-						final Point2D p1 = transformation.createInverse()
-							.transform(p, null);
-						transformation.scale(zoomFactor, zoomFactor);
-						final Point2D p2 = transformation.createInverse()
-							.transform(p, null);
-						transformation.translate(p2.getX() - p1.getX(), p2.getY() - p1.getY());
-
-						repaint();
-					}
-					catch(final NoninvertibleTransformException ignored){}
-				}
+				final double zoomFactor = Math.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
+				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY()))
+					repaint();
 			}
 		}
 
