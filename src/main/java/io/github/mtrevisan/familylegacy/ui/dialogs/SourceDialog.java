@@ -42,6 +42,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 
 public class SourceDialog extends JDialog implements TextPreviewListenerInterface{
@@ -89,7 +90,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode source;
-	private Runnable onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -151,7 +152,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 			okAction();
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+				onCloseGracefully.accept(this);
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced sources!
 
@@ -207,7 +208,7 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public void loadData(final GedcomNode source, final Runnable onCloseGracefully){
+	public void loadData(final GedcomNode source, final Consumer<Object> onCloseGracefully){
 		this.source = source;
 		this.onCloseGracefully = onCloseGracefully;
 

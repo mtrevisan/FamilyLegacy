@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -169,7 +170,7 @@ public class NoteCitationDialog extends JDialog{
 	private void addAction(){
 		final GedcomNode newNote = store.create("NOTE");
 
-		final Runnable onCloseGracefully = () -> {
+		final Consumer<Object> onCloseGracefully = ignored -> {
 			//if ok was pressed, add this note to the parent container
 			final String newNoteID = store.addNote(newNote);
 			container.addChildReference("NOTE", newNoteID);

@@ -32,6 +32,10 @@ public class AffineTransform{
 	private double translateY;
 
 
+	public double getScale(){
+		return scale;
+	}
+
 	public double getTranslateX(){
 		return translateX;
 	}
@@ -51,10 +55,10 @@ public class AffineTransform{
 	public boolean addZoom(final double zoomFactor, final double minZoom, final double maxZoom, final int zoomPointX, final int zoomPointY){
 		final double newZoom = scale * zoomFactor;
 		if(minZoom <= newZoom && newZoom <= maxZoom){
-			final double k = (1. - zoomFactor) / newZoom;
-			final double dx = (zoomPointX - translateX) * k;
-			final double dy = (zoomPointY - translateY) * k;
-			addScale(zoomFactor);
+			final double dx = (zoomPointX - translateX) * (1. - zoomFactor);
+			final double dy = (zoomPointY - translateY) * (1. - zoomFactor);
+
+			setScale(newZoom);
 			addTranslation(dx, dy);
 
 			return true;

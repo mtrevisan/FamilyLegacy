@@ -39,6 +39,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
@@ -54,7 +55,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	private GedcomNode note;
 	private int noteHash;
 
-	private Runnable onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -80,7 +81,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			okAction();
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+				onCloseGracefully.accept(this);
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
 
@@ -122,7 +123,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		note.withValue(text);
 	}
 
-	public void loadData(final GedcomNode note, final Runnable onCloseGracefully){
+	public void loadData(final GedcomNode note, final Consumer<Object> onCloseGracefully){
 		this.note = note;
 		this.onCloseGracefully = onCloseGracefully;
 

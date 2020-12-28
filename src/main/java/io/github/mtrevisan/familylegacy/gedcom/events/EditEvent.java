@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.gedcom.events;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 
+import java.util.function.Consumer;
+
 
 /** Raised upon an editing on a node are required. */
 public class EditEvent{
@@ -47,14 +49,14 @@ public class EditEvent{
 
 	private final EditType type;
 	private final GedcomNode container;
-	private final Runnable onCloseGracefully;
+	private final Consumer<Object> onCloseGracefully;
 
 
 	public EditEvent(final EditType type, final GedcomNode container){
 		this(type, container, null);
 	}
 
-	public EditEvent(final EditType type, final GedcomNode container, final Runnable onCloseGracefully){
+	public EditEvent(final EditType type, final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.type = type;
 		this.container = container;
 		this.onCloseGracefully = onCloseGracefully;
@@ -68,7 +70,7 @@ public class EditEvent{
 		return container;
 	}
 
-	public Runnable getOnCloseGracefully(){
+	public Consumer<Object> getOnCloseGracefully(){
 		return onCloseGracefully;
 	}
 

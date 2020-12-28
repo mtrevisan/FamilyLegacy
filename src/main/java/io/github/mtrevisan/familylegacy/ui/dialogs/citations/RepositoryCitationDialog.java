@@ -49,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -155,7 +156,7 @@ public class RepositoryCitationDialog extends JDialog{
 		addButton.addActionListener(evt -> {
 			final GedcomNode newRepository = store.create("REPOSITORY");
 
-			final Runnable onCloseGracefully = () -> {
+			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this repository to the parent container
 				final String newRepositoryID = store.addRepository(newRepository);
 				container.addChildReference("REPOSITORY", newRepositoryID);

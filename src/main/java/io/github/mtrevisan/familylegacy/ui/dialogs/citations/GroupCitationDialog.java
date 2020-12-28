@@ -53,6 +53,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -182,7 +183,7 @@ public class GroupCitationDialog extends JDialog{
 		addButton.addActionListener(evt -> {
 			final GedcomNode newGroup = store.create("GROUP");
 
-			final Runnable onCloseGracefully = () -> {
+			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this group to the parent container
 				final String newGroupID = store.addGroup(newGroup);
 				container.addChildReference("GROUP", newGroupID);

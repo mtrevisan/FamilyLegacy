@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.CutoutDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -55,6 +56,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -113,7 +115,7 @@ public class SourceCitationDialog extends JDialog{
 	private final Debouncer<SourceCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
-	private Runnable onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -206,7 +208,7 @@ public class SourceCitationDialog extends JDialog{
 			okAction();
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+				onCloseGracefully.accept(this);
 
 			//TODO remember, when saving the whole gedcom, to remove all non-referenced source citations!
 
@@ -240,8 +242,16 @@ public class SourceCitationDialog extends JDialog{
 //			.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
 //			.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
 
-		final Runnable onCloseGracefully = () -> {
-//			cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, fileNode.getChildrenWithTag("CUTOUT").get(0).getValue());
+		final Consumer<Object> onCloseGracefully = cutoutDialog -> {
+			final Point cutoutStartPoint = ((CutoutDialog)cutoutDialog).getCutoutStartPoint();
+			final Point cutoutEndPoint = ((CutoutDialog)cutoutDialog).getCutoutEndPoint();
+			final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+			sj.add(Integer.toString(cutoutStartPoint.x));
+			sj.add(Integer.toString(cutoutStartPoint.y));
+			sj.add(Integer.toString(cutoutEndPoint.x));
+			sj.add(Integer.toString(cutoutEndPoint.y));
+
+			cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, sj.toString());
 //			cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
 
 			//refresh group list
@@ -294,7 +304,7 @@ public class SourceCitationDialog extends JDialog{
 	private void addAction(){
 		final GedcomNode newSource = store.create("SOURCE");
 
-		final Runnable onCloseGracefully = () -> {
+		final Consumer<Object> onCloseGracefully = dialog -> {
 			//if ok was pressed, add this source to the parent container
 			final String newSourceID = store.addSource(newSource);
 			container.addChildReference("SOURCE", newSourceID);
@@ -323,7 +333,7 @@ public class SourceCitationDialog extends JDialog{
 		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
 	}
 
-	public void loadData(final GedcomNode container, final Runnable onCloseGracefully){
+	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
 		this.onCloseGracefully = onCloseGracefully;
 

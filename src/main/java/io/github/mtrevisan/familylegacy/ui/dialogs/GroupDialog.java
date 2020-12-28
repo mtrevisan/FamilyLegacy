@@ -43,6 +43,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 public class GroupDialog extends JDialog{
@@ -60,7 +61,7 @@ public class GroupDialog extends JDialog{
 	private GedcomNode group;
 	private int groupHash;
 
-	private Runnable onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -100,7 +101,7 @@ public class GroupDialog extends JDialog{
 			group.replaceChildValue("TYPE", type);
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+				onCloseGracefully.accept(this);
 
 			dispose();
 		});
@@ -119,7 +120,7 @@ public class GroupDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final GedcomNode group, final Runnable onCloseGracefully){
+	public void loadData(final GedcomNode group, final Consumer<Object> onCloseGracefully){
 		this.group = group;
 		this.onCloseGracefully = onCloseGracefully;
 

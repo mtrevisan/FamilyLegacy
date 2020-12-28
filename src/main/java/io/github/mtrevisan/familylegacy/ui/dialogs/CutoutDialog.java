@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -42,7 +41,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.StringJoiner;
+import java.util.function.Consumer;
 
 
 //https://github.com/wzhwcp/CutOutPicture
@@ -53,7 +52,7 @@ public class CutoutDialog extends JDialog{
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private Runnable onCloseGracefully;
+	private Consumer<CutoutDialog> onCloseGracefully;
 
 
 	public CutoutDialog(final Frame parent){
@@ -67,10 +66,8 @@ public class CutoutDialog extends JDialog{
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			okAction();
-
 			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+				onCloseGracefully.accept(this);
 
 			dispose();
 		});
@@ -82,7 +79,7 @@ public class CutoutDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final String file, final Runnable onCloseGracefully) throws IOException{
+	public void loadData(final String file, final Consumer<CutoutDialog> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
 		try(final ImageInputStream input = ImageIO.createImageInputStream(new File(file))){
@@ -106,20 +103,12 @@ public class CutoutDialog extends JDialog{
 		repaint();
 	}
 
-	public String getCutoutCoordinates(){
-		final Point cutoutStartPoint = imageHolder.getCutoutStartPoint();
-		final Point cutoutEndPoint = imageHolder.getCutoutEndPoint();
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(Integer.toString(cutoutStartPoint.x));
-		sj.add(Integer.toString(cutoutStartPoint.y));
-		sj.add(Integer.toString(cutoutEndPoint.x));
-		sj.add(Integer.toString(cutoutEndPoint.y));
-		return sj.toString();
+	public Point getCutoutStartPoint(){
+		return imageHolder.getCutoutStartPoint();
 	}
 
-	private void okAction(){
-		//TODO
-		final String cutoutCoordinates = getCutoutCoordinates();
+	public Point getCutoutEndPoint(){
+		return imageHolder.getCutoutEndPoint();
 	}
 
 

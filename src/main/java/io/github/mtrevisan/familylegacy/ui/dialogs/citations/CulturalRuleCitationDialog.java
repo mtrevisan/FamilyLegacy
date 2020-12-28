@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -177,7 +178,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		addButton.addActionListener(evt -> {
 			final GedcomNode newRule = store.create("CULTURAL_RULE");
 
-			final Runnable onCloseGracefully = () -> {
+			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this rule to the parent container
 				final String newRuleID = store.addCulturalRule(newRule);
 				container.addChildReference("CULTURAL_RULE", newRuleID);

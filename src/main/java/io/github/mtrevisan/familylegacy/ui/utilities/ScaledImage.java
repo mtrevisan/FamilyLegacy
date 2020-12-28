@@ -163,14 +163,14 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public void mousePressed(final MouseEvent evt){
-			if(SwingUtilities.isLeftMouseButton(evt)){
-				//double click with left button resets zoom and translation
-				if(evt.getClickCount() == 2){
-					zoomToFitAndCenter();
+			if(SwingUtilities.isRightMouseButton(evt)){
+				//right click with left button resets zoom and translation
+				zoomToFitAndCenter();
 
-					repaint();
-				}
-				else if(evt.isControlDown()){
+				repaint();
+			}
+			else if(SwingUtilities.isLeftMouseButton(evt)){
+				if(evt.isControlDown()){
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
@@ -191,8 +191,9 @@ public class ScaledImage extends JLabel{
 		}
 
 		@Override
-		public void mouseReleased(final MouseEvent e){
-			cutoutDefinition = false;
+		public void mouseReleased(final MouseEvent evt){
+			if(evt.getClickCount() == 1)
+				cutoutDefinition = false;
 		}
 
 		@Override
