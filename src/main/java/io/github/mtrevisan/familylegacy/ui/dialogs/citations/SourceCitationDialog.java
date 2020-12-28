@@ -47,10 +47,12 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -61,9 +63,11 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class SourceCitationDialog extends JDialog{
+public class SourceCitationDialog extends JDialog implements ActionListener{
 
 	private static final long serialVersionUID = 8355033011385629078L;
+
+	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -214,7 +218,8 @@ public class SourceCitationDialog extends JDialog{
 
 			dispose();
 		});
-		cancelButton.addActionListener(evt -> dispose());
+		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		cancelButton.addActionListener(this::actionPerformed);
 
 		setLayout(new MigLayout("", "[grow]"));
 		add(filterLabel, "align label,split 2");
@@ -236,11 +241,9 @@ public class SourceCitationDialog extends JDialog{
 	}
 
 	private void cutoutAction(){
-		//TODO
 		final GedcomNode fileNode = store.create("FILE")
-			.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE));
-//			.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT))
-//			.addChildValue("PREFERRED", (String)cutoutButton.getClientProperty(KEY_SOURCE_PREFERRED));
+			.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE))
+			.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT));
 
 		final Consumer<Object> onCloseGracefully = cutoutDialog -> {
 			final Point cutoutStartPoint = ((CutoutDialog)cutoutDialog).getCutoutStartPoint();
@@ -252,14 +255,13 @@ public class SourceCitationDialog extends JDialog{
 			sj.add(Integer.toString(cutoutEndPoint.y));
 
 			cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, sj.toString());
-//			cutoutButton.putClientProperty(KEY_SOURCE_PREFERRED, fileNode.getChildrenWithTag("PREFERRED").get(0).getValue());
 
 			//refresh group list
 			loadData();
 		};
 
 		//fire image cutout event
-		EventBusService.publish(new EditEvent(EditEvent.EditType.IMAGE, fileNode, onCloseGracefully));
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CUTOUT, fileNode, onCloseGracefully));
 	}
 
 	private void okAction(){
@@ -273,7 +275,7 @@ public class SourceCitationDialog extends JDialog{
 		final GedcomNode group = store.traverse(container, "SOURCE@" + id);
 		group.replaceChildValue("LOCATION", location);
 		group.replaceChildValue("ROLE", role);
-//		group.replaceChildValue("CUTOUT", cutout);
+		group.replaceChildValue("CUTOUT", cutout);
 		group.replaceChildValue("FILE", file);
 		group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
 	}
@@ -398,6 +400,11 @@ public class SourceCitationDialog extends JDialog{
 		return null;
 	}
 
+	@Override
+	public void actionPerformed(final ActionEvent evt){
+		dispose();
+	}
+
 
 	private static class SourceTableModel extends DefaultTableModel{
 
@@ -436,7 +443,7 @@ public class SourceCitationDialog extends JDialog{
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
-				public void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case SOURCE:
@@ -458,6 +465,22 @@ public class SourceCitationDialog extends JDialog{
 							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
+							break;
+
+						case CUTOUT:
+							dialog = new CutoutDialog(parent);
+							final GedcomNode container = editCommand.getContainer();
+							//TODO add base path?
+							final String file = store.traverse(container, "SOURCE").getValue();
+							final String cutout = store.traverse(container, "CUTOUT").getValue();
+							final String[] coordinates = (cutout != null? StringUtils.split(cutout, ' '): null);
+							((CutoutDialog)dialog).loadData(file, editCommand.getOnCloseGracefully());
+							if(coordinates != null){
+								((CutoutDialog)dialog).setCutoutStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+								((CutoutDialog)dialog).setCutoutEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
+							}
+
+							dialog.setSize(500, 480);
 					}
 					if(dialog != null){
 						dialog.setLocationRelativeTo(parent);

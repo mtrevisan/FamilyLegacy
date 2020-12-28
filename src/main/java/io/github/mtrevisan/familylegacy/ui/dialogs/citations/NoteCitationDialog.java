@@ -44,6 +44,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -57,9 +58,11 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class NoteCitationDialog extends JDialog{
+public class NoteCitationDialog extends JDialog implements ActionListener{
 
 	private static final long serialVersionUID = 4428884121525685915L;
+
+	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -146,7 +149,8 @@ public class NoteCitationDialog extends JDialog{
 
 			dispose();
 		});
-		cancelButton.addActionListener(evt -> dispose());
+		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		cancelButton.addActionListener(this::actionPerformed);
 
 		setLayout(new MigLayout("", "[grow]"));
 		add(filterLabel, "align label,split 2");
@@ -258,6 +262,11 @@ public class NoteCitationDialog extends JDialog{
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent evt){
+		dispose();
 	}
 
 

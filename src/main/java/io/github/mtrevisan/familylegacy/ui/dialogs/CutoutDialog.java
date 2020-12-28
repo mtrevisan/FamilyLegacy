@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
@@ -44,15 +45,13 @@ import java.util.Iterator;
 import java.util.function.Consumer;
 
 
-//https://github.com/wzhwcp/CutOutPicture
-//https://www.onooks.com/zoom-and-pan-in-java-using-affinetransform/
-public class CutoutDialog extends JDialog{
+public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 
-	private final ScaledImage imageHolder = new ScaledImage();
+	private final ScaledImage imageHolder = new ScaledImage(this);
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private Consumer<CutoutDialog> onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 
 
 	public CutoutDialog(final Frame parent){
@@ -79,7 +78,7 @@ public class CutoutDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final String file, final Consumer<CutoutDialog> onCloseGracefully) throws IOException{
+	public void loadData(final String file, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
 		try(final ImageInputStream input = ImageIO.createImageInputStream(new File(file))){
@@ -103,12 +102,25 @@ public class CutoutDialog extends JDialog{
 		repaint();
 	}
 
+	@Override
+	public void cutoutSelected(){
+		okButton.setEnabled(true);
+	}
+
 	public Point getCutoutStartPoint(){
 		return imageHolder.getCutoutStartPoint();
 	}
 
+	public void setCutoutStartPoint(final int x, final int y){
+		imageHolder.setCutoutStartPoint(x, y);
+	}
+
 	public Point getCutoutEndPoint(){
 		return imageHolder.getCutoutEndPoint();
+	}
+
+	public void setCutoutEndPoint(final int x, final int y){
+		imageHolder.setCutoutEndPoint(x, y);
 	}
 
 
@@ -123,8 +135,8 @@ public class CutoutDialog extends JDialog{
 		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
-		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
-//		String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
+		final String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
+//		final String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
 			final CutoutDialog dialog = new CutoutDialog(null);

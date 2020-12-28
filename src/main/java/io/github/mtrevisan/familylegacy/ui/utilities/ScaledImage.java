@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -38,6 +40,7 @@ public class ScaledImage extends JLabel{
 	private static final double MAX_ABSOLUTE_ZOOM = 3.;
 	private static final double MIN_ABSOLUTE_ZOOM = 0.5;
 
+	private final CutoutListenerInterface listener;
 	private Image image;
 	private int imageWidth;
 	private int imageHeight;
@@ -56,8 +59,10 @@ public class ScaledImage extends JLabel{
 	private int dragStartPointY;
 
 
-	public ScaledImage(){
+	public ScaledImage(final CutoutListenerInterface listener){
 		super();
+
+		this.listener = listener;
 
 		initComponents();
 	}
@@ -152,10 +157,20 @@ public class ScaledImage extends JLabel{
 		return new Point(x, y);
 	}
 
+	public void setCutoutStartPoint(final int x, final int y){
+		cutoutStartPointX = x;
+		cutoutStartPointY = y;
+	}
+
 	public Point getCutoutEndPoint(){
 		final int x = Math.max(cutoutStartPointX, cutoutEndPointX);
 		final int y = Math.max(cutoutStartPointY, cutoutEndPointY);
 		return new Point(x, y);
+	}
+
+	public void setCutoutEndPoint(final int x, final int y){
+		cutoutEndPointX = x;
+		cutoutEndPointY = y;
 	}
 
 
@@ -192,8 +207,13 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public void mouseReleased(final MouseEvent evt){
-			if(evt.getClickCount() == 1)
+			if(cutoutDefinition && evt.getClickCount() == 1){
 				cutoutDefinition = false;
+
+				//warn listener a selection is made
+				if(listener != null)
+					listener.cutoutSelected();
+			}
 		}
 
 		@Override

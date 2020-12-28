@@ -39,13 +39,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-public class SourceDialog extends JDialog implements TextPreviewListenerInterface{
+public class SourceDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+
+	private static final long serialVersionUID = 1754367426928623503L;
+
+	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
 	private static final double DATE_HEIGHT = 17.;
 	private static final double DATE_ASPECT_RATIO = 270 / 248.;
@@ -158,7 +165,8 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 
 			dispose();
 		});
-		cancelButton.addActionListener(evt -> dispose());
+		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		cancelButton.addActionListener(this::actionPerformed);
 
 
 		setLayout(new MigLayout("", "[grow]"));
@@ -244,6 +252,11 @@ public class SourceDialog extends JDialog implements TextPreviewListenerInterfac
 		notesButton.setEnabled(hasNotes);
 
 		repaint();
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent evt){
+		dispose();
 	}
 
 

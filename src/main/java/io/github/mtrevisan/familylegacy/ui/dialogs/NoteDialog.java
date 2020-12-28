@@ -36,13 +36,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 
-public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
+public class NoteDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+
+	private static final long serialVersionUID = -4624021267879013105L;
+
+	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
 	private TextPreviewPane textPreviewView;
 	private final JLabel localeLabel = new JLabel("Locale:");
@@ -87,7 +94,8 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 			dispose();
 		});
-		cancelButton.addActionListener(evt -> dispose());
+		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		cancelButton.addActionListener(this::actionPerformed);
 
 
 		setLayout(new MigLayout("", "[grow]"));
@@ -147,6 +155,11 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		repaint();
+	}
+
+	@Override
+	public void actionPerformed(final ActionEvent evt){
+		dispose();
 	}
 
 
