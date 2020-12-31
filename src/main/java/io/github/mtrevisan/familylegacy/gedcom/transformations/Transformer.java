@@ -452,7 +452,7 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(createWithValue("PROTOCOL", "FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
-				.addChildValue("VERSION", "0.0.5")
+				.addChildValue("VERSION", "0.0.6")
 			)
 			.addChild(createWithValue("SOURCE", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
@@ -662,12 +662,30 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode place = traverse(parent, "PLAC");
 		if(!address.isEmpty() || !place.isEmpty()){
 			final GedcomNode map = traverse(place, "MAP");
+			final StringJoiner addressValue = new StringJoiner(", ");
+			JavaHelper.addValueIfNotNull(addressValue, extractAddressValue(address));
+			final StringJoiner hierarchy = new StringJoiner(", ");
+			if(addressValue.length() == 0){
+				final String cityValue = traverse(address, "CITY").getValue();
+				if(cityValue != null){
+					addressValue.add(cityValue);
+					hierarchy.add("City");
+				}
+				final String stateValue = traverse(address, "STAE").getValue();
+				if(stateValue != null){
+					addressValue.add(stateValue);
+					hierarchy.add("State");
+				}
+				final String countryValue = traverse(address, "CTRY").getValue();
+				if(countryValue != null){
+					addressValue.add(countryValue);
+					hierarchy.add("Country");
+				}
+			}
 			final GedcomNode destinationPlace = create("PLACE")
 				.addChildValue("NAME", place.getValue())
-				.addChild(createWithValue("ADDRESS", extractAddressValue(address))
-					.addChildValue("CITY", traverse(address, "CITY").getValue())
-					.addChildValue("STATE", traverse(address, "STAE").getValue())
-					.addChildValue("COUNTRY", traverse(address, "CTRY").getValue())
+				.addChild(createWithValue("ADDRESS", addressValue.toString())
+					.addChildValue("HIERARCHY", hierarchy.toString())
 				)
 				.addChild(create("MAP")
 					.addChildValue("LATITUDE", mapCoordinateTo(map, "LATI"))
@@ -1447,19 +1465,13 @@ public final class Transformer extends TransformerHelper{
 	/*
 	for-each PLACE create ADDR
 		ADDR.value = PLACE.ADDRESS.value
-		ADDR.CITY.value = PLACE.ADDRESS.CITY
-		ADDR.STAE.value = PLACE.ADDRESS.STATE
-		ADDR.CTRY.value = PLACE.ADDRESS.COUNTRY
 	*/
 	void addressStructureFrom(final GedcomNode parent, final GedcomNode destinationNode, final Flef origin){
 		final GedcomNode place = traverse(parent, "PLACE");
 		if(!place.isEmpty()){
 			final GedcomNode placeRecord = origin.getPlace(place.getXRef());
 			final GedcomNode address = traverse(placeRecord, "ADDRESS");
-			destinationNode.addChild(createWithValue("ADDR", address.getValue())
-				.addChildValue("CITY", traverse(address, "CITY").getValue())
-				.addChildValue("STAE", traverse(address, "STATE").getValue())
-				.addChildValue("CTRY", traverse(address, "COUNTRY").getValue()));
+			destinationNode.addChild(createWithValue("ADDR", address.getValue()));
 		}
 	}
 

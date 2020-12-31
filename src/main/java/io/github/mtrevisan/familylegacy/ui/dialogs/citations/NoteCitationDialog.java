@@ -299,7 +299,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.5.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 

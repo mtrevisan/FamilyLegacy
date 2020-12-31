@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 class TransformerPlaceAddressContactStructureTest{
 
 	@Test
-	void addressStructureTo(){
+	void addressStructureToWithAddress(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
 			.addChild(transformerTo.createWithValue("ADDR", "ADDRESS_LINE0")
@@ -55,7 +55,29 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}]", destination.getPlaces().get(0).toString());
+	}
+
+	@Test
+	void addressStructureToWithoutAddress(){
+		final Transformer transformerTo = new Transformer(Protocol.FLEF);
+		final GedcomNode parent = transformerTo.createEmpty()
+			.addChild(transformerTo.create("ADDR")
+				.addChildValue("CITY", "ADDRESS_CITY")
+				.addChildValue("STAE", "ADDRESS_STATE")
+				.addChildValue("POST", "ADDRESS_POSTAL_CODE")
+				.addChildValue("CTRY", "ADDRESS_COUNTRY")
+			);
+
+		Assertions.assertEquals("children: [{tag: ADDR, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: POST, value: ADDRESS_POSTAL_CODE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}]", parent.toString());
+
+		final GedcomNode destinationNode = transformerTo.createEmpty();
+		final Gedcom origin = new Gedcom();
+		final Flef destination = new Flef();
+		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
+
+		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_CITY, ADDRESS_STATE, ADDRESS_COUNTRY, children: [{tag: HIERARCHY, value: City, State, Country}]}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
@@ -115,18 +137,16 @@ class TransformerPlaceAddressContactStructureTest{
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		final Flef origin = new Flef();
 		origin.addPlace(transformerFrom.createWithID("PLACE", "P1")
-			.addChild(transformerFrom.createWithValue("ADDRESS", "ADDRESS_LINE")
-				.addChildValue("CITY", "ADDRESS_CITY")
-				.addChildValue("STATE", "ADDRESS_STATE")
-				.addChildValue("COUNTRY", "ADDRESS_COUNTRY")
+			.addChild(transformerFrom.createWithValue("ADDRESS", "ADDRESS_CITY, ADDRESS_STATE, ADDRESS_COUNTRY")
+				.addChildValue("HIERARCHY", "City, State, Country")
 			)
 			.addChildReference("NOTE", "N1")
 		);
 		origin.addNote(transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
 		transformerFrom.addressStructureFrom(parent, destinationNode, origin);
 
-		Assertions.assertEquals("children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, children: [{tag: CITY, value: ADDRESS_CITY}, {tag: STATE, value: ADDRESS_STATE}, {tag: COUNTRY, value: ADDRESS_COUNTRY}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
+		Assertions.assertEquals("children: [{tag: ADDR, value: ADDRESS_CITY, ADDRESS_STATE, ADDRESS_COUNTRY}]", destinationNode.toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_CITY, ADDRESS_STATE, ADDRESS_COUNTRY, children: [{tag: HIERARCHY, value: City, State, Country}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", origin.getNotes().get(0).toString());
 	}
 
