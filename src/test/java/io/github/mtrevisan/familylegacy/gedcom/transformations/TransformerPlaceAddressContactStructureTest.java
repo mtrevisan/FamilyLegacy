@@ -55,7 +55,7 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0 - ADDRESS_LINE1 - ADDRESS_LINE2 - ADDRESS_LINE3}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE0, ADDRESS_LINE1, ADDRESS_LINE2, ADDRESS_LINE3}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
@@ -106,7 +106,7 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}, {tag: NOTE, ref: N1}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test
@@ -171,7 +171,7 @@ class TransformerPlaceAddressContactStructureTest{
 		origin.addNote(transformerFrom.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT"));
 		transformerFrom.placeStructureFrom(parent, destinationNode, origin);
 
-		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: N45}, {tag: LONG, value: W12}]}, {tag: NOTE, ref: N1}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: PLAC, value: PLACE_NAME, children: [{tag: MAP, children: [{tag: LATI, value: N45}, {tag: LONG, value: W12}]}]}]", destinationNode.toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}, {tag: NOTE, ref: N1}]", origin.getPlaces().get(0).toString());
 		Assertions.assertEquals("id: N1, tag: NOTE, value: SUBMITTER_TEXT", origin.getNotes().get(0).toString());
 	}

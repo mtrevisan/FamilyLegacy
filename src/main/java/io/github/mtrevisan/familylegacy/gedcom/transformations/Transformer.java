@@ -464,13 +464,31 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
 		if(submitter != null){
 			final GedcomNode submitterAddress = traverse(submitter, "ADDR");
+			final StringJoiner addressValue = new StringJoiner(", ");
+			JavaHelper.addValueIfNotNull(addressValue, extractAddressValue(submitterAddress));
+			final StringJoiner hierarchy = new StringJoiner(", ");
+			if(addressValue.length() == 0){
+				final String cityValue = traverse(submitterAddress, "CITY").getValue();
+				if(cityValue != null){
+					addressValue.add(cityValue);
+					hierarchy.add("City");
+				}
+				final String stateValue = traverse(submitterAddress, "STAE").getValue();
+				if(stateValue != null){
+					addressValue.add(stateValue);
+					hierarchy.add("State");
+				}
+				final String countryValue = traverse(submitterAddress, "CTRY").getValue();
+				if(countryValue != null){
+					addressValue.add(countryValue);
+					hierarchy.add("Country");
+				}
+			}
 			final GedcomNode destinationSubmitter = create("SUBMITTER")
 				.addChildValue("NAME", traverse(submitter, "NAME").getValue())
 				.addChild(create("PLACE")
-					.addChildValue("ADDRESS", extractAddressValue(submitterAddress))
-					.addChildValue("CITY", traverse(submitterAddress, "CITY").getValue())
-					.addChildValue("STATE", traverse(submitterAddress, "STAE").getValue())
-					.addChildValue("COUNTRY", traverse(submitterAddress, "CTRY").getValue())
+					.addChildValue("ADDRESS", addressValue.toString())
+					.addChildValue("HIERARCHY", hierarchy.toString())
 				);
 			contactStructureTo(submitter, destinationSubmitter);
 			destinationHeader.addChild(destinationSubmitter);
@@ -682,16 +700,16 @@ public final class Transformer extends TransformerHelper{
 					hierarchy.add("Country");
 				}
 			}
+			final GedcomNode destinationAddress = createWithValue("ADDRESS", addressValue.toString())
+				.addChildValue("HIERARCHY", hierarchy.toString());
 			final GedcomNode destinationPlace = create("PLACE")
 				.addChildValue("NAME", place.getValue())
-				.addChild(createWithValue("ADDRESS", addressValue.toString())
-					.addChildValue("HIERARCHY", hierarchy.toString())
-				)
+				.addChild(destinationAddress)
 				.addChild(create("MAP")
 					.addChildValue("LATITUDE", mapCoordinateTo(map, "LATI"))
 					.addChildValue("LONGITUDE", mapCoordinateTo(map, "LONG"))
 				);
-			noteCitationTo(place, destinationPlace, origin, destination);
+			noteCitationTo(place, destinationAddress, origin, destination);
 
 			destination.addPlace(destinationPlace);
 			destinationNode.addChildReference("PLACE", destinationPlace.getID());
@@ -711,7 +729,7 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	private String extractAddressValue(final GedcomNode address){
-		final StringJoiner sj = new StringJoiner(" - ");
+		final StringJoiner sj = new StringJoiner(", ");
 		JavaHelper.addValueIfNotNull(sj, address.getValue());
 		for(final GedcomNode child : address.getChildren())
 			if(ADDRESS_TAGS.contains(child.getTag()))
@@ -1492,7 +1510,8 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("LATI", mapCoordinateFrom(map, "LATITUDE"))
 					.addChildValue("LONG", mapCoordinateFrom(map, "LONGITUDE"))
 				);
-			noteCitationFrom(placeRecord, destinationPlace);
+			for(final GedcomNode address : placeRecord.getChildrenWithTag("ADDRESS"))
+				noteCitationFrom(address, destinationPlace);
 			destinationNode.addChild(destinationPlace);
 		}
 	}

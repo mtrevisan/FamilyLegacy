@@ -22,19 +22,9 @@ n HEADER    {1:1}
   +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
   +1 SUBMITTER    {1:1}	/* The submitter of this file. */
     +2 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
-    +2 PLACE
+    +2 PLACE    {0:1}
       +3 ADDRESS <ADDRESS_LINE>    {0:1}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-        +4 COMPANY <COMPANY_NAME>    {0:1}	/* The name of the company. */
-        +4 APARTMENT <ADDRESS_APARTMENT>    {0:1}	/* The apartment/room number of the building. */
-        +4 NUMBER <ADDRESS_NUMBER>    {0:1}	/* The number of the building in the street. */
-        +4 STREET <ADDRESS_STREET>    {0:1}	/* The street of the building. */
-          +5 TYPE <ADDRESS_STREET_TYPE>    {0:1}	/* Indicates the street type (avenue, terrace, etc.). */
-        +4 DISTRICT <ADDRESS_DISTRICT>    {0:1}	/* The district or city area of the building. */
-        +4 TOWN <ADDRESS_TOWN>    {0:1}	/* The town/village of the building. */
-        +4 CITY <ADDRESS_CITY>    {0:1}	/* The city of the building. */
-        +4 COUNTY <ADDRESS_COUNTY>    {0:1}	/* The name of the county/municipality/department. */
-        +4 STATE <ADDRESS_STATE>    {0:1}	/* The name of the state. */
-        +4 COUNTRY <ADDRESS_COUNTRY>    {0:1}	/* The name of the country. */
+        +4 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
       +3 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
         +4 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
         +4 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
@@ -106,8 +96,8 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:1}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +2 CUTOUT <CUTOUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
@@ -151,8 +141,8 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
-  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:M}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
-    +2 CUTOUT <CUTOUT_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:1}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+    +2 CUTOUT <CUTOUT_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
@@ -168,6 +158,8 @@ GROUP_RECORD :=	/* A group can be of genealogical, historical, or general intere
 n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
   +1 NAME <GROUP_NAME>    {1:1}	/* The name of the group. */
   +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
+  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:M}	/* A list of xref IDs of individual records. */
+  +1 FAMILY @<XREF:FAMILY>@    {0:M}	/* A list of xref IDs of family records. */
   +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of GROUP_EVENT_RECORD() objects giving the events associated with this group. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
@@ -201,13 +193,12 @@ INDIVIDUAL_EVENT_RECORD :=
 n @<XREF:EVENT>@ EVENT    {1:1}
   +1 TYPE BIRTH    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
-  +1 TWIN @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) that are twins. */
   +1 FAMILY @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record affected by this event. */
+  +1 TWIN @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) that are twins. */
 |
 n @<XREF:EVENT>@ EVENT    {1:1}
   +1 TYPE ADOPTION    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
-  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {1:M}	/* An xref ID of an individual record(s) affected by this event. */
   +1 FAMILY @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record affected by this event. */
   +1 PEDIGREE_PARENT1 <PEDIGREE_TYPE>    {0:1}	/* Contains a description of how this child is related to the superstructure’s pointed-to. Known values include 'biological' (indicates birth parents), 'adopted' (indicates adoptive parents), 'foster' (indicates child was included in a foster or guardian family), 'guardian'. */
   +1 PEDIGREE_PARENT2 <PEDIGREE_TYPE>    {0:1}	/* Contains a description of how this child is related to the superstructure’s pointed-to. Known values include 'biological' (indicates birth parents), 'adopted' (indicates adoptive parents), 'foster' (indicates child was included in a foster or guardian family), 'guardian'. */
@@ -215,7 +206,6 @@ n @<XREF:EVENT>@ EVENT    {1:1}
 n @<XREF:EVENT>@ EVENT    {1:1}
   +1 TYPE [ CHARACTERISTIC | ANECDOTE | DEATH | CORONER_REPORT | CREMATION | BURIAL | RESIDENCE | EDUCATION | GRADUATION | OCCUPATION | RETIREMENT | MILITARY_INDUCTION | MILITARY_MUSTER_ROLL | MILITARY_SERVICE | MILITARY_RANK | MILITARY_AWARD | MILITARY_RELEASE | MILITARY_DISCHARGE | MILITARY_RESIGNATION | MILITARY_RETIREMENT | PRISON | PARDON | MEMBERSHIP | JURY_DUTY | MEDICAL | HOSPITALIZATION | ILLNESS | HONOR | HOLOCAUST_DEPORTATION | HOLOCAUST_ARRIVAL | HOLOCAUST_LIBERATION | HOLOCAUST_DEPARTURE | EMANCIPATION | BANKRUPTCY | CASTE | NATIONALITY | EMIGRATION | IMMIGRATION | NATURALIZATION | CENSUS | SSN | TITLE | POSSESSION | DEED | ESCROW | CHANCERY | WILL | PROBATE | GUARDIANSHIP | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <EVENT_TYPE> ]    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_DETAIL() object giving details of the event. */
-  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {1:M}	/* An xref ID of an individual record(s) affected by this event. */
 ]
 
 
@@ -241,16 +231,16 @@ PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
   +1 ADDRESS <ADDRESS_LINE>    {0:M}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-    +2 HIERARCHY <LOCALE_NAME>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
+    +2 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
     +2 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
     +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
     +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
-  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
 NOTE_RECORD :=
@@ -294,15 +284,15 @@ CULTURAL_RULE_RECORD :=	/* Genealogical events and individual characteristics at
 n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
   +1 TITLE <CULTURAL_RULE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
-  +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 /* per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne). */
-/* uomini: 22 anni minore, 29 anni maggiore (31 JAN 1807 - 13 MAY 1809). */
-/* donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) . */
+/* uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
+/* donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
 
 
 SOURCE_CITATION :=
@@ -352,6 +342,7 @@ CALENDAR_RECORD :=
 n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
   +1 TYPE <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french-republican', 'italic', ...). */
   +1 DESCRIPTION <CALENDAR_DESCRIPTION>    {0:1}	/* The description of the calendar. */
+    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
@@ -361,6 +352,7 @@ HISTORIC_EVENT_RECORD :=	/* Genealogical events and individual characteristics a
 n @<XREF:HISTORIC>@ HISTORIC_EVENT    {1:1}	/* An xref ID of a cultural rule record. */
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
+    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
