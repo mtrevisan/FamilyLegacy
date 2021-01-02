@@ -244,8 +244,9 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 		if(g instanceof Graphics2D){
 			final Graphics2D graphics2D = (Graphics2D)g.create();
-			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
 			final int panelHeight = getHeight();
 			final int panelWidth = getWidth();

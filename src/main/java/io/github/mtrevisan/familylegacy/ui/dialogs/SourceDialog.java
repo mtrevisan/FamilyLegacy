@@ -30,10 +30,13 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,6 +47,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
@@ -71,7 +75,8 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		"transcript", "extract", "abstract"});
 
 	private final JLabel eventLabel = new JLabel("Event(s):");
-	private final JTextField eventField = new JTextField();
+	private final JScrollPane eventScrollPane = new JScrollPane();
+	private final TagPanel eventField = new TagPanel();
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
 	private final JLabel authorLabel = new JLabel("Author:");
@@ -93,6 +98,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 	private final JButton repositoriesButton = new JButton("Repositories");
 	private final JButton filesButton = new JButton("Files");
 	private final JButton notesButton = new JButton("Notes");
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -113,6 +119,9 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		setTitle("Source");
 
 		eventLabel.setLabelFor(eventField);
+		eventScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+		eventScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		eventScrollPane.setViewportView(eventField);
 
 		titleLabel.setLabelFor(titleField);
 
@@ -155,6 +164,8 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
 
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.addActionListener(evt -> {
 			okAction();
 
@@ -171,7 +182,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 
 		setLayout(new MigLayout("", "[grow]"));
 		add(eventLabel, "align label,split 2");
-		add(eventField, "grow,wrap");
+		add(eventScrollPane, "grow,height 46,wrap");
 		add(titleLabel, "align label,split 2");
 		add(titleField, "grow,wrap");
 		add(authorLabel, "align label,split 2");
@@ -182,12 +193,13 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		add(repositoriesButton, "sizegroup button2,grow,wrap");
 		add(filesButton, "sizegroup button2,grow,wrap");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
-		add(okButton, "tag ok,span,split 2,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void okAction(){
-		final String event = eventField.getText();
+		final String event = String.join(",", eventField.getTags());
 		final String title = titleField.getText();
 		final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
 			Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
@@ -239,7 +251,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		final boolean hasSources = !store.traverseAsList(source, "SOURCE[]").isEmpty();
 		final boolean hasNotes = !store.traverseAsList(source, "NOTE[]").isEmpty();
 
-		eventField.setText(events.toString());
+		eventField.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
@@ -273,7 +285,34 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		final GedcomNode source = store.getSources().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final SourceDialog dialog = new SourceDialog(store, new JFrame());
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand) throws IOException{
+					JDialog dialog = null;
+					switch(editCommand.getType()){
+						case NOTE_CITATION:
+							dialog = new NoteCitationDialog(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
+						case NOTE:
+							dialog = new NoteDialog(store, parent);
+							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+					}
+					if(dialog != null){
+						dialog.setLocationRelativeTo(parent);
+						dialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final SourceDialog dialog = new SourceDialog(store, parent);
 			dialog.loadData(source, null);
 
 			dialog.addWindowListener(new WindowAdapter(){

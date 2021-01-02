@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
@@ -287,7 +288,7 @@ public class LinkIndividualDialog extends JDialog{
 		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()
 			+ ", type is " + type + ", child is " + ((IndividualPanel)panel).getChildReference().getID());
 
-		EventQueue.invokeLater(() -> {
+		JavaHelper.executeOnEventDispatchThread(() -> {
 			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, listener, new JFrame());
 			final GedcomNode child = GedcomNodeBuilder.createWithIDValue(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
 

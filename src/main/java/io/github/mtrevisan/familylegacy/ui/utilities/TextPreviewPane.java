@@ -35,6 +35,7 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import org.apache.commons.lang3.StringUtils;
 
@@ -198,7 +199,7 @@ public class TextPreviewPane extends JSplitPane{
 
 		setOneTouchExpandable(true);
 		setContinuousLayout(true);
-		SwingUtilities.invokeLater(() -> {
+		JavaHelper.executeOnEventDispatchThread(() -> {
 			setDividerLocation(1.);
 			setDividerSize(0);
 		});
@@ -284,12 +285,12 @@ public class TextPreviewPane extends JSplitPane{
 			if(listener != null)
 				listener.onPreviewStateChange(previewVisible);
 			if(previewVisible)
-				SwingUtilities.invokeLater(() -> {
+				JavaHelper.executeOnEventDispatchThread(() -> {
 					setDividerLocation(0.5);
 					setDividerSize(5);
 				});
 			else
-				SwingUtilities.invokeLater(() -> {
+				JavaHelper.executeOnEventDispatchThread(() -> {
 					setDividerLocation(1.);
 					setDividerSize(0);
 				});

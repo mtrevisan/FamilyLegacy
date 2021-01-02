@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -90,6 +91,13 @@ public final class JavaHelper{
 		if(StringUtils.isNotBlank(values[0]))
 			for(final String value : values)
 				sj.add(value);
+	}
+
+	public static void executeOnEventDispatchThread(final Runnable runnable){
+		if(SwingUtilities.isEventDispatchThread())
+			runnable.run();
+		else
+			SwingUtilities.invokeLater(runnable);
 	}
 
 }

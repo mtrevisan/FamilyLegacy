@@ -79,6 +79,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	private final JTable notesTable = new JTable(new NoteTableModel());
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -142,6 +143,8 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 
 		addButton.addActionListener(evt -> addAction());
 
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.addActionListener(evt -> {
 			transferListToContainer();
 
@@ -156,9 +159,10 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");
-		add(addButton, "sizegroup button2,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(addButton, "sizegroup button,wrap paragraph");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void transferListToContainer(){

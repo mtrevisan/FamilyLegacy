@@ -113,6 +113,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -207,6 +208,8 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		credibilityComboBox.setEnabled(false);
 
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			okAction();
@@ -225,7 +228,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
 		add(titleLabel, "align label,sizegroup label,split 2");
 		add(titleField, "grow,wrap");
 		add(locationLabel, "align label,sizegroup label,split 2");
@@ -236,8 +239,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void cutoutAction(){
