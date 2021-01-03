@@ -113,6 +113,7 @@
 1 DATE 21 JUL 1900
 2 CALENDAR gregorian
 1 FILE /images/births/birth01.jpg
+2 DESCRIPTION birth description
 2 EXTRACT was on July 21, 1900
 3 TYPE extract
 3 LOCALE en-US

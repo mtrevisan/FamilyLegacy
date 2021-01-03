@@ -31,7 +31,10 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
+import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -54,13 +57,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class DocumentCitationDialog extends JDialog implements ActionListener{
+public class DocumentCitationDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	private static final long serialVersionUID = 1919219115430275506L;
 
@@ -73,19 +76,24 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 
 	private static final int TABLE_INDEX_DOCUMENT_FILE = 0;
 
-	private static final String KEY_DOCUMENT_FILE = "documentTitle";
+	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"transcript", "extract", "abstract"});
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable documentsTable = new JTable(new DocumentTableModel());
 	private final JScrollPane documentsScrollPane = new JScrollPane(documentsTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel titleLabel = new JLabel("Title:");
-	private final JTextField titleField = new JTextField();
-	private final JLabel locationLabel = new JLabel("Location:");
-	private final JTextField locationField = new JTextField();
-	private final JLabel roleLabel = new JLabel("Role:");
-	private final JTextField roleField = new JTextField();
+	private final JLabel fileLabel = new JLabel("File:");
+	private final JTextField fileField = new JTextField();
+	private final JLabel descriptionLabel = new JLabel("Description:");
+	private final JTextField descriptionField = new JTextField();
+	private TextPreviewPane extractPreviewView;
+	private final JLabel extractTypeLabel = new JLabel("Type:");
+	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
+	private final JLabel extractLocaleLabel = new JLabel("Locale:");
+	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -94,6 +102,8 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 	private final Debouncer<DocumentCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
+	private int extractHash;
+
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
@@ -109,7 +119,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 	}
 
 	private void initComponents(){
-		setTitle("Document citations");
+		setTitle("Documents");
 
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
@@ -156,20 +166,24 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 
 		addButton.addActionListener(evt -> addAction());
 
-		titleLabel.setLabelFor(titleField);
-		titleField.setEnabled(false);
+		fileLabel.setLabelFor(fileField);
+		fileField.setEnabled(false);
 
-		locationLabel.setLabelFor(locationField);
-		locationField.setEnabled(false);
+		descriptionLabel.setLabelFor(descriptionField);
+		descriptionField.setEnabled(false);
 
-		roleLabel.setLabelFor(roleField);
-		roleField.setEnabled(false);
+		extractPreviewView = new TextPreviewPane(this);
+
+		extractTypeLabel.setLabelFor(extractTypeComboBox);
+		extractTypeComboBox.setEnabled(false);
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(evt -> {
-			final String selectedDocumentFile = (String)okButton.getClientProperty(KEY_DOCUMENT_FILE);
-//			final GedcomNode selectedDocument = store.getDocument(selectedDocumentFile);
-//			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedDocument));
+			final int selectedRow = documentsTable.convertRowIndexToModel(documentsTable.getSelectedRow());
+			final List<GedcomNode> documents = store.traverseAsList(container, "FILE[]");
+			final GedcomNode selectedDocument = documents.get(selectedRow);
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedDocument));
 		});
 
 		//TODO link to help
@@ -181,7 +195,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 			if(onCloseGracefully != null)
 				onCloseGracefully.accept(this);
 
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced document citations!
+			//TODO remember, when saving the whole gedcom, to remove all non-referenced documents!
 
 			dispose();
 		});
@@ -193,21 +207,43 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 		add(filterField, "grow,wrap");
 		add(documentsScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
-		add(titleLabel, "align label,sizegroup label,split 2");
-		add(titleField, "grow,wrap");
-		add(locationLabel, "align label,sizegroup label,split 2");
-		add(locationField, "grow,wrap");
-		add(roleLabel, "align label,sizegroup label,split 2");
-		add(roleField, "grow,wrap");
+		add(fileLabel, "align label,sizegroup label,split 2");
+		add(fileField, "grow,wrap");
+		add(descriptionLabel, "align label,sizegroup label,split 2");
+		add(descriptionField, "grow,wrap");
+		add(extractPreviewView, "span 2,grow,wrap");
+		add(extractTypeLabel, "align label,sizegroup label,split 2");
+		add(extractTypeComboBox, "wrap");
+		add(extractLocaleLabel, "align label,split 2,sizegroup label");
+		add(extractLocaleComboBox, "wrap");
+		add(restrictionCheckBox, "wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
+	@Override
+	public void textChanged(){
+		final int newTextHash = extractPreviewView.getText()
+			.hashCode();
+		final int newLanguageTagHash = extractLocaleComboBox.getSelectedLanguageTag()
+			.hashCode();
+		final int newRestrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
+			.hashCode();
+		final int newExtractHash = newTextHash ^ newLanguageTagHash ^ newRestrictionHash;
+
+		okButton.setEnabled(newExtractHash != extractHash);
+	}
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
+	}
+
 	private void okAction(){
 		//TODO
-		final String file = (String)okButton.getClientProperty(KEY_DOCUMENT_FILE);
+//		final String file = (String)okButton.getClientProperty(KEY_DOCUMENT_FILE);
 	}
 
 	private void selectAction(final int selectedRow){
@@ -219,20 +255,24 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 		final GedcomNode extractNode = store.traverse(selectedDocument, "EXTRACT");
 		final String extract = extractNode.getValue();
 		final String extractType = store.traverse(extractNode, "TYPE").getValue();
-		final String extractLocale = store.traverse(extractNode, "LOCALE").getValue();
+		final String extractLanguageTag = store.traverse(extractNode, "LOCALE").getValue();
 		final String restriction = store.traverse(selectedDocument, "RESTRICTION").getValue();
 
-		//TODO
-		final String selectedDocumentFile = (String)documentsTable.getValueAt(selectedRow, TABLE_INDEX_DOCUMENT_FILE);
-//		final GedcomNode selectedDocumentCitation = store.traverse(container, "DOCUMENT@" + selectedDocumentID);
-//		final GedcomNode selectedDocument = store.getDocument(selectedDocumentID);
-		okButton.putClientProperty(KEY_DOCUMENT_FILE, selectedDocumentFile);
-//		titleField.setText(store.traverse(selectedDocument, "TITLE").getValue());
+		final int textHash = Objects.requireNonNullElse(extract, StringUtils.EMPTY).hashCode();
+		final int languageTagHash = Objects.requireNonNullElse(extractLanguageTag, StringUtils.EMPTY).hashCode();
+		final int restrictionHash = Objects.requireNonNullElse(restriction, StringUtils.EMPTY).hashCode();
+		extractHash = textHash ^ languageTagHash ^ restrictionHash;
 
-		locationField.setEnabled(true);
-//		locationField.setText(store.traverse(selectedDocumentCitation, "LOCATION").getValue());
-		roleField.setEnabled(true);
-//		roleField.setText(store.traverse(selectedDocumentCitation, "ROLE").getValue());
+		fileField.setText(file);
+		descriptionField.setEnabled(true);
+		descriptionField.setText(description);
+		extractPreviewView.setText("Document " + file, extract, extractLanguageTag);
+		extractTypeComboBox.setEnabled(true);
+		extractTypeComboBox.setSelectedItem(extractType);
+		extractLocaleComboBox.setEnabled(true);
+		if(extractLanguageTag != null)
+			extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
+		restrictionCheckBox.setSelected("confidential".equals(restriction));
 		notesButton.setEnabled(true);
 
 		okButton.setEnabled(true);
@@ -240,12 +280,28 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 
 	private void addAction(){
 		//TODO
-		final GedcomNode newDocument = store.create("DOCUMENT");
+		final GedcomNode newDocument = store.create("FILE");
 
 		final Consumer<Object> onCloseGracefully = dialog -> {
 			//if ok was pressed, add this document to the parent container
-//			final String newDocumentID = store.addDocument(newDocument);
-//			container.addChildReference("DOCUMENT", newDocumentID);
+
+			final String file = fileField.getText();
+			final String description = descriptionField.getText();
+			final String extract = extractPreviewView.getText();
+			final String extractType = (String)extractTypeComboBox.getSelectedItem();
+			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
+			final String restriction = (restrictionCheckBox.isSelected()? "confidential": null);
+			final GedcomNode extractNode = store.create("EXTRACT")
+				.withValue(extract)
+				.addChildValue("TYPE", extractType)
+				.addChildValue("LOCALE", extractLanguageTag);
+			newDocument
+				.withValue(file)
+				.addChildValue("DESCRIPTION", description)
+				.addChild(extractNode)
+				.addChildValue("RESTRICTION", restriction);
+
+			container.addChild(newDocument);
 
 			//refresh group list
 			loadData();
@@ -419,7 +475,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 460);
+			dialog.setSize(450, 650);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
