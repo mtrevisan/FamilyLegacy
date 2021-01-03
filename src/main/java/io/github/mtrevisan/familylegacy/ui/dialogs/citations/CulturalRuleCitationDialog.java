@@ -273,7 +273,8 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)rulesTable.getModel();
-		model.removeRow(rulesTable.convertRowIndexToModel(rulesTable.getSelectedRow()));
+		final int index = rulesTable.convertRowIndexToModel(rulesTable.getSelectedRow());
+		model.removeRow(index);
 		removeButton.setEnabled(false);
 	}
 

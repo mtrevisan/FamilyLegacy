@@ -30,11 +30,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.DocumentCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
@@ -91,12 +92,12 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 	private final JLabel dateCredibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
-	private final JLabel extractTypeLabel = new JLabel("Extract type:");
-	private final JLabel extractLocaleLabel = new JLabel("Locale:");
-	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
-	private TextPreviewPane textPreviewView;
+	private final JLabel mediaTypeLabel = new JLabel("Media type:");
+	private final JTextField mediaTypeField = new JTextField();
+	private final JButton placesButton = new JButton("Places");
 	private final JButton repositoriesButton = new JButton("Repositories");
-	private final JButton filesButton = new JButton("Files");
+	private final JButton documentsButton = new JButton("Documents");
+	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -140,26 +141,19 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		datePanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
 		datePanel.add(dateCredibilityComboBox, "grow");
 
-		extractTypeLabel.setLabelFor(extractTypeComboBox);
-
-		extractLocaleLabel.setLabelFor(extractLocaleComboBox);
-
-		textPreviewView = new TextPreviewPane(this);
-
-		final JPanel extractPanel = new JPanel();
-		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
-		extractPanel.setLayout(new MigLayout("", "[grow]"));
-		extractPanel.add(extractTypeLabel, "align label,split 2,sizegroup label");
-		extractPanel.add(extractTypeComboBox, "wrap");
-		extractPanel.add(extractLocaleLabel, "align label,split 2,sizegroup label");
-		extractPanel.add(extractLocaleComboBox, "wrap");
-		extractPanel.add(textPreviewView, "span 2,grow");
+		placesButton.setEnabled(false);
+		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, source)));
 
 		repositoriesButton.setEnabled(false);
 		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
 
-		filesButton.setEnabled(false);
-		filesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.FILE_CITATION, source)));
+		mediaTypeLabel.setLabelFor(mediaTypeField);
+
+		documentsButton.setEnabled(false);
+		documentsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, source)));
+
+		sourcesButton.setEnabled(false);
+		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source)));
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
@@ -190,8 +184,12 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		add(publicationFactsLabel, "align label,split 2");
 		add(publicationFactsField, "grow,wrap paragraph");
 		add(datePanel, "grow,wrap paragraph");
-		add(repositoriesButton, "sizegroup button2,grow,wrap");
-		add(filesButton, "sizegroup button2,grow,wrap");
+		add(placesButton, "sizegroup button2,grow,wrap");
+		add(repositoriesButton, "sizegroup button2,grow,wrap paragraph");
+		add(mediaTypeLabel, "align label,split 2");
+		add(mediaTypeField, "grow,wrap paragraph");
+		add(documentsButton, "sizegroup button2,grow,wrap");
+		add(sourcesButton, "sizegroup button2,grow,wrap");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
@@ -201,20 +199,11 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 	private void okAction(){
 		final String event = String.join(",", eventField.getTags());
 		final String title = titleField.getText();
-		final String extractType = (extractTypeComboBox.getSelectedIndex() > 0?
-			Integer.toString(extractTypeComboBox.getSelectedIndex() + 1): null);
-		final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
-		final String extract = textPreviewView.getText();
+		final String mediaType = mediaTypeField.getText();
 
 		source.replaceChildValue("EVENT", event);
 		source.replaceChildValue("TITLE", title);
-		source.replaceChildValue("EXTRACT", extract);
-		final GedcomNode extractLocaleNode = store.traverse(source, "EXTRACT.LOCALE");
-		if(!extractLocaleNode.isEmpty())
-			extractLocaleNode.withValue(extractLanguageTag);
-		final GedcomNode extractTypeNode = store.traverse(source, "EXTRACT.TYPE");
-		if(!extractTypeNode.isEmpty())
-			extractTypeNode.withValue(extractType);
+		//TODO
 	}
 
 	@Override
@@ -245,23 +234,18 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		final GedcomNode place = store.traverse(source, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(source, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
-		final boolean hasRepositories = !store.traverseAsList(source, "REPOSITORY[]").isEmpty();
 		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
-		final boolean hasFiles = !store.traverseAsList(source, "FILE[]").isEmpty();
-		final boolean hasSources = !store.traverseAsList(source, "SOURCE[]").isEmpty();
-		final boolean hasNotes = !store.traverseAsList(source, "NOTE[]").isEmpty();
 
 		eventField.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		dateField.setText(dateNode.getValue());
-//		textPreviewView.setText(getTitle(), extractLanguageTag, extract);
-//		extractTypeComboBox.setSelectedItem(extractType);
-//		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
-		repositoriesButton.setEnabled(hasRepositories);
-		filesButton.setEnabled(hasFiles);
-		notesButton.setEnabled(hasNotes);
+		placesButton.setEnabled(true);
+		repositoriesButton.setEnabled(true);
+		documentsButton.setEnabled(true);
+		sourcesButton.setEnabled(true);
+		notesButton.setEnabled(true);
 
 		repaint();
 	}
@@ -291,6 +275,20 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
+						case DOCUMENT_CITATION:
+							dialog = new DocumentCitationDialog(store, parent);
+							((DocumentCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(450, 450);
+							break;
+
+						case SOURCE_CITATION:
+							dialog = new SourceCitationDialog(store, parent);
+							((SourceCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(450, 450);
+							break;
+
 						case NOTE_CITATION:
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
@@ -321,7 +319,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 460);
+			dialog.setSize(500, 570);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

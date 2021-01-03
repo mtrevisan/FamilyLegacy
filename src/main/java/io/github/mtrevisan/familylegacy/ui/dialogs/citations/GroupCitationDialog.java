@@ -265,7 +265,8 @@ public class GroupCitationDialog extends JDialog{
 
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
-		model.removeRow(groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow()));
+		final int index = groupsTable.convertRowIndexToModel(groupsTable.getSelectedRow());
+		model.removeRow(index);
 
 		//remove from container
 		transferListToContainer();

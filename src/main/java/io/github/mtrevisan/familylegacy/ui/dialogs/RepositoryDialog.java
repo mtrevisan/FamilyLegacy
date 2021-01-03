@@ -51,7 +51,7 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 	private final JTextField publicationFactsField = new JTextField();
 	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
 	private final JButton repositoriesButton = new JButton("Repositories");
-	private final JButton filesButton = new JButton("Files");
+	private final JButton documentsButton = new JButton("Documents");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -157,7 +157,7 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		repositoriesButton.setEnabled(hasRepositories);
-		filesButton.setEnabled(hasFiles);
+		documentsButton.setEnabled(hasFiles);
 		notesButton.setEnabled(hasNotes);
 
 		repaint();

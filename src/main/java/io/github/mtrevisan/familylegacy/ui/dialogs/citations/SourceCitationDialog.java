@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -162,7 +163,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		sourcesTable.getSelectionModel().addListSelectionListener(evt -> {
 			final int selectedRow = sourcesTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0)
-				selectAction(selectedRow);
+				selectAction(sourcesTable.convertRowIndexToModel(selectedRow));
 		});
 		sourcesTable.addMouseListener(new MouseAdapter(){
 			@Override
@@ -336,7 +337,8 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
-		model.removeRow(sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow()));
+		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
+		model.removeRow(index);
 	}
 
 	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
@@ -447,6 +449,12 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
@@ -454,7 +462,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							dialog = new SourceDialog(store, parent);
 							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 440);
+							dialog.setSize(500, 540);
 							break;
 
 						case NOTE_CITATION:

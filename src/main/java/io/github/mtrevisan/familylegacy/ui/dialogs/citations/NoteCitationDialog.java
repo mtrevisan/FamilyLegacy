@@ -204,7 +204,8 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
-		model.removeRow(notesTable.convertRowIndexToModel(notesTable.getSelectedRow()));
+		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
+		model.removeRow(index);
 
 		//remove from container
 		transferListToContainer();

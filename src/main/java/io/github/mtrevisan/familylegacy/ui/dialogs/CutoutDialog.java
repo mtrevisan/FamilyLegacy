@@ -81,7 +81,11 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 	public void loadData(final String file, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
-		try(final ImageInputStream input = ImageIO.createImageInputStream(new File(file))){
+		final File f = new File(file);
+		if(!f.exists())
+			throw new IllegalArgumentException("File `" + file + "` does not exists.");
+
+		try(final ImageInputStream input = ImageIO.createImageInputStream(f)){
 			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
 			if(!readers.hasNext())
 				throw new IllegalArgumentException("No reader for " + file);
