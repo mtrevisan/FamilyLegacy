@@ -196,7 +196,7 @@ final class GedcomParser{
 		final GedcomNode parent = nodeStack.peek();
 		final Object parentGrammarBlockOrLine = grammarBlockOrLineStack.peek();
 
-		parent.addChildEvenIfEmpty(child);
+		parent.forceAddChild(child);
 
 		GedcomGrammarLine addedGrammarLine = selectAddedGrammarLine(child, parentGrammarBlockOrLine)[1];
 		if(addedGrammarLine == null){

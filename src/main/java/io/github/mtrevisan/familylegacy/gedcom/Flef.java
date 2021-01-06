@@ -189,8 +189,11 @@ public class Flef extends Store{
 
 
 	@Override
-	protected void create(final GedcomNode root) throws GedcomParseException{
+	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
+		super.create(null, basePath);
+
 		this.root = root;
+
 		final List<GedcomNode> headers = root.getChildrenWithTag(TAG_HEADER);
 		if(headers.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");
@@ -287,6 +290,10 @@ public class Flef extends Store{
 				.addClosingChild("EOF");
 
 		super.write(os);
+	}
+
+	public String stripBasePath(final String absolutePath){
+		return StringUtils.removeStart(absolutePath, basePath);
 	}
 
 	public GedcomNode createEmptyNode(){

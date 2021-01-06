@@ -180,8 +180,9 @@ public class Gedcom extends Store{
 
 
 	@Override
-	protected void create(final GedcomNode root) throws GedcomParseException{
-		this.root = root;
+	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
+		super.create(null, basePath);
+
 		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEADER);
 		if(heads.size() != 1)
 			throw GedcomParseException.create("Required header tag missing");

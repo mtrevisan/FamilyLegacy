@@ -44,11 +44,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.Document;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
-import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -81,10 +76,6 @@ public class TextPreviewPane extends JSplitPane{
 		HTML_RENDERER = HtmlRenderer.builder(markdownOptions)
 			.build();
 	}
-
-	private static final UndoManager UNDO_MANAGER = new UndoManager();
-	private static final String ACTION_MAP_KEY_UNDO = "undo";
-	private static final String ACTION_MAP_KEY_REDO = "redo";
 
 	private static final File FILE_HTML_STANDARD_CSS = new File(TextPreviewPane.class.getResource("/markdown/css/markdown.css")
 		.getFile());
@@ -182,7 +173,7 @@ public class TextPreviewPane extends JSplitPane{
 				previewView.setText(renderHtml(textView.getText()));
 			}
 		});
-		addUndoCapability();
+		JavaHelper.addUndoCapability(textView);
 
 
 		final JScrollPane textScroll = new JScrollPane(textView);
@@ -204,6 +195,14 @@ public class TextPreviewPane extends JSplitPane{
 			setDividerSize(0);
 		});
 		attachPreviewPopUpMenu(previewScroll);
+	}
+
+	@Override
+	public void setEnabled(final boolean enabled){
+		super.setEnabled(enabled);
+
+		textView.setEnabled(enabled);
+		previewView.setEnabled(enabled);
 	}
 
 	/**
@@ -264,17 +263,6 @@ public class TextPreviewPane extends JSplitPane{
 		return style;
 	}
 
-
-	private void addUndoCapability(){
-		final Document doc = textView.getDocument();
-		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
-		final InputMap textInputMap = textView.getInputMap(JComponent.WHEN_FOCUSED);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
-		final ActionMap textActionMap = textView.getActionMap();
-		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
-		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
-	}
 
 	private void attachPreviewPopUpMenu(final JScrollPane previewScroll){
 		final JPopupMenu popupMenu = new JPopupMenu();
@@ -337,37 +325,6 @@ public class TextPreviewPane extends JSplitPane{
 
 	public String getText(){
 		return textView.getText();
-	}
-
-
-	private static class UndoAction extends AbstractAction{
-		private static final long serialVersionUID = -3974682914632160277L;
-
-		@Override
-		public void actionPerformed(final ActionEvent event){
-			try{
-				if(UNDO_MANAGER.canUndo())
-					UNDO_MANAGER.undo();
-			}
-			catch(final CannotUndoException e){
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private static class RedoAction extends AbstractAction{
-		private static final long serialVersionUID = -4415532769601693910L;
-
-		@Override
-		public void actionPerformed(final ActionEvent event){
-			try{
-				if(UNDO_MANAGER.canRedo())
-					UNDO_MANAGER.redo();
-			}
-			catch(final CannotUndoException e){
-				e.printStackTrace();
-			}
-		}
 	}
 
 }

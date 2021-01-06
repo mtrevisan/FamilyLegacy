@@ -27,21 +27,16 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.function.Consumer;
 
 
@@ -81,27 +76,7 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 	public void loadData(final String file, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
-		final File f = new File(file);
-		if(!f.exists())
-			throw new IllegalArgumentException("File `" + file + "` does not exists.");
-
-		try(final ImageInputStream input = ImageIO.createImageInputStream(f)){
-			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
-			if(!readers.hasNext())
-				throw new IllegalArgumentException("No reader for " + file);
-
-			final ImageReader reader = readers.next();
-			try{
-				reader.setInput(input);
-
-				final BufferedImage image = reader.read(0);
-
-				imageHolder.setImage(image);
-			}
-			finally{
-				reader.dispose();
-			}
-		}
+		imageHolder.setImage(ResourceHelper.readImage(file));
 
 		repaint();
 	}

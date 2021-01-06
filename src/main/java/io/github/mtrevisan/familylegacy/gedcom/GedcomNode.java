@@ -245,11 +245,13 @@ public abstract class GedcomNode{
 	}
 
 	public GedcomNode addChild(final GedcomNode child){
-		return addChild((children != null? children.size(): 0), child);
+		final int index = (children != null? children.size(): 0);
+		return addChild(index, child);
 	}
 
-	GedcomNode addChildEvenIfEmpty(final GedcomNode child){
-		return addChildInner((children != null? children.size(): 0), child);
+	public GedcomNode forceAddChild(final GedcomNode child){
+		final int index = (children != null? children.size(): 0);
+		return addChildInner(index, child);
 	}
 
 	public GedcomNode addChildren(final Iterable<GedcomNode> children){
@@ -272,13 +274,14 @@ public abstract class GedcomNode{
 		return taggedChildren;
 	}
 
-	public void removeChildrenWithTag(final String... tags){
+	public GedcomNode removeChildrenWithTag(final String... tags){
 		if(children != null){
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext())
 				if(ArrayUtils.contains(tags, itr.next().tag))
 					itr.remove();
 		}
+		return this;
 	}
 
 

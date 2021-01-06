@@ -26,15 +26,23 @@ package io.github.mtrevisan.familylegacy.services;
 
 import io.github.mtrevisan.familylegacy.services.images.AnimatedGifEncoder;
 import io.github.mtrevisan.familylegacy.services.images.GifDecoder;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.ImageType;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Iterator;
 
 
 public final class ResourceHelper{
@@ -128,6 +136,36 @@ public final class ResourceHelper{
 
 		//return the buffered image
 		return bimage;
+	}
+
+	public static BufferedImage readImage(final String file) throws IOException{
+		final File f = new File(file);
+		if(!f.exists())
+			throw new IllegalArgumentException("File `" + file + "` does not exists.");
+
+		try(final ImageInputStream input = ImageIO.createImageInputStream(f)){
+			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
+			if(readers.hasNext()){
+				final ImageReader reader = readers.next();
+				try{
+					reader.setInput(input);
+					return reader.read(0);
+				}
+				finally{
+					reader.dispose();
+				}
+			}
+			else{
+				//try to read a PDF
+				try(final PDDocument document = PDDocument.load(f)){
+					final PDFRenderer renderer = new PDFRenderer(document);
+					return renderer.renderImageWithDPI(0, 100, ImageType.RGB);
+				}
+				catch(final IllegalArgumentException ignored){
+					throw new IllegalArgumentException("No reader for " + file);
+				}
+			}
+		}
 	}
 
 }

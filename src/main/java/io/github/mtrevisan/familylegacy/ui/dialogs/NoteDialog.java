@@ -41,7 +41,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -60,7 +59,8 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode note;
-	private int noteHash;
+	private volatile boolean updating;
+	private int dataHash;
 
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
@@ -80,6 +80,9 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 		textPreviewView = new TextPreviewPane(this);
 
 		localeLabel.setLabelFor(localeComboBox);
+		localeComboBox.addActionListener(evt -> textChanged());
+
+		restrictionCheckBox.addActionListener(evt -> textChanged());
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -110,15 +113,18 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 
 	@Override
 	public void textChanged(){
-		final int newTextHash = textPreviewView.getText()
-			.hashCode();
-		final int newLanguageTagHash = localeComboBox.getSelectedLanguageTag()
-			.hashCode();
-		final int newRestrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
-			.hashCode();
-		final int newNoteHash = newTextHash ^ newLanguageTagHash ^ newRestrictionHash;
+		if(!updating)
+			okButton.setEnabled(calculateDataHash() != dataHash);
+	}
 
-		okButton.setEnabled(newNoteHash != noteHash);
+	private int calculateDataHash(){
+		final int textHash = textPreviewView.getText()
+			.hashCode();
+		final int languageTagHash = localeComboBox.getSelectedLanguageTag()
+			.hashCode();
+		final int restrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
+			.hashCode();
+		return textHash ^ languageTagHash ^ restrictionHash;
 	}
 
 	@Override
@@ -132,6 +138,8 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 	}
 
 	public void loadData(final GedcomNode note, final Consumer<Object> onCloseGracefully){
+		updating = true;
+
 		this.note = note;
 		this.onCloseGracefully = onCloseGracefully;
 
@@ -142,17 +150,16 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();
 
-		final int textHash = Objects.requireNonNullElse(text, StringUtils.EMPTY).hashCode();
-		final int languageTagHash = Objects.requireNonNullElse(languageTag, StringUtils.EMPTY).hashCode();
-		final int restrictionHash = Objects.requireNonNullElse(restriction, StringUtils.EMPTY).hashCode();
-		noteHash = textHash ^ languageTagHash ^ restrictionHash;
-
 		textPreviewView.setText(getTitle(), text, languageTag);
 
 		if(languageTag != null)
 			localeComboBox.setSelectedByLanguageTag(languageTag);
 
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
+
+		updating = false;
+
+		dataHash = calculateDataHash();
 
 		repaint();
 	}

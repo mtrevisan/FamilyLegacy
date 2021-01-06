@@ -36,6 +36,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +51,7 @@ public abstract class Store{
 
 
 	GedcomNode root;
+	protected String basePath;
 
 
 	public Store load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
@@ -57,12 +59,17 @@ public abstract class Store{
 
 		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
 
-		create(root);
+		final int index = StringUtils.lastIndexOfAny(gedcomFile, "/", "\\");
+		create(root, (index > 0? gedcomFile.substring(0, index): gedcomFile));
 
 		return this;
 	}
 
-	protected abstract void create(final GedcomNode root) throws GedcomParseException;
+	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
+		Objects.requireNonNull(basePath, "Base path cannot be null");
+
+		this.basePath = basePath;
+	}
 
 	int extractLastID(final CharSequence lastKey){
 		final Matcher m = PATTERN_ID.matcher(lastKey);
