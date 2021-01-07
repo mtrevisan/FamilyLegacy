@@ -231,6 +231,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		final String author = store.traverse(source, "AUTHOR").getValue();
 		final String publicationFacts = store.traverse(source, "PUBLICATION_FACTS").getValue();
 		final GedcomNode dateNode = store.traverse(source, "DATE");
+		//TODO
 		final GedcomNode place = store.traverse(source, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(source, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
@@ -279,7 +280,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 							dialog = new DocumentCitationDialog(store, parent);
 							((DocumentCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-							dialog.setSize(450, 450);
+							dialog.setSize(450, 650);
 							break;
 
 						case SOURCE_CITATION:

@@ -29,29 +29,29 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.DocumentCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 
 
-public class RepositoryDialog extends JDialog implements TextPreviewListenerInterface{
+public class RepositoryDialog extends JDialog{
 
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
 	private final JButton individualButton = new JButton("Individual");
 	private final JButton placeButton = new JButton("Place");
-	private final JTextField titleField = new JTextField();
-	private final JTextField authorField = new JTextField();
-	private final JTextField publicationFactsField = new JTextField();
-	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
-	private final JButton repositoriesButton = new JButton("Repositories");
-	private final JButton documentsButton = new JButton("Documents");
+	private final JButton phonesButton = new JButton("Phones");
+	private final JButton emailsButton = new JButton("Emails");
+	private final JButton urlsButton = new JButton("URLs");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -81,27 +81,22 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		final JPanel contactPanel = new JPanel();
 		contactPanel.setBorder(BorderFactory.createTitledBorder("Contact"));
 		contactPanel.setLayout(new MigLayout("", "[grow]"));
-//		contactPanel.add(dateLabel, "align label,split 3,sizegroup label");
-//		contactPanel.add(dateField, "grow");
-//		contactPanel.add(dateButton, "wrap");
-//		contactPanel.add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
-//		contactPanel.add(dateOriginalTextField, "grow,wrap");
-//		contactPanel.add(dateCredibilityLabel, "align label,split 2,sizegroup label");
-//		contactPanel.add(dateCredibilityComboBox, "grow");
+		contactPanel.add(phonesButton, "grow,wrap");
+		contactPanel.add(emailsButton, "grow,wrap");
+		contactPanel.add(urlsButton, "grow");
 
-		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
 
 		okButton.addActionListener(evt -> {
 			final String name = nameField.getText();
-			final String title = titleField.getText();
-			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
+//			final String title = titleField.getText();
+//			final String extractLanguageTag = extractLocaleComboBox.getSelectedLanguageTag();
 
 			repository.replaceChildValue("NAME", name);
-			repository.replaceChildValue("TITLE", title);
-			final GedcomNode extractLocaleNode = store.traverse(repository, "EXTRACT.LOCALE");
-			if(!extractLocaleNode.isEmpty())
-				extractLocaleNode.withValue(extractLanguageTag);
+//			repository.replaceChildValue("TITLE", title);
+//			final GedcomNode extractLocaleNode = store.traverse(repository, "EXTRACT.LOCALE");
+//			if(!extractLocaleNode.isEmpty())
+//				extractLocaleNode.withValue(extractLanguageTag);
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.run();
@@ -115,22 +110,11 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		add(nameLabel, "align label,split 2");
 		add(nameField, "grow,wrap paragraph");
 		add(individualButton, "sizegroup button2,grow,wrap");
-		add(placeButton, "sizegroup button2,grow,wrap");
+		add(placeButton, "sizegroup button2,grow,wrap paragraph");
 		add(contactPanel, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
-	}
-
-	@Override
-	public void textChanged(){
-		//TODO
-		okButton.setEnabled(true);
-	}
-
-	@Override
-	public void onPreviewStateChange(final boolean visible){
-		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 	public void loadData(final GedcomNode repository, final Runnable onCloseGracefully){
@@ -153,12 +137,9 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		final boolean hasNotes = !store.traverseAsList(repository, "NOTE[]").isEmpty();
 
 		nameField.setText(name);
-		titleField.setText(title);
-		authorField.setText(author);
-		publicationFactsField.setText(publicationFacts);
-		repositoriesButton.setEnabled(hasRepositories);
-		documentsButton.setEnabled(hasFiles);
-		notesButton.setEnabled(hasNotes);
+//		titleField.setText(title);
+//		authorField.setText(author);
+//		publicationFactsField.setText(publicationFacts);
 
 		repaint();
 	}
@@ -177,7 +158,34 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 		final GedcomNode repository = store.getRepositories().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final RepositoryDialog dialog = new RepositoryDialog(store, new JFrame());
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand) throws IOException{
+					JDialog dialog = null;
+					switch(editCommand.getType()){
+						case NOTE_CITATION:
+							dialog = new NoteCitationDialog(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
+						case NOTE:
+							dialog = new NoteDialog(store, parent);
+							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+					}
+					if(dialog != null){
+						dialog.setLocationRelativeTo(parent);
+						dialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 			dialog.loadData(repository, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
@@ -186,7 +194,7 @@ public class RepositoryDialog extends JDialog implements TextPreviewListenerInte
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 460);
+			dialog.setSize(320, 370);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
