@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.DocumentCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
@@ -277,8 +276,8 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case DOCUMENT_CITATION:
-							dialog = new DocumentCitationDialog(store, parent);
-							((DocumentCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new DocumentDialog(store, parent);
+							((DocumentDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(450, 650);
 							break;

@@ -127,17 +127,19 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 	}
 
 	public void setSelectedByLanguageTag(String languageTag){
-		languageTag = languageTag.toLowerCase(Locale.ROOT);
-		FlefLocale locale = new FlefLocale(Locale.ROOT);
-		final DefaultComboBoxModel<FlefLocale> model = (DefaultComboBoxModel<FlefLocale>)getModel();
-		for(int index = 0; index < model.getSize(); index ++){
-			final FlefLocale loc = model.getElementAt(index);
-			if(loc.toLanguageTag().toLowerCase(Locale.ROOT).equals(languageTag)){
-				locale = loc;
-				break;
+		if(languageTag != null){
+			languageTag = languageTag.toLowerCase(Locale.ROOT);
+			FlefLocale locale = new FlefLocale(Locale.ROOT);
+			final DefaultComboBoxModel<FlefLocale> model = (DefaultComboBoxModel<FlefLocale>)getModel();
+			for(int index = 0; index < model.getSize(); index ++){
+				final FlefLocale loc = model.getElementAt(index);
+				if(loc.toLanguageTag().toLowerCase(Locale.ROOT).equals(languageTag)){
+					locale = loc;
+					break;
+				}
 			}
+			setSelectedItem(locale);
 		}
-		setSelectedItem(locale);
 	}
 
 }

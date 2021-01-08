@@ -152,8 +152,7 @@ public class NoteDialog extends JDialog implements ActionListener, TextPreviewLi
 
 		textPreviewView.setText(getTitle(), text, languageTag);
 
-		if(languageTag != null)
-			localeComboBox.setSelectedByLanguageTag(languageTag);
+		localeComboBox.setSelectedByLanguageTag(languageTag);
 
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 

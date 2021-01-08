@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
+package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.ImagePreview;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
@@ -65,7 +65,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class DocumentCitationDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+public class DocumentDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	private static final long serialVersionUID = 1919219115430275506L;
 
@@ -108,7 +108,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<DocumentCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<DocumentDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
 	private volatile boolean updating;
@@ -118,7 +118,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 	private final Flef store;
 
 
-	public DocumentCitationDialog(final Flef store, final Frame parent){
+	public DocumentDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -134,7 +134,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(DocumentCitationDialog.this);
+				filterDebouncer.call(DocumentDialog.this);
 			}
 		});
 
@@ -190,7 +190,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 
 		fileButton.setEnabled(false);
 		fileButton.addActionListener(evt -> {
-			final int returnValue = fileChooser.showDialog(DocumentCitationDialog.this, "Choose");
+			final int returnValue = fileChooser.showDialog(DocumentDialog.this, "Choose");
 			if(returnValue == JFileChooser.APPROVE_OPTION){
 				final String path = fileChooser.getSelectedFile().getPath();
 				fileField.setText(store.stripBasePath(path));
@@ -355,8 +355,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 		extractTypeComboBox.setEnabled(true);
 		extractTypeComboBox.setSelectedItem(extractType);
 		extractLocaleComboBox.setEnabled(true);
-		if(extractLanguageTag != null)
-			extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
+		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
 		restrictionCheckBox.setEnabled(true);
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 		notesButton.setEnabled(true);
@@ -408,7 +407,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 		}
 	}
 
-	private void filterTableBy(final DocumentCitationDialog panel){
+	private void filterTableBy(final DocumentDialog panel){
 		final String text = filterField.getText();
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_DOCUMENT_FILE);
 
@@ -512,7 +511,7 @@ public class DocumentCitationDialog extends JDialog implements ActionListener, T
 			};
 			EventBusService.subscribe(listener);
 
-			final DocumentCitationDialog dialog = new DocumentCitationDialog(store, parent);
+			final DocumentDialog dialog = new DocumentDialog(store, parent);
 			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
