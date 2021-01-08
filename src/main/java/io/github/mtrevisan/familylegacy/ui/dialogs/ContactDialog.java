@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.validators.PhoneNumberValidator;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -86,14 +85,15 @@ public class ContactDialog extends JDialog implements ActionListener{
 	private final JTable contactsTable = new JTable(new ContactTableModel());
 	private final JScrollPane contactsScrollPane = new JScrollPane(contactsTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel contactLabel = new JLabel("Contact");
-	private final JTextField contactField = new JTextField();
-	private final JMenuItem callItem = new JMenuItem("Call phone");
-	private final JMenuItem sendEmailItem = new JMenuItem("Send email");
+	private final JLabel contactIDLabel = new JLabel("Contact");
+	private final JTextField contactIDField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type");
+	private final JTextField typeField = new JTextField();
+	private final JLabel callerIDLabel = new JLabel("Caller ID");
+	private final JTextField callerIDField = new JTextField();
+	private final JMenuItem sendEmailItem = new JMenuItem("Send email…");
 	private final JMenuItem testLinkItem = new JMenuItem("Test link");
 	private final JMenuItem openLinkItem = new JMenuItem("Open link…");
-	private final JLabel descriptionLabel = new JLabel("Description:");
-	private final JTextField descriptionField = new JTextField();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
@@ -161,46 +161,35 @@ public class ContactDialog extends JDialog implements ActionListener{
 
 		addButton.addActionListener(evt -> addAction());
 
-		contactLabel.setLabelFor(contactField);
-		contactField.setEnabled(false);
-		contactField.getDocument().addDocumentListener(new DocumentListener(){
+		contactIDLabel.setLabelFor(contactIDField);
+		contactIDField.setEnabled(false);
+		JavaHelper.addUndoCapability(contactIDField);
+		contactIDField.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
 			public void changedUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
+				updateContactFieldMenuItems(contactIDField.getText());
 			}
 
 			@Override
 			public void removeUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
+				updateContactFieldMenuItems(contactIDField.getText());
 			}
 
 			@Override
 			public void insertUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
+				updateContactFieldMenuItems(contactIDField.getText());
 			}
 		});
 		//manage links
-		attachOpenLinkPopUpMenu(contactField);
+		attachOpenLinkPopUpMenu(contactIDField);
 
-		descriptionLabel.setLabelFor(descriptionField);
-		descriptionField.setEnabled(false);
-		descriptionField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override
-			public void changedUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
-			}
+		typeLabel.setLabelFor(typeField);
+		typeField.setEnabled(false);
+		JavaHelper.addUndoCapability(typeField);
 
-			@Override
-			public void removeUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
-			}
-
-			@Override
-			public void insertUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems();
-			}
-		});
-		JavaHelper.addUndoCapability(descriptionField);
+		callerIDLabel.setLabelFor(callerIDField);
+		callerIDField.setEnabled(false);
+		JavaHelper.addUndoCapability(callerIDField);
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(evt -> {
@@ -212,7 +201,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		});
 
 		restrictionCheckBox.setEnabled(false);
-		restrictionCheckBox.addActionListener(evt -> updateContactFieldMenuItems());
+		restrictionCheckBox.addActionListener(evt -> updateContactFieldMenuItems(contactIDField.getText()));
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -235,10 +224,12 @@ public class ContactDialog extends JDialog implements ActionListener{
 		add(filterField, "grow,wrap");
 		add(contactsScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
-		add(contactLabel, "align label,sizegroup label,split 3");
-		add(contactField, "grow,wrap");
-		add(descriptionLabel, "align label,sizegroup label,split 2");
-		add(descriptionField, "grow,wrap");
+		add(contactIDLabel, "align label,sizegroup label,split 2");
+		add(contactIDField, "grow,wrap");
+		add(typeLabel, "align label,sizegroup label,split 2");
+		add(typeField, "grow,wrap");
+		add(callerIDLabel, "align label,sizegroup label,split 2");
+		add(callerIDField, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
 		add(notesButton, "grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
@@ -246,22 +237,20 @@ public class ContactDialog extends JDialog implements ActionListener{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	private void updateContactFieldMenuItems(){
-		final String contact = contactField.getText();
-		final boolean enable = StringUtils.isNotBlank(contact);
-		final boolean enablePhoneNumber = (enable && PhoneNumberValidator.isValid(contact));
-		final boolean enableEmail = (enable && EMAIL_VALIDATOR.isValid(contact));
-		final boolean enableLink = (enable && URL_VALIDATOR.isValid(contact));
+	private void updateContactFieldMenuItems(final String contactID){
+		final boolean enable = StringUtils.isNotBlank(contactID);
+		final boolean enableEmail = (enable && EMAIL_VALIDATOR.isValid(contactID));
+		final boolean enableLink = (enable && URL_VALIDATOR.isValid(contactID));
 
-		callItem.setEnabled(enablePhoneNumber);
-		sendEmailItem.setEnabled(enableEmail);
-		testLinkItem.setEnabled(enableLink);
-		openLinkItem.setEnabled(enableLink);
+		sendEmailItem.setVisible(enableEmail);
+		testLinkItem.setVisible(enableLink);
+		openLinkItem.setVisible(enableLink);
 	}
 
 	private void attachOpenLinkPopUpMenu(final JTextField component){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
+		sendEmailItem.addActionListener(event -> FileHelper.sendEmail(component.getText()));
 		testLinkItem.addActionListener(event -> {
 			final String url = component.getText();
 			final boolean urlReachable = FileHelper.testURL(url);
@@ -271,6 +260,8 @@ public class ContactDialog extends JDialog implements ActionListener{
 				(urlReachable? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
 		});
 		openLinkItem.addActionListener(event -> FileHelper.browseURL(component.getText()));
+
+		popupMenu.add(sendEmailItem);
 		popupMenu.add(testLinkItem);
 		popupMenu.add(openLinkItem);
 
@@ -278,26 +269,26 @@ public class ContactDialog extends JDialog implements ActionListener{
 	}
 
 	private int calculateDataHash(){
-		final int idHash = Objects.requireNonNullElse(contactField.getText(), StringUtils.EMPTY)
+		final int contactIDHash = Objects.requireNonNullElse(contactIDField.getText(), StringUtils.EMPTY)
 			.hashCode();
-		final int descriptionHash = Objects.requireNonNullElse(descriptionField.getText(), StringUtils.EMPTY)
+		final int typeHash = Objects.requireNonNullElse(typeField.getText(), StringUtils.EMPTY)
+			.hashCode();
+		final int callerIDHash = Objects.requireNonNullElse(callerIDField.getText(), StringUtils.EMPTY)
 			.hashCode();
 		final int restrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
 			.hashCode();
-		return idHash ^ descriptionHash ^ restrictionHash;
+		return contactIDHash ^ typeHash ^ callerIDHash ^ restrictionHash;
 	}
 
 	private void okAction(){
-		final String id = contactField.getText();
-		final String description = descriptionField.getText();
+		final String contactID = contactIDField.getText();
 		final String restriction = (restrictionCheckBox.isSelected()? "confidential": null);
 
 		final int index = contactsTable.convertRowIndexToModel(contactsTable.getSelectedRow());
 		final GedcomNode contactNode = container.getChildrenWithTag("CONTACT")
 			.get(index);
 		final GedcomNode extractNode = store.traverse(contactNode, "EXTRACT");
-		contactNode.withValue(id)
-			.replaceChildValue("DESCRIPTION", description)
+		contactNode.withValue(contactID)
 			.removeChildrenWithTag("EXTRACT")
 			.addChild(extractNode)
 			.replaceChildValue("RESTRICTION", restriction);
@@ -307,26 +298,27 @@ public class ContactDialog extends JDialog implements ActionListener{
 		final List<GedcomNode> contacts = store.traverseAsList(container, "CONTACT[]");
 		final GedcomNode selectedContact = contacts.get(selectedRow);
 
-		final String id = selectedContact.getValue();
-		final String description = store.traverse(selectedContact, "DESCRIPTION").getValue();
-		final GedcomNode extractNode = store.traverse(selectedContact, "EXTRACT");
-		final String extract = extractNode.getValue();
-		final String extractType = store.traverse(extractNode, "TYPE").getValue();
-		final String extractLanguageTag = store.traverse(extractNode, "LOCALE").getValue();
+		final String contactID = selectedContact.getValue();
+		final String type = store.traverse(selectedContact, "TYPE").getValue();
+		final String callerID = store.traverse(selectedContact, "CALLER_ID").getValue();
 		final String restriction = store.traverse(selectedContact, "RESTRICTION").getValue();
 
 		updating = true;
 
-		contactField.setText(id);
-		descriptionField.setEnabled(true);
-		descriptionField.setText(description);
+		contactIDField.setEnabled(true);
+		contactIDField.setText(contactID);
+		typeField.setEnabled(true);
+		typeField.setText(type);
+		callerIDField.setEnabled(true);
+		callerIDField.setText(callerID);
+		notesButton.setEnabled(true);
 		restrictionCheckBox.setEnabled(true);
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
-		notesButton.setEnabled(true);
 
 		updating = false;
 
 		dataHash = calculateDataHash();
+		updateContactFieldMenuItems(contactID);
 	}
 
 	private void addAction(){
@@ -439,7 +431,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = store.getSources().get(0);
+		final GedcomNode container = store.getRepositories().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -484,7 +476,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 650);
+			dialog.setSize(350, 430);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

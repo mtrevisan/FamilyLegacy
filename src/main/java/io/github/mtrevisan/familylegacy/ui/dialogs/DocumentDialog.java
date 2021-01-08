@@ -169,6 +169,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 
 		addButton.addActionListener(evt -> addAction());
 
+		//TODO add the possibility to open file
 		fileLabel.setLabelFor(fileField);
 		fileField.setEnabled(false);
 		fileField.getDocument().addDocumentListener(new DocumentListener(){

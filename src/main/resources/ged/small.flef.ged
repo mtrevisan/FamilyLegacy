@@ -57,12 +57,15 @@
 0 @R2@ REPOSITORY
 1 NAME MyCorporation, Inc.
 1 PLACE @P1@
-1 CONTACT
-2 PHONE 866-000-0000
-2 EMAIL info@@mycorporation.com
-2 PHONE 866-111-1111
-3 TYPE fax
-2 URL https://www.mycorporation.com/
+1 CONTACT 866-000-0000
+2 TYPE personal
+2 CALLER_ID that guy
+2 NOTE @N1@
+2 RESTRICTION confidential
+1 CONTACT info@@mycorporation.com
+1 CONTACT 866-111-1111
+2 TYPE fax
+1 CONTACT https://www.mycorporation.com/
 0 @G1@ GROUP
 1 NAME GROUP_NAME1
 1 TYPE neighborhood

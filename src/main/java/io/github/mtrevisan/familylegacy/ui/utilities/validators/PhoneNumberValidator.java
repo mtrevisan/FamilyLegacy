@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 public final class PhoneNumberValidator{
 
-	private static final Pattern PHONE_NUMBER = Pattern.compile("^(\\+|00)[\\d() .-]+$");
+	private static final Pattern PHONE_NUMBER = Pattern.compile("^(\\+|00)?[\\d() .-]+$");
 
 
 	private PhoneNumberValidator(){}

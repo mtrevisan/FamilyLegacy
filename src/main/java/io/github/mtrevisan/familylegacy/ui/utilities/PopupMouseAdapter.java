@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -51,10 +52,17 @@ public class PopupMouseAdapter extends MouseAdapter{
 	}
 
 	private void processMouseEvent(final MouseEvent event){
-		if(event.isPopupTrigger()){
+		if(event.isPopupTrigger() && hasPopupMenuVisibleItems()){
 			popupMenu.show(event.getComponent(), event.getX(), event.getY());
 			popupMenu.setInvoker(component);
 		}
+	}
+
+	private boolean hasPopupMenuVisibleItems(){
+		for(final Component component : popupMenu.getComponents())
+			if(component.isVisible())
+				return true;
+		return false;
 	}
 
 }

@@ -38,11 +38,21 @@ public final class FileHelper{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileHelper.class);
 
+	private static final String URL_PROTOCOL_SEPARATOR = "://";
+	private static final String MAIL_PROTOCOL = "mailto:";
 	private static final String URL_PROTOCOL_HTTP = "http://";
 	private static final String TEST_CONNECTIVITY_URL = "https://www.google.com/";
 
 
 	private FileHelper(){}
+
+	public static boolean openFile(final File file){
+		return executeDesktopCommand(Desktop.Action.OPEN, file);
+	}
+
+	public static boolean sendEmail(final String email){
+		return executeDesktopCommand(Desktop.Action.MAIL, email);
+	}
 
 	public static boolean browseURL(final String url){
 		return executeDesktopCommand(Desktop.Action.BROWSE, url);
@@ -51,29 +61,32 @@ public final class FileHelper{
 	private static boolean executeDesktopCommand(final Desktop.Action action, final Object parameter){
 		boolean done = false;
 		final Desktop desktop = getDesktopFor(action);
-		try{
-			switch(action){
-				case OPEN:
-					desktop.open((File)parameter);
-					done = true;
-					break;
+		if(desktop != null){
+			try{
+				switch(action){
+					case MAIL:
+						if(hasInternetConnectivity()){
+							final String email = (String)parameter;
+							desktop.mail(new URI(email.startsWith(MAIL_PROTOCOL)? email: MAIL_PROTOCOL + email));
+							done = true;
+						}
+						break;
 
-				case BROWSE:
-					if(hasInternetConnectivity()){
-						desktop.browse(new URI((String)parameter));
+					case OPEN:
+						desktop.open((File)parameter);
 						done = true;
-					}
-					break;
+						break;
 
-				case MAIL:
-					if(hasInternetConnectivity()){
-						desktop.mail(new URI((String)parameter));
-						done = true;
-					}
+					case BROWSE:
+						if(hasInternetConnectivity()){
+							desktop.browse(new URI((String)parameter));
+							done = true;
+						}
+				}
 			}
-		}
-		catch(final Exception e){
-			LOGGER.error("Cannot execute {} command", action, e);
+			catch(final Exception e){
+				LOGGER.error("Cannot execute {} command", action, e);
+			}
 		}
 		return done;
 	}
@@ -84,7 +97,7 @@ public final class FileHelper{
 
 	public static boolean testURL(final String url){
 		try{
-			HttpURLConnection connection = (HttpURLConnection)new URL(url.startsWith(URL_PROTOCOL_HTTP)? url: URL_PROTOCOL_HTTP + url)
+			HttpURLConnection connection = (HttpURLConnection)new URL(url.contains(URL_PROTOCOL_SEPARATOR)? url: URL_PROTOCOL_HTTP + url)
 				.openConnection();
 			connection.setRequestMethod("HEAD");
 			int responseCode = connection.getResponseCode();
