@@ -94,8 +94,8 @@ public class ContactDialog extends JDialog implements ActionListener{
 	private final JMenuItem sendEmailItem = new JMenuItem("Send email…");
 	private final JMenuItem testLinkItem = new JMenuItem("Test link");
 	private final JMenuItem openLinkItem = new JMenuItem("Open link…");
-	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton notesButton = new JButton("Notes");
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -168,16 +168,22 @@ public class ContactDialog extends JDialog implements ActionListener{
 			@Override
 			public void changedUpdate(final DocumentEvent evt){
 				updateContactFieldMenuItems(contactIDField.getText());
+
+				dataChanged();
 			}
 
 			@Override
 			public void removeUpdate(final DocumentEvent evt){
 				updateContactFieldMenuItems(contactIDField.getText());
+
+				dataChanged();
 			}
 
 			@Override
 			public void insertUpdate(final DocumentEvent evt){
 				updateContactFieldMenuItems(contactIDField.getText());
+
+				dataChanged();
 			}
 		});
 		//manage links
@@ -186,10 +192,14 @@ public class ContactDialog extends JDialog implements ActionListener{
 		typeLabel.setLabelFor(typeField);
 		typeField.setEnabled(false);
 		JavaHelper.addUndoCapability(typeField);
+		//FIXME why this doesn't work??
+		typeField.addActionListener(evt -> dataChanged());
 
 		callerIDLabel.setLabelFor(callerIDField);
 		callerIDField.setEnabled(false);
 		JavaHelper.addUndoCapability(callerIDField);
+		//FIXME why this doesn't work??
+		callerIDField.addActionListener(evt -> dataChanged());
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(evt -> {
@@ -201,7 +211,10 @@ public class ContactDialog extends JDialog implements ActionListener{
 		});
 
 		restrictionCheckBox.setEnabled(false);
-		restrictionCheckBox.addActionListener(evt -> updateContactFieldMenuItems(contactIDField.getText()));
+		restrictionCheckBox.addActionListener(evt -> {
+			updateContactFieldMenuItems(contactIDField.getText());
+			dataChanged();
+		});
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -229,9 +242,9 @@ public class ContactDialog extends JDialog implements ActionListener{
 		add(typeLabel, "align label,sizegroup label,split 2");
 		add(typeField, "grow,wrap");
 		add(callerIDLabel, "align label,sizegroup label,split 2");
-		add(callerIDField, "grow,wrap");
-		add(restrictionCheckBox, "wrap paragraph");
+		add(callerIDField, "grow,wrap paragraph");
 		add(notesButton, "grow,wrap paragraph");
+		add(restrictionCheckBox, "wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -268,6 +281,11 @@ public class ContactDialog extends JDialog implements ActionListener{
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
 	}
 
+	public void dataChanged(){
+		if(!updating)
+			okButton.setEnabled(calculateDataHash() != dataHash);
+	}
+
 	private int calculateDataHash(){
 		final int contactIDHash = Objects.requireNonNullElse(contactIDField.getText(), StringUtils.EMPTY)
 			.hashCode();
@@ -282,15 +300,16 @@ public class ContactDialog extends JDialog implements ActionListener{
 
 	private void okAction(){
 		final String contactID = contactIDField.getText();
+		final String type = typeField.getText();
+		final String callerID = callerIDField.getText();
 		final String restriction = (restrictionCheckBox.isSelected()? "confidential": null);
 
 		final int index = contactsTable.convertRowIndexToModel(contactsTable.getSelectedRow());
 		final GedcomNode contactNode = container.getChildrenWithTag("CONTACT")
 			.get(index);
-		final GedcomNode extractNode = store.traverse(contactNode, "EXTRACT");
 		contactNode.withValue(contactID)
-			.removeChildrenWithTag("EXTRACT")
-			.addChild(extractNode)
+			.replaceChildValue("TYPE", type)
+			.replaceChildValue("CALLER_ID", callerID)
 			.replaceChildValue("RESTRICTION", restriction);
 	}
 
