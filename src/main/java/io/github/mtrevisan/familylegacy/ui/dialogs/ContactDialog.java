@@ -77,7 +77,7 @@ public class ContactDialog extends JDialog implements TextPreviewListenerInterfa
 	}
 
 	private void initComponents(){
-		setTitle("Note");
+		setTitle("Contacts");
 
 		textPreviewView = new TextPreviewPane(this);
 

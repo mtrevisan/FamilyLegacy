@@ -260,24 +260,12 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
-  +1 <<CONTACT_STRUCTURE>>    {0:1}
+  +1 CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
+    +2 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
+    +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+    +2 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-
-
-CONTACT_STRUCTURE :=
-n CONTACT    {1:1}
-  +1 PHONE <PHONE_NUMBER>    {0:M}	/* A phone number. */
-    +2 TYPE <PHONE_NUMBER_TYPE>    {0:1}	/* Indicates the phone number type (blog, personal, social, work, etc.). */
-    +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-    +2 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
-  +1 EMAIL <ADDRESS_EMAIL>    {0:M}	/* An electronic address that can be used for contact such as an email address following RFC 5322 specifications. */
-    +2 TYPE <ADDRESS_EMAIL_TYPE>    {0:1}	/* Indicates the email type (blog, personal, social, work, etc.). */
-    +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-    +2 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
-  +1 URL <ADDRESS_WEB_PAGE>    {0:M}	/* The World Wide Web page address following RFC 1736 specifications. */
-    +2 TYPE <ADDRESS_WEB_PAGE_TYPE>    {0:1}	/* Indicates the web page type (blog, personal, social, work, etc.). */
 
 
 CULTURAL_RULE_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */

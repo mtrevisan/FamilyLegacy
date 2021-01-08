@@ -29,9 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.DocumentCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
@@ -49,9 +47,7 @@ public class RepositoryDialog extends JDialog{
 	private final JTextField nameField = new JTextField();
 	private final JButton individualButton = new JButton("Individual");
 	private final JButton placeButton = new JButton("Place");
-	private final JButton phonesButton = new JButton("Phones");
-	private final JButton emailsButton = new JButton("Emails");
-	private final JButton urlsButton = new JButton("URLs");
+	private final JButton contactsButton = new JButton("Contacts");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -78,12 +74,7 @@ public class RepositoryDialog extends JDialog{
 
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
 
-		final JPanel contactPanel = new JPanel();
-		contactPanel.setBorder(BorderFactory.createTitledBorder("Contact"));
-		contactPanel.setLayout(new MigLayout("", "[grow]"));
-		contactPanel.add(phonesButton, "grow,wrap");
-		contactPanel.add(emailsButton, "grow,wrap");
-		contactPanel.add(urlsButton, "grow");
+		contactsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CONTACT, repository)));
 
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
 
@@ -110,8 +101,8 @@ public class RepositoryDialog extends JDialog{
 		add(nameLabel, "align label,split 2");
 		add(nameField, "grow,wrap paragraph");
 		add(individualButton, "sizegroup button2,grow,wrap");
-		add(placeButton, "sizegroup button2,grow,wrap paragraph");
-		add(contactPanel, "grow,wrap paragraph");
+		add(placeButton, "sizegroup button2,grow,wrap");
+		add(contactsButton, "sizegroup button2,grow,wrap");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -164,6 +155,13 @@ public class RepositoryDialog extends JDialog{
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
+						case CONTACT:
+							dialog = new ContactDialog(store, parent);
+//							((ContactDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
 						case NOTE_CITATION:
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
@@ -194,7 +192,7 @@ public class RepositoryDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(320, 370);
+			dialog.setSize(320, 250);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
