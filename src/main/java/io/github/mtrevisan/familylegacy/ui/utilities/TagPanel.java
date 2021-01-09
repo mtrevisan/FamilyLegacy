@@ -33,6 +33,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.function.BiConsumer;
 
 
@@ -47,7 +48,7 @@ public class TagPanel extends JPanel{
 
 
 	public TagPanel(){
-		setLayout(new MigLayout("insets 1 3 1 0", "[]0"));
+		setLayout(new HorizontalFlowLayout(FlowLayout.LEFT, 2, 0));
 	}
 
 	public TagPanel(final BiConsumer<TagChangeType, Iterable<String>> tagsChanged){
@@ -82,15 +83,14 @@ public class TagPanel extends JPanel{
 			else{
 				for(final String tag : tags){
 					final TagComponent component = new TagComponent(tag, this::removeTag);
-					add(component, "gapright 3");
+					add(component, BorderLayout.LINE_END);
 				}
 
 				if(tagsChanged != null)
 					tagsChanged.accept(TagChangeType.ADD, tags);
 			}
 
-			repaint();
-			revalidate();
+			forceRepaint();
 		}
 	}
 
@@ -109,9 +109,13 @@ public class TagPanel extends JPanel{
 			if(tagsChanged != null)
 				tagsChanged.accept(TagChangeType.REMOVE, Collections.singletonList(tag.getTag()));
 
-			repaint();
-			revalidate();
+			forceRepaint();
 		}
+	}
+
+	private void forceRepaint(){
+		repaint();
+		revalidate();
 	}
 
 	public void applyFilter(final String tag){
@@ -119,9 +123,11 @@ public class TagPanel extends JPanel{
 			if(tag == null || tag.isEmpty())
 				for(final Component component : getComponents())
 					component.setVisible(true);
-			else
+			else{
+				final String lowercaseTag = tag.toLowerCase(Locale.ROOT);
 				for(final Component component : getComponents())
-					component.setVisible(((TagComponent)component).getTag().contains(tag));
+					component.setVisible(((TagComponent)component).getTag().toLowerCase(Locale.ROOT).contains(lowercaseTag));
+			}
 		});
 	}
 

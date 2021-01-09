@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
-public class TagComponent extends JComponent{
+class TagComponent extends JComponent{
 
 	private static final long serialVersionUID = -7410352884175789897L;
 
@@ -56,7 +56,7 @@ public class TagComponent extends JComponent{
 	private static final Dimension CORNER_RADIUS = new Dimension(5, 5);
 
 
-	public TagComponent(final String text, final Consumer<TagComponent> tagRemover){
+	TagComponent(final String text, final Consumer<TagComponent> tagRemover){
 		Objects.requireNonNull(tagRemover, "Tag remover cannot be null");
 
 		setOpaque(false);
@@ -90,7 +90,7 @@ public class TagComponent extends JComponent{
 				closeLabel.setBorder(EMPTY_CLOSE_BORDER);
 			}
 		});
-		final JPanel closePanel = new JPanel(new GridLayout());
+		final JPanel closePanel = new JPanel();
 		closePanel.setOpaque(false);
 		ps = closeLabel.getPreferredSize();
 		final Dimension closePanelSize = new Dimension(ps.width + PAD * 2, ps.height + PAD * 4);
@@ -98,9 +98,9 @@ public class TagComponent extends JComponent{
 		closePanel.setLayout(new MigLayout("insets 0,align center center"));
 		closePanel.add(closeLabel);
 
-		setLayout(new MigLayout("insets 0"));
-		add(textLabel, "split 2,gapright 0");
-		add(closePanel);
+		setLayout(new BorderLayout());
+		add(textLabel, BorderLayout.WEST);
+		add(closePanel, BorderLayout.EAST);
 	}
 
 	@Override

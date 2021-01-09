@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
@@ -44,18 +45,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-//TODO among other things, make eventField editable
 public class SourceDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	private static final long serialVersionUID = 1754367426928623503L;
+
+	/** [ms] */
+	private static final int DEBOUNCER_TIME = 400;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
@@ -76,8 +81,10 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		"transcript", "extract", "abstract"});
 
 	private final JLabel eventLabel = new JLabel("Event(s):");
+	private final JTextField eventField = new JTextField();
+	private final JButton eventAddButton = new JButton("Add");
 	private final JScrollPane eventScrollPane = new JScrollPane();
-	private final TagPanel eventField = new TagPanel();
+	private final TagPanel eventPanel = new TagPanel();
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
 	private final JLabel authorLabel = new JLabel("Author:");
@@ -103,6 +110,9 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
+	private final Debouncer<SourceDialog> filterDebouncer = new Debouncer<>(this::filterEventBy, DEBOUNCER_TIME);
+	private volatile String formerFilterEvent;
+
 	private GedcomNode source;
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
@@ -120,9 +130,25 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		setTitle("Source");
 
 		eventLabel.setLabelFor(eventField);
+		eventField.addKeyListener(new KeyAdapter(){
+			public void keyReleased(final KeyEvent evt){
+				filterDebouncer.call(SourceDialog.this);
+			}
+		});
+
+		eventAddButton.setEnabled(false);
+		eventAddButton.addActionListener(this::eventAddButtonAction);
 		eventScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
 		eventScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		eventScrollPane.setViewportView(eventField);
+		eventScrollPane.setViewportView(eventPanel);
+
+		final JPanel eventsPanel = new JPanel();
+		eventsPanel.setBorder(BorderFactory.createTitledBorder("Events"));
+		eventsPanel.setLayout(new MigLayout("", "[grow]"));
+		eventsPanel.add(eventLabel, "align label,split 3");
+		eventsPanel.add(eventField, "grow");
+		eventsPanel.add(eventAddButton, "wrap");
+		eventsPanel.add(eventScrollPane, "grow,height 46");
 
 		titleLabel.setLabelFor(titleField);
 
@@ -175,8 +201,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 
 
 		setLayout(new MigLayout("", "[grow]"));
-		add(eventLabel, "align label,split 2");
-		add(eventScrollPane, "grow,height 46,wrap");
+		add(eventsPanel, "grow,wrap paragraph");
 		add(titleLabel, "align label,split 2");
 		add(titleField, "grow,wrap");
 		add(authorLabel, "align label,split 2");
@@ -196,8 +221,49 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
+	private void filterEventBy(final SourceDialog dialog){
+		final String newEvent = eventField.getText().trim();
+		if(formerFilterEvent != null && formerFilterEvent.equals(newEvent))
+			return;
+
+		formerFilterEvent = newEvent;
+
+		//if text to be inserted is already fully contained into the thesaurus, do not enable the button
+		final boolean alreadyContained = sourceContainsEvent(newEvent);
+		eventAddButton.setEnabled(StringUtils.isNotBlank(newEvent) && !alreadyContained);
+
+
+		eventPanel.applyFilter(StringUtils.isNotBlank(newEvent)? newEvent: null);
+	}
+
+	private void eventAddButtonAction(final ActionEvent evt){
+		final String newEvent = eventField.getText().trim();
+		final boolean containsEvent = sourceContainsEvent(newEvent);
+
+		if(!containsEvent){
+			eventPanel.addTag(newEvent);
+
+			//reset input
+			eventField.setText(null);
+			eventPanel.applyFilter(null);
+		}
+		else
+			JOptionPane.showOptionDialog(this,
+				"This event is already present", "Warning!", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.WARNING_MESSAGE, null, null, null);
+	}
+
+	private boolean sourceContainsEvent(final String event){
+		boolean containsEvent = false;
+		final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
+		for(int i = 0; !containsEvent && i < events.size(); i ++)
+			if(events.get(i).getValue().equalsIgnoreCase(event))
+				containsEvent = true;
+		return containsEvent;
+	}
+
 	private void okAction(){
-		final String event = String.join(",", eventField.getTags());
+		final String event = String.join(",", eventPanel.getTags());
 		final String title = titleField.getText();
 		final String mediaType = mediaTypeField.getText();
 
@@ -237,7 +303,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
 		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
 
-		eventField.addTag(StringUtils.split(events.toString(), ','));
+		eventPanel.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
@@ -320,7 +386,7 @@ public class SourceDialog extends JDialog implements ActionListener, TextPreview
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 570);
+			dialog.setSize(500, 650);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

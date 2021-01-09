@@ -29,8 +29,11 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -80,8 +83,9 @@ public class PlaceDialog extends JDialog implements ActionListener{
 	private final JComboBox<String> certaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
-	//TODO
 	private final JLabel subordinateLabel = new JLabel("Subordinate to:");
+	//TODO
+private final JTextField subordinateField = new JTextField();
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -111,7 +115,7 @@ public class PlaceDialog extends JDialog implements ActionListener{
 
 		GUIHelper.bindLabelTextChangeUndo(addressHierarchyLabel, addressHierarchyField, evt -> dataChanged());
 
-		culturalRulesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, place)));
+		culturalRulesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE_CITATION, place)));
 
 		notesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, place)));
 
@@ -120,32 +124,33 @@ public class PlaceDialog extends JDialog implements ActionListener{
 		final JPanel addressPanel = new JPanel();
 		addressPanel.setBorder(BorderFactory.createTitledBorder("Address"));
 		addressPanel.setLayout(new MigLayout("", "[grow]"));
-		addressPanel.add(addressLabel, "align label,split 2,sizegroup label");
+		addressPanel.add(addressLabel, "align label,split 2,sizegroup labelAddress");
 		addressPanel.add(addressField, "grow,wrap");
-		addressPanel.add(addressHierarchyLabel, "align label,split 2,sizegroup label");
+		addressPanel.add(addressHierarchyLabel, "align label,split 2,sizegroup labelAddress");
 		addressPanel.add(addressHierarchyField, "grow,wrap");
 		addressPanel.add(culturalRulesButton, "grow,wrap");
 		addressPanel.add(notesButton, "grow,wrap");
 		addressPanel.add(sourcesButton, "grow");
 
-		latitudeLabel.setLabelFor(latitudeField);
-		longitudeLabel.setLabelFor(longitudeField);
+		GUIHelper.bindLabelTextChangeUndo(latitudeLabel, latitudeField, evt -> dataChanged());
+
+		GUIHelper.bindLabelTextChangeUndo(longitudeLabel, longitudeField, evt -> dataChanged());
+
 		certaintyLabel.setLabelFor(certaintyComboBox);
+
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
 		final JPanel mapPanel = new JPanel();
 		mapPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
 		mapPanel.setLayout(new MigLayout("", "[grow]"));
-		mapPanel.add(latitudeLabel, "align label,split 2,sizegroup label");
+		mapPanel.add(latitudeLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(latitudeField, "grow,wrap");
-		mapPanel.add(longitudeLabel, "align label,split 2,sizegroup label");
+		mapPanel.add(longitudeLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(longitudeField, "grow,wrap");
-		mapPanel.add(certaintyLabel, "align label,split 2");
+		mapPanel.add(certaintyLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(certaintyComboBox, "wrap");
-		mapPanel.add(credibilityLabel, "align label,split 2");
+		mapPanel.add(credibilityLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(credibilityComboBox);
-
-		//TODO
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -168,7 +173,9 @@ public class PlaceDialog extends JDialog implements ActionListener{
 		add(nameLabel, "align label,sizegroup label,split 2");
 		add(nameField, "grow,wrap");
 		add(addressPanel, "grow,wrap");
-		add(mapPanel, "grow,wrap paragraph");
+		add(mapPanel, "grow,wrap");
+		add(subordinateLabel, "align label,sizegroup label,split 2");
+		add(subordinateField, "grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -240,7 +247,48 @@ public class PlaceDialog extends JDialog implements ActionListener{
 		final GedcomNode place = store.getPlaces().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final PlaceDialog dialog = new PlaceDialog(store, new JFrame());
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					JDialog dialog = null;
+					switch(editCommand.getType()){
+						case SOURCE_CITATION:
+							dialog = new SourceCitationDialog(store, parent);
+							((SourceCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(450, 450);
+							break;
+
+						case SOURCE:
+							dialog = new SourceDialog(store, parent);
+							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(500, 540);
+							break;
+
+						case NOTE_CITATION:
+							dialog = new NoteCitationDialog(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+
+							dialog.setSize(450, 260);
+							break;
+
+						case NOTE:
+							dialog = new NoteDialog(store, parent);
+							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+					}
+					if(dialog != null){
+						dialog.setLocationRelativeTo(parent);
+						dialog.setVisible(true);
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final PlaceDialog dialog = new PlaceDialog(store, parent);
 			dialog.loadData(place, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
@@ -249,7 +297,7 @@ public class PlaceDialog extends JDialog implements ActionListener{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 600);
+			dialog.setSize(500, 470);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});
