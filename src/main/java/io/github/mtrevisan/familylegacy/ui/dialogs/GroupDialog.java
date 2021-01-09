@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
+//TODO
 public class GroupDialog extends JDialog{
 
 	private final JLabel nameLabel = new JLabel("Name:");

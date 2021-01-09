@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
-
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -83,7 +81,7 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 		field.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyReleased(final KeyEvent ke){
-				JavaHelper.executeOnEventDispatchThread(() -> comboFilter(field.getText()));
+				GUIHelper.executeOnEventDispatchThread(() -> comboFilter(field.getText()));
 			}
 		});
 	}

@@ -41,6 +41,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 
 
+//TODO
 public class RepositoryDialog extends JDialog{
 
 	private final JLabel nameLabel = new JLabel("Name:");
@@ -155,11 +156,18 @@ public class RepositoryDialog extends JDialog{
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
+						case PLACE:
+							dialog = new PlaceDialog(store, parent);
+							((PlaceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(350, 430);
+							break;
+
 						case CONTACT:
 							dialog = new ContactDialog(store, parent);
-//							((ContactDialog)dialog).loadData(editCommand.getContainer());
+							((ContactDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-							dialog.setSize(450, 260);
+							dialog.setSize(350, 430);
 							break;
 
 						case NOTE_CITATION:

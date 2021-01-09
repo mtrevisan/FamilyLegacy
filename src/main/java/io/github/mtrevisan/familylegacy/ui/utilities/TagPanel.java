@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -116,7 +115,7 @@ public class TagPanel extends JPanel{
 	}
 
 	public void applyFilter(final String tag){
-		JavaHelper.executeOnEventDispatchThread(() -> {
+		GUIHelper.executeOnEventDispatchThread(() -> {
 			if(tag == null || tag.isEmpty())
 				for(final Component component : getComponents())
 					component.setVisible(true);

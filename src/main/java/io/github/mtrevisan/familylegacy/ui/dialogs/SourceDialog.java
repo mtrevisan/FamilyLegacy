@@ -52,6 +52,7 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
+//TODO among other things, make eventField editable
 public class SourceDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	private static final long serialVersionUID = 1754367426928623503L;

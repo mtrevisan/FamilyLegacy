@@ -29,10 +29,10 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.ImagePreview;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
@@ -199,25 +199,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		});
 		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
 
-		descriptionLabel.setLabelFor(descriptionField);
 		descriptionField.setEnabled(false);
-		descriptionField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override
-			public void changedUpdate(final DocumentEvent evt){
-				textChanged();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent evt){
-				textChanged();
-			}
-
-			@Override
-			public void insertUpdate(final DocumentEvent evt){
-				textChanged();
-			}
-		});
-		JavaHelper.addUndoCapability(descriptionField);
+		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> textChanged());
 
 		extractPreviewView = new TextPreviewPane(this);
 		extractPreviewView.setEnabled(false);

@@ -30,14 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import javax.swing.*;
-import javax.swing.text.Document;
-import javax.swing.text.JTextComponent;
-import javax.swing.undo.CannotUndoException;
-import javax.swing.undo.UndoManager;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -59,10 +51,6 @@ public final class JavaHelper{
 			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
 		}
 	}
-
-	private static final UndoManager UNDO_MANAGER = new UndoManager();
-	private static final String ACTION_MAP_KEY_UNDO = "undo";
-	private static final String ACTION_MAP_KEY_REDO = "redo";
 
 
 	private JavaHelper(){}
@@ -102,56 +90,6 @@ public final class JavaHelper{
 		if(StringUtils.isNotBlank(values[0]))
 			for(final String value : values)
 				sj.add(value);
-	}
-
-	public static void executeOnEventDispatchThread(final Runnable runnable){
-		if(SwingUtilities.isEventDispatchThread())
-			runnable.run();
-		else
-			SwingUtilities.invokeLater(runnable);
-	}
-
-
-	public static void addUndoCapability(final JTextComponent component){
-		final Document doc = component.getDocument();
-		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
-		final InputMap textInputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
-		final ActionMap textActionMap = component.getActionMap();
-		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
-		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
-	}
-
-
-	private static class UndoAction extends AbstractAction{
-		private static final long serialVersionUID = -3974682914632160277L;
-
-		@Override
-		public void actionPerformed(final ActionEvent event){
-			try{
-				if(UNDO_MANAGER.canUndo())
-					UNDO_MANAGER.undo();
-			}
-			catch(final CannotUndoException e){
-				e.printStackTrace();
-			}
-		}
-	}
-
-	private static class RedoAction extends AbstractAction{
-		private static final long serialVersionUID = -4415532769601693910L;
-
-		@Override
-		public void actionPerformed(final ActionEvent event){
-			try{
-				if(UNDO_MANAGER.canRedo())
-					UNDO_MANAGER.redo();
-			}
-			catch(final CannotUndoException e){
-				e.printStackTrace();
-			}
-		}
 	}
 
 }

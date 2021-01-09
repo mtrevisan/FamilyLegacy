@@ -35,13 +35,10 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.event.KeyAdapter;
@@ -149,22 +146,7 @@ public class TextPreviewPane extends JSplitPane{
 		textView.setTabSize(3);
 		textView.setRows(10);
 		if(listener != null)
-			textView.getDocument().addDocumentListener(new DocumentListener(){
-				@Override
-				public void insertUpdate(final DocumentEvent documentEvent){
-					listener.textChanged();
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent documentEvent){
-					listener.textChanged();
-				}
-
-				@Override
-				public void changedUpdate(final DocumentEvent documentEvent){
-					listener.textChanged();
-				}
-			});
+			GUIHelper.bindLabelTextChangeUndo(null, textView, evt -> listener.textChanged());
 		textView.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyReleased(final KeyEvent event){
@@ -173,7 +155,6 @@ public class TextPreviewPane extends JSplitPane{
 				previewView.setText(renderHtml(textView.getText()));
 			}
 		});
-		JavaHelper.addUndoCapability(textView);
 
 
 		final JScrollPane textScroll = new JScrollPane(textView);
@@ -190,7 +171,7 @@ public class TextPreviewPane extends JSplitPane{
 
 		setOneTouchExpandable(true);
 		setContinuousLayout(true);
-		JavaHelper.executeOnEventDispatchThread(() -> {
+		GUIHelper.executeOnEventDispatchThread(() -> {
 			setDividerLocation(1.);
 			setDividerSize(0);
 		});
@@ -273,12 +254,12 @@ public class TextPreviewPane extends JSplitPane{
 			if(listener != null)
 				listener.onPreviewStateChange(previewVisible);
 			if(previewVisible)
-				JavaHelper.executeOnEventDispatchThread(() -> {
+				GUIHelper.executeOnEventDispatchThread(() -> {
 					setDividerLocation(0.5);
 					setDividerSize(5);
 				});
 			else
-				JavaHelper.executeOnEventDispatchThread(() -> {
+				GUIHelper.executeOnEventDispatchThread(() -> {
 					setDividerLocation(1.);
 					setDividerSize(0);
 				});

@@ -32,13 +32,13 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +64,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
+//TODO
 public class LinkFamilyDialog extends JDialog{
 
 	private static final long serialVersionUID = -3246390161022821225L;
@@ -307,7 +308,7 @@ public class LinkFamilyDialog extends JDialog{
 		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()
 			+ ", type is " + type + ", child is " + ((FamilyPanel)panel).getChildReference().getID());
 
-		JavaHelper.executeOnEventDispatchThread(() -> {
+		GUIHelper.executeOnEventDispatchThread(() -> {
 			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
 			final GedcomNode child = GedcomNodeBuilder.createWithIDValue(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
 

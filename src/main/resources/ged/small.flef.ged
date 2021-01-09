@@ -38,20 +38,21 @@
 1 NOTE @N1@
 1 NOTE @N2@
 0 @P1@ PLACE
-1 ADDRESS 5002 MyCorpCampus Dr
-2 NEW_LINE Hometown, ZZ  99999
-2 NEW_LINE United States - Hometown, ZZ  99999 - United States - 5003 MyCorpCampus Dr
-2 CITY Hometown
-2 STATE ZZ
-2 COUNTRY United States
+1 NAME place 1
+1 ADDRESS 5002 MyCorpCampus Dr., Hometown, ZZ, 99999, United States
+2 HIERARCHY street, town, county, postal code, country
+2 CULTURAL_RULE @C1@
+2 NOTE @N1@
+2 SOURCE @S1@
+1 MAP
+2 LATITUDE 45.65
+2 LONGITUDE 12.24
+2 CERTAINTY 1
+2 CREDIBILITY 1
+1 SUBORDINATE @P2@
 0 @P2@ PLACE
-1 ADDRESS Arlington National Cemetery
-2 NEW_LINE State Hwy 110 & Memorial Dr
-2 NEW_LINE Arlington, VA  22211
-2 NEW_LINE United States - State Hwy 110 & Memorial Dr - Arlington, VA  22211 - United States
-2 CITY Arlington
-2 STATE VA
-2 COUNTRY United States
+1 ADDRESS Arlington National Cemetery, State Hwy 110 & Memorial Dr., Arlington, VA, 22211, United States
+2 HIERARCHY company, street, town, county, postal code, country
 0 @R1@ REPOSITORY
 1 NAME submitter
 0 @R2@ REPOSITORY

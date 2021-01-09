@@ -57,6 +57,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
+//TODO
 public class CulturalRuleCitationDialog extends JDialog implements TextPreviewListenerInterface{
 
 	private static final long serialVersionUID = 3322392561648823462L;
@@ -200,6 +201,9 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		localeLabel.setLabelFor(localeComboBox);
 
 		descriptionPreviewView = new TextPreviewPane(this);
+
+		placeCertaintyLabel.setLabelFor(placeCertaintyComboBox);
+		placeCredibilityLabel.setLabelFor(placeCredibilityComboBox);
 
 		//TODO
 //		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));

@@ -140,7 +140,7 @@ public class RepositoryCitationDialog extends JDialog{
 				locationField.setEnabled(true);
 				locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
 				notesButton.setEnabled(true);
-				notesButton.setEnabled(!store.traverseAsList(selectedRepositoryCitation, "NOTE[]").isEmpty());
+				notesButton.setEnabled(true);
 
 				okButton.setEnabled(true);
 			}

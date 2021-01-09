@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -44,8 +45,6 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
@@ -85,11 +84,11 @@ public class ContactDialog extends JDialog implements ActionListener{
 	private final JTable contactsTable = new JTable(new ContactTableModel());
 	private final JScrollPane contactsScrollPane = new JScrollPane(contactsTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel contactIDLabel = new JLabel("Contact");
+	private final JLabel contactIDLabel = new JLabel("Contact:");
 	private final JTextField contactIDField = new JTextField();
 	private final JLabel typeLabel = new JLabel("Type");
 	private final JTextField typeField = new JTextField();
-	private final JLabel callerIDLabel = new JLabel("Caller ID");
+	private final JLabel callerIDLabel = new JLabel("Caller ID:");
 	private final JTextField callerIDField = new JTextField();
 	private final JMenuItem sendEmailItem = new JMenuItem("Send email…");
 	private final JMenuItem testLinkItem = new JMenuItem("Test link");
@@ -161,45 +160,20 @@ public class ContactDialog extends JDialog implements ActionListener{
 
 		addButton.addActionListener(evt -> addAction());
 
-		contactIDLabel.setLabelFor(contactIDField);
 		contactIDField.setEnabled(false);
-		JavaHelper.addUndoCapability(contactIDField);
-		contactIDField.getDocument().addDocumentListener(new DocumentListener(){
-			@Override
-			public void changedUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems(contactIDField.getText());
+		GUIHelper.bindLabelTextChangeUndo(contactIDLabel, contactIDField, evt -> {
+			updateContactFieldMenuItems(contactIDField.getText());
 
-				dataChanged();
-			}
-
-			@Override
-			public void removeUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems(contactIDField.getText());
-
-				dataChanged();
-			}
-
-			@Override
-			public void insertUpdate(final DocumentEvent evt){
-				updateContactFieldMenuItems(contactIDField.getText());
-
-				dataChanged();
-			}
+			dataChanged();
 		});
 		//manage links
 		attachOpenLinkPopUpMenu(contactIDField);
 
-		typeLabel.setLabelFor(typeField);
 		typeField.setEnabled(false);
-		JavaHelper.addUndoCapability(typeField);
-		//FIXME why this doesn't work??
-		typeField.addActionListener(evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, evt -> dataChanged());
 
-		callerIDLabel.setLabelFor(callerIDField);
 		callerIDField.setEnabled(false);
-		JavaHelper.addUndoCapability(callerIDField);
-		//FIXME why this doesn't work??
-		callerIDField.addActionListener(evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(callerIDLabel, callerIDField, evt -> dataChanged());
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(evt -> {
@@ -213,6 +187,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		restrictionCheckBox.setEnabled(false);
 		restrictionCheckBox.addActionListener(evt -> {
 			updateContactFieldMenuItems(contactIDField.getText());
+
 			dataChanged();
 		});
 
@@ -338,6 +313,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 
 		dataHash = calculateDataHash();
 		updateContactFieldMenuItems(contactID);
+		dataChanged();
 	}
 
 	private void addAction(){
