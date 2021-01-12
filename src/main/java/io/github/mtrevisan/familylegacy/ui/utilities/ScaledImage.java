@@ -163,10 +163,15 @@ public class ScaledImage extends JLabel{
 				initialized = true;
 			}
 			if(isSpherical()){
-				rotateSphericalImage();
+				try{
+					rotateSphericalImage();
 
-				graphics2D.drawImage(viewportImage,
-					0, 0, imageWidth, imageHeight, null);
+					graphics2D.drawImage(viewportImage,
+						0, 0, viewportWidth, viewportHeight, null);
+				}
+				catch(final ZeroException e){
+					e.printStackTrace();
+				}
 			}
 			else
 				graphics2D.drawImage(image,
@@ -189,7 +194,7 @@ public class ScaledImage extends JLabel{
 	 * @see <a href="https://github.com/leonardo-ono/Java3DSphereImageViewer">Java3DSphereImageViewer</a>
 	 */
 	//TODO
-	private void rotateSphericalImage(){
+	private void rotateSphericalImage() throws ZeroException{
 		final double targetRotationX = (dragStartPointY - viewportHeight / 2.) * 0.025;
 		final double targetRotationY = (dragStartPointX - viewportWidth / 2.) * 0.025;
 		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
@@ -199,31 +204,14 @@ public class ScaledImage extends JLabel{
 //		currentRotationY = transformation.getTranslateX() * 0.005;
 System.out.println(currentRotationX + ", " + currentRotationY);
 
-		final double sinRotationX = Math.sin(currentRotationX);
-		final double cosRotationX = Math.cos(currentRotationX);
-		final double sinRotationY = Math.sin(currentRotationY);
-		final double cosRotationY = Math.cos(currentRotationY);
+		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, -currentRotationY, 0.).getInverse();
+		final double[] rotatedVector = new double[3];
 		for(int y = 0; y < viewportHeight; y ++){
 			for(int x = 0; x < viewportWidth; x ++){
-				double vectorX = rayVectors[x][y][0];
-				double vectorY = rayVectors[x][y][1];
-				double vectorZ = rayVectors[x][y][2];
-
-				//rotate x
-				double tmpVecZ = vectorZ * cosRotationX - vectorY * sinRotationX;
-				final double tmpVecY = vectorZ * sinRotationX + vectorY * cosRotationX;
-				vectorZ = tmpVecZ;
-				vectorY = tmpVecY;
-
-				//rotate y
-				tmpVecZ = vectorZ * cosRotationY - vectorX * sinRotationY;
-				final double tmpVecX = vectorZ * sinRotationY + vectorX * cosRotationY;
-				vectorZ = tmpVecZ;
-				vectorX = tmpVecX;
-
-				final int iX = (int)((vectorX + 1.) * ACCURACY_FACTOR);
-				final int iY = (int)((vectorY + 1.) * ACCURACY_FACTOR);
-				final int iZ = (int)((vectorZ + 1.) * ACCURACY_FACTOR);
+				rotation.applyRotation(rayVectors[x][y], rotatedVector);
+				final int iX = (int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR);
+				final int iY = (int)((rotatedVector[1] + 1.) * ACCURACY_FACTOR);
+				final int iZ = (int)((rotatedVector[2] + 1.) * ACCURACY_FACTOR);
 				final double u = 0.5 + atan2Table[iZ + iX * REQUIRED_SIZE] * INV_2PI;
 				final double v = 0.5 - asinTable[iY] * INV_PI;
 				final int tx = (int)(imageWidth * u);
