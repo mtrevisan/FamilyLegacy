@@ -79,8 +79,10 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 
 //		imageHolder.setImage(ResourceHelper.readImage(path));
 //FIXME
-imageHolder.setSphericalImage(ResourceHelper.readImage("D:\\\\Mauro\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
-//imageHolder.setImage(ResourceHelper.readImage("D:\\\\Mauro\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+imageHolder.setSphericalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setCylindricalHorizontalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setCylindricalVerticalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
 
 		repaint();
 	}

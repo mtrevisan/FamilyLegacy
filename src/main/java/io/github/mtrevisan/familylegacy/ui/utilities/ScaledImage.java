@@ -40,7 +40,12 @@ public class ScaledImage extends JLabel{
 	private static final double ZOOM_MULTIPLICATION_FACTOR = 1.2;
 	private static final double MAX_ZOOM = 3.;
 	private static final double MIN_ZOOM = 0.5;
+	private static final double ROTATION_FACTOR = 0.005;
 
+	/** Maximum FoV [deg]. */
+	private static final double MAX_FOV = 180.;
+	/** Minimum FoV [deg]. */
+	private static final double MIN_FOV = 10.;
 	private static final double ACCURACY_FACTOR = 2048;
 	private static final int REQUIRED_SIZE = (int)(2. * ACCURACY_FACTOR);
 	private static final double INV_PI = 1. / Math.PI;
@@ -49,22 +54,22 @@ public class ScaledImage extends JLabel{
 
 	private final CutoutListenerInterface listener;
 	private Image image;
-	private double centerX;
-	private double centerY;
 	private int imageWidth;
 	private int imageHeight;
 	private int viewportWidth;
 	private int viewportHeight;
 
-	//spherical image data:
+	//spherical (UV mapped) image data:
 	private int[] imageBuffer;
 	private BufferedImage viewportImage;
 	private int[] viewportImageBuffer;
-	private double currentRotationX;
-	private double currentRotationY;
 	private final double[] asinTable = new double[REQUIRED_SIZE];
 	private final double[] atan2Table = new double[REQUIRED_SIZE * REQUIRED_SIZE];
 	private double[][][] rayVectors;
+
+	//cylindrical (equirectangular horizontal/vertical mapped) image data:
+	private boolean cylindrical;
+	private boolean cylindricalHorizontal;
 
 	private double minZoom;
 	private double maxZoom;
@@ -117,6 +122,8 @@ public class ScaledImage extends JLabel{
 			imageHeight = image.getHeight();
 
 			imageBuffer = null;
+			cylindrical = false;
+			cylindricalHorizontal = false;
 			initialized = false;
 		}
 	}
@@ -131,11 +138,30 @@ public class ScaledImage extends JLabel{
 			this.image.getGraphics().drawImage(image, 0, 0, null);
 			imageBuffer = ((DataBufferInt)((BufferedImage)this.image).getRaster().getDataBuffer()).getData();
 
+			cylindrical = false;
+			cylindricalHorizontal = false;
 			initialized = false;
 		}
 	}
 
-	private boolean isSpherical(){
+	public void setCylindricalHorizontalImage(final BufferedImage image){
+		setSphericalImage(image);
+
+		cylindrical = true;
+		cylindricalHorizontal = true;
+	}
+
+	public void setCylindricalVerticalImage(final BufferedImage image){
+		setSphericalImage(image);
+
+		cylindrical = true;
+		cylindricalHorizontal = false;
+	}
+
+	/**
+	 * @return	Whether the images has a spherical or cylindrical mapping.
+	 */
+	private boolean isCurved(){
 		return (imageBuffer != null);
 	}
 
@@ -152,7 +178,7 @@ public class ScaledImage extends JLabel{
 			if(!initialized){
 				zoomToFitAndCenter();
 
-				if(isSpherical()){
+				if(isCurved()){
 					viewportImage = new BufferedImage(viewportWidth, viewportHeight, BufferedImage.TYPE_INT_RGB);
 					viewportImageBuffer = ((DataBufferInt)viewportImage.getRaster().getDataBuffer()).getData();
 
@@ -162,9 +188,9 @@ public class ScaledImage extends JLabel{
 
 				initialized = true;
 			}
-			if(isSpherical()){
+			if(isCurved()){
 				try{
-					rotateSphericalImage();
+					rotateCurvedImage();
 
 					graphics2D.drawImage(viewportImage,
 						0, 0, viewportWidth, viewportHeight, null);
@@ -193,17 +219,10 @@ public class ScaledImage extends JLabel{
 	 * @see <a href="https://en.wikipedia.org/wiki/UV_mapping">UV mapping</a>
 	 * @see <a href="https://github.com/leonardo-ono/Java3DSphereImageViewer">Java3DSphereImageViewer</a>
 	 */
-	//TODO
-	private void rotateSphericalImage() throws ZeroException{
-		final double targetRotationX = (dragStartPointY - viewportHeight / 2.) * 0.025;
-		final double targetRotationY = (dragStartPointX - viewportWidth / 2.) * 0.025;
-		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
-		currentRotationY += (targetRotationY - currentRotationY) * 0.25;
-
-//		currentRotationX = transformation.getTranslateY() * 0.005;
-//		currentRotationY = transformation.getTranslateX() * 0.005;
-
-		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, currentRotationY, 0.)
+	private void rotateCurvedImage() throws ZeroException{
+		final double xAngle = (!cylindrical || !cylindricalHorizontal? transformation.getTranslateY() * ROTATION_FACTOR: 0.);
+		final double yAngle = (!cylindrical || cylindricalHorizontal? transformation.getTranslateX() * ROTATION_FACTOR: 0.);
+		final Quaternion rotation = Quaternion.fromAngles(-xAngle, yAngle, 0.)
 			.getInverse();
 		final double[] rotatedVector = new double[3];
 		for(int y = 0; y < viewportHeight; y ++)
@@ -230,12 +249,10 @@ public class ScaledImage extends JLabel{
 		maxZoom = Math.max(current * 2., MAX_ZOOM);
 
 		//scale to fit
-//		final double scale = Math.min(current, 1.);
-//FIXME
-final double scale = Math.min(current, 1.) * 3.;
+		final double scale = Math.min(current, 1.);
 		//center image
-		centerX = (viewportWidth - imageWidth * scale) / 2.;
-		centerY = (viewportHeight - imageHeight * scale) / 2.;
+		double centerX = (viewportWidth - imageWidth * scale) / 2.;
+		double centerY = (viewportHeight - imageHeight * scale) / 2.;
 
 		transformation.setScale(scale);
 		transformation.setTranslation(centerX, centerY);
@@ -244,14 +261,11 @@ final double scale = Math.min(current, 1.) * 3.;
 	private double[][][] createRayVectors(){
 		final double halfViewportWidth = viewportWidth / 2.;
 		final double halfViewportHeight = viewportHeight / 2.;
-//		final double fovZoomFactor = transformation.getScale();
-//		System.out.println("scale " + transformation.getScale() + ", new fov " + Math.toDegrees(fov / fovZoomFactor));
-		final double fov = Math.toRadians(100.);
-		final double cameraPlaneDistance = halfViewportWidth / Math.tan(fov / 2.);
-System.out.println(cameraPlaneDistance);
+		final double fov = Math.toRadians(Math.max(Math.min(transformation.getScale() * 140., MAX_FOV), MIN_FOV));
+		final double cameraPlaneDistance = halfViewportWidth / Math.tan(fov * 0.5);
 
 		final double[][][] rayVectors = new double[viewportWidth][viewportHeight][3];
-		for(int y = 0; y < viewportHeight; y ++){
+		for(int y = 0; y < viewportHeight; y ++)
 			for(int x = 0; x < viewportWidth; x ++){
 				final double vectorX = x - halfViewportWidth;
 				final double vectorY = y - halfViewportHeight;
@@ -262,7 +276,6 @@ System.out.println(cameraPlaneDistance);
 				rayVectors[x][y][1] = vectorY * inverseNorm;
 				rayVectors[x][y][2] = vectorZ * inverseNorm;
 			}
-		}
 		return rayVectors;
 	}
 
@@ -381,7 +394,7 @@ System.out.println(cameraPlaneDistance);
 				//zoom:
 				final double zoomFactor = Math.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
 				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY())){
-					if(isSpherical())
+					if(isCurved())
 						rayVectors = createRayVectors();
 
 					repaint();
