@@ -94,15 +94,18 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 				boolean running = true;
 				while(running){
 					Graphics2D g = (Graphics2D)bs.getDrawGraphics();
-					draw(g);
-					g.dispose();
-					bs.show();
+					try{
+						draw(g);
+						g.dispose();
+						bs.show();
+					}
+					catch(ZeroException ignored){}
 				}
 			}
 		}).start();
 	}
 
-	private void draw(Graphics2D g){
+	private void draw(Graphics2D g) throws ZeroException{
 		final int imageWidth = sphereImage.getWidth();
 		final int imageHeight = sphereImage.getHeight();
 
@@ -110,31 +113,40 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 		final double targetRotationY = (dragStartPointX - viewportWidth / 2.) * 0.025;
 		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
 		currentRotationY += (targetRotationY - currentRotationY) * 0.25;
-		final double sinRotationX = Math.sin(currentRotationX);
-		final double cosRotationX = Math.cos(currentRotationX);
-		final double sinRotationY = Math.sin(currentRotationY);
-		final double cosRotationY = Math.cos(currentRotationY);
+//		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
+//		currentRotationY += (targetRotationY - currentRotationY) * 0.25;
+
+		final Quaternion rotation = Quaternion.fromAngles(currentRotationX, currentRotationY, 0.);
+		final double[] rotatedVector = new double[3];
+//		final double sinRotationX = Math.sin(currentRotationX);
+//		final double cosRotationX = Math.cos(currentRotationX);
+//		final double sinRotationY = Math.sin(currentRotationY);
+//		final double cosRotationY = Math.cos(currentRotationY);
 		for(int y = 0; y < viewportHeight; y ++){
 			for(int x = 0; x < viewportWidth; x ++){
-				double vectorX = rayVectors[x][y][0];
-				double vectorY = rayVectors[x][y][1];
-				double vectorZ = rayVectors[x][y][2];
+				rotation.applyRotation(rayVectors[x][y], rotatedVector);
+//				double vectorX = rayVectors[x][y][0];
+//				double vectorY = rayVectors[x][y][1];
+//				double vectorZ = rayVectors[x][y][2];
+//
+//				//rotate x
+//				double tmpVecZ = vectorZ * cosRotationX - vectorY * sinRotationX;
+//				final double tmpVecY = vectorZ * sinRotationX + vectorY * cosRotationX;
+//				vectorZ = tmpVecZ;
+//				vectorY = tmpVecY;
+//
+//				//rotate y
+//				tmpVecZ = vectorZ * cosRotationY - vectorX * sinRotationY;
+//				final double tmpVecX = vectorZ * sinRotationY + vectorX * cosRotationY;
+//				vectorZ = tmpVecZ;
+//				vectorX = tmpVecX;
 
-				//rotate x
-				double tmpVecZ = vectorZ * cosRotationX - vectorY * sinRotationX;
-				final double tmpVecY = vectorZ * sinRotationX + vectorY * cosRotationX;
-				vectorZ = tmpVecZ;
-				vectorY = tmpVecY;
-
-				//rotate y
-				tmpVecZ = vectorZ * cosRotationY - vectorX * sinRotationY;
-				final double tmpVecX = vectorZ * sinRotationY + vectorX * cosRotationY;
-				vectorZ = tmpVecZ;
-				vectorX = tmpVecX;
-
-				final int iX = (int)((vectorX + 1.) * ACCURACY_FACTOR);
-				final int iY = (int)((vectorY + 1.) * ACCURACY_FACTOR);
-				final int iZ = (int)((vectorZ + 1.) * ACCURACY_FACTOR);
+				final int iX = (int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR);
+				final int iY = (int)((rotatedVector[1] + 1.) * ACCURACY_FACTOR);
+				final int iZ = (int)((rotatedVector[2] + 1.) * ACCURACY_FACTOR);
+//				final int iX = (int)((vectorX + 1.) * ACCURACY_FACTOR);
+//				final int iY = (int)((vectorY + 1.) * ACCURACY_FACTOR);
+//				final int iZ = (int)((vectorZ + 1.) * ACCURACY_FACTOR);
 				final double u = 0.5 + atan2Table[iZ + iX * REQUIRED_SIZE] * INV_2PI;
 				final double v = 0.5 - asinTable[iY] * INV_PI;
 				final int tx = (int)(imageWidth * u);

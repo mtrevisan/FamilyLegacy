@@ -1,0 +1,33 @@
+package io.github.mtrevisan.familylegacy.ui.utilities;
+
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
+
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
+
+public class ZeroException extends Exception{
+
+	private static final long serialVersionUID = -1960874856936000015L;
+
+
+	public static ZeroException create(final String message, final Object... parameters){
+		return new ZeroException(JavaHelper.format(message, parameters));
+	}
+
+	private ZeroException(final String message){
+		super(message);
+	}
+
+	@SuppressWarnings("unused")
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+}

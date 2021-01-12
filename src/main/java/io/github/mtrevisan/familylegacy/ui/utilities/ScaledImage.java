@@ -190,13 +190,15 @@ public class ScaledImage extends JLabel{
 	 */
 	//TODO
 	private void rotateSphericalImage(){
-		final double targetRotationX = (dragStartPointY - (transformation.getTranslateY() - centerY)) * 0.025;
-		final double targetRotationY = (dragStartPointX - (transformation.getTranslateX() - centerX)) * 0.025;
-//		final double targetRotationX = (dragStartPointY - viewportHeight / 2.) * 0.025;
-//		final double targetRotationY = (dragStartPointX - viewportWidth / 2.) * 0.025;
-
+		final double targetRotationX = (dragStartPointY - viewportHeight / 2.) * 0.025;
+		final double targetRotationY = (dragStartPointX - viewportWidth / 2.) * 0.025;
 		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
 		currentRotationY += (targetRotationY - currentRotationY) * 0.25;
+
+//		currentRotationX = -transformation.getTranslateY() * 0.005;
+//		currentRotationY = transformation.getTranslateX() * 0.005;
+System.out.println(currentRotationX + ", " + currentRotationY);
+
 		final double sinRotationX = Math.sin(currentRotationX);
 		final double cosRotationX = Math.cos(currentRotationX);
 		final double sinRotationY = Math.sin(currentRotationY);
@@ -243,7 +245,7 @@ public class ScaledImage extends JLabel{
 		//scale to fit
 //		final double scale = Math.min(current, 1.);
 //FIXME
-final double scale = Math.min(current, 1.) * 4.;
+final double scale = Math.min(current, 1.) * 3.;
 		//center image
 		centerX = (viewportWidth - imageWidth * scale) / 2.;
 		centerY = (viewportHeight - imageHeight * scale) / 2.;
