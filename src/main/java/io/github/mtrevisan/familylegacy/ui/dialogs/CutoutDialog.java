@@ -36,6 +36,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -73,10 +74,15 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final String file, final Consumer<Object> onCloseGracefully) throws IOException{
+	public void loadData(final String path, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
-		imageHolder.setImage(ResourceHelper.readImage(file));
+//		imageHolder.setImage(ResourceHelper.readImage(path));
+//FIXME
+imageHolder.setSphericalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setCylindricalHorizontalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setCylindricalVerticalImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
+//imageHolder.setImage(ResourceHelper.readImage("C:\\\\Users\\mauro\\Projects\\FamilyLegacy\\src\\test\\resources\\factory.jpg"));
 
 		repaint();
 	}

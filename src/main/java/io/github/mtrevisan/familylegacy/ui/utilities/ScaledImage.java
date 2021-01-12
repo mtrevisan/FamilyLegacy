@@ -31,24 +31,50 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 
 
 public class ScaledImage extends JLabel{
 
 	private static final double ZOOM_MULTIPLICATION_FACTOR = 1.2;
-	private static final double MAX_ABSOLUTE_ZOOM = 3.;
-	private static final double MIN_ABSOLUTE_ZOOM = 0.5;
+	private static final double MAX_ZOOM = 3.;
+	private static final double MIN_ZOOM = 0.5;
+	private static final double ROTATION_FACTOR = 0.005;
+
+	/** Maximum FoV [deg]. */
+	private static final double MAX_FOV = 180.;
+	/** Minimum FoV [deg]. */
+	private static final double MIN_FOV = 10.;
+	private static final double ACCURACY_FACTOR = 2048;
+	private static final int REQUIRED_SIZE = (int)(2. * ACCURACY_FACTOR);
+	private static final double INV_PI = 1. / Math.PI;
+	private static final double INV_2PI = 1. / (2. * Math.PI);
+
 
 	private final CutoutListenerInterface listener;
 	private Image image;
 	private int imageWidth;
 	private int imageHeight;
+	private int viewportWidth;
+	private int viewportHeight;
+
+	//spherical (UV mapped) image data:
+	private int[] imageBuffer;
+	private BufferedImage viewportImage;
+	private int[] viewportImageBuffer;
+	private final double[] asinTable = new double[REQUIRED_SIZE];
+	private final double[] atan2Table = new double[REQUIRED_SIZE * REQUIRED_SIZE];
+	private double[][][] rayVectors;
+
+	//cylindrical (equirectangular horizontal/vertical mapped) image data:
+	private boolean cylindrical;
+	private boolean cylindricalHorizontal;
+
 	private double minZoom;
 	private double maxZoom;
 	private boolean initialized;
 	private final AffineTransform transformation = new AffineTransform();
-
 
 	private boolean cutoutDefinition;
 	private int cutoutStartPointX = -1;
@@ -60,8 +86,6 @@ public class ScaledImage extends JLabel{
 
 
 	public ScaledImage(final CutoutListenerInterface listener){
-		super();
-
 		this.listener = listener;
 
 		initComponents();
@@ -79,16 +103,66 @@ public class ScaledImage extends JLabel{
 	 */
 	@Override
 	public void setIcon(final Icon icon){
-		if(icon != null)
-			setImage(((ImageIcon)icon).getImage());
+		if(icon != null){
+			Image img = ((ImageIcon)icon).getImage();
+			if(!(img instanceof BufferedImage)){
+				final BufferedImage bufferedImage = new BufferedImage(img.getWidth(null), img.getHeight(null),
+					BufferedImage.TYPE_INT_RGB);
+				bufferedImage.getGraphics().drawImage(img, 0, 0, null);
+				img = bufferedImage;
+			}
+			setImage((BufferedImage)img);
+		}
 	}
 
-	public void setImage(final Image image){
+	public void setImage(final BufferedImage image){
 		this.image = image;
 		if(image != null){
-			imageWidth = image.getWidth(null);
-			imageHeight = image.getHeight(null);
+			imageWidth = image.getWidth();
+			imageHeight = image.getHeight();
+
+			imageBuffer = null;
+			cylindrical = false;
+			cylindricalHorizontal = false;
+			initialized = false;
 		}
+	}
+
+	public void setSphericalImage(final BufferedImage image){
+		this.image = null;
+		if(image != null){
+			imageWidth = image.getWidth();
+			imageHeight = image.getHeight();
+
+			this.image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
+			this.image.getGraphics().drawImage(image, 0, 0, null);
+			imageBuffer = ((DataBufferInt)((BufferedImage)this.image).getRaster().getDataBuffer()).getData();
+
+			cylindrical = false;
+			cylindricalHorizontal = false;
+			initialized = false;
+		}
+	}
+
+	public void setCylindricalHorizontalImage(final BufferedImage image){
+		setSphericalImage(image);
+
+		cylindrical = true;
+		cylindricalHorizontal = true;
+	}
+
+	public void setCylindricalVerticalImage(final BufferedImage image){
+		setSphericalImage(image);
+
+		cylindrical = true;
+		cylindricalHorizontal = false;
+	}
+
+	/**
+	 * @return	Whether the images has a spherical or cylindrical mapping.
+	 */
+	private boolean isCurved(){
+		return (imageBuffer != null);
 	}
 
 	@Override
@@ -101,17 +175,35 @@ public class ScaledImage extends JLabel{
 			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-			//image:
 			if(!initialized){
 				zoomToFitAndCenter();
 
+				if(isCurved()){
+					viewportImage = new BufferedImage(viewportWidth, viewportHeight, BufferedImage.TYPE_INT_RGB);
+					viewportImageBuffer = ((DataBufferInt)viewportImage.getRaster().getDataBuffer()).getData();
+
+					rayVectors = createRayVectors();
+					precalculateAsinAtan2();
+				}
+
 				initialized = true;
 			}
-			graphics2D.drawImage(image,
-				(int)transformation.getTranslateX(), (int)transformation.getTranslateY(),
-				transformation.transformX(imageWidth),
-				transformation.transformY(imageHeight),
-				0, 0, imageWidth, imageHeight, null);
+			if(isCurved()){
+				try{
+					rotateCurvedImage();
+
+					graphics2D.drawImage(viewportImage,
+						0, 0, viewportWidth, viewportHeight, null);
+				}
+				catch(final ZeroException e){
+					e.printStackTrace();
+				}
+			}
+			else
+				graphics2D.drawImage(image,
+					(int)transformation.getTranslateX(), (int)transformation.getTranslateY(),
+					transformation.transformX(imageWidth), transformation.transformY(imageHeight),
+					0, 0, imageWidth, imageHeight, null);
 
 			//cutout rectangle:
 			if(cutoutStartPointX >= 0){
@@ -123,22 +215,79 @@ public class ScaledImage extends JLabel{
 		}
 	}
 
-	private void zoomToFitAndCenter(){
-		final int parentWidth = getWidth();
-		final int parentHeight = getHeight();
+	/**
+	 * @see <a href="https://en.wikipedia.org/wiki/UV_mapping">UV mapping</a>
+	 * @see <a href="https://github.com/leonardo-ono/Java3DSphereImageViewer">Java3DSphereImageViewer</a>
+	 */
+	private void rotateCurvedImage() throws ZeroException{
+		final double xAngle = (!cylindrical || !cylindricalHorizontal? transformation.getTranslateY() * ROTATION_FACTOR: 0.);
+		final double yAngle = (!cylindrical || cylindricalHorizontal? transformation.getTranslateX() * ROTATION_FACTOR: 0.);
+		final Quaternion rotation = Quaternion.fromAngles(-xAngle, yAngle, 0.)
+			.getInverse();
+		final double[] rotatedVector = new double[3];
+		for(int y = 0; y < viewportHeight; y ++)
+			for(int x = 0; x < viewportWidth; x ++){
+				rotation.applyRotation(rayVectors[x][y], rotatedVector);
+				final int iX = (int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR);
+				final int iY = (int)((rotatedVector[1] + 1.) * ACCURACY_FACTOR);
+				final int iZ = (int)((rotatedVector[2] + 1.) * ACCURACY_FACTOR);
+				final double u = 0.5 + atan2Table[iZ + iX * REQUIRED_SIZE] * INV_2PI;
+				final double v = 0.5 - asinTable[iY] * INV_PI;
+				final int tx = (int)(imageWidth * u);
+				final int ty = (int)(imageHeight * (1. - v));
+				final int color = imageBuffer[ty * imageWidth + tx];
+				viewportImageBuffer[y * viewportWidth + x] = color;
+			}
+	}
 
-		final double current = Math.min((double)parentWidth / imageWidth, (double)parentHeight / imageHeight);
-		minZoom = Math.min(current / 2., MIN_ABSOLUTE_ZOOM);
-		maxZoom = Math.max(current * 2., MAX_ABSOLUTE_ZOOM);
+	private void zoomToFitAndCenter(){
+		viewportWidth = getWidth();
+		viewportHeight = getHeight();
+
+		final double current = Math.min((double)viewportWidth / imageWidth, (double)viewportHeight / imageHeight);
+		minZoom = Math.min(current / 2., MIN_ZOOM);
+		maxZoom = Math.max(current * 2., MAX_ZOOM);
 
 		//scale to fit
 		final double scale = Math.min(current, 1.);
 		//center image
-		final double x = (parentWidth - imageWidth * scale) / 2.;
-		final double y = (parentHeight - imageHeight * scale) / 2.;
+		double centerX = (viewportWidth - imageWidth * scale) / 2.;
+		double centerY = (viewportHeight - imageHeight * scale) / 2.;
 
 		transformation.setScale(scale);
-		transformation.setTranslation(x, y);
+		transformation.setTranslation(centerX, centerY);
+	}
+
+	private double[][][] createRayVectors(){
+		final double halfViewportWidth = viewportWidth / 2.;
+		final double halfViewportHeight = viewportHeight / 2.;
+		final double fov = Math.toRadians(Math.max(Math.min(transformation.getScale() * 140., MAX_FOV), MIN_FOV));
+		final double cameraPlaneDistance = halfViewportWidth / Math.tan(fov * 0.5);
+
+		final double[][][] rayVectors = new double[viewportWidth][viewportHeight][3];
+		for(int y = 0; y < viewportHeight; y ++)
+			for(int x = 0; x < viewportWidth; x ++){
+				final double vectorX = x - halfViewportWidth;
+				final double vectorY = y - halfViewportHeight;
+				final double vectorZ = cameraPlaneDistance;
+				final double inverseNorm = 1. / Math.sqrt(vectorX * vectorX + vectorY * vectorY + vectorZ * vectorZ);
+
+				rayVectors[x][y][0] = vectorX * inverseNorm;
+				rayVectors[x][y][1] = vectorY * inverseNorm;
+				rayVectors[x][y][2] = vectorZ * inverseNorm;
+			}
+		return rayVectors;
+	}
+
+	private void precalculateAsinAtan2(){
+		for(int i = 0; i < 2 * ACCURACY_FACTOR; i ++){
+			asinTable[i] = Math.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
+			for(int j = 0; j < 2 * ACCURACY_FACTOR; j ++){
+				final double y = (i - ACCURACY_FACTOR) / ACCURACY_FACTOR;
+				final double x = (j - ACCURACY_FACTOR) / ACCURACY_FACTOR;
+				atan2Table[i + j * REQUIRED_SIZE] = Math.atan2(y, x);
+			}
+		}
 	}
 
 	private void drawCutoutRectangle(final Graphics2D g){
@@ -175,12 +324,12 @@ public class ScaledImage extends JLabel{
 	}
 
 
-	private class ImageMouseListener extends MouseAdapter implements MouseWheelListener{
+	private class ImageMouseListener extends MouseAdapter{
 
 		@Override
 		public void mousePressed(final MouseEvent evt){
 			if(SwingUtilities.isRightMouseButton(evt)){
-				//right click with left button resets zoom and translation
+				//right click with left button resets zoom and translation:
 				zoomToFitAndCenter();
 
 				repaint();
@@ -191,7 +340,7 @@ public class ScaledImage extends JLabel{
 					dragStartPointY = evt.getY();
 				}
 				else{
-					//cutout start point
+					//cutout start point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
 					final boolean insideX = (x >= 0 && x <= imageWidth);
@@ -221,14 +370,14 @@ public class ScaledImage extends JLabel{
 		public void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
 				if(evt.isControlDown()){
-					//pan
+					//pan:
 					transformation.addTranslation(evt.getX() - dragStartPointX, evt.getY() - dragStartPointY);
 
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
 				else if(cutoutDefinition && cutoutStartPointX >= 0){
-					//cutout end point
+					//cutout end point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
 					cutoutEndPointX = Math.max(Math.min(x, imageWidth), 0);
@@ -242,10 +391,14 @@ public class ScaledImage extends JLabel{
 		@Override
 		public void mouseWheelMoved(final MouseWheelEvent evt){
 			if(evt.isControlDown()){
-				//zoom
+				//zoom:
 				final double zoomFactor = Math.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
-				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY()))
+				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY())){
+					if(isCurved())
+						rayVectors = createRayVectors();
+
 					repaint();
+				}
 			}
 		}
 
