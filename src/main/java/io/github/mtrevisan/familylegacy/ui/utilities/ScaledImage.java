@@ -202,7 +202,6 @@ public class ScaledImage extends JLabel{
 
 //		currentRotationX = -transformation.getTranslateY() * 0.005;
 //		currentRotationY = transformation.getTranslateX() * 0.005;
-System.out.println(currentRotationX + ", " + currentRotationY);
 
 		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, -currentRotationY, 0.).getInverse();
 		final double[] rotatedVector = new double[3];
@@ -317,7 +316,7 @@ System.out.println(cameraPlaneDistance);
 		@Override
 		public void mousePressed(final MouseEvent evt){
 			if(SwingUtilities.isRightMouseButton(evt)){
-				//right click with left button resets zoom and translation
+				//right click with left button resets zoom and translation:
 				zoomToFitAndCenter();
 
 				repaint();
@@ -328,7 +327,7 @@ System.out.println(cameraPlaneDistance);
 					dragStartPointY = evt.getY();
 				}
 				else{
-					//cutout start point
+					//cutout start point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
 					final boolean insideX = (x >= 0 && x <= imageWidth);
@@ -358,14 +357,14 @@ System.out.println(cameraPlaneDistance);
 		public void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
 				if(evt.isControlDown()){
-					//pan
+					//pan:
 					transformation.addTranslation(evt.getX() - dragStartPointX, evt.getY() - dragStartPointY);
 
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
 				else if(cutoutDefinition && cutoutStartPointX >= 0){
-					//cutout end point
+					//cutout end point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
 					cutoutEndPointX = Math.max(Math.min(x, imageWidth), 0);
@@ -379,7 +378,7 @@ System.out.println(cameraPlaneDistance);
 		@Override
 		public void mouseWheelMoved(final MouseWheelEvent evt){
 			if(evt.isControlDown()){
-				//zoom
+				//zoom:
 				final double zoomFactor = Math.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
 				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY())){
 					if(isSpherical())
