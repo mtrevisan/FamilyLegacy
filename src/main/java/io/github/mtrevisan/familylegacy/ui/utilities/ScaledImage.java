@@ -203,7 +203,7 @@ public class ScaledImage extends JLabel{
 //		currentRotationX = transformation.getTranslateY() * 0.005;
 //		currentRotationY = transformation.getTranslateX() * 0.005;
 
-		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, -currentRotationY, 0.)
+		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, currentRotationY, 0.)
 			.getInverse();
 		final double[] rotatedVector = new double[3];
 		for(int y = 0; y < viewportHeight; y ++)
