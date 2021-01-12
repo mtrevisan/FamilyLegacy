@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -176,14 +177,6 @@ public class TextPreviewPane extends JSplitPane{
 			setDividerSize(0);
 		});
 		attachPreviewPopUpMenu(previewScroll);
-	}
-
-	@Override
-	public void setEnabled(final boolean enabled){
-		super.setEnabled(enabled);
-
-		textView.setEnabled(enabled);
-		previewView.setEnabled(enabled);
 	}
 
 	/**

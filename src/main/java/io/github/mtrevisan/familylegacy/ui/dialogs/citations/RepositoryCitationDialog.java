@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -69,20 +70,18 @@ public class RepositoryCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_REPOSITORY_NAME = 1;
 
 	private static final String KEY_REPOSITORY_ID = "repositoryID";
-	private static final String KEY_REPOSITORY_FILE = "repositoryFile";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
 	private final JTable repositoryTable = new JTable(new RepositoryTableModel());
 	private final JScrollPane repositoriesScrollPane = new JScrollPane(repositoryTable);
 	private final JButton addButton = new JButton("Add");
-	private final JButton editButton = new JButton("Edit");
-	private final JButton removeButton = new JButton("Remove");
 	private final JLabel repositoryNameLabel = new JLabel("Name:");
 	private final JTextField repositoryNameField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JButton notesButton = new JButton("Notes");
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -127,17 +126,16 @@ public class RepositoryCitationDialog extends JDialog{
 		repositoryTable.setRowSorter(sorter);
 		//clicking on a line links it to current repository citation
 		repositoryTable.getSelectionModel().addListSelectionListener(evt -> {
-			removeButton.setEnabled(true);
-
 			final int selectedRow = repositoryTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
 				final String selectedRepositoryID = (String)repositoryTable.getValueAt(selectedRow, TABLE_INDEX_REPOSITORY_ID);
 				final GedcomNode selectedRepositoryCitation = store.traverse(container, "REPOSITORY@" + selectedRepositoryID);
 				final GedcomNode selectedRepository = store.getRepository(selectedRepositoryID);
 				okButton.putClientProperty(KEY_REPOSITORY_ID, selectedRepositoryID);
+				GUIHelper.setEnabled(repositoryNameLabel, true);
 				repositoryNameField.setText(store.traverse(selectedRepository, "NAME").getValue());
 
-				locationField.setEnabled(true);
+				GUIHelper.setEnabled(locationLabel, true);
 				locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
 				notesButton.setEnabled(true);
 				notesButton.setEnabled(true);
@@ -168,18 +166,17 @@ public class RepositoryCitationDialog extends JDialog{
 			//fire edit event
 			EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newRepository, onCloseGracefully));
 		});
-		editButton.addActionListener(evt -> editAction());
-		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> deleteAction());
 
 		repositoryNameLabel.setLabelFor(repositoryNameField);
-		repositoryNameField.setEnabled(false);
+		GUIHelper.setEnabled(repositoryNameLabel, false);
 
 		locationLabel.setLabelFor(locationField);
-		locationField.setEnabled(false);
+		GUIHelper.setEnabled(locationLabel, false);
 
 		notesButton.setEnabled(false);
 
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			final String id = (String)okButton.getClientProperty(KEY_REPOSITORY_ID);
@@ -198,16 +195,15 @@ public class RepositoryCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(repositoriesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2");
-		add(editButton, "tag edit,sizegroup button2");
-		add(removeButton, "tag remove,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
 		add(repositoryNameLabel, "align label,sizegroup label,split 2");
 		add(repositoryNameField, "grow,wrap");
 		add(locationLabel, "align label,split 2");
 		add(locationField, "grow,wrap paragraph");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void editAction(){
@@ -219,12 +215,6 @@ public class RepositoryCitationDialog extends JDialog{
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, selectedRepository));
-	}
-
-	private void deleteAction(){
-		final DefaultTableModel model = (DefaultTableModel)repositoryTable.getModel();
-		model.removeRow(repositoryTable.convertRowIndexToModel(repositoryTable.getSelectedRow()));
-		removeButton.setEnabled(false);
 	}
 
 	public void loadData(final GedcomNode container){

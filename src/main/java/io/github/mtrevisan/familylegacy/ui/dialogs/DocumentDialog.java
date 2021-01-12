@@ -203,7 +203,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> textChanged());
 
 		extractPreviewView = new TextPreviewPane(this);
-		extractPreviewView.setEnabled(false);
+		GUIHelper.setEnabled(extractPreviewView, false);
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 		extractTypeComboBox.setEnabled(false);
@@ -334,7 +334,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		fileButton.setEnabled(true);
 		descriptionField.setEnabled(true);
 		descriptionField.setText(description);
-		extractPreviewView.setEnabled(true);
+		GUIHelper.setEnabled(extractPreviewView, true);
 		extractPreviewView.setText("Document " + file, extract, extractLanguageTag);
 		extractTypeComboBox.setEnabled(true);
 		extractTypeComboBox.setSelectedItem(extractType);

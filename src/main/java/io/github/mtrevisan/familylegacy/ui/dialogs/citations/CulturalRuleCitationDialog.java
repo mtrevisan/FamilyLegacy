@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
@@ -44,6 +45,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -92,13 +94,13 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	private final JScrollPane rulesScrollPane = new JScrollPane(rulesTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
-	private final JButton removeButton = new JButton("Remove");
 	private final JLabel ruleTitleLabel = new JLabel("Title:");
 	private final JTextField ruleTitleField = new JTextField();
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
-	private final JLabel descriptionLabel = new JLabel("Description:");
+	private final JPanel descriptionPanel = new JPanel();
 	private TextPreviewPane descriptionPreviewView;
+	private final JPanel placePanel = new JPanel();
 	private final JButton placeButton = new JButton("Place");
 	private final JLabel placeCertaintyLabel = new JLabel("Certainty:");
 	private final JComboBox<String> placeCertaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
@@ -106,6 +108,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -150,22 +153,9 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		rulesTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
 		rulesTable.getSelectionModel().addListSelectionListener(evt -> {
-			removeButton.setEnabled(true);
-
 			final int selectedRow = rulesTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				final String selectedRuleID = (String)rulesTable.getValueAt(selectedRow, TABLE_INDEX_RULE_ID);
-				final GedcomNode selectedRule = store.getCulturalRule(selectedRuleID);
-				okButton.putClientProperty(KEY_RULE_ID, selectedRuleID);
-				ruleTitleField.setText(store.traverse(selectedRule, "TITLE").getValue());
-
-				final String languageTag = store.traverse(selectedRule, "LOCALE").getValue();
-				final String text = store.traverse(selectedRule, "DESCRIPTION").getValue();
-				descriptionPreviewView.setText(getTitle(), text, languageTag);
-
-				//TODO
-
-				okButton.setEnabled(true);
+				selectAction(rulesTable.convertRowIndexToModel(selectedRow));
 			}
 		});
 		rulesTable.addMouseListener(new MouseAdapter(){
@@ -175,6 +165,17 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 					editAction();
 			}
 		});
+		rulesTable.getInputMap(JComponent.WHEN_FOCUSED)
+			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		rulesTable.getActionMap()
+			.put("delete", new AbstractAction(){
+				@Override
+				public void actionPerformed(final ActionEvent evt){
+					deleteAction();
+				}
+			});
+		rulesTable.setPreferredScrollableViewportSize(new Dimension(rulesTable.getPreferredSize().width,
+			rulesTable.getRowHeight() * 5));
 
 		addButton.addActionListener(evt -> {
 			final GedcomNode newRule = store.create("CULTURAL_RULE");
@@ -192,29 +193,34 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE, newRule, onCloseGracefully));
 		});
 		editButton.addActionListener(evt -> editAction());
-		removeButton.setEnabled(false);
-		removeButton.addActionListener(evt -> deleteAction());
 
 		ruleTitleLabel.setLabelFor(ruleTitleField);
 		ruleTitleField.setEnabled(false);
 
 		localeLabel.setLabelFor(localeComboBox);
+		localeComboBox.setEnabled(false);
 
 		descriptionPreviewView = new TextPreviewPane(this);
+		descriptionPanel.setBorder(BorderFactory.createTitledBorder("Description"));
+		descriptionPanel.setLayout(new MigLayout("", "[grow]"));
+		descriptionPanel.add(descriptionPreviewView, "span 2,grow,wrap");
+		descriptionPanel.add(localeLabel, "align label,split 2,sizegroup label");
+		descriptionPanel.add(localeComboBox);
+		GUIHelper.setEnabled(descriptionPanel, false);
 
 		placeCertaintyLabel.setLabelFor(placeCertaintyComboBox);
 		placeCredibilityLabel.setLabelFor(placeCredibilityComboBox);
 
 		//TODO
 //		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
-		final JPanel placePanel = new JPanel();
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.setLayout(new MigLayout("", "[grow]"));
 		placePanel.add(placeButton, "sizegroup button2,grow,wrap");
 		placePanel.add(placeCertaintyLabel, "align label,split 2");
-		placePanel.add(placeCertaintyComboBox, "grow,wrap");
+		placePanel.add(placeCertaintyComboBox, "wrap");
 		placePanel.add(placeCredibilityLabel, "align label,split 2");
-		placePanel.add(placeCredibilityComboBox, "grow");
+		placePanel.add(placeCredibilityComboBox);
+		GUIHelper.setEnabled(placePanel, false);
 
 		notesButton.setEnabled(false);
 		//TODO
@@ -224,6 +230,8 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		//TODO
 //		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
 
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			//remove all reference to rules from the container
@@ -248,20 +256,53 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(rulesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button");
-		add(editButton, "tag edit,sizegroup button");
-		add(removeButton, "tag remove,sizegroup button,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button2");
+		add(editButton, "tag edit,sizegroup button2,wrap paragraph");
 		add(ruleTitleLabel, "align label,sizegroup label,split 2");
 		add(ruleTitleField, "grow,wrap");
-		add(localeLabel, "align label,split 2,sizegroup label");
-		add(localeComboBox, "wrap");
-		add(descriptionLabel, "wrap");
-		add(descriptionPreviewView, "span 2,grow,wrap paragraph");
+		add(descriptionPanel, "grow,wrap");
 		add(placePanel, "grow,wrap paragraph");
 		add(notesButton, "grow,wrap");
 		add(sourcesButton, "grow,wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
+	}
+
+	private void transferListToContainer(){
+		//remove all reference to groups from the container
+		container.removeChildrenWithTag("CULTURAL_RULE");
+		//add all the remaining references to groups to the container
+		for(int i = 0; i < rulesTable.getRowCount(); i ++){
+			final String id = (String)rulesTable.getValueAt(i, TABLE_INDEX_RULE_ID);
+			container.addChildReference("CULTURAL_RULE", id);
+		}
+	}
+
+	private void selectAction(final int selectedRow){
+		final String selectedRuleID = (String)rulesTable.getValueAt(selectedRow, TABLE_INDEX_RULE_ID);
+		final GedcomNode selectedRule = store.getCulturalRule(selectedRuleID);
+		okButton.putClientProperty(KEY_RULE_ID, selectedRuleID);
+
+		ruleTitleField.setEnabled(true);
+		ruleTitleField.setText(store.traverse(selectedRule, "TITLE").getValue());
+
+		localeComboBox.setEnabled(true);
+
+		GUIHelper.setEnabled(descriptionPanel, true);
+		final String languageTag = store.traverse(selectedRule, "LOCALE").getValue();
+		final String text = store.traverse(selectedRule, "DESCRIPTION").getValue();
+		descriptionPreviewView.setText(getTitle(), text, languageTag);
+
+		GUIHelper.setEnabled(placePanel, true);
+
+		notesButton.setEnabled(true);
+
+		sourcesButton.setEnabled(true);
+
+		//TODO
+
+		okButton.setEnabled(true);
 	}
 
 	private void editAction(){
@@ -279,7 +320,9 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		final DefaultTableModel model = (DefaultTableModel)rulesTable.getModel();
 		final int index = rulesTable.convertRowIndexToModel(rulesTable.getSelectedRow());
 		model.removeRow(index);
-		removeButton.setEnabled(false);
+
+		//remove from container
+		transferListToContainer();
 	}
 
 	@Override
@@ -395,7 +438,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 700);
+			dialog.setSize(480, 700);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

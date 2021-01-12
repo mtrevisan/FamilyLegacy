@@ -34,6 +34,8 @@ import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Consumer;
 
 
@@ -53,6 +55,29 @@ public final class GUIHelper{
 			SwingUtilities.invokeLater(runnable);
 	}
 
+
+	public static void setEnabled(final JLabel label, final boolean enabled){
+		label.setEnabled(enabled);
+
+		final Component component = label.getLabelFor();
+		if(component != null)
+			component.setEnabled(enabled);
+	}
+
+	public static void setEnabled(final JComponent component, final boolean enabled){
+		final Deque<Component> stack = new ArrayDeque<>();
+		for(final Component comp : component.getComponents())
+			stack.add(comp);
+		while(!stack.isEmpty()){
+			final Component comp = stack.pop();
+			if(comp instanceof Container)
+				for(final Component subComp : ((Container)comp).getComponents())
+					stack.add(subComp);
+
+			comp.setEnabled(enabled);
+		}
+		component.setEnabled(enabled);
+	}
 
 	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onTextChange){
 		if(label != null)

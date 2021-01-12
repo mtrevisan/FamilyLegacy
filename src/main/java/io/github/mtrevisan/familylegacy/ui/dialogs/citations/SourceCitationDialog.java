@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.CutoutDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -187,13 +188,13 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		addButton.addActionListener(evt -> addAction());
 
 		titleLabel.setLabelFor(titleField);
-		titleField.setEnabled(false);
+		GUIHelper.setEnabled(titleLabel, false);
 
 		locationLabel.setLabelFor(locationField);
-		locationField.setEnabled(false);
+		GUIHelper.setEnabled(locationLabel, false);
 
 		roleLabel.setLabelFor(roleField);
-		roleField.setEnabled(false);
+		GUIHelper.setEnabled(roleLabel, false);
 
 		cutoutButton.setToolTipText("Define a cutout");
 		cutoutButton.setEnabled(false);
@@ -207,7 +208,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		});
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
-		credibilityComboBox.setEnabled(false);
+		GUIHelper.setEnabled(credibilityLabel, false);
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -290,18 +291,18 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
 		final GedcomNode selectedSource = store.getSource(selectedSourceID);
 		okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
+		GUIHelper.setEnabled(titleLabel, true);
 		titleField.setText(store.traverse(selectedSource, "TITLE").getValue());
 
-		locationField.setEnabled(true);
+		GUIHelper.setEnabled(locationLabel, true);
 		locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
-		roleField.setEnabled(true);
+		GUIHelper.setEnabled(roleLabel, true);
 		roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
 		cutoutButton.setEnabled(true);
 		cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
 		cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
 		notesButton.setEnabled(true);
-		credibilityComboBox.setEnabled(true);
-		credibilityComboBox.setEnabled(true);
+		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
+import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -95,6 +96,7 @@ public class GroupCitationDialog extends JDialog{
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
+	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -141,25 +143,8 @@ public class GroupCitationDialog extends JDialog{
 		//clicking on a line links it to current group citation
 		groupsTable.getSelectionModel().addListSelectionListener(evt -> {
 			final int selectedRow = groupsTable.getSelectedRow();
-			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				final String selectedGroupID = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID);
-				final GedcomNode selectedGroupCitation = store.traverse(container, "GROUP@" + selectedGroupID);
-				final GedcomNode selectedGroup = store.getGroup(selectedGroupID);
-				okButton.putClientProperty(KEY_GROUP_ID, selectedGroupID);
-				groupField.setText(store.traverse(selectedGroup, "NAME").getValue());
-
-				roleField.setEnabled(true);
-				roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
-				notesButton.setEnabled(true);
-				credibilityComboBox.setEnabled(true);
-				final String credibility = store.traverse(selectedGroupCitation, "CREDIBILITY").getValue();
-				credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
-				restrictionCheckBox.setEnabled(true);
-				final String restriction = store.traverse(selectedGroupCitation, "RESTRICTION").getValue();
-				restrictionCheckBox.setSelected("confidential".equals(restriction));
-
-				okButton.setEnabled(true);
-			}
+			if(!evt.getValueIsAdjusting() && selectedRow >= 0)
+				selectAction(groupsTable.convertRowIndexToModel(selectedRow));
 		});
 		groupsTable.addMouseListener(new MouseAdapter(){
 			@Override
@@ -197,17 +182,21 @@ public class GroupCitationDialog extends JDialog{
 		});
 
 		groupLabel.setLabelFor(groupField);
-		groupField.setEnabled(false);
+		GUIHelper.setEnabled(groupLabel, false);
 
-		roleField.setEnabled(false);
 		roleLabel.setLabelFor(roleField);
+		GUIHelper.setEnabled(roleLabel, false);
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
 
-		credibilityComboBox.setEnabled(false);
 		credibilityLabel.setLabelFor(credibilityComboBox);
+		GUIHelper.setEnabled(credibilityLabel, false);
 
+		GUIHelper.setEnabled(restrictionCheckBox, false);
+
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
 		okButton.addActionListener(evt -> {
 			final String id = (String)okButton.getClientProperty(KEY_GROUP_ID);
 			final String role = roleField.getText();
@@ -238,8 +227,9 @@ public class GroupCitationDialog extends JDialog{
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
-		add(okButton, "tag ok,split 2,sizegroup button2");
-		add(cancelButton, "tag cancel,sizegroup button2");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
 	private void transferListToContainer(){
@@ -250,6 +240,27 @@ public class GroupCitationDialog extends JDialog{
 			final String id = (String)groupsTable.getValueAt(i, TABLE_INDEX_GROUP_ID);
 			container.addChildReference("GROUP", id);
 		}
+	}
+
+	private void selectAction(final int selectedRow){
+		final String selectedGroupID = (String)groupsTable.getValueAt(selectedRow, TABLE_INDEX_GROUP_ID);
+		final GedcomNode selectedGroupCitation = store.traverse(container, "GROUP@" + selectedGroupID);
+		final GedcomNode selectedGroup = store.getGroup(selectedGroupID);
+		okButton.putClientProperty(KEY_GROUP_ID, selectedGroupID);
+		GUIHelper.setEnabled(groupLabel, true);
+		groupField.setText(store.traverse(selectedGroup, "NAME").getValue());
+
+		GUIHelper.setEnabled(roleLabel, true);
+		roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
+		notesButton.setEnabled(true);
+		GUIHelper.setEnabled(credibilityLabel, true);
+		final String credibility = store.traverse(selectedGroupCitation, "CREDIBILITY").getValue();
+		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+		GUIHelper.setEnabled(restrictionCheckBox, true);
+		final String restriction = store.traverse(selectedGroupCitation, "RESTRICTION").getValue();
+		restrictionCheckBox.setSelected("confidential".equals(restriction));
+
+		okButton.setEnabled(true);
 	}
 
 	private void editAction(){
