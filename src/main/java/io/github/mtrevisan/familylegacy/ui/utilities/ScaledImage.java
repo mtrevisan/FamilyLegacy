@@ -200,12 +200,13 @@ public class ScaledImage extends JLabel{
 		currentRotationX += (targetRotationX - currentRotationX) * 0.25;
 		currentRotationY += (targetRotationY - currentRotationY) * 0.25;
 
-//		currentRotationX = -transformation.getTranslateY() * 0.005;
+//		currentRotationX = transformation.getTranslateY() * 0.005;
 //		currentRotationY = transformation.getTranslateX() * 0.005;
 
-		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, -currentRotationY, 0.).getInverse();
+		final Quaternion rotation = Quaternion.fromAngles(-currentRotationX, -currentRotationY, 0.)
+			.getInverse();
 		final double[] rotatedVector = new double[3];
-		for(int y = 0; y < viewportHeight; y ++){
+		for(int y = 0; y < viewportHeight; y ++)
 			for(int x = 0; x < viewportWidth; x ++){
 				rotation.applyRotation(rayVectors[x][y], rotatedVector);
 				final int iX = (int)((rotatedVector[0] + 1.) * ACCURACY_FACTOR);
@@ -218,7 +219,6 @@ public class ScaledImage extends JLabel{
 				final int color = imageBuffer[ty * imageWidth + tx];
 				viewportImageBuffer[y * viewportWidth + x] = color;
 			}
-		}
 	}
 
 	private void zoomToFitAndCenter(){

@@ -25,8 +25,13 @@
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
 
-//https://github.com/jherico/java-math/blob/master/src/main/java/org/saintandreas/math/Quaternion.java
-//http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.complex/Quaternion.java.html
+/**
+ * Quaternions extends a rotation in three dimensions to a rotation in four dimensions.
+ * <p>This avoids "gimbal lock" and allows for smooth continuous rotation.</p>
+ *
+ * @see <a href="https://github.com/jherico/java-math/blob/master/src/main/java/org/saintandreas/math/Quaternion.java">Quaternion</a>
+ * @see <a href="http://home.apache.org/~luc/commons-math-3.6-RC2-site/jacoco/org.apache.commons.math3.complex/Quaternion.java.html">Quaternion</a>
+ */
 public class Quaternion{
 
 	/** Exponent offset in IEEE754 representation. */
@@ -37,6 +42,12 @@ public class Quaternion{
 	 * In IEEE 754 arithmetic, this is also the smallest normalized number 2<sup>-1022</sup>.
 	 */
 	private static final double SAFE_MIN = Double.longBitsToDouble((EXPONENT_OFFSET - 1022l) << 52);
+
+	public static final Quaternion IDENTITY = new Quaternion(1., 0., 0., 0.);
+	public static final Quaternion ZERO = new Quaternion(0., 0., 0., 0.);
+	public static final Quaternion I = new Quaternion(0., 1., 0., 0.);
+	public static final Quaternion J = new Quaternion(0., 0., 1., 0.);
+	public static final Quaternion K = new Quaternion(0., 0., 0., 1.);
 
 
 	private double x;
@@ -86,13 +97,13 @@ public class Quaternion{
 	/**
 	 * Builds a quaternion from its components.
 	 *
-	 * @param a	Scalar component.
+	 * @param w	Scalar component.
 	 * @param x	First vector component.
 	 * @param y	Second vector component.
 	 * @param z	Third vector component.
 	 */
-	public Quaternion(final double a, final double x, final double y, final double z){
-		this.w = a;
+	public Quaternion(final double w, final double x, final double y, final double z){
+		this.w = w;
 		this.x = x;
 		this.y = y;
 		this.z = z;
@@ -104,7 +115,16 @@ public class Quaternion{
 	 * @return	The norm.
 	 */
 	public double getNorm(){
-		return Math.sqrt(w * w + x * x + y * y + z * z);
+		return Math.sqrt(getNormSquared());
+	}
+
+	/**
+	 * Computes the squared norm of the quaternion.
+	 *
+	 * @return	The norm.
+	 */
+	private double getNormSquared(){
+		return dotProduct(this);
 	}
 
 	/**
@@ -115,7 +135,7 @@ public class Quaternion{
 	 * @throws ZeroException	If the norm of the quaternion is zero.
 	 */
 	public Quaternion normalize() throws ZeroException{
-		final double normSquared = w * w + x * x + y * y + z * z;
+		final double normSquared = getNormSquared();
 		if(normSquared < SAFE_MIN)
 			throw ZeroException.create("Cannot normalize quaternion: norm is near to zero ({})", Math.sqrt(normSquared));
 
@@ -147,6 +167,66 @@ public class Quaternion{
 		return getConjugate().normalize();
 	}
 
+	/**
+	 * Returns the Hamilton product of the instance by a quaternion.
+	 *
+	 * @param q	Quaternion.
+	 * @return	The product of this instance with {@code q}, in that order.
+	 */
+	public Quaternion multiply(final Quaternion q){
+		return multiply(this, q);
+	}
+
+	/**
+	 * Returns the Hamilton product of two quaternions.
+	 *
+	 * @param q1	First quaternion.
+	 * @param q2	Second quaternion.
+	 * @return	The product {@code q1} and {@code q2}, in that order.
+	 */
+	public static Quaternion multiply(final Quaternion q1, final Quaternion q2){
+		//components of the first quaternion
+		final double q1w = q1.w;
+		final double q1x = q1.x;
+		final double q1y = q1.y;
+		final double q1z = q1.z;
+
+		//components of the second quaternion
+		final double q2w = q2.w;
+		final double q2x = q2.x;
+		final double q2y = q2.y;
+		final double q2z = q2.z;
+
+		//components of the product
+		final double w = q1w * q2w - q1x * q2x - q1y * q2y - q1z * q2z;
+		final double x = q1w * q2x + q1x * q2w + q1y * q2z - q1z * q2y;
+		final double y = q1w * q2y - q1x * q2z + q1y * q2w + q1z * q2x;
+		final double z = q1w * q2z + q1x * q2y - q1y * q2x + q1z * q2w;
+
+		return new Quaternion(w, x, y, z);
+	}
+
+	/**
+	 * Computes the dot-product of the instance by a quaternion.
+	 *
+	 * @param q	Quaternion.
+	 * @return	The dot product of this instance and {@code q}.
+	 */
+	public double dotProduct(final Quaternion q){
+		return dotProduct(this, q);
+	}
+
+	/**
+	 * Computes the dot-product of two quaternions.
+	 *
+	 * @param q1	Quaternion.
+	 * @param q2	Quaternion.
+	 * @return	The dot product of {@code q1} and {@code q2}.
+	 */
+	public static double dotProduct(final Quaternion q1, final Quaternion q2){
+		return (q1.w * q2.w + q1.x * q2.x + q1.y * q2.y + q1.z * q2.z);
+	}
+
 	public final void applyRotation(final double[] vector){
 		applyRotation(vector, vector);
 	}
@@ -165,6 +245,28 @@ public class Quaternion{
 		res[1] = dot2 * y + w2 * (vz * x - vx * z) + tmp * vy;
 		res[2] = dot2 * z + w2 * (vx * y - vy * x) + tmp * vz;
 		return res;
+	}
+
+	/**
+	 * Checks whether the instance is a unit quaternion within a given tolerance.
+	 *
+	 * @param tolerance	Tolerance (absolute error).
+	 * @return	Whether the norm is 1 within the given tolerance
+	 */
+	public boolean isUnitQuaternion(final double tolerance){
+		return (Math.abs(getNormSquared() - 1.) < tolerance * tolerance);
+	}
+
+	@Override
+	public String toString(){
+		final StringBuilder sb = new StringBuilder();
+		return sb.append("[")
+			.append(w).append(' ')
+			.append(x).append(' ')
+			.append(y).append(' ')
+			.append(z)
+			.append("]")
+			.toString();
 	}
 
 }
