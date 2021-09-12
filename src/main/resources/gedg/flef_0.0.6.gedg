@@ -29,7 +29,7 @@ n HEADER    {1:1}
         +4 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
         +4 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
       +3 NOTE <PLACE_NOTE_STRUCTURE>   {0:M}	/* A list of NOTE_STRUCTURE() objects. */
-    +2 <<CONTACT_STRUCTURE>>    {0:1}
+    +2 <<CONTACT_STRUCTURE>>    {0:M}
     +2 NOTE <SUBMITTER_NOTE_STRUCTURE>    {0:M}	/* A list of NOTE_STRUCTURE() objects. */
   +1 NOTE <CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
 
@@ -260,12 +260,16 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
   +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE_RECORD() object giving the location of the repository. */
-  +1 CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
-    +2 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
-    +2 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
-    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
-    +2 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<CONTACT_STRUCTURE>>    {0:M}
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+
+
+CONTACT_STRUCTURE :=
+n CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
+  +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
+  +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 
 CULTURAL_RULE_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */

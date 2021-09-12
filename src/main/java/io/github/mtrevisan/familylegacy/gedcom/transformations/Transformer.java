@@ -755,25 +755,24 @@ public final class Transformer extends TransformerHelper{
 		CONTACT.value = WWW.value
 	*/
 	void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
-		final GedcomNode destinationContact = create("CONTACT");
 		final List<GedcomNode> phones = traverseAsList(parent, "PHON[]");
 		for(final GedcomNode phone : phones)
 			if(PhoneNumberValidator.isValid(phone.getValue()))
-				destinationContact.addChildValue("CONTACT", phone.getValue());
+				destinationNode.addChild(createWithValue("CONTACT", phone.getValue()));
 		final List<GedcomNode> emails = traverseAsList(parent, "EMAIL[]");
 		for(final GedcomNode email : emails)
 			if(EMAIL_VALIDATOR.isValid(email.getValue()))
-			destinationContact.addChildValue("CONTACT", email.getValue());
+				destinationNode.addChild(createWithValue("CONTACT", email.getValue()));
 		final List<GedcomNode> faxes = traverseAsList(parent, "FAX[]");
 		for(final GedcomNode fax : faxes)
 			if(PhoneNumberValidator.isValid(fax.getValue()))
-				destinationContact.addChild(createWithValue("PHONE", fax.getValue())
-					.addChildValue("TYPE", "fax"));
+				destinationNode.addChild(createWithValue("CONTACT", fax.getValue())
+					.addChildValue("TYPE", "fax")
+				);
 		final List<GedcomNode> urls = traverseAsList(parent, "WWW[]");
 		for(final GedcomNode url : urls)
 			if(URL_VALIDATOR.isValid(url.getValue()))
-				destinationContact.addChildValue("URL", url.getValue());
-		destinationNode.addChild(destinationContact);
+				destinationNode.addChild(createWithValue("CONTACT", url.getValue()));
 	}
 
 	/*
