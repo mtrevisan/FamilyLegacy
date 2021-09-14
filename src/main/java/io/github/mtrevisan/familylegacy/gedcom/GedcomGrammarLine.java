@@ -76,11 +76,11 @@ class GedcomGrammarLine{
 	private int min;
 	private int max = -1;
 
-	private final Set<String> xrefNames = new HashSet<>();
-	private final Set<String> valueNames = new HashSet<>();
-	private final Set<String> tagNamesBeforeXRef = new HashSet<>();
-	private final Set<String> tagNamesAfterXRef = new HashSet<>();
-	private final Set<String> valuePossibilities = new HashSet<>();
+	private final Set<String> xrefNames = new HashSet<>(0);
+	private final Set<String> valueNames = new HashSet<>(0);
+	private final Set<String> tagNamesBeforeXRef = new HashSet<>(0);
+	private final Set<String> tagNamesAfterXRef = new HashSet<>(0);
+	private final Set<String> valuePossibilities = new HashSet<>(0);
 
 	private String structureName;
 	private String originalDefinitionLine;
@@ -168,7 +168,7 @@ class GedcomGrammarLine{
 				final String[] possibilities = StringUtils.split(
 					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
 				for(final String possibility : possibilities)
-					sl.valuePossibilities.add(!"NULL".equals(possibility.toUpperCase())? possibility: null);
+					sl.valuePossibilities.add(!"NULL".equalsIgnoreCase(possibility)? possibility: null);
 			}
 			else
 				LOGGER.info("Did not process component {} with ID '{}' under {}", components[i], sl.getID(), sl.structureName);
@@ -218,7 +218,7 @@ class GedcomGrammarLine{
 
 	/**
 	 * Returns the structure name if there is one. If there is a structure name
-	 * (the return value is != <code>NULL</code>), it means that this line is
+	 * (the return value is != {@code NULL}), it means that this line is
 	 * a structure line.
 	 */
 	public String getStructureName(){
@@ -305,7 +305,7 @@ class GedcomGrammarLine{
 	}
 
 	/**
-	 * Returns <code>true</code> if this line has a structure name instead of
+	 * Returns {@code true} if this line has a structure name instead of
 	 * tag names. If this line has a structure name, it is a structure line and
 	 * does not have any value/xref fields.
 	 */

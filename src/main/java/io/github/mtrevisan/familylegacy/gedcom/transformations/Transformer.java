@@ -46,8 +46,8 @@ import java.util.StringJoiner;
 
 public final class Transformer extends TransformerHelper{
 
-	private static final Map<String, String> FAM_TO_FAMILY = new HashMap<>();
-	private static final Map<String, String> FAMILY_TO_FAM = new HashMap<>();
+	private static final Map<String, String> FAM_TO_FAMILY = new HashMap<>(0);
+	private static final Map<String, String> FAMILY_TO_FAM = new HashMap<>(0);
 	private static final String CUSTOM_EVENT_TAG = "@event@";
 	static{
 		//Life related:
@@ -622,7 +622,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("EXTRACT", sj.toString());
 		}
 		else
-			//otherwise distribute extractions
+			//otherwise, distribute extractions
 			for(int index = 0; index < extracts.size(); index ++)
 				destinationFiles.get(index)
 					.addChildValue("EXTRACT", extracts.get(index).getValue());
@@ -810,7 +810,7 @@ public final class Transformer extends TransformerHelper{
 	 * @return	An array of reference and record sources.
 	 */
 	private List<GedcomNode[]> singleSourceCitationTo(final GedcomNode sourceCitation, final Gedcom origin, final Flef destination){
-		final List<GedcomNode[]> response = new ArrayList<>();
+		final List<GedcomNode[]> response = new ArrayList<>(0);
 		final String sourceCitationXRef = sourceCitation.getXRef();
 		if(sourceCitationXRef == null){
 			final GedcomNode destinationSourceRecord = create("SOURCE")
@@ -1545,7 +1545,7 @@ public final class Transformer extends TransformerHelper{
 		FAX.value = CONTACT.value
 	for-each CONTACT.EMAIL create EMAIL if CONTACT.value is an email
 		EMAIL.value = CONTACT.value
-	for-each CONTACT.URL create WWW if CONTACT.value is an URL
+	for-each CONTACT.URL create WWW if CONTACT.value is a URL
 		WWW.value = CONTACT.value
 	*/
 	void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){

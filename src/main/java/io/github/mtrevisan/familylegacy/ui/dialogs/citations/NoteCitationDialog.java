@@ -49,6 +49,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -60,6 +64,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class NoteCitationDialog extends JDialog implements ActionListener{
 
+	@Serial
 	private static final long serialVersionUID = 4428884121525685915L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -133,9 +138,25 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		notesTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = -2822438026203657068L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
@@ -166,7 +187,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	}
 
 	private void transferListToContainer(){
-		//remove all reference to notes from the container
+		//remove all reference to the note from the container
 		container.removeChildrenWithTag("NOTE");
 		//add all the remaining references to notes to the container
 		for(int i = 0; i < notesTable.getRowCount(); i ++){
@@ -277,6 +298,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 
 	private static class NoteTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = 981117893723288957L;
 
 
@@ -292,6 +314,19 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

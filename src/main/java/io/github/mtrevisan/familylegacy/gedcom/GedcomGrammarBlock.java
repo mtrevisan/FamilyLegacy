@@ -177,14 +177,14 @@ class GedcomGrammarBlock{
 	}
 
 	/**
-	 * Returns <code>true</code> if this block has one or more child lines.
+	 * Returns {@code true} if this block has one or more child lines.
 	 */
 	public boolean hasChildLines(){
 		return !grammarLines.isEmpty();
 	}
 
 	/**
-	 * Returns <code>true</code> if this block has one or more mandatory lines.
+	 * Returns {@code true} if this block has one or more mandatory lines.
 	 */
 	public boolean hasMandatoryLines(){
 		for(final GedcomGrammarLine line : grammarLines)
@@ -194,7 +194,7 @@ class GedcomGrammarBlock{
 	}
 
 	/**
-	 * Returns <code>true</code> if this block has a line with the given line ID (tag or structure name).
+	 * Returns {@code true} if this block has a line with the given line ID (tag or structure name).
 	 */
 	public boolean hasGrammarLine(final String lineId){
 		return idToLineLinks.containsKey(lineId);

@@ -48,6 +48,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.Serial;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +62,7 @@ import java.util.StringJoiner;
 //https://docs.oracle.com/javase/tutorial/uiswing/layout/group.html
 public class FamilyPanel extends JPanel{
 
+	@Serial
 	private static final long serialVersionUID = 6664809287767332824L;
 
 	private static final Color BORDER_COLOR = Color.BLACK;
@@ -296,6 +298,7 @@ public class FamilyPanel extends JPanel{
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
+	@SuppressWarnings("NumberEquality")
 	public void refresh(final Integer actionCommand){
 		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
@@ -379,8 +382,9 @@ public class FamilyPanel extends JPanel{
 	}
 
 	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
-		final List<GedcomNode> birthEvents = new ArrayList<>();
-		for(GedcomNode event : store.traverseAsList(node, "EVENT[]")){
+		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
+		final List<GedcomNode> birthEvents = new ArrayList<>(events.size());
+		for(GedcomNode event : events){
 			event = store.getEvent(event.getXRef());
 			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
 				birthEvents.add(event);

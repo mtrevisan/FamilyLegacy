@@ -53,6 +53,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -65,6 +69,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class ContactDialog extends JDialog implements ActionListener{
 
+	@Serial
 	private static final long serialVersionUID = 942804701975315042L;
 
 	private static final EmailValidator EMAIL_VALIDATOR = EmailValidator.getInstance();
@@ -150,9 +155,25 @@ public class ContactDialog extends JDialog implements ActionListener{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		contactsTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = 2374666866068519355L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		contactsTable.setPreferredScrollableViewportSize(new Dimension(contactsTable.getPreferredSize().width,
@@ -397,6 +418,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 
 	private static class ContactTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = -2887467453297082858L;
 
 
@@ -412,6 +434,19 @@ public class ContactDialog extends JDialog implements ActionListener{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

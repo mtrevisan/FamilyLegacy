@@ -24,18 +24,30 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.util.ArrayDeque;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.function.Consumer;
 
 
@@ -65,7 +77,7 @@ public final class GUIHelper{
 	}
 
 	public static void setEnabled(final JComponent component, final boolean enabled){
-		final Deque<Component> stack = new ArrayDeque<>();
+		final Deque<Component> stack = new LinkedList<>();
 		for(final Component comp : component.getComponents())
 			stack.add(comp);
 		while(!stack.isEmpty()){
@@ -117,6 +129,7 @@ public final class GUIHelper{
 
 
 	private static class UndoAction extends AbstractAction{
+		@Serial
 		private static final long serialVersionUID = -3974682914632160277L;
 
 		@Override
@@ -129,9 +142,23 @@ public final class GUIHelper{
 				e.printStackTrace();
 			}
 		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
 	}
 
 	private static class RedoAction extends AbstractAction{
+		@Serial
 		private static final long serialVersionUID = -4415532769601693910L;
 
 		@Override
@@ -143,6 +170,19 @@ public final class GUIHelper{
 			catch(final CannotUndoException e){
 				e.printStackTrace();
 			}
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

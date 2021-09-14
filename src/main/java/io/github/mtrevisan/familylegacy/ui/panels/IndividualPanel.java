@@ -53,9 +53,11 @@ import java.awt.event.WindowEvent;
 import java.awt.font.TextAttribute;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,7 @@ import java.util.StringJoiner;
 
 public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
+	@Serial
 	private static final long serialVersionUID = -300117824230109203L;
 
 
@@ -357,6 +360,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
+	@SuppressWarnings("NumberEquality")
 	public void refresh(final Integer actionCommand){
 		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
@@ -365,7 +369,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
-		final List<String[]> completeNames = new ArrayList<>();
+		final List<String[]> completeNames = new ArrayList<>(1);
 		if(individual != null){
 			final List<GedcomNode> names = store.traverseAsList(individual, "NAME[]");
 			for(final GedcomNode name : names){
@@ -576,8 +580,9 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
-		final List<GedcomNode> birthEvents = new ArrayList<>();
-		for(GedcomNode event : store.traverseAsList(node, "EVENT[]")){
+		final List<GedcomNode> events = store.traverseAsList(node, "EVENT[]");
+		final List<GedcomNode> birthEvents = new ArrayList<>(events.size());
+		for(GedcomNode event : events){
 			event = store.getEvent(event.getXRef());
 			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
 				birthEvents.add(event);

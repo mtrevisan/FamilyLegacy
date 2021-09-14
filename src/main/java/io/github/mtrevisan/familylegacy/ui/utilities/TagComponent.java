@@ -31,12 +31,14 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.Objects;
 import java.util.function.Consumer;
 
 
 class TagComponent extends JComponent{
 
+	@Serial
 	private static final long serialVersionUID = -7410352884175789897L;
 
 	private static final Color COLOR_TEXT = new Color(85, 85, 85);

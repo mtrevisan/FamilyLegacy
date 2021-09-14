@@ -142,8 +142,8 @@ public abstract class AbstractCalendarParser{
 	 * Split a two-date string, removing prefixes, and return an array of two date strings.
 	 *
 	 * @param date	The date string containing two dates.
-	 * @return	An array of two strings, or an empty array if the supplied <code>dateString</code> value does not contain the
-	 *		<code>splitOn</code> delimiter value. Never returns null.
+	 * @return	An array of two strings, or an empty array if the supplied {@code dateString} value does not contain the
+	 *		{@code splitOn} delimiter value. Never returns null.
 	 */
 	private String[] splitDates(String date){
 		date = RegexHelper.clear(date, PATTERN_PREFIXES_RANGE);
@@ -178,7 +178,7 @@ public abstract class AbstractCalendarParser{
 	}
 
 	/**
-	 * Remove the prefixes for open ended date ranges with only one date (e.g., "BEF 1900", "FROM 1756", "AFT 2000").
+	 * Remove the prefixes for open-ended date ranges with only one date (e.g., "BEF 1900", "FROM 1756", "AFT 2000").
 	 *
 	 * @param date	The date string.
 	 * @return	The same date string with range/period prefixes removed, but only if it's an open-ended period or range.

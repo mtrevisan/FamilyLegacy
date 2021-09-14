@@ -35,13 +35,13 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -56,9 +56,9 @@ final class GedcomParser{
 
 	private final Protocol protocol;
 	private final GedcomNode root;
-	private final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
+	private final Deque<GedcomNode> nodeStack = new LinkedList<>();
 	/** Stacks of {@link GedcomGrammarBlock} or {@link GedcomGrammarLine} objects. */
-	private final Deque<Object> grammarBlockOrLineStack = new ArrayDeque<>();
+	private final Deque<Object> grammarBlockOrLineStack = new LinkedList<>();
 
 
 	/**
@@ -104,7 +104,7 @@ final class GedcomParser{
 			lineCount = 0;
 			startDocument();
 
-			final Collection<String> references = new HashSet<>();
+			final Collection<String> references = new HashSet<>(0);
 
 			String line;
 			int currentLevel;

@@ -46,6 +46,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -57,6 +61,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class RepositoryCitationDialog extends JDialog{
 
+	@Serial
 	private static final long serialVersionUID = 4839647166680455355L;
 
 	/** [ms] */
@@ -278,6 +283,7 @@ public class RepositoryCitationDialog extends JDialog{
 
 	private static class RepositoryTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = 4104009208535269036L;
 
 
@@ -293,6 +299,19 @@ public class RepositoryCitationDialog extends JDialog{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

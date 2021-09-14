@@ -44,12 +44,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.Serial;
 import java.util.function.Consumer;
 
 
 //TODO
 public class PlaceDialog extends JDialog implements ActionListener{
 
+	@Serial
 	private static final long serialVersionUID = 2060676490438789694L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);

@@ -47,7 +47,7 @@ import java.util.List;
 public class GifDecoder{
 
 	public static final int FILE_READ_STATUS_OK = 0;
-	/** Error decoding file (may be partially decoded) */
+	/** Error decoding file (maybe partially decoded) */
 	public static final int FILE_READ_STATUS_FORMAT_ERROR = 1;
 	/** Unable to open source. */
 	public static final int FILE_READ_STATUS_OPEN_ERROR = 2;
@@ -150,7 +150,7 @@ public class GifDecoder{
 	/**
 	 * Gets the first (or only) image read.
 	 *
-	 * @return	BufferedImage containing first frame, or <code>null</code> if none.
+	 * @return	BufferedImage containing first frame, or {@code null} if none.
 	 */
 	public BufferedImage getImage(){
 		return getFrame(0);
@@ -158,9 +158,9 @@ public class GifDecoder{
 
 	/**
 	 * Gets the "Netscape" iteration count, if any.
-	 * A count of <code>0</code> means repeat indefinitely.
+	 * A count of {@code 0} means repeat indefinitely.
 	 *
-	 * @return	iteration count if one was specified, else <code>1</code>.
+	 * @return	iteration count if one was specified, else {@code 1}.
 	 */
 	public int getLoopCount(){
 		return loopCount;
@@ -258,10 +258,10 @@ public class GifDecoder{
 	}
 
 	/**
-	 * Gets the image contents of frame <code>n</code>.
+	 * Gets the image contents of frame {@code n}.
 	 *
 	 * @param n	Frame index
-	 * @return	BufferedImage representation of frame, or <code>null</code> if <code>n</code> is invalid.
+	 * @return	BufferedImage representation of frame, or {@code null} if <code>n</code> is invalid.
 	 */
 	public BufferedImage getFrame(final int n){
 		BufferedImage im = null;
@@ -283,7 +283,7 @@ public class GifDecoder{
 	 * Reads GIF image from stream
 	 *
 	 * @param is	InputStream containing GIF file.
-	 * @return	read status code (<code>0</code> = no errors)
+	 * @return	read status code ({@code 0} = no errors)
 	 */
 	public int read(final InputStream is){
 		if(is != null){
@@ -314,10 +314,10 @@ public class GifDecoder{
 
 	/**
 	 * Reads GIF file from specified file/URL source.
-	 * (URL assumed if name contains <code>":/"</code> or <code>"file:"</code>)
+	 * (URL assumed if name contains {@code ":/"} or <code>"file:"</code>)
 	 *
 	 * @param name	String containing source
-	 * @return	read status code (<code>0</code> = no errors)
+	 * @return	read status code ({@code 0} = no errors)
 	 */
 	public int read(String name){
 		try{
@@ -455,7 +455,7 @@ public class GifDecoder{
 			pixels[i] = 0;
 	}
 
-	/** Returns <code>true</code> if an error was encountered during reading/decoding. */
+	/** Returns {@code true} if an error was encountered during reading/decoding. */
 	private boolean hasErrors(){
 		return (status != FILE_READ_STATUS_OK);
 	}
@@ -464,7 +464,7 @@ public class GifDecoder{
 	private void init(){
 		status = FILE_READ_STATUS_OK;
 		frameCount = 0;
-		frames = new ArrayList<>();
+		frames = new ArrayList<>(0);
 		globalColorTable = null;
 		localColorTable = null;
 	}

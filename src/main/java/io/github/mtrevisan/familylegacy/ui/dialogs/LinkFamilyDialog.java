@@ -53,6 +53,10 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -67,6 +71,7 @@ import java.util.regex.PatternSyntaxException;
 //TODO
 public class LinkFamilyDialog extends JDialog{
 
+	@Serial
 	private static final long serialVersionUID = -3246390161022821225L;
 
 	/** [ms] */
@@ -330,6 +335,7 @@ public class LinkFamilyDialog extends JDialog{
 
 	private static class FamiliesTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = -2461556718124651678L;
 
 
@@ -349,6 +355,19 @@ public class LinkFamilyDialog extends JDialog{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

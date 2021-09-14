@@ -24,12 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.RenderingHints;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.LinkedList;
 
 
 public final class FontHelper{
@@ -54,7 +58,7 @@ public final class FontHelper{
 	}
 
 	private static void updateComponent(final Component component, final Font font){
-		final Deque<Component> stack = new ArrayDeque<>();
+		final Deque<Component> stack = new LinkedList<>();
 		stack.push(component);
 		while(!stack.isEmpty()){
 			final Component comp = stack.pop();

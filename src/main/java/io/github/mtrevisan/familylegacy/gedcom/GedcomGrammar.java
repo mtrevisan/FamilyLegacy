@@ -60,9 +60,9 @@ final class GedcomGrammar{
 	private static final Pattern STRUCTURE_NAME_PATTERN = RegexHelper.pattern("[A-Z_]+\\s?:=.*");
 	/** Matches any or-item (the | sign), with or without leading and trailing spaces. */
 	private static final Pattern OR_PATTERN = RegexHelper.pattern("[ ]*\\|[ ]*");
-	/** Matches the [ bracket, with or without trailing spaces. */
+	/** Matches the opening square bracket, with or without trailing spaces. */
 	private static final Pattern BRACKET_OPEN = RegexHelper.pattern("\\[[ ]*");
-	/** Matches the ] bracket, with or without leading spaces. */
+	/** Matches the closing square bracket, with or without leading spaces. */
 	private static final Pattern BRACKET_CLOSE = RegexHelper.pattern("[ ]*\\]");
 	private static final Pattern SUB_BLOCK_DIVIDER = Pattern.compile("^[\\[\\]|]");
 	private static final Pattern ID_PATTERN = Pattern.compile("[A-Z]+([_:]*[A-Z])+");
@@ -187,9 +187,9 @@ final class GedcomGrammar{
 
 				//no spaces around OR-signs
 				line = RegexHelper.replaceAll(line, OR_PATTERN, "|");
-				//no spaces around open brackets
+				//no spaces around opening square bracket
 				line = RegexHelper.replaceAll(line, BRACKET_OPEN, "[");
-				//no spaces around closing brackets
+				//no spaces around closing square brackets
 				line = RegexHelper.replaceAll(line, BRACKET_CLOSE, "]");
 
 				if(RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){

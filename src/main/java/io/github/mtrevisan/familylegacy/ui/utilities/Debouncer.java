@@ -35,7 +35,7 @@ import java.util.function.Consumer;
 public class Debouncer<T>{
 
 	private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-	private final ConcurrentHashMap<T, TimerTask> delayedMap = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<T, TimerTask> delayedMap = new ConcurrentHashMap<>(0);
 
 	private final Consumer<T> callback;
 	private final int interval;

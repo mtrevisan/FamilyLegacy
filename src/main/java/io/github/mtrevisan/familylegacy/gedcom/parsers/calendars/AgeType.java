@@ -77,8 +77,9 @@ public enum AgeType{
 	}
 
 	public static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final AgeType ageType : values())
+		final AgeType[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final AgeType ageType : values)
 			list.add(ageType.description);
 		return list.toArray(new String[0]);
 	}

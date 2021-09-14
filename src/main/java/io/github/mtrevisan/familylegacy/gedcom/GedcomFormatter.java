@@ -37,7 +37,7 @@ final class GedcomFormatter{
 	private GedcomFormatter(){}
 
 	/**
-	 * Makes a or-list out of the given list, adding the given pre- and suffixes
+	 * Makes an or-list out of the given list, adding the given pre- and suffixes
 	 * to each or-item.<br>
 	 * A generated list could look like:<br>
 	 * [ITEM1|ITEM2|ITEM3]<br>

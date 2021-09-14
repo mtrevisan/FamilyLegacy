@@ -55,6 +55,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -67,6 +71,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class DocumentDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
+	@Serial
 	private static final long serialVersionUID = 1919219115430275506L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -159,9 +164,25 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		filesTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = 2654469836713369932L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		filesTable.setPreferredScrollableViewportSize(new Dimension(filesTable.getPreferredSize().width,
@@ -430,6 +451,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 
 	private static class DocumentTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = 2839717535515895303L;
 
 
@@ -445,6 +467,19 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

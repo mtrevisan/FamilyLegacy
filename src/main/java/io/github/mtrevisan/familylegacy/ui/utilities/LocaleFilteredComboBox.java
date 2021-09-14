@@ -105,7 +105,7 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 			showPopup();
 
 		//filter
-		final Collection<FlefLocale> filterArray = new ArrayList<>();
+		final Collection<FlefLocale> filterArray = new ArrayList<>(LOCALE_ITEMS.length);
 		for(final FlefLocale locale : LOCALE_ITEMS)
 			if(locale.toString().toLowerCase(Locale.ROOT).contains(enteredText.toLowerCase(Locale.ROOT)))
 				filterArray.add(locale);

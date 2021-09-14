@@ -50,8 +50,9 @@ public enum CalendarType{
 	}
 
 	public static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final CalendarType calendarType : values())
+		final CalendarType[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final CalendarType calendarType : values)
 			list.add(calendarType.description);
 		return list.toArray(new String[0]);
 	}

@@ -55,6 +55,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -67,6 +71,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class SourceCitationDialog extends JDialog implements ActionListener{
 
+	@Serial
 	private static final long serialVersionUID = 8355033011385629078L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
@@ -177,9 +182,25 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		sourcesTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = -6131110796684649318L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		sourcesTable.setPreferredScrollableViewportSize(new Dimension(sourcesTable.getPreferredSize().width,
@@ -415,6 +436,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 
 	private static class SourceTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = -3229928471735627084L;
 
 
@@ -430,6 +452,19 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

@@ -95,15 +95,17 @@ enum HebrewMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		final List<String> list = new ArrayList<>();
-		for(final HebrewMonth hebrewMonth : values())
+		final HebrewMonth[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final HebrewMonth hebrewMonth : values)
 			list.add(hebrewMonth.abbreviation);
 		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final HebrewMonth hebrewMonth : values())
+		final HebrewMonth[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final HebrewMonth hebrewMonth : values)
 			list.add(hebrewMonth.description);
 		return list.toArray(new String[0]);
 	}

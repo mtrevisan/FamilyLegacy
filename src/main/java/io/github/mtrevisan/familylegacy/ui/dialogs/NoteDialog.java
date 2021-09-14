@@ -41,11 +41,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.Serial;
 import java.util.function.Consumer;
 
 
 public class NoteDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
+	@Serial
 	private static final long serialVersionUID = -4624021267879013105L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);

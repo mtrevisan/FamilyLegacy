@@ -26,18 +26,22 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.function.Function;
 
 
 /**
  * A flow layout arranges components in a directional flow, much like lines of text in a paragraph. The flow direction is
- * determined by the container's <code>componentOrientation</code> property and may be one of two values:
+ * determined by the container's {@code componentOrientation} property and may be one of two values:
  * <ul>
- * <li><code>ComponentOrientation.TOP_TO_BOTTOM</code>
- * <li><code>ComponentOrientation.BOTTOM_TO_TOP</code>
+ * <li>{@code ComponentOrientation.TOP_TO_BOTTOM}
+ * <li>{@code ComponentOrientation.BOTTOM_TO_TOP}
  * </ul>
  * Flow layouts are typically used to arrange buttons in a panel. It arranges buttons
- * horizontally until no more buttons fit on the same line. The line alignment is determined by the <code>align</code>
+ * horizontally until no more buttons fit on the same line. The line alignment is determined by the {@code align}
  * property. The possible values are:
  * <ul>
  * <li>{@link FlowLayout#LEFT LEFT}
@@ -50,16 +54,17 @@ import java.util.function.Function;
  */
 public class HorizontalFlowLayout extends FlowLayout{
 
+	@Serial
 	private static final long serialVersionUID = -9089126297688841865L;
 
 
-	/** Constructs a new <code>WrapLayout</code> with a left alignment and a default 5-unit horizontal and vertical gap. */
+	/** Constructs a new {@code WrapLayout} with a left alignment and a default 5-unit horizontal and vertical gap. */
 	public HorizontalFlowLayout(){}
 
 	/**
-	 * Constructs a new <code>FlowLayout</code> with the specified alignment and a default 5-unit horizontal and vertical gap.
-	 * The value of the alignment argument must be one of <code>WrapLayout</code>, <code>WrapLayout</code>,
-	 * or <code>WrapLayout</code>.
+	 * Constructs a new {@code FlowLayout} with the specified alignment and a default 5-unit horizontal and vertical gap.
+	 * The value of the alignment argument must be one of {@code WrapLayout}, <code>WrapLayout</code>,
+	 * or {@code WrapLayout}.
 	 *
 	 * @param align	The alignment value.
 	 */
@@ -69,12 +74,12 @@ public class HorizontalFlowLayout extends FlowLayout{
 
 	/**
 	 * Creates a new flow layout manager with the indicated alignment and the indicated horizontal and vertical gaps.<p>
-	 * The value of the alignment argument must be one of <code>HorizontalFlowLayout.TOP</code>,
-	 * <code>HorizontalFlowLayout.BOTTOM</code>, or <code>HorizontalFlowLayout.CENTER</code>.
+	 * The value of the alignment argument must be one of {@code HorizontalFlowLayout.TOP},
+	 * {@code HorizontalFlowLayout.BOTTOM}, or <code>HorizontalFlowLayout.CENTER</code>.
 	 *
 	 * @param align The alignment value.
-	 * @param hgap The horizontal gap between components and between the components and the borders of the <code>Container</code>.
-	 * @param vgap	The vertical gap between components and between the components and the borders of the <code>Container</code>.
+	 * @param hgap The horizontal gap between components and between the components and the borders of the {@code Container}.
+	 * @param vgap	The vertical gap between components and between the components and the borders of the {@code Container}.
 	 */
 	public HorizontalFlowLayout(final int align, final int hgap, final int vgap){
 		super(align, hgap, vgap);
@@ -95,7 +100,7 @@ public class HorizontalFlowLayout extends FlowLayout{
 	}
 
 	/**
-	 * Returns the minimum dimensions needed to layout the <i>visible</i> components contained in the specified target container.
+	 * Returns the minimum dimensions needed to lay out the <i>visible</i> components contained in the specified target container.
 	 *
 	 * @param target	The container that needs to be laid out.
 	 * @return	The minimum dimensions to lay out the subcomponents of the specified container.
@@ -139,7 +144,7 @@ public class HorizontalFlowLayout extends FlowLayout{
 					rowWidth = 0;
 					rowHeight = 0;
 				}
-				//add an horizontal gap for all components after the first
+				//add a horizontal gap for all components after the first
 				rowWidth += (rowWidth > 0? getHgap(): 0) + d.width;
 				rowHeight = Math.max(rowHeight, d.height);
 			}
@@ -184,6 +189,19 @@ public class HorizontalFlowLayout extends FlowLayout{
 	private void addToDimension(final Dimension dimension, final int addedRowWidth, final Insets insets){
 		dimension.width += addedRowWidth;
 		dimension.height += insets.top + insets.bottom + getVgap() * 2;
+	}
+
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
 	}
 
 }

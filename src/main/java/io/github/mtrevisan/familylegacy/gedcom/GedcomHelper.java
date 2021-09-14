@@ -40,7 +40,7 @@ final class GedcomHelper{
 
 	private GedcomHelper(){}
 
-	@SuppressWarnings("ResultOfMethodCallIgnored")
+	@SuppressWarnings({"ResultOfMethodCallIgnored", "IOResourceOpenedButNotSafelyClosed"})
 	static BufferedReader getBufferedReader(InputStream in) throws IOException{
 		if(!in.markSupported())
 			in = new BufferedInputStream(in);
@@ -149,7 +149,7 @@ final class GedcomHelper{
 			encoding = "UTF-8";
 		//make encoding value java-friendly
 		else if("ASCII".equals(encoding)){
-			//ASCII followed by VERS MacOS Roman is MACINTOSH
+			//ASCII followed by VERS macOS Roman is MACINTOSH
 			if("MacOS Roman".equals(version))
 				encoding = "x-MacRoman";
 		}

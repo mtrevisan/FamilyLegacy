@@ -31,9 +31,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,7 +86,7 @@ public abstract class Store{
 			new AnselOutputStreamWriter(os): new OutputStreamWriter(os, charset));
 		final Writer out = new BufferedWriter(writer);
 
-		final Deque<GedcomNode> nodeStack = new ArrayDeque<>();
+		final Deque<GedcomNode> nodeStack = new LinkedList<>();
 		//skip root node and add its children
 		for(final GedcomNode child : root.getChildren())
 			nodeStack.addLast(child);

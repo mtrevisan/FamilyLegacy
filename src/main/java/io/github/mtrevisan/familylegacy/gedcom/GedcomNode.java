@@ -27,14 +27,12 @@ package io.github.mtrevisan.familylegacy.gedcom;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -221,9 +219,9 @@ public abstract class GedcomNode{
 			if(child.level != level + 1){
 				int currentLevel = level + 1;
 				child.setLevel(currentLevel ++);
-				final Deque<GedcomNode> stack = new ArrayDeque<>();
+				final Deque<GedcomNode> stack = new LinkedList<>();
 				stack.push(child);
-				final Deque<GedcomNode> childrenStack = new ArrayDeque<>();
+				final Deque<GedcomNode> childrenStack = new LinkedList<>();
 				while(!stack.isEmpty()){
 					while(!stack.isEmpty()){
 						final GedcomNode node = stack.pop();
@@ -304,30 +302,27 @@ public abstract class GedcomNode{
 
 	@Override
 	public boolean equals(final Object obj){
-		if(obj == this)
+		if(this == obj)
 			return true;
 		if(obj == null || getClass() != obj.getClass())
 			return false;
 
 		final GedcomNode rhs = (GedcomNode)obj;
-		final EqualsBuilder builder = new EqualsBuilder()
-//			.append(id, rhs.id)
-			.append(tag, rhs.tag)
-			.append(xref, rhs.xref)
-			.append(value, rhs.value)
-			.append(children, rhs.children);
-		return builder.isEquals();
+		return (/*id.equals(rhs.id)
+			&&*/ tag.equals(rhs.tag)
+			&& xref.equals(rhs.xref)
+			&& value.equals(rhs.value)
+			&& children.equals(rhs.children));
 	}
 
 	@Override
 	public int hashCode(){
-		return new HashCodeBuilder()
-//			.append(id)
-			.append(tag)
-			.append(xref)
-			.append(value)
-			.append(children)
-			.hashCode();
+		int result = 0/*id.hashCode()*/;
+		result = 31 * result + tag.hashCode();
+		result = 31 * result + xref.hashCode();
+		result = 31 * result + value.hashCode();
+		result = 31 * result + children.hashCode();
+		return result;
 	}
 
 	@Override
@@ -336,13 +331,13 @@ public abstract class GedcomNode{
 		if(id != null)
 			builder.append("id: ").append(id);
 		if(tag != null)
-			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("tag: ").append(tag);
+			builder.append(!builder.isEmpty()? ", ": StringUtils.EMPTY).append("tag: ").append(tag);
 		if(xref != null)
-			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("ref: ").append(xref);
+			builder.append(!builder.isEmpty()? ", ": StringUtils.EMPTY).append("ref: ").append(xref);
 		if(value != null)
-			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("value: ").append(value);
+			builder.append(!builder.isEmpty()? ", ": StringUtils.EMPTY).append("value: ").append(value);
 		if(children != null){
-			builder.append(builder.length() > 0? ", ": StringUtils.EMPTY).append("children: [");
+			builder.append(!builder.isEmpty()? ", ": StringUtils.EMPTY).append("children: [");
 			final int size = children.size();
 			for(int i = 0; i < size; i ++){
 				builder.append('{')

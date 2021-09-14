@@ -61,8 +61,9 @@ public enum Qualification{
 	}
 
 	public static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final Qualification qualification : values())
+		final Qualification[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final Qualification qualification : values)
 			list.add(qualification.description);
 		return list.toArray(new String[0]);
 	}

@@ -79,7 +79,7 @@ enum FrenchRepublicanMonth{
 		final FrenchRepublicanMonth[] values = values();
 		final String[] descriptions = new String[values.length];
 		for(int i = 0; i < values.length; i ++)
-			descriptions[i] = values[i].getDescription();
+			descriptions[i] = values[i].description;
 		return descriptions;
 	}
 
@@ -92,8 +92,9 @@ enum FrenchRepublicanMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		final List<String> list = new ArrayList<>();
-		for(final FrenchRepublicanMonth frenchRepublicanMonth : values())
+		final FrenchRepublicanMonth[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final FrenchRepublicanMonth frenchRepublicanMonth : values)
 			list.add(frenchRepublicanMonth.abbreviation);
 		return list.toArray(new String[0]);
 	}

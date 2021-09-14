@@ -50,6 +50,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -61,6 +65,7 @@ import java.util.regex.PatternSyntaxException;
 
 public class GroupCitationDialog extends JDialog{
 
+	@Serial
 	private static final long serialVersionUID = -4893058951719376351L;
 
 	/** [ms] */
@@ -157,9 +162,25 @@ public class GroupCitationDialog extends JDialog{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		groupsTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = -2147176729019326324L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		groupsTable.setPreferredScrollableViewportSize(new Dimension(groupsTable.getPreferredSize().width,
@@ -233,7 +254,7 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 	private void transferListToContainer(){
-		//remove all reference to groups from the container
+		//remove all reference to the group from the container
 		container.removeChildrenWithTag("GROUP");
 		//add all the remaining references to groups to the container
 		for(int i = 0; i < groupsTable.getRowCount(); i ++){
@@ -345,6 +366,7 @@ public class GroupCitationDialog extends JDialog{
 
 	private static class GroupTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = -2985688516803729157L;
 
 
@@ -360,6 +382,19 @@ public class GroupCitationDialog extends JDialog{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

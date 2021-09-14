@@ -92,4 +92,13 @@ public final class JavaHelper{
 				sj.add(value);
 	}
 
+	public static void exit(final int status){
+		new Thread("app-exit"){
+			@Override
+			public void run(){
+				System.exit(status);
+			}
+		}.start();
+	}
+
 }

@@ -50,6 +50,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.io.Serial;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -57,6 +58,7 @@ import java.util.function.Consumer;
 
 public class SourceDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
+	@Serial
 	private static final long serialVersionUID = 1754367426928623503L;
 
 	/** [ms] */

@@ -145,8 +145,8 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	 * Because of the switch to the Gregorian Calendar in 1752 in England and its colonies, and the corresponding change of the
 	 * first day of the year, it's not uncommon for dates in the range between 1582 and 1752 to be written using a double-dated
 	 * format, showing the old and new dates simultaneously. For example, today we would render George Washington's birthday in
-	 * GEDCOM format as <code>22 FEB 1732</code>. However, in 1760 or so, one might have written it as Feb 22 1731/32, thus be
-	 * entered into a GEDCOM field as <code>22 FEB 1731/32</code>.
+	 * GEDCOM format as {@code 22 FEB 1732}. However, in 1760 or so, one might have written it as Feb 22 1731/32, thus be
+	 * entered into a GEDCOM field as {@code 22 FEB 1731/32}.
 	 * </p>
 	 *
 	 * @param year	The year.

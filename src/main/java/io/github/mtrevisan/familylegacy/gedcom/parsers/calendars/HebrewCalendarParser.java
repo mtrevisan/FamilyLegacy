@@ -258,7 +258,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		//This code handles these exceptions.
 		if(!isLeapYear(year) && dayOfWeek == 3 && hours * 1080 + chalakim >= 9 * 1080 + 204){
 			//this prevents the year from being 356 days. We have to push Rosh Hashanah off two days because if we pushed it off
-			//only one day, Rosh Hashanah would comes out on a Wednesday. Check the Hebrew year 5745 for an example
+			//only one day, Rosh Hashanah would come out on a Wednesday. Check the Hebrew year 5745 for an example
 			dayOfWeek = 5;
 			days += 2;
 		}
@@ -320,10 +320,10 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		//the months of this year haven't happened yet, so go back a year
 		int y = year - 1;
 
-		//get how many 19 year cycles there has been and multiply it by 235 (which is the number of months in a 19-year cycle)
+		//get how many 19-year cycles there has been and multiply it by 235 (which is the number of months in a 19-year cycle)
 		int result = (int)(Math.floor(y / 19.) * 235.);
 
-		//get the remaining years after the last complete 19 year cycle
+		//get the remaining years after the last complete 19-year cycle
 		y = yearInLeapCycle(y);
 
 		//add 12 months for each of those years...

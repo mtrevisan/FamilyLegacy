@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
+import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.FamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
@@ -97,12 +98,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			pack();
 
 			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-			addWindowListener(new WindowAdapter(){
-				@Override
-				public void windowClosing(final WindowEvent e){
-					System.exit(0);
-				}
-			});
+			addWindowListener(new MyWindowAdapter());
 			setSize(1120, 490);
 			setLocationRelativeTo(null);
 			setVisible(true);
@@ -387,4 +383,10 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		EventQueue.invokeLater(() -> (new MainFrame()).setVisible(true));
 	}
 
+	private static class MyWindowAdapter extends WindowAdapter{
+		@Override
+		public void windowClosing(final WindowEvent e){
+			JavaHelper.exit(0);
+		}
+	}
 }

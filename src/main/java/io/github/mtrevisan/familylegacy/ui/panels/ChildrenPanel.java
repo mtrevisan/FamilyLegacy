@@ -41,12 +41,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.Serial;
 import java.util.Iterator;
 import java.util.List;
 
 
 public class ChildrenPanel extends JPanel{
 
+	@Serial
 	private static final long serialVersionUID = -1250057284416778781L;
 
 	private static final double FAMILY_HEIGHT = 12.;

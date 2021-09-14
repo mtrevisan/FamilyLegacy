@@ -24,6 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions;
 
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
+
 
 /**
  * Thrown by subscribers in their {@link EventHandler} annotated methods to indicate that a "veto" of the event has occurred.
@@ -36,6 +43,20 @@ package io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions;
  */
 public class VetoException extends RuntimeException{
 
+	@Serial
 	private static final long serialVersionUID = -9216228586704212839L;
+
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
 
 }

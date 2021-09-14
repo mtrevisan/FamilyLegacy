@@ -410,8 +410,8 @@ public class NeuralNetQuantizationAlgorithm{
 
 	/* Search for biased BGR values. */
 	protected int contest(final int b, final int g, final int r){
-		/* finds closest neuron (min dist) and updates freq. */
-		 /* finds best neuron (min dist-bias) and returns position. */
+		/* finds the closest neuron (min dist) and updates freq. */
+		 /* finds the best neuron (min dist-bias) and returns position. */
 		 /* for frequently chosen neurons, freq[i] is high and bias[i] is negative. */
 		 /* bias[i] = gamma*((1/netsize)-freq[i]) */
 		int bestd = ~(1 << 31);

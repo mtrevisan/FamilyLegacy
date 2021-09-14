@@ -159,7 +159,7 @@ public class ScaledImage extends JLabel{
 	}
 
 	/**
-	 * @return	Whether the images has a spherical or cylindrical mapping.
+	 * @return	Whether the images have a spherical or cylindrical mapping.
 	 */
 	private boolean isCurved(){
 		return (imageBuffer != null);

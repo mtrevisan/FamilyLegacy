@@ -51,7 +51,7 @@ public class AnimatedGifEncoder{
 	 * Background color for the last added frame and any subsequent frames.
 	 * <p>Since all colors are subject to modification in the quantization process, the color in the final palette for each frame closest
 	 * to the given color becomes the background color for that frame.</p>
-	 * <p>May be set to <code>null</code> to indicate no background color which will default to black.</p>
+	 * <p>May be set to {@code null} to indicate no background color which will default to black.</p>
 	 */
 	private Color background;
 	//no repeat
@@ -100,7 +100,7 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Sets the GIF frame disposal code for the last added frame and any subsequent frames.
-	 * Default is <code>0</code> if no transparent color has been set, otherwise <code>2</code>.
+	 * Default is {@code 0} if no transparent color has been set, otherwise <code>2</code>.
 	 *
 	 * @param disposalCode	Disposal code.
 	 */
@@ -110,7 +110,7 @@ public class AnimatedGifEncoder{
 	}
 
 	/**
-	 * Sets the number of times the set of GIF frames should be played. Default is <code>1</code>; <code>0</code> means play
+	 * Sets the number of times the set of GIF frames should be played. Default is {@code 1}; <code>0</code> means play
 	 * indefinitely.
 	 * Must be invoked before the first image is added.
 	 *
@@ -129,7 +129,7 @@ public class AnimatedGifEncoder{
 	 * Sets the transparent color for the last added frame and any subsequent frames.
 	 * Since all colors are subject to modification in the quantization process, the color in the final
 	 * palette for each frame closest to the given color becomes the transparent color for that frame.
-	 * May be set to <code>null</code> to indicate no transparent color.
+	 * May be set to {@code null} to indicate no transparent color.
 	 *
 	 * @param color	Color to be treated as transparent on display.
 	 */
@@ -143,7 +143,7 @@ public class AnimatedGifEncoder{
 	 * palette for each frame closest to the given color becomes the transparent color for that frame.
 	 * If exactMatch is set to true, transparent color index is search with exact match, and not looking for the
 	 * closest one.
-	 * May be set to <code>null</code> to indicate no transparent color.
+	 * May be set to {@code null} to indicate no transparent color.
 	 *
 	 * @param color		Color to be treated as transparent on display.
 	 * @param exactMatch	Whether an exact match should be applied.
@@ -154,7 +154,7 @@ public class AnimatedGifEncoder{
 	}
 
 	/**
-	 * Sets frame rate in frames per second. Equivalent to <code>setDelay(1000 / fps)</code>.
+	 * Sets frame rate in frames per second. Equivalent to {@code setDelay(1000 / fps)}.
 	 *
 	 * @param fps	frame rate [frame/s]
 	 */
@@ -164,11 +164,11 @@ public class AnimatedGifEncoder{
 	}
 
 	/**
-	 * Sets quality of color quantization (conversion of images to the maximum <code>256</code> colors allowed by the GIF specification).
-	 * Lower values (minimum = <code>1</code>) produce better colors, but slow processing significantly. <code>10</code> is the default,
-	 * and produces good color mapping at reasonable speeds. Values greater than <code>20</code> do not yield significant improvements in speed.
+	 * Sets quality of color quantization (conversion of images to the maximum {@code 256} colors allowed by the GIF specification).
+	 * Lower values (minimum = {@code 1}) produce better colors, but slow processing significantly. <code>10</code> is the default,
+	 * and produces good color mapping at reasonable speeds. Values greater than {@code 20} do not yield significant improvements in speed.
 	 *
-	 * @param quality	Quality (greater than <code>0</code>).
+	 * @param quality	Quality (greater than {@code 0}).
 	 */
 	public void setQuality(final int quality){
 		sample = Math.max(quality, 1);
@@ -198,7 +198,7 @@ public class AnimatedGifEncoder{
 	 * Initiates writing of a GIF file with the specified name.
 	 *
 	 * @param file	String containing output file name.
-	 * @return	<code>false</code> if open or initial write failed.
+	 * @return	{@code false} if open or initial write failed.
 	 */
 	public boolean start(final String file){
 		boolean response = false;
@@ -219,7 +219,7 @@ public class AnimatedGifEncoder{
 	 * The stream is not closed automatically.
 	 *
 	 * @param os	OutputStream on which GIF images are written.
-	 * @return	<code>false</code> if initial write failed.
+	 * @return	{@code false} if initial write failed.
 	 */
 	public boolean start(final OutputStream os){
 		boolean response = false;
@@ -243,11 +243,11 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Adds next GIF frame. The frame is not written immediately, but is actually deferred until the next frame is received so that timing
-	 * data can be inserted. Invoking <code>finish()</code> flushes all frames. If <code>setSize</code> was not invoked, the size of the
+	 * data can be inserted. Invoking {@code finish()} flushes all frames. If <code>setSize</code> was not invoked, the size of the
 	 * first image is used for all subsequent frames.
 	 *
 	 * @param im	BufferedImage containing frame to write.
-	 * @return	<code>true</code> if successful.
+	 * @return	{@code true} if successful.
 	 */
 	public boolean addFrame(final BufferedImage im){
 		boolean response = false;
@@ -359,7 +359,7 @@ public class AnimatedGifEncoder{
 		pixels = null;
 		colorDepth = 8;
 		palSize = 7;
-		// get closest match to transparent color if specified
+		// get the closest match to transparent color if specified
 		if(transparent != null)
 			transparentIndex = (transparentExactMatch? findExact(transparent): findClosest(transparent));
 	}
@@ -395,7 +395,7 @@ public class AnimatedGifEncoder{
 
 	/*
 	 * Returns true if the exact matching color is existing, and used in the color palette, otherwise, return false. This method has to be called before
-	 * finishing the image, because after finished the palette is destroyed and it will always return false.
+	 * finishing the image, because after finished the palette is destroyed, and it will always return false.
 	 */
 	boolean isColorUsed(final Color c){
 		return findExact(c) != -1;
@@ -445,28 +445,28 @@ public class AnimatedGifEncoder{
 		out.write(0x21); // extension introducer
 		out.write(0xf9); // GCE label
 		out.write(4); // data block size
-		final int transp;
-		int disp;
+		final int transparency;
+		int dispose;
 		if(transparent == null){
-			transp = 0;
-			disp = 0; // dispose = no action
+			transparency = 0;
+			dispose = 0; // dispose = no action
 		}
 		else{
-			transp = 1;
-			disp = 2; // force clear if using transparent color
+			transparency = 1;
+			dispose = 2; // force clear if using transparent color
 		}
 		if(disposalCode >= 0)
-			disp = disposalCode & 7; // user override
-		disp <<= 2;
+			dispose = disposalCode & 7; // user override
+		dispose <<= 2;
 
 		// packed fields
 		out.write(0
 			| // 1:3 reserved
-			disp
+			dispose
 			| // 4:6 disposal
 			0
 			| // 7   user input - 0 = none
-			transp); // 8   transparency flag
+			transparency); // 8   transparency flag
 
 		writeShort(Math.round(delay / 10.f)); // delay x 1/100 sec
 		out.write(transparentIndex); // transparent color index

@@ -55,6 +55,8 @@ package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
  */
 public interface EventBusInterface{
 
+	void start();
+
 	/**
 	 * Subscribes the specified subscriber to the event bus.
 	 * A subscribed object will be notified of any published events on the methods annotated with the

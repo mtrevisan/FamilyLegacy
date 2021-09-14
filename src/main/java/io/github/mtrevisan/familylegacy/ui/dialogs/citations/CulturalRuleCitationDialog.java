@@ -50,6 +50,10 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -62,6 +66,7 @@ import java.util.regex.PatternSyntaxException;
 //TODO
 public class CulturalRuleCitationDialog extends JDialog implements TextPreviewListenerInterface{
 
+	@Serial
 	private static final long serialVersionUID = 3322392561648823462L;
 
 	/** [ms] */
@@ -169,9 +174,25 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		rulesTable.getActionMap()
 			.put("delete", new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = 3784664925849526371L;
+
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
+				}
+
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
+				}
+
+				@SuppressWarnings("unused")
+				@Serial
+				private void readObject(final ObjectInputStream is) throws NotSerializableException{
+					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		rulesTable.setPreferredScrollableViewportSize(new Dimension(rulesTable.getPreferredSize().width,
@@ -234,7 +255,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
-			//remove all reference to rules from the container
+			//remove all reference to the rules from the container
 			container.removeChildrenWithTag("CULTURAL_RULE");
 			//add all the remaining references to rules to the container
 			for(int i = 0; i < rulesTable.getRowCount(); i ++){
@@ -270,7 +291,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	}
 
 	private void transferListToContainer(){
-		//remove all reference to groups from the container
+		//remove all reference to the  groups from the container
 		container.removeChildrenWithTag("CULTURAL_RULE");
 		//add all the remaining references to groups to the container
 		for(int i = 0; i < rulesTable.getRowCount(); i ++){
@@ -397,6 +418,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 
 	private static class CulturalRuleTableModel extends DefaultTableModel{
 
+		@Serial
 		private static final long serialVersionUID = -581310490684534579L;
 
 
@@ -412,6 +434,19 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
 		}
 	}
 

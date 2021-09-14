@@ -80,8 +80,9 @@ public enum IntervalType{
 	}
 
 	public static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final IntervalType intervalType : values())
+		final IntervalType[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final IntervalType intervalType : values)
 			list.add(intervalType.description);
 		return list.toArray(new String[0]);
 	}

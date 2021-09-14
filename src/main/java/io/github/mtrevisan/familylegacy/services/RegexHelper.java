@@ -86,7 +86,7 @@ public final class RegexHelper{
 	}
 
 	private static String[] extractUnlimited(final Matcher matcher){
-		final Collection<String> result = new ArrayList<>();
+		final Collection<String> result = new ArrayList<>(0);
 		while(matcher.find()){
 			final String component = getNextGroup(matcher);
 			result.add((component != null? component: matcher.group()));

@@ -32,7 +32,7 @@ import java.util.List;
  * {@link GedcomGrammarBlock} which contains all the first level lines of the structure.<br>
  * <br>
  * Hierarchy:
- * <pre><code>
+ * <pre>{@code
  * |---GrammarStructure--------------------------------|
  * |                                                   |
  * | A structure contains one block                    |
@@ -58,7 +58,7 @@ import java.util.List;
  * | |                                              |  |
  * | |----------------------------------------------|  |
  * |---------------------------------------------------|
- * </code></pre>
+ * }</pre>
  */
 final class GedcomGrammarStructure{
 

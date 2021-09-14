@@ -89,15 +89,17 @@ enum GregorianMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		final List<String> list = new ArrayList<>();
-		for(final GregorianMonth gregorianMonth : values())
+		final GregorianMonth[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final GregorianMonth gregorianMonth : values)
 			list.add(gregorianMonth.abbreviation);
 		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		final List<String> list = new ArrayList<>();
-		for(final GregorianMonth gregorianMonth : values())
+		final GregorianMonth[] values = values();
+		final List<String> list = new ArrayList<>(values.length);
+		for(final GregorianMonth gregorianMonth : values)
 			list.add(gregorianMonth.description);
 		return list.toArray(new String[0]);
 	}

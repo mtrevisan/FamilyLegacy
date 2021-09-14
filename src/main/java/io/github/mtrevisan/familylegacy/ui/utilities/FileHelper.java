@@ -40,6 +40,7 @@ public final class FileHelper{
 
 	private static final String URL_PROTOCOL_SEPARATOR = "://";
 	private static final String MAIL_PROTOCOL = "mailto:";
+	@SuppressWarnings("HttpUrlsUsage")
 	private static final String URL_PROTOCOL_HTTP = "http://";
 	private static final String TEST_CONNECTIVITY_URL = "https://www.google.com/";
 

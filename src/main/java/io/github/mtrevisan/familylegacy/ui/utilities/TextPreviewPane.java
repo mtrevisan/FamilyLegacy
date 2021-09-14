@@ -191,7 +191,7 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 	/**
-	 * Exports the markdown text to an HTML file.
+	 * Exports the Markdown text to an HTML file.
 	 */
 	private void exportHtml(final String title, final String languageTag, final File htmlCssFile){
 		if(EXPORT_FILE_CHOOSER.showSaveDialog(this) != JFileChooser.APPROVE_OPTION)

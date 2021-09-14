@@ -24,6 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events;
 
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 import java.util.EventObject;
 
 
@@ -34,6 +38,7 @@ import java.util.EventObject;
  */
 public class BusExceptionEvent extends EventObject{
 
+	@Serial
 	private static final long serialVersionUID = -6138624437653011774L;
 
 
@@ -52,6 +57,19 @@ public class BusExceptionEvent extends EventObject{
 
 	public Throwable getCause(){
 		return cause;
+	}
+
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
+
+	@SuppressWarnings("unused")
+	@Serial
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
 	}
 
 }

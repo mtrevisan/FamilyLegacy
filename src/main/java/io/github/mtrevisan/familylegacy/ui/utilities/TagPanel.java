@@ -30,6 +30,7 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,6 +40,7 @@ import java.util.function.BiConsumer;
 
 public class TagPanel extends JPanel{
 
+	@Serial
 	private static final long serialVersionUID = 665517573169978352L;
 
 	public enum TagChangeType{SET, ADD, REMOVE, CLEAR}
@@ -64,7 +66,9 @@ public class TagPanel extends JPanel{
 	}
 
 	public void setTagsChanged(final BiConsumer<TagChangeType, Iterable<String>> tagsChanged){
-		this.tagsChanged = tagsChanged;
+		synchronized(getTreeLock()){
+			this.tagsChanged = tagsChanged;
+		}
 	}
 
 	@Override

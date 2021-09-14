@@ -57,7 +57,7 @@ public class Quaternion{
 
 
 	/**
-	 * Builds a Quaternion from the Euler rotation angles (x,y,z) aka (pitch, yaw, rall)).
+	 * Builds a Quaternion from the Euler rotation angles (x,y,z) aka (pitch, yaw, roll).
 	 * <p>Note that we are applying in order: (y, z, x) aka (yaw, roll, pitch) but we've ordered them in x, y, and z for convenience.</p>
 	 *
 	 * @param xAngle	The Euler pitch of rotation (in radians). (aka Attitude, often rotation around x)
@@ -259,14 +259,7 @@ public class Quaternion{
 
 	@Override
 	public String toString(){
-		final StringBuilder sb = new StringBuilder();
-		return sb.append("[")
-			.append(w).append(' ')
-			.append(x).append(' ')
-			.append(y).append(' ')
-			.append(z)
-			.append("]")
-			.toString();
+		return "[" + w + ' ' + x + ' ' + y + ' ' + z + "]";
 	}
 
 }

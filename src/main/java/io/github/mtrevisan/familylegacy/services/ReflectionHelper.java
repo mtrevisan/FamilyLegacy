@@ -94,7 +94,7 @@ public final class ReflectionHelper{
 		final Queue<Type> ancestorsQueue = extractAncestors(offspring);
 
 		//iterate over ancestors
-		final List<Class<?>> types = new ArrayList<>();
+		final List<Class<?>> types = new ArrayList<>(0);
 		while(!ancestorsQueue.isEmpty()){
 			final Type ancestorType = ancestorsQueue.poll();
 
@@ -118,12 +118,13 @@ public final class ReflectionHelper{
 	@SuppressWarnings("rawtypes")
 	private static <T> List<Class<?>> manageParameterizedAncestor(final ParameterizedType ancestorType, final Class<T> base,
 			final Map<String, Type> typeVariables){
-		final List<Class<?>> types = new ArrayList<>();
+		final List<Class<?>> types = new ArrayList<>(0);
 		final Type rawType = ancestorType.getRawType();
 		if(rawType instanceof Class<?> && base.isAssignableFrom((Class<?>)rawType)){
 			//loop through all type arguments and replace type variables with the actually known types
-			final Collection<Class> resolvedTypes = new ArrayList<>();
-			for(final Type t : ancestorType.getActualTypeArguments()){
+			final Type[] tt = ancestorType.getActualTypeArguments();
+			final Collection<Class> resolvedTypes = new ArrayList<>(tt.length);
+			for(final Type t : tt){
 				final String typeName = resolveArgumentType(typeVariables, t).getTypeName();
 				final Class<?> cls = toClass(typeName);
 				if(cls != null)

@@ -43,6 +43,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.Serial;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +57,7 @@ import java.util.TreeMap;
 
 public class TreePanel extends JPanel{
 
+	@Serial
 	private static final long serialVersionUID = 4700955059623460223L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreePanel.class);
@@ -64,7 +66,7 @@ public class TreePanel extends JPanel{
 
 	private static final int GENERATION_SEPARATOR_SIZE = 40;
 
-	private static final Map<String, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>();
+	private static final Map<String, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>(0);
 
 
 	private FamilyPanel parent1Parents1Panel;
