@@ -127,23 +127,21 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 
 		if(day == null){
 			switch(preciseness){
-				case FAVOR_LATEST:
+				case FAVOR_LATEST -> {
 					if(month == null)
 						month = HebrewMonth.ELUL;
 					day = getMonthLength(year, month);
-					break;
-
-				case FAVOR_MIDPOINT:
+				}
+				case FAVOR_MIDPOINT -> {
 					if(month == null)
 						month = HebrewMonth.ADAR;
 					day = getMonthLength(year, month) / 2;
-					break;
-
-				case PRECISE:
-				case FAVOR_EARLIEST:
+				}
+				case PRECISE, FAVOR_EARLIEST -> {
 					if(month == null)
 						month = HebrewMonth.TISHREI;
 					day = 1;
+				}
 			}
 		}
 		return convertToGregorian(year, month, day);
@@ -186,35 +184,20 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		//longer by one day, it is called a shalem year. Cheshvan on a shalem year is 30 days.
 		int monthLength = 0;
 		switch(monthNumber){
-			case 1:
-			case 5:
-			case 8:
-			case 10:
-			case 12:
-				monthLength = 30;
-				break;
-
-			case 4:
-			case 7:
-			case 9:
-			case 11:
-			case 13:
-				monthLength = 29;
-				break;
-
-			case 6:
+			case 1, 5, 8, 10, 12 -> monthLength = 30;
+			case 4, 7, 9, 11, 13 -> monthLength = 29;
+			case 6 -> {
 				final boolean leapYear = isLeapYear(year);
 				monthLength = (leapYear? 30: 0);
-				break;
-
-			case 2:
+			}
+			case 2 -> {
 				final boolean shalemYear = (yearLength == 355 || yearLength == 385);
 				monthLength = (shalemYear? 30: 29);
-				break;
-
-			case 3:
+			}
+			case 3 -> {
 				final boolean haserYear = (yearLength == 353 || yearLength == 383);
 				monthLength = (haserYear? 29: 30);
+			}
 		}
 		return monthLength;
 	}

@@ -40,11 +40,32 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DropMode;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -411,37 +432,33 @@ public class GroupCitationDialog extends JDialog{
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
-		JFrame parent = new JFrame();
+		final JFrame parent = new JFrame();
 		EventQueue.invokeLater(() -> {
 			final Object listener = new Object(){
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case GROUP:
+						case GROUP -> {
 							final GroupDialog groupDialog = new GroupDialog(store, parent);
 							groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							groupDialog.setSize(300, 250);
 							groupDialog.setLocationRelativeTo(parent);
 							groupDialog.setVisible(true);
-							break;
-
-						case NOTE_CITATION:
+						}
+						case NOTE_CITATION -> {
 							final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
 							noteCitationDialog.loadData(editCommand.getContainer());
-
 							noteCitationDialog.setSize(450, 260);
 							noteCitationDialog.setLocationRelativeTo(parent);
 							noteCitationDialog.setVisible(true);
-							break;
-
-						case NOTE:
+						}
+						case NOTE -> {
 							final NoteDialog noteDialog = new NoteDialog(store, parent);
 							noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							noteDialog.setSize(550, 350);
 							noteDialog.setLocationRelativeTo(parent);
 							noteDialog.setVisible(true);
+						}
 					}
 				}
 			};

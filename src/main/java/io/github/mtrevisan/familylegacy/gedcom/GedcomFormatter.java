@@ -47,7 +47,7 @@ final class GedcomFormatter{
 	public static StringBuilder makeOrList(final Collection<String> list){
 		final StringBuilder sb = new StringBuilder();
 		for(final String item : list){
-			if(sb.length() > 0)
+			if(!sb.isEmpty())
 				sb.append("|");
 			if(item == null || "NULL".equals(item))
 				sb.append("<");

@@ -43,11 +43,34 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptio
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DropMode;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -494,28 +517,22 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
-						case SOURCE:
+						case SOURCE -> {
 							dialog = new SourceDialog(store, parent);
 							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(500, 540);
-							break;
-
-						case NOTE_CITATION:
+						}
+						case NOTE_CITATION -> {
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
-
 							dialog.setSize(450, 260);
-							break;
-
-						case NOTE:
+						}
+						case NOTE -> {
 							dialog = new NoteDialog(store, parent);
 							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(550, 350);
-							break;
-
-						case CUTOUT:
+						}
+						case CUTOUT -> {
 							dialog = new CutoutDialog(parent);
 							final GedcomNode container = editCommand.getContainer();
 							//TODO add base path?
@@ -527,8 +544,8 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 								((CutoutDialog)dialog).setCutoutStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
 								((CutoutDialog)dialog).setCutoutEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
 							}
-
 							dialog.setSize(500, 480);
+						}
 					}
 					if(dialog != null){
 						dialog.setLocationRelativeTo(parent);

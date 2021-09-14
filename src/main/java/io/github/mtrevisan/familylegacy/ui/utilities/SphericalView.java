@@ -1,8 +1,10 @@
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import java.awt.Canvas;
+import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
@@ -23,7 +25,7 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 	private final BufferedImage viewportImage;
 	private int[] imageBuffer;
 	private final int[] viewportImageBuffer;
-	private double[][][] rayVectors;
+	private final double[][][] rayVectors;
 	private static final double ACCURACY_FACTOR = 2048;
 	private static final int REQUIRED_SIZE = (int)(2 * ACCURACY_FACTOR);
 	private final double[] asinTable = new double[REQUIRED_SIZE];

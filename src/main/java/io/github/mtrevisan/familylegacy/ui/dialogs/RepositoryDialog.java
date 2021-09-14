@@ -34,8 +34,14 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -156,32 +162,26 @@ public class RepositoryDialog extends JDialog{
 				public void refresh(final EditEvent editCommand) throws IOException{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
-						case PLACE:
+						case PLACE -> {
 							dialog = new PlaceDialog(store, parent);
 							((PlaceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(350, 430);
-							break;
-
-						case CONTACT:
+						}
+						case CONTACT -> {
 							dialog = new ContactDialog(store, parent);
 							((ContactDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(350, 430);
-							break;
-
-						case NOTE_CITATION:
+						}
+						case NOTE_CITATION -> {
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
-
 							dialog.setSize(450, 260);
-							break;
-
-						case NOTE:
+						}
+						case NOTE -> {
 							dialog = new NoteDialog(store, parent);
 							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(550, 350);
+						}
 					}
 					if(dialog != null){
 						dialog.setLocationRelativeTo(parent);

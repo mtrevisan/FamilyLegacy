@@ -69,7 +69,7 @@ public final class JavaHelper{
 		return rulesProperties;
 	}
 
-	public static String format(final String message, final Object... parameters){
+	public static String textFormat(final String message, final Object... parameters){
 		return MessageFormatter.arrayFormat(message, parameters)
 			.getMessage();
 	}

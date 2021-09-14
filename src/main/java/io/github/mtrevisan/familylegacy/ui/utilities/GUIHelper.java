@@ -95,7 +95,7 @@ public final class GUIHelper{
 		if(label != null)
 			label.setLabelFor(field);
 
-		GUIHelper.addUndoCapability(field);
+		addUndoCapability(field);
 
 		if(onTextChange != null)
 			field.getDocument().addDocumentListener(new DocumentListener(){

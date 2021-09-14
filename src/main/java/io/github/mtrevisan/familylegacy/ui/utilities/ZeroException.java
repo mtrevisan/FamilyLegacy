@@ -15,7 +15,7 @@ public class ZeroException extends Exception{
 
 
 	public static ZeroException create(final String message, final Object... parameters){
-		return new ZeroException(JavaHelper.format(message, parameters));
+		return new ZeroException(JavaHelper.textFormat(message, parameters));
 	}
 
 	private ZeroException(final String message){

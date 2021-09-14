@@ -43,12 +43,16 @@ public final class GedcomParseException extends Exception{
 	private boolean skipAddLineNumber;
 
 
-	public static GedcomParseException create(final String message, final Object... parameters){
-		return new GedcomParseException(JavaHelper.format(message, parameters));
+	public GedcomParseException(final Throwable cause){
+		super(cause);
 	}
 
-	private GedcomParseException(final String message){
-		super(message);
+	public GedcomParseException(final String message, final Object... parameters){
+		this(null, message, parameters);
+	}
+
+	public GedcomParseException(final Throwable cause, final String message, final Object... parameters){
+		super(JavaHelper.textFormat(message, parameters), cause);
 	}
 
 	public GedcomParseException skipAddLineNumber(){

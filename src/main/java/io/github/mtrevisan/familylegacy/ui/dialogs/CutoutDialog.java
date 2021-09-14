@@ -32,8 +32,12 @@ import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;

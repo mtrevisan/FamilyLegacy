@@ -42,7 +42,7 @@ public final class GedcomGrammarParseException extends Exception{
 
 
 	public static GedcomGrammarParseException create(final String message, final Object... parameters){
-		return new GedcomGrammarParseException(JavaHelper.format(message, parameters));
+		return new GedcomGrammarParseException(JavaHelper.textFormat(message, parameters));
 	}
 
 	private GedcomGrammarParseException(final String message){

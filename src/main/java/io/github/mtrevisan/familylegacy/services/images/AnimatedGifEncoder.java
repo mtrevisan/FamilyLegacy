@@ -24,7 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.services.images;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.BufferedOutputStream;
@@ -100,7 +101,7 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Sets the GIF frame disposal code for the last added frame and any subsequent frames.
-	 * Default is {@code 0} if no transparent color has been set, otherwise <code>2</code>.
+	 * Default is {@code 0} if no transparent color has been set, otherwise {@code 2}.
 	 *
 	 * @param disposalCode	Disposal code.
 	 */
@@ -110,7 +111,7 @@ public class AnimatedGifEncoder{
 	}
 
 	/**
-	 * Sets the number of times the set of GIF frames should be played. Default is {@code 1}; <code>0</code> means play
+	 * Sets the number of times the set of GIF frames should be played. Default is {@code 1}; {@code 0} means play
 	 * indefinitely.
 	 * Must be invoked before the first image is added.
 	 *
@@ -165,7 +166,7 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Sets quality of color quantization (conversion of images to the maximum {@code 256} colors allowed by the GIF specification).
-	 * Lower values (minimum = {@code 1}) produce better colors, but slow processing significantly. <code>10</code> is the default,
+	 * Lower values (minimum = {@code 1}) produce better colors, but slow processing significantly. {@code 10} is the default,
 	 * and produces good color mapping at reasonable speeds. Values greater than {@code 20} do not yield significant improvements in speed.
 	 *
 	 * @param quality	Quality (greater than {@code 0}).
@@ -243,7 +244,7 @@ public class AnimatedGifEncoder{
 
 	/**
 	 * Adds next GIF frame. The frame is not written immediately, but is actually deferred until the next frame is received so that timing
-	 * data can be inserted. Invoking {@code finish()} flushes all frames. If <code>setSize</code> was not invoked, the size of the
+	 * data can be inserted. Invoking {@code finish()} flushes all frames. If {@code setSize} was not invoked, the size of the
 	 * first image is used for all subsequent frames.
 	 *
 	 * @param im	BufferedImage containing frame to write.

@@ -37,8 +37,20 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -255,32 +267,26 @@ private final JTextField subordinateField = new JTextField();
 				public void refresh(final EditEvent editCommand){
 					JDialog dialog = null;
 					switch(editCommand.getType()){
-						case SOURCE_CITATION:
+						case SOURCE_CITATION -> {
 							dialog = new SourceCitationDialog(store, parent);
 							((SourceCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(450, 450);
-							break;
-
-						case SOURCE:
+						}
+						case SOURCE -> {
 							dialog = new SourceDialog(store, parent);
 							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(500, 540);
-							break;
-
-						case NOTE_CITATION:
+						}
+						case NOTE_CITATION -> {
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
-
 							dialog.setSize(450, 260);
-							break;
-
-						case NOTE:
+						}
+						case NOTE -> {
 							dialog = new NoteDialog(store, parent);
 							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(550, 350);
+						}
 					}
 					if(dialog != null){
 						dialog.setLocationRelativeTo(parent);

@@ -34,6 +34,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -102,7 +103,7 @@ public abstract class GedcomNode{
 
 	public GedcomNode withTag(final String tag){
 		if(tag != null && !tag.isEmpty())
-			this.tag = tag.toUpperCase();
+			this.tag = tag.toUpperCase(Locale.ROOT);
 		return this;
 	}
 
@@ -318,10 +319,14 @@ public abstract class GedcomNode{
 	@Override
 	public int hashCode(){
 		int result = 0/*id.hashCode()*/;
-		result = 31 * result + tag.hashCode();
-		result = 31 * result + xref.hashCode();
-		result = 31 * result + value.hashCode();
-		result = 31 * result + children.hashCode();
+		if(tag != null)
+			result = 31 * result + tag.hashCode();
+		if(xref != null)
+			result = 31 * result + xref.hashCode();
+		if(value != null)
+			result = 31 * result + value.hashCode();
+		if(children != null)
+			result = 31 * result + children.hashCode();
 		return result;
 	}
 

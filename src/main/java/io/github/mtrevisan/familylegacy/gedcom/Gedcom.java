@@ -170,10 +170,10 @@ public class Gedcom extends Store{
 			}
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
+			throw new GedcomParseException((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 		catch(final Exception e){
-			throw GedcomParseException.create("Failed to read file", e);
+			throw new GedcomParseException("Failed to read file", e);
 		}
 		return protocol;
 	}
@@ -185,7 +185,7 @@ public class Gedcom extends Store{
 
 		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEADER);
 		if(heads.size() != 1)
-			throw GedcomParseException.create("Required header tag missing");
+			throw new GedcomParseException("Required header tag missing");
 		header = heads.get(0);
 		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		families = root.getChildrenWithTag(TAG_FAMILY);

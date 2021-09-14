@@ -38,10 +38,20 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 import io.github.mtrevisan.familylegacy.ui.panels.ScrollableContainerHost;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.AbstractButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -198,7 +208,7 @@ public class TextPreviewPane extends JSplitPane{
 			return;
 
 		File outputFile = EXPORT_FILE_CHOOSER.getSelectedFile();
-		if(!outputFile.getName().toLowerCase().endsWith(".html"))
+		if(!outputFile.getName().toLowerCase(Locale.ROOT).endsWith(".html"))
 			outputFile = new File(outputFile.getPath() + ".html");
 
 		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");

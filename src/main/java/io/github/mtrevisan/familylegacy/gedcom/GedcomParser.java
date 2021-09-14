@@ -68,7 +68,7 @@ final class GedcomParser{
 	 */
 	public static GedcomNode parse(final String gedcomFile, final GedcomGrammar grammar) throws GedcomParseException{
 		if(!gedcomFile.endsWith(GEDCOM_EXTENSION))
-			throw GedcomParseException.create("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
+			throw new GedcomParseException("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
 		final TimeWatch watch = TimeWatch.start();
 
@@ -83,7 +83,7 @@ final class GedcomParser{
 			return parser.parseGedcom(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomParseException.create((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
+			throw new GedcomParseException((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), gedcomFile);
 		}
 		finally{
 			watch.stop();
@@ -114,23 +114,23 @@ final class GedcomParser{
 
 				//skip empty lines
 				if(Character.isWhitespace(line.charAt(0)) || StringUtils.isBlank(line))
-					throw GedcomParseException.create("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
+					throw new GedcomParseException("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
 						lineCount);
 
 				//parse the line into five fields: level, ID, tag, xref, value
 				final GedcomNode child = GedcomNodeBuilder.parse(protocol, line);
 				if(child == null)
-					throw GedcomParseException.create("Line {} does not appear to be a standard appending content to the last tag started: {}",
+					throw new GedcomParseException("Line {} does not appear to be a standard appending content to the last tag started: {}",
 						lineCount, line);
 
 				currentLevel = child.getLevel();
 				//if `currentLevel` is greater than `previousLevel+1`, ignore it until it comes back down
 				if(currentLevel > previousLevel + 1)
-					throw GedcomParseException.create("current-level > previous-level + 1");
+					throw new GedcomParseException("current-level > previous-level + 1");
 				if(currentLevel < 0)
-					throw GedcomParseException.create("current-level < 0");
+					throw new GedcomParseException("current-level < 0");
 				if(child.getTag() == null)
-					throw GedcomParseException.create("Tag not found");
+					throw new GedcomParseException("Tag not found");
 
 				//close pending levels
 				while(currentLevel <= previousLevel){
@@ -163,7 +163,7 @@ final class GedcomParser{
 			ids.add(CalendarParserBuilder.CALENDAR_JULIAN.substring(1, CalendarParserBuilder.CALENDAR_JULIAN.length() - 1));
 			references.removeAll(ids);
 			if(!references.isEmpty())
-				throw GedcomParseException.create("Cannot find object for IDs [{}]", String.join(", ", references))
+				throw new GedcomParseException("Cannot find object for IDs [{}]", String.join(", ", references))
 					.skipAddLineNumber();
 
 			return root;
@@ -173,14 +173,14 @@ final class GedcomParser{
 		}
 		catch(GedcomParseException e){
 			if(!e.isSkipAddLineNumber())
-				e = GedcomParseException.create(e.getMessage() + " on line {}", lineCount);
+				throw new GedcomParseException(e.getMessage() + " on line {}", lineCount);
 			throw e;
 		}
 		catch(final Exception e){
 			if(lineCount < 0)
-				throw GedcomParseException.create("Failed to read file", e);
+				throw new GedcomParseException("Failed to read file", e);
 
-			throw GedcomParseException.create("Failed to read line {}", lineCount);
+			throw new GedcomParseException("Failed to read line {}", lineCount);
 		}
 	}
 
@@ -205,7 +205,7 @@ final class GedcomParser{
 			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine)
 				addedGrammarLine = GedcomGrammarLineCustom.create(child);
 			else
-				throw GedcomParseException.create("Cannot have custom tag {} here, inside block of {}", child.getTag(),
+				throw new GedcomParseException("Cannot have custom tag {} here, inside block of {}", child.getTag(),
 					parentGrammarBlockOrLine.toString());
 		}
 
@@ -271,14 +271,12 @@ final class GedcomParser{
 
 	//FIXME ugliness
 	private void validate(final GedcomNode node, final Object grammarBlockOrLine) throws GedcomParseException{
-		if(grammarBlockOrLine instanceof GedcomGrammarLine){
-			final GedcomGrammarLine grammarLine = (GedcomGrammarLine)grammarBlockOrLine;
-
+		if(grammarBlockOrLine instanceof final GedcomGrammarLine grammarLine){
 			//validate min-max constraints:
 			final String tag = node.getTag();
 			checkConstraints(tag, 1, grammarLine);
 			if(!grammarLine.getValuePossibilities().isEmpty() && !grammarLine.getValuePossibilities().contains(node.getValue()))
-				throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
+				throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", tag,
 					grammarLine.getValuePossibilities().toString(), node.getValue());
 
 
@@ -287,7 +285,7 @@ final class GedcomParser{
 			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
 				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
 				if(childBlock == null)
-					throw GedcomParseException.create("Children of parent tag does not exists: " + grammarBlockOrLine);
+					throw new GedcomParseException("Children of parent tag does not exists: {}", grammarBlockOrLine);
 
 				final String entryTag = entry.getKey();
 				final int entryCount = entry.getValue().size();
@@ -300,7 +298,7 @@ final class GedcomParser{
 					checkConstraints(entryTag, entryCount, (addedGrammarLine[0] != null? addedGrammarLine[0]: grammarLine));
 					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
 							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
-						throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", tag,
+						throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", tag,
 							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
 				}
 			}
@@ -308,7 +306,7 @@ final class GedcomParser{
 		else{
 			//validate children of root:
 			if(!nodeStack.isEmpty())
-				throw GedcomParseException.create("Badly formatted GEDCOM, tags are not properly closed");
+				throw new GedcomParseException("Badly formatted GEDCOM, tags are not properly closed");
 
 			final GedcomGrammarBlock grammarBlock = (GedcomGrammarBlock)grammarBlockOrLine;
 			final Map<String, List<String>> childrenValueBucket = bucketByTag(node);
@@ -324,7 +322,7 @@ final class GedcomParser{
 					checkConstraints(entryTag, entryCount, addedGrammarLine[0]);
 					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
 							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
-						throw GedcomParseException.create("Value violated on tag {}, should have been one of {}, was {}", entryTag,
+						throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", entryTag,
 							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
 				}
 			}
@@ -346,11 +344,11 @@ final class GedcomParser{
 			throws GedcomParseException{
 		final int min = grammarLine.getMin();
 		if(count < min)
-			throw GedcomParseException.create("Minimum constraint violated on tag {}, should have been at least {}, was {}", tag,
+			throw new GedcomParseException("Minimum constraint violated on tag {}, should have been at least {}, was {}", tag,
 				min, count);
 		final int max = grammarLine.getMax();
 		if(max != -1 && max < count)
-			throw GedcomParseException.create("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
+			throw new GedcomParseException("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
 				max, count);
 	}
 

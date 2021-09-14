@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -114,7 +115,7 @@ final class GedcomHelper{
 							generatorName = split[2];
 						else if("CHAR".equals(id)){
 							//get encoding
-							encoding = split[2].toUpperCase();
+							encoding = split[2].toUpperCase(Locale.ROOT);
 							//look for version
 							line = in.readLine();
 							if(line != null){

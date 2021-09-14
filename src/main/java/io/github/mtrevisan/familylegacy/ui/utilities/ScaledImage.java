@@ -26,8 +26,16 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -251,8 +259,8 @@ public class ScaledImage extends JLabel{
 		//scale to fit
 		final double scale = Math.min(current, 1.);
 		//center image
-		double centerX = (viewportWidth - imageWidth * scale) / 2.;
-		double centerY = (viewportHeight - imageHeight * scale) / 2.;
+		final double centerX = (viewportWidth - imageWidth * scale) / 2.;
+		final double centerY = (viewportHeight - imageHeight * scale) / 2.;
 
 		transformation.setScale(scale);
 		transformation.setTranslation(centerX, centerY);

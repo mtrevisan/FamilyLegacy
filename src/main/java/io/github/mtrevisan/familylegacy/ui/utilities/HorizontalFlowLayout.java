@@ -24,8 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Insets;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -63,7 +68,7 @@ public class HorizontalFlowLayout extends FlowLayout{
 
 	/**
 	 * Constructs a new {@code FlowLayout} with the specified alignment and a default 5-unit horizontal and vertical gap.
-	 * The value of the alignment argument must be one of {@code WrapLayout}, <code>WrapLayout</code>,
+	 * The value of the alignment argument must be one of {@code WrapLayout}, {@code WrapLayout},
 	 * or {@code WrapLayout}.
 	 *
 	 * @param align	The alignment value.
@@ -75,7 +80,7 @@ public class HorizontalFlowLayout extends FlowLayout{
 	/**
 	 * Creates a new flow layout manager with the indicated alignment and the indicated horizontal and vertical gaps.<p>
 	 * The value of the alignment argument must be one of {@code HorizontalFlowLayout.TOP},
-	 * {@code HorizontalFlowLayout.BOTTOM}, or <code>HorizontalFlowLayout.CENTER</code>.
+	 * {@code HorizontalFlowLayout.BOTTOM}, or {@code HorizontalFlowLayout.CENTER}.
 	 *
 	 * @param align The alignment value.
 	 * @param hgap The horizontal gap between components and between the components and the borders of the {@code Container}.

@@ -24,7 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.services.images;
 
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.io.BufferedInputStream;
@@ -34,6 +38,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -216,18 +221,15 @@ public class GifDecoder{
 				if(iline >= ih){
 					pass ++;
 					switch(pass){
-						case 2:
-							iline = 4;
-							break;
-
-						case 3:
+						case 2 -> iline = 4;
+						case 3 -> {
 							iline = 2;
 							inc = 4;
-							break;
-
-						case 4:
+						}
+						case 4 -> {
 							iline = 1;
 							inc = 2;
+						}
 					}
 				}
 				line = iline;
@@ -261,7 +263,7 @@ public class GifDecoder{
 	 * Gets the image contents of frame {@code n}.
 	 *
 	 * @param n	Frame index
-	 * @return	BufferedImage representation of frame, or {@code null} if <code>n</code> is invalid.
+	 * @return	BufferedImage representation of frame, or {@code null} if {@code n} is invalid.
 	 */
 	public BufferedImage getFrame(final int n){
 		BufferedImage im = null;
@@ -314,7 +316,7 @@ public class GifDecoder{
 
 	/**
 	 * Reads GIF file from specified file/URL source.
-	 * (URL assumed if name contains {@code ":/"} or <code>"file:"</code>)
+	 * (URL assumed if name contains {@code ":/"} or {@code "file:"})
 	 *
 	 * @param name	String containing source
 	 * @return	read status code ({@code 0} = no errors)
@@ -322,7 +324,7 @@ public class GifDecoder{
 	public int read(String name){
 		try{
 			status = FILE_READ_STATUS_OK;
-			name = name.trim().toLowerCase();
+			name = name.trim().toLowerCase(Locale.ROOT);
 			if(name.startsWith("file:") || name.contains(":/")){
 				final URL url = new URL(name);
 				in = new BufferedInputStream(url.openStream());
@@ -560,24 +562,22 @@ public class GifDecoder{
 					code = read();
 					switch(code){
 						//graphics control extension
-						case 0xF9:
-							readGraphicControlExtension();
-							break;
+						case 0xF9 -> readGraphicControlExtension();
+
 
 						//application extension
-						case 0xFF:
+						case 0xFF -> {
 							readBlock();
 							final StringBuilder sb = new StringBuilder();
-							for(int i = 0; i < 11; i ++)
+							for(int i = 0; i < 11; i++)
 								sb.append((char)block[i]);
 							if("NETSCAPE2.0".equals(sb.toString()))
 								readNetscapeExtension();
 							else
 								//don't care
 								skip();
-							break;
-
-						default:
+						}
+						default ->
 							//uninteresting extension
 							skip();
 					}

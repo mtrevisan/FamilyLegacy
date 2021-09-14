@@ -44,11 +44,32 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.DropMode;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -263,7 +284,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		testLinkItem.addActionListener(event -> {
 			final String url = component.getText();
 			final boolean urlReachable = FileHelper.testURL(url);
-			final String message = JavaHelper.format((urlReachable? "Success, the link `{}` is reachable.":
+			final String message = JavaHelper.textFormat((urlReachable? "Success, the link `{}` is reachable.":
 				"The connection attempt to `{}` failed."), url);
 			JOptionPane.showMessageDialog(this, message, "Test link result",
 				(urlReachable? JOptionPane.INFORMATION_MESSAGE: JOptionPane.ERROR_MESSAGE));
@@ -476,18 +497,16 @@ public class ContactDialog extends JDialog implements ActionListener{
 				public void refresh(final EditEvent editCommand){
 					JDialog dialog = null;
 					switch(editCommand.getType()){
-						case NOTE_CITATION:
+						case NOTE_CITATION -> {
 							dialog = new NoteCitationDialog(store, parent);
 							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
-
 							dialog.setSize(450, 260);
-							break;
-
-						case NOTE:
+						}
+						case NOTE -> {
 							dialog = new NoteDialog(store, parent);
 							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
 							dialog.setSize(550, 350);
+						}
 					}
 					if(dialog != null){
 						dialog.setLocationRelativeTo(parent);

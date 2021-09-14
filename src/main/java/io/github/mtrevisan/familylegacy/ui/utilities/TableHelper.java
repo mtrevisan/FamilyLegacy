@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
@@ -48,7 +48,7 @@ public final class TableHelper{
 	}
 
 	/**
-	 * Moves all rows contained between the positions {@code start} and <code>end</code> to the position specified by <code>dest</code>.
+	 * Moves all rows contained between the positions {@code start} and {@code end} to the position specified by <code>dest</code>.
 	 *
 	 * @param model	The model of the table.
 	 * @param startIndex	Start index of the rows to be moved (inclusive).

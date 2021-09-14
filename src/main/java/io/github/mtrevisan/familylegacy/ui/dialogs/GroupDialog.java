@@ -36,8 +36,14 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -155,7 +161,7 @@ public class GroupDialog extends JDialog{
 		final GedcomNode group = store.getGroups().get(0);
 
 
-		JFrame parent = new JFrame();
+		final JFrame parent = new JFrame();
 		EventQueue.invokeLater(() -> {
 			final Object listener = new Object(){
 				@EventHandler

@@ -58,7 +58,7 @@ public final class GedcomNodeGedcom extends GedcomNode{
 					if(child.value != null)
 						sb.append(child.value);
 				}
-			return (sb.length() > 0? sb.toString(): null);
+			return (!sb.isEmpty()? sb.toString(): null);
 		}
 		else
 			return value;
