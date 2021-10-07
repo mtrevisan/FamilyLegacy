@@ -113,17 +113,17 @@ class TransformerPlaceAddressContactStructureTest{
 	void contactStructureTo(){
 		final Transformer transformerTo = new Transformer(Protocol.FLEF);
 		final GedcomNode parent = transformerTo.createEmpty()
-			.addChildValue("PHON", "PHONE_NUMBER")
-			.addChildValue("EMAIL", "ADDRESS_EMAIL")
-			.addChildValue("FAX", "ADDRESS_FAX")
-			.addChildValue("WWW", "ADDRESS_WEB_PAGE");
+			.addChildValue("PHON", "00123456789")
+			.addChildValue("EMAIL", "address@mail.com")
+			.addChildValue("FAX", "00987654321")
+			.addChildValue("WWW", "http://www.webpage.com");
 
-		Assertions.assertEquals("children: [{tag: PHON, value: PHONE_NUMBER}, {tag: EMAIL, value: ADDRESS_EMAIL}, {tag: FAX, value: ADDRESS_FAX}, {tag: WWW, value: ADDRESS_WEB_PAGE}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: PHON, value: 00123456789}, {tag: EMAIL, value: address@mail.com}, {tag: FAX, value: 00987654321}, {tag: WWW, value: http://www.webpage.com}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		transformerTo.contactStructureTo(parent, destinationNode);
 
-		Assertions.assertEquals("children: [{tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER}, {tag: EMAIL, value: ADDRESS_EMAIL}, {tag: PHONE, value: ADDRESS_FAX, children: [{tag: TYPE, value: fax}]}, {tag: URL, value: ADDRESS_WEB_PAGE}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: CONTACT, value: 00123456789}, {tag: CONTACT, value: address@mail.com}, {tag: CONTACT, value: 00987654321, children: [{tag: TYPE, value: fax}]}, {tag: CONTACT, value: http://www.webpage.com}]", destinationNode.toString());
 	}
 
 	@Test
@@ -180,21 +180,19 @@ class TransformerPlaceAddressContactStructureTest{
 	void contactStructureFrom(){
 		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode parent = transformerFrom.createEmpty()
-			.addChild(transformerFrom.create("CONTACT")
-				.addChildValue("PHONE", "PHONE_NUMBER")
-				.addChild(transformerFrom.createWithValue("PHONE", "FAX_NUMBER")
+			.addChild(transformerFrom.createWithValue("CONTACT", "00123456789"))
+			.addChild(transformerFrom.createWithValue("CONTACT", "00987654321")
 					.addChildValue("TYPE", "fax")
 				)
-				.addChildValue("EMAIL", "EMAIL_ADDRESS")
-				.addChildValue("URL", "URL_ADDRESS")
-			);
+			.addChild(transformerFrom.createWithValue("CONTACT", "address@mail.com"))
+			.addChild(transformerFrom.createWithValue("CONTACT", "http://www.webpage.com"));
 
-		Assertions.assertEquals("children: [{tag: CONTACT, children: [{tag: PHONE, value: PHONE_NUMBER}, {tag: PHONE, value: FAX_NUMBER, children: [{tag: TYPE, value: fax}]}, {tag: EMAIL, value: EMAIL_ADDRESS}, {tag: URL, value: URL_ADDRESS}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: CONTACT, value: 00123456789}, {tag: CONTACT, value: 00987654321, children: [{tag: TYPE, value: fax}]}, {tag: CONTACT, value: address@mail.com}, {tag: CONTACT, value: http://www.webpage.com}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerFrom.createEmpty();
 		transformerFrom.contactStructureFrom(parent, destinationNode);
 
-		Assertions.assertEquals("children: [{tag: PHON, value: PHONE_NUMBER}, {tag: EMAIL, value: EMAIL_ADDRESS}, {tag: FAX, value: FAX_NUMBER}, {tag: WWW, value: URL_ADDRESS}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: PHON, value: 00123456789}, {tag: EMAIL, value: address@mail.com}, {tag: FAX, value: 00987654321}, {tag: WWW, value: http://www.webpage.com}]", destinationNode.toString());
 	}
 
 }

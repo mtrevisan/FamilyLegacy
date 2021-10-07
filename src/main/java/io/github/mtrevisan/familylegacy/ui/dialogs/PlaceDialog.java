@@ -214,6 +214,7 @@ private final JTextField subordinateField = new JTextField();
 
 	private void okAction(){
 		//TODO
+		System.out.println();
 	}
 
 	public void loadData(final GedcomNode place, final Consumer<Object> onCloseGracefully){

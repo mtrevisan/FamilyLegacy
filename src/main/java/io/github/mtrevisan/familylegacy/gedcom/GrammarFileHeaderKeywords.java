@@ -30,6 +30,8 @@ enum GrammarFileHeaderKeywords{
 
 	/** The version of the gedcom grammar. */
 	GEDCOM_VERSION("GEDCOM_VERSION"),
+	/** The date of the gedcom grammar. */
+	GEDCOM_DATE("GEDCOM_DATE"),
 	/** The source of the gedcom grammar (The website/file/book/...). */
 	GEDCOM_SOURCE("GEDCOM_SOURCE"),
 	/**

@@ -51,14 +51,14 @@ class TransformerHeaderTest{
 						.addChildValue("POST", "ADDRESS_POSTAL_CODE")
 						.addChildValue("CTRY", "ADDRESS_COUNTRY")
 					)
-					.addChildValue("PHON", "PHONE_NUMBER1")
-					.addChildValue("PHON", "PHONE_NUMBER2")
-					.addChildValue("EMAIL", "ADDRESS_EMAIL1")
-					.addChildValue("EMAIL", "ADDRESS_EMAIL2")
-					.addChildValue("FAX", "ADDRESS_FAX1")
-					.addChildValue("FAX", "ADDRESS_FAX2")
-					.addChildValue("WWW", "ADDRESS_WEB_PAGE1")
-					.addChildValue("WWW", "ADDRESS_WEB_PAGE2")
+					.addChildValue("PHON", "00123456789")
+					.addChildValue("PHON", "00123456780")
+					.addChildValue("EMAIL", "address1@mail.com")
+					.addChildValue("EMAIL", "address2@mail.com")
+					.addChildValue("FAX", "00987654321")
+					.addChildValue("FAX", "00987654322")
+					.addChildValue("WWW", "http://www.webpage1.com")
+					.addChildValue("WWW", "http://www.webpage2.com")
 				)
 				.addChild(transformerTo.createWithValue("DATA", "NAME_OF_SOURCE_DATA")
 					.addChildValue("DATE", "PUBLICATION_DATE")
@@ -107,7 +107,7 @@ class TransformerHeaderTest{
 			.addChildValue("LANG", "LANGUAGE_PREFERENCE");
 		final GedcomNode note = transformerTo.createWithIDValue("NOTE", "N1", "SUBMITTER_TEXT1");
 
-		Assertions.assertEquals("tag: HEAD, children: [{tag: SOUR, value: APPROVED_SYSTEM_ID, children: [{tag: VERS, value: SOURCE_VERSION_NUMBER}, {tag: NAME, value: NAME_OF_PRODUCT}, {tag: CORP, value: NAME_OF_BUSINESS, children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CONT, value: ADDRESS_LINE}, {tag: ADR1, value: ADDRESS_LINE1}, {tag: ADR2, value: ADDRESS_LINE2}, {tag: ADR3, value: ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: POST, value: ADDRESS_POSTAL_CODE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}, {tag: PHON, value: PHONE_NUMBER1}, {tag: PHON, value: PHONE_NUMBER2}, {tag: EMAIL, value: ADDRESS_EMAIL1}, {tag: EMAIL, value: ADDRESS_EMAIL2}, {tag: FAX, value: ADDRESS_FAX1}, {tag: FAX, value: ADDRESS_FAX2}, {tag: WWW, value: ADDRESS_WEB_PAGE1}, {tag: WWW, value: ADDRESS_WEB_PAGE2}]}, {tag: DATA, value: NAME_OF_SOURCE_DATA, children: [{tag: DATE, value: PUBLICATION_DATE}, {tag: COPR, value: COPYRIGHT_SOURCE_DATA, children: [{tag: CONC, value: COPYRIGHT_SOURCE_DATA}]}]}]}, {tag: DEST, value: RECEIVING_SYSTEM_NAME}, {tag: DATE, value: TRANSMISSION_DATE, children: [{tag: TIME, value: TIME_VALUE}]}, {tag: SUBM, ref: SUBM1}, {tag: SUBN, ref: SUBN1}, {tag: FILE, value: FILE_NAME}, {tag: COPR, value: COPYRIGHT_GEDCOM_FILE}, {tag: GEDC, children: [{tag: VERS, value: GEDCOM_VERSION_NUMBER}, {tag: FORM, value: LINEAGE-LINKED}]}, {tag: CHAR, value: UTF-8, children: [{tag: VERS, value: CHARSET_VERSION_NUMBER}]}, {tag: LANG, value: English}, {tag: LANG, value: French}, {tag: PLAC, children: [{tag: FORM, value: PLACE_HIERARCHY}]}, {tag: NOTE, ref: N1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION, children: [{tag: CONC, value: GEDCOM_CONTENT_DESCRIPTION}]}]", header.toString());
+		Assertions.assertEquals("tag: HEAD, children: [{tag: SOUR, value: APPROVED_SYSTEM_ID, children: [{tag: VERS, value: SOURCE_VERSION_NUMBER}, {tag: NAME, value: NAME_OF_PRODUCT}, {tag: CORP, value: NAME_OF_BUSINESS, children: [{tag: ADDR, value: ADDRESS_LINE, children: [{tag: CONT, value: ADDRESS_LINE}, {tag: ADR1, value: ADDRESS_LINE1}, {tag: ADR2, value: ADDRESS_LINE2}, {tag: ADR3, value: ADDRESS_LINE3}, {tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: POST, value: ADDRESS_POSTAL_CODE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}, {tag: PHON, value: 00123456789}, {tag: PHON, value: 00123456780}, {tag: EMAIL, value: address1@mail.com}, {tag: EMAIL, value: address2@mail.com}, {tag: FAX, value: 00987654321}, {tag: FAX, value: 00987654322}, {tag: WWW, value: http://www.webpage1.com}, {tag: WWW, value: http://www.webpage2.com}]}, {tag: DATA, value: NAME_OF_SOURCE_DATA, children: [{tag: DATE, value: PUBLICATION_DATE}, {tag: COPR, value: COPYRIGHT_SOURCE_DATA, children: [{tag: CONC, value: COPYRIGHT_SOURCE_DATA}]}]}]}, {tag: DEST, value: RECEIVING_SYSTEM_NAME}, {tag: DATE, value: TRANSMISSION_DATE, children: [{tag: TIME, value: TIME_VALUE}]}, {tag: SUBM, ref: SUBM1}, {tag: SUBN, ref: SUBN1}, {tag: FILE, value: FILE_NAME}, {tag: COPR, value: COPYRIGHT_GEDCOM_FILE}, {tag: GEDC, children: [{tag: VERS, value: GEDCOM_VERSION_NUMBER}, {tag: FORM, value: LINEAGE-LINKED}]}, {tag: CHAR, value: UTF-8, children: [{tag: VERS, value: CHARSET_VERSION_NUMBER}]}, {tag: LANG, value: English}, {tag: LANG, value: French}, {tag: PLAC, children: [{tag: FORM, value: PLACE_HIERARCHY}]}, {tag: NOTE, ref: N1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION, children: [{tag: CONC, value: GEDCOM_CONTENT_DESCRIPTION}]}]", header.toString());
 		Assertions.assertEquals("id: SUBM1, tag: SUBM, children: [{tag: NAME, value: SUBMITTER_NAME}, {tag: ADDR, value: ADDRESS_LINE, children: [{tag: CONT, value: ADDRESS_LINE1}, {tag: ADR1, value: ADDRESS_LINE2}, {tag: CITY, value: ADDRESS_CITY}, {tag: STAE, value: ADDRESS_STATE}, {tag: CTRY, value: ADDRESS_COUNTRY}]}, {tag: PHON, value: 00123456789}, {tag: EMAIL, value: address@mail.com}, {tag: FAX, value: 00987654321}, {tag: WWW, value: http://www.webpage.com}, {tag: LANG, value: LANGUAGE_PREFERENCE}]", submitter.toString());
 
 		final Gedcom origin = new Gedcom();

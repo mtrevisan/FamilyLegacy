@@ -69,6 +69,7 @@ final class GedcomGrammar{
 
 
 	private String gedcomVersion;
+	private String gedcomDate;
 	private String gedcomSource;
 	private final Collection<String> gedcomDescription = new ArrayList<>(0);
 
@@ -155,6 +156,8 @@ final class GedcomGrammar{
 						final String[] components = StringUtils.split(line, '=');
 						if(GrammarFileHeaderKeywords.GEDCOM_VERSION.value.equals(components[0]))
 							gedcomVersion = components[1];
+						else if(GrammarFileHeaderKeywords.GEDCOM_DATE.value.equals(components[0]))
+							gedcomDate = components[1];
 						else if(GrammarFileHeaderKeywords.GEDCOM_SOURCE.value.equals(components[0]))
 							gedcomSource = components[1];
 						else if(GrammarFileHeaderKeywords.GEDCOM_DESCRIPTION.value.equals(components[0])){
@@ -172,11 +175,12 @@ final class GedcomGrammar{
 						continue;
 					}
 					else{
-						if(gedcomVersion == null || gedcomSource == null || gedcomDescription.isEmpty())
+						if(gedcomVersion == null || gedcomDate == null || gedcomSource == null || gedcomDescription.isEmpty())
 							throw GedcomGrammarParseException.create("Invalid gedcom grammar file format. "
 								+ "The file needs a header with the following keywords: {}", Arrays.toString(GrammarFileHeaderKeywords.values()));
 
 						LOGGER.trace("Gedcom version: {}", gedcomVersion);
+						LOGGER.trace("Gedcom date: {}", gedcomDate);
 						LOGGER.trace("Source of gedcom grammar: {}", gedcomSource);
 						for(final String description : gedcomDescription)
 							LOGGER.trace(description);
