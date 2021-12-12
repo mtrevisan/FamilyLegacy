@@ -160,6 +160,7 @@ public class Flef extends Store{
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;
 			String line;
+			protocolFinder:
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
 				//skip empty lines
 				if(Character.isWhitespace(line.charAt(0)) || StringUtils.isBlank(line))
@@ -172,9 +173,8 @@ public class Flef extends Store{
 					while((line = br.readLine()) != null && line.charAt(0) == '2')
 						if(line.startsWith("2 VERSION ")){
 							protocol.setVersion(line.substring("2 VERSION ".length()));
-							break;
+							break protocolFinder;
 						}
-					break;
 				}
 			}
 		}
@@ -190,9 +190,7 @@ public class Flef extends Store{
 
 	@Override
 	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
-		super.create(null, basePath);
-
-		this.root = root;
+		super.create(root, basePath);
 
 		final List<GedcomNode> headers = root.getChildrenWithTag(TAG_HEADER);
 		if(headers.size() != 1)

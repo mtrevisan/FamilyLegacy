@@ -66,8 +66,10 @@ public abstract class Store{
 	}
 
 	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
+		Objects.requireNonNull(root, "Root cannot be null");
 		Objects.requireNonNull(basePath, "Base path cannot be null");
 
+		this.root = root;
 		this.basePath = basePath;
 	}
 

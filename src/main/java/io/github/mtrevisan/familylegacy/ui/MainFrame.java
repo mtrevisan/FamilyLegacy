@@ -79,8 +79,8 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public MainFrame(){
 		try{
 			final Store storeGedcom = new Gedcom();
-			store = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
-				.transform();
+			final Store load = storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+			store = (Flef)load.transform();
 //			final GedcomNode family = store.getFamilies().get(0);
 //			final GedcomNode family = store.getFamilies().get(4);
 //			final GedcomNode family = store.getFamilies().get(9);

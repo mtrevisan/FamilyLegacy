@@ -92,14 +92,14 @@ public class Gedcom extends Store{
 	private List<GedcomNode> objects;
 	private List<GedcomNode> submitters;
 
-	private Map<String, GedcomNode> individualIndex;
-	private Map<String, GedcomNode> familyIndex;
-	private Map<String, GedcomNode> documentIndex;
-	private Map<String, GedcomNode> noteIndex;
-	private Map<String, GedcomNode> repositoryIndex;
-	private Map<String, GedcomNode> sourceIndex;
-	private Map<String, GedcomNode> objectIndex;
-	private Map<String, GedcomNode> submitterIndex;
+	private TreeMap<String, GedcomNode> individualIndex;
+	private TreeMap<String, GedcomNode> familyIndex;
+	private TreeMap<String, GedcomNode> documentIndex;
+	private TreeMap<String, GedcomNode> noteIndex;
+	private TreeMap<String, GedcomNode> repositoryIndex;
+	private TreeMap<String, GedcomNode> sourceIndex;
+	private TreeMap<String, GedcomNode> objectIndex;
+	private TreeMap<String, GedcomNode> submitterIndex;
 
 	private Map<Integer, String> documentValue;
 	private Map<Integer, String> noteValue;
@@ -148,6 +148,7 @@ public class Gedcom extends Store{
 
 	static Protocol extractProtocol(final String gedcomFile) throws GedcomParseException{
 		Protocol protocol = null;
+		protocolFinder:
 		try(final BufferedReader br = GedcomHelper.getBufferedReader(new FileInputStream(gedcomFile))){
 			int zeroLevelsFound = 0;
 			String line;
@@ -163,9 +164,8 @@ public class Gedcom extends Store{
 					while((line = br.readLine()) != null && line.charAt(0) == '2')
 						if(line.startsWith("2 VERS ")){
 							protocol.setVersion(line.substring("2 VERS ".length()));
-							break;
+							break protocolFinder;
 						}
-					break;
 				}
 			}
 		}
@@ -181,11 +181,12 @@ public class Gedcom extends Store{
 
 	@Override
 	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
-		super.create(null, basePath);
+		super.create(root, basePath);
 
 		final List<GedcomNode> heads = root.getChildrenWithTag(TAG_HEADER);
 		if(heads.size() != 1)
 			throw new GedcomParseException("Required header tag missing");
+
 		header = heads.get(0);
 		individuals = root.getChildrenWithTag(TAG_INDIVIDUAL);
 		families = root.getChildrenWithTag(TAG_FAMILY);
@@ -211,21 +212,21 @@ public class Gedcom extends Store{
 		sourceValue = reverseMap(sourceIndex);
 
 		if(!individualIndex.isEmpty())
-			individualId = extractLastID(((TreeMap<String, GedcomNode>)individualIndex).lastKey()) + 1;
+			individualId = extractLastID(individualIndex.lastKey()) + 1;
 		if(!familyIndex.isEmpty())
-			familyId = extractLastID(((TreeMap<String, GedcomNode>)familyIndex).lastKey()) + 1;
+			familyId = extractLastID(familyIndex.lastKey()) + 1;
 		if(!documentIndex.isEmpty())
-			documentId = extractLastID(((TreeMap<String, GedcomNode>)documentIndex).lastKey()) + 1;
+			documentId = extractLastID(documentIndex.lastKey()) + 1;
 		if(!noteIndex.isEmpty())
-			noteId = extractLastID(((TreeMap<String, GedcomNode>)noteIndex).lastKey()) + 1;
+			noteId = extractLastID(noteIndex.lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
-			repositoryId = extractLastID(((TreeMap<String, GedcomNode>)repositoryIndex).lastKey()) + 1;
+			repositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
-			sourceId = extractLastID(((TreeMap<String, GedcomNode>)sourceIndex).lastKey()) + 1;
+			sourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!objectIndex.isEmpty())
-			objectId = extractLastID(((TreeMap<String, GedcomNode>)objectIndex).lastKey()) + 1;
+			objectId = extractLastID(objectIndex.lastKey()) + 1;
 		if(!submitterIndex.isEmpty())
-			submitterId = extractLastID(((TreeMap<String, GedcomNode>)submitterIndex).lastKey()) + 1;
+			submitterId = extractLastID(submitterIndex.lastKey()) + 1;
 	}
 
 	@Override
@@ -294,7 +295,7 @@ public class Gedcom extends Store{
 	public String addIndividual(final GedcomNode individual){
 		if(individuals == null){
 			individuals = new ArrayList<>(1);
-			individualIndex = new HashMap<>(1);
+			individualIndex = new TreeMap<>();
 		}
 
 		final String individualID = getNextIndividualID();
@@ -321,7 +322,7 @@ public class Gedcom extends Store{
 	public String addFamily(final GedcomNode family){
 		if(families == null){
 			families = new ArrayList<>(1);
-			familyIndex = new HashMap<>(1);
+			familyIndex = new TreeMap<>();
 		}
 
 		final String familyID = getNextFamilyID();
@@ -352,7 +353,7 @@ public class Gedcom extends Store{
 			//if document is not found:
 			if(documents == null){
 				documents = new ArrayList<>(1);
-				documentIndex = new HashMap<>(1);
+				documentIndex = new TreeMap<>();
 				documentValue = new HashMap<>(1);
 			}
 
@@ -382,7 +383,7 @@ public class Gedcom extends Store{
 	public String addNote(final GedcomNode note){
 		if(notes == null){
 			notes = new ArrayList<>(1);
-			noteIndex = new HashMap<>(1);
+			noteIndex = new TreeMap<>();
 			noteValue = new HashMap<>(1);
 		}
 
@@ -415,7 +416,7 @@ public class Gedcom extends Store{
 			//if repository is not found:
 			if(repositories == null){
 				repositories = new ArrayList<>(1);
-				repositoryIndex = new HashMap<>(1);
+				repositoryIndex = new TreeMap<>();
 				repositoryValue = new HashMap<>(1);
 			}
 
@@ -453,7 +454,7 @@ public class Gedcom extends Store{
 			//if source is not found:
 			if(sources == null){
 				sources = new ArrayList<>(1);
-				sourceIndex = new HashMap<>(1);
+				sourceIndex = new TreeMap<>();
 				sourceValue = new HashMap<>(1);
 			}
 
@@ -487,7 +488,7 @@ public class Gedcom extends Store{
 			//if object is not found:
 			if(objects == null){
 				objects = new ArrayList<>(1);
-				objectIndex = new HashMap<>(1);
+				objectIndex = new TreeMap<>();
 				objectValue = new HashMap<>(1);
 			}
 
@@ -519,7 +520,7 @@ public class Gedcom extends Store{
 		if(!submitter.isEmpty()){
 			if(submitters == null){
 				submitters = new ArrayList<>(1);
-				submitterIndex = new HashMap<>(1);
+				submitterIndex = new TreeMap<>();
 			}
 
 			submitterID = getNextSubmitterID();

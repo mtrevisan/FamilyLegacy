@@ -191,7 +191,6 @@ final class GedcomParser{
 		grammarBlockOrLineStack.push(grammar.getRootStructure().getGrammarBlock());
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	private void startElement(final GedcomNode child) throws GedcomParseException{
 		final GedcomNode parent = nodeStack.peek();
 		final Object parentGrammarBlockOrLine = grammarBlockOrLineStack.peek();

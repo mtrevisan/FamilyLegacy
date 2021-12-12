@@ -1,4 +1,5 @@
 GEDCOM_VERSION=5.5.1
+GEDCOM_DATE=2019-10-02
 GEDCOM_SOURCE=http://www.phpgedview.net/ged551-5.pdf
 GEDCOM_DESCRIPTION=DRAFT Release 5.5.1
 http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gcch2.htm

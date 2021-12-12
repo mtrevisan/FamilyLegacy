@@ -175,7 +175,7 @@ final class GedcomGrammar{
 						continue;
 					}
 					else{
-						if(gedcomVersion == null || gedcomDate == null || gedcomSource == null || gedcomDescription.isEmpty())
+						if(gedcomVersion == null)
 							throw GedcomGrammarParseException.create("Invalid gedcom grammar file format. "
 								+ "The file needs a header with the following keywords: {}", Arrays.toString(GrammarFileHeaderKeywords.values()));
 
@@ -264,7 +264,6 @@ final class GedcomGrammar{
 	/**
 	 * Processes a sub-block, which only contains gedcom lines (without structure name and without variations).
 	 */
-	@SuppressWarnings("ObjectAllocationInLoop")
 	private void parseSubBlock(final String structureName, final List<String> subBlockView) throws GedcomGrammarParseException{
 		//parse the sub block and build the new structure
 		final GedcomGrammarStructure grammarStructure = GedcomGrammarStructure.create(structureName, new ArrayList<>(subBlockView));
