@@ -594,7 +594,9 @@ public final class Transformer extends TransformerHelper{
 			traverseAsList(sourceData, "TEXT[]"));
 		assignExtractionsTo(extracts, destinationSource);
 
-		destinationSource.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
+		final List<GedcomNode> cutout = destinationSource.getChildrenWithTag("CUTOUT");
+		if(cutout.isEmpty())
+			destinationSource.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
 		//FIXME remember "Y".equals(traverse(object, "_PREF").getValue())
 
 		noteCitationTo(traverse(object, "SOUR"), destinationSource, origin, destination);
@@ -946,8 +948,6 @@ public final class Transformer extends TransformerHelper{
 					addDateTo(date, destinationSubSource, destination);
 					final GedcomNode object = objects.get(i);
 					sourceRecordMultimediaCitationTo(object, destinationSubSource, origin, destination);
-					createWithReference("SOURCE", destinationSource.getID())
-						.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
 					noteCitationTo(sourceData, destinationSubSource, origin, destination);
 					noteCitationTo(source, destinationSubSource, origin, destination);
 
