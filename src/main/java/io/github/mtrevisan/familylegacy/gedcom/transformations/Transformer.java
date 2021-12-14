@@ -428,33 +428,30 @@ public final class Transformer extends TransformerHelper{
 		HEADER.SOURCE.VERSION.value = HEAD.SOUR.VERS.value
 		HEADER.SOURCE.CORPORATE.value = HEAD.SOUR.CORP.value
 		HEADER.DATE.value = HEAD.DATE.value + " " + HEAD.DATE.TIME.value
-		HEADER.DEFAULT_LOCALE.value = HEAD.LANG.value
 		HEADER.COPYRIGHT.value = HEAD.COPR.value
-		HEADER.SUBMITTER.NAME = HEAD.SUBM[rec].NAME
-		HEADER.SUBMITTER.PLACE.ADDRESS = HEAD.SUBM[rec].ADDR
-		HEADER.SUBMITTER.PLACE.ADDRESS.CITY = HEAD.SUBM[rec].ADDR.CITY
-		HEADER.SUBMITTER.PLACE.ADDRESS.STATE = HEAD.SUBM[rec].ADDR.STAE
-		HEADER.SUBMITTER.PLACE.ADDRESS.COUNTRY = HEAD.SUBM[rec].ADDR.CTRY
-		for-each HEAD.SUBM[rec].[PHON|EMAIL|FAX|WWW] create HEADER.SUBMITTER.CONTACT
-			for-each HEAD.SUBM[rec].PHONE value create HEADER.SUBMITTER.PHONE
+		HEADER.SUBMITTER.NAME = SUBMITTER_RECORD[HEAD.SUBM.xref].NAME.value
+		HEADER.SUBMITTER.PLACE.ADDRESS = SUBMITTER_RECORD[HEAD.SUBM.xref].ADDR.value
+		HEADER.SUBMITTER.PLACE.ADDRESS.HIERARCHY = SUBMITTER_RECORD[HEAD.SUBM.xref].ADDR.CITY.value, SUBMITTER_RECORD[HEAD.SUBM.xref].ADDR.STAE.value, SUBMITTER_RECORD[HEAD.SUBM.xref].ADDR.CTRY.value
+		for-each SUBMITTER_RECORD[HEAD.SUBM.xref].[PHON|EMAIL|FAX|WWW] create HEADER.SUBMITTER.CONTACT
+			for-each SUBMITTER_RECORD[HEAD.SUBM.xref].PHONE value create HEADER.SUBMITTER.PHONE
 				HEADER.SUBMITTER.PHONE.value = PHON.value
-			for-each HEAD.SUBM[rec].EMAIL value create HEADER.SUBMITTER.EMAIL
+			for-each SUBMITTER_RECORD[HEAD.SUBM.xref].EMAIL value create HEADER.SUBMITTER.EMAIL
 				HEADER.SUBMITTER.EMAIL.value = EMAIL.value
-			for-each HEAD.SUBM[rec].FAX value create HEADER.SUBMITTER.PHONE
+			for-each SUBMITTER_RECORD[HEAD.SUBM.xref].FAX value create HEADER.SUBMITTER.PHONE
 				HEADER.SUBMITTER.PHONE.value = FAX.value
 				HEADER.SUBMITTER.PHONE.TYPE.value = "fax"
-			for-each HEAD.SUBM[rec].WWW value create HEADER.SUBMITTER.URL
+			for-each SUBMITTER_RECORD[HEAD.SUBM.xref].WWW value create HEADER.SUBMITTER.URL
 				HEADER.SUBMITTER.URL.value = WWW.value
-		transfer HEAD.SUBM[rec].NOTE[rec] to HEADER.SUBMITTER.NOTE[rec]
+		transfer SUBMITTER_RECORD[HEAD.SUBM.xref].NOTE[rec] to HEADER.SUBMITTER.NOTE[rec]
 		HEADER.NOTE.value = HEAD.NOTE.value
 	*/
 	void headerTo(final GedcomNode header, final Gedcom origin, final Flef destination){
 		final GedcomNode source = traverse(header, "SOUR");
 		final GedcomNode date = traverse(header, "DATE");
 		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		JavaHelper.addValueIfNotNull(sj, date);
-		JavaHelper.addValueIfNotNull(sj, time);
+		final StringJoiner timestamp = new StringJoiner(StringUtils.SPACE);
+		JavaHelper.addValueIfNotNull(timestamp, date);
+		JavaHelper.addValueIfNotNull(timestamp, time);
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(createWithValue("PROTOCOL", "FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
@@ -465,8 +462,9 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("VERSION", traverse(source, "VERS").getValue())
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
 			)
-			.addChildValue("DATE", (sj.length() > 0? sj.toString(): null))
+			.addChildValue("DATE", timestamp.toString())
 			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
+
 		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
 		if(submitter != null){
 			final GedcomNode submitterAddress = traverse(submitter, "ADDR");
@@ -1428,7 +1426,6 @@ public final class Transformer extends TransformerHelper{
 		HEAD.GEDC.VERS.value = "5.5.1"
 		HEAD.GEDC.FORM.value = "LINEAGE-LINKED"
 		HEAD.CHAR.value = "UTF-8"
-		HEAD.LANG.value = HEADER.DEFAULT_LOCALE.value
 		HEAD.NOTE.value = HEADER.NOTE.value
 	*/
 	void headerFrom(final GedcomNode header, final Gedcom destination){
