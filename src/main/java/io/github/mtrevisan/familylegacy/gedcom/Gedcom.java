@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
@@ -72,15 +74,16 @@ public class Gedcom extends Store{
 	private static final String TAG_SUBMITTER = "SUBM";
 	private static final String TAG_CHARSET = "CHAR";
 
-	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
-	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
-	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
-	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
-	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
-	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
-	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
-	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
+//	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
+//	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
+//	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
+//	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
+//	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
+//	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
+//	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
+//	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
+	private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
 	private GedcomNode header;
 	private List<GedcomNode> individuals;
@@ -229,17 +232,22 @@ public class Gedcom extends Store{
 			submitterId = extractLastID(submitterIndex.lastKey()) + 1;
 	}
 
+	//TODO https://json-patch-builder-online.github.io/
 	@Override
 	public Flef transform(){
+		@SuppressWarnings("unchecked")
+		final Map<String, Object> originator = (Map<String, Object>)JSON_MAPPER.convertValue(root, Map.class);
+
+
 		final Flef destination = new Flef();
-		SUBMITTER_TRANSFORMATION.to(this, destination);
-		HEADER_TRANSFORMATION.to(this, destination);
-		NOTE_TRANSFORMATION.to(this, destination);
-		REPOSITORY_TRANSFORMATION.to(this, destination);
-		SOURCE_TRANSFORMATION.to(this, destination);
-		MULTIMEDIA_TRANSFORMATION.to(this, destination);
-		INDIVIDUAL_TRANSFORMATION.to(this, destination);
-		FAMILY_TRANSFORMATION.to(this, destination);
+//		SUBMITTER_TRANSFORMATION.to(this, destination);
+//		HEADER_TRANSFORMATION.to(this, destination);
+//		NOTE_TRANSFORMATION.to(this, destination);
+//		REPOSITORY_TRANSFORMATION.to(this, destination);
+//		SOURCE_TRANSFORMATION.to(this, destination);
+//		MULTIMEDIA_TRANSFORMATION.to(this, destination);
+//		INDIVIDUAL_TRANSFORMATION.to(this, destination);
+//		FAMILY_TRANSFORMATION.to(this, destination);
 		return destination;
 	}
 
