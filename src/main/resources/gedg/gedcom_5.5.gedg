@@ -1,4 +1,5 @@
 GEDCOM_VERSION=5.5
+GEDCOM_DATE=1996-01-02
 GEDCOM_SOURCE=http://homepages.rootsweb.ancestry.com/~pmcbride/gedcom/55gctoc.htm
 GEDCOM_DESCRIPTION=Release 5.5
 
