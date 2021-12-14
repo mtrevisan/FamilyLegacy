@@ -113,6 +113,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 
 	private static final int TABLE_INDEX_DOCUMENT_FILE = 0;
 
+	private static final DefaultComboBoxModel<String> MAPPING_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
+		"spherical_UV", "cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
 
@@ -125,6 +127,9 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 	private final JTextField fileField = new JTextField();
 	private final JButton fileButton = new JButton(OPEN_DOCUMENT);
 	private final JFileChooser fileChooser = new JFileChooser();
+	private final JCheckBox sphericalCheckBox = new JCheckBox("Spherical");
+	private final JLabel mappingLabel = new JLabel("Mapping:");
+	private final JComboBox<String> mappingComboBox = new JComboBox<>(MAPPING_TYPE_MODEL);
 	private final JLabel descriptionLabel = new JLabel("Description:");
 	private final JTextField descriptionField = new JTextField();
 	private TextPreviewPane extractPreviewView;
@@ -241,9 +246,14 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 			if(returnValue == JFileChooser.APPROVE_OPTION){
 				final String path = fileChooser.getSelectedFile().getPath();
 				fileField.setText(store.stripBasePath(path));
+
+				sphericalCheckBox.setEnabled(true);
 			}
 		});
 		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
+
+		sphericalCheckBox.setEnabled(false);
+		mappingComboBox.setEnabled(false);
 
 		descriptionField.setEnabled(false);
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> textChanged());
@@ -303,6 +313,9 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		add(fileLabel, "align label,sizegroup label,split 3");
 		add(fileField, "grow");
 		add(fileButton, "wrap");
+		add(sphericalCheckBox, "wrap");
+		add(mappingLabel, "align label,sizegroup label,split 2");
+		add(mappingComboBox, "wrap paragraph");
 		add(descriptionLabel, "align label,sizegroup label,split 2");
 		add(descriptionField, "grow,wrap");
 		add(extractPanel, "grow,wrap");
@@ -322,6 +335,10 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 	private int calculateDataHash(){
 		final int fileHash = Objects.requireNonNullElse(fileField.getText(), StringUtils.EMPTY)
 			.hashCode();
+		final int sphericalHash = Boolean.valueOf(sphericalCheckBox.isSelected())
+			.hashCode();
+		final int mappingHash = Objects.requireNonNullElse(mappingComboBox.getSelectedItem(), StringUtils.EMPTY)
+			.hashCode();
 		final int descriptionHash = Objects.requireNonNullElse(descriptionField.getText(), StringUtils.EMPTY)
 			.hashCode();
 		final int extractHash = extractPreviewView.getText()
@@ -332,7 +349,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 			.hashCode();
 		final int restrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
 			.hashCode();
-		return fileHash ^ descriptionHash ^ extractHash ^ extractTypeHash ^ extractLanguageTagHash ^ restrictionHash;
+		return fileHash ^ sphericalHash ^ mappingHash ^ descriptionHash ^ extractHash ^ extractTypeHash ^ extractLanguageTagHash
+			^ restrictionHash;
 	}
 
 	@Override
@@ -342,6 +360,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 
 	private void okAction(){
 		final String file = fileField.getText();
+		final boolean spherical = sphericalCheckBox.isSelected();
+		final String mapping = (String)mappingComboBox.getSelectedItem();
 		final String description = descriptionField.getText();
 		final String extract = extractPreviewView.getText();
 		final String extractType = (String)extractTypeComboBox.getSelectedItem();
@@ -356,6 +376,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 			.replaceChildValue("TYPE", extractType)
 			.replaceChildValue("LOCALE", extractLanguageTag);
 		fileNode.withValue(file)
+			.replaceChildValue("SPHERICAL", (spherical? "Y": "N"))
+			.replaceChildValue("MAPPING", mapping)
 			.replaceChildValue("DESCRIPTION", description)
 			.removeChildrenWithTag("EXTRACT")
 			.addChild(extractNode)
@@ -367,6 +389,8 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		final GedcomNode selectedDocument = documents.get(selectedRow);
 
 		final String file = selectedDocument.getValue();
+		final boolean spherical = "Y".equals(store.traverse(selectedDocument, "SPHERICAL").getValue());
+		final String mapping = store.traverse(selectedDocument, "MAPPING").getValue();
 		final String description = store.traverse(selectedDocument, "DESCRIPTION").getValue();
 		final GedcomNode extractNode = store.traverse(selectedDocument, "EXTRACT");
 		final String extract = extractNode.getValue();
@@ -378,6 +402,10 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 
 		fileField.setText(file);
 		fileButton.setEnabled(true);
+		sphericalCheckBox.setEnabled(true);
+		sphericalCheckBox.setSelected(spherical);
+		mappingComboBox.setEnabled(true);
+		mappingComboBox.setSelectedItem(mapping);
 		descriptionField.setEnabled(true);
 		descriptionField.setText(description);
 		GUIHelper.setEnabled(extractPreviewView, true);
