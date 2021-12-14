@@ -288,7 +288,7 @@ public final class Transformer extends TransformerHelper{
 			//otherwise ignore
 			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
 				.addChildValue("TYPE", type)
-				.addChildValue("RELATIONSHIP", traverse(association, "RELA").getValue());
+				.addChildValue("ROLE", traverse(association, "RELA").getValue());
 			noteCitationTo(association, destinationAssociation, origin, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
 
@@ -458,7 +458,7 @@ public final class Transformer extends TransformerHelper{
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(createWithValue("PROTOCOL", "FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
-				.addChildValue("VERSION", "0.0.6")
+				.addChildValue("VERSION", "0.0.7")
 			)
 			.addChild(createWithValue("SOURCE", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
@@ -1125,7 +1125,7 @@ public final class Transformer extends TransformerHelper{
 				type = "INDI";
 			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef())
 				.addChildValue("TYPE", type)
-				.addChildValue("RELA", traverse(association, "RELATIONSHIP").getValue());
+				.addChildValue("RELA", traverse(association, "ROLE").getValue());
 			noteCitationFrom(association, destinationAssociation);
 			sourceCitationFrom(association, destinationAssociation, origin, destination);
 
