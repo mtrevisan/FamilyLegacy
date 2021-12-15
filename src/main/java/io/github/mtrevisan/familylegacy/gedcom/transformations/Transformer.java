@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.gedcom.transformations;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.validators.PhoneNumberValidator;
 import org.apache.commons.lang3.StringUtils;
@@ -287,10 +288,18 @@ public final class Transformer extends TransformerHelper{
 				type = "individual";
 			//otherwise ignore
 			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
-				.addChildValue("TYPE", type)
-				.addChildValue("ROLE", traverse(association, "RELA").getValue());
+				.addChildValue("TYPE", type);
 			noteCitationTo(association, destinationAssociation, origin, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
+			final String rela = traverse(association, "RELA").getValue();
+			if(StringUtils.isNotBlank(rela)){
+				final List<GedcomNode> sourceCitations = traverseAsList(destinationAssociation, "SOURCE[]");
+				for(final GedcomNode sourceCitation : sourceCitations){
+					final GedcomNode sourceCitationRole = traverse(sourceCitation, "ROLE");
+					if(sourceCitationRole.isEmpty())
+						sourceCitationRole.withValue(rela);
+				}
+			}
 
 			destinationIndividual.addChild(destinationAssociation);
 		}
@@ -381,12 +390,12 @@ public final class Transformer extends TransformerHelper{
 	private GedcomNode eventRecordTo(final String individualID, final String valueTo, final GedcomNode event, final Gedcom origin,
 			final Flef destination){
 		final String type = traverse(event, "TYPE").getValue();
-		//skip useless `Y` as description
 		final String description = (!"BIRTH".equals(valueTo) && !"DEATH".equals(valueTo) && !"BURIAL".equals(valueTo)
 			&& !"MARRIAGE".equals(valueTo)? event.getValue(): type);
 		final GedcomNode destinationEvent = create("EVENT")
 			.addChildValue("TYPE", (CUSTOM_EVENT_TAG.equals(valueTo)? type: valueTo))
-			.addChildValue("DESCRIPTION", description);
+			//skip useless `Y` as description
+			.addChildValue("DESCRIPTION", ("Y".equals(description)? null: description));
 		final GedcomNode familyChild = traverse(event, "FAMC");
 		if(!familyChild.isEmpty()){
 			final String adoptedBy = traverse(familyChild, "ADOP").getValue();
@@ -612,7 +621,7 @@ public final class Transformer extends TransformerHelper{
 		final int fileCount = destinationFiles.size();
 		if(extracts.size() > fileCount){
 			//collect all extractions and assign to first
-			final StringJoiner sj = new StringJoiner("\n");
+			final StringJoiner sj = new StringJoiner("\\n");
 			for(int index = 0; index < extracts.size(); index ++)
 				sj.add("EXTRACT " + index)
 					.add(extracts.get(index).getValue());
@@ -853,7 +862,7 @@ public final class Transformer extends TransformerHelper{
 
 	private void addDateTo(final GedcomNode date, final GedcomNode destinationNode, final Flef destination){
 		if(!date.isEmpty()){
-			final String calendarType = date.getXRef();
+			final String calendarType = CalendarParserBuilder.getCalendarType(date.getXRef());
 			//search for calendar type
 			final GedcomNode calendar = destination.getCalendarByType(calendarType);
 			if(calendar.isEmpty()){
@@ -875,6 +884,7 @@ public final class Transformer extends TransformerHelper{
 		SOURCE.EVENT.value = SOUR.DATA.EVEN.value
 		SOURCE.TITLE.value = SOUR.TITL.value
 		SOURCE.DATE.value = SOUR.DATA.EVEN.DATE.value
+		transfer DATA.EVEN.PLAC to SOURCE.PLACE
 		SOURCE.AUTHOR.value = SOUR.AUTH.value
 		SOURCE.PUBLICATION_FACTS.value = SOUR.PUBL.value
 		transfer SOUR.REPO to SOURCE.REPOSITORY
@@ -915,6 +925,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("PUBLICATION_FACTS", publicationFacts);
 			final GedcomNode date = traverse(sourceDataEvent, "DATE");
 			addDateTo(date, destinationSource, destination);
+			placeStructureFrom(sourceDataEvent, destinationSource, destination);
 			repositoryCitationTo(source, destinationSource, origin, destination);
 			multimediaCitationTo(source, destinationSource, origin, destination);
 			noteCitationTo(sourceData, destinationSource, origin, destination);
@@ -1375,7 +1386,7 @@ public final class Transformer extends TransformerHelper{
 			.addChildValue("PUBL", traverse(source, "PUBLICATION_FACTS").getValue());
 		final List<GedcomNode> files = traverseAsList(source, "FILE[]");
 		//collect all the extractions:
-		final StringJoiner sj = new StringJoiner("\n");
+		final StringJoiner sj = new StringJoiner("\\n");
 		for(final GedcomNode file : files){
 			final String extract = traverse(file, "EXTRACT").getValue();
 			JavaHelper.addValueIfNotNull(sj, extract);

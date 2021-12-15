@@ -24,14 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 
 
 public final class GedcomNodeFlef extends GedcomNode{
-
-	private static final String TAG_NEW_LINE = "NEW_LINE";
-
 
 	@Override
 	protected GedcomNode createNewNodeWithTag(final String tag){
@@ -40,43 +36,14 @@ public final class GedcomNodeFlef extends GedcomNode{
 
 	@Override
 	public String getValue(){
-		if(children != null){
-			final StringBuilder sb = new StringBuilder();
-			if(value != null)
-				sb.append(value);
-			for(final GedcomNode child : children)
-				if(TAG_NEW_LINE.equals(child.tag)){
-					sb.append(NEW_LINE);
-					if(child.value != null)
-						sb.append(child.value);
-				}
-			return (!sb.isEmpty()? sb.toString(): null);
-		}
-		else
-			return value;
+		return value;
 	}
 
 	@Override
 	public GedcomNodeFlef withValue(final String value){
-		if(value != null && !value.isEmpty()){
-			//split line into CONTINUATION if applicable
-			int offset = 0;
-			int cutIndex;
-			final int length = value.length();
-			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
-				final String subValue = value.substring(offset, cutIndex);
-				addValue(TAG_NEW_LINE, subValue);
+		if(value != null && !value.isEmpty())
+			this.value = value;
 
-				offset = cutIndex + 1;
-			}
-
-			if(offset < length){
-				if(offset == 0)
-					this.value = value;
-				else
-					addValue(TAG_NEW_LINE, value.substring(offset));
-			}
-		}
 		return this;
 	}
 

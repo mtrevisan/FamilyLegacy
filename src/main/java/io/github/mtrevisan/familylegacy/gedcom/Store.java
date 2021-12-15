@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -134,7 +135,7 @@ public abstract class Store{
 	}
 
 	static TreeMap<String, GedcomNode> generateIndexes(final Iterable<GedcomNode> list){
-		final TreeMap<String, GedcomNode> indexes = new TreeMap<>();
+		final TreeMap<String, GedcomNode> indexes = new TreeMap<>(Comparator.comparing(e -> Integer.valueOf(e.substring(1))));
 		if(list != null)
 			for(final GedcomNode elem : list)
 				indexes.put(elem.getID(), elem);

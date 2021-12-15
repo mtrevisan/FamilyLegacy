@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
 
 public abstract class GedcomNode{
 
-	static final char NEW_LINE = '\n';
+	static final String NEW_LINE = "\\n";
 
 	private static final Pattern PATTERN_ID = RegexHelper.pattern("[^0-9]");
 

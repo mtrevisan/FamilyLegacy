@@ -43,8 +43,8 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	private static final String PARAM_ERA = "era";
 	private static final String PATTERN_DATE_DAY = "(?:(?<" + PARAM_DAY + ">\\d{1,2}) )?";
 	private static final String PATTERN_DATE_MONTH = "(?:(?<" + PARAM_MONTH + ">[A-Z]+) )?";
-	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4})";
-	private static final String PATTERN_DATE_DOUBLE_YEAR = "(?:\\/(?<" + PARAM_DOUBLE_ENTRY_YEAR + ">\\d{2}))?)?";
+	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4}))";
+	private static final String PATTERN_DATE_DOUBLE_YEAR = "(?:\\/(?<" + PARAM_DOUBLE_ENTRY_YEAR + ">\\d{2})?)?";
 	private static final String PATTERN_DATE_ERA = "(?: (?<" + PARAM_ERA + ">[ABCE.]+))?";
 	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^" + PATTERN_DATE_DAY + PATTERN_DATE_MONTH
 		+ PATTERN_DATE_YEAR + PATTERN_DATE_DOUBLE_YEAR + PATTERN_DATE_ERA + "$");

@@ -33,10 +33,10 @@ public final class CalendarParserBuilder{
 
 	private static final Pattern PATTERN_CALENDAR_TYPE_PREFIX = RegexHelper.pattern("@#D[^@]+@ ");
 
-	public static final String CALENDAR_HEBREW = "@#DHEBREW@";
-	public static final String CALENDAR_FRENCH_REPUBLICAN = "@#DFRENCH R@";
-	public static final String CALENDAR_GREGORIAN = "@#DGREGORIAN@";
-	public static final String CALENDAR_JULIAN = "@#DJULIAN@";
+	public static final String CALENDAR_HEBREW = "#DHEBREW";
+	public static final String CALENDAR_FRENCH_REPUBLICAN = "#DFRENCH R";
+	public static final String CALENDAR_GREGORIAN = "#DGREGORIAN";
+	public static final String CALENDAR_JULIAN = "#DJULIAN";
 
 	private CalendarParserBuilder(){}
 
@@ -62,10 +62,10 @@ public final class CalendarParserBuilder{
 
 	public static String getCalendarType(final String date){
 		final AbstractCalendarParser parser = getParser(date);
-		if(parser instanceof GregorianCalendarParser)
-			return "gregorian";
 		if(parser instanceof JulianCalendarParser)
 			return "julian";
+		if(parser instanceof GregorianCalendarParser)
+			return "gregorian";
 		if(parser instanceof FrenchRepublicanCalendarParser)
 			return "french-republican";
 		if(parser instanceof HebrewCalendarParser)

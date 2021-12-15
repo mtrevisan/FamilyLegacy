@@ -157,10 +157,10 @@ final class GedcomParser{
 			final Collection<String> ids = new HashSet<>(children.size());
 			for(final GedcomNode child : children)
 				ids.add(child.getID());
-			ids.add(CalendarParserBuilder.CALENDAR_HEBREW.substring(1, CalendarParserBuilder.CALENDAR_HEBREW.length() - 1));
-			ids.add(CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN.substring(1, CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN.length() - 1));
-			ids.add(CalendarParserBuilder.CALENDAR_GREGORIAN.substring(1, CalendarParserBuilder.CALENDAR_GREGORIAN.length() - 1));
-			ids.add(CalendarParserBuilder.CALENDAR_JULIAN.substring(1, CalendarParserBuilder.CALENDAR_JULIAN.length() - 1));
+			ids.add(CalendarParserBuilder.CALENDAR_HEBREW);
+			ids.add(CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN);
+			ids.add(CalendarParserBuilder.CALENDAR_GREGORIAN);
+			ids.add(CalendarParserBuilder.CALENDAR_JULIAN);
 			references.removeAll(ids);
 			if(!references.isEmpty())
 				throw new GedcomParseException("Cannot find object for IDs [{}]", String.join(", ", references))

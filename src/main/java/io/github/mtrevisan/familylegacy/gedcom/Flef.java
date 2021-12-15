@@ -141,17 +141,17 @@ public class Flef extends Store{
 	private Map<Integer, String> sourceValue;
 	private Map<Integer, String> calendarValue;
 
-	private int individualId = 1;
-	private int familyId = 1;
-	private int groupId = 1;
-	private int eventId = 1;
-	private int placeId = 1;
-	private int noteId = 1;
-	private int repositoryId = 1;
-	private int culturalRuleId = 1;
-	private int sourceId = 1;
-	private int calendarId = 1;
-	private int historicEventId = 1;
+	private int nextIndividualId = 1;
+	private int nextFamilyId = 1;
+	private int nextGroupId = 1;
+	private int nextEventId = 1;
+	private int nextPlaceId = 1;
+	private int nextNoteId = 1;
+	private int nextRepositoryId = 1;
+	private int nextCulturalRuleId = 1;
+	private int nextSourceId = 1;
+	private int nextCalendarId = 1;
+	private int nextHistoricEventId = 1;
 
 
 
@@ -229,27 +229,27 @@ public class Flef extends Store{
 		calendarValue = reverseMap(calendarIndex);
 
 		if(!individualIndex.isEmpty())
-			individualId = extractLastID(individualIndex.lastKey()) + 1;
+			nextIndividualId = extractLastID(individualIndex.lastKey()) + 1;
 		if(!familyIndex.isEmpty())
-			familyId = extractLastID(familyIndex.lastKey()) + 1;
+			nextFamilyId = extractLastID(familyIndex.lastKey()) + 1;
 		if(!groupIndex.isEmpty())
-			groupId = extractLastID(groupIndex.lastKey()) + 1;
+			nextGroupId = extractLastID(groupIndex.lastKey()) + 1;
 		if(!eventIndex.isEmpty())
-			eventId = extractLastID(eventIndex.lastKey()) + 1;
+			nextEventId = extractLastID(eventIndex.lastKey()) + 1;
 		if(!placeIndex.isEmpty())
-			placeId = extractLastID(placeIndex.lastKey()) + 1;
+			nextPlaceId = extractLastID(placeIndex.lastKey()) + 1;
 		if(!noteIndex.isEmpty())
-			noteId = extractLastID(noteIndex.lastKey()) + 1;
+			nextNoteId = extractLastID(noteIndex.lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
-			repositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
+			nextRepositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
 		if(!culturalRuleIndex.isEmpty())
-			culturalRuleId = extractLastID(culturalRuleIndex.lastKey()) + 1;
+			nextCulturalRuleId = extractLastID(culturalRuleIndex.lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
-			sourceId = extractLastID(sourceIndex.lastKey()) + 1;
+			nextSourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!calendarIndex.isEmpty())
-			calendarId = extractLastID(calendarIndex.lastKey()) + 1;
+			nextCalendarId = extractLastID(calendarIndex.lastKey()) + 1;
 		if(!historicEventIndex.isEmpty())
-			historicEventId = extractLastID(historicEventIndex.lastKey()) + 1;
+			nextHistoricEventId = extractLastID(historicEventIndex.lastKey()) + 1;
 	}
 
 	@Override
@@ -353,6 +353,8 @@ public class Flef extends Store{
 		if(individualID == null){
 			individualID = getNextIndividualID();
 			individual.withID(individualID);
+
+			nextIndividualId ++;
 		}
 
 		individuals.add(individual);
@@ -375,7 +377,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + (individualId ++);
+		return ID_INDIVIDUAL_PREFIX + nextIndividualId;
 	}
 
 
@@ -401,6 +403,8 @@ public class Flef extends Store{
 		if(familyID == null){
 			familyID = getNextFamilyID();
 			family.withID(familyID);
+
+			nextFamilyId ++;
 		}
 
 		families.add(family);
@@ -427,7 +431,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + (familyId ++);
+		return ID_FAMILY_PREFIX + nextFamilyId;
 	}
 
 	public List<GedcomNode> getParent1s(final GedcomNode child){
@@ -484,6 +488,8 @@ public class Flef extends Store{
 		if(groupID == null){
 			groupID = getNextGroupID();
 			group.withID(groupID);
+
+			nextGroupId ++;
 		}
 
 		groups.add(group);
@@ -507,7 +513,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextGroupID(){
-		return ID_GROUP_PREFIX + (groupId ++);
+		return ID_GROUP_PREFIX + nextGroupId;
 	}
 
 
@@ -541,6 +547,8 @@ public class Flef extends Store{
 			eventIndex.put(event.getID(), event);
 			eventValue.put(event.hashCode(), eventID);
 
+			nextEventId ++;
+
 			EventBusService.publish(ACTION_COMMAND_EVENT_COUNT);
 		}
 		else
@@ -561,7 +569,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextEventID(){
-		return ID_EVENT_PREFIX + (eventId ++);
+		return ID_EVENT_PREFIX + nextEventId;
 	}
 
 
@@ -591,6 +599,8 @@ public class Flef extends Store{
 			placeIndex.put(placeID, place);
 			placeValue.put(place.hashCode(), placeID);
 
+			nextPlaceId ++;
+
 			EventBusService.publish(ACTION_COMMAND_PLACE_COUNT);
 		}
 		else
@@ -611,7 +621,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextPlaceID(){
-		return ID_PLACE_PREFIX + (placeId ++);
+		return ID_PLACE_PREFIX + nextPlaceId;
 	}
 
 
@@ -635,6 +645,8 @@ public class Flef extends Store{
 		notes.add(note);
 		noteIndex.put(noteID, note);
 
+		nextNoteId ++;
+
 		EventBusService.publish(ACTION_COMMAND_NOTE_COUNT);
 		return noteID;
 	}
@@ -653,7 +665,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextNoteID(){
-		return ID_NOTE_PREFIX + (noteId ++);
+		return ID_NOTE_PREFIX + nextNoteId;
 	}
 
 
@@ -683,6 +695,8 @@ public class Flef extends Store{
 			repositoryIndex.put(repositoryID, repository);
 			repositoryValue.put(repository.hashCode(), repositoryID);
 
+			nextRepositoryId ++;
+
 			EventBusService.publish(ACTION_COMMAND_REPOSITORY_COUNT);
 		}
 		else
@@ -704,7 +718,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return ID_REPOSITORY_PREFIX + (repositoryId ++);
+		return ID_REPOSITORY_PREFIX + nextRepositoryId;
 	}
 
 
@@ -734,6 +748,8 @@ public class Flef extends Store{
 			culturalRuleIndex.put(culturalRuleID, culturalRule);
 			culturalRuleValue.put(culturalRule.hashCode(), culturalRuleID);
 
+			nextCulturalRuleId ++;
+
 			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
 		}
 		else
@@ -755,7 +771,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextCulturalRuleID(){
-		return ID_CULTURAL_RULE_PREFIX + (culturalRuleId ++);
+		return ID_CULTURAL_RULE_PREFIX + nextCulturalRuleId;
 	}
 
 
@@ -785,6 +801,8 @@ public class Flef extends Store{
 			sourceIndex.put(sourceID, source);
 			sourceValue.put(source.hashCode(), sourceID);
 
+			nextSourceId ++;
+
 			EventBusService.publish(ACTION_COMMAND_SOURCE_COUNT);
 		}
 		else
@@ -806,7 +824,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextSourceID(){
-		return ID_SOURCE_PREFIX + (sourceId ++);
+		return ID_SOURCE_PREFIX + nextSourceId;
 	}
 
 
@@ -844,6 +862,8 @@ public class Flef extends Store{
 			calendarIndex.put(calendarID, calendar);
 			calendarValue.put(calendar.hashCode(), calendarID);
 
+			nextCalendarId ++;
+
 			EventBusService.publish(ACTION_COMMAND_CALENDAR_COUNT);
 		}
 		else
@@ -865,7 +885,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextCalendarID(){
-		return ID_CALENDAR_PREFIX + (calendarId ++);
+		return ID_CALENDAR_PREFIX + nextCalendarId;
 	}
 
 
@@ -889,6 +909,8 @@ public class Flef extends Store{
 		historicEvents.add(historicEvent);
 		historicEventIndex.put(historicEventID, historicEvent);
 
+		nextHistoricEventId ++;
+
 		EventBusService.publish(ACTION_COMMAND_HISTORIC_EVENT_COUNT);
 		return historicEventID;
 	}
@@ -907,7 +929,7 @@ public class Flef extends Store{
 	}
 
 	private String getNextHistoricEventID(){
-		return ID_HISTORIC_EVENT_PREFIX + (historicEventId ++);
+		return ID_HISTORIC_EVENT_PREFIX + nextHistoricEventId;
 	}
 
 }

@@ -85,7 +85,6 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record.
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 ASSOCIATION @<XREF:ID>@    {0:M}	/* An xref ID of the individual/family this individual is associated with. */
     +2 TYPE <ASSOCIATION_TYPE>    {1:1}	/* The type of associated record. May be 'individual', or 'family'. */
-    +2 ROLE <RELATION_IS_DESCRIPTOR>    {1:1}	/* A word or phrase that states object 1's relation is object 2. If the payload text is R, the person described by the record pointed to by the payload of the superstructure is P, and the person described by the superstructure of the superstructure is Q then this payload means “P is Q’s R”. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
     +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
   +1 ALIAS @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of individual aliases of this individual. */
