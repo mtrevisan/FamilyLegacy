@@ -1468,7 +1468,7 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
 			)
 			.addChildReference("SUBM", destinationSubmitter.getID())
-			.addChildValue("COPR", traverse(source, "COPYRIGHT").getValue())
+			.addChildValue("COPR", traverse(header, "COPYRIGHT").getValue())
 			.addChild(create("GEDC")
 				.addChildValue("VERS", "5.5.1")
 				.addChildValue("FORM", "LINEAGE-LINKED")
