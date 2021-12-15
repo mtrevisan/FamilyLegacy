@@ -46,19 +46,19 @@ public class FamilyTableCellRenderer extends JLabel implements TableCellRenderer
 	@Override
 	public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus,
 			final int row, final int column){
-		if(column == LinkFamilyDialog.TABLE_INDEX_PARENT1_NAME){
+		if(column == LinkFamilyDialog.TABLE_INDEX_PARTNER1_NAME){
 			final DefaultTableModel model = (DefaultTableModel)table.getModel();
 			@SuppressWarnings({"UseOfObsoleteCollectionType", "rawtypes"})
 			final Vector rowData = model.getDataVector().get(table.convertRowIndexToModel(row));
 			//set alternative names as tooltip
-			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_PARENT1_ADDITIONAL_NAMES));
+			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES));
 		}
-		else if(column == LinkFamilyDialog.TABLE_INDEX_PARENT2_NAME){
+		else if(column == LinkFamilyDialog.TABLE_INDEX_PARTNER2_NAME){
 			final DefaultTableModel model = (DefaultTableModel)table.getModel();
 			@SuppressWarnings({"UseOfObsoleteCollectionType", "rawtypes"})
 			final Vector rowData = model.getDataVector().get(table.convertRowIndexToModel(row));
 			//set alternative names as tooltip
-			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_PARENT2_ADDITIONAL_NAMES));
+			setToolTipText((String)rowData.get(LinkFamilyDialog.TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES));
 		}
 
 		setBorder(hasFocus?

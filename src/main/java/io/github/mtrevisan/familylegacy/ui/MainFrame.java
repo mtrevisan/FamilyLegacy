@@ -270,19 +270,19 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		LOGGER.debug("onFocusIndividual {}", individual.getID());
 
 		//prefer left position if male or unknown, right if female
-		GedcomNode parent1 = null;
-		GedcomNode parent2 = null;
+		GedcomNode partner1 = null;
+		GedcomNode partner2 = null;
 		if(IndividualPanel.extractSex(individual, store) == Sex.FEMALE)
 			//put in the right box
-			parent2 = individual;
+			partner2 = individual;
 		else
 			//put in the left box
-			parent1 = individual;
+			partner1 = individual;
 
 		final GedcomNode family = treePanel.getPreferredFamily(individual);
 
 		//update primary family
-		treePanel.loadData(parent1, parent2, family);
+		treePanel.loadData(partner1, partner2, family);
 	}
 
 	@Override
@@ -338,9 +338,9 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
 			final GedcomNode child = individualPanel.getChildReference();
 			if(type == SelectedNodeType.INDIVIDUAL1)
-				linkParentToFamily(child, node, store.getParent1s(child), "PARENT1");
+				linkParentToFamily(child, node, store.getPartner1s(child), "PARTNER1");
 			else if(type == SelectedNodeType.INDIVIDUAL2)
-				linkParentToFamily(child, node, store.getParent2s(child), "PARENT2");
+				linkParentToFamily(child, node, store.getPartner2s(child), "PARTNER2");
 
 			individualPanel.loadData(node);
 		}

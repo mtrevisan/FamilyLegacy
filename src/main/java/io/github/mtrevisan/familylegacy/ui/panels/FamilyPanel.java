@@ -116,20 +116,20 @@ public class FamilyPanel extends JPanel{
 		new float[]{2.f}, 0.f);
 
 
-	private IndividualPanel parent1Panel;
-	private IndividualPanel parent2Panel;
-	private final JLabel parent1PreviousLabel = new JLabel();
-	private final JLabel parent1NextLabel = new JLabel();
-	private final JLabel parent2PreviousLabel = new JLabel();
-	private final JLabel parent2NextLabel = new JLabel();
+	private IndividualPanel partner1Panel;
+	private IndividualPanel partner2Panel;
+	private final JLabel partner1PreviousLabel = new JLabel();
+	private final JLabel partner1NextLabel = new JLabel();
+	private final JLabel partner2PreviousLabel = new JLabel();
+	private final JLabel partner2NextLabel = new JLabel();
 	private final JPanel marriagePanel = new JPanel();
 	private final JMenuItem editFamilyItem = new JMenuItem("Edit Family…", 'E');
 	private final JMenuItem linkFamilyItem = new JMenuItem("Link Family…", 'L');
 	private final JMenuItem unlinkFamilyItem = new JMenuItem("Unlink Family…", 'U');
 	private final JMenuItem removeFamilyItem = new JMenuItem("Remove Family…", 'R');
 
-	private GedcomNode parent1;
-	private GedcomNode parent2;
+	private GedcomNode partner1;
+	private GedcomNode partner2;
 	private GedcomNode family;
 	private final Flef store;
 	private final BoxPanelType boxType;
@@ -139,15 +139,15 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode childReference;
 
 
-	public FamilyPanel(final GedcomNode parent1, final GedcomNode parent2, final GedcomNode family, final GedcomNode childReference,
+	public FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference,
 			final Flef store, final BoxPanelType boxType, final FamilyListenerInterface familyListener,
 			final IndividualListenerInterface individualListener){
 		this.store = store;
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
 
-		this.parent1 = (parent1 == null && family != null? store.getParent1(family): parent1);
-		this.parent2 = (parent2 == null && family != null? store.getParent2(family): parent2);
+		this.partner1 = (partner1 == null && family != null? store.getPartner1(family): partner1);
+		this.partner2 = (partner2 == null && family != null? store.getPartner2(family): partner2);
 		this.family = family;
 		this.childReference = childReference;
 		if(family != null && this.childReference == null){
@@ -174,10 +174,10 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 
-		parent1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, parent1, store, boxType, individualListener);
-		parent1Panel.setChildReference(childReference);
-		parent2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, parent2, store, boxType, individualListener);
-		parent2Panel.setChildReference(childReference);
+		partner1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, partner1, store, boxType, individualListener);
+		partner1Panel.setChildReference(childReference);
+		partner2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, partner2, store, boxType, individualListener);
+		partner2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
 		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
@@ -188,45 +188,45 @@ public class FamilyPanel extends JPanel{
 
 			refresh(Flef.ACTION_COMMAND_FAMILY_COUNT);
 
-			parent1PreviousLabel.addMouseListener(new MouseAdapter(){
+			partner1PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent1PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousParent(FamilyPanel.this, parent2, parent1, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1PreviousLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyPreviousParent(FamilyPanel.this, partner2, partner1, family);
 				}
 			});
-			parent1NextLabel.addMouseListener(new MouseAdapter(){
+			partner1NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent1NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextParent(FamilyPanel.this, parent2, parent1, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1NextLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyNextParent(FamilyPanel.this, partner2, partner1, family);
 				}
 			});
-			parent2PreviousLabel.addMouseListener(new MouseAdapter(){
+			partner2PreviousLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent2PreviousLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyPreviousParent(FamilyPanel.this, parent1, parent2, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2PreviousLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyPreviousParent(FamilyPanel.this, partner1, partner2, family);
 				}
 			});
-			parent2NextLabel.addMouseListener(new MouseAdapter(){
+			partner2NextLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)parent2NextLabel.getClientProperty(KEY_ENABLED))
-						familyListener.onFamilyNextParent(FamilyPanel.this, parent1, parent2, family);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2NextLabel.getClientProperty(KEY_ENABLED))
+						familyListener.onFamilyNextParent(FamilyPanel.this, partner1, partner2, family);
 				}
 			});
 		}
 
 		final Dimension minimumSize = new Dimension(PARENT_PREVIOUS_ENABLED.getIconWidth(), PARENT_PREVIOUS_ENABLED.getIconHeight());
 		if(boxType == BoxPanelType.PRIMARY){
-			parent1PreviousLabel.setMinimumSize(minimumSize);
-			parent1NextLabel.setMinimumSize(minimumSize);
-			parent2PreviousLabel.setMinimumSize(minimumSize);
-			parent2NextLabel.setMinimumSize(minimumSize);
+			partner1PreviousLabel.setMinimumSize(minimumSize);
+			partner1NextLabel.setMinimumSize(minimumSize);
+			partner2PreviousLabel.setMinimumSize(minimumSize);
+			partner2NextLabel.setMinimumSize(minimumSize);
 		}
 
-		final Dimension parentPanelMaximumSize = parent1Panel.getMaximumSize();
+		final Dimension parentPanelMaximumSize = partner1Panel.getMaximumSize();
 		setMaximumSize(new Dimension(
 			parentPanelMaximumSize.width * 2 + MARRIAGE_PANEL_DIMENSION.width,
 			parentPanelMaximumSize.height + minimumSize.height
@@ -236,14 +236,14 @@ public class FamilyPanel extends JPanel{
 		setLayout(new MigLayout("insets 0",
 			"[grow]" + HALF_PARENT_SEPARATION + "[]" + HALF_PARENT_SEPARATION + "[grow]",
 			"[]0[]"));
-		add(parent1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
-		add(parent1NextLabel, "gapbottom " + navigationArrowGap);
+		add(partner1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
+		add(partner1NextLabel, "gapbottom " + navigationArrowGap);
 		add(new JLabel());
-		add(parent2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
-		add(parent2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
-		add(parent1Panel, "growx 50");
+		add(partner2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
+		add(partner2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
+		add(partner1Panel, "growx 50");
 		add(marriagePanel, "aligny bottom,gapbottom " + FAMILY_EXITING_HEIGHT);
-		add(parent2Panel, "growx 50");
+		add(partner2Panel, "growx 50");
 	}
 
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
@@ -272,7 +272,7 @@ public class FamilyPanel extends JPanel{
 	protected void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
-		if(g instanceof Graphics2D && parent1Panel != null && parent2Panel != null){
+		if(g instanceof Graphics2D && partner1Panel != null && partner2Panel != null){
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -280,9 +280,9 @@ public class FamilyPanel extends JPanel{
 
 			graphics2D.setStroke(CONNECTION_STROKE);
 
-			final int xFrom = parent1Panel.getX() + parent1Panel.getWidth();
-			final int xTo = parent2Panel.getX();
-			final int yFrom = parent1Panel.getY() + parent1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
+			final int xFrom = partner1Panel.getX() + partner1Panel.getWidth();
+			final int xTo = partner2Panel.getX();
+			final int yFrom = partner1Panel.getY() + partner1Panel.getHeight() - FAMILY_CONNECTION_HEIGHT;
 			//horizontal line between parents
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
 
@@ -294,9 +294,9 @@ public class FamilyPanel extends JPanel{
 		loadData(null, null, family);
 	}
 
-	public void loadData(final GedcomNode parent1, final GedcomNode parent2, final GedcomNode family){
-		this.parent1 = (parent1 == null && family != null? store.getParent1(family): parent1);
-		this.parent2 = (parent2 == null && family != null? store.getParent2(family): parent2);
+	public void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family){
+		this.partner1 = (partner1 == null && family != null? store.getPartner1(family): partner1);
+		this.partner2 = (partner2 == null && family != null? store.getPartner2(family): partner2);
 		this.family = family;
 
 		loadData();
@@ -305,12 +305,12 @@ public class FamilyPanel extends JPanel{
 	}
 
 	private void loadData(){
-		parent1Panel.loadData(parent1);
-		parent2Panel.loadData(parent2);
+		partner1Panel.loadData(partner1);
+		partner2Panel.loadData(partner2);
 
 		if(boxType == BoxPanelType.PRIMARY){
-			updatePreviousNextParentIcons(family, parent2, parent1PreviousLabel, parent1NextLabel);
-			updatePreviousNextParentIcons(family, parent1, parent2PreviousLabel, parent2NextLabel);
+			updatePreviousNextParentIcons(family, partner2, partner1PreviousLabel, partner1NextLabel);
+			updatePreviousNextParentIcons(family, partner1, partner2PreviousLabel, partner2NextLabel);
 		}
 
 		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -446,24 +446,24 @@ public class FamilyPanel extends JPanel{
 		return childReference;
 	}
 
-	public Point getFamilyPaintingParent1EnterPoint(){
-		final Point p = parent1Panel.getIndividualPaintingEnterPoint();
+	public Point getFamilyPaintingPartner1EnterPoint(){
+		final Point p = partner1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
-	public Point getFamilyPaintingParent2EnterPoint(){
-		final Point p = parent2Panel.getIndividualPaintingEnterPoint();
+	public Point getFamilyPaintingPartner2EnterPoint(){
+		final Point p = partner2Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	public Point getFamilyPaintingExitPoint(){
-		//halfway between parent1 and parent2 boxes
-		final int x = (parent1Panel.getX() + parent1Panel.getWidth() + parent2Panel.getX()) / 2;
-		//the bottom point of the marriage panel (that is: bottom point of parent1 box minus the height of the horizontal connection line
+		//halfway between partner1 and partner2 boxes
+		final int x = (partner1Panel.getX() + partner1Panel.getWidth() + partner2Panel.getX()) / 2;
+		//the bottom point of the marriage panel (that is: bottom point of partner1 box minus the height of the horizontal connection line
 		//plus half the size of the marriage panel box)
-		final int y = parent1Panel.getY() + parent1Panel.getHeight() - FAMILY_EXITING_HEIGHT;
+		final int y = partner1Panel.getY() + partner1Panel.getHeight() - FAMILY_EXITING_HEIGHT;
 		final Point origin = getLocation();
 		return new Point(origin.x + x, origin.y + y);
 	}

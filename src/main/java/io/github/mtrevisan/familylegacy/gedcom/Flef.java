@@ -434,38 +434,38 @@ public class Flef extends Store{
 		return ID_FAMILY_PREFIX + nextFamilyId;
 	}
 
-	public List<GedcomNode> getParent1s(final GedcomNode child){
+	public List<GedcomNode> getPartner1s(final GedcomNode child){
 		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
-		final List<GedcomNode> parent1s = new ArrayList<>(familyChilds.size());
+		final List<GedcomNode> partner1s = new ArrayList<>(familyChilds.size());
 		for(final GedcomNode familyChild : familyChilds){
 			final GedcomNode family = getFamily(familyChild.getXRef());
-			parent1s.add(getIndividual(TRANSFORMER.traverse(family, "PARENT1").getXRef()));
+			partner1s.add(getIndividual(TRANSFORMER.traverse(family, "PARTNER1").getXRef()));
 		}
-		return parent1s;
+		return partner1s;
 	}
 
-	public List<GedcomNode> getParent2s(final GedcomNode child){
+	public List<GedcomNode> getPartner2s(final GedcomNode child){
 		final List<GedcomNode> familyChilds = traverseAsList(child, "FAMILY_CHILD[]");
-		final List<GedcomNode> parent2s = new ArrayList<>(familyChilds.size());
+		final List<GedcomNode> partner2s = new ArrayList<>(familyChilds.size());
 		for(final GedcomNode familyChild : familyChilds){
 			final GedcomNode family = getFamily(familyChild.getXRef());
-			parent2s.add(getIndividual(TRANSFORMER.traverse(family, "PARENT2").getXRef()));
+			partner2s.add(getIndividual(TRANSFORMER.traverse(family, "PARTNER2").getXRef()));
 		}
-		return parent2s;
+		return partner2s;
 	}
 
-	public GedcomNode getParent1(final GedcomNode family){
-		final String individualXRef = traverse(family, "PARENT1").getXRef();
+	public GedcomNode getPartner1(final GedcomNode family){
+		final String individualXRef = traverse(family, "PARTNER1").getXRef();
 		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 
-	public GedcomNode getParent2(final GedcomNode family){
-		final String individualXRef = traverse(family, "PARENT2").getXRef();
+	public GedcomNode getPartner2(final GedcomNode family){
+		final String individualXRef = traverse(family, "PARTNER2").getXRef();
 		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 
-	public GedcomNode getParent(final GedcomNode family, final int parentIndex){
-		final String individualXRef = traverse(family, "PARENT" + parentIndex).getXRef();
+	public GedcomNode getPartner(final GedcomNode family, final int parentIndex){
+		final String individualXRef = traverse(family, "PARTNER" + parentIndex).getXRef();
 		return (individualXRef != null? getIndividual(individualXRef): createEmptyNode());
 	}
 

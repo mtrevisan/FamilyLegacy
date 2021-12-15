@@ -93,7 +93,7 @@ class TransformerFamilyRecordTest{
 		transformerTo.noteRecordTo(note1, destination);
 		transformerTo.familyRecordTo(family, origin, destination);
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: PARENT1, ref: I1}, {tag: PARENT2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N2}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: CREDIBILITY, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: PARTNER1, ref: I1}, {tag: PARTNER2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N2}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: CREDIBILITY, value: RESTRICTION_NOTICE}]", destination.getFamilies().get(0).toString());
 		Assertions.assertEquals("id: E1, tag: EVENT, children: [{tag: TYPE, value: MARRIAGE}, {tag: DESCRIPTION, value: EVENT_OR_FACT_CLASSIFICATION1}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(0).toString());
 		Assertions.assertEquals("id: E2, tag: EVENT, children: [{tag: TYPE, value: RESIDENCE}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(1).toString());
 		Assertions.assertEquals("id: E3, tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION3}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR}, {tag: FAMILY, ref: F1}]", destination.getEvents().get(2).toString());
@@ -105,8 +105,8 @@ class TransformerFamilyRecordTest{
 		final Transformer transformerFrom = new Transformer(Protocol.GEDCOM);
 		final GedcomNode family = transformerFrom.createWithID("FAMILY", "F1")
 			.addChildValue("TYPE", "marriage")
-			.addChildReference("PARENT1", "I1")
-			.addChildReference("PARENT2", "I2")
+			.addChildReference("PARTNER1", "I1")
+			.addChildReference("PARTNER2", "I2")
 			.addChildReference("CHILD", "I3")
 			.addChildReference("EVENT", "E1")
 			.addChildReference("EVENT", "E2")
@@ -163,7 +163,7 @@ class TransformerFamilyRecordTest{
 			.addChildValue("NAME", "PLACE_NAME");
 		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "N1", "NOTE 1");
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: marriage}, {tag: PARENT1, ref: I1}, {tag: PARENT2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: GROUP, ref: G1}, {tag: CULTURAL_RULE, ref: C1}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", family.toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: marriage}, {tag: PARTNER1, ref: I1}, {tag: PARTNER2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: GROUP, ref: G1}, {tag: CULTURAL_RULE, ref: C1}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CUTOUT, value: CUTOUT_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", family.toString());
 
 		final Flef origin = new Flef();
 		origin.addFamily(family);

@@ -181,8 +181,8 @@ public final class Transformer extends TransformerHelper{
 			INDIVIDUAL.ALIAS.xref = INDI.ALIA.xref
 		for-each INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN] create INDIVIDUAL.EVENT
 		for-each INDI.FAMC create INDIVIDUAL.FAMILY_CHILD
-			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT1.value = INDI.FAMC.PEDI.value
-			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT2.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARTNER1.value = INDI.FAMC.PEDI.value
+			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARTNER2.value = INDI.FAMC.PEDI.value
 			INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.CERTAINTY.value = INDI.FAMC.STAT.value
 		for-each INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT] create INDIVIDUAL.EVENT
 		transfer INDI.NOTE to INDIVIDUAL.NOTE
@@ -351,8 +351,8 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void familyRecordTo(final GedcomNode family, final Gedcom origin, final Flef destination){
 		final GedcomNode destinationFamily = createWithID("FAMILY", family.getID())
-			.addChildReference("PARENT1", traverse(family, "HUSB").getXRef())
-			.addChildReference("PARENT2", traverse(family, "WIFE").getXRef());
+			.addChildReference("PARTNER1", traverse(family, "HUSB").getXRef())
+			.addChildReference("PARTNER2", traverse(family, "WIFE").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHIL[]");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHILD", child.getXRef());
@@ -404,12 +404,12 @@ public final class Transformer extends TransformerHelper{
 				destinationEvent.addChildReference("FAMILY", familyChild.getXRef());
 				//EVEN ADOP
 				final GedcomNode family = origin.getFamily(familyChild.getXRef());
-				final String parent1ID = traverse(family, "HUSB").getXRef();
-				final String parent2ID = traverse(family, "WIFE").getXRef();
-				if(parent1ID != null && ("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
-					destinationEvent.addChildValue("PEDIGREE_PARENT1", "adopted");
-				if(parent2ID != null && ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
-					destinationEvent.addChildValue("PEDIGREE_PARENT2", "adopted");
+				final String partner1ID = traverse(family, "HUSB").getXRef();
+				final String partner2ID = traverse(family, "WIFE").getXRef();
+				if(partner1ID != null && ("HUSB".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
+					destinationEvent.addChildValue("PEDIGREE_PARTNER1", "adopted");
+				if(partner2ID != null && ("WIFE".equals(adoptedBy) || "BOTH".equals(adoptedBy)))
+					destinationEvent.addChildValue("PEDIGREE_PARTNER2", "adopted");
 			}
 		}
 		addDateTo(traverse(event, "DATE"), destinationEvent, destination);
@@ -1068,8 +1068,8 @@ public final class Transformer extends TransformerHelper{
 			INDI.ALIA.xref = INDIVIDUAL.ALIAS.xref
 		for-each INDIVIDUAL.EVENT create INDI.[BIRT|CHR|DEAT|BURI|CREM|ADOP|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|NATU|EMIG|IMMI|CENS|PROB|WILL|GRAD|RETI|EVEN]
 			for-each INDIVIDUAL.FAMILY_CHILD create INDI.FAMC
-				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT1.value
-				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARENT2.value
+				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARTNER1.value
+				INDI.FAMC.PEDI.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.PEDIGREE.PARTNER2.value
 				INDI.FAMC.STAT.value = INDIVIDUAL.FAMILY_CHILD.EVENT.TYPE{ADOPTION}.CERTAINTY.value
 		for-each INDIVIDUAL.EVENT create INDI.[CAST|DSCR|EDUC|IDNO|NATI|NCHI|NMR|OCCU|PROP|RELI|RESI|SSN|TITL|FACT]
 		transfer INDIVIDUAL.NOTE to INDI.NOTE
@@ -1176,14 +1176,14 @@ public final class Transformer extends TransformerHelper{
 				final GedcomNode destinationFamilyChild = traverse(destinationEvent, "FAMC");
 				for(final GedcomNode familyChild : familyChildren)
 					if(familyChild.getXRef().equals(destinationFamilyChild.getXRef())){
-						final boolean adoptedByParent1 = "adopted".equals(traverse(event, "PEDIGREE_PARENT1").getValue());
-						final boolean adoptedByParent2 = "adopted".equals(traverse(event, "PEDIGREE_PARENT2").getValue());
+						final boolean adoptedByPartner1 = "adopted".equals(traverse(event, "PEDIGREE_PARTNER1").getValue());
+						final boolean adoptedByPartner2 = "adopted".equals(traverse(event, "PEDIGREE_PARTNER2").getValue());
 						String pedigreeValue = null;
-						if(adoptedByParent1 && adoptedByParent2)
+						if(adoptedByPartner1 && adoptedByPartner2)
 							pedigreeValue = "BOTH";
-						else if(adoptedByParent1)
+						else if(adoptedByPartner1)
 							pedigreeValue = "HUSB";
-						else if(adoptedByParent2)
+						else if(adoptedByPartner2)
 							pedigreeValue = "WIFE";
 
 						destinationFamilyChild
@@ -1224,8 +1224,8 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
 		final GedcomNode destinationFamily = createWithID("FAM", family.getID());
-		destinationFamily.addChildReference("HUSB", traverse(family, "PARENT1").getXRef());
-		destinationFamily.addChildReference("WIFE", traverse(family, "PARENT2").getXRef());
+		destinationFamily.addChildReference("HUSB", traverse(family, "PARTNER1").getXRef());
+		destinationFamily.addChildReference("WIFE", traverse(family, "PARTNER2").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
@@ -1280,15 +1280,15 @@ public final class Transformer extends TransformerHelper{
 		if(("ADOP".equals(tagTo) || "BIRT".equals(tagTo)) && !familyChild.isEmpty()){
 			final List<GedcomNode> parentPedigrees = traverseAsList(event, "PARENT_PEDIGREE[]");
 			if(!parentPedigrees.isEmpty()){
-				final boolean adoptedByParent1 = "adopted".equals(traverse(parentPedigrees.get(0), "PEDIGREE").getValue());
-				final boolean adoptedByParent2 = (parentPedigrees.size() > 1
+				final boolean adoptedByPartner1 = "adopted".equals(traverse(parentPedigrees.get(0), "PEDIGREE").getValue());
+				final boolean adoptedByPartner2 = (parentPedigrees.size() > 1
 					&& "adopted".equals(traverse(parentPedigrees.get(1), "PEDIGREE").getValue()));
 				String pedigreeValue = null;
-				if(adoptedByParent1 && adoptedByParent2)
+				if(adoptedByPartner1 && adoptedByPartner2)
 					pedigreeValue = "BOTH";
-				else if(adoptedByParent1)
+				else if(adoptedByPartner1)
 					pedigreeValue = "HUSB";
-				else if(adoptedByParent2)
+				else if(adoptedByPartner2)
 					pedigreeValue = "WIFE";
 
 				destinationEvent
