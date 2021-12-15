@@ -77,11 +77,14 @@
 		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
 		<vladsch.flexmark.version>0.62.2</vladsch.flexmark.version>
 
-		<!-- Jackson JSON -->
+		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-		<fasterxml.jackson-databind.version>2.12.5</fasterxml.jackson-databind.version>
+		<fasterxml.jackson-databind.version>2.9.10.6</fasterxml.jackson-databind.version>
+		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
+		<jayway.json-path.version>2.6.0</jayway.json-path.version>
+<!--		<fasterxml.jackson-databind.version>2.12.5</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
-		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>
+<!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
 
 		<!-- TwelveMonkeys ImageIO -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
@@ -341,13 +344,21 @@
 		</dependency>
 
 		<!-- JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${fasterxml.jackson-databind.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>${jayway.json-path.version}</version>
+		</dependency>
 <!--		<dependency>-->
 <!--			<groupId>com.google.code.gson</groupId>-->
 <!--			<artifactId>gson</artifactId>-->
 <!--			<version>2.8.6</version>-->
 <!--		</dependency>-->
-
-		<!-- Jackson JSON -->
 <!--		<dependency>-->
 <!--			<groupId>com.fasterxml.jackson.core</groupId>-->
 <!--			<artifactId>jackson-databind</artifactId>-->
@@ -362,11 +373,6 @@
 <!--			<groupId>org.glassfish</groupId>-->
 <!--			<artifactId>javax.json</artifactId>-->
 <!--			<version>1.1.4</version>-->
-<!--		</dependency>-->
-<!--		<dependency>-->
-<!--			<groupId>com.jayway.jsonpath</groupId>-->
-<!--			<artifactId>json-path</artifactId>-->
-<!--			<version>2.4.0</version>-->
 <!--		</dependency>-->
 
 		<!-- Logger -->

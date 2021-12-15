@@ -24,16 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.MultimediaTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.NoteTransformation;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -72,15 +64,16 @@ public class Gedcom extends Store{
 	private static final String TAG_SUBMITTER = "SUBM";
 	private static final String TAG_CHARSET = "CHAR";
 
-	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
-	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
-	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
-	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
-	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
-	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
-	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
-	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
+//	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
+//	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
+//	private static final Transformation<Gedcom, Flef> FAMILY_TRANSFORMATION = new FamilyTransformation();
+//	private static final Transformation<Gedcom, Flef> NOTE_TRANSFORMATION = new NoteTransformation();
+//	private static final Transformation<Gedcom, Flef> REPOSITORY_TRANSFORMATION = new RepositoryTransformation();
+//	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
+//	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
+//	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
 
+	private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
 	private GedcomNode header;
 	private List<GedcomNode> individuals;
@@ -107,14 +100,14 @@ public class Gedcom extends Store{
 	private Map<Integer, String> sourceValue;
 	private Map<Integer, String> objectValue;
 
-	private int individualId = 1;
-	private int familyId = 1;
-	private int documentId = 1;
-	private int noteId = 1;
-	private int repositoryId = 1;
-	private int sourceId = 1;
-	private int objectId = 1;
-	private int submitterId = 1;
+	private int nextIndividualId = 1;
+	private int nextFamilyId = 1;
+	private int nextDocumentId = 1;
+	private int nextNoteId = 1;
+	private int nextRepositoryId = 1;
+	private int nextSourceId = 1;
+	private int nextObjectId = 1;
+	private int nextSubmitterId = 1;
 
 
 	public static void main(final String[] args){
@@ -212,35 +205,101 @@ public class Gedcom extends Store{
 		sourceValue = reverseMap(sourceIndex);
 
 		if(!individualIndex.isEmpty())
-			individualId = extractLastID(individualIndex.lastKey()) + 1;
+			nextIndividualId = extractLastID(individualIndex.lastKey()) + 1;
 		if(!familyIndex.isEmpty())
-			familyId = extractLastID(familyIndex.lastKey()) + 1;
+			nextFamilyId = extractLastID(familyIndex.lastKey()) + 1;
 		if(!documentIndex.isEmpty())
-			documentId = extractLastID(documentIndex.lastKey()) + 1;
+			nextDocumentId = extractLastID(documentIndex.lastKey()) + 1;
 		if(!noteIndex.isEmpty())
-			noteId = extractLastID(noteIndex.lastKey()) + 1;
+			nextNoteId = extractLastID(noteIndex.lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
-			repositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
+			nextRepositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
-			sourceId = extractLastID(sourceIndex.lastKey()) + 1;
+			nextSourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!objectIndex.isEmpty())
-			objectId = extractLastID(objectIndex.lastKey()) + 1;
+			nextObjectId = extractLastID(objectIndex.lastKey()) + 1;
 		if(!submitterIndex.isEmpty())
-			submitterId = extractLastID(submitterIndex.lastKey()) + 1;
+			nextSubmitterId = extractLastID(submitterIndex.lastKey()) + 1;
 	}
 
+	//TODO https://json-patch-builder-online.github.io/
 	@Override
 	public Flef transform(){
+		@SuppressWarnings("unchecked")
+		final Map<String, Object> originator = (Map<String, Object>)JSON_MAPPER.convertValue(root, Map.class);
+
+
 		final Flef destination = new Flef();
-		SUBMITTER_TRANSFORMATION.to(this, destination);
-		HEADER_TRANSFORMATION.to(this, destination);
-		NOTE_TRANSFORMATION.to(this, destination);
-		REPOSITORY_TRANSFORMATION.to(this, destination);
-		SOURCE_TRANSFORMATION.to(this, destination);
-		MULTIMEDIA_TRANSFORMATION.to(this, destination);
-		INDIVIDUAL_TRANSFORMATION.to(this, destination);
-		FAMILY_TRANSFORMATION.to(this, destination);
+
+		transformHeader();
+
+//		SUBMITTER_TRANSFORMATION.to(this, destination);
+//		HEADER_TRANSFORMATION.to(this, destination);
+//		NOTE_TRANSFORMATION.to(this, destination);
+//		REPOSITORY_TRANSFORMATION.to(this, destination);
+//		SOURCE_TRANSFORMATION.to(this, destination);
+//		MULTIMEDIA_TRANSFORMATION.to(this, destination);
+//		INDIVIDUAL_TRANSFORMATION.to(this, destination);
+//		FAMILY_TRANSFORMATION.to(this, destination);
 		return destination;
+	}
+
+/*
+n HEAD    {1:1}
+  +1 SOUR <APPROVED_SYSTEM_ID>    {1:1}
+    +2 VERS <VERSION_NUMBER>    {0:1}
+    +2 NAME <NAME_OF_PRODUCT>    {0:1}
+    +2 CORP <NAME_OF_BUSINESS>    {0:1}
+      +3 <<ADDRESS_STRUCTURE>>    {0:1}
+    +2 DATA <NAME_OF_SOURCE_DATA>    {0:1}
+      +3 DATE <PUBLICATION_DATE>    {0:1}
+      +3 COPR <COPYRIGHT_SOURCE_DATA>    {0:1}
+        +4 [ CONC | CONT ] <COPYRIGHT_SOURCE_DATA>    {0:M}
+  +1 DEST <RECEIVING_SYSTEM_NAME>    {0:1}
+		+1 DATE <TRANSMISSION_DATE>    {0:1}
+    +2 TIME <TIME_VALUE>    {0:1}
+  +1 SUBM @<XREF:SUBM>@    {1:1}
+  +1 SUBN @<XREF:SUBN>@    {0:1}
+  +1 FILE <FILE_NAME>    {0:1}
+  +1 COPR <COPYRIGHT_GEDCOM_FILE>    {0:1}
+  +1 GEDC    {1:1}
+    +2 VERS <VERSION_NUMBER>    {1:1}
+    +2 FORM <GEDCOM_FORM>    {1:1}
+  +1 CHAR <CHARACTER_SET>    {1:1}
+    +2 VERS <VERSION_NUMBER>    {0:1}
+  +1 LANG <LANGUAGE_OF_TEXT>    {0:2}
+  +1 PLAC    {0:1}
+    +2 FORM <PLACE_HIERARCHY>    {1:1}
+  +1 NOTE <GEDCOM_CONTENT_DESCRIPTION>    {0:1}
+    +2 [ CONC | CONT ] <GEDCOM_CONTENT_DESCRIPTION>    {0:M}
+
+
+n HEADER    {1:1}
+  +1 PROTOCOL <PROTOCOL_NAME>    {1:1}
+    +2 NAME <NAME_OF_PROTOCOL>    {1:1}
+    +2 VERSION <VERSION_NUMBER>    {1:1}
+  +1 SOURCE <APPROVED_SYSTEM_ID>    {1:1}
+    +2 NAME <NAME_OF_PRODUCT>    {0:1}
+    +2 VERSION <VERSION_NUMBER>    {0:1}
+    +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}
+  +1 DATE <CREATION_DATE>    {0:1}
+  +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}
+  +1 SUBMITTER    {1:1}
+    +2 NAME <SUBMITTER_NAME>    {1:1}
+    +2 PLACE    {0:1}
+      +3 ADDRESS <ADDRESS_LINE>    {0:1}
+        +4 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}
+      +3 MAP    {0:1}
+        +4 LATITUDE <PLACE_LATITUDE>    {1:1}
+        +4 LONGITUDE <PLACE_LONGITUDE>    {1:1}
+      +3 NOTE <PLACE_NOTE_STRUCTURE>   {0:M}
+    +2 <<CONTACT_STRUCTURE>>    {0:M}
+    +2 NOTE <SUBMITTER_NOTE_STRUCTURE>    {0:M}
+  +1 NOTE <CONTENT_DESCRIPTION>    {0:1}
+*/
+	private void transformHeader(){
+		//TODO
+
 	}
 
 	@Override
@@ -307,7 +366,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextIndividualID(){
-		return ID_INDIVIDUAL_PREFIX + (individualId ++);
+		return ID_INDIVIDUAL_PREFIX + (nextIndividualId++);
 	}
 
 
@@ -334,7 +393,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextFamilyID(){
-		return ID_FAMILY_PREFIX + (familyId ++);
+		return ID_FAMILY_PREFIX + (nextFamilyId++);
 	}
 
 
@@ -368,7 +427,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextDocumentID(){
-		return ID_DOCUMENT_PREFIX + (documentId ++);
+		return ID_DOCUMENT_PREFIX + (nextDocumentId++);
 	}
 
 
@@ -397,7 +456,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextNoteID(){
-		return ID_NOTE_PREFIX + (noteId ++);
+		return ID_NOTE_PREFIX + (nextNoteId++);
 	}
 
 
@@ -431,7 +490,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextRepositoryID(){
-		return ID_REPOSITORY_PREFIX + (repositoryId ++);
+		return ID_REPOSITORY_PREFIX + (nextRepositoryId++);
 	}
 
 
@@ -469,7 +528,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSourceID(){
-		return ID_SOURCE_PREFIX + (sourceId ++);
+		return ID_SOURCE_PREFIX + (nextSourceId++);
 	}
 
 
@@ -503,7 +562,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextObjectID(){
-		return ID_OBJECT_PREFIX + (objectId ++);
+		return ID_OBJECT_PREFIX + (nextObjectId++);
 	}
 
 
@@ -533,7 +592,7 @@ public class Gedcom extends Store{
 	}
 
 	private String getNextSubmitterID(){
-		return ID_SUBMITTER_PREFIX + (submitterId ++);
+		return ID_SUBMITTER_PREFIX + (nextSubmitterId++);
 	}
 
 }

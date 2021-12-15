@@ -94,7 +94,7 @@ public abstract class GedcomNode{
 
 
 	public boolean isCustomTag(){
-		return (tag.charAt(0) == '_');
+		return (tag != null && tag.charAt(0) == '_');
 	}
 
 	public String getTag(){
