@@ -72,7 +72,7 @@ public final class GedcomNodeGedcom extends GedcomNode{
 			int cutIndex;
 			String tag = TAG_CONTINUATION;
 			final int length = value.length();
-			while((cutIndex = value.indexOf(NEW_LINE, offset)) >= 0){
+			while((cutIndex = value.indexOf('\n', offset)) >= 0){
 				final boolean concatenation = (cutIndex > offset + MAX_LINE_LENGTH);
 				if(concatenation)
 					cutIndex = offset + MAX_LINE_LENGTH;

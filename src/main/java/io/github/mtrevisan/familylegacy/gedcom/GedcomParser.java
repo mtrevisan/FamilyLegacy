@@ -171,10 +171,10 @@ final class GedcomParser{
 		catch(final IllegalArgumentException e){
 			throw e;
 		}
-		catch(GedcomParseException e){
-			if(!e.isSkipAddLineNumber())
-				throw new GedcomParseException(e.getMessage() + " on line {}", lineCount);
-			throw e;
+		catch(final GedcomParseException gpe){
+			if(!gpe.isSkipAddLineNumber())
+				throw new GedcomParseException(gpe.getMessage() + " on line {}", lineCount);
+			throw gpe;
 		}
 		catch(final Exception e){
 			if(lineCount < 0)
@@ -249,7 +249,11 @@ final class GedcomParser{
 		final List<GedcomGrammarStructure> variations = grammar.getVariations(grammarLineStructureName);
 		for(final GedcomGrammarStructure variation : variations)
 			for(final GedcomGrammarLine gLine : variation.getGrammarBlock().getGrammarLines()){
-				if(gLine.hasTag(child.getTag()))
+				final boolean hasID = StringUtils.isNotBlank(child.getID());
+				final boolean hasXRef = StringUtils.isNotBlank(child.getXRef());
+				if(gLine.hasTag(child.getTag()) && (!hasID && !hasXRef && !gLine.hasXRefNames()
+						|| hasID && gLine.hasTagAfterXRef()
+						|| hasXRef && gLine.hasTagBeforeXRef()))
 					return new GedcomGrammarLine[]{null, gLine};
 
 				if(gLine.getStructureName() != null){
