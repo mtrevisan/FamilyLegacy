@@ -22,13 +22,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.ContactStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
@@ -48,7 +49,7 @@ import java.io.IOException;
 
 
 //TODO
-public class RepositoryDialog extends JDialog{
+public class RepositoryRecordDialog extends JDialog{
 
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
@@ -64,7 +65,7 @@ public class RepositoryDialog extends JDialog{
 	private final Flef store;
 
 
-	public RepositoryDialog(final Flef store, final Frame parent){
+	public RepositoryRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -151,7 +152,7 @@ public class RepositoryDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode repository = store.getRepositories().get(0);
 
@@ -163,13 +164,13 @@ public class RepositoryDialog extends JDialog{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case PLACE -> {
-							dialog = new PlaceDialog(store, parent);
-							((PlaceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new PlaceRecordDialog(store, parent);
+							((PlaceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(350, 430);
 						}
 						case CONTACT -> {
-							dialog = new ContactDialog(store, parent);
-							((ContactDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new ContactStructureDialog(store, parent);
+							((ContactStructureDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(350, 430);
 						}
 						case NOTE_CITATION -> {
@@ -178,8 +179,8 @@ public class RepositoryDialog extends JDialog{
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteDialog(store, parent);
-							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new NoteRecordDialog(store, parent);
+							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 					}
@@ -191,7 +192,7 @@ public class RepositoryDialog extends JDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+			final RepositoryRecordDialog dialog = new RepositoryRecordDialog(store, parent);
 			dialog.loadData(repository, null);
 
 			dialog.addWindowListener(new WindowAdapter(){

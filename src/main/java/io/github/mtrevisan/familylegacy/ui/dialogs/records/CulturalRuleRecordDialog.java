@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs.citations;
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -86,7 +86,7 @@ import java.util.regex.PatternSyntaxException;
 
 
 //TODO
-public class CulturalRuleCitationDialog extends JDialog implements TextPreviewListenerInterface{
+public class CulturalRuleRecordDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 3322392561648823462L;
@@ -139,13 +139,13 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<CulturalRuleCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<CulturalRuleRecordDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
 	private final Flef store;
 
 
-	public CulturalRuleCitationDialog(final Flef store, final Frame parent){
+	public CulturalRuleRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -161,7 +161,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(CulturalRuleCitationDialog.this);
+				filterDebouncer.call(CulturalRuleRecordDialog.this);
 			}
 		});
 
@@ -406,7 +406,7 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		}
 	}
 
-	private void filterTableBy(final CulturalRuleCitationDialog panel){
+	private void filterTableBy(final CulturalRuleRecordDialog panel){
 		final String title = filterField.getText();
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(title, TABLE_INDEX_RULE_ID, TABLE_INDEX_RULE_TITLE);
 
@@ -481,12 +481,12 @@ public class CulturalRuleCitationDialog extends JDialog implements TextPreviewLi
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final CulturalRuleCitationDialog dialog = new CulturalRuleCitationDialog(store, new JFrame());
+			final CulturalRuleRecordDialog dialog = new CulturalRuleRecordDialog(store, new JFrame());
 			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

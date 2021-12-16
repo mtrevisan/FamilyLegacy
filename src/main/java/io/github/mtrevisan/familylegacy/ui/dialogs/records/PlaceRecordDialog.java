@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -61,7 +61,7 @@ import java.util.function.Consumer;
 
 
 //TODO
-public class PlaceDialog extends JDialog implements ActionListener{
+public class PlaceRecordDialog extends JDialog implements ActionListener{
 
 	@Serial
 	private static final long serialVersionUID = 2060676490438789694L;
@@ -112,7 +112,7 @@ private final JTextField subordinateField = new JTextField();
 	private final Flef store;
 
 
-	public PlaceDialog(final Flef store, final Frame parent){
+	public PlaceRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -257,7 +257,7 @@ private final JTextField subordinateField = new JTextField();
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode place = store.getPlaces().get(0);
 
@@ -274,8 +274,8 @@ private final JTextField subordinateField = new JTextField();
 							dialog.setSize(450, 450);
 						}
 						case SOURCE -> {
-							dialog = new SourceDialog(store, parent);
-							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new SourceRecordDialog(store, parent);
+							((SourceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(500, 540);
 						}
 						case NOTE_CITATION -> {
@@ -284,8 +284,8 @@ private final JTextField subordinateField = new JTextField();
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteDialog(store, parent);
-							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new NoteRecordDialog(store, parent);
+							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 					}
@@ -297,7 +297,7 @@ private final JTextField subordinateField = new JTextField();
 			};
 			EventBusService.subscribe(listener);
 
-			final PlaceDialog dialog = new PlaceDialog(store, parent);
+			final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
 			dialog.loadData(place, null);
 
 			dialog.addWindowListener(new WindowAdapter(){

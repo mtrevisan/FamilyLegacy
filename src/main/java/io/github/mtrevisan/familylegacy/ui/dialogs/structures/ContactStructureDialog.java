@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.FileHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -88,7 +89,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class ContactDialog extends JDialog implements ActionListener{
+public class ContactStructureDialog extends JDialog implements ActionListener{
 
 	@Serial
 	private static final long serialVersionUID = 942804701975315042L;
@@ -125,7 +126,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<ContactDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<ContactStructureDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
 	private volatile boolean updating;
@@ -135,7 +136,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 	private final Flef store;
 
 
-	public ContactDialog(final Flef store, final Frame parent){
+	public ContactStructureDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -151,7 +152,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(ContactDialog.this);
+				filterDebouncer.call(ContactStructureDialog.this);
 			}
 		});
 
@@ -400,7 +401,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		}
 	}
 
-	private void filterTableBy(final ContactDialog panel){
+	private void filterTableBy(final ContactStructureDialog panel){
 		final String text = filterField.getText();
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_CONTACT_ID);
 
@@ -480,7 +481,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getRepositories().get(1);
 
@@ -503,8 +504,8 @@ public class ContactDialog extends JDialog implements ActionListener{
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteDialog(store, parent);
-							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new NoteRecordDialog(store, parent);
+							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 					}
@@ -516,7 +517,7 @@ public class ContactDialog extends JDialog implements ActionListener{
 			};
 			EventBusService.subscribe(listener);
 
-			final ContactDialog dialog = new ContactDialog(store, parent);
+			final ContactStructureDialog dialog = new ContactStructureDialog(store, parent);
 			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

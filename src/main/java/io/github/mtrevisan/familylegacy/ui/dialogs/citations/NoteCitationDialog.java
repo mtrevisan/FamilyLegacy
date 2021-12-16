@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
@@ -357,7 +357,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
@@ -367,7 +367,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					if(editCommand.getType() == EditEvent.EditType.NOTE){
-						final NoteDialog noteDialog = new NoteDialog(store, parent);
+						final NoteRecordDialog noteDialog = new NoteRecordDialog(store, parent);
 						noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 						noteDialog.setSize(550, 350);

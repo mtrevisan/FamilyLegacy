@@ -31,8 +31,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CutoutDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -500,7 +500,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
@@ -518,8 +518,8 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case SOURCE -> {
-							dialog = new SourceDialog(store, parent);
-							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new SourceRecordDialog(store, parent);
+							((SourceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(500, 540);
 						}
 						case NOTE_CITATION -> {
@@ -528,8 +528,8 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteDialog(store, parent);
-							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new NoteRecordDialog(store, parent);
+							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 						case CUTOUT -> {

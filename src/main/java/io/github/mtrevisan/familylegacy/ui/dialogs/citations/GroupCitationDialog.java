@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -428,7 +428,7 @@ public class GroupCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
@@ -453,7 +453,7 @@ public class GroupCitationDialog extends JDialog{
 							noteCitationDialog.setVisible(true);
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = new NoteDialog(store, parent);
+							final NoteRecordDialog noteDialog = new NoteRecordDialog(store, parent);
 							noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							noteDialog.setSize(550, 350);
 							noteDialog.setLocationRelativeTo(parent);

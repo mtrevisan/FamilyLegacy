@@ -37,8 +37,8 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.FamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
@@ -137,7 +137,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 				break;
 
 			case NOTE:
-				final NoteDialog noteDialog = new NoteDialog(store, this);
+				final NoteRecordDialog noteDialog = new NoteRecordDialog(store, this);
 				noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				noteDialog.setSize(450, 500);
@@ -155,7 +155,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 				break;
 
 			case SOURCE:
-				final SourceDialog sourceDialog = new SourceDialog(store, this);
+				final SourceRecordDialog sourceDialog = new SourceRecordDialog(store, this);
 				sourceDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				sourceDialog.setSize(450, 500);

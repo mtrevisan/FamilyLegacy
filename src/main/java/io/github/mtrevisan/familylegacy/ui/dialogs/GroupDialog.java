@@ -31,6 +31,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
@@ -184,8 +186,8 @@ public class GroupDialog extends JDialog{
 							break;
 
 						case NOTE:
-							dialog = new NoteDialog(store, parent);
-							((NoteDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new NoteRecordDialog(store, parent);
+							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
 							break;
@@ -199,8 +201,8 @@ public class GroupDialog extends JDialog{
 
 						case SOURCE:
 							//TODO
-							dialog = new SourceDialog(store, parent);
-							((SourceDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new SourceRecordDialog(store, parent);
+							((SourceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 460);
 					}
