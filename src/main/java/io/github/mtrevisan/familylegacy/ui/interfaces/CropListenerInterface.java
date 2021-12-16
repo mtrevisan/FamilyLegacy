@@ -25,8 +25,8 @@
 package io.github.mtrevisan.familylegacy.ui.interfaces;
 
 
-public interface CutoutListenerInterface{
+public interface CropListenerInterface{
 
-	void cutoutSelected();
+	void cropSelected();
 
 }

@@ -71,7 +71,7 @@ class TransformerMultimediaCitationTest{
 		final Flef destination = new Flef();
 		transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CUTOUT, value: CUT_COORDINATES}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CROP, value: CUT_COORDINATES}]}]", destinationNode.toString());
 	}
 
 }

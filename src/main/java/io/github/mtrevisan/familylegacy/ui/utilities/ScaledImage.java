@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -60,7 +60,7 @@ public class ScaledImage extends JLabel{
 	private static final double INV_2PI = 1. / (2. * Math.PI);
 
 
-	private final CutoutListenerInterface listener;
+	private final CropListenerInterface listener;
 	private Image image;
 	private int imageWidth;
 	private int imageHeight;
@@ -84,16 +84,16 @@ public class ScaledImage extends JLabel{
 	private boolean initialized;
 	private final AffineTransform transformation = new AffineTransform();
 
-	private boolean cutoutDefinition;
-	private int cutoutStartPointX = -1;
-	private int cutoutStartPointY;
-	private int cutoutEndPointX;
-	private int cutoutEndPointY;
+	private boolean cropDefinition;
+	private int cropStartPointX = -1;
+	private int cropStartPointY;
+	private int cropEndPointX;
+	private int cropEndPointY;
 	private int dragStartPointX;
 	private int dragStartPointY;
 
 
-	public ScaledImage(final CutoutListenerInterface listener){
+	public ScaledImage(final CropListenerInterface listener){
 		this.listener = listener;
 
 		initComponents();
@@ -213,10 +213,10 @@ public class ScaledImage extends JLabel{
 					transformation.transformX(imageWidth), transformation.transformY(imageHeight),
 					0, 0, imageWidth, imageHeight, null);
 
-			//cutout rectangle:
-			if(cutoutStartPointX >= 0){
+			//crop rectangle:
+			if(cropStartPointX >= 0){
 				graphics2D.setColor(Color.RED);
-				drawCutoutRectangle(graphics2D);
+				drawCropRectangle(graphics2D);
 			}
 
 			graphics2D.dispose();
@@ -298,37 +298,37 @@ public class ScaledImage extends JLabel{
 		}
 	}
 
-	private void drawCutoutRectangle(final Graphics2D g){
-		final int x1 = transformation.transformX(Math.min(cutoutStartPointX, cutoutEndPointX));
-		final int y1 = transformation.transformY(Math.min(cutoutStartPointY, cutoutEndPointY));
-		final int x2 = transformation.transformX(Math.max(cutoutStartPointX, cutoutEndPointX));
-		final int y2 = transformation.transformY(Math.max(cutoutStartPointY, cutoutEndPointY));
+	private void drawCropRectangle(final Graphics2D g){
+		final int x1 = transformation.transformX(Math.min(cropStartPointX, cropEndPointX));
+		final int y1 = transformation.transformY(Math.min(cropStartPointY, cropEndPointY));
+		final int x2 = transformation.transformX(Math.max(cropStartPointX, cropEndPointX));
+		final int y2 = transformation.transformY(Math.max(cropStartPointY, cropEndPointY));
 		final int width = Math.abs(x2 - x1);
 		final int height = Math.abs(y2 - y1);
 
 		g.drawRect(x1, y1, width, height);
 	}
 
-	public Point getCutoutStartPoint(){
-		final int x = Math.min(cutoutStartPointX, cutoutEndPointX);
-		final int y = Math.min(cutoutStartPointY, cutoutEndPointY);
+	public Point getCropStartPoint(){
+		final int x = Math.min(cropStartPointX, cropEndPointX);
+		final int y = Math.min(cropStartPointY, cropEndPointY);
 		return new Point(x, y);
 	}
 
-	public void setCutoutStartPoint(final int x, final int y){
-		cutoutStartPointX = x;
-		cutoutStartPointY = y;
+	public void setCropStartPoint(final int x, final int y){
+		cropStartPointX = x;
+		cropStartPointY = y;
 	}
 
-	public Point getCutoutEndPoint(){
-		final int x = Math.max(cutoutStartPointX, cutoutEndPointX);
-		final int y = Math.max(cutoutStartPointY, cutoutEndPointY);
+	public Point getCropEndPoint(){
+		final int x = Math.max(cropStartPointX, cropEndPointX);
+		final int y = Math.max(cropStartPointY, cropEndPointY);
 		return new Point(x, y);
 	}
 
-	public void setCutoutEndPoint(final int x, final int y){
-		cutoutEndPointX = x;
-		cutoutEndPointY = y;
+	public void setCropEndPoint(final int x, final int y){
+		cropEndPointX = x;
+		cropEndPointY = y;
 	}
 
 
@@ -348,16 +348,16 @@ public class ScaledImage extends JLabel{
 					dragStartPointY = evt.getY();
 				}
 				else{
-					//cutout start point:
+					//crop start point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
 					final boolean insideX = (x >= 0 && x <= imageWidth);
 					final boolean insideY = (y >= 0 && y <= imageHeight);
 					if(insideX && insideY){
-						cutoutStartPointX = x;
-						cutoutStartPointY = y;
+						cropStartPointX = x;
+						cropStartPointY = y;
 
-						cutoutDefinition = true;
+						cropDefinition = true;
 					}
 				}
 			}
@@ -365,12 +365,12 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public void mouseReleased(final MouseEvent evt){
-			if(cutoutDefinition && evt.getClickCount() == 1){
-				cutoutDefinition = false;
+			if(cropDefinition && evt.getClickCount() == 1){
+				cropDefinition = false;
 
 				//warn listener a selection is made
 				if(listener != null)
-					listener.cutoutSelected();
+					listener.cropSelected();
 			}
 		}
 
@@ -384,12 +384,12 @@ public class ScaledImage extends JLabel{
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
-				else if(cutoutDefinition && cutoutStartPointX >= 0){
-					//cutout end point:
+				else if(cropDefinition && cropStartPointX >= 0){
+					//crop end point:
 					final int x = transformation.transformInverseX(evt.getX());
 					final int y = transformation.transformInverseY(evt.getY());
-					cutoutEndPointX = Math.max(Math.min(x, imageWidth), 0);
-					cutoutEndPointY = Math.max(Math.min(y, imageHeight), 0);
+					cropEndPointX = Math.max(Math.min(x, imageWidth), 0);
+					cropEndPointY = Math.max(Math.min(y, imageHeight), 0);
 				}
 
 				repaint();

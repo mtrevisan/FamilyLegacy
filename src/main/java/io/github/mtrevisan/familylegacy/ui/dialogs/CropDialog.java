@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.interfaces.CutoutListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 
-public class CutoutDialog extends JDialog implements CutoutListenerInterface{
+public class CropDialog extends JDialog implements CropListenerInterface{
 
 	private final ScaledImage imageHolder = new ScaledImage(this);
 	private final JButton okButton = new JButton("Ok");
@@ -53,14 +53,14 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 	private Consumer<Object> onCloseGracefully;
 
 
-	public CutoutDialog(final Frame parent){
+	public CropDialog(final Frame parent){
 		super(parent, true);
 
 		initComponents();
 	}
 
 	private void initComponents(){
-		setTitle("Define cutout");
+		setTitle("Define crop");
 
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
@@ -86,24 +86,24 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 	}
 
 	@Override
-	public void cutoutSelected(){
+	public void cropSelected(){
 		okButton.setEnabled(true);
 	}
 
-	public Point getCutoutStartPoint(){
-		return imageHolder.getCutoutStartPoint();
+	public Point getCropStartPoint(){
+		return imageHolder.getCropStartPoint();
 	}
 
-	public void setCutoutStartPoint(final int x, final int y){
-		imageHolder.setCutoutStartPoint(x, y);
+	public void setCropStartPoint(final int x, final int y){
+		imageHolder.setCropStartPoint(x, y);
 	}
 
-	public Point getCutoutEndPoint(){
-		return imageHolder.getCutoutEndPoint();
+	public Point getCropEndPoint(){
+		return imageHolder.getCropEndPoint();
 	}
 
-	public void setCutoutEndPoint(final int x, final int y){
-		imageHolder.setCutoutEndPoint(x, y);
+	public void setCropEndPoint(final int x, final int y){
+		imageHolder.setCropEndPoint(x, y);
 	}
 
 
@@ -122,7 +122,7 @@ public class CutoutDialog extends JDialog implements CutoutListenerInterface{
 //		final String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
-			final CutoutDialog dialog = new CutoutDialog(null);
+			final CropDialog dialog = new CropDialog(null);
 			try{
 				dialog.loadData(file, null);
 			}

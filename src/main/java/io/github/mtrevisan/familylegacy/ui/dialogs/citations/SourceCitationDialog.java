@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.CutoutDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.CropDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -110,12 +110,12 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 	private static final int TABLE_INDEX_SOURCE_TYPE = 1;
 	private static final int TABLE_INDEX_SOURCE_TITLE = 2;
 
-	private static final double CUTOUT_HEIGHT = 17.;
-	private static final double CUTOUT_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension CUTOUT_SIZE = new Dimension((int)(CUTOUT_HEIGHT / CUTOUT_ASPECT_RATIO), (int)CUTOUT_HEIGHT);
+	private static final double CROP_HEIGHT = 17.;
+	private static final double CROP_ASPECT_RATIO = 270 / 248.;
+	private static final Dimension CROP_SIZE = new Dimension((int)(CROP_HEIGHT / CROP_ASPECT_RATIO), (int)CROP_HEIGHT);
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon CUTOUT = ResourceHelper.getImage("/images/cutout.png", CUTOUT_SIZE);
+	private static final ImageIcon CROP = ResourceHelper.getImage("/images/crop.png", CROP_SIZE);
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
@@ -126,7 +126,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 
 	private static final String KEY_SOURCE_ID = "sourceID";
 	private static final String KEY_SOURCE_FILE = "sourceFile";
-	private static final String KEY_SOURCE_CUTOUT = "sourceCut";
+	private static final String KEY_SOURCE_CROP = "sourceCrop";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -139,7 +139,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 	private final JTextField locationField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
-	private final JButton cutoutButton = new JButton(CUTOUT);
+	private final JButton cropButton = new JButton(CROP);
 	private final JButton notesButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
@@ -240,9 +240,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		roleLabel.setLabelFor(roleField);
 		GUIHelper.setEnabled(roleLabel, false);
 
-		cutoutButton.setToolTipText("Define a cutout");
-		cutoutButton.setEnabled(false);
-		cutoutButton.addActionListener(evt -> cutoutAction());
+		cropButton.setToolTipText("Define a crop");
+		cropButton.setEnabled(false);
+		cropButton.addActionListener(evt -> cropAction());
 
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(evt -> {
@@ -281,7 +281,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		add(locationField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap");
-		add(cutoutButton, "wrap");
+		add(cropButton, "wrap");
 		add(notesButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
@@ -290,42 +290,42 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	private void cutoutAction(){
+	private void cropAction(){
 		final GedcomNode fileNode = store.create("FILE")
-			.addChildValue("SOURCE", (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE))
-			.addChildValue("CUTOUT", (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT));
+			.addChildValue("SOURCE", (String)cropButton.getClientProperty(KEY_SOURCE_FILE))
+			.addChildValue("CROP", (String)cropButton.getClientProperty(KEY_SOURCE_CROP));
 
-		final Consumer<Object> onCloseGracefully = cutoutDialog -> {
-			final Point cutoutStartPoint = ((CutoutDialog)cutoutDialog).getCutoutStartPoint();
-			final Point cutoutEndPoint = ((CutoutDialog)cutoutDialog).getCutoutEndPoint();
+		final Consumer<Object> onCloseGracefully = cropDialog -> {
+			final Point cropStartPoint = ((CropDialog)cropDialog).getCropStartPoint();
+			final Point cropEndPoint = ((CropDialog)cropDialog).getCropEndPoint();
 			final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-			sj.add(Integer.toString(cutoutStartPoint.x));
-			sj.add(Integer.toString(cutoutStartPoint.y));
-			sj.add(Integer.toString(cutoutEndPoint.x));
-			sj.add(Integer.toString(cutoutEndPoint.y));
+			sj.add(Integer.toString(cropStartPoint.x));
+			sj.add(Integer.toString(cropStartPoint.y));
+			sj.add(Integer.toString(cropEndPoint.x));
+			sj.add(Integer.toString(cropEndPoint.y));
 
-			cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, sj.toString());
+			cropButton.putClientProperty(KEY_SOURCE_CROP, sj.toString());
 
 			//refresh group list
 			loadData();
 		};
 
-		//fire image cutout event
-		EventBusService.publish(new EditEvent(EditEvent.EditType.CUTOUT, fileNode, onCloseGracefully));
+		//fire image crop event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CROP, fileNode, onCloseGracefully));
 	}
 
 	private void okAction(){
 		final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
 		final String location = locationField.getText();
 		final String role = roleField.getText();
-		final String file = (String)cutoutButton.getClientProperty(KEY_SOURCE_FILE);
-		final String cutout = (String)cutoutButton.getClientProperty(KEY_SOURCE_CUTOUT);
+		final String file = (String)cropButton.getClientProperty(KEY_SOURCE_FILE);
+		final String crop = (String)cropButton.getClientProperty(KEY_SOURCE_CROP);
 		final int credibility = credibilityComboBox.getSelectedIndex() - 1;
 
 		final GedcomNode group = store.traverse(container, "SOURCE@" + id);
 		group.replaceChildValue("LOCATION", location);
 		group.replaceChildValue("ROLE", role);
-		group.replaceChildValue("CUTOUT", cutout);
+		group.replaceChildValue("CROP", crop);
 		group.replaceChildValue("FILE", file);
 		group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
 	}
@@ -342,9 +342,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
 		GUIHelper.setEnabled(roleLabel, true);
 		roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
-		cutoutButton.setEnabled(true);
-		cutoutButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
-		cutoutButton.putClientProperty(KEY_SOURCE_CUTOUT, store.traverse(selectedSourceCitation, "CUTOUT").getValue());
+		cropButton.setEnabled(true);
+		cropButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
+		cropButton.putClientProperty(KEY_SOURCE_CROP, store.traverse(selectedSourceCitation, "CROP").getValue());
 		notesButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
@@ -532,17 +532,17 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
-						case CUTOUT -> {
-							dialog = new CutoutDialog(parent);
+						case CROP -> {
+							dialog = new CropDialog(parent);
 							final GedcomNode container = editCommand.getContainer();
 							//TODO add base path?
 							final String file = store.traverse(container, "SOURCE").getValue();
-							final String cutout = store.traverse(container, "CUTOUT").getValue();
-							final String[] coordinates = (cutout != null? StringUtils.split(cutout, ' '): null);
-							((CutoutDialog)dialog).loadData(file, editCommand.getOnCloseGracefully());
+							final String crop = store.traverse(container, "CROP").getValue();
+							final String[] coordinates = (crop != null? StringUtils.split(crop, ' '): null);
+							((CropDialog)dialog).loadData(file, editCommand.getOnCloseGracefully());
 							if(coordinates != null){
-								((CutoutDialog)dialog).setCutoutStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
-								((CutoutDialog)dialog).setCutoutEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
+								((CropDialog)dialog).setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+								((CropDialog)dialog).setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
 							}
 							dialog.setSize(500, 480);
 						}

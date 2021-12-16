@@ -528,7 +528,7 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.LOCATION.value = OBJE[rec].SOUR.PAGE.value
 			pick-one: SOURCE.ROLE.value = OBJE[rec].SOUR.EVEN.ROLE.value
 			transfer OBJE[rec].SOUR.NOTE to SOURCE[rec].NOTE
-		SOURCE.CUTOUT.value = OBJE._CUTD.value
+		SOURCE.CROP.value = OBJE._CUTD.value
 		//FIXME
 		remember = OBJE._PREF{Y}
 		transfer OBJE[rec].NOTE to SOURCE[rec].NOTE
@@ -559,7 +559,7 @@ public final class Transformer extends TransformerHelper{
 
 			destination.addSource(destinationSource);
 			destinationNode.addChild(createWithReference("SOURCE", destinationSource.getID())
-				.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue())
+				.addChildValue("CROP", traverse(object, "_CUTD").getValue())
 			);
 		}
 	}
@@ -601,9 +601,9 @@ public final class Transformer extends TransformerHelper{
 			traverseAsList(sourceData, "TEXT[]"));
 		assignExtractionsTo(extracts, destinationSource);
 
-		final List<GedcomNode> cutout = destinationSource.getChildrenWithTag("CUTOUT");
-		if(cutout.isEmpty())
-			destinationSource.addChildValue("CUTOUT", traverse(object, "_CUTD").getValue());
+		final List<GedcomNode> crop = destinationSource.getChildrenWithTag("CROP");
+		if(crop.isEmpty())
+			destinationSource.addChildValue("CROP", traverse(object, "_CUTD").getValue());
 		//FIXME remember "Y".equals(traverse(object, "_PREF").getValue())
 
 		noteCitationTo(traverse(object, "SOUR"), destinationSource, origin, destination);
@@ -898,7 +898,7 @@ public final class Transformer extends TransformerHelper{
 		for-each SOUR.OBJE
 			pick-each: SOURCE.FILE.value = SOUR.OBJE.FILE.value
 			pick-each: SOURCE.FILE.DESCRIPTION.value = SOUR.OBJE.TITL.value
-			pick-each: SOURCE[ref].CUTOUT = SOUR.OBJE._CUTD.value
+			pick-each: SOURCE[ref].CROP = SOUR.OBJE._CUTD.value
 			pick-one: SOURCE.MEDIA_TYPE.value = SOUR.OBJE.FORM.MEDI.value
 			remember which one has the _PREF tag
 		for-each SOUR.TEXT
@@ -1334,7 +1334,7 @@ public final class Transformer extends TransformerHelper{
 						.addChildValue("MEDI", mediaType)
 					)
 					.addChildValue("FILE", file.getValue())
-					.addChildValue("_CUTD", traverse(sourceCitation, "CUTOUT").getValue());
+					.addChildValue("_CUTD", traverse(sourceCitation, "CROP").getValue());
 				//TODO restore the one that has the _PREF tag
 			}
 			destinationSource.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY").getValue());
@@ -1364,7 +1364,7 @@ public final class Transformer extends TransformerHelper{
 		for-each SOURCE.FILE
 			pick-each: SOUR.OBJE.FILE.value = SOURCE.FILE.value
 			pick-each: SOUR.OBJE.TITL.value = SOURCE.FILE.DESCRIPTION.value
-			pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CUTOUT
+			pick-each: SOUR.OBJE._CUTD.value = SOURCE[ref].CROP
 			pick-each: SOUR.DATA.TEXT.value = SOURCE.FILE.EXTRACT.value
 			pick-one: SOUR.OBJE.FORM.MEDI.value = SOURCE.MEDIA_TYPE.value
 			remember which one has the PREFERRED tag
@@ -1400,7 +1400,7 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("MEDI", mediaType)
 				)
 				.addChildValue("FILE", file.getValue())
-				.addChildValue("_CUTD", traverse(source, "CUTOUT").getValue())
+				.addChildValue("_CUTD", traverse(source, "CROP").getValue())
 			);
 			//TODO restore the one that has the _PREF tag
 		}

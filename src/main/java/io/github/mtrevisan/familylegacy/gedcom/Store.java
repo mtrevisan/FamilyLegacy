@@ -102,7 +102,7 @@ public abstract class Store{
 			for(int i = childChildren.size() - 1; i >= 0; i --)
 				nodeStack.addFirst(childChildren.get(i));
 
-			out.write(child.getLevel());
+			out.write(Integer.toString(child.getLevel()));
 			if(child.getLevel() == 0){
 				appendID(out, child.getID());
 				appendElement(out, child.getTag());
