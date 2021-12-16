@@ -51,11 +51,11 @@ public abstract class Store{
 	private static final String CRLF = StringUtils.CR + StringUtils.LF;
 
 
-	GedcomNode root;
+	protected GedcomNode root;
 	protected String basePath;
 
 
-	public Store load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
+	public final Store load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomGrammar grammar = GedcomGrammar.create(grammarFile);
 
 		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
@@ -66,6 +66,7 @@ public abstract class Store{
 		return this;
 	}
 
+	@SuppressWarnings("DesignForExtension")
 	protected void create(final GedcomNode root, final String basePath) throws GedcomParseException{
 		Objects.requireNonNull(root, "Root cannot be null");
 		Objects.requireNonNull(basePath, "Base path cannot be null");
@@ -74,7 +75,7 @@ public abstract class Store{
 		this.basePath = basePath;
 	}
 
-	int extractLastID(final CharSequence lastKey){
+	static int extractLastID(final CharSequence lastKey){
 		final Matcher m = PATTERN_ID.matcher(lastKey);
 		m.find();
 		return Integer.parseInt(m.group(1));
@@ -82,6 +83,7 @@ public abstract class Store{
 
 	public abstract Store transform();
 
+	@SuppressWarnings("DesignForExtension")
 	public void write(final OutputStream os) throws IOException{
 		final String charset = getCharsetName();
 		final String eol = (CHARSET_X_MAC_ROMAN.equals(charset)? StringUtils.CR: CRLF);
@@ -91,15 +93,16 @@ public abstract class Store{
 
 		final Deque<GedcomNode> nodeStack = new LinkedList<>();
 		//skip root node and add its children
-		for(final GedcomNode child : root.getChildren())
-			nodeStack.addLast(child);
+		final List<GedcomNode> rootChildren = root.getChildren();
+		for(int i = 0; i < rootChildren.size(); i ++)
+			nodeStack.addLast(rootChildren.get(i));
 		while(!nodeStack.isEmpty()){
 			final GedcomNode child = nodeStack.pop();
-			final List<GedcomNode> children = child.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --)
-				nodeStack.addFirst(children.get(i));
+			final List<GedcomNode> childChildren = child.getChildren();
+			for(int i = childChildren.size() - 1; i >= 0; i --)
+				nodeStack.addFirst(childChildren.get(i));
 
-			out.write(Integer.toString(child.getLevel()));
+			out.write(child.getLevel());
 			if(child.getLevel() == 0){
 				appendID(out, child.getID());
 				appendElement(out, child.getTag());
@@ -118,7 +121,7 @@ public abstract class Store{
 
 	protected abstract String getCharsetName();
 
-	private void appendID(final Writer out, final String id) throws IOException{
+	private static void appendID(final Writer out, final String id) throws IOException{
 		if(id != null){
 			out.write(' ');
 			out.write('@');
@@ -127,18 +130,20 @@ public abstract class Store{
 		}
 	}
 
-	private void appendElement(final Writer out, final String elem) throws IOException{
+	private static void appendElement(final Writer out, final String elem) throws IOException{
 		if(elem != null){
 			out.write(' ');
 			out.write(elem);
 		}
 	}
 
-	static TreeMap<String, GedcomNode> generateIndexes(final Iterable<GedcomNode> list){
+	static TreeMap<String, GedcomNode> generateIndexes(final List<GedcomNode> list){
 		final TreeMap<String, GedcomNode> indexes = new TreeMap<>(Comparator.comparing(e -> Integer.valueOf(e.substring(1))));
 		if(list != null)
-			for(final GedcomNode elem : list)
+			for(int i = 0; i < list.size(); i ++){
+				final GedcomNode elem = list.get(i);
 				indexes.put(elem.getID(), elem);
+			}
 		return indexes;
 	}
 

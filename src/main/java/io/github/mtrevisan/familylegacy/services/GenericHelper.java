@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2021 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,9 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.services;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -34,40 +31,32 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
 
-/**
- * @see <a href="https://bill.burkecentral.com/2008/01/14/scanning-java-annotations-at-runtime/">Scanning Java Annotations at Runtime</a>
- */
-public final class ReflectionHelper{
+public final class GenericHelper{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ReflectionHelper.class);
-
-	private static final ClassLoader CLASS_LOADER = ReflectionHelper.class.getClassLoader();
+	private static final ClassLoader CLASS_LOADER = GenericHelper.class.getClassLoader();
 	private static final String ARRAY_VARIABLE = "[]";
 
 	/**
 	 * Primitive type name to class map.
 	 */
-	private static final Map<String, Class<?>> PRIMITIVE_NAME_TO_TYPE = new HashMap<>(8);
-	static{
-		PRIMITIVE_NAME_TO_TYPE.put("boolean", Boolean.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("byte", Byte.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("char", Character.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("short", Short.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("int", Integer.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("long", Long.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("float", Float.TYPE);
-		PRIMITIVE_NAME_TO_TYPE.put("double", Double.TYPE);
-	}
+	private static final Map<String, Class<?>> PRIMITIVE_NAME_TO_TYPE = Map.of(
+		"boolean", Boolean.TYPE,
+		"byte", Byte.TYPE,
+		"char", Character.TYPE,
+		"short", Short.TYPE,
+		"int", Integer.TYPE,
+		"long", Long.TYPE,
+		"float", Float.TYPE,
+		"double", Double.TYPE);
 
 
-	private ReflectionHelper(){}
+	private GenericHelper(){}
 
 	/**
 	 * Resolves the actual generic type arguments for a base class, as viewed from a subclass or implementation.
@@ -87,6 +76,15 @@ public final class ReflectionHelper{
 		if(actualArgs.length == 0)
 			actualArgs = offspring.getTypeParameters();
 
+		final List<Class<?>> types = processAncestors(offspring, base, actualArgs);
+
+		if(types.isEmpty() && offspring.equals(base))
+			types.addAll(processBase(actualArgs));
+
+		return types;
+	}
+
+	private static <T> List<Class<?>> processAncestors(final Class<? extends T> offspring, final Class<T> base, final Type[] actualArgs){
 		//map type parameters into the actual types
 		final Map<String, Type> typeVariables = mapParameterTypes(offspring, actualArgs);
 
@@ -97,51 +95,60 @@ public final class ReflectionHelper{
 		final List<Class<?>> types = new ArrayList<>(0);
 		while(!ancestorsQueue.isEmpty()){
 			final Type ancestorType = ancestorsQueue.poll();
-
-			if(ancestorType instanceof ParameterizedType)
+			if(ParameterizedType.class.isInstance(ancestorType))
 				//ancestor is parameterized: process only if the raw type matches the base class
 				types.addAll(manageParameterizedAncestor((ParameterizedType)ancestorType, base, typeVariables));
-			else if(ancestorType instanceof Class<?> && base.isAssignableFrom((Class<?>)ancestorType))
+			else if(Class.class.isInstance(ancestorType) && base.isAssignableFrom((Class<?>)ancestorType))
 				//ancestor is non-parameterized: process only if it matches the base class
 				ancestorsQueue.add(ancestorType);
 		}
-		if(types.isEmpty() && offspring.equals(base))
-			//there is a result if the base class is reached
-			for(final Type actualArg : actualArgs){
-				final Class<?> cls = toClass(actualArg.getTypeName());
-				if(cls != null)
-					types.add(cls);
-			}
 		return types;
 	}
 
-	@SuppressWarnings("rawtypes")
+	private static <T> List<Class<?>> processBase(final Type[] actualArgs){
+		//there is a result if the base class is reached
+		final List<Class<?>> types = new ArrayList<>(0);
+		for(int i = 0; i < actualArgs.length; i ++){
+			final Class<?> cls = toClass(actualArgs[i].getTypeName());
+			if(cls != null)
+				types.add(cls);
+		}
+		return types;
+	}
+
+	@SuppressWarnings("unchecked")
 	private static <T> List<Class<?>> manageParameterizedAncestor(final ParameterizedType ancestorType, final Class<T> base,
 			final Map<String, Type> typeVariables){
 		final List<Class<?>> types = new ArrayList<>(0);
 		final Type rawType = ancestorType.getRawType();
-		if(rawType instanceof Class<?> && base.isAssignableFrom((Class<?>)rawType)){
-			//loop through all type arguments and replace type variables with the actually known types
-			final Type[] tt = ancestorType.getActualTypeArguments();
-			final Collection<Class> resolvedTypes = new ArrayList<>(tt.length);
-			for(final Type t : tt){
-				final String typeName = resolveArgumentType(typeVariables, t).getTypeName();
-				final Class<?> cls = toClass(typeName);
-				if(cls != null)
-					resolvedTypes.add(cls);
-			}
+		if(Class.class.isInstance(rawType) && base.isAssignableFrom((Class<?>)rawType)){
+			final List<Class<?>> resolvedTypes = populateResolvedTypes(ancestorType, typeVariables);
 
-			@SuppressWarnings("unchecked")
 			final List<Class<?>> result = resolveGenericTypes((Class<? extends T>)rawType, base, resolvedTypes.toArray(Class[]::new));
 			types.addAll(result);
 		}
 		return types;
 	}
 
+	private static List<Class<?>> populateResolvedTypes(final ParameterizedType ancestorType, final Map<String, Type> typeVariables){
+		//loop through all type arguments and replace type variables with the actually known types
+		final List<Class<?>> resolvedTypes = new ArrayList<>(0);
+		final Type[] types = ancestorType.getActualTypeArguments();
+		for(int i = 0; i < types.length; i ++){
+			final String typeName = resolveArgumentType(typeVariables, types[i]).getTypeName();
+			final Class<?> cls = toClass(typeName);
+			if(cls != null)
+				resolvedTypes.add(cls);
+		}
+		return resolvedTypes;
+	}
+
 	private static <T> Map<String, Type> mapParameterTypes(final Class<? extends T> offspring, final Type[] actualArgs){
 		final Map<String, Type> typeVariables = new HashMap<>(actualArgs.length);
-		for(int i = 0; i < actualArgs.length; i ++)
-			typeVariables.put(offspring.getTypeParameters()[i].getName(), actualArgs[i]);
+		for(int i = 0; i < actualArgs.length; i ++){
+			final String key = offspring.getTypeParameters()[i].getName();
+			typeVariables.put(key, actualArgs[i]);
+		}
 		return typeVariables;
 	}
 
@@ -155,9 +162,9 @@ public final class ReflectionHelper{
 	}
 
 	private static Type resolveArgumentType(final Map<String, Type> typeVariables, final Type actualTypeArgument){
-		return (actualTypeArgument instanceof TypeVariable<?>?
-			typeVariables.getOrDefault(((TypeVariable<?>)actualTypeArgument).getName(), actualTypeArgument):
-			actualTypeArgument);
+		return (TypeVariable.class.isInstance(actualTypeArgument)
+			? typeVariables.getOrDefault(((TypeVariable<?>)actualTypeArgument).getName(), actualTypeArgument)
+			: actualTypeArgument);
 	}
 
 	/**
@@ -178,9 +185,7 @@ public final class ReflectionHelper{
 			try{
 				cls = CLASS_LOADER.loadClass(baseName);
 			}
-			catch(final ClassNotFoundException e){
-				LOGGER.warn("Cannot convert type name to class: {}", name, e);
-			}
+			catch(final ClassNotFoundException ignored){}
 		}
 
 		//if we have an array get the array class

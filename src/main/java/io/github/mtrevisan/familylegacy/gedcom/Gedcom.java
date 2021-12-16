@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
@@ -51,7 +50,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class Gedcom extends Store{
+public final class Gedcom extends Store{
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -81,8 +80,6 @@ public class Gedcom extends Store{
 	private static final Transformation<Gedcom, Flef> SOURCE_TRANSFORMATION = new SourceTransformation();
 	private static final Transformation<Gedcom, Flef> MULTIMEDIA_TRANSFORMATION = new MultimediaTransformation();
 	private static final Transformation<Gedcom, Flef> SUBMITTER_TRANSFORMATION = new SubmitterTransformation();
-
-	private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
 	private GedcomNode header;
 	private List<GedcomNode> individuals;
