@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.DocumentDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -363,8 +363,8 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case DOCUMENT_CITATION -> {
-							dialog = new DocumentDialog(store, parent);
-							((DocumentDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							dialog = new DocumentStructureDialog(store, parent);
+							((DocumentStructureDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(450, 650);
 						}
 						case SOURCE_CITATION -> {

@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -439,7 +439,7 @@ public class GroupCitationDialog extends JDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case GROUP -> {
-							final GroupDialog groupDialog = new GroupDialog(store, parent);
+							final GroupRecordDialog groupDialog = new GroupRecordDialog(store, parent);
 							groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							groupDialog.setSize(300, 250);
 							groupDialog.setLocationRelativeTo(parent);

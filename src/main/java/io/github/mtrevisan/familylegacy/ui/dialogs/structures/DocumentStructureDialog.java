@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.dialogs;
+package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -95,7 +95,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
-public class DocumentDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+public class DocumentStructureDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 1919219115430275506L;
@@ -144,7 +144,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<DocumentDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<DocumentStructureDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
 	private volatile boolean updating;
@@ -154,7 +154,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 	private final Flef store;
 
 
-	public DocumentDialog(final Flef store, final Frame parent){
+	public DocumentStructureDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -170,7 +170,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(DocumentDialog.this);
+				filterDebouncer.call(DocumentStructureDialog.this);
 			}
 		});
 
@@ -466,7 +466,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		}
 	}
 
-	private void filterTableBy(final DocumentDialog panel){
+	private void filterTableBy(final DocumentStructureDialog panel){
 		final String text = filterField.getText();
 		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_DOCUMENT_FILE);
 
@@ -546,7 +546,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.6.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getSources().get(0);
 
@@ -582,7 +582,7 @@ public class DocumentDialog extends JDialog implements ActionListener, TextPrevi
 			};
 			EventBusService.subscribe(listener);
 
-			final DocumentDialog dialog = new DocumentDialog(store, parent);
+			final DocumentStructureDialog dialog = new DocumentStructureDialog(store, parent);
 			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

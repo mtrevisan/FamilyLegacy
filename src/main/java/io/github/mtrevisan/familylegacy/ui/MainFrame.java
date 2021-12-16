@@ -33,8 +33,8 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.FamilyDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.FamilyRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
@@ -119,7 +119,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	public void refresh(final EditEvent editCommand){
 		switch(editCommand.getType()){
 			case GROUP:
-				final GroupDialog groupDialog = new GroupDialog(store, this);
+				final GroupRecordDialog groupDialog = new GroupRecordDialog(store, this);
 				groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				groupDialog.setSize(450, 500);
@@ -199,7 +199,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 		//TODO
 		System.out.println("onEditFamily " + family.getID());
 
-		final FamilyDialog familyDialog = new FamilyDialog(family, store, this);
+		final FamilyRecordDialog familyDialog = new FamilyRecordDialog(family, store, this);
 		familyDialog.setSize(200, 250);
 		familyDialog.setLocationRelativeTo(this);
 		familyDialog.setVisible(true);
