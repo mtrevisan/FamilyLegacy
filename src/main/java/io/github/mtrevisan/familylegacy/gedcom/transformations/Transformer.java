@@ -168,9 +168,9 @@ public final class Transformer extends TransformerHelper{
 		for-each INDI.FAMC create INDIVIDUAL.FAMILY_CHILD
 			INDIVIDUAL.FAMILY_CHILD.xref = INDI.FAMC.xref
 			transfer INDI.FAMC.NOTE to INDIVIDUAL.FAMILY_CHILD.NOTE
-		for-each INDI.FAMS create INDIVIDUAL.FAMILY_PARENT
-			INDIVIDUAL.FAMILY_PARENT.xref = INDI.FAMS.xref
-			transfer INDI.FAMS.NOTE to INDIVIDUAL.FAMILY_PARENT.NOTE
+		for-each INDI.FAMS create INDIVIDUAL.FAMILY_PARTNER
+			INDIVIDUAL.FAMILY_PARTNER.xref = INDI.FAMS.xref
+			transfer INDI.FAMS.NOTE to INDIVIDUAL.FAMILY_PARTNER.NOTE
 		for-each INDI.ASSO create INDIVIDUAL.ASSOCIATION
 			INDIVIDUAL.ASSOCIATION.xref = INDI.ASSO.xref
 			INDIVIDUAL.ASSOCIATION.TYPE.value = INDI.ASSO.TYPE.value ('FAM'>'family', 'INDI'>'individual', 'SOUR|OBJE|REPO|SUBM|NOTE|SUBN'>nothing)
@@ -272,10 +272,10 @@ public final class Transformer extends TransformerHelper{
 
 			destinationIndividual.addChild(destinationFamilyChild);
 		}
-		final List<GedcomNode> parents = traverseAsList(individual, "FAMS[]");
-		for(final GedcomNode parent : parents){
-			final GedcomNode destinationFamilyParent = createWithReference("FAMILY_PARENT", parent.getXRef());
-			noteCitationTo(parent, destinationFamilyParent, origin, destination);
+		final List<GedcomNode> partners = traverseAsList(individual, "FAMS[]");
+		for(final GedcomNode partner : partners){
+			final GedcomNode destinationFamilyParent = createWithReference("FAMILY_PARTNER", partner.getXRef());
+			noteCitationTo(partner, destinationFamilyParent, origin, destination);
 
 			destinationIndividual.addChild(destinationFamilyParent);
 		}
@@ -1278,7 +1278,7 @@ public final class Transformer extends TransformerHelper{
 
 		final GedcomNode familyChild = traverse(event, "FAMILY");
 		if(("ADOP".equals(tagTo) || "BIRT".equals(tagTo)) && !familyChild.isEmpty()){
-			final List<GedcomNode> parentPedigrees = traverseAsList(event, "PARENT_PEDIGREE[]");
+			final List<GedcomNode> parentPedigrees = traverseAsList(event, "PARTNER_PEDIGREE[]");
 			if(!parentPedigrees.isEmpty()){
 				final boolean adoptedByPartner1 = "adopted".equals(traverse(parentPedigrees.get(0), "PEDIGREE").getValue());
 				final boolean adoptedByPartner2 = (parentPedigrees.size() > 1

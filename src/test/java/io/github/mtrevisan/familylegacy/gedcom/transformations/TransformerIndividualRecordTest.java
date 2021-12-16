@@ -143,12 +143,12 @@ class TransformerIndividualRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.individualRecordTo(individual, origin, destination);
 
-		Assertions.assertEquals("id: I1, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TITLE, value: NAME_PIECE_PREFIX}, {tag: INDIVIDUAL_NAME, value: NAME_PIECE_GIVEN, children: [{tag: SUFFIX, value: NAME_PIECE_SUFFIX}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: FAMILY_NAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}]}, {tag: NOTE, ref: N1}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, ref: F1, children: [{tag: NOTE, ref: N2}]}, {tag: FAMILY_PARENT, ref: F1, children: [{tag: NOTE, ref: N3}]}, {tag: ASSOCIATION, ref: I1, children: [{tag: TYPE, value: individual}, {tag: NOTE, ref: N4}, {tag: SOURCE, ref: S1}]}, {tag: ASSOCIATION, ref: F1, children: [{tag: TYPE, value: family}, {tag: NOTE, ref: N5}, {tag: SOURCE, ref: S1}]}, {tag: ALIAS, ref: I1}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N6}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
+		Assertions.assertEquals("id: I1, tag: INDIVIDUAL, children: [{tag: NAME, children: [{tag: TITLE, value: NAME_PIECE_PREFIX}, {tag: INDIVIDUAL_NAME, value: NAME_PIECE_GIVEN, children: [{tag: SUFFIX, value: NAME_PIECE_SUFFIX}]}, {tag: INDIVIDUAL_NICKNAME, value: NAME_PIECE_NICKNAME}, {tag: FAMILY_NAME, value: NAME_PIECE_SURNAME_PREFIX NAME_PIECE_SURNAME}]}, {tag: NOTE, ref: N1}, {tag: SEX, value: SEX_VALUE}, {tag: FAMILY_CHILD, ref: F1, children: [{tag: NOTE, ref: N2}]}, {tag: FAMILY_PARTNER, ref: F1, children: [{tag: NOTE, ref: N3}]}, {tag: ASSOCIATION, ref: I1, children: [{tag: TYPE, value: individual}, {tag: NOTE, ref: N4}, {tag: SOURCE, ref: S1}]}, {tag: ASSOCIATION, ref: F1, children: [{tag: TYPE, value: family}, {tag: NOTE, ref: N5}, {tag: SOURCE, ref: S1}]}, {tag: ALIAS, ref: I1}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: NOTE, ref: N6}, {tag: SOURCE, ref: S1}, {tag: SOURCE, ref: S2}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}]", destination.getIndividuals().get(0).toString());
 		Assertions.assertEquals("id: E1, tag: EVENT, children: [{tag: TYPE, value: ADOPTION}, {tag: FAMILY, ref: F1}, {tag: PEDIGREE_PARTNER2, value: adopted}, {tag: DATE, value: DATE_VALUE2, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(0).toString());
 		Assertions.assertEquals("id: E2, tag: EVENT, children: [{tag: TYPE, value: EVENT_OR_FACT_CLASSIFICATION}, {tag: DATE, value: DATE_VALUE3, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(1).toString());
 		Assertions.assertEquals("id: E3, tag: EVENT, children: [{tag: TYPE, value: TITLE}, {tag: DESCRIPTION, value: NOBILITY_TYPE_TITLE}, {tag: DATE, value: DATE_VALUE4, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(2).toString());
 		Assertions.assertEquals("id: E4, tag: EVENT, children: [{tag: TYPE, value: FACT}, {tag: DESCRIPTION, value: EVENT_DESCRIPTOR_fact}, {tag: DATE, value: DATE_VALUE5, children: [{tag: CALENDAR, ref: K1}]}]", destination.getEvents().get(3).toString());
-		Assertions.assertEquals("id: K1, tag: CALENDAR", destination.getCalendars().get(0).toString());
+		Assertions.assertEquals("id: K1, tag: CALENDAR, children: [{tag: TYPE, value: gregorian}]", destination.getCalendars().get(0).toString());
 	}
 
 	@Test
@@ -273,10 +273,10 @@ class TransformerIndividualRecordTest{
 			.addChildValue("TYPE", "ADOPTION")
 			.addChildValue("DESCRIPTION", "EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE2")
 			.addChildReference("FAMILY", "F1")
-			.addChild(transformerFrom.createWithReference("PARENT_PEDIGREE", "I1")
+			.addChild(transformerFrom.createWithReference("PARTNER_PEDIGREE", "I1")
 				.addChildValue("PEDIGREE", "birth")
 			)
-			.addChild(transformerFrom.createWithReference("PARENT_PEDIGREE", "I2")
+			.addChild(transformerFrom.createWithReference("PARTNER_PEDIGREE", "I2")
 				.addChildValue("PEDIGREE", "adopted")
 			)
 			.addChildValue("DATE", "ENTRY_RECORDING_DATE2")
