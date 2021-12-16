@@ -121,25 +121,25 @@ public class Gedcom extends Store{
 
 	public static void main(final String[] args){
 		try{
-			final Store store = new Gedcom();
-//			store.load("/gedg/gedcom_5.5.1.gedg", "src/main/resources/ged/small.ged");
-			store.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+			final Store storeGedcom = new Gedcom();
+			storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
-			final Store storeFlef = store.transform();
+			final Store storeFlef = storeGedcom.transform();
 
 			final File outputFile = new File("flef.ged");
 			final OutputStream os = new FileOutputStream(outputFile);
-//			gedcom.write(os);
 			storeFlef.write(os);
 			os.close();
 
+
 			final Store storeFlef2 = new Flef();
 			storeFlef2.load("/gedg/flef_0.0.7.gedg", outputFile.getPath());
-			final Store storeGedcom = storeFlef2.transform();
+
+			final Store storeGedcom2 = storeFlef2.transform();
 
 			final File outputFile2 = new File("original.ged");
 			final OutputStream os2 = new FileOutputStream(outputFile2);
-			storeGedcom.write(os2);
+			storeGedcom2.write(os2);
 			os2.close();
 		}
 		catch(final Exception e){
