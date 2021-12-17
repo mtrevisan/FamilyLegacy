@@ -130,9 +130,8 @@ n TRANSCRIPTION <TRANSCRIPTION_SYSTEM>    {0:1}	/* Indicates the system used in 
 
 FAMILY_RECORD :=
 n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
-  +1 TYPE <FAMILY_TYPE>    {1:1}	/* One of 'unknown', 'marriage', 'not married', 'civil marriage', 'religious marriage', 'common law marriage', 'partnership', 'registered partnership', 'living together', 'living apart together'. */
-  +1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
-  +1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
+  +1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of an individual record affected by this event. */
+  +1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of an individual record affected by this event. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
     +2 ADOPTED    {0:1}	/* If present, then the child is adopted. */
   +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of FAMILY_EVENT_RECORD() objects giving the events associated with this family. */

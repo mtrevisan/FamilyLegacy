@@ -31,10 +31,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.FamilyTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -46,6 +48,8 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.List;
+import java.util.StringJoiner;
 
 
 //TODO
@@ -60,8 +64,10 @@ public class FamilyRecordDialog extends JDialog{
 	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"confidential", "locked", "private"});
 
-	private final JLabel typeLabel = new JLabel("Type:");
-	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
+	private final JLabel partner1Label = new JLabel("Partner 1:");
+	private final JButton partner1Button = new JButton(StringUtils.EMPTY);
+	private final JLabel partner2Label = new JLabel("Partner 2:");
+	private final JButton partner2Button = new JButton(StringUtils.EMPTY);
 	private final JButton eventsButton = new JButton("Events");
 	private final JButton groupsButton = new JButton("Groups");
 	private final JButton culturalRulesButton = new JButton("Cultural Rules");
@@ -89,39 +95,40 @@ public class FamilyRecordDialog extends JDialog{
 		setTitle("Family record");
 
 /*
-		+1 GROUP @<XREF:GROUP>@    {0:M}	/* A GROUP_RECORD() object giving the group in which this family belongs. * /
-			+2 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this family played in the group that is being cited in this context. * /
-			+2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. * /
-			+2 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record. * /
-				+3 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (e.g. 'Film: 1234567, Frame: 344, Line: 28'). * /
-				+3 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND/PARTNER1, MOTHER/PARTNER2, WIFE, SPOUSE/PARTNER2, etc. * /
-				+3 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. * /
-				+3 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. * /
-			+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. * /
-		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. * /
-		+1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. * /
-		+1 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record. * /
-			+2 PAGE <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location with in the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). * /
-			+2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND/PARTNER1, MOTHER/PARTNER2, WIFE, SPOUSE/PARTNER2, etc. * /
-			+2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. * /
-			+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. * /
-		+1 {EVENT} <<FAMILY_EVENT_STRUCTURE>>    {0:M}	/* A list of FAMILY_EVENT_STRUCTURE() objects giving events associated with this family. * /
+		+1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:M}
+		+1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:M}
+		+1 CHILD @<XREF:INDIVIDUAL>@    {0:M}
+		+2 ADOPTED    {0:1}
+		+1 EVENT @<XREF:EVENT>@    {0:M}
+		n GROUP @<XREF:GROUP>@    {0:M}
+			+1 ROLE <ROLE_IN_GROUP>    {0:1}
+			+1 NOTE @<XREF:NOTE>@    {0:M}
+			+1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+			+1 RESTRICTION <confidential>    {0:1}
+		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}
+		+1 NOTE @<XREF:NOTE>@    {0:M}
+		n SOURCE @<XREF:SOURCE>@    {0:M}
+			+1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}
+			+1 ROLE <ROLE_IN_EVENT>    {0:1}
+			+1 CROP <CROP_COORDINATES>    {1:1}
+			+1 NOTE @<XREF:NOTE>@    {0:M}
+			+1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+		+1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:1}
+		+2 CROP <CROP_COORDINATES>    {0:1}
+		+1 RESTRICTION <confidential>    {0:1}
 */
 
-		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
-		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
+		final GedcomNode partner1 = store.getPartner1(family);
+		final GedcomNode partner2 = store.getPartner2(family);
+		partner1Label.setLabelFor(partner1Button);
+		partner1Button.setEnabled(partner1 != null);
+		if(partner1 != null)
+			partner1Button.setText(getPartnerReference(partner1));
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		typeComboBox.addActionListener(e -> {
-			if("comboBoxEdited".equals(e.getActionCommand())){
-				final String newValue = (String)TYPE_MODEL.getSelectedItem();
-				TYPE_MODEL.addElement(newValue);
-
-				typeComboBox.setSelectedItem(newValue);
-			}
-		});
-		typeComboBox.setSelectedIndex(0);
+		partner2Label.setLabelFor(partner2Button);
+		partner2Button.setEnabled(partner2 != null);
+		if(partner2 != null)
+			partner2Button.setText(getPartnerReference(partner2));
 
 		eventsButton.addActionListener(e -> {
 			//TODO
@@ -150,8 +157,10 @@ public class FamilyRecordDialog extends JDialog{
 		restrictionComboBox.setSelectedIndex(0);
 
 		setLayout(new MigLayout());
-		add(typeLabel, "align label,split 2");
-		add(typeComboBox, "grow,wrap");
+		add(partner1Label, "align label,split 2");
+		add(partner1Button, "grow,wrap");
+		add(partner2Label, "align label,split 2");
+		add(partner2Button, "grow,wrap");
 		add(eventsButton, "sizegroup button,grow,wrap");
 		add(groupsButton, "sizegroup button,grow,wrap");
 		add(culturalRulesButton, "sizegroup button,grow,wrap");
@@ -159,6 +168,24 @@ public class FamilyRecordDialog extends JDialog{
 		add(sourcesButton, "sizegroup button,grow,wrap");
 		add(restrictionLabel, "align label,split 2");
 		add(restrictionComboBox, "grow");
+	}
+
+	private String getPartnerReference(final GedcomNode partner){
+		final StringJoiner reference = new StringJoiner(StringUtils.SPACE);
+		reference.add(partner.getID() + ":");
+
+		final List<GedcomNode> familyNames = partner.getChildrenWithTag("NAME.FAMILY_NAME");
+		reference.add(familyNames.isEmpty()? "--,": familyNames.get(0).getValue() + ",");
+
+		final List<GedcomNode> individualNames = partner.getChildrenWithTag("NAME.INDIVIDUAL_NAME");
+		reference.add(individualNames.isEmpty()? "--": individualNames.get(0).getValue());
+
+		final String birthYear = IndividualPanel.extractBirthYear(partner, store);
+		final String deathYear = IndividualPanel.extractDeathYear(partner, store);
+		reference.add("(" + (StringUtils.isNotBlank(birthYear)? birthYear: "--") + " – "
+			+ (StringUtils.isNotBlank(deathYear)? deathYear: "--") + ")");
+
+		return reference.toString();
 	}
 
 	public void loadData(final GedcomNode family){
@@ -170,7 +197,6 @@ public class FamilyRecordDialog extends JDialog{
 	}
 
 	private void loadData(){
-		typeComboBox.setSelectedItem(store.traverse(family, "TYPE").getValue());
 		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
 	}
 
@@ -196,7 +222,7 @@ public class FamilyRecordDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(200, 250);
+			dialog.setSize(350, 400);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

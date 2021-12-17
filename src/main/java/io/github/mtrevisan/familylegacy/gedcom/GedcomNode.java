@@ -213,7 +213,7 @@ public abstract class GedcomNode{
 	}
 
 	private GedcomNode addChildInner(final int index, final GedcomNode child){
-		if(!getChildrenWithTag(tag).contains(child)){
+		if(tag == null || !getChildrenWithTag(tag).contains(child)){
 			if(children == null)
 				children = new ArrayList<>(1);
 
@@ -260,6 +260,42 @@ public abstract class GedcomNode{
 		return this;
 	}
 
+	/**
+	 * Return a list of children of the current node given a tag.
+	 *
+	 * @param tag	Tag used to retrieve the corresponding children. It can be composed with a dot to denote sub-children.
+	 */
+	public List<GedcomNode> getChildrenWithTag(final String tag){
+		if(StringUtils.contains(tag, '.')){
+			List<GedcomNode> subChildren = new ArrayList<>(1);
+			subChildren.add(this);
+			final String[] subtags = StringUtils.split(tag, '.');
+			for(int i = 0; i < subtags.length; i ++)
+				subChildren = getChildrenWithTag(subChildren, subtags[i]);
+			return subChildren;
+		}
+
+		return getChildrenWithTag(Collections.singletonList(this), tag);
+	}
+
+	private List<GedcomNode> getChildrenWithTag(final List<GedcomNode> root, final String tag){
+		final List<GedcomNode> taggedChildren;
+		if(!root.isEmpty()){
+			taggedChildren = new ArrayList<>(0);
+			for(int i = 0; i < root.size(); i ++){
+				final List<GedcomNode> cc = root.get(i).children;
+				if(cc != null){
+					for(final GedcomNode child : cc)
+						if(tag.equals(child.tag))
+							taggedChildren.add(child);
+				}
+			}
+		}
+		else
+			taggedChildren = Collections.emptyList();
+		return taggedChildren;
+	}
+
 	public List<GedcomNode> getChildrenWithTag(final String... tags){
 		final List<GedcomNode> taggedChildren;
 		if(children != null){
@@ -271,6 +307,16 @@ public abstract class GedcomNode{
 		else
 			taggedChildren = Collections.emptyList();
 		return taggedChildren;
+	}
+
+	public GedcomNode removeChildrenWithTag(final String tag){
+		if(children != null){
+			final Iterator<GedcomNode> itr = children.iterator();
+			while(itr.hasNext())
+				if(tag.equals(itr.next().tag))
+					itr.remove();
+		}
+		return this;
 	}
 
 	public GedcomNode removeChildrenWithTag(final String... tags){
