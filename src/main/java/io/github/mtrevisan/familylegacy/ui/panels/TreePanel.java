@@ -407,9 +407,19 @@ public class TreePanel extends JPanel{
 				graphics2D.drawLine(origin.x + c[0].x, origin.y + c[0].y - GENERATION_SEPARATOR_SIZE / 2,
 					origin.x + c[c.length - 1].x, origin.y + c[c.length - 1].y - GENERATION_SEPARATOR_SIZE / 2);
 				//vertical line connecting the children
-				for(final Point point : c)
+				final boolean[] adoptions = childrenPanel.getAdoptions();
+				for(int i = 0; i < c.length; i ++){
+					final Point point = c[i];
+
+					if(adoptions[i])
+						graphics2D.setStroke(FamilyPanel.CONNECTION_STROKE_ADOPTED);
+
 					graphics2D.drawLine(origin.x + point.x, origin.y + point.y,
 						origin.x + point.x, origin.y + point.y - GENERATION_SEPARATOR_SIZE / 2);
+
+					if(adoptions[i])
+						graphics2D.setStroke(FamilyPanel.CONNECTION_STROKE);
+				}
 			}
 
 			graphics2D.dispose();

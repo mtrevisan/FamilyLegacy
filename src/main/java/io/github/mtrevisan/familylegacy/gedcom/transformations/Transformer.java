@@ -344,12 +344,27 @@ public final class Transformer extends TransformerHelper{
 		FAMILY.RESTRICTION.value = FAM.RESN.value
 	*/
 	void familyRecordTo(final GedcomNode family, final Gedcom origin, final Flef destination){
-		final GedcomNode destinationFamily = createWithID("FAMILY", family.getID())
+		final String familyID = family.getID();
+		final GedcomNode destinationFamily = createWithID("FAMILY", familyID)
 			.addChildReference("PARTNER1", traverse(family, "HUSB").getXRef())
 			.addChildReference("PARTNER2", traverse(family, "WIFE").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHIL[]");
-		for(final GedcomNode child : children)
-			destinationFamily.addChildReference("CHILD", child.getXRef());
+		for(int i = 0; i < children.size(); i ++){
+			final GedcomNode child = children.get(i);
+			boolean adopted = false;
+			final GedcomNode childRecord = origin.getIndividual(child.getXRef());
+			final List<GedcomNode> adoptions = childRecord.getChildrenWithTag("ADOP");
+			for(int j = 0; !adopted && j < adoptions.size(); j ++){
+				final List<GedcomNode> adoptingFamilies = adoptions.get(j).getChildrenWithTag("FAMC");
+				for(int k = 0; !adopted && k < adoptingFamilies.size(); k ++)
+					if(adoptingFamilies.get(k).getXRef().equals(familyID)){
+						adopted = true;
+						destinationFamily.addChildReference("ADOPTED_CHILD", child.getXRef());
+					}
+			}
+			if(!adopted)
+				destinationFamily.addChildReference("CHILD", child.getXRef());
+		}
 		//scan events one by one, maintaining order
 		final List<GedcomNode> nodeChildren = family.getChildren();
 		for(final GedcomNode nodeChild : nodeChildren){
@@ -357,7 +372,7 @@ public final class Transformer extends TransformerHelper{
 			final String valueTo = FAM_TO_FAMILY.get(tagFrom);
 			if(valueTo != null){
 				final GedcomNode destinationEvent = eventRecordTo(null, valueTo, nodeChild, origin, destination);
-				destinationEvent.addChildReference("FAMILY", family.getID());
+				destinationEvent.addChildReference("FAMILY", familyID);
 				destinationFamily.addChildReference("EVENT", destinationEvent.getID());
 			}
 		}
@@ -1216,6 +1231,9 @@ public final class Transformer extends TransformerHelper{
 		destinationFamily.addChildReference("WIFE", traverse(family, "PARTNER2").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
 		for(final GedcomNode child : children)
+			destinationFamily.addChildReference("CHIL", child.getXRef());
+		final List<GedcomNode> adoptedChildren = traverseAsList(family, "ADOPTED_CHILD[]");
+		for(final GedcomNode child : adoptedChildren)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
 		final List<GedcomNode> events = traverseAsList(family, "EVENT[]");
 		//scan events one by one, maintaining order
