@@ -325,7 +325,10 @@ public class FamilyPanel extends JPanel{
 		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
 
-		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
+		editFamilyItem.setEnabled(family != null);
+		linkFamilyItem.setEnabled(store.hasFamilies());
+		unlinkFamilyItem.setEnabled(family != null);
+		removeFamilyItem.setEnabled(family != null);
 	}
 
 	public void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel,
