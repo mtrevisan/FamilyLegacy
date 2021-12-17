@@ -134,7 +134,7 @@ n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
   +1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
   +1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) affected by this event. */
   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
-  +1 ADOPTED_CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of adopted children in this family. */
+    +2 ADOPTED    {0:1}	/* If present, then the child is adopted. */
   +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of FAMILY_EVENT_RECORD() objects giving the events associated with this family. */
   +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION() objects. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */

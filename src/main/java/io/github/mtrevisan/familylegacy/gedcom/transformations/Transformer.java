@@ -359,7 +359,8 @@ public final class Transformer extends TransformerHelper{
 				for(int k = 0; !adopted && k < adoptingFamilies.size(); k ++)
 					if(adoptingFamilies.get(k).getXRef().equals(familyID)){
 						adopted = true;
-						destinationFamily.addChildReference("ADOPTED_CHILD", child.getXRef());
+						destinationFamily.addChild(createWithReference("CHILD", child.getXRef())
+							.addClosingChild("ADOPTED"));
 					}
 			}
 			if(!adopted)
@@ -1231,9 +1232,6 @@ public final class Transformer extends TransformerHelper{
 		destinationFamily.addChildReference("WIFE", traverse(family, "PARTNER2").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
 		for(final GedcomNode child : children)
-			destinationFamily.addChildReference("CHIL", child.getXRef());
-		final List<GedcomNode> adoptedChildren = traverseAsList(family, "ADOPTED_CHILD[]");
-		for(final GedcomNode child : adoptedChildren)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
 		final List<GedcomNode> events = traverseAsList(family, "EVENT[]");
 		//scan events one by one, maintaining order

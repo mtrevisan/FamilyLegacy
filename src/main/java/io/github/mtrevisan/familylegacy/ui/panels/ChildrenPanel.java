@@ -51,11 +51,8 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 
 public class ChildrenPanel extends JPanel{
@@ -89,23 +86,11 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	public void loadData(final GedcomNode family){
-		final List<GedcomNode> flefChildren = family.getChildren();
-		children = new ArrayList<>(flefChildren.size());
-		final Set<Object> adoptionIDs = new HashSet<>(flefChildren.size());
-		for(int i = 0; i < flefChildren.size(); i ++){
-			final GedcomNode flefChild = flefChildren.get(i);
-			final String childTag = flefChild.getTag();
-			if("CHILD".equals(childTag))
-				children.add(flefChild);
-			else if("ADOPTED_CHILD".equals(childTag)){
-				children.add(flefChild);
-				adoptionIDs.add(flefChild.getXRef());
-			}
-		}
+		children = store.traverseAsList(family, "CHILD[]");
 
 		adoptions = new boolean[children.size()];
 		for(int i = 0; i < adoptions.length; i ++)
-			adoptions[i] = adoptionIDs.contains(children.get(i).getXRef());
+			adoptions[i] = !children.get(i).getChildrenWithTag("ADOPTED").isEmpty();
 
 		removeAll();
 

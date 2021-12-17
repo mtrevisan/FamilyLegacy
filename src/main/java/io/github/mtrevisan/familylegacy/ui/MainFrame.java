@@ -227,7 +227,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	@Override
 	public void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-													final GedcomNode currentFamily){
+			final GedcomNode currentFamily){
 		LOGGER.debug("onPrevparentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
@@ -246,7 +246,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	@Override
 	public void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-											  final GedcomNode currentFamily){
+			final GedcomNode currentFamily){
 		LOGGER.debug("onNextParentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
