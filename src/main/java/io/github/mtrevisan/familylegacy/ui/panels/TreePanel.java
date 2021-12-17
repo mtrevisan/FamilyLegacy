@@ -318,7 +318,7 @@ public class TreePanel extends JPanel{
 	}
 
 	private List<GedcomNode> extractFamilies(final GedcomNode individual){
-		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_PARENT[]");
+		final List<GedcomNode> familyXRefs = store.traverseAsList(individual, "FAMILY_PARTNER[]");
 		final List<GedcomNode> families = new ArrayList<>(familyXRefs.size());
 		for(final GedcomNode familyXRef : familyXRefs)
 			families.add(store.getFamily(familyXRef.getXRef()));
@@ -550,15 +550,15 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-					final GedcomNode currentFamily){
+			public void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+															final GedcomNode currentFamily){
 				System.out.println("onPrevParentFamily this: " + thisParent.getID() + ", other: " + otherCurrentParent.getID()
 					+ ", family: " + currentFamily.getID());
 			}
 
 			@Override
-			public void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-					final GedcomNode currentFamily){
+			public void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+													  final GedcomNode currentFamily){
 				System.out.println("onNextParentFamily this: " + thisParent.getID() + ", other: " + otherCurrentParent.getID()
 					+ ", family: " + currentFamily.getID());
 			}

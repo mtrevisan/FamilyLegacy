@@ -46,8 +46,8 @@ public interface FamilyListenerInterface{
 	 * @param otherCurrentParent	The parent that has to change.
 	 * @param currentFamily	Current family `thisParent` is in.
 	 */
-	void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-		final GedcomNode currentFamily);
+	void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+										  final GedcomNode currentFamily);
 
 	/**
 	 * Iterate through parents.
@@ -57,7 +57,7 @@ public interface FamilyListenerInterface{
 	 * @param otherCurrentParent	The parent that has to change.
 	 * @param currentFamily	Current family `thisParent` is in.
 	 */
-	void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-		final GedcomNode currentFamily);
+	void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+									 final GedcomNode currentFamily);
 
 }

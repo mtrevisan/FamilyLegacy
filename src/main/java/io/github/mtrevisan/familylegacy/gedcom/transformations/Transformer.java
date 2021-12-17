@@ -274,10 +274,10 @@ public final class Transformer extends TransformerHelper{
 		}
 		final List<GedcomNode> partners = traverseAsList(individual, "FAMS[]");
 		for(final GedcomNode partner : partners){
-			final GedcomNode destinationFamilyParent = createWithReference("FAMILY_PARTNER", partner.getXRef());
-			noteCitationTo(partner, destinationFamilyParent, origin, destination);
+			final GedcomNode destinationFamilyPartner = createWithReference("FAMILY_PARTNER", partner.getXRef());
+			noteCitationTo(partner, destinationFamilyPartner, origin, destination);
 
-			destinationIndividual.addChild(destinationFamilyParent);
+			destinationIndividual.addChild(destinationFamilyPartner);
 		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSO[]");
 		for(final GedcomNode association : associations){
@@ -1049,9 +1049,9 @@ public final class Transformer extends TransformerHelper{
 		for-each INDIVIDUAL.FAMILY_CHILD create INDI.FAMC
 			INDI.FAMC.xref = INDIVIDUAL.FAMILY_CHILD.xref
 			transfer INDIVIDUAL.FAMILY_CHILD.NOTE to INDI.FAMC.NOTE
-		for-each INDIVIDUAL.FAMILY_PARENT create INDI.FAMS
-			INDI.FAMS.xref = INDIVIDUAL.FAMILY_PARENT.xref
-			transfer INDIVIDUAL.FAMILY_PARENT.NOTE to INDI.FAMS.NOTE
+		for-each INDIVIDUAL.FAMILY_PARTNER create INDI.FAMS
+			INDI.FAMS.xref = INDIVIDUAL.FAMILY_PARTNER.xref
+			transfer INDIVIDUAL.FAMILY_PARTNER.NOTE to INDI.FAMS.NOTE
 		for-each INDIVIDUAL.ASSOCIATION create INDI.ASSO
 			INDI.ASSO.xref = INDIVIDUAL.ASSOCIATION.xref
 			INDI.ASSO.TYPE.value = INDIVIDUAL.ASSOCIATION.TYPE.value ('family'>'FAM', 'individual'>'INDI')
@@ -1134,7 +1134,7 @@ public final class Transformer extends TransformerHelper{
 
 			destinationIndividual.addChild(destinationAlias);
 		}
-		final List<GedcomNode> parents = traverseAsList(individual, "FAMILY_PARENT[]");
+		final List<GedcomNode> parents = traverseAsList(individual, "FAMILY_PARTNER[]");
 		for(final GedcomNode parent : parents){
 			final GedcomNode destinationFamilyParent = createWithReference("FAMS", parent.getXRef());
 			noteCitationFrom(parent, destinationFamilyParent);

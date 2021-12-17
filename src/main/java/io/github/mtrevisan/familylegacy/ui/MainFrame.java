@@ -226,14 +226,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyPreviousParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-			final GedcomNode currentFamily){
+	public void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+													final GedcomNode currentFamily){
 		LOGGER.debug("onPrevparentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
 		GedcomNode nextFamily = null;
 		final String currentFamilyID = currentFamily.getID();
-		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARENT[]");
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARTNER[]");
 		for(int familyIndex = 1; familyIndex < familyXRefs.size(); familyIndex ++)
 			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
 				nextFamily = store.getFamily(familyXRefs.get(familyIndex - 1).getXRef());
@@ -245,14 +245,14 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 	}
 
 	@Override
-	public void onFamilyNextParent(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-			final GedcomNode currentFamily){
+	public void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
+											  final GedcomNode currentFamily){
 		LOGGER.debug("onNextParentFamily this: {}, other: {}, family: {}", thisParent.getID(), otherCurrentParent.getID(),
 			currentFamily.getID());
 
 		GedcomNode nextFamily = null;
 		final String currentFamilyID = currentFamily.getID();
-		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARENT[]");
+		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARTNER[]");
 		for(int familyIndex = 0; familyIndex < familyXRefs.size() - 1; familyIndex ++){
 			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
 				nextFamily = store.getFamily(familyXRefs.get(familyIndex + 1).getXRef());
@@ -393,4 +393,5 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			JavaHelper.exit(0);
 		}
 	}
+
 }
