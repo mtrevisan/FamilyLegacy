@@ -281,14 +281,8 @@ public final class Transformer extends TransformerHelper{
 		}
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSO[]");
 		for(final GedcomNode association : associations){
-			String type = traverse(association, "TYPE").getValue();
-			if("FAM".equals(type))
-				type = "family";
-			else if("INDI".equals(type))
-				type = "individual";
 			//otherwise ignore
-			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef())
-				.addChildValue("TYPE", type);
+			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef());
 			noteCitationTo(association, destinationAssociation, origin, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
 			final String rela = traverse(association, "RELA").getValue();
@@ -1127,13 +1121,7 @@ public final class Transformer extends TransformerHelper{
 		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSOCIATION[]");
 		for(final GedcomNode association : associations){
-			String type = traverse(association, "TYPE").getValue();
-			if("family".equals(type))
-				type = "FAM";
-			else if("individual".equals(type))
-				type = "INDI";
 			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef())
-				.addChildValue("TYPE", type)
 				.addChildValue("RELA", traverse(association, "ROLE").getValue());
 			noteCitationFrom(association, destinationAssociation);
 			sourceCitationFrom(association, destinationAssociation, origin, destination);
