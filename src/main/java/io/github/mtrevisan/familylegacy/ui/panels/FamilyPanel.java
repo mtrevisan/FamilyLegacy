@@ -175,9 +175,9 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 
-		partner1Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, partner1, store, boxType, individualListener);
+		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType, individualListener);
 		partner1Panel.setChildReference(childReference);
-		partner2Panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL2, partner2, store, boxType, individualListener);
+		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType, individualListener);
 		partner2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);

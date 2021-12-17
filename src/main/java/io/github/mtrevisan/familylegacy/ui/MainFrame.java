@@ -333,16 +333,20 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 			linkFamilyToChild(child, node);
 
 			familyPanel.loadData(node);
+
+			EventBusService.publish(Flef.ACTION_COMMAND_FAMILY_COUNT);
 		}
 		else{
 			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
 			final GedcomNode child = individualPanel.getChildReference();
-			if(type == SelectedNodeType.INDIVIDUAL1)
+			if(type == SelectedNodeType.PARTNER1)
 				linkParentToFamily(child, node, store.getPartner1s(child), "PARTNER1");
-			else if(type == SelectedNodeType.INDIVIDUAL2)
+			else if(type == SelectedNodeType.PARTNER2)
 				linkParentToFamily(child, node, store.getPartner2s(child), "PARTNER2");
 
 			individualPanel.loadData(node);
+
+			EventBusService.publish(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
 		}
 	}
 

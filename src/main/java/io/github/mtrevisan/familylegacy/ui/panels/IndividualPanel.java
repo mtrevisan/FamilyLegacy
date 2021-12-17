@@ -232,14 +232,14 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		editIndividualItem.setEnabled(individual != null);
-		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, individual));
+		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, this.individual));
 		popupMenu.add(editIndividualItem);
 
 		linkIndividualItem.addActionListener(e -> listener.onIndividualLink(this, type));
 		popupMenu.add(linkIndividualItem);
 
 		unlinkIndividualItem.setEnabled(individual != null);
-		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, individual));
+		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, this.individual));
 		popupMenu.add(unlinkIndividualItem);
 
 		addIndividualItem.setEnabled(individual == null);
@@ -247,7 +247,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		popupMenu.add(addIndividualItem);
 
 		removeIndividualItem.setEnabled(individual != null);
-		removeIndividualItem.addActionListener(e -> listener.onIndividualRemove(this, individual));
+		removeIndividualItem.addActionListener(e -> listener.onIndividualRemove(this, this.individual));
 		popupMenu.add(removeIndividualItem);
 
 		addMouseListener(new PopupMouseAdapter(popupMenu, this));
@@ -388,7 +388,11 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
 
-		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());
+		linkIndividualItem.setEnabled(store.hasIndividuals());
+		editIndividualItem.setEnabled(individual != null);
+		unlinkIndividualItem.setEnabled(individual != null);
+		addIndividualItem.setEnabled(store.hasIndividuals());
+		removeIndividualItem.setEnabled(individual != null);
 	}
 
 	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
@@ -700,7 +704,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.INDIVIDUAL1, individual, storeFlef, boxType, listener);
+			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.PARTNER1, individual, storeFlef, boxType, listener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

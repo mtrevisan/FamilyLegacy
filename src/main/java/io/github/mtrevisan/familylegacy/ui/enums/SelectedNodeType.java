@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.ui.enums;
 
 
 public enum SelectedNodeType{
+	PARTNER1, PARTNER2,
 	FAMILY,
-	INDIVIDUAL1, INDIVIDUAL2,
 	CHILD
 }
