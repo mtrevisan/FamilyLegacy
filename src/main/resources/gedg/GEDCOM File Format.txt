@@ -1,4 +1,4 @@
-GEDCOM grammar file (*.gedg) format for import in GedcomStore 
+GEDCOM grammar file (*.gedg) format for import in GedcomStore
 ---------------------------------------------------------------
 
 The format of the GEDCOM grammar files which contain the data structures needs to follow a simple format. Take a look at the given GEDCOM files like gedcomobjects_5.5.gedg to see examples of the format.
@@ -27,3 +27,10 @@ n <<HEADER>>    {1:1}
 n <<SUBMISSION_RECORD>>    {0:1}
 n <<RECORD>>    {1:M}
 n <<END_OF_FILE>>    {1:1}
+
+
+For a list of grammars:
+------------------------
+https://github.com/FamilySearch/GEDCOM/releases
+https://chronoplexsoftware.com/gedcomvalidator/gedcom/index.htm
+

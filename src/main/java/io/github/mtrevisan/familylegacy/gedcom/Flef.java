@@ -73,6 +73,8 @@ public class Flef extends Store{
 	public static final Integer ACTION_COMMAND_CALENDAR_COUNT = 9;
 	/** Raised upon changes on the number of historical events in the store. */
 	public static final Integer ACTION_COMMAND_HISTORIC_EVENT_COUNT = 10;
+	/** Raised upon changes on the number of research statuses in the store. */
+	public static final Integer ACTION_COMMAND_RESEARCH_STATUS_COUNT = 11;
 
 	private static final String ID_INDIVIDUAL_PREFIX = "I";
 	private static final String ID_FAMILY_PREFIX = "F";
@@ -85,6 +87,7 @@ public class Flef extends Store{
 	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_CALENDAR_PREFIX = "K";
 	private static final String ID_HISTORIC_EVENT_PREFIX = "H";
+	private static final String ID_RESEARCH_STATUS_PREFIX = "T";
 
 	private static final String TAG_HEADER = "HEADER";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
@@ -98,6 +101,7 @@ public class Flef extends Store{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CALENDAR = "CALENDAR";
 	private static final String TAG_HISTORIC_EVENT = "HISTORIC_EVENT";
+	private static final String TAG_RESEARCH_STATUS = "RESEARCH_STATUS";
 
 	private static final Transformation<Gedcom, Flef> HEADER_TRANSFORMATION = new HeaderTransformation();
 	private static final Transformation<Gedcom, Flef> INDIVIDUAL_TRANSFORMATION = new IndividualTransformation();
@@ -121,6 +125,7 @@ public class Flef extends Store{
 	private List<GedcomNode> sources;
 	private List<GedcomNode> calendars;
 	private List<GedcomNode> historicEvents;
+	private List<GedcomNode> researchStatuses;
 
 	private TreeMap<String, GedcomNode> individualIndex;
 	private TreeMap<String, GedcomNode> familyIndex;
@@ -133,6 +138,7 @@ public class Flef extends Store{
 	private TreeMap<String, GedcomNode> sourceIndex;
 	private TreeMap<String, GedcomNode> calendarIndex;
 	private TreeMap<String, GedcomNode> historicEventIndex;
+	private TreeMap<String, GedcomNode> researchStatusIndex;
 
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
@@ -152,6 +158,7 @@ public class Flef extends Store{
 	private int nextSourceId = 1;
 	private int nextCalendarId = 1;
 	private int nextHistoricEventId = 1;
+	private int nextResearchStatusId = 1;
 
 
 
@@ -208,6 +215,7 @@ public class Flef extends Store{
 		sources = root.getChildrenWithTag(TAG_SOURCE);
 		calendars = root.getChildrenWithTag(TAG_CALENDAR);
 		historicEvents = root.getChildrenWithTag(TAG_HISTORIC_EVENT);
+		researchStatuses = root.getChildrenWithTag(TAG_RESEARCH_STATUS);
 
 		individualIndex = generateIndexes(individuals);
 		familyIndex = generateIndexes(families);
@@ -220,6 +228,7 @@ public class Flef extends Store{
 		sourceIndex = generateIndexes(sources);
 		calendarIndex = generateIndexes(calendars);
 		historicEventIndex = generateIndexes(historicEvents);
+		researchStatusIndex = generateIndexes(researchStatuses);
 
 		eventValue = reverseMap(eventIndex);
 		placeValue = reverseMap(placeIndex);
@@ -250,6 +259,8 @@ public class Flef extends Store{
 			nextCalendarId = extractLastID(calendarIndex.lastKey()) + 1;
 		if(!historicEventIndex.isEmpty())
 			nextHistoricEventId = extractLastID(historicEventIndex.lastKey()) + 1;
+		if(!researchStatusIndex.isEmpty())
+			nextResearchStatusId = extractLastID(researchStatusIndex.lastKey()) + 1;
 	}
 
 	@Override
@@ -285,6 +296,7 @@ public class Flef extends Store{
 				.addChildren(sources)
 				.addChildren(calendars)
 				.addChildren(historicEvents)
+				.addChildren(researchStatuses)
 				.addClosingChild("EOF");
 
 		super.write(os);
@@ -930,6 +942,50 @@ public class Flef extends Store{
 
 	private String getNextHistoricEventID(){
 		return ID_HISTORIC_EVENT_PREFIX + nextHistoricEventId;
+	}
+
+
+	public List<GedcomNode> getResearchStatuses(){
+		return researchStatuses;
+	}
+
+	public GedcomNode getResearchStatus(final String id){
+		return researchStatusIndex.get(id);
+	}
+
+	public String addResearchStatus(final GedcomNode researchStatus){
+		if(researchStatuses == null){
+			researchStatuses = new ArrayList<>(1);
+			researchStatusIndex = new TreeMap<>();
+		}
+
+		final String researchStatusID = getNextResearchStatusID();
+		researchStatus.withID(researchStatusID);
+
+		researchStatuses.add(researchStatus);
+		researchStatusIndex.put(researchStatusID, researchStatus);
+
+		nextResearchStatusId ++;
+
+		EventBusService.publish(ACTION_COMMAND_RESEARCH_STATUS_COUNT);
+		return researchStatusID;
+	}
+
+	public String removeResearchStatus(final GedcomNode researchStatus){
+		if(researchStatuses != null){
+			final String researchStatusID = researchStatus.getID();
+			researchStatuses.remove(researchStatus);
+			researchStatusIndex.remove(researchStatusID);
+
+			EventBusService.publish(ACTION_COMMAND_RESEARCH_STATUS_COUNT);
+
+			return researchStatusID;
+		}
+		return null;
+	}
+
+	private String getNextResearchStatusID(){
+		return ID_RESEARCH_STATUS_PREFIX + nextResearchStatusId;
 	}
 
 }

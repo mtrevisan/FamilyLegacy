@@ -130,7 +130,7 @@ public final class Gedcom extends Store{
 
 
 			final Store storeFlef2 = new Flef();
-			storeFlef2.load("/gedg/flef_0.0.7.gedg", outputFile.getPath());
+			storeFlef2.load("/gedg/flef_0.0.8.gedg", outputFile.getPath());
 
 			final Store storeGedcom2 = storeFlef2.transform();
 

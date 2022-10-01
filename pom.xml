@@ -47,21 +47,21 @@
 
 		<!-- Profiles & Build -->
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-		<maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
+		<maven-deploy-plugin.version>3.0.0</maven-deploy-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
-		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
-		<sonatype.nexus-staging-maven-plugin.version>1.6.8</sonatype.nexus-staging-maven-plugin.version>
+		<sonatype.nexus-staging-maven-plugin.version>1.6.13</sonatype.nexus-staging-maven-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
 		<maven-source-plugin.version>3.2.1</maven-source-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-		<maven-javadoc-plugin.version>3.3.1</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
-		<maven-help-plugin.version>3.2.0</maven-help-plugin.version>
+		<maven-help-plugin.version>3.3.0</maven-help-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
-		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
+		<maven-shade-plugin.version>3.4.0</maven-shade-plugin.version>
 
 		<!-- Apache -->
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
@@ -75,13 +75,13 @@
 
 		<!-- Markdown viewer -->
 		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
-		<vladsch.flexmark.version>0.62.2</vladsch.flexmark.version>
+		<vladsch.flexmark.version>0.64.0</vladsch.flexmark.version>
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.13.0</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>2.13.4</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
-<!--		<jayway.json-path.version>2.6.0</jayway.json-path.version>-->
+<!--		<jayway.json-path.version>2.7.0</jayway.json-path.version>-->
 <!--		<fasterxml.jackson-databind.version>2.12.5</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
 <!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
@@ -89,17 +89,17 @@
 		<!-- TwelveMonkeys ImageIO -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-psd -->
-		<twelvemonkeys.imageio-core.version>3.8.0</twelvemonkeys.imageio-core.version>
+		<twelvemonkeys.imageio-core.version>3.8.3</twelvemonkeys.imageio-core.version>
 
 		<!-- Logging -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-		<slf4j.slf4j-api.version>1.7.32</slf4j.slf4j-api.version>
+		<slf4j.slf4j-api.version>2.0.2</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.2.8</logback.logback-classic.version>
+		<logback.logback-classic.version>1.4.1</logback.logback-classic.version>
 
 		<!-- JUnit -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-		<junit.junit-jupiter-engine.version>5.8.2</junit.junit-jupiter-engine.version>
+		<junit.junit-jupiter-engine.version>5.9.0</junit.junit-jupiter-engine.version>
 	</properties>
 
 	<profiles>
