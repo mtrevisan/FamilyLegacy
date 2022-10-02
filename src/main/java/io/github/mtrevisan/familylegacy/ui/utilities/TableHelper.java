@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;

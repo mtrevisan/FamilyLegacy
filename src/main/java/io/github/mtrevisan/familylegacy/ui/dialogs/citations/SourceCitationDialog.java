@@ -43,34 +43,11 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptio
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.AbstractAction;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.DropMode;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -348,7 +325,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		notesButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
-		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+		credibilityComboBox.setSelectedIndex(!credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
 
 		okButton.setEnabled(true);
 	}
@@ -538,7 +515,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							//TODO add base path?
 							final String file = store.traverse(container, "SOURCE").getValue();
 							final String crop = store.traverse(container, "CROP").getValue();
-							final String[] coordinates = (crop != null? StringUtils.split(crop, ' '): null);
+							final String[] coordinates = (!crop.isEmpty()? StringUtils.split(crop, ' '): null);
 							((CropDialog)dialog).loadData(file, editCommand.getOnCloseGracefully());
 							if(coordinates != null){
 								((CropDialog)dialog).setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));

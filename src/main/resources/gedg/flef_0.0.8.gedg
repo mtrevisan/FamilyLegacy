@@ -110,23 +110,23 @@ PERSONAL_NAME_STRUCTURE :=
 n NAME    {1:1}
   +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
   +1 TITLE <TITLE_PIECE>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
-    +2 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 INDIVIDUAL_NAME <INDIVIDUAL_NAME_PIECE>    {0:1}	/* Given name(s). */
-    +2 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
     +2 SUFFIX <INDIVIDUAL_NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
-      +3 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+      +3 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 INDIVIDUAL_NICKNAME <NICKNAME_NAME_PIECE>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
-    +2 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 FAMILY_NAME <FAMILY_NAME_PIECE>    {0:M}	/* Surname or family name. */
-    +2 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 FAMILY_NICKNAME <FAMILY_NICKNAME_PIECE>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname. */
-    +2 <<TRANSCRIBED_NAME_PIECE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION() objects. */
 
 
-TRANSCRIBED_NAME_PIECE :=
+TRANSCRIBED_TEXT :=
 n PHONETIC <PHONETIC_SYSTEM>    {0:1}	/* Usually IPA, but other systems can be used (ex. canIPA). */
   +1 VALUE <PHONETIC_NAME_PIECE>    {1:1}	/* Phonetic/phonematic component. */
 n TRANSCRIPTION <TRANSCRIPTION_SYSTEM>    {0:1}	/* Indicates the system used in transcript the text to the romanized variation (eg. 'romaji', 'pinyin', 'wagegiles', ...). */
@@ -239,9 +239,9 @@ n RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should
 PLACE_RECORD :=
 n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
   +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
-    +2 <<TRANSCRIBED_PLACE_NAME>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 ADDRESS <ADDRESS_LINE>    {0:M}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
-    +2 <<TRANSCRIBED_ADDRESS_LINE>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
     +2 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
     +2 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
     +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
@@ -286,7 +286,7 @@ CONTACT_STRUCTURE :=
 n CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
   +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
   +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
-    +2 <<TRANSCRIBED_CALLER_ID>>    {0:M}
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
   +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 

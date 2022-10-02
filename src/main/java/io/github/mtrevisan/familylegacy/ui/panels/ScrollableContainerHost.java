@@ -26,13 +26,8 @@ package io.github.mtrevisan.familylegacy.ui.panels;
 
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JViewport;
-import javax.swing.Scrollable;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Rectangle;
+import javax.swing.*;
+import java.awt.*;
 
 
 public class ScrollableContainerHost extends JPanel implements Scrollable{

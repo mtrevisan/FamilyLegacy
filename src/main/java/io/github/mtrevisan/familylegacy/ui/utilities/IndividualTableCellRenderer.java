@@ -28,16 +28,12 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Insets;
+import java.awt.*;
 import java.util.Vector;
 
 

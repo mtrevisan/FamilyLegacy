@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import java.awt.Component;
+import java.awt.*;
 
 
 public interface TextPreviewListenerInterface{

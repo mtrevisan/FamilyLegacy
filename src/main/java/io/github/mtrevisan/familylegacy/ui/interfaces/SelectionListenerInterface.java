@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.interfaces;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 
 public interface SelectionListenerInterface{

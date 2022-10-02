@@ -26,15 +26,12 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 
-import javax.swing.JLabel;
-import javax.swing.JTable;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import java.awt.Component;
-import java.awt.Insets;
+import java.awt.*;
 import java.util.Vector;
 
 

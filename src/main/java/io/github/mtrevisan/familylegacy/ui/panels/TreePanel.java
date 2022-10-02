@@ -39,19 +39,8 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -267,11 +256,11 @@ public class TreePanel extends JPanel{
 		//check pedigree (prefers `biological` or <null>)
 		for(final GedcomNode familyChild : familyChilds){
 			final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARTNER1").getValue();
-			if(pedigree1 == null || "biological".equalsIgnoreCase(pedigree1))
+			if("biological".equalsIgnoreCase(pedigree1))
 				biologicalFamilyChilds.add(familyChild);
 			else{
 				final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARTNER2").getValue();
-				if(pedigree2 == null || "biological".equalsIgnoreCase(pedigree2))
+				if("biological".equalsIgnoreCase(pedigree2))
 					biologicalFamilyChilds.add(familyChild);
 			}
 		}

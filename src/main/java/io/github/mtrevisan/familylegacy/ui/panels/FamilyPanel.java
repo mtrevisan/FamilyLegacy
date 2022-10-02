@@ -42,29 +42,8 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.BorderFactory;
-import javax.swing.GrayFilter;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -389,15 +368,12 @@ public class FamilyPanel extends JPanel{
 			if(date != null){
 				final int my = date.getYear();
 				if(marriagePlace == null || my < marriageYear){
-					GedcomNode place = store.traverse(node, "PLACE");
-					if(!place.isEmpty()){
-						place = store.getPlace(place.getXRef());
-						if(place != null){
-							final String placeValue = extractPlace(place, store);
-							if(placeValue != null){
-								marriageYear = my;
-								marriagePlace = placeValue;
-							}
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						final String placeValue = extractPlace(place, store);
+						if(placeValue != null){
+							marriageYear = my;
+							marriagePlace = placeValue;
 						}
 					}
 				}

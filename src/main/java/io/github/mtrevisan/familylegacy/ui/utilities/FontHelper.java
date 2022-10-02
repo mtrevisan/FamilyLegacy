@@ -24,12 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.JComponent;
-import javax.swing.JEditorPane;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Font;
-import java.awt.RenderingHints;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.util.Deque;

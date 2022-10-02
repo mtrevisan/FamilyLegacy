@@ -24,9 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.JComponent;
-import javax.swing.JTable;
-import javax.swing.TransferHandler;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;

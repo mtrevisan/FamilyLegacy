@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
@@ -44,32 +43,8 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Paint;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -483,16 +458,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static String extractEarliestBirthDate(final GedcomNode individual, final Flef store){
-		int birthYear = 0;
+		int birthYear = Integer.MAX_VALUE;
 		String birthDate = null;
 		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
 		for(final GedcomNode node : birthEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int by = date.getYear();
-				if(birthDate == null || by < birthYear){
-					birthYear = by;
+				final int y = date.getYear();
+				if(birthDate == null || y < birthYear){
+					birthYear = y;
 					birthDate = dateValue;
 				}
 			}
@@ -501,25 +476,19 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static String extractEarliestBirthPlace(final GedcomNode individual, final Flef store){
-		int birthYear = 0;
+		int birthYear = Integer.MAX_VALUE;
 		String birthPlace = null;
 		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
 		for(final GedcomNode node : birthEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int my = date.getYear();
-				if(birthPlace == null || my < birthYear){
-					GedcomNode place = store.traverse(node, "PLACE");
-					if(!place.isEmpty()){
-						place = store.getPlace(place.getXRef());
-						if(place != null){
-							final String placeValue = extractPlace(place, store);
-							if(placeValue != null){
-								birthYear = my;
-								birthPlace = placeValue;
-							}
-						}
+				final int y = date.getYear();
+				if(birthPlace == null || y < birthYear){
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						birthYear = y;
+						birthPlace = extractPlace(place, store);
 					}
 				}
 			}
@@ -527,51 +496,17 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return birthPlace;
 	}
 
-	private static String extractPlace(final GedcomNode place, final Flef store){
-		final GedcomNode addressEarliest = extractEarliestAddress(place, store);
-
-		//extract place as town, county, state, country, otherwise from value
-		String placeValue = place.getValue();
-		if(addressEarliest != null){
-			final GedcomNode town = store.traverse(addressEarliest, "TOWN");
-			final GedcomNode city = store.traverse(addressEarliest, "CITY");
-			final GedcomNode county = store.traverse(addressEarliest, "COUNTY");
-			final GedcomNode state = store.traverse(addressEarliest, "STATE");
-			final GedcomNode country = store.traverse(addressEarliest, "COUNTRY");
-			final StringJoiner sj = new StringJoiner(", ");
-			JavaHelper.addValueIfNotNull(sj, town);
-			JavaHelper.addValueIfNotNull(sj, city);
-			JavaHelper.addValueIfNotNull(sj, county);
-			JavaHelper.addValueIfNotNull(sj, state);
-			JavaHelper.addValueIfNotNull(sj, country);
-			if(sj.length() > 0)
-				placeValue = sj.toString();
-		}
-		if(addressEarliest == null){
-			placeValue = store.traverse(place, "ADDRESS").getValue();
-			//TCGB
-			if(placeValue == null)
-				placeValue = store.traverse(place, "NAME").getValue();
-		}
-		return placeValue;
-	}
-
-	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
-		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
-		return (addresses.isEmpty()? null: addresses.get(0));
-	}
-
 	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
-		int deathYear = 0;
+		int deathYear = Integer.MIN_VALUE;
 		String deathDate = null;
 		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
 		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int by = date.getYear();
-				if(deathDate == null || by > deathYear){
-					deathYear = by;
+				final int y = date.getYear();
+				if(deathDate == null || y > deathYear){
+					deathYear = y;
 					deathDate = dateValue;
 				}
 			}
@@ -580,30 +515,38 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static String extractLatestDeathPlace(final GedcomNode individual, final Flef store){
-		int deathYear = 0;
+		int deathYear = Integer.MIN_VALUE;
 		String deathPlace = null;
 		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
 		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
-				final int my = date.getYear();
-				if(deathPlace == null || my > deathYear){
-					GedcomNode place = store.traverse(node, "PLACE");
-					if(!place.isEmpty()){
-						place = store.getPlace(place.getXRef());
-						if(place != null){
-							final String placeValue = extractPlace(place, store);
-							if(placeValue != null){
-								deathYear = my;
-								deathPlace = placeValue;
-							}
-						}
+				final int y = date.getYear();
+				if(deathPlace == null || y > deathYear){
+					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
+					if(place != null){
+						deathYear = y;
+						deathPlace = extractPlace(place, store);
 					}
 				}
 			}
 		}
 		return deathPlace;
+	}
+
+	private static String extractPlace(final GedcomNode place, final Flef store){
+		final GedcomNode addressEarliest = extractEarliestAddress(place, store);
+
+		String placeValue = store.traverse(addressEarliest, "ADDRESS").getValue();
+		if(placeValue == null)
+			placeValue = store.traverse(addressEarliest, "NAME").getValue();
+		return placeValue;
+	}
+
+	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
+		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
+		return (addresses.isEmpty()? null: addresses.get(0));
 	}
 
 	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
@@ -658,10 +601,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-//		final GedcomNode individual = storeFlef.getIndividuals().get(0);
+		final GedcomNode individual = storeFlef.getIndividuals().get(0);
 //		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
 		//long names
-		final GedcomNode individual = storeFlef.getIndividual("I2365");
+//		final GedcomNode individual = storeFlef.getIndividual("I2365");
 //		final GedcomNode individual = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
