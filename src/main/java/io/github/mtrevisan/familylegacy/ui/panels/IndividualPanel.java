@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.TooltipLabel;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
@@ -109,8 +110,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
 
-	private final JLabel familyNameLabel = new JLabel();
-	private final JLabel personalNameLabel = new JLabel();
+	private final TooltipLabel familyNameLabel = new TooltipLabel();
+	private final TooltipLabel personalNameLabel = new TooltipLabel();
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel preferredImageLabel = new JLabel();
 	private final JMenuItem editIndividualItem = new JMenuItem("Edit Individual…", 'E');
@@ -173,7 +174,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				}
 			});
 		}
-		addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		if(listener != null){
@@ -281,14 +281,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	public void propertyChange(final PropertyChangeEvent evt){
 		//show tooltips with full names if they are too long to be displayed
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
-			//FIXME doesn't work, width is 0 the first time, and there were no further call to propertyChange
-			int width = familyNameLabel.getWidth();
-			int requiredWidth = familyNameLabel.getUI().getPreferredSize(familyNameLabel).width;
-			familyNameLabel.setToolTipText(width > 0 && requiredWidth > width? familyNameLabel.getText(): null);
-
-			width = personalNameLabel.getWidth();
-			requiredWidth = personalNameLabel.getUI().getPreferredSize(personalNameLabel).width;
-			personalNameLabel.setToolTipText(width > 0 && requiredWidth > width? personalNameLabel.getText(): null);
+			familyNameLabel.manageToolTip();
+			personalNameLabel.manageToolTip();
 		}
 	}
 
@@ -337,9 +331,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		infoLabel.setFont(infoFont);
 
 		final String[] personalName = extractCompleteName(individual, store).get(0);
+		familyNameLabel.addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		familyNameLabel.setText(personalName[0]);
+		personalNameLabel.addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		personalNameLabel.setText(personalName[1]);
-		firePropertyChange(PROPERTY_NAME_TEXT_CHANGE, null, null);
 
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -601,10 +596,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final Store storeGedcom = new Gedcom();
 		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
 			.transform();
-		final GedcomNode individual = storeFlef.getIndividuals().get(0);
+//		final GedcomNode individual = storeFlef.getIndividuals().get(0);
 //		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
 		//long names
-//		final GedcomNode individual = storeFlef.getIndividual("I2365");
+		final GedcomNode individual = storeFlef.getIndividual("I2365");
 //		final GedcomNode individual = null;
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
