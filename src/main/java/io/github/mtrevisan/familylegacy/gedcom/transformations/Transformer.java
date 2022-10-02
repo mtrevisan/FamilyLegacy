@@ -107,9 +107,6 @@ public final class Transformer extends TransformerHelper{
 			if(!CUSTOM_EVENT_TAG.equals(value))
 				FAMILY_TO_FAM.put(value, entry.getKey());
 		}
-
-		//TODO include these ones
-		//[CHR|BAPM|BARM|BASM|BLES|CHRA|CONF|FCOM|ORDN|IDNO]
 	}
 
 	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
@@ -283,6 +280,21 @@ public final class Transformer extends TransformerHelper{
 		for(final GedcomNode association : associations){
 			//otherwise ignore
 			final GedcomNode destinationAssociation = createWithReference("ASSOCIATION", association.getXRef());
+			final List<GedcomNode> types = traverseAsList(association, "TYPE[]");
+			for(GedcomNode type : types){
+				String typeValue = type.getValue();
+				typeValue = switch(typeValue){
+					case "FAM" -> "family";
+					case "INDI" -> "individual";
+					case "SOUR", "OBJE" -> "source";
+					case "REPO" -> "repository";
+					case "SUBM", "SUBN" -> null;
+					case "NOTE" -> "note";
+					default -> typeValue;
+				};
+				if(StringUtils.isNotBlank(typeValue))
+					destinationAssociation.addChildValue("TYPE", typeValue);
+			}
 			noteCitationTo(association, destinationAssociation, origin, destination);
 			sourceCitationTo(association, destinationAssociation, origin, destination);
 			final String rela = traverse(association, "RELA").getValue();
@@ -318,8 +330,19 @@ public final class Transformer extends TransformerHelper{
 
 		noteCitationTo(individual, destinationIndividual, origin, destination);
 		sourceCitationTo(individual, destinationIndividual, origin, destination);
-		multimediaCitationTo(individual, destinationIndividual, origin, destination);
+		GedcomNode preferredMedia = multimediaCitationTo(individual, destinationIndividual, origin, destination);
+		if(preferredMedia != null && !preferredMedia.isEmpty())
+			destinationIndividual.addChildValue("PREFERRED_IMAGE", preferredMedia.getXRef());
 		destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
+
+		final GedcomNode creationDate = create("CREATION_DATE");
+		final GedcomNode date = traverse(individual, "CHAN.DATE");
+		final GedcomNode time = traverse(date, "TIME");
+		final StringJoiner timestamp = new StringJoiner("T");
+		JavaHelper.addValueIfNotNull(timestamp, date);
+		JavaHelper.addValueIfNotNull(timestamp, time);
+		creationDate.addChildValue("DATE", timestamp.toString());
+		destinationIndividual.addChild(creationDate);
 
 		destination.addIndividual(destinationIndividual);
 	}
@@ -379,8 +402,19 @@ public final class Transformer extends TransformerHelper{
 		}
 		noteCitationTo(family, destinationFamily, origin, destination);
 		sourceCitationTo(family, destinationFamily, origin, destination);
-		multimediaCitationTo(family, destinationFamily, origin, destination);
+		GedcomNode preferredMedia = multimediaCitationTo(family, destinationFamily, origin, destination);
+		if(preferredMedia != null && !preferredMedia.isEmpty())
+			destinationFamily.addChildValue("PREFERRED_IMAGE", preferredMedia.getXRef());
 		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
+
+		final GedcomNode creationDate = create("CREATION_DATE");
+		final GedcomNode date = traverse(family, "CHAN.DATE");
+		final GedcomNode time = traverse(date, "TIME");
+		final StringJoiner timestamp = new StringJoiner("T");
+		JavaHelper.addValueIfNotNull(timestamp, date);
+		JavaHelper.addValueIfNotNull(timestamp, time);
+		creationDate.addChildValue("DATE", timestamp.toString());
+		destinationFamily.addChild(creationDate);
 
 		destination.addFamily(destinationFamily);
 	}
@@ -429,7 +463,7 @@ public final class Transformer extends TransformerHelper{
 			.addChildValue("CAUSE", traverse(event, "CAUS").getValue());
 		noteCitationTo(event, destinationEvent, origin, destination);
 		sourceCitationTo(event, destinationEvent, origin, destination);
-		multimediaCitationTo(event, destinationEvent, origin, destination);
+		GedcomNode preferredMedia = multimediaCitationTo(event, destinationEvent, origin, destination);
 		destinationEvent.addChildValue("RESTRICTION", traverse(event, "RESN").getValue());
 
 		destination.addEvent(destinationEvent);
@@ -466,23 +500,23 @@ public final class Transformer extends TransformerHelper{
 	*/
 	void headerTo(final GedcomNode header, final Gedcom origin, final Flef destination){
 		final GedcomNode source = traverse(header, "SOUR");
-		final GedcomNode date = traverse(header, "DATE");
-		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner timestamp = new StringJoiner(StringUtils.SPACE);
-		JavaHelper.addValueIfNotNull(timestamp, date);
-		JavaHelper.addValueIfNotNull(timestamp, time);
 		final GedcomNode destinationHeader = create("HEADER")
 			.addChild(createWithValue("PROTOCOL", "FLEF")
 				.addChildValue("NAME", "Family LEgacy Format")
-				.addChildValue("VERSION", "0.0.7")
+				.addChildValue("VERSION", "0.0.8")
 			)
 			.addChild(createWithValue("SOURCE", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
 				.addChildValue("VERSION", traverse(source, "VERS").getValue())
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
-			)
-			.addChildValue("DATE", timestamp.toString())
-			.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
+			);
+		final GedcomNode date = traverse(header, "DATE");
+		final GedcomNode time = traverse(date, "TIME");
+		final StringJoiner timestamp = new StringJoiner("T");
+		JavaHelper.addValueIfNotNull(timestamp, date);
+		JavaHelper.addValueIfNotNull(timestamp, time);
+		destinationHeader.addChildValue("DATE", timestamp.toString());
+		destinationHeader.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
 
 		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
 		if(submitter != null){
@@ -539,8 +573,7 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE.ROLE.value = OBJE[rec].SOUR.EVEN.ROLE.value
 			transfer OBJE[rec].SOUR.NOTE to SOURCE[rec].NOTE
 		SOURCE.CROP.value = OBJE._CUTD.value
-		//FIXME
-		remember = OBJE._PREF{Y}
+		return OBJE._PREF{Y}
 		transfer OBJE[rec].NOTE to SOURCE[rec].NOTE
 		SOURCE.CREDIBILITY.value = OBJE[rec].QUAY.value
 
@@ -559,19 +592,24 @@ public final class Transformer extends TransformerHelper{
 			pick-one: SOURCE[rec].MEDIA_TYPE.value = OBJE.FORM.MEDI.value
 			SOURCE[rec].FILE.RESTRICTION.value = OBJE.FORM._PUBL{Y}? null: 'private'
 	*/
-	void multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin, final Flef destination){
+	GedcomNode multimediaCitationTo(final GedcomNode parent, final GedcomNode destinationNode, final Gedcom origin,
+			final Flef destination){
+		GedcomNode preferredMedia = null;
 		final List<GedcomNode> objects = traverseAsList(parent, "OBJE[]");
 		for(GedcomNode object : objects){
+			boolean preferred = "Y".equals(traverse(object, "_PREF").getValue());
 			final GedcomNode destinationSource = create("SOURCE");
 
 			object = sourceRecordMultimediaCitationTo(object, destinationSource, origin, destination);
 
 
 			destination.addSource(destinationSource);
-			destinationNode.addChild(createWithReference("SOURCE", destinationSource.getID())
-				.addChildValue("CROP", traverse(object, "_CUTD").getValue())
-			);
+			final GedcomNode source = createWithReference("SOURCE", destinationSource.getID());
+			destinationNode.addChild(source);
+			if(preferred)
+				preferredMedia = source;
 		}
+		return preferredMedia;
 	}
 
 	private GedcomNode sourceRecordMultimediaCitationTo(GedcomNode object, final GedcomNode destinationSource, final Gedcom origin,
@@ -614,7 +652,6 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> crop = destinationSource.getChildrenWithTag("CROP");
 		if(crop.isEmpty())
 			destinationSource.addChildValue("CROP", traverse(object, "_CUTD").getValue());
-		//FIXME remember "Y".equals(traverse(object, "_PREF").getValue())
 
 		noteCitationTo(traverse(object, "SOUR"), destinationSource, origin, destination);
 		noteCitationTo(object, destinationSource, origin, destination);
@@ -689,6 +726,15 @@ public final class Transformer extends TransformerHelper{
 		placeAddressStructureTo(repository, destinationRepository, origin, destination);
 		contactStructureTo(repository, destinationRepository);
 		noteCitationTo(repository, destinationRepository, origin, destination);
+
+		final GedcomNode creationDate = create("CREATION_DATE");
+		final GedcomNode date = traverse(repository, "CHAN.DATE");
+		final GedcomNode time = traverse(date, "TIME");
+		final StringJoiner timestamp = new StringJoiner("T");
+		JavaHelper.addValueIfNotNull(timestamp, date);
+		JavaHelper.addValueIfNotNull(timestamp, time);
+		creationDate.addChildValue("DATE", timestamp.toString());
+		destinationRepository.addChild(creationDate);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -862,7 +908,7 @@ public final class Transformer extends TransformerHelper{
 				}
 				addDateTo(traverse(destinationSourceRecord, "DATA.DATE"), destinationSourceRecord, destination);
 
-				multimediaCitationTo(sourceCitation, destinationSourceReference, origin, destination);
+				GedcomNode preferredMedia = multimediaCitationTo(sourceCitation, destinationSourceReference, origin, destination);
 				destinationSourceReference.addChildValue("CREDIBILITY", traverse(sourceCitation, "QUAY").getValue());
 				response.add(new GedcomNode[]{destinationSourceReference, destinationSourceRecord});
 			}
@@ -882,7 +928,12 @@ public final class Transformer extends TransformerHelper{
 				//insert calendar
 				destination.addCalendar(calendar);
 			}
-			destinationNode.addChild(createWithValue("DATE", date.getValue())
+
+			final GedcomNode time = traverse(date, "TIME");
+			final StringJoiner timestamp = new StringJoiner("T");
+			JavaHelper.addValueIfNotNull(timestamp, date);
+			JavaHelper.addValueIfNotNull(timestamp, time);
+			destinationNode.addChild(createWithValue("DATE", timestamp.toString())
 				.addChildReference("CALENDAR", calendar.getID())
 			);
 		}
@@ -933,11 +984,11 @@ public final class Transformer extends TransformerHelper{
 			destinationSource.addChildValue("TITLE", title)
 				.addChildValue("AUTHOR", author)
 				.addChildValue("PUBLICATION_FACTS", publicationFacts);
-			final GedcomNode date = traverse(sourceDataEvent, "DATE");
+			GedcomNode date = traverse(sourceDataEvent, "DATE");
 			addDateTo(date, destinationSource, destination);
 			placeStructureFrom(sourceDataEvent, destinationSource, destination);
 			repositoryCitationTo(source, destinationSource, origin, destination);
-			multimediaCitationTo(source, destinationSource, origin, destination);
+			GedcomNode preferredMedia = multimediaCitationTo(source, destinationSource, origin, destination);
 			noteCitationTo(sourceData, destinationSource, origin, destination);
 			noteCitationTo(source, destinationSource, origin, destination);
 			final GedcomNode extract = traverse(source, "TEXT");
@@ -975,6 +1026,15 @@ public final class Transformer extends TransformerHelper{
 					sourcesAdded.add(destinationSubSource);
 				}
 			}
+
+			final GedcomNode creationDate = create("CREATION_DATE");
+			date = traverse(source, "CHAN.DATE");
+			final GedcomNode time = traverse(date, "TIME");
+			final StringJoiner timestamp = new StringJoiner("T");
+			JavaHelper.addValueIfNotNull(timestamp, date);
+			JavaHelper.addValueIfNotNull(timestamp, time);
+			creationDate.addChildValue("DATE", timestamp.toString());
+			destinationSource.addChild(creationDate);
 		}
 		return sourcesAdded;
 	}
@@ -1137,8 +1197,22 @@ public final class Transformer extends TransformerHelper{
 		destinationIndividual.addChildValue("SEX", traverse(individual, "SEX").getValue());
 		final List<GedcomNode> associations = traverseAsList(individual, "ASSOCIATION[]");
 		for(final GedcomNode association : associations){
-			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef())
-				.addChildValue("RELA", traverse(association, "ROLE").getValue());
+			final GedcomNode destinationAssociation = createWithReference("ASSO", association.getXRef());
+			final List<GedcomNode> types = traverseAsList(association, "TYPE[]");
+			for(GedcomNode type : types){
+				String typeValue = type.getValue();
+				typeValue = switch(typeValue){
+					case "family" -> "FAM";
+					case "individual" -> "INDI";
+					case "source" -> "SOUR";
+					case "repository" -> "REPO";
+					case "note" -> "NOTE";
+					default -> typeValue;
+				};
+				if(StringUtils.isNotBlank(typeValue))
+					destinationAssociation.addChildValue("TYPE", typeValue);
+			}
+			destinationAssociation.addChildValue("RELA", traverse(association, "ROLE").getValue());
 			noteCitationFrom(association, destinationAssociation);
 			sourceCitationFrom(association, destinationAssociation, origin, destination);
 
@@ -1210,6 +1284,14 @@ public final class Transformer extends TransformerHelper{
 		sourceCitationFrom(individual, destinationIndividual, origin, destination);
 		destinationIndividual.addChildValue("RESN", traverse(individual, "RESTRICTION").getValue());
 
+		final String date = traverse(individual, "CREATION_DATE.DATE").getValue();
+		if(date != null){
+			final int timeIndex = date.indexOf('T', 9);
+			destinationIndividual.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
+			);
+		}
+
 		destination.addIndividual(destinationIndividual);
 	}
 
@@ -1245,6 +1327,14 @@ public final class Transformer extends TransformerHelper{
 		noteCitationFrom(family, destinationFamily);
 		sourceCitationFrom(family, destinationFamily, origin, destination);
 		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
+
+		final String date = traverse(family, "CREATION_DATE.DATE").getValue();
+		if(date != null){
+			final int timeIndex = date.indexOf('T', 9);
+			destinationFamily.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
+			);
+		}
 
 		destination.addFamily(destinationFamily);
 	}
@@ -1314,7 +1404,7 @@ public final class Transformer extends TransformerHelper{
 		for(final GedcomNode sourceCitation : sourceCitations){
 			//get destination source record
 			GedcomNode sourceRecord = origin.getSource(sourceCitation.getXRef());
-			sourceRecord = sourceRecordFrom(sourceRecord, destination);
+			sourceRecord = sourceRecordFrom(parent, sourceRecord, destination);
 			destination.addSource(sourceRecord);
 			sourceRecord = destination.getSource(destination.retrieveSourceID(sourceRecord));
 
@@ -1328,18 +1418,31 @@ public final class Transformer extends TransformerHelper{
 					.addChildValue("DATE", traverse(sourceRecord, "DATE").getValue())
 					.addChildValue("TEXT", traverse(sourceCitation, "FILE.EXTRACT").getValue())
 				);
+			//extract preferred image
+			final GedcomNode preferredImage = traverse(parent, "PREFERRED_IMAGE");
+			final String preferredImageCrop = (preferredImage != null? traverse(preferredImage, "CROP").getValue(): null);
 			final List<GedcomNode> files = traverseAsList(sourceRecord, "FILE[]");
 			final String mediaType = traverse(sourceRecord, "MEDIA_TYPE").getValue();
+			final boolean restricted = "confidential".equals(traverse(sourceRecord, "RESTRICTION").getValue());
 			for(final GedcomNode file : files){
-				destinationSource.addChild(create("OBJE"))
+				final String image = file.getValue();
+				final GedcomNode obje = create("OBJE")
 					.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
 					.addChildValue("_DATE", traverse(sourceRecord, "DATE").getValue())
 					.addChild(create("FORM")
 						.addChildValue("MEDI", mediaType)
 					)
-					.addChildValue("FILE", file.getValue())
-					.addChildValue("_CUTD", traverse(sourceCitation, "CROP").getValue());
-				//TODO restore the one that has the _PREF tag
+					.addChildValue("FILE", image)
+					.addChildValue("_PUBL", (restricted? "N": "Y"));
+				String crop = traverse(sourceRecord, "CROP").getValue();
+				if(preferredImage != null && image.equals(preferredImage.getValue())){
+					crop = preferredImageCrop;
+					obje.addChildValue("_PREF", "Y");
+				}
+				if(StringUtils.isNotBlank(crop))
+					obje.addChildValue("_CUT", "Y")
+						.addChildValue("_CUTD", crop);
+				destinationSource.addChild(obje);
 			}
 			destinationSource.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY").getValue());
 			noteCitationFrom(sourceCitation, destinationSource);
@@ -1374,7 +1477,7 @@ public final class Transformer extends TransformerHelper{
 			remember which one has the PREFERRED tag
 		transfer SOURCE.NOTE to SOUR.NOTE
 	*/
-	GedcomNode sourceRecordFrom(final GedcomNode source, final Gedcom destination){
+	GedcomNode sourceRecordFrom(final GedcomNode parent, final GedcomNode source, final Gedcom destination){
 		//create source:
 		final StringJoiner events = new StringJoiner(", ");
 		for(final GedcomNode event : traverseAsList(source, "EVENT[]"))
@@ -1388,6 +1491,9 @@ public final class Transformer extends TransformerHelper{
 			.addChildValue("AUTH", traverse(source, "AUTHOR").getValue())
 			.addChildValue("TITL", traverse(source, "TITLE").getValue())
 			.addChildValue("PUBL", traverse(source, "PUBLICATION_FACTS").getValue());
+		//extract preferred image
+		final GedcomNode preferredImage = traverse(parent, "PREFERRED_IMAGE");
+		final String preferredImageCrop = (preferredImage != null? traverse(preferredImage, "CROP").getValue(): null);
 		final List<GedcomNode> files = traverseAsList(source, "FILE[]");
 		//collect all the extractions:
 		final StringJoiner sj = new StringJoiner("\\n");
@@ -1396,21 +1502,37 @@ public final class Transformer extends TransformerHelper{
 			JavaHelper.addValueIfNotNull(sj, extract);
 		}
 		final String mediaType = traverse(source, "MEDIA_TYPE").getValue();
+		final boolean restricted = "confidential".equals(traverse(source, "RESTRICTION").getValue());
 		for(final GedcomNode file : files){
-			destinationSource.addChild(create("OBJE")
+			final String image = file.getValue();
+			final GedcomNode obje = create("OBJE")
 				.addChildValue("TITL", traverse(file, "DESCRIPTION").getValue())
 				.addChildValue("_DATE", traverse(source, "DATE").getValue())
-				.addChild(create("FORM")
-					.addChildValue("MEDI", mediaType)
-				)
-				.addChildValue("FILE", file.getValue())
-				.addChildValue("_CUTD", traverse(source, "CROP").getValue())
+				.addChild(create("FORM").addChildValue("MEDI", mediaType))
+				.addChildValue("FILE", image)
+				.addChildValue("_PUBL", (restricted? "N": "Y"));
+			String crop = traverse(source, "CROP").getValue();
+			if(preferredImage != null && image.equals(preferredImage.getValue())){
+				crop = preferredImageCrop;
+				obje.addChildValue("_PREF", "Y");
+			}
+			if(StringUtils.isNotBlank(crop))
+				obje.addChildValue("_CUT", "Y")
+					.addChildValue("_CUTD", crop);
+			destinationSource.addChild(obje
 			);
-			//TODO restore the one that has the _PREF tag
 		}
 		destinationSource.addChildValue("TEXT", sj.toString());
 		repositoryCitationFrom(source, destinationSource);
 		noteCitationFrom(source, destinationSource);
+
+		final String date = traverse(source, "CREATION_DATE.DATE").getValue();
+		if(date != null){
+			final int timeIndex = date.indexOf('T', 9);
+			destinationSource.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
+			);
+		}
 
 		destination.addSource(destinationSource);
 		return destinationSource;
@@ -1460,18 +1582,20 @@ public final class Transformer extends TransformerHelper{
 
 
 		final GedcomNode source = traverse(header, "SOURCE");
-		final String date = traverse(header, "DATE").getValue();
-		final int timeIndex = date.indexOf(' ', 9);
 		final GedcomNode destinationHeader = create("HEAD")
 			.addChild(createWithValue("SOUR", source.getValue())
 				.addChildValue("NAME", traverse(source, "NAME").getValue())
 				.addChildValue("VERS", traverse(source, "VERSION").getValue())
 				.addChildValue("CORP", traverse(source, "CORPORATE").getValue())
-			)
-			.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+			);
+		final String date = traverse(header, "DATE").getValue();
+		if(date != null){
+			final int timeIndex = date.indexOf('T', 9);
+			destinationHeader.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
 				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
-			)
-			.addChildReference("SUBM", destinationSubmitter.getID())
+			);
+		}
+		destinationHeader.addChildReference("SUBM", destinationSubmitter.getID())
 			.addChildValue("COPR", traverse(header, "COPYRIGHT").getValue())
 			.addChild(create("GEDC")
 				.addChildValue("VERS", "5.5.1")
@@ -1496,6 +1620,14 @@ public final class Transformer extends TransformerHelper{
 		addressStructureFrom(repository, destinationRepository, origin);
 		contactStructureFrom(repository, destinationRepository);
 		noteCitationFrom(repository, destinationRepository);
+
+		final String date = traverse(repository, "CREATION_DATE.DATE").getValue();
+		if(date != null){
+			final int timeIndex = date.indexOf('T', 9);
+			destinationRepository.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
+				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
+			);
+		}
 
 		destination.addRepository(destinationRepository);
 	}

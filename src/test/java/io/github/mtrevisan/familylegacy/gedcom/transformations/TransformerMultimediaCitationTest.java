@@ -45,9 +45,10 @@ class TransformerMultimediaCitationTest{
 		final Gedcom origin = new Gedcom();
 		origin.addObject(object);
 		final Flef destination = new Flef();
-		transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
+		GedcomNode preferredMedia = transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
+		Assertions.assertNull(preferredMedia);
 	}
 
 	@Test
@@ -61,17 +62,18 @@ class TransformerMultimediaCitationTest{
 				)
 				.addChildValue("FILE", "MULTIMEDIA_FILE_REFN")
 				.addChildValue("_CUTD", "CUT_COORDINATES")
-				.addChildValue("_PREF", "PREFERRED_MEDIA")
+				.addChildValue("_PREF", "Y")
 			);
 
-		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: PREFERRED_MEDIA}]}]", parent.toString());
+		Assertions.assertEquals("children: [{tag: OBJE, children: [{tag: TITL, value: DESCRIPTIVE_TITLE}, {tag: FORM, value: MULTIMEDIA_FORMAT, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: MULTIMEDIA_FILE_REFN}, {tag: _CUTD, value: CUT_COORDINATES}, {tag: _PREF, value: Y}]}]", parent.toString());
 
 		final GedcomNode destinationNode = transformerTo.createEmpty();
 		final Gedcom origin = new Gedcom();
 		final Flef destination = new Flef();
-		transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
+		GedcomNode preferredMedia = transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CROP, value: CUT_COORDINATES}]}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
+		Assertions.assertEquals(destinationNode.getChildren().get(0), preferredMedia);
 	}
 
 }

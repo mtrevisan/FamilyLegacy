@@ -116,7 +116,7 @@ class TransformerHeaderTest{
 		final Flef destination = new Flef();
 		transformerTo.headerTo(header, origin, destination);
 
-		Assertions.assertEquals("tag: HEADER, children: [{tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.7}]}, {tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: TRANSMISSION_DATE TIME_VALUE}, {tag: COPYRIGHT, value: COPYRIGHT_GEDCOM_FILE}, {tag: SUBMITTER, children: [{tag: NAME, value: SUBMITTER_NAME}, {tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, ADDRESS_LINE1, ADDRESS_LINE2}]}, {tag: CONTACT, value: 00123456789}, {tag: CONTACT, value: address@mail.com}, {tag: CONTACT, value: 00987654321, children: [{tag: TYPE, value: fax}]}, {tag: CONTACT, value: http://www.webpage.com}]}, {tag: NOTE, value: SUBMITTER_TEXT1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION}]", destination.getHeader().toString());
+		Assertions.assertEquals("tag: HEADER, children: [{tag: PROTOCOL, value: FLEF, children: [{tag: NAME, value: Family LEgacy Format}, {tag: VERSION, value: 0.0.8}]}, {tag: SOURCE, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERSION, value: SOURCE_VERSION_NUMBER}, {tag: CORPORATE, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: TRANSMISSION_DATETTIME_VALUE}, {tag: COPYRIGHT, value: COPYRIGHT_GEDCOM_FILE}, {tag: SUBMITTER, children: [{tag: NAME, value: SUBMITTER_NAME}, {tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE, ADDRESS_LINE1, ADDRESS_LINE2}]}, {tag: CONTACT, value: 00123456789}, {tag: CONTACT, value: address@mail.com}, {tag: CONTACT, value: 00987654321, children: [{tag: TYPE, value: fax}]}, {tag: CONTACT, value: http://www.webpage.com}]}, {tag: NOTE, value: SUBMITTER_TEXT1}, {tag: NOTE, value: GEDCOM_CONTENT_DESCRIPTION}]", destination.getHeader().toString());
 	}
 
 	@Test
@@ -154,7 +154,7 @@ class TransformerHeaderTest{
 		final Gedcom destination = new Gedcom();
 		transformerFrom.headerFrom(header, destination);
 
-		Assertions.assertEquals("tag: HEAD, children: [{tag: SOUR, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERS, value: VERSION_NUMBER}, {tag: CORP, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: CREATION_DATE}, {tag: SUBM, ref: SUBM1}, {tag: COPR, value: COPYRIGHT_SOURCE_DATA}, {tag: GEDC, children: [{tag: VERS, value: 5.5.1}, {tag: FORM, value: LINEAGE-LINKED}]}, {tag: CHAR, value: UTF-8}]", destination.getHeader().toString());
+		Assertions.assertEquals("tag: HEAD, children: [{tag: SOUR, value: APPROVED_SYSTEM_ID, children: [{tag: NAME, value: NAME_OF_PRODUCT}, {tag: VERS, value: VERSION_NUMBER}, {tag: CORP, value: NAME_OF_BUSINESS}]}, {tag: DATE, value: CREATION_DA, children: [{tag: TIME, value: E}]}, {tag: SUBM, ref: SUBM1}, {tag: COPR, value: COPYRIGHT_SOURCE_DATA}, {tag: GEDC, children: [{tag: VERS, value: 5.5.1}, {tag: FORM, value: LINEAGE-LINKED}]}, {tag: CHAR, value: UTF-8}]", destination.getHeader().toString());
 		Assertions.assertEquals("id: SUBM1, tag: SUBM, children: [{tag: NAME, value: SUBMITTER_NAME}, {tag: ADDR, value: ADDRESS_LINE}, {tag: PHON, value: 00123456789}, {tag: EMAIL, value: address@mail.com}, {tag: FAX, value: 00987654321}, {tag: WWW, value: http://www.webpage.com}]", destination.getSubmitters().get(0).toString());
 	}
 

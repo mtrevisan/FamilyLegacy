@@ -39,10 +39,14 @@ class TransformerRepositoryRecordTest{
 		final GedcomNode repository = transformerTo.createWithID("REPO", "R1")
 			.addChildValue("NAME", "NAME_OF_REPOSITORY")
 			.addChildValue("ADDR", "ADDRESS_LINE")
-			.addChildReference("NOTE", "N1");
+			.addChildReference("NOTE", "N1")
+			.addChild(transformerTo.create("CHAN")
+				.addChild(transformerTo.createWithValue("DATE", "DATE"))
+				.addChildValue("TIME", "TIME")
+			);
 		final GedcomNode note = transformerTo.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_LINE}, {tag: NOTE, ref: N1}]", repository.toString());
+		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_LINE}, {tag: NOTE, ref: N1}, {tag: CHAN, children: [{tag: DATE, value: DATE}, {tag: TIME, value: TIME}]}]", repository.toString());
 		Assertions.assertEquals("id: N1, tag: NOTE", note.toString());
 
 		final Gedcom origin = new Gedcom();
@@ -50,7 +54,7 @@ class TransformerRepositoryRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.repositoryRecordTo(repository, origin, destination);
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: N1}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: DATE}]}]", destination.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());
 	}
 
@@ -62,7 +66,10 @@ class TransformerRepositoryRecordTest{
 			.addChildReference("INDIVIDUAL", "I1")
 			.addChildReference("PLACE", "P1")
 			.addChildValue("PHONE", "PHONE_NUMBER")
-			.addChildReference("NOTE", "N1");
+			.addChildReference("NOTE", "N1")
+			.addChild(transformerFrom.create("CREATION_DATE")
+				.addChildValue("DATE", "CREATION_DATE")
+			);
 		final GedcomNode place = transformerFrom.createWithID("PLACE", "P1")
 			.addChildValue("NAME", "PLACE_NAME")
 			.addChild(transformerFrom.createWithValue("ADDRESS", "ADDRESS_COUNTRY")
@@ -70,7 +77,7 @@ class TransformerRepositoryRecordTest{
 			);
 		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: I1}, {tag: PLACE, ref: P1}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: N1}]", repository.toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: I1}, {tag: PLACE, ref: P1}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: CREATION_DATE}]}]", repository.toString());
 
 		final Flef origin = new Flef();
 		origin.addRepository(repository);
@@ -79,7 +86,7 @@ class TransformerRepositoryRecordTest{
 		final Gedcom destination = new Gedcom();
 		transformerFrom.repositoryRecordFrom(repository, origin, destination);
 
-		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_COUNTRY}, {tag: NOTE, ref: N1}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPO, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: ADDR, value: ADDRESS_COUNTRY}, {tag: NOTE, ref: N1}, {tag: DATE, value: CREATION_DA, children: [{tag: TIME, value: E}]}]", destination.getRepositories().get(0).toString());
 	}
 
 }

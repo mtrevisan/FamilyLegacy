@@ -356,10 +356,10 @@ public abstract class GedcomNode{
 
 		final GedcomNode rhs = (GedcomNode)obj;
 		return (/*id.equals(rhs.id)
-			&&*/ tag.equals(rhs.tag)
-			&& xref.equals(rhs.xref)
-			&& value.equals(rhs.value)
-			&& children.equals(rhs.children));
+			&&*/ (tag == null && rhs.tag == null || tag != null && tag.equals(rhs.tag))
+			&& (xref == null && rhs.xref == null || xref != null && xref.equals(rhs.xref))
+			&& (value == null && rhs.value == null || value != null && value.equals(rhs.value))
+			&& (children == null && rhs.children == null || children != null && children.equals(rhs.children)));
 	}
 
 	@Override

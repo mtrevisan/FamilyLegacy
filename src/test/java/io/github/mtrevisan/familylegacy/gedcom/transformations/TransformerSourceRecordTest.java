@@ -59,17 +59,22 @@ class TransformerSourceRecordTest{
 						.addChildValue("MEDI", "SOURCE_MEDIA_TYPE2")
 					)
 					.addChildValue("TITL", "DESCRIPTIVE_TITLE2")
+					.addChildValue("_PUBL", "N")
 				)
 				.addChild(transformerTo.createWithValue("REFN", "USER_REFERENCE_NUMBER")
 					.addChildValue("TYPE", "AUTOMATED_RECORD_ID")
 				)
 				.addChildReference("NOTE", "N2")
+				.addChild(transformerTo.create("CHAN")
+					.addChild(transformerTo.createWithValue("DATE", "DATE"))
+					.addChildValue("TIME", "TIME")
+				)
 			);
 		final GedcomNode repository = transformerTo.createWithID("REPO", "R1");
 		final GedcomNode note1 = transformerTo.createWithIDValue("NOTE", "N1", "NOTE 1");
 		final GedcomNode note2 = transformerTo.createWithIDValue("NOTE", "N2", "NOTE 2");
 
-		Assertions.assertEquals("children: [{id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: DATE_PERIOD}, {tag: PLAC, value: SOURCE_JURISDICTION_PLACE}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: NOTE, ref: N1}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: ABBR, value: SOURCE_FILED_BY_ENTRY}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: REPO, ref: R1}, {tag: OBJE, ref: O1}, {tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}, {tag: FORM, value: MULTIMEDIA_FORMAT2, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE2}]}, {tag: TITL, value: DESCRIPTIVE_TITLE2}]}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: AUTOMATED_RECORD_ID}]}, {tag: NOTE, ref: N2}]}]", parent.toString());
+		Assertions.assertEquals("children: [{id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: DATE_PERIOD}, {tag: PLAC, value: SOURCE_JURISDICTION_PLACE}]}, {tag: AGNC, value: RESPONSIBLE_AGENCY}, {tag: NOTE, ref: N1}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: ABBR, value: SOURCE_FILED_BY_ENTRY}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: TEXT, value: TEXT_FROM_SOURCE}, {tag: REPO, ref: R1}, {tag: OBJE, ref: O1}, {tag: OBJE, children: [{tag: FILE, value: MULTIMEDIA_FILE_REFN2}, {tag: FORM, value: MULTIMEDIA_FORMAT2, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE2}]}, {tag: TITL, value: DESCRIPTIVE_TITLE2}, {tag: _PUBL, value: N}]}, {tag: REFN, value: USER_REFERENCE_NUMBER, children: [{tag: TYPE, value: AUTOMATED_RECORD_ID}]}, {tag: NOTE, ref: N2}, {tag: CHAN, children: [{tag: DATE, value: DATE}, {tag: TIME, value: TIME}]}]}]", parent.toString());
 		Assertions.assertEquals("id: R1, tag: REPO", repository.toString());
 
 		final Gedcom origin = new Gedcom();
@@ -107,14 +112,19 @@ class TransformerSourceRecordTest{
 			.addChildReference("REPOSITORY", "R1")
 			.addChildValue("FILE", "DOCUMENT_FILE_REFERENCE")
 			.addChildValue("MEDIA_TYPE", "SOURCE_MEDIA_TYPE")
-			.addChildReference("NOTE", "N1");
+			.addChildReference("NOTE", "N1")
+			.addChildReference("RESTRICTION", "public")
+			.addChild(transformerFrom.create("CREATION_DATE")
+				.addChildValue("DATE", "CREATION_DATE")
+			);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, ref: R1}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: N1}]", source.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, ref: R1}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: N1}, {tag: RESTRICTION, ref: public}, {tag: CREATION_DATE, children: [{tag: DATE, value: CREATION_DATE}]}]", source.toString());
 
 		final Gedcom destination = new Gedcom();
-		transformerFrom.sourceRecordFrom(source, destination);
+		GedcomNode parent = transformerFrom.createEmpty();
+		transformerFrom.sourceRecordFrom(parent, source, destination);
 
-		Assertions.assertEquals("id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: OBJE, children: [{tag: _DATE, value: ENTRY_RECORDING_DATE}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}]}, {tag: REPO, ref: R1}, {tag: NOTE, ref: N1}]", destination.getSources().get(0).toString());
+		Assertions.assertEquals("id: S1, tag: SOUR, children: [{tag: DATA, children: [{tag: EVEN, value: EVENTS_RECORDED, children: [{tag: DATE, value: ENTRY_RECORDING_DATE}]}]}, {tag: AUTH, value: SOURCE_ORIGINATOR}, {tag: TITL, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: PUBL, value: SOURCE_PUBLICATION_FACTS}, {tag: OBJE, children: [{tag: _DATE, value: ENTRY_RECORDING_DATE}, {tag: FORM, children: [{tag: MEDI, value: SOURCE_MEDIA_TYPE}]}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: _PUBL, value: Y}]}, {tag: REPO, ref: R1}, {tag: NOTE, ref: N1}, {tag: DATE, value: CREATION_DA, children: [{tag: TIME, value: E}]}]", destination.getSources().get(0).toString());
 	}
 
 }
