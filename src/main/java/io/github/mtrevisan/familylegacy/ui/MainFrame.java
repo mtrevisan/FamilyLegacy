@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;

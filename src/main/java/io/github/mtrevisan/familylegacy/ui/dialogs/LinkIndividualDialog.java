@@ -40,7 +40,6 @@ import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.IndividualTableCellRenderer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -68,16 +67,12 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 
 //TODO
@@ -248,7 +243,7 @@ public class LinkIndividualDialog extends JDialog{
 
 	private void filterTableBy(final LinkIndividualDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_INDIVIDUAL_ID, TABLE_INDEX_NAME,
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_INDIVIDUAL_ID, TABLE_INDEX_NAME,
 			TABLE_INDEX_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
@@ -259,23 +254,6 @@ public class LinkIndividualDialog extends JDialog{
 			individualsTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
-	}
-
-	private RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
-		if(StringUtils.isNotBlank(text)){
-			try{
-				//split input text around spaces and commas
-				final String[] components = StringUtils.split(text, " ,");
-				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
-				for(final String component : components)
-					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
-				return RowFilter.andFilter(andFilters);
-			}
-			catch(final PatternSyntaxException ignored){
-				//current expression doesn't parse, ignore it
-			}
-		}
-		return null;
 	}
 
 	public void setSelectionType(final SelectedNodeType selectionType){

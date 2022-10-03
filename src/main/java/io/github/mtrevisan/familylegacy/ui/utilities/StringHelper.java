@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,18 +24,22 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import java.awt.Component;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 
-public interface TextPreviewListenerInterface{
+public final class StringHelper{
 
-	void textChanged();
+	private StringHelper(){}
 
-	void onPreviewStateChange(final boolean visible);
-
-
-	static void centerDivider(final Component component, final boolean previewVisible){
-		component.setSize((previewVisible? component.getWidth() * 2: component.getWidth() / 2), component.getHeight());
+	public static String composeTextFilter(String text){
+		try{
+			Pattern.compile(text);
+		}
+		catch(final PatternSyntaxException ignored){
+			text = Pattern.quote(text);
+		}
+		return "(?i)(?:" + text + ")";
 	}
 
 }

@@ -40,11 +40,33 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DropMode;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -54,13 +76,9 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 
 //TODO
@@ -386,7 +404,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 	private void filterTableBy(final CulturalRuleRecordDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(title, TABLE_INDEX_RULE_ID, TABLE_INDEX_RULE_TITLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RULE_ID, TABLE_INDEX_RULE_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)rulesTable.getRowSorter();
@@ -396,23 +414,6 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 			rulesTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
-	}
-
-	private RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
-		if(StringUtils.isNotBlank(text)){
-			try{
-				//split input text around spaces and commas
-				final String[] components = StringUtils.split(text, " ,");
-				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
-				for(final String component : components)
-					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
-				return RowFilter.andFilter(andFilters);
-			}
-			catch(final PatternSyntaxException ignored){
-				//current expression doesn't parse, ignore it
-			}
-		}
-		return null;
 	}
 
 

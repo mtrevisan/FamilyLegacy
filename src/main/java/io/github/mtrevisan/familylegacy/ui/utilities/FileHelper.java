@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
+import java.awt.Desktop;
 import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URI;

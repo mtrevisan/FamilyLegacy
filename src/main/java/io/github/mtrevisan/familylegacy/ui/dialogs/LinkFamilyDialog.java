@@ -68,15 +68,11 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 
 //TODO
@@ -269,7 +265,7 @@ public class LinkFamilyDialog extends JDialog{
 
 	private void filterTableBy(final LinkFamilyDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_PARTNER1_NAME, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER2_NAME, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_PARTNER1_NAME, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER2_NAME, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
@@ -279,23 +275,6 @@ public class LinkFamilyDialog extends JDialog{
 			familiesTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
-	}
-
-	private static RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
-		if(StringUtils.isNotBlank(text)){
-			try{
-				//split input text around spaces and commas
-				final String[] components = StringUtils.split(text, " ,");
-				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
-				for(final String component : components)
-					andFilters.add(RowFilter.regexFilter("(?i)(?:" + Pattern.quote(component) + ")", columnIndexes));
-				return RowFilter.andFilter(andFilters);
-			}
-			catch(final PatternSyntaxException ignored){
-				//current expression doesn't parse, ignore it
-			}
-		}
-		return null;
 	}
 
 	public GedcomNode getSelectedFamily(){

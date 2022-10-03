@@ -24,10 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.JTable;
+import javax.swing.RowFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.regex.PatternSyntaxException;
 
 
 public final class TableHelper{
@@ -64,6 +70,23 @@ public final class TableHelper{
 
 			model.moveRow(startIndex, endIndex, destinationIndex);
 		}
+	}
+
+	public static RowFilter<DefaultTableModel, Object> createTextFilter(final String text, final int... columnIndexes){
+		if(StringUtils.isNotBlank(text)){
+			try{
+				//split input text around spaces and commas
+				final String[] components = StringUtils.split(text, " ,");
+				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
+				for(final String component : components)
+					andFilters.add(RowFilter.regexFilter(StringHelper.composeTextFilter(component), columnIndexes));
+				return RowFilter.andFilter(andFilters);
+			}
+			catch(final PatternSyntaxException ignored){
+				//current expression doesn't parse, ignore it
+			}
+		}
+		return null;
 	}
 
 }

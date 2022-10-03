@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
