@@ -146,11 +146,11 @@ public class FamilyPanel extends JPanel{
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
 
-		this.partner1 = (partner1 == null && family != null? store.getPartner1(family): partner1);
-		this.partner2 = (partner2 == null && family != null? store.getPartner2(family): partner2);
+		this.partner1 = (partner1.isEmpty() && !family.isEmpty()? store.getPartner1(family): partner1);
+		this.partner2 = (partner2.isEmpty() && !family.isEmpty()? store.getPartner2(family): partner2);
 		this.family = family;
 		this.childReference = childReference;
-		if(family != null && this.childReference == null){
+		if(!family.isEmpty() && this.childReference == null){
 			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
 			this.childReference = (!children.isEmpty()? children.get(0): null);
 		}
@@ -249,19 +249,15 @@ public class FamilyPanel extends JPanel{
 	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		editFamilyItem.setEnabled(family != null);
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
 
-		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
 		popupMenu.add(linkFamilyItem);
 
-		unlinkFamilyItem.setEnabled(family != null);
 		unlinkFamilyItem.addActionListener(e -> familyListener.onFamilyUnlink(this, family));
 		popupMenu.add(unlinkFamilyItem);
 
-		removeFamilyItem.setEnabled(family != null);
 		removeFamilyItem.addActionListener(e -> familyListener.onFamilyRemove(this, family));
 		popupMenu.add(removeFamilyItem);
 
@@ -291,12 +287,12 @@ public class FamilyPanel extends JPanel{
 	}
 
 	public final void loadData(final GedcomNode family){
-		loadData(null, null, family);
+		loadData(store.createEmptyNode(), store.createEmptyNode(), family);
 	}
 
 	public final void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family){
-		this.partner1 = (partner1 == null && family != null? store.getPartner1(family): partner1);
-		this.partner2 = (partner2 == null && family != null? store.getPartner2(family): partner2);
+		this.partner1 = (partner1.isEmpty() && !family.isEmpty()? store.getPartner1(family): partner1);
+		this.partner2 = (partner2.isEmpty() && !family.isEmpty()? store.getPartner2(family): partner2);
 		this.family = family;
 
 		loadData();
@@ -313,7 +309,7 @@ public class FamilyPanel extends JPanel{
 			updatePreviousNextPartnerIcons(family, partner1, partner2PreviousLabel, partner2NextLabel);
 		}
 
-		marriagePanel.setBorder(family != null? BorderFactory.createLineBorder(BORDER_COLOR):
+		marriagePanel.setBorder(!family.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
 	}
 
@@ -324,10 +320,10 @@ public class FamilyPanel extends JPanel{
 		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
 
-		editFamilyItem.setEnabled(family != null);
-		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
-		unlinkFamilyItem.setEnabled(family != null);
-		removeFamilyItem.setEnabled(family != null);
+		editFamilyItem.setEnabled(!family.isEmpty());
+		linkFamilyItem.setEnabled(family.isEmpty() && store.hasFamilies());
+		unlinkFamilyItem.setEnabled(!family.isEmpty());
+		removeFamilyItem.setEnabled(!family.isEmpty());
 	}
 
 	private void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel, final JLabel partnerNextLabel){
@@ -432,7 +428,7 @@ public class FamilyPanel extends JPanel{
 			if(sj.length() > 0)
 				placeValue = sj.toString();
 		}
-		return (placeValue != null || addressEarliest == null? placeValue: addressEarliest.getValue());
+		return (placeValue != null || addressEarliest.isEmpty()? placeValue: addressEarliest.getValue());
 	}
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
@@ -482,7 +478,7 @@ public class FamilyPanel extends JPanel{
 //		final GedcomNode family = storeFlef.getFamilies().get(9);
 //		final GedcomNode family = storeFlef.getFamilies().get(64);
 //		final GedcomNode family = storeFlef.getFamilies().get(75);
-//		final GedcomNode family = null;
+//		final GedcomNode family = storeFlef.createEmptyNode();
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
@@ -559,7 +555,7 @@ public class FamilyPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final FamilyPanel panel = new FamilyPanel(null, null, family, null, storeFlef, boxType,
+			final FamilyPanel panel = new FamilyPanel(storeFlef.createEmptyNode(), storeFlef.createEmptyNode(), family, null, storeFlef, boxType,
 				familyListener, individualListener);
 			EventBusService.subscribe(panel);
 

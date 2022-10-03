@@ -173,7 +173,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(individual != null && evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
+					if(!individual.isEmpty() && evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
 						listener.onIndividualEdit(IndividualPanel.this, individual);
 				}
 			});
@@ -228,23 +228,18 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private void attachPopUpMenu(final GedcomNode individual, final IndividualListenerInterface listener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		editIndividualItem.setEnabled(individual != null);
 		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, this.individual));
 		popupMenu.add(editIndividualItem);
 
-		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		linkIndividualItem.addActionListener(e -> listener.onIndividualLink(this, type));
 		popupMenu.add(linkIndividualItem);
 
-		unlinkIndividualItem.setEnabled(individual != null);
 		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, this.individual));
 		popupMenu.add(unlinkIndividualItem);
 
-		addIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		addIndividualItem.addActionListener(e -> listener.onIndividualAdd(this));
 		popupMenu.add(addIndividualItem);
 
-		removeIndividualItem.setEnabled(individual != null);
 		removeIndividualItem.addActionListener(e -> listener.onIndividualRemove(this, this.individual));
 		popupMenu.add(removeIndividualItem);
 
@@ -276,7 +271,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			final int panelWidth = getWidth();
 
 			final Color startColor = getBackgroundColor();
-			if(individual != null){
+			if(!individual.isEmpty()){
 				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
 				graphics2D.setPaint(gradientPaint);
 			}
@@ -287,7 +282,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				ARCS.width - 5, ARCS.height - 5);
 
 			graphics2D.setColor(BORDER_COLOR);
-			if(individual == null){
+			if(individual.isEmpty()){
 				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
 					10.f, new float[]{5.f}, 0.f);
 				graphics2D.setStroke(dashedStroke);
@@ -311,7 +306,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private Color getBackgroundColor(){
 		Color backgroundColor = BACKGROUND_COLOR_NO_INDIVIDUAL;
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final Sex sex = extractSex(individual, store);
 			backgroundColor = BACKGROUND_COLOR_FROM_SEX.getOrDefault(sex, BACKGROUND_COLOR_UNKNOWN);
 		}
@@ -372,10 +367,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(age), preferredImageLabel.getPreferredSize());
 		preferredImageLabel.setIcon(icon);
 
-		familyNameLabel.setVisible(individual != null);
-		personalNameLabel.setVisible(individual != null);
-		infoLabel.setVisible(individual != null);
-		preferredImageLabel.setVisible(individual != null);
+		familyNameLabel.setVisible(!individual.isEmpty());
+		personalNameLabel.setVisible(!individual.isEmpty());
+		infoLabel.setVisible(!individual.isEmpty());
+		preferredImageLabel.setVisible(!individual.isEmpty());
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -385,16 +380,17 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
 
-		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());
-		editIndividualItem.setEnabled(individual != null);
-		unlinkIndividualItem.setEnabled(individual != null);
-		addIndividualItem.setEnabled(individual == null && store.hasIndividuals());
-		removeIndividualItem.setEnabled(individual != null);
+		linkIndividualItem.setEnabled(individual.isEmpty() && store.hasIndividuals());
+		editIndividualItem.setEnabled(!individual.isEmpty());
+		final boolean isChildOfFamily = !store.traverseAsList(individual, "FAMILY_CHILD[]").isEmpty();
+		unlinkIndividualItem.setEnabled(!individual.isEmpty() && isChildOfFamily);
+		addIndividualItem.setEnabled(individual.isEmpty() && store.hasIndividuals());
+		removeIndividualItem.setEnabled(!individual.isEmpty());
 	}
 
 	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
 		final List<String[]> completeNames = new ArrayList<>(1);
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final List<GedcomNode> names = store.traverseAsList(individual, "NAME[]");
 			for(final GedcomNode name : names){
 				final String title = store.traverse(name, "TITLE")
@@ -429,7 +425,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	public static String extractBirthYear(final GedcomNode individual, final Flef store){
 		String year = null;
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
 			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
 			if(birthDate != null)
@@ -440,12 +436,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	public static String extractBirthPlace(final GedcomNode individual, final Flef store){
 		final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
-		return (individual != null? extractEarliestBirthPlace(earliestBirth, store): null);
+		return (!individual.isEmpty()? extractEarliestBirthPlace(earliestBirth, store): null);
 	}
 
 	public static String extractDeathYear(final GedcomNode individual, final Flef store){
 		String year = null;
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final GedcomNode latestDeath = extractLatestDeath(individual, store);
 			final String deathDate = extractLatestDeathDate(latestDeath, store);
 			if(deathDate != null)
@@ -456,12 +452,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	public static String extractDeathPlace(final GedcomNode individual, final Flef store){
 		final GedcomNode latestDeath = extractLatestDeath(individual, store);
-		return (individual != null? extractLatestDeathPlace(latestDeath, store): null);
+		return (!individual.isEmpty()? extractLatestDeathPlace(latestDeath, store): null);
 	}
 
 	private int extractBirthDeathAge(final StringJoiner sj, final StringJoiner toolTipSJ){
 		int lifeSpan = -1;
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
 			final GedcomNode latestDeath = extractLatestDeath(individual, store);
 			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
@@ -497,11 +493,11 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				toolTipSJ.add("<html>");
 				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
 				if(birthPlace != null)
-					toolTipSJ.add("<br>(" + birthPlace + ")");
+					toolTipSJ.add("<br>" + birthPlace);
 				toolTipSJ.add("<br>-<br>");
 				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
 				if(deathPlace != null)
-					toolTipSJ.add("<br>(" + deathPlace + ")");
+					toolTipSJ.add("<br>" + deathPlace);
 				toolTipSJ.add("</html>");
 			}
 			else{
@@ -618,7 +614,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private ImageIcon getAddPhotoImage(final int years){
 		ImageIcon icon = ADD_PHOTO_UNKNOWN;
-		if(individual != null){
+		if(!individual.isEmpty()){
 			final Sex sex = extractSex(individual, store);
 			switch(sex){
 				case MALE -> icon = (years >= 0 && years < 11? ADD_PHOTO_BOY: ADD_PHOTO_MAN);
@@ -657,7 +653,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 //		final GedcomNode individual = storeFlef.getIndividuals().get(1500);
 		//long names
 		final GedcomNode individual = storeFlef.getIndividual("I2365");
-//		final GedcomNode individual = null;
+//		final GedcomNode individual = storeFlef.createEmptyNode();
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
