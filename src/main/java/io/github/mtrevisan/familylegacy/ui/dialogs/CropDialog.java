@@ -32,8 +32,12 @@ import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.UIManager;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
@@ -42,7 +46,7 @@ import java.util.function.Consumer;
 
 public class CropDialog extends JDialog implements CropListenerInterface{
 
-	private final ScaledImage imageHolder = new ScaledImage(this);
+	private ScaledImage imageHolder;
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -67,13 +71,15 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
+		imageHolder = new ScaledImage(this);
+
 		setLayout(new MigLayout("", "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final String path, final Consumer<Object> onCloseGracefully) throws IOException{
+	public final void loadData(final String path, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
 		imageHolder.setImage(ResourceHelper.readImage(path));
@@ -82,23 +88,23 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 	}
 
 	@Override
-	public void cropSelected(){
+	public final void cropSelected(){
 		okButton.setEnabled(true);
 	}
 
-	public Point getCropStartPoint(){
+	public final Point getCropStartPoint(){
 		return imageHolder.getCropStartPoint();
 	}
 
-	public void setCropStartPoint(final int x, final int y){
+	public final void setCropStartPoint(final int x, final int y){
 		imageHolder.setCropStartPoint(x, y);
 	}
 
-	public Point getCropEndPoint(){
+	public final Point getCropEndPoint(){
 		return imageHolder.getCropEndPoint();
 	}
 
-	public void setCropEndPoint(final int x, final int y){
+	public final void setCropEndPoint(final int x, final int y){
 		imageHolder.setCropEndPoint(x, y);
 	}
 

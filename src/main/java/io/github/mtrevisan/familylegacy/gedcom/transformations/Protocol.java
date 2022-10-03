@@ -38,11 +38,10 @@ public enum Protocol{
 	FLEF(Flef.class);
 
 	private String version;
-	final Transformer transformer;
 	private final Class<? extends Store> store;
 
 
-	public static <T> Protocol fromStore(final Class<? extends Store> store){
+	static <T> Protocol fromStore(final Class<? extends Store> store){
 		for(final Protocol protocol : values())
 			if(protocol.store == store)
 				return protocol;
@@ -51,7 +50,6 @@ public enum Protocol{
 
 	Protocol(final Class<? extends Store> store){
 		this.store = store;
-		transformer = new Transformer(this);
 	}
 
 	public void setVersion(final String version){

@@ -46,8 +46,8 @@ public abstract class Transformation<FROM extends Store, TO extends Store>{
 		protocolFrom = Protocol.fromStore((Class<? extends Store>)generics.get(0));
 		protocolTo = Protocol.fromStore((Class<? extends Store>)generics.get(1));
 
-		transformerFrom = protocolFrom.transformer;
-		transformerTo = protocolTo.transformer;
+		transformerFrom = new Transformer(protocolFrom);
+		transformerTo = new Transformer(protocolTo);
 	}
 
 	public abstract void to(final FROM origin, final TO destination);

@@ -106,7 +106,7 @@ class TransformerPlaceAddressContactStructureTest{
 		transformerTo.placeAddressStructureTo(parent, destinationNode, origin, destination);
 
 		Assertions.assertEquals("children: [{tag: PLACE, ref: P1}]", destinationNode.toString());
-		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}]", destination.getPlaces().get(0).toString());
+		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: NAME, value: PLACE_NAME}, {tag: ADDRESS, value: PLACE_NAME, children: [{tag: NOTE, ref: N1}]}, {tag: MAP, children: [{tag: LATITUDE, value: 45}, {tag: LONGITUDE, value: -12}]}]", destination.getPlaces().get(0).toString());
 	}
 
 	@Test

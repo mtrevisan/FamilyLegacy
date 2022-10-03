@@ -53,14 +53,18 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 
 
-public class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface, SelectionListenerInterface{
+public final class MainFrame extends JFrame implements FamilyListenerInterface, IndividualListenerInterface, SelectionListenerInterface{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
 
@@ -389,7 +393,7 @@ public class MainFrame extends JFrame implements FamilyListenerInterface, Indivi
 
 	private static class MyWindowAdapter extends WindowAdapter{
 		@Override
-		public void windowClosing(final WindowEvent e){
+		public final void windowClosing(final WindowEvent e){
 			JavaHelper.exit(0);
 		}
 	}
