@@ -134,7 +134,7 @@ public class LinkFamilyDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
+				listener.onItemSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
 			}
 
 			dispose();

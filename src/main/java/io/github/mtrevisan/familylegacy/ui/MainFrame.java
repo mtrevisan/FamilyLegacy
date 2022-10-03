@@ -332,7 +332,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 
 	@Override
-	public void onNodeSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference){
+	public void onItemSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference){
 		if(type == SelectedNodeType.FAMILY){
 			final FamilyPanel familyPanel = (FamilyPanel)panelReference;
 			final GedcomNode child = familyPanel.getChildReference();
@@ -346,9 +346,9 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
 			final GedcomNode child = individualPanel.getChildReference();
 			if(type == SelectedNodeType.PARTNER1)
-				linkParentToFamily(child, node, store.getPartner1s(child), "PARTNER1");
+				linkChildToFamily(child, node, store.getPartner1s(child), "PARTNER1");
 			else if(type == SelectedNodeType.PARTNER2)
-				linkParentToFamily(child, node, store.getPartner2s(child), "PARTNER2");
+				linkChildToFamily(child, node, store.getPartner2s(child), "PARTNER2");
 
 			individualPanel.loadData(node);
 
@@ -362,27 +362,27 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkParentToFamily(final GedcomNode child, final GedcomNode parent, final List<GedcomNode> parents, final String parentTag){
-		if(parents.isEmpty())
-			linkParentToNewFamily(child, parent, parentTag);
-		else if(parents.size() == 1)
-			linkParentToExistingFamily(parents.get(0), parent, parentTag);
+	private void linkChildToFamily(final GedcomNode child, final GedcomNode partner, final List<GedcomNode> partners, final String partnerTag){
+		if(partners.isEmpty())
+			linkIndividualToNewFamily(child, partner, partnerTag);
+		else if(partners.size() == 1)
+			linkIndividualToExistingFamily(partners.get(0), partner, partnerTag);
 		else
 			LOGGER.warn("Individual {} belongs to more than one family (this cannot be)", child.getID());
 	}
 
-	private void linkParentToNewFamily(final GedcomNode child, final GedcomNode parent, final String parentTag){
+	private void linkIndividualToNewFamily(final GedcomNode child, final GedcomNode partner, final String partnerTag){
 		//create new family and add parent
 		final GedcomNode family = store.create("FAMILY")
-			.addChildReference(parentTag, parent.getID());
+			.addChildReference(partnerTag, partner.getID());
 		store.addFamily(family);
 		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkParentToExistingFamily(final GedcomNode family, final GedcomNode parent, final String parentTag){
+	private void linkIndividualToExistingFamily(final GedcomNode family, final GedcomNode partner, final String partnerTag){
 		//link to existing family as parent
-		family.addChild(store.create(parentTag)
-			.withXRef(parent.getID()));
+		family.addChild(store.create(partnerTag)
+			.withXRef(partner.getID()));
 	}
 
 

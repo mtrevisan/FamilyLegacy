@@ -28,10 +28,8 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNodeBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
-import io.github.mtrevisan.familylegacy.gedcom.transformations.Protocol;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
@@ -133,7 +131,7 @@ public class LinkIndividualDialog extends JDialog{
 		okButton.addActionListener(evt -> {
 			if(listener != null){
 				final GedcomNode selectedIndividual = getSelectedIndividual();
-				listener.onNodeSelected(selectedIndividual, selectionType, panelReference);
+				listener.onItemSelected(selectedIndividual, selectionType, panelReference);
 			}
 
 			dispose();
