@@ -44,25 +44,25 @@ import java.awt.event.MouseEvent;
  * 	label.addPropertyChangeListener("text", this);
  * }</pre>
  */
-public class TooltipLabel extends JLabel{
+public class LabelAutoToolTip extends JLabel{
 
 	public String getToolTipText(final MouseEvent e){
+		final String text = getToolTipText();
 		final FontMetrics fm = getFontMetrics(getFont());
-		final String text = getText();
 		final int textWidth = fm.stringWidth(text);
 		return (textWidth > getSize().width? text: null);
 	}
 
 	public JToolTip createToolTip(){
 		final JToolTip tip = new JToolTip();
-		tip.setBackground(java.awt.SystemColor.info);
+		tip.setBackground(SystemColor.info);
 		tip.setComponent(this);
 		return tip;
 	}
 
 	public void manageToolTip(){
 		final boolean showToolTip = (getUI().getPreferredSize(this).width > getWidth());
-		setToolTipText(showToolTip? getText(): null);
+		setToolTipText(showToolTip? getToolTipText(): null);
 	}
 
 }

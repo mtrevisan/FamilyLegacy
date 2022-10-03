@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.TooltipLabel;
+import io.github.mtrevisan.familylegacy.ui.LabelAutoToolTip;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
@@ -110,8 +110,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
 
-	private final TooltipLabel familyNameLabel = new TooltipLabel();
-	private final TooltipLabel personalNameLabel = new TooltipLabel();
+	private final LabelAutoToolTip familyNameLabel = new LabelAutoToolTip();
+	private final LabelAutoToolTip personalNameLabel = new LabelAutoToolTip();
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel preferredImageLabel = new JLabel();
 	private final JMenuItem editIndividualItem = new JMenuItem("Edit Individual…", 'E');
@@ -333,16 +333,20 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		final String[] personalName = extractCompleteName(individual, store).get(0);
 		familyNameLabel.addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		familyNameLabel.setText(personalName[0]);
+		familyNameLabel.setToolTipText(personalName[0]);
 		personalNameLabel.addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		personalNameLabel.setText(personalName[1]);
+		personalNameLabel.setToolTipText(personalName[1]);
 
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		final int years = extractBirthDeathAge(sj);
+		final StringJoiner toolTipSJ = new StringJoiner(StringUtils.SPACE);
+		final int age = extractBirthDeathAge(sj, toolTipSJ);
 		infoLabel.setText(sj.toString());
+		infoLabel.setToolTipText(toolTipSJ.toString());
 
 		setPreferredSize(preferredImageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO);
-		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(years), preferredImageLabel.getPreferredSize());
+		final ImageIcon icon = ResourceHelper.getImage(getAddPhotoImage(age), preferredImageLabel.getPreferredSize());
 		preferredImageLabel.setIcon(icon);
 
 		familyNameLabel.setVisible(individual != null);
@@ -428,8 +432,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return (individual != null? extractLatestDeathPlace(individual, store): null);
 	}
 
-	private int extractBirthDeathAge(final StringJoiner sj){
-		int years = -1;
+	private int extractBirthDeathAge(final StringJoiner sj, final StringJoiner toolTipSJ){
+		int lifeSpan = -1;
 		if(individual != null){
 			final String birthDate = extractEarliestBirthDate(individual, store);
 			final String deathDate = extractLatestDeathDate(individual, store);
@@ -437,10 +441,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			if(birthDate != null && deathDate != null){
 				final boolean isApproximated = (AbstractCalendarParser.isApproximation(birthDate)
 					|| AbstractCalendarParser.isApproximation(deathDate));
+				final boolean isLessThan = (!AbstractCalendarParser.isAfter(birthDate)
+					|| AbstractCalendarParser.isBefore(deathDate));
+				age = StringUtils.EMPTY;
+				if(isLessThan)
+					age = "<";
+				else if(isApproximated)
+					age = "~";
 				final LocalDate birth = DateParser.parse(birthDate);
 				final LocalDate death = DateParser.parse(deathDate);
-				years = Period.between(birth, death).getYears();
-				age = (isApproximated? "~" + years: Integer.toString(years));
+				age += Period.between(birth, death).getYears();
 			}
 
 			sj.add(birthDate != null? DateParser.extractYear(birthDate): NO_DATA);
@@ -448,8 +458,12 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			sj.add(deathDate != null? DateParser.extractYear(deathDate): NO_DATA);
 			if(age != null)
 				sj.add("(" + age + ")");
+
+			toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
+			toolTipSJ.add("-");
+			toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
 		}
-		return years;
+		return lifeSpan;
 	}
 
 	private static String extractEarliestBirthDate(final GedcomNode individual, final Flef store){

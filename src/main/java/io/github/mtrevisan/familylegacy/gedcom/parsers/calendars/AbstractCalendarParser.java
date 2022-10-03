@@ -34,21 +34,31 @@ import java.util.regex.Pattern;
 
 public abstract class AbstractCalendarParser{
 
-	private static final String FORMAT_RANGE_PREFIX = "(FROM|BEF(?:ORE|\\.)?|AFT(?:ER|\\.)?|BET(?:WEEN|\\.)?|BTW\\.?|TO) ";
+	private static final String FORMAT_FROM = "FROM";
+	private static final String FORMAT_TO = "TO";
+	private static final String FORMAT_BEFORE = "BEF(?:ORE|\\.)?";
+	private static final String FORMAT_AFTER = "AFT(?:ER|\\.)?";
+	private static final String FORMAT_BETWEEN = "BET(?:WEEN|\\.)?|BTW\\.?";
+	private static final String FORMAT_AND = "AND";
+
+	private static final String FORMAT_RANGE_PREFIX = "(" + FORMAT_FROM + "|" + FORMAT_BEFORE + "|" + FORMAT_AFTER + "|" + FORMAT_BETWEEN + "|" + FORMAT_TO + ") ";
 	private static final String FORMAT_DAY_MONTH_YEAR = "(\\d{1,2} )?([A-Z]{3,4} )?\\d{1,4}(\\/\\d{2})? ?([AB]C|[AB]\\.C\\.|B?CE|(?:B\\.)?C\\.E\\.)?";
 
-	private static final Pattern PATTERN_RANGE_INFIX = RegexHelper.pattern("(?i) (AND|TO) ");
+	private static final Pattern PATTERN_RANGE_INFIX = RegexHelper.pattern("(?i) (" + FORMAT_AND + "|" + FORMAT_TO + ") ");
 
 	private static final Pattern PATTERN_PREFIXES_APPROXIMATIONS = RegexHelper.pattern("(?i)((?:(?:ABT|APP(?:RO)?X|CALC?|EST)\\.?|ABOUT)) ");
-	private static final Pattern PATTERN_PREFIXES_RANGE = RegexHelper.pattern("(?i)((?:BET(?:WEEN|\\.)?|BTW\\.?|FROM)) ");
+	private static final Pattern PATTERN_PREFIXES_RANGE = RegexHelper.pattern("(?i)((?:" + FORMAT_BETWEEN + "|" + FORMAT_FROM + ")) ");
 	private static final Pattern PATTERN_INTERPRETED = RegexHelper.pattern("(?i)^INT\\.?\\s+((\\d{1,2} )?([A-Z]{3,4} )?(\\d{1,4}(/\\d{2})?)?)\\s+\\([^)]+\\)$");
 	private static final Pattern PATTERN_INTERPRETATION_TEXT = RegexHelper.pattern("\\(?:([^)]+)\\)$");
 
 	/** The regex pattern that identifies two-date range or period. Works for Gregorian, Julian, and Hebrew years. */
 	private static final Pattern PATTERN_TWO_DATES = RegexHelper.pattern("(?i)^" + FORMAT_RANGE_PREFIX
-		+ FORMAT_DAY_MONTH_YEAR + " (AND|TO) " + FORMAT_DAY_MONTH_YEAR + "$");
+		+ FORMAT_DAY_MONTH_YEAR + " (" + FORMAT_AND + "|" + FORMAT_TO + ") " + FORMAT_DAY_MONTH_YEAR + "$");
 
-	private static final Pattern PATTERN_PREFIXES_FROM_TO = RegexHelper.pattern("(?i)((?:FROM|BEF(?:ORE|\\.)?|AFT(?:ER|\\.)?|TO)) ");
+	private static final Pattern PATTERN_PREFIXES_FROM_TO_BEFORE_AFTER = RegexHelper.pattern("(?i)((?:" + FORMAT_FROM + "|" + FORMAT_BEFORE + "|" + FORMAT_AFTER + "|" + FORMAT_TO + ")) ");
+
+	private static final Pattern PATTERN_PREFIXES_BEFORE = RegexHelper.pattern("(?i)(?:" + FORMAT_BEFORE + ") ");
+	private static final Pattern PATTERN_PREFIXES_AFTER = RegexHelper.pattern("(?i)(?:" + FORMAT_AFTER + ") ");
 
 
 	public abstract CalendarType getCalendarType();
@@ -150,14 +160,16 @@ public abstract class AbstractCalendarParser{
 		return RegexHelper.split(date, PATTERN_RANGE_INFIX);
 	}
 
-	/**
-	 * Return a version of the string with approximation prefixes removed, including handling for interpreted dates.
-	 *
-	 * @param date	The date string.
-	 * @return	A version of the string with approximation prefixes removed.
-	 */
 	public static boolean isApproximation(final CharSequence date){
 		return RegexHelper.find(date, PATTERN_PREFIXES_APPROXIMATIONS);
+	}
+
+	public static boolean isBefore(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_PREFIXES_BEFORE);
+	}
+
+	public static boolean isAfter(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_PREFIXES_AFTER);
 	}
 
 	/**
@@ -184,7 +196,7 @@ public abstract class AbstractCalendarParser{
 	 * @return	The same date string with range/period prefixes removed, but only if it's an open-ended period or range.
 	 */
 	protected String removeOpenEndedRangesAndPeriods(final String date){
-		return (!RegexHelper.matches(date, PATTERN_TWO_DATES)? RegexHelper.clear(date, PATTERN_PREFIXES_FROM_TO): date);
+		return (!RegexHelper.matches(date, PATTERN_TWO_DATES)? RegexHelper.clear(date, PATTERN_PREFIXES_FROM_TO_BEFORE_AFTER): date);
 	}
 
 }

@@ -114,8 +114,16 @@ public final class DateParser{
 	public static String extractYear(final String date){
 		String formattedDate = null;
 		final LocalDate localDate = parse(date);
-		if(localDate != null)
-			formattedDate = (AbstractCalendarParser.isApproximation(date)? "~": StringUtils.EMPTY) + localDate.getYear();
+		if(localDate != null){
+			formattedDate = StringUtils.EMPTY;
+			if(AbstractCalendarParser.isApproximation(date))
+				formattedDate = "~";
+			else if(AbstractCalendarParser.isBefore(date))
+				formattedDate = "<";
+			else if(AbstractCalendarParser.isAfter(date))
+				formattedDate = ">";
+			formattedDate += localDate.getYear();
+		}
 		return formattedDate;
 	}
 
