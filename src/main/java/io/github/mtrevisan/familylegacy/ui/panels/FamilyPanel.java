@@ -233,16 +233,16 @@ public class FamilyPanel extends JPanel{
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
 		popupMenu.add(editFamilyItem);
 
+		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
 		linkFamilyItem.addActionListener(e -> familyListener.onFamilyLink(this));
-//		linkFamilyItem.setEnabled(family == null);
 		popupMenu.add(linkFamilyItem);
 
-		unlinkFamilyItem.addActionListener(e -> familyListener.onFamilyUnlink(this, family));
 		unlinkFamilyItem.setEnabled(family != null);
+		unlinkFamilyItem.addActionListener(e -> familyListener.onFamilyUnlink(this, family));
 		popupMenu.add(unlinkFamilyItem);
 
-		removeFamilyItem.addActionListener(e -> familyListener.onFamilyRemove(this, family));
 		removeFamilyItem.setEnabled(family != null);
+		removeFamilyItem.addActionListener(e -> familyListener.onFamilyRemove(this, family));
 		popupMenu.add(removeFamilyItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
@@ -305,7 +305,7 @@ public class FamilyPanel extends JPanel{
 			return;
 
 		editFamilyItem.setEnabled(family != null);
-		linkFamilyItem.setEnabled(store.hasFamilies());
+		linkFamilyItem.setEnabled(family == null && store.hasFamilies());
 		unlinkFamilyItem.setEnabled(family != null);
 		removeFamilyItem.setEnabled(family != null);
 	}
@@ -492,14 +492,14 @@ public class FamilyPanel extends JPanel{
 			public void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisPartner,
 					final GedcomNode otherCurrentPartner, final GedcomNode currentFamily){
 				System.out.println("onPrevPartnerFamily this: " + thisPartner.getID() + ", other: " + otherCurrentPartner.getID()
-					+ ", family: " + currentFamily.getID());
+					+ ", current family: " + currentFamily.getID());
 			}
 
 			@Override
 			public void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisPartner, final GedcomNode otherCurrentPartner,
 					final GedcomNode currentFamily){
 				System.out.println("onNextPartnerFamily this: " + thisPartner.getID() + ", other: " + otherCurrentPartner.getID()
-					+ ", family: " + currentFamily.getID());
+					+ ", current family: " + currentFamily.getID());
 			}
 		};
 		final IndividualListenerInterface individualListener = new IndividualListenerInterface(){

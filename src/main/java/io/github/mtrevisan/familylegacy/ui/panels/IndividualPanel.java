@@ -210,6 +210,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, this.individual));
 		popupMenu.add(editIndividualItem);
 
+		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		linkIndividualItem.addActionListener(e -> listener.onIndividualLink(this, type));
 		popupMenu.add(linkIndividualItem);
 
@@ -217,7 +218,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, this.individual));
 		popupMenu.add(unlinkIndividualItem);
 
-		addIndividualItem.setEnabled(individual == null);
+		addIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		addIndividualItem.addActionListener(e -> listener.onIndividualAdd(this));
 		popupMenu.add(addIndividualItem);
 
@@ -362,10 +363,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
 
-		linkIndividualItem.setEnabled(store.hasIndividuals());
+		linkIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		editIndividualItem.setEnabled(individual != null);
 		unlinkIndividualItem.setEnabled(individual != null);
-		addIndividualItem.setEnabled(store.hasIndividuals());
+		addIndividualItem.setEnabled(individual == null && store.hasIndividuals());
 		removeIndividualItem.setEnabled(individual != null);
 	}
 
@@ -447,14 +448,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			final String deathPlace = extractLatestDeathPlace(latestDeath, store);
 			String age = null;
 			if(birthDate != null && deathDate != null){
-				final boolean isApproximated = (AbstractCalendarParser.isApproximation(birthDate)
-					|| AbstractCalendarParser.isApproximation(deathDate));
-				final boolean isLessThan = (!AbstractCalendarParser.isAfter(birthDate)
-					|| AbstractCalendarParser.isBefore(deathDate));
+				final boolean isAgeApproximated = (AbstractCalendarParser.isApproximation(birthDate) || AbstractCalendarParser.isRange(birthDate)
+					|| AbstractCalendarParser.isApproximation(deathDate) || AbstractCalendarParser.isRange(deathDate));
+				final boolean isAgeLessThan = (AbstractCalendarParser.isExact(birthDate) && AbstractCalendarParser.isBefore(deathDate)
+					|| AbstractCalendarParser.isAfter(birthDate) && AbstractCalendarParser.isExact(deathDate)
+					|| AbstractCalendarParser.isRange(birthDate)
+					|| AbstractCalendarParser.isRange(deathDate));
 				age = StringUtils.EMPTY;
-				if(isLessThan)
+				if(isAgeLessThan)
 					age = "<";
-				else if(isApproximated)
+				else if(isAgeApproximated)
 					age = "~";
 				final LocalDate birth = DateParser.parse(birthDate);
 				final LocalDate death = DateParser.parse(deathDate);

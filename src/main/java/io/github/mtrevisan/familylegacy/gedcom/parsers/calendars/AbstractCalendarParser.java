@@ -110,7 +110,27 @@ public abstract class AbstractCalendarParser{
 
 	public abstract int parseMonth(final String month);
 
-	public boolean isRange(final CharSequence date){
+	public static boolean isExact(final CharSequence date){
+		return (!isApproximation(date) && !isBefore(date) && !isAfter(date) && !isInterpreted(date) && !isRange(date));
+	}
+
+	public static boolean isApproximation(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_PREFIXES_APPROXIMATIONS);
+	}
+
+	public static boolean isBefore(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_PREFIXES_BEFORE);
+	}
+
+	public static boolean isAfter(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_PREFIXES_AFTER);
+	}
+
+	public static boolean isInterpreted(final CharSequence date){
+		return RegexHelper.find(date, PATTERN_INTERPRETED);
+	}
+
+	public static boolean isRange(final CharSequence date){
 		return RegexHelper.matches(date, PATTERN_TWO_DATES);
 	}
 
@@ -158,18 +178,6 @@ public abstract class AbstractCalendarParser{
 	private String[] splitDates(String date){
 		date = RegexHelper.clear(date, PATTERN_PREFIXES_RANGE);
 		return RegexHelper.split(date, PATTERN_RANGE_INFIX);
-	}
-
-	public static boolean isApproximation(final CharSequence date){
-		return RegexHelper.find(date, PATTERN_PREFIXES_APPROXIMATIONS);
-	}
-
-	public static boolean isBefore(final CharSequence date){
-		return RegexHelper.find(date, PATTERN_PREFIXES_BEFORE);
-	}
-
-	public static boolean isAfter(final CharSequence date){
-		return RegexHelper.find(date, PATTERN_PREFIXES_AFTER);
 	}
 
 	/**
