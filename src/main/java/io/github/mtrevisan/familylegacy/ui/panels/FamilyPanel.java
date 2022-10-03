@@ -134,17 +134,14 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode family;
 	private final Flef store;
 	private final BoxPanelType boxType;
-	private final FamilyListenerInterface familyListener;
-	private final IndividualListenerInterface individualListener;
+	private FamilyListenerInterface familyListener;
+	private IndividualListenerInterface individualListener;
 
 	private GedcomNode childReference;
 
 
-	FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference, final Flef store, final BoxPanelType boxType,
-			final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
+	FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference, final Flef store, final BoxPanelType boxType){
 		this.store = store;
-		this.familyListener = familyListener;
-		this.individualListener = individualListener;
 
 		this.partner1 = (partner1.isEmpty() && !family.isEmpty()? store.getPartner1(family): partner1);
 		this.partner2 = (partner2.isEmpty() && !family.isEmpty()? store.getPartner2(family): partner2);
@@ -152,13 +149,21 @@ public class FamilyPanel extends JPanel{
 		this.childReference = childReference;
 		if(!family.isEmpty() && this.childReference == null){
 			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
-			this.childReference = (!children.isEmpty()? children.get(0): null);
+			this.childReference = (!children.isEmpty()? children.get(0): store.createEmptyNode());
 		}
 		this.boxType = boxType;
 
 		initComponents();
 
 		loadData();
+	}
+
+	public void setFamilyListener(final FamilyListenerInterface familyListener){
+		this.familyListener = familyListener;
+	}
+
+	public void setIndividualListener(final IndividualListenerInterface individualListener){
+		this.individualListener = individualListener;
 	}
 
 	private void initComponents(){
@@ -172,10 +177,12 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 
-		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType, individualListener);
+		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType);
+		partner1Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner1Panel);
 		partner1Panel.setChildReference(childReference);
-		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType, individualListener);
+		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType);
+		partner2Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner2Panel);
 		partner2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
@@ -555,8 +562,9 @@ public class FamilyPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final FamilyPanel panel = new FamilyPanel(storeFlef.createEmptyNode(), storeFlef.createEmptyNode(), family, null, storeFlef, boxType,
-				familyListener, individualListener);
+			final FamilyPanel panel = new FamilyPanel(storeFlef.createEmptyNode(), storeFlef.createEmptyNode(), family, storeFlef.createEmptyNode(), storeFlef, boxType);
+			panel.setFamilyListener(familyListener);
+			panel.setIndividualListener(individualListener);
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();

@@ -74,16 +74,19 @@ public final class ChildrenPanel extends JPanel{
 	private List<GedcomNode> children;
 	private boolean[] adoptions;
 	private final Flef store;
-	private final IndividualListenerInterface individualListener;
+	private IndividualListenerInterface individualListener;
 
 
-	ChildrenPanel(final GedcomNode family, final Flef store, final IndividualListenerInterface individualListener){
+	ChildrenPanel(final GedcomNode family, final Flef store){
 		this.store = store;
-		this.individualListener = individualListener;
 
 		setOpaque(false);
 
 		loadData(family);
+	}
+
+	public void setIndividualListener(final IndividualListenerInterface individualListener){
+		this.individualListener = individualListener;
 	}
 
 	public void loadData(final GedcomNode family){
@@ -107,8 +110,8 @@ public final class ChildrenPanel extends JPanel{
 				final String individualXRef = itr.next().getXRef();
 				final GedcomNode individual = store.getIndividual(individualXRef);
 				final boolean isPartner = !store.traverseAsList(individual, "FAMILY_PARTNER[]").isEmpty();
-				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY,
-					individualListener);
+				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY);
+				individualBox.setIndividualListener(individualListener);
 				EventBusService.subscribe(individualBox);
 
 				final JPanel box = new JPanel();
@@ -196,7 +199,8 @@ public final class ChildrenPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final ChildrenPanel panel = new ChildrenPanel(family, storeFlef, listener);
+			final ChildrenPanel panel = new ChildrenPanel(family, storeFlef);
+			panel.setIndividualListener(listener);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

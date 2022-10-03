@@ -148,16 +148,14 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private GedcomNode individual;
 	private final Flef store;
 	private final BoxPanelType boxType;
-	private final IndividualListenerInterface listener;
+	private IndividualListenerInterface listener;
 
 	private GedcomNode childReference;
 
 
-	public IndividualPanel(final SelectedNodeType type, final GedcomNode individual, final Flef store, final BoxPanelType boxType,
-			final IndividualListenerInterface listener){
+	public IndividualPanel(final SelectedNodeType type, final GedcomNode individual, final Flef store, final BoxPanelType boxType){
 		this.type = type;
 		this.store = store;
-		this.listener = listener;
 
 		this.individual = individual;
 		this.boxType = boxType;
@@ -165,6 +163,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		initComponents();
 
 		loadData();
+	}
+
+	public void setIndividualListener(final IndividualListenerInterface listener){
+		this.listener = listener;
 	}
 
 	private void initComponents(){
@@ -695,7 +697,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.PARTNER1, individual, storeFlef, boxType, listener);
+			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.PARTNER1, individual, storeFlef, boxType);
+			panel.setIndividualListener(listener);
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();

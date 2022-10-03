@@ -97,7 +97,9 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			linkIndividualDialog.setLocationRelativeTo(null);
 
 			getContentPane().setLayout(new BorderLayout());
-			treePanel = new TreePanel(family, 4, store, this, this);
+			treePanel = new TreePanel(family, 4, store);
+			treePanel.setFamilyListener(this);
+			treePanel.setIndividualListener(this);
 			getContentPane().add(treePanel, BorderLayout.NORTH);
 			pack();
 
