@@ -318,7 +318,7 @@ public class LinkIndividualDialog extends JDialog{
 			.transform();
 
 		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()
-			+ ", type is " + type + ", child is " + ((IndividualPanel)panel).getChildReference().getID());
+			+ ", type is " + type + ", child is " + (panel != null? ((IndividualPanel)panel).getChildReference().getID(): "--"));
 
 		GUIHelper.executeOnEventDispatchThread(() -> {
 			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, new JFrame());
