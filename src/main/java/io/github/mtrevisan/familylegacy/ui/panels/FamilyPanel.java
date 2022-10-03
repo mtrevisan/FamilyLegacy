@@ -42,8 +42,29 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.GrayFilter;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -81,8 +102,8 @@ public class FamilyPanel extends JPanel{
 	/** Height of the marriage line from the bottom of the individual panel [px]. */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
-	public static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
-	public static final int HALF_PARTNER_SEPARATION = 10;
+	static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
+	private static final int HALF_PARTNER_SEPARATION = 10;
 	static final int FAMILY_SEPARATION = HALF_PARTNER_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_PARTNER_SEPARATION;
 	/** Distance between navigation arrow and box. */
 	static final int NAVIGATION_ARROW_SEPARATION = 3;
@@ -91,8 +112,8 @@ public class FamilyPanel extends JPanel{
 
 	private static final String KEY_ENABLED = "enabled";
 
-	public static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f);
-	public static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
+	static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f);
+	static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
 		new float[]{2.f}, 0.f);
 
 
@@ -119,9 +140,8 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode childReference;
 
 
-	public FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference,
-			final Flef store, final BoxPanelType boxType, final FamilyListenerInterface familyListener,
-			final IndividualListenerInterface individualListener){
+	FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference, final Flef store, final BoxPanelType boxType,
+			final FamilyListenerInterface familyListener, final IndividualListenerInterface individualListener){
 		this.store = store;
 		this.familyListener = familyListener;
 		this.individualListener = individualListener;
@@ -139,8 +159,6 @@ public class FamilyPanel extends JPanel{
 		initComponents();
 
 		loadData();
-
-		EventBusService.subscribe(this);
 	}
 
 	private void initComponents(){
@@ -155,8 +173,10 @@ public class FamilyPanel extends JPanel{
 			});
 
 		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType, individualListener);
+		EventBusService.subscribe(partner1Panel);
 		partner1Panel.setChildReference(childReference);
 		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType, individualListener);
+		EventBusService.subscribe(partner2Panel);
 		partner2Panel.setChildReference(childReference);
 		marriagePanel.setBackground(Color.WHITE);
 		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
@@ -249,7 +269,7 @@ public class FamilyPanel extends JPanel{
 	}
 
 	@Override
-	protected void paintComponent(final Graphics g){
+	protected final void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D && partner1Panel != null && partner2Panel != null){
@@ -270,11 +290,11 @@ public class FamilyPanel extends JPanel{
 		}
 	}
 
-	public void loadData(final GedcomNode family){
+	public final void loadData(final GedcomNode family){
 		loadData(null, null, family);
 	}
 
-	public void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family){
+	public final void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family){
 		this.partner1 = (partner1 == null && family != null? store.getPartner1(family): partner1);
 		this.partner2 = (partner2 == null && family != null? store.getPartner2(family): partner2);
 		this.family = family;
@@ -300,7 +320,7 @@ public class FamilyPanel extends JPanel{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	@SuppressWarnings("NumberEquality")
-	public void refresh(final Integer actionCommand){
+	public final void refresh(final Integer actionCommand){
 		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
 
@@ -310,8 +330,7 @@ public class FamilyPanel extends JPanel{
 		removeFamilyItem.setEnabled(family != null);
 	}
 
-	public void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel,
-			final JLabel partnerNextLabel){
+	private void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel, final JLabel partnerNextLabel){
 		//get list of marriages for the `other partner`
 		final List<GedcomNode> otherMarriages = store.traverseAsList(otherPartner, "FAMILY_PARTNER[]");
 		//find current marriage in list
@@ -398,7 +417,7 @@ public class FamilyPanel extends JPanel{
 
 		//extract place as town, county, state, country, otherwise from value
 		String placeValue = place.getValue();
-		if(addressEarliest != null){
+		if(!addressEarliest.isEmpty()){
 			final GedcomNode town = store.traverse(addressEarliest, "TOWN");
 			final GedcomNode city = store.traverse(addressEarliest, "CITY");
 			final GedcomNode county = store.traverse(addressEarliest, "COUNTY");
@@ -418,27 +437,27 @@ public class FamilyPanel extends JPanel{
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
 		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
-		return (addresses.isEmpty()? null: addresses.get(0));
+		return (!addresses.isEmpty()? addresses.get(0): store.createEmptyNode());
 	}
 
 
-	public GedcomNode getChildReference(){
+	public final GedcomNode getChildReference(){
 		return childReference;
 	}
 
-	public Point getFamilyPaintingPartner1EnterPoint(){
+	final Point getFamilyPaintingPartner1EnterPoint(){
 		final Point p = partner1Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
-	public Point getFamilyPaintingPartner2EnterPoint(){
+	final Point getFamilyPaintingPartner2EnterPoint(){
 		final Point p = partner2Panel.getIndividualPaintingEnterPoint();
 		final Point origin = getLocation();
 		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
-	public Point getFamilyPaintingExitPoint(){
+	final Point getFamilyPaintingExitPoint(){
 		//halfway between partner1 and partner2 boxes
 		final int x = (partner1Panel.getX() + partner1Panel.getWidth() + partner2Panel.getX()) / 2;
 		//the bottom point of the marriage panel (that is: bottom point of partner1 box minus the height of the horizontal connection line
@@ -542,6 +561,7 @@ public class FamilyPanel extends JPanel{
 		EventQueue.invokeLater(() -> {
 			final FamilyPanel panel = new FamilyPanel(null, null, family, null, storeFlef, boxType,
 				familyListener, individualListener);
+			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());

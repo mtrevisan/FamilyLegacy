@@ -35,12 +35,24 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -67,6 +79,8 @@ public class TreePanel extends JPanel{
 	private static final int GENERATION_SEPARATOR_SIZE = 40;
 
 	private static final Map<String, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>(0);
+
+	private static final String PEDIGREE_BIOLOGICAL = "biological";
 
 
 	private FamilyPanel partner1Partners1Panel;
@@ -114,12 +128,15 @@ public class TreePanel extends JPanel{
 		GedcomNode childReference = extractFirstChild(partner1Parents, partner1);
 		partner1PartnersPanel = new FamilyPanel(null, null, partner1Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
+		EventBusService.subscribe(partner1PartnersPanel);
 		childReference = extractFirstChild(partner2Parents, partner2);
 		partner2PartnersPanel = new FamilyPanel(null, null, partner2Parents, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
+		EventBusService.subscribe(partner2PartnersPanel);
 		childReference = extractFirstChild(homeFamily, null);
 		homeFamilyPanel = new FamilyPanel(partner1, partner2, homeFamily, childReference, store, BoxPanelType.PRIMARY,
 			familyListener, individualListener);
+		EventBusService.subscribe(homeFamilyPanel);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -168,27 +185,34 @@ public class TreePanel extends JPanel{
 		GedcomNode childReference = extractFirstChild(partner1Partenr1Partners, defaultChildReference);
 		partner1Partners1Panel = new FamilyPanel(null, null, partner1Partenr1Partners, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
+		EventBusService.subscribe(partner1Partners1Panel);
 		defaultChildReference = store.getPartner2(partner1Partners);
 		childReference = extractFirstChild(partner1Partner2Partners, defaultChildReference);
 		partner1Partners2Panel = new FamilyPanel(null, null, partner1Partner2Partners, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
+		EventBusService.subscribe(partner1Partners2Panel);
 		defaultChildReference = store.getPartner1(partner2Partners);
 		childReference = extractFirstChild(partner2Partner1Partners, defaultChildReference);
 		partner2Partners1Panel = new FamilyPanel(null, null, partner2Partner1Partners, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
+		EventBusService.subscribe(partner2Partners1Panel);
 		defaultChildReference = store.getPartner2(partner2Partners);
 		childReference = extractFirstChild(partner2Partner2Partners, defaultChildReference);
 		partner2Partners2Panel = new FamilyPanel(null, null, partner2Partner2Partners, childReference, store,
 			BoxPanelType.SECONDARY, familyListener, individualListener);
+		EventBusService.subscribe(partner2Partners2Panel);
 		childReference = extractFirstChild(partner1Partners, partner1);
 		partner1PartnersPanel = new FamilyPanel(null, null, partner1Partners, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
+		EventBusService.subscribe(partner1PartnersPanel);
 		childReference = extractFirstChild(partner2Partners, partner2);
 		partner2PartnersPanel = new FamilyPanel(null, null, partner2Partners, childReference, store, BoxPanelType.SECONDARY,
 			familyListener, individualListener);
+		EventBusService.subscribe(partner2PartnersPanel);
 		childReference = extractFirstChild(homeFamily, null);
 		homeFamilyPanel = new FamilyPanel(partner1, partner2, homeFamily, childReference, store, BoxPanelType.PRIMARY, familyListener,
 			individualListener);
+		EventBusService.subscribe(homeFamilyPanel);
 		childrenPanel = new ChildrenPanel(homeFamily, store, individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
@@ -234,7 +258,7 @@ public class TreePanel extends JPanel{
 	}
 
 	private GedcomNode extractPartners(final GedcomNode child){
-		if(child != null && !child.isEmpty()){
+		if(!child.isEmpty()){
 			final List<GedcomNode> familyChilds = store.traverseAsList(child, "FAMILY_CHILD[]");
 			final Collection<GedcomNode> biologicalFamilyChilds = extractBiologicalFamilyChilds(familyChilds);
 			if(!biologicalFamilyChilds.isEmpty()){
@@ -248,7 +272,7 @@ public class TreePanel extends JPanel{
 			if(!familyChilds.isEmpty())
 				return store.getFamily(familyChilds.get(0).getXRef());
 		}
-		return null;
+		return store.createEmptyNode();
 	}
 
 	private Collection<GedcomNode> extractBiologicalFamilyChilds(final Collection<GedcomNode> familyChilds){
@@ -256,18 +280,18 @@ public class TreePanel extends JPanel{
 		//check pedigree (prefers `biological` or <null>)
 		for(final GedcomNode familyChild : familyChilds){
 			final String pedigree1 = store.traverse(familyChild, "PEDIGREE.PARTNER1").getValue();
-			if("biological".equalsIgnoreCase(pedigree1))
+			if(PEDIGREE_BIOLOGICAL.equalsIgnoreCase(pedigree1))
 				biologicalFamilyChilds.add(familyChild);
 			else{
 				final String pedigree2 = store.traverse(familyChild, "PEDIGREE.PARTNER2").getValue();
-				if("biological".equalsIgnoreCase(pedigree2))
+				if(PEDIGREE_BIOLOGICAL.equalsIgnoreCase(pedigree2))
 					biologicalFamilyChilds.add(familyChild);
 			}
 		}
 		return biologicalFamilyChilds;
 	}
 
-	public GedcomNode getPreferredFamily(final GedcomNode individual){
+	public final GedcomNode getPreferredFamily(final GedcomNode individual){
 		GedcomNode family = null;
 		//see if this individual belongs to a family
 		List<GedcomNode> families = extractFamilies(individual);
@@ -326,7 +350,7 @@ public class TreePanel extends JPanel{
 	}
 
 	@Override
-	protected void paintComponent(final Graphics g){
+	protected final void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
@@ -415,7 +439,7 @@ public class TreePanel extends JPanel{
 		}
 	}
 
-	private Point parentGrandParentsExitingConnection(final FamilyPanel parentGrandparentsPanel, final Graphics2D graphics2D){
+	private static Point parentGrandParentsExitingConnection(final FamilyPanel parentGrandparentsPanel, final Graphics2D graphics2D){
 		Point p = null;
 		if(parentGrandparentsPanel != null){
 			//parent's parent's parent exiting connection
@@ -425,7 +449,7 @@ public class TreePanel extends JPanel{
 		return p;
 	}
 
-	private void grandparentsEnteringConnection(final Point g, final Point pg, final Graphics2D graphics2D){
+	private static void grandparentsEnteringConnection(final Point g, final Point pg, final Graphics2D graphics2D){
 		//parent's parent entering connection
 		parentEnteringConnection(g, 0, graphics2D);
 
@@ -434,26 +458,26 @@ public class TreePanel extends JPanel{
 			grandparentsToParent(pg, g, 0, graphics2D);
 	}
 
-	private void grandparentsExitingConnection(final Point g, final int offset, final Graphics2D graphics2D){
+	private static void grandparentsExitingConnection(final Point g, final int offset, final Graphics2D graphics2D){
 		//grandparent exiting connection
 		graphics2D.drawLine(g.x, g.y,
 			g.x, g.y + offset + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
 	}
 
-	private void parentEnteringConnection(final Point p, final int offset, final Graphics2D graphics2D){
+	private static void parentEnteringConnection(final Point p, final int offset, final Graphics2D graphics2D){
 		//parent entering connection
 		graphics2D.drawLine(p.x, p.y + FamilyPanel.NAVIGATION_ARROW_HEIGHT + offset,
 			p.x, p.y - offset - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
-	private void grandparentsToParent(final Point g, final Point p, final int offset, final Graphics2D graphics2D){
+	private static void grandparentsToParent(final Point g, final Point p, final int offset, final Graphics2D graphics2D){
 		//line between grandparent and parent
 		graphics2D.drawLine(g.x, g.y + FamilyPanel.FAMILY_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
 			p.x, p.y - offset - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 
-	public void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode homeFamily){
+	public final void loadData(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode homeFamily){
 		this.partner1 = partner1;
 		this.partner2 = partner2;
 		this.homeFamily = homeFamily;
@@ -461,6 +485,7 @@ public class TreePanel extends JPanel{
 		loadData();
 	}
 
+	@SuppressWarnings("InstanceVariableUsedBeforeInitialized")
 	private void loadData(){
 		partner1 = (partner1 == null && homeFamily != null? store.getPartner1(homeFamily): partner1);
 		partner2 = (partner2 == null && homeFamily != null? store.getPartner2(homeFamily): partner2);

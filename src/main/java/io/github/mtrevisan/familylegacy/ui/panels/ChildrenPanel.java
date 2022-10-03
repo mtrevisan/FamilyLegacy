@@ -34,11 +34,21 @@ import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -46,7 +56,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-public class ChildrenPanel extends JPanel{
+public final class ChildrenPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -1250057284416778781L;
@@ -67,7 +77,7 @@ public class ChildrenPanel extends JPanel{
 	private final IndividualListenerInterface individualListener;
 
 
-	public ChildrenPanel(final GedcomNode family, final Flef store, final IndividualListenerInterface individualListener){
+	ChildrenPanel(final GedcomNode family, final Flef store, final IndividualListenerInterface individualListener){
 		this.store = store;
 		this.individualListener = individualListener;
 
@@ -99,6 +109,7 @@ public class ChildrenPanel extends JPanel{
 				final boolean isPartner = !store.traverseAsList(individual, "FAMILY_PARTNER[]").isEmpty();
 				final IndividualPanel individualBox = new IndividualPanel(SelectedNodeType.CHILD, individual, store, BoxPanelType.SECONDARY,
 					individualListener);
+				EventBusService.subscribe(individualBox);
 
 				final JPanel box = new JPanel();
 				box.setOpaque(false);
@@ -128,9 +139,10 @@ public class ChildrenPanel extends JPanel{
 		return enterPoints;
 	}
 
-	public boolean[] getAdoptions(){
-		return adoptions;
+	boolean[] getAdoptions(){
+		return adoptions.clone();
 	}
+
 
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{

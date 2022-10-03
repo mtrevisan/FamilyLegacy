@@ -44,8 +44,32 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -71,7 +95,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String NO_DATA = "?";
 
-	public static final int SECONDARY_MAX_HEIGHT = 65;
+	static final int SECONDARY_MAX_HEIGHT = 65;
 
 	private static final Color BACKGROUND_COLOR_NO_INDIVIDUAL = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
@@ -141,8 +165,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		initComponents();
 
 		loadData();
-
-		EventBusService.subscribe(this);
 	}
 
 	private void initComponents(){
@@ -241,7 +263,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	@Override
-	protected void paintComponent(final Graphics g){
+	protected final void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
 		if(g instanceof Graphics2D){
@@ -279,7 +301,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	@Override
-	public void propertyChange(final PropertyChangeEvent evt){
+	public final void propertyChange(final PropertyChangeEvent evt){
 		//show tooltips with full names if they are too long to be displayed
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
 			familyNameLabel.manageToolTip();
@@ -301,7 +323,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			.getValue());
 	}
 
-	public void loadData(final GedcomNode individual){
+	public final void loadData(final GedcomNode individual){
 		this.individual = individual;
 
 		loadData();
@@ -359,7 +381,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	@SuppressWarnings("NumberEquality")
-	public void refresh(final Integer actionCommand){
+	public final void refresh(final Integer actionCommand){
 		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
 			return;
 
@@ -590,7 +612,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		return birthEvents;
 	}
 
-	private Font deriveInfoFont(final Font baseFont){
+	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
 
@@ -607,16 +629,16 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 
-	public GedcomNode getChildReference(){
+	public final GedcomNode getChildReference(){
 		return childReference;
 	}
 
 	/** Set the direct child of the family to be linked. */
-	public void setChildReference(final GedcomNode childReference){
+	final void setChildReference(final GedcomNode childReference){
 		this.childReference = childReference;
 	}
 
-	public Point getIndividualPaintingEnterPoint(){
+	final Point getIndividualPaintingEnterPoint(){
 		return new Point(getX() + getWidth() / 2, getY());
 	}
 
@@ -678,6 +700,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 		EventQueue.invokeLater(() -> {
 			final IndividualPanel panel = new IndividualPanel(SelectedNodeType.PARTNER1, individual, storeFlef, boxType, listener);
+			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
 			frame.getContentPane().setLayout(new BorderLayout());
