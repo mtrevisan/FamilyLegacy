@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Mauro Trevisan
+ * Copyright (c) 2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,8 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.ui;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JLabel;
+import javax.swing.JToolTip;
+import java.awt.FontMetrics;
+import java.awt.SystemColor;
 import java.awt.event.MouseEvent;
 
 
