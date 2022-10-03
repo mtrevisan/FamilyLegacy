@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -43,14 +43,25 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.NotSerializableException;
@@ -113,18 +124,27 @@ public class LinkFamilyDialog extends JDialog{
 	//`FamilyPanel` or `IndividualPanel` into which to link the node
 	private JPanel panelReference;
 	private final Flef store;
-	private final SelectionListenerInterface listener;
 
 
-	public LinkFamilyDialog(final Flef store, final SelectionListenerInterface listener, final Frame parent){
+	public LinkFamilyDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
-		this.listener = listener;
 
 		initComponents();
 
 		loadData();
+	}
+
+	public final void setSelectionListener(final SelectionListenerInterface listener){
+		okButton.addActionListener(evt -> {
+			if(listener != null){
+				final GedcomNode selectedFamily = getSelectedFamily();
+				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
+			}
+
+			dispose();
+		});
 	}
 
 	public void setPanelReference(final JPanel panelReference){
@@ -183,14 +203,6 @@ public class LinkFamilyDialog extends JDialog{
 		});
 
 		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			if(listener != null){
-				final GedcomNode selectedFamily = getSelectedFamily();
-				listener.onNodeSelected(selectedFamily, SelectedNodeType.FAMILY, panelReference);
-			}
-
-			dispose();
-		});
 		cancelButton.addActionListener(evt -> dispose());
 
 		setLayout(new MigLayout());
@@ -312,7 +324,8 @@ public class LinkFamilyDialog extends JDialog{
 			+ ", type is " + type + ", child is " + ((FamilyPanel)panel).getChildReference().getID());
 
 		GUIHelper.executeOnEventDispatchThread(() -> {
-			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, listener, new javax.swing.JFrame());
+			final LinkFamilyDialog dialog = new LinkFamilyDialog(storeFlef, new javax.swing.JFrame());
+			dialog.setSelectionListener(listener);
 			final GedcomNode child = GedcomNodeBuilder.createWithIDValue(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

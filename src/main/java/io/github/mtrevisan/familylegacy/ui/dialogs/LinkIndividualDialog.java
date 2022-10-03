@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -42,14 +42,26 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.NotSerializableException;
@@ -110,21 +122,30 @@ public class LinkIndividualDialog extends JDialog{
 	private JPanel panelReference;
 	private SelectedNodeType selectionType;
 	private final Flef store;
-	private final SelectionListenerInterface listener;
 
 
-	public LinkIndividualDialog(final Flef store, final SelectionListenerInterface listener, final Frame parent){
+	public LinkIndividualDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
-		this.listener = listener;
 
 		initComponents();
 
 		loadData();
 	}
 
-	public void setPanelReference(final JPanel panelReference){
+	public final void setSelectionListener(final SelectionListenerInterface listener){
+		okButton.addActionListener(evt -> {
+			if(listener != null){
+				final GedcomNode selectedIndividual = getSelectedIndividual();
+				listener.onNodeSelected(selectedIndividual, selectionType, panelReference);
+			}
+
+			dispose();
+		});
+	}
+
+	public final void setPanelReference(final JPanel panelReference){
 		this.panelReference = panelReference;
 	}
 
@@ -168,14 +189,6 @@ public class LinkIndividualDialog extends JDialog{
 		});
 
 		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			if(listener != null){
-				final GedcomNode selectedIndividual = getSelectedIndividual();
-				listener.onNodeSelected(selectedIndividual, selectionType, panelReference);
-			}
-
-			dispose();
-		});
 		cancelButton.addActionListener(evt -> dispose());
 
 		setLayout(new MigLayout());
@@ -295,7 +308,8 @@ public class LinkIndividualDialog extends JDialog{
 			+ ", type is " + type + ", child is " + ((IndividualPanel)panel).getChildReference().getID());
 
 		GUIHelper.executeOnEventDispatchThread(() -> {
-			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, listener, new JFrame());
+			final LinkIndividualDialog dialog = new LinkIndividualDialog(storeFlef, new JFrame());
+			dialog.setSelectionListener(listener);
 			final GedcomNode child = GedcomNodeBuilder.createWithIDValue(Protocol.FLEF, "INDIVIDUAL", "CHILD_ID", null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

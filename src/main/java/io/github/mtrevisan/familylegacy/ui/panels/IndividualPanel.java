@@ -148,7 +148,6 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private GedcomNode individual;
 	private final Flef store;
 	private final BoxPanelType boxType;
-	private IndividualListenerInterface listener;
 
 	private GedcomNode childReference;
 
@@ -165,13 +164,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		loadData();
 	}
 
-	public void setIndividualListener(final IndividualListenerInterface listener){
-		this.listener = listener;
-	}
-
-	private void initComponents(){
-		setOpaque(false);
-		if(listener != null)
+	final void setIndividualListener(final IndividualListenerInterface listener){
+		if(listener != null){
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -180,35 +174,29 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				}
 			});
 
-		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
-		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
-		if(listener != null && boxType == BoxPanelType.SECONDARY){
-			familyNameLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt))
-						listener.onIndividualFocus(IndividualPanel.this, individual);
-				}
-			});
-			personalNameLabel.addMouseListener(new MouseAdapter(){
-				@Override
-				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt))
-						listener.onIndividualFocus(IndividualPanel.this, individual);
-				}
-			});
-		}
-		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
-		if(listener != null){
-			attachPopUpMenu(individual, listener);
+			if(boxType == BoxPanelType.SECONDARY){
+				familyNameLabel.addMouseListener(new MouseAdapter(){
+					@Override
+					public void mouseClicked(final MouseEvent evt){
+						if(SwingUtilities.isLeftMouseButton(evt))
+							listener.onIndividualFocus(IndividualPanel.this, individual);
+					}
+				});
+				personalNameLabel.addMouseListener(new MouseAdapter(){
+					@Override
+					public void mouseClicked(final MouseEvent evt){
+						if(SwingUtilities.isLeftMouseButton(evt))
+							listener.onIndividualFocus(IndividualPanel.this, individual);
+					}
+				});
+			}
+
+			attachPopUpMenu(listener);
 
 			refresh(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
-		}
 
-		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
-		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
-		if(listener != null){
+
 			preferredImageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			preferredImageLabel.addMouseListener(new MouseAdapter(){
 				@Override
@@ -218,6 +206,17 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 				}
 			});
 		}
+	}
+
+	private void initComponents(){
+		setOpaque(false);
+
+		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);
+		personalNameLabel.setVerticalAlignment(SwingConstants.TOP);
+		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
+
+		preferredImageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
+		setPreferredSize(preferredImageLabel, 48., IMAGE_ASPECT_RATIO);
 
 		final double shrinkFactor = getShrinkFactor();
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
@@ -227,22 +226,22 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		add(infoLabel, "cell 0 2");
 	}
 
-	private void attachPopUpMenu(final GedcomNode individual, final IndividualListenerInterface listener){
+	private void attachPopUpMenu(final IndividualListenerInterface listener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, this.individual));
+		editIndividualItem.addActionListener(e -> listener.onIndividualEdit(this, individual));
 		popupMenu.add(editIndividualItem);
 
 		linkIndividualItem.addActionListener(e -> listener.onIndividualLink(this, type));
 		popupMenu.add(linkIndividualItem);
 
-		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, this.individual));
+		unlinkIndividualItem.addActionListener(e -> listener.onIndividualUnlink(this, individual));
 		popupMenu.add(unlinkIndividualItem);
 
 		addIndividualItem.addActionListener(e -> listener.onIndividualAdd(this));
 		popupMenu.add(addIndividualItem);
 
-		removeIndividualItem.addActionListener(e -> listener.onIndividualRemove(this, this.individual));
+		removeIndividualItem.addActionListener(e -> listener.onIndividualRemove(this, individual));
 		popupMenu.add(removeIndividualItem);
 
 		addMouseListener(new PopupMouseAdapter(popupMenu, this));

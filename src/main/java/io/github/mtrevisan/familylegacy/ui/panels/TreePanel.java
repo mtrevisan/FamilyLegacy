@@ -98,8 +98,6 @@ public class TreePanel extends JPanel{
 	private GedcomNode homeFamily;
 	private final int generations;
 	private final Flef store;
-	private FamilyListenerInterface familyListener;
-	private IndividualListenerInterface individualListener;
 
 
 	public TreePanel(final GedcomNode homeFamily, final int generations, final Flef store){
@@ -116,11 +114,24 @@ public class TreePanel extends JPanel{
 	}
 
 	public void setFamilyListener(final FamilyListenerInterface familyListener){
-		this.familyListener = familyListener;
+		partner1Partners1Panel.setFamilyListener(familyListener);
+		partner1Partners2Panel.setFamilyListener(familyListener);
+		partner2Partners1Panel.setFamilyListener(familyListener);
+		partner2Partners2Panel.setFamilyListener(familyListener);
+		partner1PartnersPanel.setFamilyListener(familyListener);
+		partner2PartnersPanel.setFamilyListener(familyListener);
+		homeFamilyPanel.setFamilyListener(familyListener);
 	}
 
 	public void setIndividualListener(final IndividualListenerInterface individualListener){
-		this.individualListener = individualListener;
+		partner1Partners1Panel.setIndividualListener(individualListener);
+		partner1Partners2Panel.setIndividualListener(individualListener);
+		partner2Partners1Panel.setIndividualListener(individualListener);
+		partner2Partners2Panel.setIndividualListener(individualListener);
+		partner1PartnersPanel.setIndividualListener(individualListener);
+		partner2PartnersPanel.setIndividualListener(individualListener);
+		homeFamilyPanel.setIndividualListener(individualListener);
+		childrenPanel.setIndividualListener(individualListener);
 	}
 
 	private void initComponents3Generations(final GedcomNode family){
@@ -132,21 +143,14 @@ public class TreePanel extends JPanel{
 
 		GedcomNode childReference = extractFirstChild(partner1Parents, partner1);
 		partner1PartnersPanel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner1Parents, childReference, store, BoxPanelType.SECONDARY);
-		partner1PartnersPanel.setFamilyListener(familyListener);
-		partner1PartnersPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner1PartnersPanel);
 		childReference = extractFirstChild(partner2Parents, partner2);
 		partner2PartnersPanel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner2Parents, childReference, store, BoxPanelType.SECONDARY);
-		partner2PartnersPanel.setFamilyListener(familyListener);
-		partner2PartnersPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner2PartnersPanel);
 		childReference = extractFirstChild(homeFamily, null);
 		homeFamilyPanel = new FamilyPanel(partner1, partner2, homeFamily, childReference, store, BoxPanelType.PRIMARY);
-		homeFamilyPanel.setFamilyListener(familyListener);
-		homeFamilyPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(homeFamilyPanel);
 		childrenPanel = new ChildrenPanel(homeFamily, store);
-		childrenPanel.setIndividualListener(individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
@@ -193,44 +197,29 @@ public class TreePanel extends JPanel{
 		GedcomNode defaultChildReference = store.getPartner1(partner1Partners);
 		GedcomNode childReference = extractFirstChild(partner1Partenr1Partners, defaultChildReference);
 		partner1Partners1Panel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner1Partenr1Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner1Partners1Panel.setFamilyListener(familyListener);
-		partner1Partners1Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner1Partners1Panel);
 		defaultChildReference = store.getPartner2(partner1Partners);
 		childReference = extractFirstChild(partner1Partner2Partners, defaultChildReference);
 		partner1Partners2Panel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner1Partner2Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner1Partners2Panel.setFamilyListener(familyListener);
-		partner1Partners2Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner1Partners2Panel);
 		defaultChildReference = store.getPartner1(partner2Partners);
 		childReference = extractFirstChild(partner2Partner1Partners, defaultChildReference);
 		partner2Partners1Panel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner2Partner1Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner2Partners1Panel.setFamilyListener(familyListener);
-		partner2Partners1Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner2Partners1Panel);
 		defaultChildReference = store.getPartner2(partner2Partners);
 		childReference = extractFirstChild(partner2Partner2Partners, defaultChildReference);
 		partner2Partners2Panel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner2Partner2Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner2Partners2Panel.setFamilyListener(familyListener);
-		partner2Partners2Panel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner2Partners2Panel);
 		childReference = extractFirstChild(partner1Partners, partner1);
 		partner1PartnersPanel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner1Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner1PartnersPanel.setFamilyListener(familyListener);
-		partner1PartnersPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner1PartnersPanel);
 		childReference = extractFirstChild(partner2Partners, partner2);
 		partner2PartnersPanel = new FamilyPanel(store.createEmptyNode(), store.createEmptyNode(), partner2Partners, childReference, store, BoxPanelType.SECONDARY);
-		partner2PartnersPanel.setFamilyListener(familyListener);
-		partner2PartnersPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(partner2PartnersPanel);
 		childReference = extractFirstChild(homeFamily, store.createEmptyNode());
 		homeFamilyPanel = new FamilyPanel(partner1, partner2, homeFamily, childReference, store, BoxPanelType.PRIMARY);
-		homeFamilyPanel.setFamilyListener(familyListener);
-		homeFamilyPanel.setIndividualListener(individualListener);
 		EventBusService.subscribe(homeFamilyPanel);
 		childrenPanel = new ChildrenPanel(homeFamily, store);
-		childrenPanel.setIndividualListener(individualListener);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 

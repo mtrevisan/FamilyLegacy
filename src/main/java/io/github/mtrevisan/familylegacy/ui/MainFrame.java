@@ -81,25 +81,25 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			final Store storeGedcom = new Gedcom();
 			final Store load = storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 			store = (Flef)load.transform();
-//			final GedcomNode family = store.getFamilies().get(0);
+			final GedcomNode family = store.getFamilies().get(0);
 //			final GedcomNode family = store.getFamilies().get(4);
 //			final GedcomNode family = store.getFamilies().get(9);
 //			final GedcomNode family = store.getFamilies().get(64);
-			final GedcomNode family = store.getFamilies().get(75);
-//			final GedcomNode family = null;
+//			final GedcomNode family = store.getFamilies().get(75);
+//			final GedcomNode family = store.createEmptyNode();
 
-			linkFamilyDialog = new LinkFamilyDialog(store, this, this);
+			//FIXME
+			linkFamilyDialog = new LinkFamilyDialog(store, this);
 			linkFamilyDialog.setSize(945, 500);
 			linkFamilyDialog.setLocationRelativeTo(null);
 
-			linkIndividualDialog = new LinkIndividualDialog(store, this, this);
+			//FIXME
+			linkIndividualDialog = new LinkIndividualDialog(store, this);
 			linkIndividualDialog.setSize(850, 500);
 			linkIndividualDialog.setLocationRelativeTo(null);
 
 			getContentPane().setLayout(new BorderLayout());
 			treePanel = new TreePanel(family, 4, store);
-			treePanel.setFamilyListener(this);
-			treePanel.setIndividualListener(this);
 			getContentPane().add(treePanel, BorderLayout.NORTH);
 			pack();
 
@@ -108,12 +108,23 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			setSize(1120, 490);
 			setLocationRelativeTo(null);
 			setVisible(true);
-
-			EventBusService.subscribe(this);
 		}
 		catch(final GedcomParseException | GedcomGrammarParseException e){
 			e.printStackTrace();
 		}
+	}
+
+	public void setFamilyListener(final FamilyListenerInterface familyListener){
+		treePanel.setFamilyListener(familyListener);
+	}
+
+	public void setIndividualListener(final IndividualListenerInterface individualListener){
+		treePanel.setIndividualListener(individualListener);
+	}
+
+	public void setSelectionListener(final SelectionListenerInterface selectionListener){
+		linkFamilyDialog.setSelectionListener(selectionListener);
+		linkIndividualDialog.setSelectionListener(selectionListener);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -390,7 +401,14 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 		catch(final Exception ignored){}
 
 		//create and display the form
-		EventQueue.invokeLater(() -> (new MainFrame()).setVisible(true));
+		EventQueue.invokeLater(() -> {
+			final MainFrame frame = new MainFrame();
+			frame.setFamilyListener(frame);
+			frame.setIndividualListener(frame);
+			frame.setSelectionListener(frame);
+			frame.setVisible(true);
+			EventBusService.subscribe(frame);
+		});
 	}
 
 	private static class MyWindowAdapter extends WindowAdapter{

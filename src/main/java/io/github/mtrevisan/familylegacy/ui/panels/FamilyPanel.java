@@ -134,8 +134,6 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode family;
 	private final Flef store;
 	private final BoxPanelType boxType;
-	private FamilyListenerInterface familyListener;
-	private IndividualListenerInterface individualListener;
 
 	private GedcomNode childReference;
 
@@ -158,17 +156,8 @@ public class FamilyPanel extends JPanel{
 		loadData();
 	}
 
-	public void setFamilyListener(final FamilyListenerInterface familyListener){
-		this.familyListener = familyListener;
-	}
-
-	public void setIndividualListener(final IndividualListenerInterface individualListener){
-		this.individualListener = individualListener;
-	}
-
-	private void initComponents(){
-		setOpaque(false);
-		if(familyListener != null)
+	final void setFamilyListener(final FamilyListenerInterface familyListener){
+		if(familyListener != null){
 			addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -177,21 +166,7 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 
-		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType);
-		partner1Panel.setIndividualListener(individualListener);
-		EventBusService.subscribe(partner1Panel);
-		partner1Panel.setChildReference(childReference);
-		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType);
-		partner2Panel.setIndividualListener(individualListener);
-		EventBusService.subscribe(partner2Panel);
-		partner2Panel.setChildReference(childReference);
-		marriagePanel.setBackground(Color.WHITE);
-		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
-		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
-		marriagePanel.setPreferredSize(MARRIAGE_PANEL_DIMENSION);
-
-		if(familyListener != null){
-			attachPopUpMenu(marriagePanel, family, familyListener);
+			attachPopUpMenu(marriagePanel, familyListener);
 
 			refresh(Flef.ACTION_COMMAND_FAMILY_COUNT);
 
@@ -224,6 +199,26 @@ public class FamilyPanel extends JPanel{
 				}
 			});
 		}
+	}
+
+	final void setIndividualListener(final IndividualListenerInterface individualListener){
+		partner1Panel.setIndividualListener(individualListener);
+		partner2Panel.setIndividualListener(individualListener);
+	}
+
+	private void initComponents(){
+		setOpaque(false);
+
+		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType);
+		EventBusService.subscribe(partner1Panel);
+		partner1Panel.setChildReference(childReference);
+		partner2Panel = new IndividualPanel(SelectedNodeType.PARTNER2, partner2, store, boxType);
+		EventBusService.subscribe(partner2Panel);
+		partner2Panel.setChildReference(childReference);
+		marriagePanel.setBackground(Color.WHITE);
+		marriagePanel.setMaximumSize(MARRIAGE_PANEL_DIMENSION);
+		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
+		marriagePanel.setPreferredSize(MARRIAGE_PANEL_DIMENSION);
 
 		final Dimension minimumSize = new Dimension(PARTNER_PREVIOUS_ENABLED.getIconWidth(), PARTNER_PREVIOUS_ENABLED.getIconHeight());
 		if(boxType == BoxPanelType.PRIMARY){
@@ -253,7 +248,7 @@ public class FamilyPanel extends JPanel{
 		add(partner2Panel, "growx 50");
 	}
 
-	private void attachPopUpMenu(final JComponent component, final GedcomNode family, final FamilyListenerInterface familyListener){
+	private void attachPopUpMenu(final JComponent component, final FamilyListenerInterface familyListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
 		editFamilyItem.addActionListener(e -> familyListener.onFamilyEdit(this, family));
