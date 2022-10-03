@@ -109,7 +109,7 @@ public final class Transformer extends TransformerHelper{
 		}
 	}
 
-	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3"));
+	private static final Collection<String> ADDRESS_TAGS = new HashSet<>(Arrays.asList("CONT", "ADR1", "ADR2", "ADR3", "CITY", "STAE", "CTRY"));
 
 	private static final EmailValidator EMAIL_VALIDATOR = EmailValidator.getInstance();
 	private static final UrlValidator URL_VALIDATOR = UrlValidator.getInstance();
@@ -771,6 +771,8 @@ public final class Transformer extends TransformerHelper{
 					hierarchy.add("Country");
 				}
 			}
+			if(!place.isEmpty() && !place.getValue().isEmpty())
+				addressValue.add(place.getValue());
 			final GedcomNode destinationAddress = createWithValue("ADDRESS", addressValue.toString())
 				.addChildValue("HIERARCHY", hierarchy.toString());
 			final GedcomNode destinationPlace = create("PLACE")

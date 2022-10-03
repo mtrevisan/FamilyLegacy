@@ -529,7 +529,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 
 	private static GedcomNode extractLatestDeath(final GedcomNode individual, final Flef store){
 		int deathYear = Integer.MIN_VALUE;
-		GedcomNode death = null;
+		GedcomNode death = store.createEmptyNode();
 		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
 		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
