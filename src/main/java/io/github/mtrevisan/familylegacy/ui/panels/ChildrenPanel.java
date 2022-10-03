@@ -134,7 +134,7 @@ public final class ChildrenPanel extends JPanel{
 	}
 
 
-	public Point[] getChildrenPaintingEnterPoints(){
+	Point[] getChildrenPaintingEnterPoints(){
 		final Component[] components = getComponents();
 		final Point[] enterPoints = new Point[components.length];
 		for(int i = 0; i < components.length; i ++)
@@ -168,8 +168,8 @@ public final class ChildrenPanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
-				System.out.println("onFocusIndividual " + individual.getID());
+			public void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual){
+				System.out.println("onFocusIndividual " + individual.getID() + ", type is " + type);
 			}
 
 			@Override

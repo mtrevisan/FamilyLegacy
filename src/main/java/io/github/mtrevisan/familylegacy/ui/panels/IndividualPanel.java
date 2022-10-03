@@ -180,14 +180,14 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 					@Override
 					public void mouseClicked(final MouseEvent evt){
 						if(SwingUtilities.isLeftMouseButton(evt))
-							listener.onIndividualFocus(IndividualPanel.this, individual);
+							listener.onIndividualFocus(IndividualPanel.this, type, individual);
 					}
 				});
 				personalNameLabel.addMouseListener(new MouseAdapter(){
 					@Override
 					public void mouseClicked(final MouseEvent evt){
 						if(SwingUtilities.isLeftMouseButton(evt))
-							listener.onIndividualFocus(IndividualPanel.this, individual);
+							listener.onIndividualFocus(IndividualPanel.this, type, individual);
 					}
 				});
 			}
@@ -372,6 +372,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		personalNameLabel.setVisible(!individual.isEmpty());
 		infoLabel.setVisible(!individual.isEmpty());
 		preferredImageLabel.setVisible(!individual.isEmpty());
+
+		refresh(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -665,8 +667,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			@Override
-			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
-				System.out.println("onFocusIndividual " + individual.getID());
+			public void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual){
+				System.out.println("onFocusIndividual " + individual.getID() + ", type is " + type);
 			}
 
 			@Override

@@ -313,6 +313,8 @@ public class FamilyPanel extends JPanel{
 
 		marriagePanel.setBorder(!family.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
+
+		refresh(Flef.ACTION_COMMAND_FAMILY_COUNT);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -526,8 +528,8 @@ public class FamilyPanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
-				System.out.println("onFocusIndividual " + individual.getID());
+			public void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual){
+				System.out.println("onFocusIndividual " + individual.getID() + ", type is " + type);
 			}
 
 			@Override

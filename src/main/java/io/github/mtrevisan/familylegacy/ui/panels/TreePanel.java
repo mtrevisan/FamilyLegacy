@@ -301,8 +301,11 @@ public class TreePanel extends JPanel{
 		GedcomNode family = store.createEmptyNode();
 		//see if this individual belongs to a family
 		List<GedcomNode> families = extractFamilies(individual);
-		if(families.size() > 1){
-			//if it belongs to more than one family, select those with the oldest event
+		if(families.size() == 1)
+			//the individual belongs to exact one family, choose it and load as the primary family
+			family = families.get(0);
+		else if(families.size() > 1){
+			//the individual belongs to more than one family, select those with the oldest event
 			LocalDate oldestDate = null;
 			final List<GedcomNode> oldestFamilies = new ArrayList<>(0);
 			for(final GedcomNode f : families){
@@ -330,9 +333,6 @@ public class TreePanel extends JPanel{
 				family = all.values().iterator().next();
 			}
 		}
-		else if(families.size() == 1)
-			//the individual belongs to exact one family, choose it and load as the primary family
-			family = families.get(0);
 		return family;
 	}
 
@@ -600,8 +600,8 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
-				System.out.println("onFocusIndividual " + individual.getID());
+			public void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual){
+				System.out.println("onFocusIndividual " + individual.getID() + ", type is " + type);
 			}
 
 			@Override

@@ -85,7 +85,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 //			final GedcomNode family = store.getFamilies().get(4);
 //			final GedcomNode family = store.getFamilies().get(9);
 //			final GedcomNode family = store.getFamilies().get(64);
-//			final GedcomNode family = store.getFamilies().get(75);
+//			final GedcomNode family = store.getFamily("F797");
 //			final GedcomNode family = store.createEmptyNode();
 
 			//FIXME
@@ -254,7 +254,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			}
 
 		//update primary family
-		treePanel.loadData(null, null, nextFamily);
+		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);
 	}
 
 	@Override
@@ -274,24 +274,18 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 		}
 
 		//update primary family
-		treePanel.loadData(null, null, nextFamily);
+		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);
 	}
 
 
 	@Override
-	public void onIndividualFocus(final IndividualPanel boxPanel, final GedcomNode individual){
-		LOGGER.debug("onFocusIndividual {}", individual.getID());
+	public void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual){
+		LOGGER.debug("onFocusIndividual {}, type is {}", individual.getID(), type);
 
 		//prefer left position if male or unknown, right if female
-		GedcomNode partner1 = null;
-		GedcomNode partner2 = null;
-		if(IndividualPanel.extractSex(individual, store) == Sex.FEMALE)
-			//put in the right box
-			partner2 = individual;
-		else
-			//put in the left box
-			partner1 = individual;
-
+		final GedcomNode partner1 = (type == SelectedNodeType.PARTNER1? individual: store.createEmptyNode());
+		final GedcomNode partner2 = (type == SelectedNodeType.PARTNER2? individual: store.createEmptyNode());
+		//FIXME choose the current shown family, if any
 		final GedcomNode family = treePanel.getPreferredFamily(individual);
 
 		//update primary family
