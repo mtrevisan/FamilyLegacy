@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui;
+package io.github.mtrevisan.familylegacy.ui.components;
 
 import javax.swing.JLabel;
 import javax.swing.JToolTip;

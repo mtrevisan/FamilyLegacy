@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.parsers.Sex;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.LabelAutoToolTip;
+import io.github.mtrevisan.familylegacy.ui.components.LabelAutoToolTip;
 import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
