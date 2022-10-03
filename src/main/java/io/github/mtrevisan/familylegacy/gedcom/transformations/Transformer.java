@@ -28,12 +28,16 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
+import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.validators.PhoneNumberValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -335,14 +339,7 @@ public final class Transformer extends TransformerHelper{
 			destinationIndividual.addChildValue("PREFERRED_IMAGE", preferredMedia.getXRef());
 		destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
 
-		final GedcomNode creationDate = create("CREATION_DATE");
-		final GedcomNode date = traverse(individual, "CHAN.DATE");
-		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner timestamp = new StringJoiner("T");
-		JavaHelper.addValueIfNotNull(timestamp, date);
-		JavaHelper.addValueIfNotNull(timestamp, time);
-		creationDate.addChildValue("DATE", timestamp.toString());
-		destinationIndividual.addChild(creationDate);
+		dateTimeTo(individual, destinationIndividual);
 
 		destination.addIndividual(destinationIndividual);
 	}
@@ -356,6 +353,20 @@ public final class Transformer extends TransformerHelper{
 		if(surname != null)
 			sj.add(surname);
 		return (sj.length() > 0? sj.toString(): null);
+	}
+
+	private void dateTimeTo(final GedcomNode node, final GedcomNode destination){
+		final GedcomNode date = traverse(node, "CHAN.DATE");
+		if(!date.isEmpty()){
+			final GedcomNode time = traverse(date, "TIME");
+			final String[] timeComponents = StringUtils.split(time.getValue(), ':');
+			final LocalDateTime dateTime = DateParser.parse(date.getValue())
+				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
+
+			final GedcomNode creationDate = create("CREATION_DATE")
+				.addChildValue("DATE", DateTimeFormatter.ISO_DATE_TIME.format(dateTime));
+			destination.addChild(creationDate);
+		}
 	}
 
 	/*
@@ -374,20 +385,7 @@ public final class Transformer extends TransformerHelper{
 		final List<GedcomNode> children = traverseAsList(family, "CHIL[]");
 		for(int i = 0; i < children.size(); i ++){
 			final GedcomNode child = children.get(i);
-			boolean adopted = false;
-			final GedcomNode childRecord = origin.getIndividual(child.getXRef());
-			final List<GedcomNode> adoptions = childRecord.getChildrenWithTag("ADOP");
-			for(int j = 0; !adopted && j < adoptions.size(); j ++){
-				final List<GedcomNode> adoptingFamilies = adoptions.get(j).getChildrenWithTag("FAMC");
-				for(int k = 0; !adopted && k < adoptingFamilies.size(); k ++)
-					if(adoptingFamilies.get(k).getXRef().equals(familyID)){
-						adopted = true;
-						destinationFamily.addChild(createWithReference("CHILD", child.getXRef())
-							.addClosingChild("ADOPTED"));
-					}
-			}
-			if(!adopted)
-				destinationFamily.addChildReference("CHILD", child.getXRef());
+			destinationFamily.addChildReference("CHILD", child.getXRef());
 		}
 		//scan events one by one, maintaining order
 		final List<GedcomNode> nodeChildren = family.getChildren();
@@ -407,14 +405,7 @@ public final class Transformer extends TransformerHelper{
 			destinationFamily.addChildValue("PREFERRED_IMAGE", preferredMedia.getXRef());
 		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
 
-		final GedcomNode creationDate = create("CREATION_DATE");
-		final GedcomNode date = traverse(family, "CHAN.DATE");
-		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner timestamp = new StringJoiner("T");
-		JavaHelper.addValueIfNotNull(timestamp, date);
-		JavaHelper.addValueIfNotNull(timestamp, time);
-		creationDate.addChildValue("DATE", timestamp.toString());
-		destinationFamily.addChild(creationDate);
+		dateTimeTo(family, destinationFamily);
 
 		destination.addFamily(destinationFamily);
 	}
@@ -511,11 +502,16 @@ public final class Transformer extends TransformerHelper{
 				.addChildValue("CORPORATE", traverse(source, "CORP").getValue())
 			);
 		final GedcomNode date = traverse(header, "DATE");
-		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner timestamp = new StringJoiner("T");
-		JavaHelper.addValueIfNotNull(timestamp, date);
-		JavaHelper.addValueIfNotNull(timestamp, time);
-		destinationHeader.addChildValue("DATE", timestamp.toString());
+		if(!date.isEmpty()){
+			final GedcomNode time = traverse(date, "TIME");
+			final String[] timeComponents = StringUtils.split(time.getValue(), ':');
+			final LocalDateTime dateTime = DateParser.parse(date.getValue())
+				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
+
+			final GedcomNode creationDate = create("CREATION_DATE")
+				.addChildValue("DATE", DateTimeFormatter.ISO_DATE_TIME.format(dateTime));
+			destinationHeader.addChild(creationDate);
+		}
 		destinationHeader.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
 
 		final GedcomNode submitter = origin.getSubmitter(traverse(header, "SUBM").getXRef());
@@ -656,6 +652,9 @@ public final class Transformer extends TransformerHelper{
 		noteCitationTo(traverse(object, "SOUR"), destinationSource, origin, destination);
 		noteCitationTo(object, destinationSource, origin, destination);
 		destinationSource.addChildValue("CREDIBILITY", traverse(object, "QUAY").getValue());
+
+		dateTimeTo(object, destinationSource);
+
 		return object;
 	}
 
@@ -727,14 +726,7 @@ public final class Transformer extends TransformerHelper{
 		contactStructureTo(repository, destinationRepository);
 		noteCitationTo(repository, destinationRepository, origin, destination);
 
-		final GedcomNode creationDate = create("CREATION_DATE");
-		final GedcomNode date = traverse(repository, "CHAN.DATE");
-		final GedcomNode time = traverse(date, "TIME");
-		final StringJoiner timestamp = new StringJoiner("T");
-		JavaHelper.addValueIfNotNull(timestamp, date);
-		JavaHelper.addValueIfNotNull(timestamp, time);
-		creationDate.addChildValue("DATE", timestamp.toString());
-		destinationRepository.addChild(creationDate);
+		dateTimeTo(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -1028,19 +1020,9 @@ public final class Transformer extends TransformerHelper{
 					sourcesAdded.add(destinationSubSource);
 				}
 			}
-
-			final GedcomNode creationDate = create("CREATION_DATE");
-			date = traverse(source, "CHAN.DATE");
-			final GedcomNode time = traverse(date, "TIME");
-			final StringJoiner timestamp = new StringJoiner("T");
-			JavaHelper.addValueIfNotNull(timestamp, date);
-			JavaHelper.addValueIfNotNull(timestamp, time);
-			creationDate.addChildValue("DATE", timestamp.toString());
-			destinationSource.addChild(creationDate);
 		}
 		return sourcesAdded;
 	}
-
 
 	/*
 	for-each REPO xref|NULL create REPOSITORY
@@ -1087,7 +1069,10 @@ public final class Transformer extends TransformerHelper{
 		NOTE.value = NOTE.value
 	*/
 	void noteRecordTo(final GedcomNode note, final Flef destination){
-		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
+		final GedcomNode destinationNode = createWithIDValue("NOTE", note.getID(), note.getValue());
+		dateTimeTo(note, destinationNode);
+
+		destination.addNote(destinationNode);
 	}
 
 
@@ -1286,15 +1271,21 @@ public final class Transformer extends TransformerHelper{
 		sourceCitationFrom(individual, destinationIndividual, origin, destination);
 		destinationIndividual.addChildValue("RESN", traverse(individual, "RESTRICTION").getValue());
 
-		final String date = traverse(individual, "CREATION_DATE.DATE").getValue();
-		if(date != null){
-			final int timeIndex = date.indexOf('T', 9);
-			destinationIndividual.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
-				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
-			);
-		}
+		dateTimeFrom(individual, destinationIndividual);
 
 		destination.addIndividual(destinationIndividual);
+	}
+
+	private void dateTimeFrom(final GedcomNode node, final GedcomNode destination){
+		final String date = traverse(node, "CREATION_DATE.DATE").getValue();
+		if(date != null){
+			final TemporalAccessor dateTime = DateTimeFormatter.ISO_DATE_TIME.parse(date);
+			final GedcomNode creationDate = create("CHAN")
+				.addChild(createWithValue("DATE", DateParser.formatDate(dateTime))
+					.addChildValue("TIME", DateParser.formatTime(dateTime))
+				);
+			destination.addChild(creationDate);
+		}
 	}
 
 	/*
@@ -1311,12 +1302,13 @@ public final class Transformer extends TransformerHelper{
 		FAM.RESN.value = FAMILY.RESTRICTION.value
 	*/
 	void familyRecordFrom(final GedcomNode family, final Flef origin, final Gedcom destination){
-		final GedcomNode destinationFamily = createWithID("FAM", family.getID());
-		destinationFamily.addChildReference("HUSB", traverse(family, "PARTNER1").getXRef());
-		destinationFamily.addChildReference("WIFE", traverse(family, "PARTNER2").getXRef());
+		final GedcomNode destinationFamily = createWithID("FAM", family.getID())
+			.addChildReference("HUSB", traverse(family, "PARTNER1").getXRef())
+			.addChildReference("WIFE", traverse(family, "PARTNER2").getXRef());
 		final List<GedcomNode> children = traverseAsList(family, "CHILD[]");
 		for(final GedcomNode child : children)
 			destinationFamily.addChildReference("CHIL", child.getXRef());
+		destinationFamily.addChildValue("NCHI", String.valueOf(children.size()));
 		final List<GedcomNode> events = traverseAsList(family, "EVENT[]");
 		//scan events one by one, maintaining order
 		for(GedcomNode event : events){
@@ -1330,13 +1322,7 @@ public final class Transformer extends TransformerHelper{
 		sourceCitationFrom(family, destinationFamily, origin, destination);
 		destinationFamily.addChildValue("CREDIBILITY", traverse(family, "RESN").getValue());
 
-		final String date = traverse(family, "CREATION_DATE.DATE").getValue();
-		if(date != null){
-			final int timeIndex = date.indexOf('T', 9);
-			destinationFamily.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
-				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
-			);
-		}
+		dateTimeFrom(family, destinationFamily);
 
 		destination.addFamily(destinationFamily);
 	}
@@ -1444,6 +1430,7 @@ public final class Transformer extends TransformerHelper{
 				if(StringUtils.isNotBlank(crop))
 					obje.addChildValue("_CUT", "Y")
 						.addChildValue("_CUTD", crop);
+				dateTimeFrom(sourceRecord, obje);
 				destinationSource.addChild(obje);
 			}
 			destinationSource.addChildValue("QUAY", traverse(sourceCitation, "CREDIBILITY").getValue());
@@ -1521,8 +1508,7 @@ public final class Transformer extends TransformerHelper{
 			if(StringUtils.isNotBlank(crop))
 				obje.addChildValue("_CUT", "Y")
 					.addChildValue("_CUTD", crop);
-			destinationSource.addChild(obje
-			);
+			destinationSource.addChild(obje);
 		}
 		destinationSource.addChildValue("TEXT", sj.toString());
 		repositoryCitationFrom(source, destinationSource);
@@ -1623,13 +1609,7 @@ public final class Transformer extends TransformerHelper{
 		contactStructureFrom(repository, destinationRepository);
 		noteCitationFrom(repository, destinationRepository);
 
-		final String date = traverse(repository, "CREATION_DATE.DATE").getValue();
-		if(date != null){
-			final int timeIndex = date.indexOf('T', 9);
-			destinationRepository.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
-				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
-			);
-		}
+		dateTimeFrom(repository, destinationRepository);
 
 		destination.addRepository(destinationRepository);
 	}
@@ -1742,7 +1722,9 @@ public final class Transformer extends TransformerHelper{
 		NOTE.value = NOTE.value
 	*/
 	void noteRecordFrom(final GedcomNode note, final Gedcom destination){
-		destination.addNote(createWithIDValue("NOTE", note.getID(), note.getValue()));
+		final GedcomNode destinationNote = createWithIDValue("NOTE", note.getID(), note.getValue());
+		dateTimeFrom(note, destinationNote);
+		destination.addNote(destinationNote);
 	}
 
 }

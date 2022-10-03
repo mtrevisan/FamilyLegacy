@@ -469,8 +469,10 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			final String deathPlace = extractLatestDeathPlace(latestDeath, store);
 			String age = null;
 			if(birthDate != null && deathDate != null){
-				final boolean isAgeApproximated = (AbstractCalendarParser.isApproximation(birthDate) || AbstractCalendarParser.isRange(birthDate)
-					|| AbstractCalendarParser.isApproximation(deathDate) || AbstractCalendarParser.isRange(deathDate));
+				final boolean isAgeApproximated = (AbstractCalendarParser.isApproximation(birthDate)
+					|| AbstractCalendarParser.isRange(birthDate)
+					|| AbstractCalendarParser.isApproximation(deathDate)
+					|| AbstractCalendarParser.isRange(deathDate));
 				final boolean isAgeLessThan = (AbstractCalendarParser.isExact(birthDate) && AbstractCalendarParser.isBefore(deathDate)
 					|| AbstractCalendarParser.isAfter(birthDate) && AbstractCalendarParser.isExact(deathDate)
 					|| AbstractCalendarParser.isRange(birthDate)
@@ -650,7 +652,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		catch(final Exception ignored){}
 
 		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg",
+				"src/main/resources/ged/large.ged")
 			.transform();
 //		final GedcomNode individual = storeFlef.getIndividuals().get(0);
 //		final GedcomNode individual = storeFlef.getIndividuals().get(1500);

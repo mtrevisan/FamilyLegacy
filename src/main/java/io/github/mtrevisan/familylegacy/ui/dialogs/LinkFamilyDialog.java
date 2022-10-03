@@ -222,10 +222,10 @@ public class LinkFamilyDialog extends JDialog{
 				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
 				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
-				loadPartnerData(row, familiesModel, family, 1, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER1_NAME, TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER1_BIRTH_YEAR,
-					TABLE_INDEX_PARTNER1_DEATH_YEAR);
-				loadPartnerData(row, familiesModel, family, 2, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER2_NAME, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_BIRTH_YEAR,
-					TABLE_INDEX_PARTNER2_DEATH_YEAR);
+				loadPartnerData(row, familiesModel, family, 1, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER1_NAME,
+					TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER1_BIRTH_YEAR, TABLE_INDEX_PARTNER1_DEATH_YEAR);
+				loadPartnerData(row, familiesModel, family, 2, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER2_NAME,
+					TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_BIRTH_YEAR, TABLE_INDEX_PARTNER2_DEATH_YEAR);
 			}
 
 			final TableColumnModel columnModel = familiesTable.getColumnModel();
@@ -239,7 +239,8 @@ public class LinkFamilyDialog extends JDialog{
 	}
 
 	private void loadPartnerData(final int row, final DefaultTableModel familiesModel, final GedcomNode family, final int partnerIndex,
-			final int tableIndexPartnerId, final int tableIndexPartner, final int tableIndexPartnerAdditionalNames, final int tableIndexPartnerBirthYear, final int tableIndexPartnerDeathYear){
+			final int tableIndexPartnerId, final int tableIndexPartner, final int tableIndexPartnerAdditionalNames,
+			final int tableIndexPartnerBirthYear, final int tableIndexPartnerDeathYear){
 		final GedcomNode partner = store.getPartner(family, partnerIndex);
 		final List<String[]> partnerName = IndividualPanel.extractCompleteName(partner, store);
 		if(!partnerName.isEmpty()){
@@ -264,8 +265,9 @@ public class LinkFamilyDialog extends JDialog{
 
 	private void filterTableBy(final LinkFamilyDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_MARRIAGE_ID, TABLE_INDEX_PARTNER1_NAME, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER2_NAME,
-			TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_MARRIAGE_ID,
+			TABLE_INDEX_PARTNER1_NAME, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER2_NAME, TABLE_INDEX_PARTNER2_ID,
+			TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
@@ -335,7 +337,8 @@ public class LinkFamilyDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg",
+				"src/main/resources/ged/large.ged")
 			.transform();
 
 		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()

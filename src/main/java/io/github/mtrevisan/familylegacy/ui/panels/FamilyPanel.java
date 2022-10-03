@@ -94,8 +94,10 @@ public class FamilyPanel extends JPanel{
 		(int)(PARTNER_PREV_NEXT_WIDTH * PARTNER_PREV_NEXT_ASPECT_RATIO));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png", PARTNER_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon PARTNER_PREVIOUS_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(PARTNER_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png",
+		PARTNER_PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon PARTNER_PREVIOUS_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(PARTNER_PREVIOUS_ENABLED.getImage()));
 	private static final ImageIcon PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARTNER_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon PARTNER_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(PARTNER_NEXT_ENABLED.getImage()));
 
@@ -103,7 +105,7 @@ public class FamilyPanel extends JPanel{
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
 	private static final Dimension MARRIAGE_PANEL_DIMENSION = new Dimension(13, 12);
 	static final int FAMILY_EXITING_HEIGHT = FAMILY_CONNECTION_HEIGHT - MARRIAGE_PANEL_DIMENSION.height / 2;
-	private static final int HALF_PARTNER_SEPARATION = 10;
+	private static final int HALF_PARTNER_SEPARATION = 6;
 	static final int FAMILY_SEPARATION = HALF_PARTNER_SEPARATION + MARRIAGE_PANEL_DIMENSION.width + HALF_PARTNER_SEPARATION;
 	/** Distance between navigation arrow and box. */
 	static final int NAVIGATION_ARROW_SEPARATION = 3;
@@ -138,7 +140,8 @@ public class FamilyPanel extends JPanel{
 	private GedcomNode childReference;
 
 
-	FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference, final Flef store, final BoxPanelType boxType){
+	FamilyPanel(final GedcomNode partner1, final GedcomNode partner2, final GedcomNode family, final GedcomNode childReference,
+			final Flef store, final BoxPanelType boxType){
 		this.store = store;
 
 		this.partner1 = (partner1.isEmpty() && !family.isEmpty()? store.getPartner1(family): partner1);
@@ -158,7 +161,7 @@ public class FamilyPanel extends JPanel{
 
 	final void setFamilyListener(final FamilyListenerInterface familyListener){
 		if(familyListener != null){
-			addMouseListener(new MouseAdapter(){
+			marriagePanel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
@@ -330,7 +333,8 @@ public class FamilyPanel extends JPanel{
 		removeFamilyItem.setEnabled(!family.isEmpty());
 	}
 
-	private void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel, final JLabel partnerNextLabel){
+	private void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel,
+			final JLabel partnerNextLabel){
 		//get list of marriages for the `other partner`
 		final List<GedcomNode> otherMarriages = store.traverseAsList(otherPartner, "FAMILY_PARTNER[]");
 		//find current marriage in list
@@ -559,7 +563,8 @@ public class FamilyPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final FamilyPanel panel = new FamilyPanel(storeFlef.createEmptyNode(), storeFlef.createEmptyNode(), family, storeFlef.createEmptyNode(), storeFlef, boxType);
+			final FamilyPanel panel = new FamilyPanel(storeFlef.createEmptyNode(), storeFlef.createEmptyNode(), family,
+				storeFlef.createEmptyNode(), storeFlef, boxType);
 			panel.setFamilyListener(familyListener);
 			panel.setIndividualListener(individualListener);
 			EventBusService.subscribe(panel);

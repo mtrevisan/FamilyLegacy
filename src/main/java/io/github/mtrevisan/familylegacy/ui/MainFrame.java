@@ -104,7 +104,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 			setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			addWindowListener(new MyWindowAdapter());
-			setSize(1120, 490);
+			setSize(1150, 472);
 			setLocationRelativeTo(null);
 			setVisible(true);
 		}
@@ -208,11 +208,11 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 	@Override
 	public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
-		//TODO
-		System.out.println("onEditFamily " + family.getID());
+		LOGGER.debug("onEditFamily " + family.getID());
 
+		//TODO
 		final FamilyRecordDialog familyDialog = new FamilyRecordDialog(family, store, this);
-		familyDialog.setSize(200, 250);
+		familyDialog.setSize(340, 300);
 		familyDialog.setLocationRelativeTo(this);
 		familyDialog.setVisible(true);
 	}
@@ -227,14 +227,16 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 	@Override
 	public void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family){
+		LOGGER.debug("onUnlinkFamily " + family.getID());
+
 		//TODO
-		System.out.println("onUnlinkFamily " + family.getID());
 	}
 
 	@Override
 	public void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family){
+		LOGGER.debug("onRemoveFamily " + family.getID());
+
 		//TODO
-		System.out.println("onRemoveFamily " + family.getID());
 	}
 
 	@Override
@@ -294,7 +296,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@Override
 	public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		System.out.println("onEditIndividual " + individual.getID());
+		LOGGER.debug("onEditIndividual " + individual.getID());
 	}
 
 	@Override
@@ -309,25 +311,25 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@Override
 	public void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		System.out.println("onUnlinkIndividual " + individual.getID());
+		LOGGER.debug("onUnlinkIndividual " + individual.getID());
 	}
 
 	@Override
 	public void onIndividualAdd(final IndividualPanel boxPanel){
 		//TODO
-		System.out.println("onAddIndividual");
+		LOGGER.debug("onAddIndividual");
 	}
 
 	@Override
 	public void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		System.out.println("onRemoveIndividual " + individual.getID());
+		LOGGER.debug("onRemoveIndividual " + individual.getID());
 	}
 
 	@Override
 	public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		System.out.println("onAddPreferredImage " + individual.getID());
+		LOGGER.debug("onAddPreferredImage " + individual.getID());
 	}
 
 
@@ -362,7 +364,8 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkChildToFamily(final GedcomNode child, final GedcomNode partner, final List<GedcomNode> partners, final String partnerTag){
+	private void linkChildToFamily(final GedcomNode child, final GedcomNode partner, final List<GedcomNode> partners,
+			final String partnerTag){
 		if(partners.isEmpty())
 			linkIndividualToNewFamily(child, partner, partnerTag);
 		else if(partners.size() == 1)

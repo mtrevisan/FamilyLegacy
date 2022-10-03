@@ -312,7 +312,8 @@ public class LinkIndividualDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Store storeGedcom = new Gedcom();
-		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged")
+		final Flef storeFlef = (Flef)storeGedcom.load("/gedg/gedcom_5.5.1.tcgb.gedg",
+				"src/main/resources/ged/large.ged")
 			.transform();
 
 		final SelectionListenerInterface listener = (node, type, panel) -> System.out.println("onNodeSelected " + node.getID()

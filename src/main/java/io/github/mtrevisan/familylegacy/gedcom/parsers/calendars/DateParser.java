@@ -29,6 +29,9 @@ import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 
@@ -41,6 +44,10 @@ public final class DateParser{
 	private static final Pattern PATTERN_AND = RegexHelper.pattern("(?i)AND");
 	private static final String DESCRIPTION_AND = "And";
 	private static final String TYPE_AND = "AND";
+
+	private static final DateTimeFormatter GEDCOM_DATE = DateTimeFormatter.ofPattern("dd MMM yyyy");
+	private static final DateTimeFormatter GEDCOM_TIME = DateTimeFormatter.ofPattern("HH:mm:ss");
+
 
 	private DateParser(){}
 
@@ -69,6 +76,15 @@ public final class DateParser{
 			localDate = calendar.parse(date, preciseness);
 		}
 		return localDate;
+	}
+
+	public static String formatDate(final TemporalAccessor dateTime){
+		return GEDCOM_DATE.format(dateTime)
+			.toUpperCase(Locale.ROOT);
+	}
+
+	public static String formatTime(final TemporalAccessor dateTime){
+		return GEDCOM_TIME.format(dateTime);
 	}
 
 	public static CalendarData toCalendarData(final String date){
