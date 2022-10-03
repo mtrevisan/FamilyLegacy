@@ -51,6 +51,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -75,7 +76,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
-//TODO
 public class LinkIndividualDialog extends JDialog{
 
 	@Serial
@@ -156,7 +156,7 @@ public class LinkIndividualDialog extends JDialog{
 		final TableCellRenderer nameRenderer = new IndividualTableCellRenderer();
 		individualsTable.setDefaultRenderer(String.class, nameRenderer);
 		final IndividualTableCellRenderer rightAlignedRenderer = new IndividualTableCellRenderer();
-		rightAlignedRenderer.setHorizontalAlignment(JLabel.RIGHT);
+		rightAlignedRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_INDIVIDUAL_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_SEX, 0, SEX_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_NAME, 0, NAME_PREFERRED_WIDTH);
@@ -236,7 +236,7 @@ public class LinkIndividualDialog extends JDialog{
 		}
 	}
 
-	public void reset(){
+	public final void reset(){
 		((DefaultTableModel) individualsTable.getModel()).setRowCount(0);
 		filterField.setEnabled(false);
 	}
@@ -256,11 +256,11 @@ public class LinkIndividualDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
-	public void setSelectionType(final SelectedNodeType selectionType){
+	public final void setSelectionType(final SelectedNodeType selectionType){
 		this.selectionType = selectionType;
 	}
 
-	public GedcomNode getSelectedIndividual(){
+	public final GedcomNode getSelectedIndividual(){
 		final int viewRow = individualsTable.getSelectedRow();
 		GedcomNode individual = null;
 		if(viewRow >= 0){
@@ -268,6 +268,41 @@ public class LinkIndividualDialog extends JDialog{
 			individual = store.getIndividuals().get(selectedRow);
 		}
 		return individual;
+	}
+
+
+	private static class IndividualsTableModel extends DefaultTableModel{
+
+		@Serial
+		private static final long serialVersionUID = 2228949520472700949L;
+
+
+		IndividualsTableModel(){
+			super(new String[]{"ID", "Sex", "Name", "Birth year", "Birth place", "Death year", "Death place", "additional names"}, 0);
+		}
+
+		@Override
+		public final Class<?> getColumnClass(final int column){
+			return String.class;
+		}
+
+		@Override
+		public final boolean isCellEditable(final int row, final int column){
+			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
 	}
 
 
@@ -303,41 +338,6 @@ public class LinkIndividualDialog extends JDialog{
 			final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 			scheduler.schedule(dialog::loadData, 3, TimeUnit.SECONDS);
 		});
-	}
-
-
-	private static class IndividualsTableModel extends DefaultTableModel{
-
-		@Serial
-		private static final long serialVersionUID = 2228949520472700949L;
-
-
-		IndividualsTableModel(){
-			super(new String[]{"ID", "Sex", "Name", "Birth year", "Birth place", "Death year", "Death place", "additional names"}, 0);
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public boolean isCellEditable(final int row, final int column){
-			return false;
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
 	}
 
 }
