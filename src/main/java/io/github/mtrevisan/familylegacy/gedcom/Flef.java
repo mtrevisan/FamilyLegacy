@@ -352,7 +352,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getIndividual(final String id){
-		return individualIndex.get(id);
+		return (StringUtils.isNotBlank(id)? individualIndex.get(id): null);
 	}
 
 	public void addIndividual(final GedcomNode individual){
@@ -402,7 +402,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getFamily(final String id){
-		return familyIndex.get(id);
+		return (StringUtils.isNotBlank(id)? familyIndex.get(id): null);
 	}
 
 	public void addFamily(final GedcomNode family){
@@ -487,7 +487,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getGroup(final String id){
-		return groupIndex.get(id);
+		return (StringUtils.isNotBlank(id)? groupIndex.get(id): null);
 	}
 
 	public String addGroup(final GedcomNode group){
@@ -538,7 +538,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getEvent(final String id){
-		return eventIndex.get(id);
+		return (StringUtils.isNotBlank(id)? eventIndex.get(id): null);
 	}
 
 	public void addEvent(final GedcomNode event){
@@ -590,7 +590,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getPlace(final String id){
-		return placeIndex.get(id);
+		return (StringUtils.isNotBlank(id)? placeIndex.get(id): null);
 	}
 
 	public void addPlace(final GedcomNode place){
@@ -642,7 +642,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getNote(final String id){
-		return noteIndex.get(id);
+		return (StringUtils.isNotBlank(id)? noteIndex.get(id): null);
 	}
 
 	public String addNote(final GedcomNode note){
@@ -686,7 +686,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getRepository(final String id){
-		return repositoryIndex.get(id);
+		return (StringUtils.isNotBlank(id)? repositoryIndex.get(id): null);
 	}
 
 	public String addRepository(final GedcomNode repository){
@@ -739,7 +739,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getCulturalRule(final String id){
-		return culturalRuleIndex.get(id);
+		return (StringUtils.isNotBlank(id)? culturalRuleIndex.get(id): null);
 	}
 
 	public String addCulturalRule(final GedcomNode culturalRule){
@@ -792,7 +792,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getSource(final String id){
-		return sourceIndex.get(id);
+		return (StringUtils.isNotBlank(id)? sourceIndex.get(id): null);
 	}
 
 	public String addSource(final GedcomNode source){
@@ -845,7 +845,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getCalendar(final String id){
-		return calendarIndex.get(id);
+		return (StringUtils.isNotBlank(id)? calendarIndex.get(id): null);
 	}
 
 	public GedcomNode getCalendarByType(final String type){
@@ -906,7 +906,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getHistoricEvent(final String id){
-		return historicEventIndex.get(id);
+		return (StringUtils.isNotBlank(id)? historicEventIndex.get(id): null);
 	}
 
 	public String addHistoricEvent(final GedcomNode historicEvent){
@@ -950,7 +950,7 @@ public class Flef extends Store{
 	}
 
 	public GedcomNode getResearchStatus(final String id){
-		return researchStatusIndex.get(id);
+		return (StringUtils.isNotBlank(id)? researchStatusIndex.get(id): null);
 	}
 
 	public String addResearchStatus(final GedcomNode researchStatus){

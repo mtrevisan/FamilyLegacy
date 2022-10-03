@@ -407,7 +407,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	public static String extractBirthYear(final GedcomNode individual, final Flef store){
 		String year = null;
 		if(individual != null){
-			final String birthDate = extractEarliestBirthDate(individual, store);
+			final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
+			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
 			if(birthDate != null)
 				year = DateParser.extractYear(birthDate);
 		}
@@ -415,13 +416,15 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	public static String extractBirthPlace(final GedcomNode individual, final Flef store){
-		return (individual != null? extractEarliestBirthPlace(individual, store): null);
+		final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
+		return (individual != null? extractEarliestBirthPlace(earliestBirth, store): null);
 	}
 
 	public static String extractDeathYear(final GedcomNode individual, final Flef store){
 		String year = null;
 		if(individual != null){
-			final String deathDate = extractLatestDeathDate(individual, store);
+			final GedcomNode latestDeath = extractLatestDeath(individual, store);
+			final String deathDate = extractLatestDeathDate(latestDeath, store);
 			if(deathDate != null)
 				year = DateParser.extractYear(deathDate);
 		}
@@ -429,14 +432,19 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	public static String extractDeathPlace(final GedcomNode individual, final Flef store){
-		return (individual != null? extractLatestDeathPlace(individual, store): null);
+		final GedcomNode latestDeath = extractLatestDeath(individual, store);
+		return (individual != null? extractLatestDeathPlace(latestDeath, store): null);
 	}
 
 	private int extractBirthDeathAge(final StringJoiner sj, final StringJoiner toolTipSJ){
 		int lifeSpan = -1;
 		if(individual != null){
-			final String birthDate = extractEarliestBirthDate(individual, store);
-			final String deathDate = extractLatestDeathDate(individual, store);
+			final GedcomNode earliestBirth = extractEarliestBirth(individual, store);
+			final GedcomNode latestDeath = extractLatestDeath(individual, store);
+			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
+			final String birthPlace = extractEarliestBirthPlace(earliestBirth, store);
+			final String deathDate = extractLatestDeathDate(latestDeath, store);
+			final String deathPlace = extractLatestDeathPlace(latestDeath, store);
 			String age = null;
 			if(birthDate != null && deathDate != null){
 				final boolean isApproximated = (AbstractCalendarParser.isApproximation(birthDate)
@@ -450,7 +458,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 					age = "~";
 				final LocalDate birth = DateParser.parse(birthDate);
 				final LocalDate death = DateParser.parse(deathDate);
-				age += Period.between(birth, death).getYears();
+				lifeSpan = Period.between(birth, death).getYears();
+				age += lifeSpan;
 			}
 
 			sj.add(birthDate != null? DateParser.extractYear(birthDate): NO_DATA);
@@ -459,103 +468,112 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			if(age != null)
 				sj.add("(" + age + ")");
 
-			toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
-			toolTipSJ.add("-");
-			toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
+			if(birthPlace != null || deathPlace != null){
+				toolTipSJ.add("<html>");
+				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
+				if(birthPlace != null)
+					toolTipSJ.add("<br>(" + birthPlace + ")");
+				toolTipSJ.add("<br>-<br>");
+				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
+				if(deathPlace != null)
+					toolTipSJ.add("<br>(" + deathPlace + ")");
+				toolTipSJ.add("</html>");
+			}
+			else{
+				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
+				toolTipSJ.add("-");
+				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
+			}
 		}
 		return lifeSpan;
 	}
 
-	private static String extractEarliestBirthDate(final GedcomNode individual, final Flef store){
+	private static GedcomNode extractEarliestBirth(final GedcomNode individual, final Flef store){
 		int birthYear = Integer.MAX_VALUE;
-		String birthDate = null;
+		GedcomNode birth = store.createEmptyNode();
 		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
 		for(final GedcomNode node : birthEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int y = date.getYear();
-				if(birthDate == null || y < birthYear){
+				if(y < birthYear){
 					birthYear = y;
-					birthDate = dateValue;
+					birth = node;
 				}
 			}
+		}
+		return birth;
+	}
+
+	private static String extractEarliestBirthDate(final GedcomNode earliestBirth, final Flef store){
+		String birthDate = null;
+		if(!earliestBirth.isEmpty()){
+			final String dateValue = store.traverse(earliestBirth, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null)
+				birthDate = dateValue;
 		}
 		return birthDate;
 	}
 
-	private static String extractEarliestBirthPlace(final GedcomNode individual, final Flef store){
-		int birthYear = Integer.MAX_VALUE;
+	private static String extractEarliestBirthPlace(final GedcomNode earliestBirth, final Flef store){
 		String birthPlace = null;
-		final List<GedcomNode> birthEvents = extractTaggedEvents(individual, "BIRTH", store);
-		for(final GedcomNode node : birthEvents){
-			final String dateValue = store.traverse(node, "DATE").getValue();
-			final LocalDate date = DateParser.parse(dateValue);
-			if(date != null){
-				final int y = date.getYear();
-				if(birthPlace == null || y < birthYear){
-					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						birthYear = y;
-						birthPlace = extractPlace(place, store);
-					}
-				}
-			}
+		if(!earliestBirth.isEmpty()){
+			final GedcomNode place = store.getPlace(store.traverse(earliestBirth, "PLACE").getXRef());
+			if(place != null)
+				birthPlace = extractPlace(place, store);
 		}
 		return birthPlace;
 	}
 
-	private static String extractLatestDeathDate(final GedcomNode individual, final Flef store){
+	private static GedcomNode extractLatestDeath(final GedcomNode individual, final Flef store){
 		int deathYear = Integer.MIN_VALUE;
-		String deathDate = null;
+		GedcomNode death = null;
 		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
 		for(final GedcomNode node : deathEvents){
 			final String dateValue = store.traverse(node, "DATE").getValue();
 			final LocalDate date = DateParser.parse(dateValue);
 			if(date != null){
 				final int y = date.getYear();
-				if(deathDate == null || y > deathYear){
+				if(y > deathYear){
 					deathYear = y;
-					deathDate = dateValue;
+					death = node;
 				}
 			}
+		}
+		return death;
+	}
+
+	private static String extractLatestDeathDate(final GedcomNode latestDeath, final Flef store){
+		String deathDate = null;
+		if(!latestDeath.isEmpty()){
+			final String dateValue = store.traverse(latestDeath, "DATE").getValue();
+			final LocalDate date = DateParser.parse(dateValue);
+			if(date != null)
+				deathDate = dateValue;
 		}
 		return deathDate;
 	}
 
-	private static String extractLatestDeathPlace(final GedcomNode individual, final Flef store){
-		int deathYear = Integer.MIN_VALUE;
+	private static String extractLatestDeathPlace(final GedcomNode latestDeath, final Flef store){
 		String deathPlace = null;
-		final List<GedcomNode> deathEvents = extractTaggedEvents(individual, "DEATH", store);
-		for(final GedcomNode node : deathEvents){
-			final String dateValue = store.traverse(node, "DATE").getValue();
-			final LocalDate date = DateParser.parse(dateValue);
-			if(date != null){
-				final int y = date.getYear();
-				if(deathPlace == null || y > deathYear){
-					final GedcomNode place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						deathYear = y;
-						deathPlace = extractPlace(place, store);
-					}
-				}
-			}
+		if(!latestDeath.isEmpty()){
+			final GedcomNode place = store.getPlace(store.traverse(latestDeath, "PLACE").getXRef());
+			if(place != null)
+				deathPlace = extractPlace(place, store);
 		}
 		return deathPlace;
 	}
 
 	private static String extractPlace(final GedcomNode place, final Flef store){
 		final GedcomNode addressEarliest = extractEarliestAddress(place, store);
-
-		String placeValue = store.traverse(addressEarliest, "ADDRESS").getValue();
-		if(placeValue == null)
-			placeValue = store.traverse(addressEarliest, "NAME").getValue();
-		return placeValue;
+		return addressEarliest.getValue();
 	}
 
 	private static GedcomNode extractEarliestAddress(final GedcomNode place, final Flef store){
 		final List<GedcomNode> addresses = store.traverseAsList(place, "ADDRESS[]");
-		return (addresses.isEmpty()? null: addresses.get(0));
+		return (!addresses.isEmpty()? addresses.get(0): store.traverse(place, "NAME"));
 	}
 
 	private static List<GedcomNode> extractTaggedEvents(final GedcomNode node, final String eventType, final Flef store){
