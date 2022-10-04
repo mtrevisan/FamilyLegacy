@@ -93,27 +93,25 @@ public class FamilyRecordDialog extends JDialog{
 		setTitle("Family record");
 
 /*
-		+1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:M}
-		+1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:M}
+		+1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:1}
+			+2 NOTE @<XREF:NOTE>@    {0:M}
+		+1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:1}
+			+2 NOTE @<XREF:NOTE>@    {0:M}
 		+1 CHILD @<XREF:INDIVIDUAL>@    {0:M}
-		+2 ADOPTED    {0:1}
+			+2 NOTE @<XREF:NOTE>@    {0:M}
 		+1 EVENT @<XREF:EVENT>@    {0:M}
-		n GROUP @<XREF:GROUP>@    {0:M}
-			+1 ROLE <ROLE_IN_GROUP>    {0:1}
-			+1 NOTE @<XREF:NOTE>@    {0:M}
-			+1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
-			+1 RESTRICTION <confidential>    {0:1}
+		+1 <<GROUP_CITATION>>    {0:M}
 		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}
 		+1 NOTE @<XREF:NOTE>@    {0:M}
-		n SOURCE @<XREF:SOURCE>@    {0:M}
-			+1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}
-			+1 ROLE <ROLE_IN_EVENT>    {0:1}
-			+1 CROP <CROP_COORDINATES>    {1:1}
-			+1 NOTE @<XREF:NOTE>@    {0:M}
-			+1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
-		+1 PREFERRED_IMAGE <IMAGE_FILE_REFERENCE>    {0:1}
+		+1 <<SOURCE_CITATION>>    {0:M}
+		+1 PREFERRED_IMAGE <DOCUMENT_FILE_REFERENCE>    {0:1}
 		+2 CROP <CROP_COORDINATES>    {0:1}
 		+1 RESTRICTION <confidential>    {0:1}
+		+1 CREATION_DATE    {0:1}
+			+2 DATE <CREATION_DATE>    {1:1}
+		+1 CHANGING_DATE    {0:M}
+			+2 DATE <CREATION_DATE>    {1:1}
+			+2 NOTE @<XREF:NOTE>@    {0:1}
 */
 
 		final GedcomNode partner1 = store.getPartner1(family);

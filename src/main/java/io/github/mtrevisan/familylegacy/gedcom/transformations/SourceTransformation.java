@@ -35,7 +35,7 @@ public class SourceTransformation extends Transformation<Gedcom, Flef>{
 
 	@Override
 	public void to(final Gedcom origin, final Flef destination){
-		GedcomNode sourcesParent = transformerTo.createEmpty();
+		final GedcomNode sourcesParent = transformerTo.createEmpty();
 		final List<GedcomNode> sources = origin.getSources();
 		for(GedcomNode source : sources)
 			sourcesParent.addChild(source);
