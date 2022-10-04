@@ -96,7 +96,8 @@ public class ScaledImage extends JLabel{
 	public ScaledImage(final CropListenerInterface listener){
 		this.listener = listener;
 
-		initComponents();
+		if(listener != null)
+			initComponents();
 	}
 
 	private void initComponents(){

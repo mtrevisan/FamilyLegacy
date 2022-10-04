@@ -336,7 +336,9 @@ public final class Transformer extends TransformerHelper{
 		sourceCitationTo(individual, destinationIndividual, origin, destination);
 		GedcomNode preferredMedia = multimediaCitationTo(individual, destinationIndividual, origin, destination);
 		if(preferredMedia != null && !preferredMedia.isEmpty())
-			destinationIndividual.addChildValue("PREFERRED_IMAGE", preferredMedia.getXRef());
+			destinationIndividual.addChild(createWithValue("PREFERRED_IMAGE", preferredMedia.getXRef())
+				.addChildValue("CROP", traverse(preferredMedia, "CROP").getValue())
+			);
 		destinationIndividual.addChildValue("RESTRICTION", traverse(individual, "RESN").getValue());
 
 		dateTimeTo(individual, destinationIndividual);
@@ -603,7 +605,7 @@ public final class Transformer extends TransformerHelper{
 			final GedcomNode source = createWithReference("SOURCE", destinationSource.getID());
 			destinationNode.addChild(source);
 			if(preferred)
-				preferredMedia = source;
+				preferredMedia = source.addChildValue("CROP", traverse(object, "_CUTD").getValue());
 		}
 		return preferredMedia;
 	}

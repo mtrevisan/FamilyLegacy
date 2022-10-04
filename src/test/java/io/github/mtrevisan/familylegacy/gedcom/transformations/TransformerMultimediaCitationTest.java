@@ -72,7 +72,7 @@ class TransformerMultimediaCitationTest{
 		final Flef destination = new Flef();
 		GedcomNode preferredMedia = transformerTo.multimediaCitationTo(parent, destinationNode, origin, destination);
 
-		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1}]", destinationNode.toString());
+		Assertions.assertEquals("children: [{tag: SOURCE, ref: S1, children: [{tag: CROP, value: CUT_COORDINATES}]}]", destinationNode.toString());
 		Assertions.assertEquals(destinationNode.getChildren().get(0), preferredMedia);
 	}
 

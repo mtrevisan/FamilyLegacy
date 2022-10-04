@@ -515,10 +515,12 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							dialog = new CropDialog(parent);
 							final GedcomNode container = editCommand.getContainer();
 							//TODO add base path?
-							final String file = store.traverse(container, "SOURCE").getValue();
-							final String crop = store.traverse(container, "CROP").getValue();
+							final String imagePath = store.traverse(container, "SOURCE")
+								.getValue();
+							final String crop = store.traverse(container, "CROP")
+								.getValue();
 							final String[] coordinates = (!crop.isEmpty()? StringUtils.split(crop, ' '): null);
-							((CropDialog)dialog).loadData(file, editCommand.getOnCloseGracefully());
+							((CropDialog)dialog).loadData(imagePath, editCommand.getOnCloseGracefully());
 							if(coordinates != null){
 								((CropDialog)dialog).setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
 								((CropDialog)dialog).setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));

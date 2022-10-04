@@ -207,14 +207,14 @@ public class LinkIndividualDialog extends JDialog{
 
 				individualsTableModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
 				individualsTableModel.setValueAt(IndividualPanel.extractSex(individual, store).getCode(), row, TABLE_INDEX_SEX);
-				final List<String[]> name = IndividualPanel.extractCompleteName(individual, store);
-				if(!name.isEmpty()){
-					final String[] firstPersonalName = name.get(0);
-					individualsTableModel.setValueAt(firstPersonalName[0] + NAMES_SEPARATOR + firstPersonalName[1], row, TABLE_INDEX_NAME);
+				final List<String[]> completeNames = IndividualPanel.extractCompleteName(individual, store);
+				if(!completeNames.isEmpty()){
+					final String[] firstCompleteName = completeNames.get(0);
+					individualsTableModel.setValueAt(firstCompleteName[0] + NAMES_SEPARATOR + firstCompleteName[1], row, TABLE_INDEX_NAME);
 					final StringJoiner sj = new StringJoiner("<br>");
-					for(int i = 1; i < name.size(); i ++){
-						final String[] nthPersonalName = name.get(i);
-						sj.add(nthPersonalName[0] + NAMES_SEPARATOR + nthPersonalName[1]);
+					for(int i = 1; i < completeNames.size(); i ++){
+						final String[] nthCompleteName = completeNames.get(i);
+						sj.add(nthCompleteName[0] + NAMES_SEPARATOR + nthCompleteName[1]);
 					}
 					if(sj.length() > 0)
 						individualsTableModel.setValueAt("<html>" + sj + "</html>", row, TABLE_INDEX_ADDITIONAL_NAMES);
