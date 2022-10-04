@@ -213,18 +213,18 @@ public class LinkFamilyDialog extends JDialog{
 
 		final int size = families.size();
 		if(size > 0){
-			final DefaultTableModel familiesModel = (DefaultTableModel)familiesTable.getModel();
-			familiesModel.setRowCount(size);
+			final DefaultTableModel familiesTableModel = (DefaultTableModel)familiesTable.getModel();
+			familiesTableModel.setRowCount(size);
 
 			for(int row = 0; row < size; row ++){
 				final GedcomNode family = families.get(row);
 
-				familiesModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
-				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
-				familiesModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
-				loadPartnerData(row, familiesModel, family, 1, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER1_NAME,
+				familiesTableModel.setValueAt(family.getID(), row, TABLE_INDEX_MARRIAGE_ID);
+				familiesTableModel.setValueAt(FamilyPanel.extractEarliestMarriageYear(family, store), row, TABLE_INDEX_MARRIAGE_YEAR);
+				familiesTableModel.setValueAt(FamilyPanel.extractEarliestMarriagePlace(family, store), row, TABLE_INDEX_MARRIAGE_PLACE);
+				loadPartnerData(row, familiesTableModel, family, 1, TABLE_INDEX_PARTNER1_ID, TABLE_INDEX_PARTNER1_NAME,
 					TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER1_BIRTH_YEAR, TABLE_INDEX_PARTNER1_DEATH_YEAR);
-				loadPartnerData(row, familiesModel, family, 2, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER2_NAME,
+				loadPartnerData(row, familiesTableModel, family, 2, TABLE_INDEX_PARTNER2_ID, TABLE_INDEX_PARTNER2_NAME,
 					TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_BIRTH_YEAR, TABLE_INDEX_PARTNER2_DEATH_YEAR);
 			}
 

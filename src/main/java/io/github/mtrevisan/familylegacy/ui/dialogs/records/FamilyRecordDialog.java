@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
@@ -42,9 +43,17 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.UIManager;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.List;
 import java.util.StringJoiner;
@@ -56,6 +65,8 @@ public class FamilyRecordDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 2075397360104239479L;
 
+	private static final int CHILDREN_TABLE_INDEX_NAME = 0;
+
 	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "unknown",
 		"marriage", "not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",
 		"living together", "living apart together"});
@@ -66,6 +77,8 @@ public class FamilyRecordDialog extends JDialog{
 	private final JButton partner1Button = new JButton(StringUtils.EMPTY);
 	private final JLabel partner2Label = new JLabel("Partner 2:");
 	private final JButton partner2Button = new JButton(StringUtils.EMPTY);
+	private final JLabel childrenLabel = new JLabel("Children:");
+	private final JTable childrenTable = new JTable(new ChildrenTableModel());
 	private final JButton eventsButton = new JButton("Events");
 	private final JButton groupsButton = new JButton("Groups");
 	private final JButton culturalRulesButton = new JButton("Cultural Rules");
@@ -99,19 +112,20 @@ public class FamilyRecordDialog extends JDialog{
 			+2 NOTE @<XREF:NOTE>@    {0:M}
 		+1 CHILD @<XREF:INDIVIDUAL>@    {0:M}
 			+2 NOTE @<XREF:NOTE>@    {0:M}
+
 		+1 EVENT @<XREF:EVENT>@    {0:M}
+
 		+1 <<GROUP_CITATION>>    {0:M}
+
 		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}
+
 		+1 NOTE @<XREF:NOTE>@    {0:M}
+
 		+1 <<SOURCE_CITATION>>    {0:M}
+
 		+1 PREFERRED_IMAGE <DOCUMENT_FILE_REFERENCE>    {0:1}
-		+2 CROP <CROP_COORDINATES>    {0:1}
+			+2 CROP <CROP_COORDINATES>    {0:1}
 		+1 RESTRICTION <confidential>    {0:1}
-		+1 CREATION_DATE    {0:1}
-			+2 DATE <CREATION_DATE>    {1:1}
-		+1 CHANGING_DATE    {0:M}
-			+2 DATE <CREATION_DATE>    {1:1}
-			+2 NOTE @<XREF:NOTE>@    {0:1}
 */
 
 		final GedcomNode partner1 = store.getPartner1(family);
@@ -125,6 +139,16 @@ public class FamilyRecordDialog extends JDialog{
 		partner2Button.setEnabled(partner2 != null);
 		if(partner2 != null)
 			partner2Button.setText(getPartnerReference(partner2));
+
+		final List<GedcomNode> children = family.getChildren();
+		final DefaultTableModel childrenTableModel = (DefaultTableModel)childrenTable.getModel();
+		final int size = children.size();
+		childrenTableModel.setRowCount(size);
+		for(int i = 0; i < size; i ++){
+			final GedcomNode child = children.get(i);
+
+			childrenTableModel.setValueAt(family.getID(), i, CHILDREN_TABLE_INDEX_NAME);
+		}
 
 		eventsButton.addActionListener(e -> {
 			//TODO
@@ -152,18 +176,53 @@ public class FamilyRecordDialog extends JDialog{
 		});
 		restrictionComboBox.setSelectedIndex(0);
 
+
+		final JTabbedPane tabbedPane = new JTabbedPane();
+
+		final JPanel panelMembers = new JPanel();
+		panelMembers.setLayout(new MigLayout());
+		panelMembers.add(partner1Label, "align label,split 2");
+		panelMembers.add(partner1Button, "grow,wrap");
+		panelMembers.add(partner2Label, "align label,split 2");
+		panelMembers.add(partner2Button, "grow,wrap");
+		panelMembers.add(childrenLabel, "grow,wrap");
+		panelMembers.add(childrenTable, "grow,wrap");
+
+		final JPanel panelEvents = new JPanel();
+		panelEvents.setLayout(new MigLayout());
+		panelEvents.add(eventsButton, "sizegroup button,grow,wrap");
+
+		final JPanel panelGroups = new JPanel();
+		panelGroups.setLayout(new MigLayout());
+		panelGroups.add(groupsButton, "sizegroup button,grow,wrap");
+
+		final JPanel panelCulturalRules = new JPanel();
+		panelCulturalRules.setLayout(new MigLayout());
+		panelCulturalRules.add(culturalRulesButton, "sizegroup button,grow,wrap");
+
+		final JPanel panelNotes = new JPanel();
+		panelNotes.setLayout(new MigLayout());
+		panelNotes.add(notesButton, "sizegroup button,grow,wrap");
+
+		final JPanel panelSources = new JPanel();
+		panelSources.setLayout(new MigLayout());
+		panelSources.add(sourcesButton, "sizegroup button,grow,wrap");
+
+		final JPanel panelGeneral = new JPanel();
+		panelGeneral.setLayout(new MigLayout());
+		panelGeneral.add(restrictionLabel, "align label,split 2");
+		panelGeneral.add(restrictionComboBox, "grow");
+
+		tabbedPane.add("Members", panelMembers);
+		tabbedPane.add("Events", panelEvents);
+		tabbedPane.add("Groups", panelGroups);
+		tabbedPane.add("Cultural rules", panelCulturalRules);
+		tabbedPane.add("Notes", panelNotes);
+		tabbedPane.add("Sources", panelSources);
+		tabbedPane.add("General", panelGeneral);
+
 		setLayout(new MigLayout());
-		add(partner1Label, "align label,split 2");
-		add(partner1Button, "grow,wrap");
-		add(partner2Label, "align label,split 2");
-		add(partner2Button, "grow,wrap");
-		add(eventsButton, "sizegroup button,grow,wrap");
-		add(groupsButton, "sizegroup button,grow,wrap");
-		add(culturalRulesButton, "sizegroup button,grow,wrap");
-		add(notesButton, "sizegroup button,grow,wrap");
-		add(sourcesButton, "sizegroup button,grow,wrap");
-		add(restrictionLabel, "align label,split 2");
-		add(restrictionComboBox, "grow");
+		add(tabbedPane, "grow,wrap");
 	}
 
 	private String getPartnerReference(final GedcomNode partner){
@@ -184,7 +243,7 @@ public class FamilyRecordDialog extends JDialog{
 		return reference.toString();
 	}
 
-	public void loadData(final GedcomNode family){
+	public final void loadData(final GedcomNode family){
 		this.family = family;
 
 		loadData();
@@ -194,6 +253,41 @@ public class FamilyRecordDialog extends JDialog{
 
 	private void loadData(){
 		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
+	}
+
+
+	private static class ChildrenTableModel extends DefaultTableModel{
+
+		@Serial
+		private static final long serialVersionUID = 1218097182058055067L;
+
+
+		ChildrenTableModel(){
+			super(2, 0);
+		}
+
+		@Override
+		public final Class<?> getColumnClass(final int column){
+			return String.class;
+		}
+
+		@Override
+		public final boolean isCellEditable(final int row, final int column){
+			return false;
+		}
+
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
+
+		@SuppressWarnings("unused")
+		@Serial
+		private void readObject(final ObjectInputStream is) throws NotSerializableException{
+			throw new NotSerializableException(getClass().getName());
+		}
 	}
 
 

@@ -196,34 +196,34 @@ public class LinkIndividualDialog extends JDialog{
 		final List<GedcomNode> individuals = store.getIndividuals();
 		okButton.setEnabled(!individuals.isEmpty());
 
-		final DefaultTableModel individualsModel = (DefaultTableModel)individualsTable.getModel();
+		final DefaultTableModel individualsTableModel = (DefaultTableModel)individualsTable.getModel();
 
 		final int size = individuals.size();
 		if(size > 0){
-			individualsModel.setRowCount(size);
+			individualsTableModel.setRowCount(size);
 
 			for(int row = 0; row < size; row ++){
 				final GedcomNode individual = individuals.get(row);
 
-				individualsModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
-				individualsModel.setValueAt(IndividualPanel.extractSex(individual, store).getCode(), row, TABLE_INDEX_SEX);
+				individualsTableModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
+				individualsTableModel.setValueAt(IndividualPanel.extractSex(individual, store).getCode(), row, TABLE_INDEX_SEX);
 				final List<String[]> name = IndividualPanel.extractCompleteName(individual, store);
 				if(!name.isEmpty()){
 					final String[] firstPersonalName = name.get(0);
-					individualsModel.setValueAt(firstPersonalName[0] + NAMES_SEPARATOR + firstPersonalName[1], row, TABLE_INDEX_NAME);
+					individualsTableModel.setValueAt(firstPersonalName[0] + NAMES_SEPARATOR + firstPersonalName[1], row, TABLE_INDEX_NAME);
 					final StringJoiner sj = new StringJoiner("<br>");
 					for(int i = 1; i < name.size(); i ++){
 						final String[] nthPersonalName = name.get(i);
 						sj.add(nthPersonalName[0] + NAMES_SEPARATOR + nthPersonalName[1]);
 					}
 					if(sj.length() > 0)
-						individualsModel.setValueAt("<html>" + sj + "</html>", row, TABLE_INDEX_ADDITIONAL_NAMES);
+						individualsTableModel.setValueAt("<html>" + sj + "</html>", row, TABLE_INDEX_ADDITIONAL_NAMES);
 				}
-				individualsModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
-				individualsModel.setValueAt(IndividualPanel.extractBirthYear(individual, store), row, TABLE_INDEX_BIRTH_YEAR);
-				individualsModel.setValueAt(IndividualPanel.extractBirthPlace(individual, store), row, TABLE_INDEX_BIRTH_PLACE);
-				individualsModel.setValueAt(IndividualPanel.extractDeathYear(individual, store), row, TABLE_INDEX_DEATH_YEAR);
-				individualsModel.setValueAt(IndividualPanel.extractDeathPlace(individual, store), row, TABLE_INDEX_DEATH_PLACE);
+				individualsTableModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
+				individualsTableModel.setValueAt(IndividualPanel.extractBirthYear(individual, store), row, TABLE_INDEX_BIRTH_YEAR);
+				individualsTableModel.setValueAt(IndividualPanel.extractBirthPlace(individual, store), row, TABLE_INDEX_BIRTH_PLACE);
+				individualsTableModel.setValueAt(IndividualPanel.extractDeathYear(individual, store), row, TABLE_INDEX_DEATH_YEAR);
+				individualsTableModel.setValueAt(IndividualPanel.extractDeathPlace(individual, store), row, TABLE_INDEX_DEATH_PLACE);
 			}
 
 			final TableColumnModel columnModel = individualsTable.getColumnModel();
