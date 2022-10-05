@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
-import javax.swing.JTextField;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import javax.swing.JList;
+import java.awt.Component;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,102 +39,69 @@ import java.util.Comparator;
 import java.util.Locale;
 
 
-public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.FlefLocale>{
+public final class LocaleFilteredComboBox extends JComboBox<Locale>{
 
 	//TODO preload on startup (progress bar)
-	private static final FlefLocale[] LOCALE_ITEMS;
+	private static final Locale[] LOCALE_ITEMS;
 	static{
 		final Locale[] availableLocales = DateFormat.getAvailableLocales();
-		final Collection<FlefLocale> list = new ArrayList<>(availableLocales.length);
+		final Collection<Locale> list = new ArrayList<>(availableLocales.length);
 		for(final Locale availableLocale : availableLocales)
 			if(availableLocale.toLanguageTag() != null)
-				list.add(new FlefLocale(availableLocale));
-		LOCALE_ITEMS = list.toArray(FlefLocale[]::new);
+				list.add(availableLocale);
+		LOCALE_ITEMS = list.toArray(Locale[]::new);
 		Arrays.sort(LOCALE_ITEMS, Comparator.comparing(ml -> ml.toString().toLowerCase(Locale.ROOT)));
 	}
 
-	public static final class FlefLocale{
-		private final Locale locale;
-
-		FlefLocale(final Locale locale){
-			this.locale = locale;
-		}
-
-		public String toLanguageTag(){
-			return locale.toLanguageTag();
-		}
+	private static class LocaleComboRenderer extends DefaultListCellRenderer{
 
 		@Override
-		public String toString(){
-			return locale.getDisplayName();
+		public final Component getListCellRendererComponent(final JList<?> list, final Object value, final int index, final boolean isSelected, final boolean cellHasFocus){
+			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+			final Locale locale = (Locale)value;
+			if(locale != null){
+				final String text = getLocaleDisplayText(locale);
+				setText(text);
+			}
+			return this;
 		}
+
+		static <T> String getLocaleDisplayText(final T locale){
+			return ((Locale)locale).getDisplayName();
+		}
+
 	}
-
-
-	private final JTextField field;
 
 
 	public LocaleFilteredComboBox(){
 		super(LOCALE_ITEMS);
 
-		setEditable(true);
-
-		setFixedWidth();
-
-		field = (JTextField)getEditor().getEditorComponent();
-		field.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyReleased(final KeyEvent ke){
-				GUIHelper.executeOnEventDispatchThread(() -> comboFilter(field.getText()));
-			}
-		});
+		ComboBoxFilterDecorator.decorate(this, LocaleComboRenderer::getLocaleDisplayText, LocaleFilteredComboBox::localeFilter);
+		setRenderer(new LocaleComboRenderer());
 	}
 
-	/** Fix size of combobox to maximum size required to show the longest name. */
-	private void setFixedWidth(){
-		double maxWidth = 0.;
-		FlefLocale maxLocale = new FlefLocale(Locale.US);
-		for(final FlefLocale locale : LOCALE_ITEMS){
-			final double w = FontHelper.getStringBounds(getFont(), locale.toString()).getWidth();
-			if(w > maxWidth){
-				maxWidth = w;
-				maxLocale = locale;
-			}
-		}
-		setPrototypeDisplayValue(maxLocale);
-	}
+	private static <T> boolean localeFilter(final T locale, final String textToFilter){
+		if(textToFilter.isEmpty())
+			return true;
 
-	private void comboFilter(final String enteredText){
-		if(!isPopupVisible())
-			showPopup();
-
-		//filter
-		final Collection<FlefLocale> filterArray = new ArrayList<>(LOCALE_ITEMS.length);
-		for(final FlefLocale locale : LOCALE_ITEMS)
-			if(locale.toString().toLowerCase(Locale.ROOT).contains(enteredText.toLowerCase(Locale.ROOT)))
-				filterArray.add(locale);
-
-		if(!filterArray.isEmpty()){
-			final DefaultComboBoxModel<FlefLocale> model = (DefaultComboBoxModel<FlefLocale>)getModel();
-			model.removeAllElements();
-			model.addAll(filterArray);
-
-			field.setText(enteredText);
-		}
+		return LocaleComboRenderer.getLocaleDisplayText(locale).toLowerCase(Locale.ROOT).contains(textToFilter.toLowerCase(Locale.ROOT));
 	}
 
 	public String getSelectedLanguageTag(){
-		return ((LocaleFilteredComboBox.FlefLocale)getModel().getSelectedItem())
-			.toLanguageTag();
+		final Object originalSelectedItem = getModel().getSelectedItem();
+		if(originalSelectedItem instanceof Locale selectedItem)
+			return selectedItem.toLanguageTag();
+		return StringUtils.EMPTY;
 	}
 
 	public void setSelectedByLanguageTag(String languageTag){
 		if(languageTag != null){
 			languageTag = languageTag.toLowerCase(Locale.ROOT);
-			FlefLocale locale = new FlefLocale(Locale.ROOT);
-			final DefaultComboBoxModel<FlefLocale> model = (DefaultComboBoxModel<FlefLocale>)getModel();
+			Locale locale = null;
+			final DefaultComboBoxModel<Locale> model = (DefaultComboBoxModel<Locale>)getModel();
 			for(int index = 0; index < model.getSize(); index ++){
-				final FlefLocale loc = model.getElementAt(index);
+				final Locale loc = model.getElementAt(index);
 				if(loc.toLanguageTag().toLowerCase(Locale.ROOT).equals(languageTag)){
 					locale = loc;
 					break;
