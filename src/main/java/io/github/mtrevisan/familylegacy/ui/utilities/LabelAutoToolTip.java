@@ -29,6 +29,7 @@ import javax.swing.JToolTip;
 import java.awt.FontMetrics;
 import java.awt.SystemColor;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 
 
 /**
@@ -47,6 +48,10 @@ import java.awt.event.MouseEvent;
  * }</pre>
  */
 public class LabelAutoToolTip extends JLabel{
+
+	@Serial
+	private static final long serialVersionUID = -3850625229732307986L;
+
 
 	public String getToolTipText(final MouseEvent e){
 		final String text = getToolTipText();

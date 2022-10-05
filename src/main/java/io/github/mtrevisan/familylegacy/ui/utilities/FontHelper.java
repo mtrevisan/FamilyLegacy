@@ -68,8 +68,8 @@ public final class FontHelper{
 			if((comp instanceof JComponent) && ((JComponent)comp).getClientProperty(CLIENT_PROPERTY_KEY_FONTABLE) == Boolean.TRUE)
 				comp.setFont(font);
 
-			if(comp instanceof Container){
-				final Component[] components = ((Container)comp).getComponents();
+			if(comp instanceof Container container){
+				final Component[] components = container.getComponents();
 				final int size = (components != null? components.length: 0);
 				for(int i = 0; i < size; i++)
 					stack.push(components[i]);

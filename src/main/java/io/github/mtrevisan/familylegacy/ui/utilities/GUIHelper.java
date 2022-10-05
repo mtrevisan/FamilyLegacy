@@ -82,8 +82,8 @@ public final class GUIHelper{
 			stack.add(comp);
 		while(!stack.isEmpty()){
 			final Component comp = stack.pop();
-			if(comp instanceof Container)
-				for(final Component subComp : ((Container)comp).getComponents())
+			if(comp instanceof Container container)
+				for(final Component subComp : container.getComponents())
 					stack.add(subComp);
 
 			comp.setEnabled(enabled);

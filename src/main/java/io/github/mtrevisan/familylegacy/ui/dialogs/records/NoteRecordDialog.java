@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -108,7 +108,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 			dispose();
 		});
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this::actionPerformed);
+		cancelButton.addActionListener(this);
 
 
 		setLayout(new MigLayout("", "[grow]"));
@@ -122,7 +122,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 	}
 
 	@Override
-	public void textChanged(){
+	public final void textChanged(){
 		if(!updating)
 			okButton.setEnabled(calculateDataHash() != dataHash);
 	}
@@ -138,7 +138,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 	}
 
 	@Override
-	public void onPreviewStateChange(final boolean visible){
+	public final void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
@@ -147,7 +147,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 		note.withValue(text);
 	}
 
-	public void loadData(final GedcomNode note, final Consumer<Object> onCloseGracefully){
+	public final void loadData(final GedcomNode note, final Consumer<Object> onCloseGracefully){
 		updating = true;
 
 		this.note = note;
@@ -174,7 +174,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 	}
 
 	@Override
-	public void actionPerformed(final ActionEvent evt){
+	public final void actionPerformed(final ActionEvent evt){
 		dispose();
 	}
 
