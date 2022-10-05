@@ -68,7 +68,6 @@ import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -207,18 +206,7 @@ public class LinkIndividualDialog extends JDialog{
 
 				individualsTableModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
 				individualsTableModel.setValueAt(IndividualPanel.extractSex(individual, store).getCode(), row, TABLE_INDEX_SEX);
-				final List<String[]> completeNames = IndividualPanel.extractCompleteName(individual, store);
-				if(!completeNames.isEmpty()){
-					final String[] firstCompleteName = completeNames.get(0);
-					individualsTableModel.setValueAt(firstCompleteName[0] + NAMES_SEPARATOR + firstCompleteName[1], row, TABLE_INDEX_NAME);
-					final StringJoiner sj = new StringJoiner("<br>");
-					for(int i = 1; i < completeNames.size(); i ++){
-						final String[] nthCompleteName = completeNames.get(i);
-						sj.add(nthCompleteName[0] + NAMES_SEPARATOR + nthCompleteName[1]);
-					}
-					if(sj.length() > 0)
-						individualsTableModel.setValueAt("<html>" + sj + "</html>", row, TABLE_INDEX_ADDITIONAL_NAMES);
-				}
+				individualsTableModel.setValueAt(IndividualPanel.extractFirstCompleteName(individual, NAMES_SEPARATOR, store), row, TABLE_INDEX_NAME);
 				individualsTableModel.setValueAt(individual.getID(), row, TABLE_INDEX_INDIVIDUAL_ID);
 				individualsTableModel.setValueAt(IndividualPanel.extractBirthYear(individual, store), row, TABLE_INDEX_BIRTH_YEAR);
 				individualsTableModel.setValueAt(IndividualPanel.extractBirthPlace(individual, store), row, TABLE_INDEX_BIRTH_PLACE);

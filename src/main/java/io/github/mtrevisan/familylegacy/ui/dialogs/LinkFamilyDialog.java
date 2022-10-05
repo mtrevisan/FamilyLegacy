@@ -242,16 +242,7 @@ public class LinkFamilyDialog extends JDialog{
 			final int tableIndexPartnerId, final int tableIndexPartner, final int tableIndexPartnerAdditionalNames,
 			final int tableIndexPartnerBirthYear, final int tableIndexPartnerDeathYear){
 		final GedcomNode partner = store.getPartner(family, partnerIndex);
-		final List<String[]> completeNames = IndividualPanel.extractCompleteName(partner, store);
-		if(!completeNames.isEmpty()){
-			final String[] firstCompleteName = completeNames.get(0);
-			familiesModel.setValueAt(firstCompleteName[0] + NAMES_SEPARATOR + firstCompleteName[1], row, tableIndexPartner);
-			for(int i = 1; i < completeNames.size(); i ++){
-				final String[] nthCompleteName = completeNames.get(i);
-				familiesModel.setValueAt(nthCompleteName[0] + NAMES_SEPARATOR + nthCompleteName[1], row,
-					tableIndexPartnerAdditionalNames);
-			}
-		}
+		familiesModel.setValueAt(IndividualPanel.extractFirstCompleteName(partner, NAMES_SEPARATOR, store), row, tableIndexPartner);
 		familiesModel.setValueAt(IndividualPanel.extractBirthYear(partner, store), row, tableIndexPartnerBirthYear);
 		familiesModel.setValueAt(IndividualPanel.extractDeathYear(partner, store), row, tableIndexPartnerDeathYear);
 		if(!partner.isEmpty())

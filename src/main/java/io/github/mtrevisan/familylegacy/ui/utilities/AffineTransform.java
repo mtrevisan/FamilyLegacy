@@ -32,27 +32,37 @@ public class AffineTransform{
 	private double translateY;
 
 
-	public double getScale(){
+	final double getScale(){
 		return scale;
 	}
 
-	public double getTranslateX(){
+	final double getTranslateX(){
 		return translateX;
 	}
 
-	public double getTranslateY(){
+	final double getTranslateY(){
 		return translateY;
 	}
 
-	public void setScale(final double scale){
+	final void setTranslation(final double translateX, final double translateY){
+		this.translateX = translateX;
+		this.translateY = translateY;
+	}
+
+	final void addTranslation(final double dx, final double dy){
+		translateX += dx;
+		translateY += dy;
+	}
+
+	final void setScale(final double scale){
 		this.scale = scale;
 	}
 
-	public void addScale(final double ds){
+	public final void addScale(final double ds){
 		scale *= ds;
 	}
 
-	public boolean addZoom(final double zoomFactor, final double minZoom, final double maxZoom, final int zoomPointX, final int zoomPointY){
+	final boolean addZoom(final double zoomFactor, final double minZoom, final double maxZoom, final int zoomPointX, final int zoomPointY){
 		final double newZoom = scale * zoomFactor;
 		if(minZoom <= newZoom && newZoom <= maxZoom){
 			final double dx = (zoomPointX - translateX) * (1. - zoomFactor);
@@ -66,29 +76,19 @@ public class AffineTransform{
 		return false;
 	}
 
-	public void setTranslation(final double translateX, final double translateY){
-		this.translateX = translateX;
-		this.translateY = translateY;
-	}
-
-	public void addTranslation(final double dx, final double dy){
-		translateX += dx;
-		translateY += dy;
-	}
-
-	public int transformX(final double x){
+	final int transformX(final double x){
 		return (int)(x * scale + translateX);
 	}
 
-	public int transformY(final double y){
+	final int transformY(final double y){
 		return (int)(y * scale + translateY);
 	}
 
-	public int transformInverseX(final double x){
+	final int transformInverseX(final double x){
 		return (int)((x - translateX) / scale);
 	}
 
-	public int transformInverseY(final double y){
+	final int transformInverseY(final double y){
 		return (int)((y - translateY) / scale);
 	}
 

@@ -267,7 +267,7 @@ public class TreePanel extends JPanel{
 		final List<GedcomNode> childrenReference = (!family.isEmpty()? family.getChildrenWithTag("CHILD"):
 			Collections.emptyList());
 		if(!family.isEmpty() && defaultChild.isEmpty()){
-			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
+			final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
 			defaultChild = (!children.isEmpty()? children.get(0): null);
 		}
 		return (!childrenReference.isEmpty()? childrenReference.get(0): defaultChild);

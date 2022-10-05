@@ -349,7 +349,8 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		personalNameLabel.setCursor(Cursor.getPredefinedCursor(boxType == BoxPanelType.PRIMARY? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR));
 		infoLabel.setFont(infoFont);
 
-		final String[] personalName = extractCompleteName(individual, store).get(0);
+		final String[] personalName = extractCompleteNames(individual, store)
+			.get(0);
 		familyNameLabel.addPropertyChangeListener(PROPERTY_NAME_TEXT_CHANGE, this);
 		familyNameLabel.setText(personalName[0]);
 		familyNameLabel.setToolTipText(personalName[0]);
@@ -391,7 +392,17 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		removeIndividualItem.setEnabled(!individual.isEmpty());
 	}
 
-	public static List<String[]> extractCompleteName(final GedcomNode individual, final Flef store){
+	public static String extractFirstCompleteName(final GedcomNode individual, final String namesSeparator, final Flef store){
+		String firstCompleteName = null;
+		final List<String[]> completeNames = extractCompleteNames(individual, store);
+		if(!completeNames.isEmpty()){
+			final String[] firstName = completeNames.get(0);
+			firstCompleteName = firstName[0] + namesSeparator + firstName[1];
+		}
+		return firstCompleteName;
+	}
+
+	public static List<String[]> extractCompleteNames(final GedcomNode individual, final Flef store){
 		final List<String[]> completeNames = new ArrayList<>(1);
 		if(!individual.isEmpty()){
 			final List<GedcomNode> names = store.traverseAsList(individual, "NAME[]");
@@ -489,7 +500,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			sj.add(birthDate != null? DateParser.extractYear(birthDate): NO_DATA);
-			sj.add("-");
+			sj.add("–");
 			sj.add(deathDate != null? DateParser.extractYear(deathDate): NO_DATA);
 			if(age != null)
 				sj.add("(" + age + ")");
@@ -507,7 +518,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 			}
 			else{
 				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
-				toolTipSJ.add("-");
+				toolTipSJ.add("–");
 				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
 			}
 		}

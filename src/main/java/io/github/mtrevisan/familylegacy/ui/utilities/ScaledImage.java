@@ -84,6 +84,10 @@ public class ScaledImage extends JLabel{
 	private boolean initialized;
 	private final AffineTransform transformation = new AffineTransform();
 
+	private int windowStartPointX;
+	private int windowStartPointY;
+	private int windowEndPointX;
+	private int windowEndPointY;
 	private boolean cropDefinition;
 	private int cropStartPointX = -1;
 	private int cropStartPointY;
@@ -111,7 +115,7 @@ public class ScaledImage extends JLabel{
 	 * NOTE: `icon` MUST BE an {@link ImageIcon}.
 	 */
 	@Override
-	public void setIcon(final Icon icon){
+	public final void setIcon(final Icon icon){
 		if(icon != null){
 			Image img = ((ImageIcon)icon).getImage();
 			if(!(img instanceof BufferedImage)){
@@ -124,7 +128,7 @@ public class ScaledImage extends JLabel{
 		}
 	}
 
-	public void setImage(final BufferedImage image){
+	public final void setImage(final BufferedImage image){
 		this.image = image;
 		if(image != null){
 			imageWidth = image.getWidth();
@@ -137,7 +141,7 @@ public class ScaledImage extends JLabel{
 		}
 	}
 
-	public void setSphericalImage(final BufferedImage image){
+	public final void setSphericalImage(final BufferedImage image){
 		this.image = null;
 		if(image != null){
 			imageWidth = image.getWidth();
@@ -153,14 +157,14 @@ public class ScaledImage extends JLabel{
 		}
 	}
 
-	public void setCylindricalHorizontalImage(final BufferedImage image){
+	public final void setCylindricalHorizontalImage(final BufferedImage image){
 		setSphericalImage(image);
 
 		cylindrical = true;
 		cylindricalHorizontal = true;
 	}
 
-	public void setCylindricalVerticalImage(final BufferedImage image){
+	public final void setCylindricalVerticalImage(final BufferedImage image){
 		setSphericalImage(image);
 
 		cylindrical = true;
@@ -175,7 +179,7 @@ public class ScaledImage extends JLabel{
 	}
 
 	@Override
-	protected void paintComponent(final Graphics g){
+	protected final void paintComponent(final Graphics g){
 		if(image == null)
 			super.paintComponent(g);
 		else if(g instanceof Graphics2D){
@@ -202,7 +206,9 @@ public class ScaledImage extends JLabel{
 					rotateCurvedImage();
 
 					graphics2D.drawImage(viewportImage,
-						0, 0, viewportWidth, viewportHeight, null);
+						0, 0,
+						viewportWidth, viewportHeight,
+						null);
 				}
 				catch(final ZeroException e){
 					e.printStackTrace();
@@ -212,7 +218,9 @@ public class ScaledImage extends JLabel{
 				graphics2D.drawImage(image,
 					(int)transformation.getTranslateX(), (int)transformation.getTranslateY(),
 					transformation.transformX(imageWidth), transformation.transformY(imageHeight),
-					0, 0, imageWidth, imageHeight, null);
+					0, 0,
+					imageWidth, imageHeight,
+					null);
 
 			//crop rectangle:
 			if(cropStartPointX >= 0){
@@ -253,15 +261,25 @@ public class ScaledImage extends JLabel{
 		viewportWidth = getWidth();
 		viewportHeight = getHeight();
 
-		final double current = Math.min((double)viewportWidth / imageWidth, (double)viewportHeight / imageHeight);
+		int tmpX = windowStartPointX + windowEndPointX;
+		int tmpY = windowStartPointY + windowEndPointY;
+		int windowWidth = windowEndPointX - windowStartPointX;
+		int windowHeight = windowEndPointY - windowStartPointY;
+		if(windowWidth <= 0 || windowHeight <= 0){
+			tmpX = imageWidth;
+			tmpY = imageHeight;
+			windowWidth = imageWidth;
+			windowHeight = imageHeight;
+		}
+		final double current = Math.min((double)viewportWidth / windowWidth, (double)viewportHeight / windowHeight);
 		minZoom = Math.min(current / 2., MIN_ZOOM);
 		maxZoom = Math.max(current * 2., MAX_ZOOM);
 
 		//scale to fit
 		final double scale = Math.min(current, 1.);
 		//center image
-		final double centerX = (viewportWidth - imageWidth * scale) / 2.;
-		final double centerY = (viewportHeight - imageHeight * scale) / 2.;
+		final double centerX = (viewportWidth - tmpX * scale) / 2.;
+		final double centerY = (viewportHeight - tmpY * scale) / 2.;
 
 		transformation.setScale(scale);
 		transformation.setTranslation(centerX, centerY);
@@ -271,7 +289,7 @@ public class ScaledImage extends JLabel{
 		final double halfViewportWidth = viewportWidth / 2.;
 		final double halfViewportHeight = viewportHeight / 2.;
 		final double fov = Math.toRadians(Math.max(Math.min(transformation.getScale() * 140., MAX_FOV), MIN_FOV));
-		final double cameraPlaneDistance = halfViewportWidth / Math.tan(fov * 0.5);
+		final double cameraPlaneDistance = halfViewportWidth / StrictMath.tan(fov * 0.5);
 
 		final double[][][] rayVectors = new double[viewportWidth][viewportHeight][3];
 		for(int y = 0; y < viewportHeight; y ++)
@@ -290,11 +308,11 @@ public class ScaledImage extends JLabel{
 
 	private void precalculateAsinAtan2(){
 		for(int i = 0; i < 2 * ACCURACY_FACTOR; i ++){
-			asinTable[i] = Math.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
+			asinTable[i] = StrictMath.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
 			for(int j = 0; j < 2 * ACCURACY_FACTOR; j ++){
 				final double y = (i - ACCURACY_FACTOR) / ACCURACY_FACTOR;
 				final double x = (j - ACCURACY_FACTOR) / ACCURACY_FACTOR;
-				atan2Table[i + j * REQUIRED_SIZE] = Math.atan2(y, x);
+				atan2Table[i + j * REQUIRED_SIZE] = StrictMath.atan2(y, x);
 			}
 		}
 	}
@@ -310,24 +328,38 @@ public class ScaledImage extends JLabel{
 		g.drawRect(x1, y1, width, height);
 	}
 
-	public Point getCropStartPoint(){
+	public final void resetWindow(){
+		windowStartPointX = 0;
+		windowStartPointY = 0;
+		windowEndPointX = 0;
+		windowEndPointY = 0;
+	}
+
+	public final void setWindow(final int startX, final int startY, final int endX, final int endY){
+		windowStartPointX = Math.max(Math.min(startX, imageWidth), 0);
+		windowStartPointY = Math.max(Math.min(startY, imageHeight), 0);
+		windowEndPointX = Math.max(Math.min(endX, imageWidth), windowStartPointX);
+		windowEndPointY = Math.max(Math.min(endY, imageHeight), windowStartPointY);
+	}
+
+	public final Point getCropStartPoint(){
 		final int x = Math.min(cropStartPointX, cropEndPointX);
 		final int y = Math.min(cropStartPointY, cropEndPointY);
 		return new Point(x, y);
 	}
 
-	public void setCropStartPoint(final int x, final int y){
+	public final void setCropStartPoint(final int x, final int y){
 		cropStartPointX = x;
 		cropStartPointY = y;
 	}
 
-	public Point getCropEndPoint(){
+	public final Point getCropEndPoint(){
 		final int x = Math.max(cropStartPointX, cropEndPointX);
 		final int y = Math.max(cropStartPointY, cropEndPointY);
 		return new Point(x, y);
 	}
 
-	public void setCropEndPoint(final int x, final int y){
+	public final void setCropEndPoint(final int x, final int y){
 		cropEndPointX = x;
 		cropEndPointY = y;
 	}
@@ -336,7 +368,7 @@ public class ScaledImage extends JLabel{
 	private class ImageMouseListener extends MouseAdapter{
 
 		@Override
-		public void mousePressed(final MouseEvent evt){
+		public final void mousePressed(final MouseEvent evt){
 			if(SwingUtilities.isRightMouseButton(evt)){
 				//right click with left button resets zoom and translation:
 				zoomToFitAndCenter();
@@ -365,7 +397,7 @@ public class ScaledImage extends JLabel{
 		}
 
 		@Override
-		public void mouseReleased(final MouseEvent evt){
+		public final void mouseReleased(final MouseEvent evt){
 			if(cropDefinition && evt.getClickCount() == 1){
 				cropDefinition = false;
 
@@ -376,7 +408,7 @@ public class ScaledImage extends JLabel{
 		}
 
 		@Override
-		public void mouseDragged(final MouseEvent evt){
+		public final void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
 				if(evt.isControlDown()){
 					//pan:
@@ -398,10 +430,10 @@ public class ScaledImage extends JLabel{
 		}
 
 		@Override
-		public void mouseWheelMoved(final MouseWheelEvent evt){
+		public final void mouseWheelMoved(final MouseWheelEvent evt){
 			if(evt.isControlDown()){
 				//zoom:
-				final double zoomFactor = Math.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
+				final double zoomFactor = StrictMath.pow(ZOOM_MULTIPLICATION_FACTOR, evt.getPreciseWheelRotation());
 				if(transformation.addZoom(zoomFactor, minZoom, maxZoom, evt.getX(), evt.getY())){
 					if(isCurved())
 						rayVectors = createRayVectors();

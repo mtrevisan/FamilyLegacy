@@ -90,7 +90,7 @@ public final class ChildrenPanel extends JPanel{
 	}
 
 	public void loadData(final GedcomNode family){
-		children = store.traverseAsList(family, "CHILD[]");
+		children = FamilyPanel.extractChildren(family, store);
 
 		adoptions = new boolean[children.size()];
 		for(int i = 0; i < adoptions.length; i ++)

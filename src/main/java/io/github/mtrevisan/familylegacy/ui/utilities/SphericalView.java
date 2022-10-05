@@ -59,7 +59,7 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 		final double halfViewportWidth = VIEWPORT_WIDTH / 2.;
 		final double halfViewportHeight = VIEWPORT_HEIGHT / 2.;
 		final double fov = Math.toRadians(100.);
-		final double cameraPlaneDistance = halfViewportWidth / Math.tan(fov / 2.);
+		final double cameraPlaneDistance = halfViewportWidth / StrictMath.tan(fov / 2.);
 
 		final double[][][] rayVectors = new double[VIEWPORT_WIDTH][VIEWPORT_HEIGHT][3];
 		for(int y = 0; y < VIEWPORT_HEIGHT; y ++){
@@ -79,11 +79,11 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 
 	private void precalculateAsinAtan2(){
 		for(int i = 0; i < 2 * ACCURACY_FACTOR; i ++){
-			asinTable[i] = Math.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
+			asinTable[i] = StrictMath.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
 			for(int j = 0; j < 2 * ACCURACY_FACTOR; j ++){
 				final double y = (i - ACCURACY_FACTOR) / ACCURACY_FACTOR;
 				final double x = (j - ACCURACY_FACTOR) / ACCURACY_FACTOR;
-				atan2Table[i + j * REQUIRED_SIZE] = Math.atan2(y, x);
+				atan2Table[i + j * REQUIRED_SIZE] = StrictMath.atan2(y, x);
 			}
 		}
 	}

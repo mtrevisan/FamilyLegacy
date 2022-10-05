@@ -149,7 +149,7 @@ public class FamilyPanel extends JPanel{
 		this.family = family;
 		this.childReference = childReference;
 		if(!family.isEmpty() && this.childReference == null){
-			final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
+			final List<GedcomNode> children = extractChildren(family, store);
 			this.childReference = (!children.isEmpty()? children.get(0): store.createEmptyNode());
 		}
 		this.boxType = boxType;
@@ -331,6 +331,10 @@ public class FamilyPanel extends JPanel{
 		linkFamilyItem.setEnabled(family.isEmpty() && store.hasFamilies());
 		unlinkFamilyItem.setEnabled(!family.isEmpty());
 		removeFamilyItem.setEnabled(!family.isEmpty());
+	}
+
+	public static List<GedcomNode> extractChildren(final GedcomNode family, final Flef store){
+		return store.traverseAsList(family, "CHILD[]");
 	}
 
 	private void updatePreviousNextPartnerIcons(final GedcomNode family, final GedcomNode otherPartner, final JLabel partnerPreviousLabel,

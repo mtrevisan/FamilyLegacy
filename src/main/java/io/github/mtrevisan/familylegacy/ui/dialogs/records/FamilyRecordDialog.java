@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -53,6 +54,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.IOException;
@@ -73,17 +75,17 @@ public class FamilyRecordDialog extends JDialog{
 	private static final long serialVersionUID = 2075397360104239479L;
 
 	private static final String NAMES_SEPARATOR = ", ";
+	private static final String NO_DATA = "?";
 
 	private static final int ID_PREFERRED_WIDTH = 43;
+	private static final int PARTNER_IMAGE_MINIMUM_WIDTH = 30;
+	private static final int PARTNER_IMAGE_MINIMUM_HEIGHT = 38;
 
 	private static final int CHILDREN_TABLE_INDEX_ID = 0;
 	private static final int CHILDREN_TABLE_INDEX_NAME = 1;
 
-	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "unknown",
-		"marriage", "not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership",
-		"living together", "living apart together"});
-	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
-		"confidential", "locked", "private"});
+	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "unknown", "marriage", "not married", "civil marriage", "religious marriage", "common law marriage", "partnership", "registered partnership", "living together", "living apart together"});
+	private static final DefaultComboBoxModel<String> RESTRICTION_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY, "confidential", "locked", "private"});
 
 	private final JLabel partner1Label = new JLabel("Partner 1:");
 	private final ScaledImage partner1Image = new ScaledImage(null);
@@ -150,24 +152,7 @@ public class FamilyRecordDialog extends JDialog{
 
 		partner1Label.setLabelFor(partner1Name);
 		partner2Label.setLabelFor(partner2Name);
-
-		final List<GedcomNode> children = store.traverseAsList(family, "CHILD[]");
-		final DefaultTableModel childrenTableModel = (DefaultTableModel)childrenTable.getModel();
-		final int size = children.size();
-		childrenTableModel.setRowCount(size);
-		for(int row = 0; row < size; row ++){
-			final String childXRef = children.get(row)
-				.getXRef();
-			final GedcomNode child = store.getIndividual(childXRef);
-
-			childrenTableModel.setValueAt(child.getID(), row, CHILDREN_TABLE_INDEX_ID);
-			final List<String[]> completeNames = IndividualPanel.extractCompleteName(child, store);
-			if(!completeNames.isEmpty()){
-				final String[] firstCompleteName = completeNames.get(0);
-				childrenTableModel.setValueAt(firstCompleteName[0] + NAMES_SEPARATOR + firstCompleteName[1], row,
-					CHILDREN_TABLE_INDEX_NAME);
-			}
-		}
+		childrenLabel.setLabelFor(childrenTable);
 
 		eventsButton.addActionListener(e -> {
 			//TODO
@@ -198,41 +183,34 @@ public class FamilyRecordDialog extends JDialog{
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 
-		final JPanel panelMembers = new JPanel();
-		panelMembers.setLayout(new MigLayout("debug", "[][][]"));
+		final JPanel panelMembers = new JPanel(new MigLayout("debug", "[fill][][]"));
 		panelMembers.add(partner1Label, "span 3,wrap");
-		panelMembers.add(partner1Image, "grow");
+		panelMembers.add(partner1Image);
 		panelMembers.add(partner1Name, "grow");
 		panelMembers.add(partner1Notes, "wrap");
 		panelMembers.add(partner2Label, "span 3,wrap");
-		panelMembers.add(partner2Image, "grow");
+		panelMembers.add(partner2Image);
 		panelMembers.add(partner2Name, "grow");
 		panelMembers.add(partner2Notes, "wrap");
 		panelMembers.add(childrenLabel, "span 3,wrap");
 		panelMembers.add(childrenTable, "span 3,grow,wrap");
 
-		final JPanel panelEvents = new JPanel();
-		panelEvents.setLayout(new MigLayout());
+		final JPanel panelEvents = new JPanel(new MigLayout());
 		panelEvents.add(eventsButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelGroups = new JPanel();
-		panelGroups.setLayout(new MigLayout());
+		final JPanel panelGroups = new JPanel(new MigLayout());
 		panelGroups.add(groupsButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelCulturalRules = new JPanel();
-		panelCulturalRules.setLayout(new MigLayout());
+		final JPanel panelCulturalRules = new JPanel(new MigLayout());
 		panelCulturalRules.add(culturalRulesButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelNotes = new JPanel();
-		panelNotes.setLayout(new MigLayout());
+		final JPanel panelNotes = new JPanel(new MigLayout());
 		panelNotes.add(notesButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelSources = new JPanel();
-		panelSources.setLayout(new MigLayout());
+		final JPanel panelSources = new JPanel(new MigLayout());
 		panelSources.add(sourcesButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelGeneral = new JPanel();
-		panelGeneral.setLayout(new MigLayout());
+		final JPanel panelGeneral = new JPanel(new MigLayout());
 		panelGeneral.add(restrictionLabel, "align label,split 2");
 		panelGeneral.add(restrictionComboBox, "grow");
 
@@ -258,24 +236,46 @@ public class FamilyRecordDialog extends JDialog{
 
 	private void loadData(){
 		final GedcomNode partner1 = store.getPartner1(family);
-		if(!partner1.isEmpty()){
-			GedcomNode preferredImage = store.traverse(partner1, "PREFERRED_IMAGE");
-			final String partner1PreferredImageXRef = preferredImage.getValue();
+		loadPartnerData(partner1, partner1Image, partner1Name, partner1Notes);
+		final GedcomNode partner2 = store.getPartner2(family);
+		loadPartnerData(partner2, partner2Image, partner1Name, partner2Notes);
+
+		final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
+		final DefaultTableModel childrenTableModel = (DefaultTableModel)childrenTable.getModel();
+		final int size = children.size();
+		childrenTableModel.setRowCount(size);
+		for(int row = 0; row < size; row++){
+			final String childXRef = children.get(row).getXRef();
+			final GedcomNode child = store.getIndividual(childXRef);
+
+			childrenTableModel.setValueAt(child.getID(), row, CHILDREN_TABLE_INDEX_ID);
+			childrenTableModel.setValueAt(IndividualPanel.extractFirstCompleteName(child, NAMES_SEPARATOR, store), row, CHILDREN_TABLE_INDEX_NAME);
+		}
+
+		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
+	}
+
+	private void loadPartnerData(final GedcomNode partner, final ScaledImage partnerImage, final JLabel partnerName, final JButton partnerNotes){
+		if(!partner.isEmpty()){
+			GedcomNode preferredImage = store.traverse(partner, "PREFERRED_IMAGE");
+			final String partnerPreferredImageXRef = preferredImage.getValue();
 			//top-left and bottom-right
-			final String partner1PreferredImageCropCoordinates = store.traverse(preferredImage, "CROP")
+			final String partnerPreferredImageCropCoordinates = store.traverse(preferredImage, "CROP")
 				.getValue();
 			try{
-				preferredImage = store.getSource(partner1PreferredImageXRef);
-				final String partner1PreferredImagePath = store.traverse(preferredImage, "FILE")
+				preferredImage = store.getSource(partnerPreferredImageXRef);
+				final String partnerPreferredImagePath = store.traverse(preferredImage, "FILE")
 					.getValue();
-				final String basePath = "C:\\Users\\mauro\\Documents\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\";
-				partner1Image.setImage(ResourceHelper.readImage(basePath + partner1PreferredImagePath));
-				partner1Image.setEnabled(true);
+//				final String basePath = "C:\\Users\\mauro\\Documents\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\";
+//				partnerImage.setImage(ResourceHelper.readImage(basePath + partnerPreferredImagePath));
+partnerImage.setImage(ResourceHelper.readImage("D:\\Mauro\\DBlkAK2.png"));
+				partnerImage.setMinimumSize(new Dimension(PARTNER_IMAGE_MINIMUM_WIDTH, PARTNER_IMAGE_MINIMUM_HEIGHT));
+				partnerImage.setEnabled(true);
 
 				int endX, startY;
 				int startX, endY;
-				if(StringUtils.isNotBlank(partner1PreferredImageCropCoordinates)){
-					final String[] coords = StringUtils.split(partner1PreferredImageCropCoordinates, ' ');
+				if(StringUtils.isNotBlank(partnerPreferredImageCropCoordinates)){
+					final String[] coords = StringUtils.split(partnerPreferredImageCropCoordinates, ' ');
 					startX = Integer.parseInt(coords[0]);
 					startY = Integer.parseInt(coords[1]);
 					endX = Integer.parseInt(coords[2]);
@@ -284,54 +284,38 @@ public class FamilyRecordDialog extends JDialog{
 				else{
 					endX = 0;
 					startY = 0;
-					startX = partner1Image.getWidth();
-					endY = partner1Image.getHeight();
+					startX = partnerImage.getWidth();
+					endY = partnerImage.getHeight();
 				}
-				partner1Image.setCropStartPoint(startX, startY);
-				partner1Image.setCropEndPoint(endX, endY);
+//				partnerImage.setWindow(startX, startY, endX, endY);
+partnerImage.setWindow(190, 120, 500, 500);
 			}
 			catch(final IOException e){
-				LOGGER.error("Cannot load preferred image of individual {}", partner1.getID(), e);
+				LOGGER.error("Cannot load preferred image of individual {}", partner.getID(), e);
 
-				partner1Image.setEnabled(false);
+				partnerImage.setEnabled(false);
 			}
-			partner1Name.setEnabled(true);
-			partner1Name.setText(getPartnerReference(partner1));
-			partner1Notes.setEnabled(true);
+			partnerName.setEnabled(true);
+			partnerName.setText(getPartnerReference(partner));
+			partnerNotes.setEnabled(true);
 		}
 		else{
-			partner1Image.setEnabled(false);
-			partner1Image.setImage(null);
-			partner1Name.setText(null);
-			partner1Name.setEnabled(false);
-			partner1Name.setText(null);
-			partner1Notes.setEnabled(false);
+			partnerImage.setEnabled(false);
+			partnerImage.setImage(null);
+			partnerName.setText(null);
+			partnerName.setEnabled(false);
+			partnerNotes.setEnabled(false);
 		}
-
-//		final GedcomNode partner2 = store.getPartner2(family);
-//		partner2Name.setEnabled(!partner2.isEmpty());
-//		if(!partner2.isEmpty())
-//			partner2Name.setText(getPartnerReference(partner2));
-//		partner2Image.setImage(ResourceHelper.readImage(path));
-
-		restrictionComboBox.setSelectedItem(store.traverse(family, "RESTRICTION").getValue());
 	}
 
 	private String getPartnerReference(final GedcomNode partner){
 		final StringJoiner reference = new StringJoiner(StringUtils.SPACE);
 		reference.add(partner.getID() + ":");
-
-		final List<GedcomNode> familyNames = partner.getChildrenWithTag("NAME.FAMILY_NAME");
-		reference.add(familyNames.isEmpty()? "--,": familyNames.get(0).getValue() + ",");
-
-		final List<GedcomNode> individualNames = partner.getChildrenWithTag("NAME.INDIVIDUAL_NAME");
-		reference.add(individualNames.isEmpty()? "--": individualNames.get(0).getValue());
-
+		reference.add(IndividualPanel.extractFirstCompleteName(partner, NAMES_SEPARATOR, store));
 		final String birthYear = IndividualPanel.extractBirthYear(partner, store);
 		final String deathYear = IndividualPanel.extractDeathYear(partner, store);
-		reference.add("(" + (StringUtils.isNotBlank(birthYear)? birthYear: "--") + " – "
-			+ (StringUtils.isNotBlank(deathYear)? deathYear: "--") + ")");
-
+		reference.add("(" + (StringUtils.isNotBlank(birthYear)? birthYear: NO_DATA) + "–"
+			+ (StringUtils.isNotBlank(deathYear)? deathYear: NO_DATA) + ")");
 		return reference.toString();
 	}
 
@@ -393,7 +377,7 @@ public class FamilyRecordDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(350, 400);
+			dialog.setSize(350, 500);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

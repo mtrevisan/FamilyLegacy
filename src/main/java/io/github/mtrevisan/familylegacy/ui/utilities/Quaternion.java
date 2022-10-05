@@ -67,14 +67,14 @@ public class Quaternion{
 	 */
 	public static Quaternion fromAngles(final double xAngle, final double yAngle, final double zAngle) throws ZeroException{
 		double angle = zAngle * 0.5;
-		final double sinZ = Math.sin(angle);
-		final double cosZ = Math.cos(angle);
+		final double sinZ = StrictMath.sin(angle);
+		final double cosZ = StrictMath.cos(angle);
 		angle = yAngle * 0.5;
-		final double sinY = Math.sin(angle);
-		final double cosY = Math.cos(angle);
+		final double sinY = StrictMath.sin(angle);
+		final double cosY = StrictMath.cos(angle);
 		angle = xAngle * 0.5;
-		final double sinX = Math.sin(angle);
-		final double cosX = Math.cos(angle);
+		final double sinX = StrictMath.sin(angle);
+		final double cosX = StrictMath.cos(angle);
 
 		//variables used to reduce multiplication calls
 		final double cosYXcosZ = cosY * cosZ;
