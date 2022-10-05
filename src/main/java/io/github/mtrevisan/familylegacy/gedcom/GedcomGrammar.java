@@ -229,7 +229,7 @@ final class GedcomGrammar{
 			throw GedcomGrammarParseException.create("Failed to read line {}: {}", lineCount, e.getMessage(), e);
 		}
 
-		LOGGER.info("Adding objects done ({} objects parsed)", structures.size());
+		LOGGER.info("Adding objects done ({} structures parsed)", structures.size());
 	}
 
 	/**
