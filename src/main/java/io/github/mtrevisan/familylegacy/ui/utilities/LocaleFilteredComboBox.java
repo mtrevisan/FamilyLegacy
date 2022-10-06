@@ -90,7 +90,7 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 		});
 	}
 
-	/** Fix size of combobox to maximum size required to show the longest name. */
+	/** Fix size of combo-box to maximum size required to show the longest name. */
 	private void setFixedWidth(){
 		double maxWidth = 0.;
 		FlefLocale maxLocale = new FlefLocale(Locale.US);
