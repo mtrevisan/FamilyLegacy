@@ -33,15 +33,21 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterfac
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -50,6 +56,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 
@@ -162,7 +174,7 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 
 		textPreviewView.setText(getTitle(), text, languageTag);
 
-		localeComboBox.setSelectedByLanguageTag(languageTag);
+		localeComboBox.setSelectedItem(Locale.forLanguageTag(languageTag));
 
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 

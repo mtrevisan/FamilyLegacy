@@ -72,6 +72,9 @@
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
 		<miglayout-swing.version>11.0</miglayout-swing.version>
+		<!-- SwingX -->
+		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-core -->
+		<swinglabs.swingx.version>1.6.5-1</swinglabs.swingx.version>
 
 		<!-- Markdown viewer -->
 		<!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-all -->
@@ -93,7 +96,7 @@
 
 		<!-- Logging -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-		<slf4j.slf4j-api.version>2.0.2</slf4j.slf4j-api.version>
+		<slf4j.slf4j-api.version>2.0.3</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
 		<logback.logback-classic.version>1.4.1</logback.logback-classic.version>
 
@@ -324,6 +327,11 @@
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
 			<version>${miglayout-swing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.swinglabs.swingx</groupId>
+			<artifactId>swingx-core</artifactId>
+			<version>${swinglabs.swingx.version}</version>
 		</dependency>
 
 		<dependency>
