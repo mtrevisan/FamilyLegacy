@@ -136,57 +136,74 @@ public class TextPreviewPane extends JSplitPane{
 	private final JMenuItem htmlExportGithubItem = new JMenuItem("Github stylesheet…");
 
 	private final JTextArea textView = new JTextArea();
-	private final JEditorPane previewView = new JEditorPane();
+	private JEditorPane previewView;
 	private final TextPreviewListenerInterface listener;
 
 
-	public TextPreviewPane(final TextPreviewListenerInterface listener){
+	public static TextPreviewPane createWithoutPreview(){
+		return new TextPreviewPane(null);
+	}
+
+	public static TextPreviewPane createWithPreview(final TextPreviewListenerInterface listener){
+		return new TextPreviewPane(listener);
+	}
+
+
+	private TextPreviewPane(final TextPreviewListenerInterface listener){
 		super(JSplitPane.HORIZONTAL_SPLIT);
 
 		this.listener = listener;
 
-		//TODO add inner padding
-		previewView.setEditable(false);
-		previewView.setContentType("text/html");
-		//manage links
-		previewView.addHyperlinkListener(event -> {
-			if(event.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
-				FileHelper.browseURL(event.getURL().toString());
-		});
+		if(listener != null){
+			previewView = new JEditorPane();
+			//TODO add inner padding
+			previewView.setEditable(false);
+			previewView.setContentType("text/html");
+			//manage links
+			previewView.addHyperlinkListener(event -> {
+				if(event.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+					FileHelper.browseURL(event.getURL().toString());
+			});
+		}
 
 		textView.setTabSize(3);
 		textView.setRows(10);
-		if(listener != null)
+
+		if(listener == null)
+			GUIHelper.bindLabelTextChangeUndo(null, textView, null);
+		else{
 			GUIHelper.bindLabelTextChangeUndo(null, textView, evt -> listener.textChanged());
-		textView.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyReleased(final KeyEvent event){
-				super.keyReleased(event);
 
-				previewView.setText(renderHtml(textView.getText()));
-			}
-		});
+			textView.addKeyListener(new KeyAdapter(){
+				@Override
+				public void keyReleased(final KeyEvent event){
+					super.keyReleased(event);
 
+					previewView.setText(renderHtml(textView.getText()));
+				}
+			});
 
-		final JScrollPane textScroll = new JScrollPane(textView);
-		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		setLeftComponent(textScroll);
+			final JScrollPane textScroll = new JScrollPane(textView);
+			textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			setLeftComponent(textScroll);
 
-		//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
-		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
-		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(previewView,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		previewScroll.setVisible(false);
-		setRightComponent(previewScroll);
+			//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
+			//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
+			final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(previewView,
+				ScrollableContainerHost.ScrollType.VERTICAL));
+			previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			previewScroll.setVisible(false);
+			setRightComponent(previewScroll);
 
-		setOneTouchExpandable(true);
-		setContinuousLayout(true);
-		GUIHelper.executeOnEventDispatchThread(() -> {
-			setDividerLocation(1.);
-			setDividerSize(0);
-		});
-		attachPreviewPopUpMenu(previewScroll);
+			attachPreviewPopUpMenu(previewScroll);
+
+			setOneTouchExpandable(true);
+			setContinuousLayout(true);
+			GUIHelper.executeOnEventDispatchThread(() -> {
+				setDividerLocation(1.);
+				setDividerSize(0);
+			});
+		}
 	}
 
 	/**
@@ -291,20 +308,25 @@ public class TextPreviewPane extends JSplitPane{
 
 
 	public void setText(final String title, String text, final String languageTag){
-		htmlExportStandardItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_STANDARD_CSS));
-		htmlExportGithubItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_GITHUB_CSS));
+		if(listener != null){
+			htmlExportStandardItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_STANDARD_CSS));
+			htmlExportGithubItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_GITHUB_CSS));
+		}
 
 		if(text == null)
 			text = StringUtils.EMPTY;
-		final String html = renderHtml(text);
 
 		//store original text to change the ok button state
 		textView.setText(text);
-		previewView.setText(html);
-
 		//scroll to top
 		textView.setCaretPosition(0);
-		previewView.setCaretPosition(0);
+
+		if(listener != null){
+			final String html = renderHtml(text);
+			previewView.setText(html);
+
+			previewView.setCaretPosition(0);
+		}
 	}
 
 	public String getText(){

@@ -149,7 +149,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				break;
 
 			case NOTE:
-				final NoteRecordDialog noteDialog = new NoteRecordDialog(store, this);
+				final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, this);
 				noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				noteDialog.setSize(450, 500);

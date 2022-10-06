@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -118,7 +118,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 	private final JTextField dateOriginalTextField = new JTextField();
 	private final JLabel dateCredibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
-	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
+	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JLabel mediaTypeLabel = new JLabel("Media type:");
 	private final JTextField mediaTypeField = new JTextField();
 	private final JButton placesButton = new JButton("Places");
@@ -378,7 +378,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteRecordDialog(store, parent);
+							dialog = NoteRecordDialog.createNote(store, parent);
 							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}

@@ -35,7 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.ImagePreview;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
@@ -134,7 +134,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private final JLabel extractTypeLabel = new JLabel("Type:");
 	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
 	private final JLabel extractLocaleLabel = new JLabel("Locale:");
-	private final LocaleFilteredComboBox extractLocaleComboBox = new LocaleFilteredComboBox();
+	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton notesButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
@@ -256,7 +256,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		descriptionField.setEnabled(false);
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> textChanged());
 
-		extractPreviewView = new TextPreviewPane(this);
+		extractPreviewView = TextPreviewPane.createWithPreview(this);
 		GUIHelper.setEnabled(extractPreviewView, false);
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
@@ -549,7 +549,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteRecordDialog(store, parent);
+							dialog = NoteRecordDialog.createNote(store, parent);
 							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}

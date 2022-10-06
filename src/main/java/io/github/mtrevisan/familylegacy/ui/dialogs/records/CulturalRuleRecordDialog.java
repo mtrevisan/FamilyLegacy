@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
@@ -120,7 +120,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 	private final JLabel ruleTitleLabel = new JLabel("Title:");
 	private final JTextField ruleTitleField = new JTextField();
 	private final JLabel localeLabel = new JLabel("Locale:");
-	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
+	private final LocaleComboBox localeComboBox = new LocaleComboBox();
 	private final JPanel descriptionPanel = new JPanel();
 	private TextPreviewPane descriptionPreviewView;
 	private final JPanel placePanel = new JPanel();
@@ -239,7 +239,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		localeLabel.setLabelFor(localeComboBox);
 		localeComboBox.setEnabled(false);
 
-		descriptionPreviewView = new TextPreviewPane(this);
+		descriptionPreviewView = TextPreviewPane.createWithPreview(this);
 		descriptionPanel.setBorder(BorderFactory.createTitledBorder("Description"));
 		descriptionPanel.setLayout(new MigLayout("", "[grow]"));
 		descriptionPanel.add(descriptionPreviewView, "span 2,grow,wrap");

@@ -28,44 +28,36 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleFilteredComboBox;
+import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.function.Consumer;
 
 
-public class NoteRecordDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+public class NoteRecordDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -4624021267879013105L;
@@ -74,8 +66,9 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 
 	private TextPreviewPane textPreviewView;
 	private final JLabel localeLabel = new JLabel("Locale:");
-	private final LocaleFilteredComboBox localeComboBox = new LocaleFilteredComboBox();
+	private final LocaleComboBox localeComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
+	private final JButton addTranslationButton = new JButton("Add translation");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -84,43 +77,68 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 	private volatile boolean updating;
 	private int dataHash;
 
-	private Consumer<Object> onCloseGracefully;
+	private Consumer<Object> onAccept;
 	private final Flef store;
 
 
-	public NoteRecordDialog(final Flef store, final Frame parent){
+	public static NoteRecordDialog createNote(final Flef store, final Frame parent){
+		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
+		dialog.initComponents();
+		return dialog;
+	}
+
+	public static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
+		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
+		dialog.changeNoteInitComponents();
+		return dialog;
+	}
+
+
+	private NoteRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
-
-		initComponents();
 	}
 
 	private void initComponents(){
 		setTitle("Note");
 
-		textPreviewView = new TextPreviewPane(this);
+		textPreviewView = TextPreviewPane.createWithPreview(this);
 
 		localeLabel.setLabelFor(localeComboBox);
 		localeComboBox.addActionListener(evt -> textChanged());
 
 		restrictionCheckBox.addActionListener(evt -> textChanged());
 
+		addTranslationButton.addActionListener(evt -> {
+			final GedcomNode newTranslation = store.create("TRANSLATION");
+
+			final Consumer<Object> onAccept = ignored -> {
+				//TODO add node from translation note record dialog
+				note.addChild(
+					newTranslation
+				);
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newTranslation, onAccept));
+		});
+
+		final ActionListener acceptAction = evt -> {
+			okAction();
+
+			if(onAccept != null)
+				onAccept.accept(this);
+
+			dispose();
+		};
+		final ActionListener cancelAction = evt -> dispose();
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			okAction();
-
-			if(onCloseGracefully != null)
-				onCloseGracefully.accept(this);
-
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
-
-			dispose();
-		});
-		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this);
+		okButton.addActionListener(acceptAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
 		setLayout(new MigLayout("", "[grow]"));
@@ -128,6 +146,41 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
 		add(restrictionCheckBox, "wrap paragraph");
+		add(addTranslationButton, "tag add,span 2,sizegroup button2,wrap paragraph");
+		add(helpButton, "tag help2,split 3,sizegroup button");
+		add(okButton, "tag ok,sizegroup button");
+		add(cancelButton, "tag cancel,sizegroup button");
+	}
+
+	private void changeNoteInitComponents(){
+		setTitle("Change note");
+
+		textPreviewView = TextPreviewPane.createWithoutPreview();
+
+		localeLabel.setLabelFor(localeComboBox);
+		localeComboBox.addActionListener(evt -> textChanged());
+
+		final ActionListener acceptAction = evt -> {
+			okAction();
+
+			if(onAccept != null)
+				onAccept.accept(this);
+
+			dispose();
+		};
+		final ActionListener cancelAction = evt -> dispose();
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
+		okButton.setEnabled(false);
+		okButton.addActionListener(acceptAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+
+		setLayout(new MigLayout("debug", "[grow]", "[fill,grow][][]"));
+		add(textPreviewView, "grow,wrap");
+		add(localeLabel, "align label,split 2,sizegroup label");
+		add(localeComboBox, "wrap");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -156,25 +209,62 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 
 	private void okAction(){
 		final String text = textPreviewView.getText();
-		note.withValue(text);
+		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final String creationDate = store.traverse(note, "CREATION_DATE.DATE").getValue();
+		if(creationDate == null){
+			note.clearAll();
+			note.withValue(StringUtils.replace(text, "\n", "\\n"))
+				.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
+				.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
+				.addChild(
+					store.create("CREATION_DATE")
+						.addChildValue("DATE", now)
+				);
+		}
+		else{
+			//show note record dialog
+			final NoteRecordDialog changeNoteDialog = createChangeNote(store, (Frame)getParent());
+			final GedcomNode changeNote = store.create("NOTE");
+			changeNoteDialog.loadData(changeNote, ignored -> {
+				note.clearAll();
+				note.withValue(StringUtils.replace(text, "\n", "\\n"))
+					.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
+					.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
+					.addChild(
+						store.create("CREATION_DATE")
+							.addChildValue("DATE", creationDate)
+					)
+					.addChild(
+						store.create("CHANGE_DATE")
+							.addChildValue("DATE", now)
+							.addChildValue("NOTE", StringUtils.replace(changeNote.getValue(), "\n", "\\n"))
+					);
+			});
+
+			changeNoteDialog.setSize(450, 500);
+			changeNoteDialog.setLocationRelativeTo(this);
+			changeNoteDialog.setVisible(true);
+		}
 	}
 
-	public final void loadData(final GedcomNode note, final Consumer<Object> onCloseGracefully){
+	public final void loadData(final GedcomNode note, final Consumer<Object> onAccept){
 		updating = true;
 
 		this.note = note;
-		this.onCloseGracefully = onCloseGracefully;
+		this.onAccept = onAccept;
 
 		final String id = note.getID();
-		setTitle(id != null? "Note " + id: "New Note");
+		if(id != null)
+			setTitle("Note " + id);
 
-		final String text = note.getValue();
+		final String text = StringUtils.replace(note.getValue(), "\\n", "\n");
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();
 
 		textPreviewView.setText(getTitle(), text, languageTag);
 
-		localeComboBox.setSelectedItem(Locale.forLanguageTag(languageTag));
+		if(languageTag != null)
+			localeComboBox.setSelectedItem(Locale.forLanguageTag(languageTag));
 
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
@@ -183,11 +273,6 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 		dataHash = calculateDataHash();
 
 		repaint();
-	}
-
-	@Override
-	public final void actionPerformed(final ActionEvent evt){
-		dispose();
 	}
 
 
@@ -201,10 +286,13 @@ public class NoteRecordDialog extends JDialog implements ActionListener, TextPre
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode note = store.getNotes().get(0);
+		//without creation date
+//		final GedcomNode note = store.getNotes().get(0);
+		//with creation date
+		final GedcomNode note = store.getNotes().get(1);
 
 		EventQueue.invokeLater(() -> {
-			final NoteRecordDialog dialog = new NoteRecordDialog(store, new JFrame());
+			final NoteRecordDialog dialog = createNote(store, new JFrame());
 			dialog.loadData(note, null);
 
 			dialog.addWindowListener(new WindowAdapter(){

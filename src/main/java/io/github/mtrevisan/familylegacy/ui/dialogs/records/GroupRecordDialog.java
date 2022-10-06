@@ -184,7 +184,7 @@ public class GroupRecordDialog extends JDialog{
 							break;
 
 						case NOTE:
-							dialog = new NoteRecordDialog(store, parent);
+							dialog = NoteRecordDialog.createNote(store, parent);
 							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);

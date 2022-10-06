@@ -179,7 +179,7 @@ public class RepositoryRecordDialog extends JDialog{
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
-							dialog = new NoteRecordDialog(store, parent);
+							dialog = NoteRecordDialog.createNote(store, parent);
 							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}

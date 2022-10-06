@@ -366,7 +366,7 @@ public final class Transformer extends TransformerHelper{
 				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
 
 			final GedcomNode creationDate = create("CREATION_DATE")
-				.addChildValue("DATE", DateTimeFormatter.ISO_DATE_TIME.format(dateTime));
+				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
 			destination.addChild(creationDate);
 		}
 	}
@@ -511,7 +511,7 @@ public final class Transformer extends TransformerHelper{
 				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
 
 			final GedcomNode creationDate = create("CREATION_DATE")
-				.addChildValue("DATE", DateTimeFormatter.ISO_DATE_TIME.format(dateTime));
+				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
 			destinationHeader.addChild(creationDate);
 		}
 		destinationHeader.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
@@ -1281,7 +1281,7 @@ public final class Transformer extends TransformerHelper{
 	private void dateTimeFrom(final GedcomNode node, final GedcomNode destination){
 		final String date = traverse(node, "CREATION_DATE.DATE").getValue();
 		if(date != null){
-			final TemporalAccessor dateTime = DateTimeFormatter.ISO_DATE_TIME.parse(date);
+			final TemporalAccessor dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(date);
 			final GedcomNode creationDate = create("CHAN")
 				.addChild(createWithValue("DATE", DateParser.formatDate(dateTime))
 					.addChildValue("TIME", DateParser.formatTime(dateTime))

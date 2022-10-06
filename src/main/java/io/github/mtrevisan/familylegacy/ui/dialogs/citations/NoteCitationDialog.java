@@ -345,7 +345,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					if(editCommand.getType() == EditEvent.EditType.NOTE){
-						final NoteRecordDialog noteDialog = new NoteRecordDialog(store, parent);
+						final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
 						noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 						noteDialog.setSize(550, 350);

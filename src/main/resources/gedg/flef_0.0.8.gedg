@@ -274,9 +274,9 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the not (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
   +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}	/* A translated version of the note. */
     +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the translated note (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
   +1 CREATION_DATE    {1:1}	/* An object giving the date of the creation of this structure. */
     +2 DATE <CREATION_DATE>    {1:1}	/* A date_time_value() object giving the date of the creation of this structure. */
   +1 CHANGE_DATE    {0:M}	/* An object giving the date of the changing of this structure. */

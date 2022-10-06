@@ -329,6 +329,22 @@ public abstract class GedcomNode{
 		return this;
 	}
 
+	public GedcomNode clearAll(){
+		xref = null;
+		value = null;
+
+		if(children != null){
+			final Iterator<GedcomNode> itr = children.iterator();
+			while(itr.hasNext()){
+				itr.next();
+				itr.remove();
+			}
+			children = null;
+		}
+
+		return this;
+	}
+
 
 	public static int compareID(final String id1, final String id2){
 		return Integer.compare(extractNumberFromID(id1), extractNumberFromID(id2));
