@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JTextField;
@@ -122,8 +124,10 @@ public class LocaleFilteredComboBox extends JComboBox<LocaleFilteredComboBox.Fle
 	}
 
 	public String getSelectedLanguageTag(){
-		return ((LocaleFilteredComboBox.FlefLocale)getModel().getSelectedItem())
-			.toLanguageTag();
+		final Object originalSelectedItem = getModel().getSelectedItem();
+		if(originalSelectedItem instanceof Locale selectedItem)
+			return selectedItem.toLanguageTag();
+		return StringUtils.EMPTY;
 	}
 
 	public void setSelectedByLanguageTag(String languageTag){
