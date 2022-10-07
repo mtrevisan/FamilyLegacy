@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -73,7 +74,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 
 		imageHolder = new ScaledImage(this);
 
-		setLayout(new MigLayout("", "[grow]", "[grow,fill][][]"));
+		setLayout(new MigLayout(StringUtils.EMPTY", "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");

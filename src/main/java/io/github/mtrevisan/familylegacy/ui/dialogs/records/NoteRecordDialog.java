@@ -163,7 +163,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
-		setLayout(new MigLayout("debug", "[grow][]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
 		add(textPreviewView, "spanx 2,spany 2,grow");
 		add(addTranslationButton, "tag add,sizegroup button2,wrap");
 		add(addCitationButton, "tag add,top,sizegroup button2,wrap");
@@ -200,7 +200,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
-		setLayout(new MigLayout("", "[grow]", "[fill,grow][][]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[fill,grow][][]"));
 		add(textPreviewView, "grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");

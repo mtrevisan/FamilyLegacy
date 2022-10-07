@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.DropMode;
@@ -189,7 +190,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 		cancelButton.addActionListener(this);
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");

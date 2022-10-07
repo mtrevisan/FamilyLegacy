@@ -137,7 +137,7 @@ private final JTextField subordinateField = new JTextField();
 
 		final JPanel addressPanel = new JPanel();
 		addressPanel.setBorder(BorderFactory.createTitledBorder("Address"));
-		addressPanel.setLayout(new MigLayout("", "[grow]"));
+		addressPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		addressPanel.add(addressLabel, "align label,split 2,sizegroup labelAddress");
 		addressPanel.add(addressField, "grow,wrap");
 		addressPanel.add(addressHierarchyLabel, "align label,split 2,sizegroup labelAddress");
@@ -156,7 +156,7 @@ private final JTextField subordinateField = new JTextField();
 
 		final JPanel mapPanel = new JPanel();
 		mapPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
-		mapPanel.setLayout(new MigLayout("", "[grow]"));
+		mapPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		mapPanel.add(latitudeLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(latitudeField, "grow,wrap");
 		mapPanel.add(longitudeLabel, "align label,split 2,sizegroup labelMap");
@@ -183,7 +183,7 @@ private final JTextField subordinateField = new JTextField();
 		cancelButton.addActionListener(this::actionPerformed);
 
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(nameLabel, "align label,sizegroup label,split 2");
 		add(nameField, "grow,wrap");
 		add(addressPanel, "grow,wrap");

@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DropMode;
 import javax.swing.JButton;
@@ -205,7 +206,7 @@ public class RepositoryCitationDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(repositoriesScrollPane, "grow,wrap related");

@@ -17,7 +17,7 @@ import java.util.Comparator;
 import java.util.Locale;
 
 
-public class LocaleComboBox extends JComboBox<Locale>{
+public final class LocaleComboBox extends JComboBox<Locale>{
 
 	//TODO preload on startup (progress bar)
 	private static final Locale[] LOCALE_ITEMS;
@@ -59,12 +59,12 @@ public class LocaleComboBox extends JComboBox<Locale>{
 		return (locale != null? locale.getDisplayName(): StringUtils.EMPTY);
 	}
 
-	public final String getSelectedLanguageTag(){
+	public String getSelectedLanguageTag(){
 		final Object selectedItem = getSelectedItem();
 		return (selectedItem != null? ((Locale)selectedItem).toLanguageTag(): StringUtils.EMPTY);
 	}
 
-	public final void setSelectedByLanguageTag(String languageTag){
+	public void setSelectedByLanguageTag(String languageTag){
 		if(languageTag != null){
 			languageTag = languageTag.toLowerCase(Locale.ROOT);
 			final ComboBoxModel<Locale> model = getModel();

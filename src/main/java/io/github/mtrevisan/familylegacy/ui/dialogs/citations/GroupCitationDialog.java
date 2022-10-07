@@ -252,7 +252,7 @@ public class GroupCitationDialog extends JDialog{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,sizegroup label,split 2");
 		add(filterField, "grow,wrap");
 		add(groupsScrollPane, "grow,wrap related");

@@ -164,7 +164,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 
 		final JPanel eventsPanel = new JPanel();
 		eventsPanel.setBorder(BorderFactory.createTitledBorder("Events"));
-		eventsPanel.setLayout(new MigLayout("", "[grow]"));
+		eventsPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		eventsPanel.add(eventLabel, "align label,split 3");
 		eventsPanel.add(eventField, "grow");
 		eventsPanel.add(eventAddButton, "wrap");
@@ -178,7 +178,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 
 		final JPanel datePanel = new JPanel();
 		datePanel.setBorder(BorderFactory.createTitledBorder("Date"));
-		datePanel.setLayout(new MigLayout("", "[grow]"));
+		datePanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		datePanel.add(dateLabel, "align label,split 3,sizegroup label");
 		datePanel.add(dateField, "grow");
 		datePanel.add(dateButton, "wrap");
@@ -220,7 +220,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 		cancelButton.addActionListener(this::actionPerformed);
 
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(eventsPanel, "grow,wrap paragraph");
 		add(titleLabel, "align label,split 2");
 		add(titleField, "grow,wrap");

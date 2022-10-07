@@ -268,7 +268,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 
 		final JPanel extractPanel = new JPanel();
 		extractPanel.setBorder(BorderFactory.createTitledBorder("Extract"));
-		extractPanel.setLayout(new MigLayout("", "[grow]"));
+		extractPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		extractPanel.add(extractPreviewView, "span 2,grow,wrap");
 		extractPanel.add(extractTypeLabel, "align label,sizegroup label,split 2");
 		extractPanel.add(extractTypeComboBox, "wrap");
@@ -303,7 +303,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 		cancelButton.addActionListener(this::actionPerformed);
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(filesScrollPane, "grow,wrap related");

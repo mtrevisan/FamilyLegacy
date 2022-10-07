@@ -266,7 +266,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 		cancelButton.addActionListener(this::actionPerformed);
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.structures.ContactStructureDi
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -105,7 +106,7 @@ public class RepositoryRecordDialog extends JDialog{
 		cancelButton.addActionListener(evt -> dispose());
 
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(nameLabel, "align label,split 2");
 		add(nameField, "grow,wrap paragraph");
 		add(individualButton, "sizegroup button2,grow,wrap");

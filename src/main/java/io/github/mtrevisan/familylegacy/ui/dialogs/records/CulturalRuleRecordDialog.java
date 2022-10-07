@@ -241,7 +241,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 		descriptionPreviewView = TextPreviewPane.createWithPreview(this);
 		descriptionPanel.setBorder(BorderFactory.createTitledBorder("Description"));
-		descriptionPanel.setLayout(new MigLayout("", "[grow]"));
+		descriptionPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		descriptionPanel.add(descriptionPreviewView, "span 2,grow,wrap");
 		descriptionPanel.add(localeLabel, "align label,split 2,sizegroup label");
 		descriptionPanel.add(localeComboBox);
@@ -253,7 +253,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		//TODO
 //		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
-		placePanel.setLayout(new MigLayout("", "[grow]"));
+		placePanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		placePanel.add(placeButton, "sizegroup button2,grow,wrap");
 		placePanel.add(placeCertaintyLabel, "align label,split 2");
 		placePanel.add(placeCertaintyComboBox, "wrap");
@@ -291,7 +291,7 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		setLayout(new MigLayout("", "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(rulesScrollPane, "grow,wrap related");
