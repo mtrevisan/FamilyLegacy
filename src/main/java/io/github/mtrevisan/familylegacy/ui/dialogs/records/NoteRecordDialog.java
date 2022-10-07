@@ -130,9 +130,9 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 			if(onAccept != null)
 				onAccept.accept(this);
 
-			dispose();
+			setVisible(false);
 		};
-		final ActionListener cancelAction = evt -> dispose();
+		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
@@ -166,9 +166,9 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 			if(onAccept != null)
 				onAccept.accept(this);
 
-			dispose();
+			setVisible(false);
 		};
-		final ActionListener cancelAction = evt -> dispose();
+		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
@@ -177,7 +177,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
-		setLayout(new MigLayout("debug", "[grow]", "[fill,grow][][]"));
+		setLayout(new MigLayout("", "[grow]", "[fill,grow][][]"));
 		add(textPreviewView, "grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
@@ -213,7 +213,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		final String creationDate = store.traverse(note, "CREATION_DATE.DATE").getValue();
 		if(creationDate == null){
 			note.clearAll();
-			note.withValue(StringUtils.replace(text, "\n", "\\n"))
+			note.withValue(fromNoteText(text))
 				.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
 				.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
 				.addChild(
@@ -227,7 +227,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 			final GedcomNode changeNote = store.create("NOTE");
 			changeNoteDialog.loadData(changeNote, ignored -> {
 				note.clearAll();
-				note.withValue(StringUtils.replace(text, "\n", "\\n"))
+				note.withValue(fromNoteText(text))
 					.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
 					.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
 					.addChild(
@@ -237,7 +237,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 					.addChild(
 						store.create("CHANGE_DATE")
 							.addChildValue("DATE", now)
-							.addChildValue("NOTE", StringUtils.replace(changeNote.getValue(), "\n", "\\n"))
+							.addChildValue("NOTE", fromNoteText(changeNote.getValue()))
 					);
 			});
 
@@ -257,7 +257,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		if(id != null)
 			setTitle("Note " + id);
 
-		final String text = StringUtils.replace(note.getValue(), "\\n", "\n");
+		final String text = toNoteText(note);
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();
 
@@ -275,6 +275,14 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		repaint();
 	}
 
+	private String toNoteText(final GedcomNode note){
+		return StringUtils.replace(note.getValue(), "\\n", "\n");
+	}
+
+	private String fromNoteText(final String text){
+		return StringUtils.replace(text, "\n", "\\n");
+	}
+
 
 	public static void main(final String[] args) throws GedcomParseException, GedcomGrammarParseException{
 		try{
@@ -288,7 +296,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 			.transform();
 		//without creation date
 //		final GedcomNode note = store.getNotes().get(0);
-		//with creation date
+		//with change date
 		final GedcomNode note = store.getNotes().get(1);
 
 		EventQueue.invokeLater(() -> {
