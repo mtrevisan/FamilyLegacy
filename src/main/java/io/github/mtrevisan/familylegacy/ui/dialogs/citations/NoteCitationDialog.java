@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -187,7 +187,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			dispose();
 		});
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this::actionPerformed);
+		cancelButton.addActionListener(this);
 
 		setLayout(new MigLayout("", "[grow]"));
 		add(filterLabel, "align label,split 2");
@@ -287,7 +287,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	}
 
 	@Override
-	public void actionPerformed(final ActionEvent evt){
+	public final void actionPerformed(final ActionEvent evt){
 		dispose();
 	}
 
@@ -303,12 +303,12 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		}
 
 		@Override
-		public Class<?> getColumnClass(final int column){
+		public final Class<?> getColumnClass(final int column){
 			return String.class;
 		}
 
 		@Override
-		public boolean isCellEditable(final int row, final int column){
+		public final boolean isCellEditable(final int row, final int column){
 			return false;
 		}
 

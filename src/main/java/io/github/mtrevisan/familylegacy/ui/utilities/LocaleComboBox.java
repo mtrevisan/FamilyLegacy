@@ -56,7 +56,7 @@ public class LocaleComboBox extends JComboBox<Locale>{
 	}
 
 	private static String getLocaleDisplayText(final Locale locale){
-		return locale.getDisplayName();
+		return (locale != null? locale.getDisplayName(): StringUtils.EMPTY);
 	}
 
 	public final String getSelectedLanguageTag(){

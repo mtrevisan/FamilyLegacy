@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
@@ -36,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -44,6 +46,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
@@ -64,11 +67,18 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
+	private static final double ICON_HEIGHT = 17.;
+	private static final double ICON_ASPECT_RATIO = 270 / 248.;
+	private static final Dimension ICON_SIZE = new Dimension((int)(ICON_HEIGHT / ICON_ASPECT_RATIO), (int)ICON_HEIGHT);
+	private static final ImageIcon TRANSLATION = ResourceHelper.getImage("/images/translation.png", ICON_SIZE);
+	private static final ImageIcon CITATION = ResourceHelper.getImage("/images/citation.png", ICON_SIZE);
+
 	private TextPreviewPane textPreviewView;
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleComboBox localeComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-	private final JButton addTranslationButton = new JButton("Add translation");
+	private final JButton addTranslationButton = new JButton(TRANSLATION);
+	private final JButton addCitationButton = new JButton(CITATION);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -110,6 +120,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 		restrictionCheckBox.addActionListener(evt -> textChanged());
 
+		addTranslationButton.setToolTipText("Add translation");
 		addTranslationButton.addActionListener(evt -> {
 			final GedcomNode newTranslation = store.create("TRANSLATION");
 
@@ -118,6 +129,17 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 				note.addChild(
 					newTranslation
 				);
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newTranslation, onAccept));
+		});
+		addCitationButton.setToolTipText("Add citation");
+		addCitationButton.addActionListener(evt -> {
+			final GedcomNode newTranslation = store.create("TRANSLATION");
+
+			final Consumer<Object> onAccept = ignored -> {
+				//TODO
 			};
 
 			//fire edit event
@@ -141,15 +163,16 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
-		setLayout(new MigLayout("", "[grow]"));
-		add(textPreviewView, "span 2,grow,wrap");
-		add(localeLabel, "align label,split 2,sizegroup label");
-		add(localeComboBox, "wrap");
-		add(restrictionCheckBox, "wrap paragraph");
-		add(addTranslationButton, "tag add,span 2,sizegroup button2,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		setLayout(new MigLayout("debug", "[grow][]"));
+		add(textPreviewView, "spanx 2,spany 2,grow");
+		add(addTranslationButton, "tag add,sizegroup button2,wrap");
+		add(addCitationButton, "tag add,top,sizegroup button2,wrap");
+		add(localeLabel, "align label,spanx 3,split 2,sizegroup label");
+		add(localeComboBox, "spanx 3,wrap");
+		add(restrictionCheckBox, "spanx 3,wrap");
+		add(helpButton, "tag help2,spanx 3,split 3,sizegroup button");
+		add(okButton, "tag ok,spanx 3,sizegroup button");
+		add(cancelButton, "tag cancel,spanx 3,sizegroup button");
 	}
 
 	private void changeNoteInitComponents(){
