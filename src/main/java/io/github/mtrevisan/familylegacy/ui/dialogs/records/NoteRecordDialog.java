@@ -220,6 +220,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 			.hashCode();
 		final int languageTagHash = localeComboBox.getSelectedLanguageTag()
 			.hashCode();
+		//TODO add translation hash code
 		final int restrictionHash = (restrictionCheckBox.isSelected()? "confidential": StringUtils.EMPTY)
 			.hashCode();
 		return textHash ^ languageTagHash ^ restrictionHash;
@@ -298,11 +299,15 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 		repaint();
 	}
 
-	private String toNoteText(final GedcomNode note){
+	private static String toNoteText(final GedcomNode note){
 		return StringUtils.replace(note.getValue(), "\\n", "\n");
 	}
 
-	private String fromNoteText(final String text){
+	public static String toVisualText(final GedcomNode note){
+		return StringUtils.replace(note.getValue(), "\\n", "↵");
+	}
+
+	private static String fromNoteText(final String text){
 		return StringUtils.replace(text, "\n", "\\n");
 	}
 

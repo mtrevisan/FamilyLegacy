@@ -74,7 +74,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 
 		imageHolder = new ScaledImage(this);
 
-		setLayout(new MigLayout(StringUtils.EMPTY", "[grow]", "[grow,fill][][]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");

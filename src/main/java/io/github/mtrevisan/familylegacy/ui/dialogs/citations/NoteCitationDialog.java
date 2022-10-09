@@ -39,7 +39,9 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DropMode;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -148,31 +150,22 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 					editAction();
 			}
 		});
-		notesTable.getInputMap(JComponent.WHEN_FOCUSED)
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		notesTable.getActionMap()
-			.put("delete", new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = -2822438026203657068L;
-
-				@Override
-				public void actionPerformed(final ActionEvent evt){
-					deleteAction();
-				}
-
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void readObject(final ObjectInputStream is) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-			});
+		final InputMap notesTableInputMap = notesTable.getInputMap(JComponent.WHEN_FOCUSED);
+		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
+		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		final ActionMap notesTableActionMap = notesTable.getActionMap();
+		notesTableActionMap.put("insert", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				addAction();
+			}
+		});
+		notesTableActionMap.put("delete", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				deleteAction();
+			}
+		});
 		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
 			notesTable.getRowHeight() * 5));
 
@@ -257,8 +250,11 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	private void loadData(){
 		final List<GedcomNode> notes = store.traverseAsList(container, "NOTE[]");
 		final int size = notes.size();
-		for(int i = 0; i < size; i ++)
-			notes.set(i, store.getNote(notes.get(i).getXRef()));
+		for(int i = 0; i < size; i ++){
+			final String noteXRef = notes.get(i).getXRef();
+			final GedcomNode note = store.getNote(noteXRef);
+			notes.set(i, note);
+		}
 
 		if(size > 0){
 			final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();
@@ -268,7 +264,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 				final GedcomNode note = notes.get(row);
 
 				notesModel.setValueAt(note.getID(), row, TABLE_INDEX_NOTE_ID);
-				notesModel.setValueAt(note.getValue(), row, TABLE_INDEX_NOTE_TEXT);
+				notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_NOTE_TEXT);
 			}
 		}
 	}
