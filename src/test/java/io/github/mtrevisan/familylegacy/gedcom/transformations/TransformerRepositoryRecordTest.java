@@ -55,7 +55,7 @@ class TransformerRepositoryRecordTest{
 		final Flef destination = new Flef();
 		transformerTo.repositoryRecordTo(repository, origin, destination);
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03}]}]", destination.getRepositories().get(0).toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: PLACE, ref: P1}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03+02:00}]}]", destination.getRepositories().get(0).toString());
 		Assertions.assertEquals("id: P1, tag: PLACE, children: [{tag: ADDRESS, value: ADDRESS_LINE}]", destination.getPlaces().get(0).toString());
 	}
 
@@ -69,7 +69,7 @@ class TransformerRepositoryRecordTest{
 			.addChildValue("PHONE", "PHONE_NUMBER")
 			.addChildReference("NOTE", "N1")
 			.addChild(transformerFrom.create("CREATION_DATE")
-				.addChildValue("DATE", "2022-03-30T01:02:03")
+				.addChildValue("DATE", "2022-03-30T01:02:03+02:00")
 			);
 		final GedcomNode place = transformerFrom.createWithID("PLACE", "P1")
 			.addChildValue("NAME", "PLACE_NAME")
@@ -78,7 +78,7 @@ class TransformerRepositoryRecordTest{
 			);
 		final GedcomNode note = transformerFrom.createWithID("NOTE", "N1");
 
-		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: I1}, {tag: PLACE, ref: P1}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03}]}]", repository.toString());
+		Assertions.assertEquals("id: R1, tag: REPOSITORY, children: [{tag: NAME, value: NAME_OF_REPOSITORY}, {tag: INDIVIDUAL, ref: I1}, {tag: PLACE, ref: P1}, {tag: PHONE, value: PHONE_NUMBER}, {tag: NOTE, ref: N1}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03+02:00}]}]", repository.toString());
 
 		final Flef origin = new Flef();
 		origin.addRepository(repository);

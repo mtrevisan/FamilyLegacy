@@ -36,6 +36,9 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
@@ -362,8 +365,9 @@ public final class Transformer extends TransformerHelper{
 		if(!date.isEmpty()){
 			final GedcomNode time = traverse(date, "TIME");
 			final String[] timeComponents = StringUtils.split(time.getValue(), ':');
-			final LocalDateTime dateTime = DateParser.parse(date.getValue())
-				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
+			final ZonedDateTime dateTime = DateParser.parse(date.getValue())
+				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]))
+				.atZone(ZoneId.systemDefault());
 
 			final GedcomNode creationDate = create("CREATION_DATE")
 				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
@@ -507,8 +511,9 @@ public final class Transformer extends TransformerHelper{
 		if(!date.isEmpty()){
 			final GedcomNode time = traverse(date, "TIME");
 			final String[] timeComponents = StringUtils.split(time.getValue(), ':');
-			final LocalDateTime dateTime = DateParser.parse(date.getValue())
-				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]));
+			final ZonedDateTime dateTime = DateParser.parse(date.getValue())
+				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]))
+				.atZone(ZoneId.systemDefault());
 
 			final GedcomNode creationDate = create("CREATION_DATE")
 				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
@@ -1518,9 +1523,9 @@ public final class Transformer extends TransformerHelper{
 
 		final String date = traverse(source, "CREATION_DATE.DATE").getValue();
 		if(date != null){
-			final int timeIndex = date.indexOf('T', 9);
-			destinationSource.addChild(createWithValue("DATE", (timeIndex > 0? date.substring(0, timeIndex): date))
-				.addChildValue("TIME", (timeIndex > 0? date.substring(timeIndex + 1): null))
+			final int timeStartIndex = date.indexOf('T', 9);
+			destinationSource.addChild(createWithValue("DATE", (timeStartIndex > 0? date.substring(0, timeStartIndex): date))
+				.addChildValue("TIME", (timeStartIndex > 0? date.substring(timeStartIndex + 1, timeStartIndex + 9): null))
 			);
 		}
 

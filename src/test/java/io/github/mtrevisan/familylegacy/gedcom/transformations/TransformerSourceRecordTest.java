@@ -116,10 +116,13 @@ class TransformerSourceRecordTest{
 			.addChildReference("NOTE", "N1")
 			.addChildReference("RESTRICTION", "public")
 			.addChild(transformerFrom.create("CREATION_DATE")
-				.addChildValue("DATE", "2022-03-30T01:02:03")
+				.addChildValue("DATE", "2022-03-30T01:02:03+02:00")
 			);
 
-		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR}, {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, ref: R1}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE}, {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: N1}, {tag: RESTRICTION, ref: public}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03}]}]", source.toString());
+		Assertions.assertEquals("id: S1, tag: SOURCE, children: [{tag: EVENT, value: EVENTS_RECORDED}, {tag: TITLE, value: SOURCE_DESCRIPTIVE_TITLE}, {tag: AUTHOR, value: SOURCE_ORIGINATOR},"
+			+ " {tag: PUBLICATION_FACTS, value: SOURCE_PUBLICATION_FACTS}, {tag: DATE, value: ENTRY_RECORDING_DATE}, {tag: REPOSITORY, ref: R1}, {tag: FILE, value: DOCUMENT_FILE_REFERENCE},"
+			+ " {tag: MEDIA_TYPE, value: SOURCE_MEDIA_TYPE}, {tag: NOTE, ref: N1}, {tag: RESTRICTION, ref: public}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03+02:00}]}]",
+			source.toString());
 
 		final Gedcom destination = new Gedcom();
 		final GedcomNode parent = transformerFrom.createEmpty();
