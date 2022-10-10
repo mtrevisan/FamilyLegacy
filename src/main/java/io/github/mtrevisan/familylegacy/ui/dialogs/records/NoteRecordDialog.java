@@ -67,7 +67,7 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-	private static final double ICON_HEIGHT = 17.;
+	private static final double ICON_HEIGHT = 24.;
 	private static final double ICON_ASPECT_RATIO = 270 / 248.;
 	private static final Dimension ICON_SIZE = new Dimension((int)(ICON_HEIGHT / ICON_ASPECT_RATIO), (int)ICON_HEIGHT);
 	private static final ImageIcon TRANSLATION = ResourceHelper.getImage("/images/translation.png", ICON_SIZE);
@@ -148,11 +148,6 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 		final ActionListener acceptAction = evt -> {
 			okAction();
-
-			if(onAccept != null)
-				onAccept.accept(this);
-
-			setVisible(false);
 		};
 		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
@@ -185,11 +180,6 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 		final ActionListener acceptAction = evt -> {
 			okAction();
-
-			if(onAccept != null)
-				onAccept.accept(this);
-
-			setVisible(false);
 		};
 		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
@@ -244,6 +234,11 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 					store.create("CREATION_DATE")
 						.addChildValue("DATE", now)
 				);
+
+			if(onAccept != null)
+				onAccept.accept(this);
+
+			setVisible(false);
 		}
 		else{
 			//show note record dialog
@@ -263,6 +258,9 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 							.addChildValue("DATE", now)
 							.addChildValue("NOTE", fromNoteText(changeNote.getValue()))
 					);
+
+				if(onAccept != null)
+					onAccept.accept(this);
 			});
 
 			changeNoteDialog.setSize(450, 500);
