@@ -150,7 +150,9 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 			case NOTE:
 				final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, this);
-				noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+				final GedcomNode note = editCommand.getContainer();
+				noteDialog.setTitle("Note for " + note.getID());
+				noteDialog.loadData(note, editCommand.getOnCloseGracefully());
 
 				noteDialog.setSize(450, 500);
 				noteDialog.setLocationRelativeTo(this);

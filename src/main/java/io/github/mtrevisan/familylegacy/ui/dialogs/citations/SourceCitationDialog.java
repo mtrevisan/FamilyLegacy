@@ -156,13 +156,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		this.store = store;
 
 		initComponents();
-
-		loadData();
 	}
 
 	private void initComponents(){
-		setTitle("Source citations");
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -413,6 +409,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 				sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
 			}
 		}
+		else
+			//show a source input dialog
+			addAction();
 	}
 
 	private void filterTableBy(final SourceCitationDialog panel){
@@ -508,7 +507,9 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 						}
 						case NOTE -> {
 							dialog = NoteRecordDialog.createNote(store, parent);
-							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GedcomNode note = editCommand.getContainer();
+							((NoteRecordDialog)dialog).setTitle("Note for " + note.getID());
+							((NoteRecordDialog)dialog).loadData(note, editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 						case CROP -> {
@@ -537,6 +538,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 			EventBusService.subscribe(listener);
 
 			final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+			dialog.setTitle("Source citation for " + container.getID());
 			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

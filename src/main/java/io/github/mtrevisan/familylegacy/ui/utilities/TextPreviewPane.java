@@ -137,78 +137,71 @@ public class TextPreviewPane extends JSplitPane{
 
 	private final JTextArea textView = new JTextArea();
 	private JEditorPane previewView;
-	private final TextPreviewListenerInterface listener;
+	private TextPreviewListenerInterface listener;
 
 
-	public static TextPreviewPane createWithoutPreview(){
-		return new TextPreviewPane(null);
+	public static TextPreviewPane createWithoutPreview(final TextPreviewListenerInterface listener){
+		final TextPreviewPane pane = new TextPreviewPane();
+
+		pane.listener = listener;
+
+		pane.textView.setTabSize(3);
+		pane.textView.setRows(10);
+
+		GUIHelper.bindLabelTextChangeUndo(null, pane.textView, evt -> listener.textChanged());
+
+		final JScrollPane textScroll = new JScrollPane(pane.textView);
+		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		pane.setLeftComponent(textScroll);
+
+		return pane;
 	}
 
 	public static TextPreviewPane createWithPreview(final TextPreviewListenerInterface listener){
-		return new TextPreviewPane(listener);
+		final TextPreviewPane pane = createWithoutPreview(listener);
+
+		pane.textView.addKeyListener(new KeyAdapter(){
+			@Override
+			public void keyReleased(final KeyEvent event){
+				super.keyReleased(event);
+
+				pane.previewView.setText(pane.renderHtml(pane.textView.getText()));
+			}
+		});
+
+		pane.previewView = new JEditorPane();
+		//TODO add inner padding
+		pane.previewView.setEditable(false);
+		pane.previewView.setContentType("text/html");
+		//manage links
+		pane.previewView.addHyperlinkListener(event -> {
+			if(event.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
+				FileHelper.browseURL(event.getURL().toString());
+		});
+
+		//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
+		//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
+		final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(pane.previewView,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		previewScroll.setVisible(false);
+		pane.setRightComponent(previewScroll);
+
+		pane.attachPreviewPopUpMenu(previewScroll);
+
+		pane.setOneTouchExpandable(true);
+		pane.setContinuousLayout(true);
+		GUIHelper.executeOnEventDispatchThread(() -> {
+			pane.setDividerLocation(1.);
+			pane.setDividerSize(0);
+		});
+
+		return pane;
 	}
 
 
-	private TextPreviewPane(final TextPreviewListenerInterface listener){
+	private TextPreviewPane(){
 		super(JSplitPane.HORIZONTAL_SPLIT);
-
-		this.listener = listener;
-
-		if(listener != null){
-			previewView = new JEditorPane();
-			//TODO add inner padding
-			previewView.setEditable(false);
-			previewView.setContentType("text/html");
-			//manage links
-			previewView.addHyperlinkListener(event -> {
-				if(event.getEventType() == HyperlinkEvent.EventType.ACTIVATED)
-					FileHelper.browseURL(event.getURL().toString());
-			});
-		}
-
-		textView.setTabSize(3);
-		textView.setRows(10);
-
-		if(listener == null){
-			GUIHelper.bindLabelTextChangeUndo(null, textView, null);
-
-			final JScrollPane textScroll = new JScrollPane(textView);
-			textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			setLeftComponent(textScroll);
-		}
-		else{
-			GUIHelper.bindLabelTextChangeUndo(null, textView, evt -> listener.textChanged());
-
-			textView.addKeyListener(new KeyAdapter(){
-				@Override
-				public void keyReleased(final KeyEvent event){
-					super.keyReleased(event);
-
-					previewView.setText(renderHtml(textView.getText()));
-				}
-			});
-
-			final JScrollPane textScroll = new JScrollPane(textView);
-			textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			setLeftComponent(textScroll);
-
-			//https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
-			//http://www.java2s.com/Code/Java/Swing-JFC/NonWrappingWrapTextPane.htm
-			final JScrollPane previewScroll = new JScrollPane(new ScrollableContainerHost(previewView,
-				ScrollableContainerHost.ScrollType.VERTICAL));
-			previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			previewScroll.setVisible(false);
-			setRightComponent(previewScroll);
-
-			attachPreviewPopUpMenu(previewScroll);
-
-			setOneTouchExpandable(true);
-			setContinuousLayout(true);
-			GUIHelper.executeOnEventDispatchThread(() -> {
-				setDividerLocation(1.);
-				setDividerSize(0);
-			});
-		}
 	}
 
 	/**
@@ -326,7 +319,7 @@ public class TextPreviewPane extends JSplitPane{
 		//scroll to top
 		textView.setCaretPosition(0);
 
-		if(listener != null){
+		if(previewView != null && listener != null){
 			final String html = renderHtml(text);
 			previewView.setText(html);
 

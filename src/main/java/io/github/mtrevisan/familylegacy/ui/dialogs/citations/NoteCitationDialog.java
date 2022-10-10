@@ -208,7 +208,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			container.addChildReference("NOTE", newNoteID);
 
 			//refresh note list
-			loadData(null);
+			loadData(container);
 		};
 
 		//fire edit event
@@ -344,11 +344,27 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 				public void refresh(final EditEvent editCommand){
 					if(editCommand.getType() == EditEvent.EditType.NOTE){
 						final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
-						noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+						final GedcomNode note = editCommand.getContainer();
+						noteDialog.setTitle(note.getID() != null
+							? ("TRANSLATION".equals(note.getTag())? "Translation for " + note.getID(): "Note for " + note.getID())
+							: ("TRANSLATION".equals(note.getTag())? "New translation for note for " + container.getID(): "New note for " + container.getID()));
+						noteDialog.loadData(note, editCommand.getOnCloseGracefully());
 
 						noteDialog.setSize(550, 350);
 						noteDialog.setLocationRelativeTo(parent);
 						noteDialog.setVisible(true);
+					}
+					else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
+						final GedcomNode sourceCitation = editCommand.getContainer();
+						final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, parent);
+						sourceCitationDialog.setTitle(sourceCitation.getID() != null
+							? "Source citation for " + sourceCitation.getID()
+							: "New source citation for note for " + container.getID());
+						sourceCitationDialog.loadData(sourceCitation, editCommand.getOnCloseGracefully());
+
+						sourceCitationDialog.setSize(550, 450);
+						sourceCitationDialog.setLocationRelativeTo(parent);
+						sourceCitationDialog.setVisible(true);
 					}
 				}
 			};

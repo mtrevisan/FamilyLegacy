@@ -435,7 +435,9 @@ public class GroupCitationDialog extends JDialog{
 						}
 						case NOTE -> {
 							final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
-							noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GedcomNode note = editCommand.getContainer();
+							noteDialog.setTitle("Note for " + note.getID());
+							noteDialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							noteDialog.setSize(550, 350);
 							noteDialog.setLocationRelativeTo(parent);

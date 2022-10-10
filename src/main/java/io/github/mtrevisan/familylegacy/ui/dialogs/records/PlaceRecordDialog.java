@@ -285,7 +285,9 @@ private final JTextField subordinateField = new JTextField();
 						}
 						case NOTE -> {
 							dialog = NoteRecordDialog.createNote(store, parent);
-							((NoteRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GedcomNode note = editCommand.getContainer();
+							((NoteRecordDialog)dialog).setTitle("Note for " + note.getID());
+							((NoteRecordDialog)dialog).loadData(note, editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}
 					}
