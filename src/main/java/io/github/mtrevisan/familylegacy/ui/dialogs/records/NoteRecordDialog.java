@@ -67,11 +67,8 @@ public class NoteRecordDialog extends JDialog implements TextPreviewListenerInte
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-	private static final double ICON_HEIGHT = 24.;
-	private static final double ICON_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension ICON_SIZE = new Dimension((int)(ICON_HEIGHT / ICON_ASPECT_RATIO), (int)ICON_HEIGHT);
-	private static final ImageIcon TRANSLATION = ResourceHelper.getImage("/images/translation.png", ICON_SIZE);
-	private static final ImageIcon CITATION = ResourceHelper.getImage("/images/citation.png", ICON_SIZE);
+	private static final ImageIcon TRANSLATION = ResourceHelper.getImage("/images/translation.png", 20, 20);
+	private static final ImageIcon CITATION = ResourceHelper.getImage("/images/citation.png", 20, 20);
 
 	private TextPreviewPane textPreviewView;
 	private final JLabel localeLabel = new JLabel("Locale:");

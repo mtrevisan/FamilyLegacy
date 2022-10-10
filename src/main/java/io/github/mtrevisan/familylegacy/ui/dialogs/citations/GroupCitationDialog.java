@@ -420,6 +420,7 @@ public class GroupCitationDialog extends JDialog{
 						case GROUP -> {
 							final GroupRecordDialog groupDialog = new GroupRecordDialog(store, parent);
 							groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
 							groupDialog.setSize(300, 250);
 							groupDialog.setLocationRelativeTo(parent);
 							groupDialog.setVisible(true);
@@ -427,6 +428,7 @@ public class GroupCitationDialog extends JDialog{
 						case NOTE_CITATION -> {
 							final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
 							noteCitationDialog.loadData(editCommand.getContainer());
+
 							noteCitationDialog.setSize(450, 260);
 							noteCitationDialog.setLocationRelativeTo(parent);
 							noteCitationDialog.setVisible(true);
@@ -434,6 +436,7 @@ public class GroupCitationDialog extends JDialog{
 						case NOTE -> {
 							final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
 							noteDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
 							noteDialog.setSize(550, 350);
 							noteDialog.setLocationRelativeTo(parent);
 							noteDialog.setVisible(true);

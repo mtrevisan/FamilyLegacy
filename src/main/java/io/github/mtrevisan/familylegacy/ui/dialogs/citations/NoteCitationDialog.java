@@ -116,13 +116,9 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		this.store = store;
 
 		initComponents();
-
-		loadData();
 	}
 
 	private void initComponents(){
-		setTitle("Note citations");
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -212,7 +208,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			container.addChildReference("NOTE", newNoteID);
 
 			//refresh note list
-			loadData();
+			loadData(null);
 		};
 
 		//fire edit event
@@ -248,6 +244,8 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	}
 
 	private void loadData(){
+		setTitle(container == null? "Note citations": "Note citations for " + container.getID());
+
 		final List<GedcomNode> notes = store.traverseAsList(container, "NOTE[]");
 		final int size = notes.size();
 		for(int i = 0; i < size; i ++){
@@ -267,6 +265,9 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 				notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_NOTE_TEXT);
 			}
 		}
+		else
+			//show a note input dialog
+			addAction();
 	}
 
 	private void filterTableBy(final NoteCitationDialog panel){

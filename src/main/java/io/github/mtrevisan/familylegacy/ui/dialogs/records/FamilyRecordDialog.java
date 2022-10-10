@@ -32,10 +32,10 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +55,6 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -96,14 +95,14 @@ public class FamilyRecordDialog extends JDialog{
 	private final JLabel partner1Label = new JLabel("Partner 1:");
 	private final ScaledImage partner1Image = new ScaledImage(null);
 	private final JLabel partner1Name = new JLabel(StringUtils.EMPTY);
-	private final JButton partner1Notes = new JButton(StringUtils.EMPTY);
+	private final JButton partner1NotesButton = new JButton(StringUtils.EMPTY);
 	private final JLabel partner2Label = new JLabel("Partner 2:");
 	private final ScaledImage partner2Image = new ScaledImage(null);
 	private final JLabel partner2Name = new JLabel(StringUtils.EMPTY);
-	private final JButton partner2Notes = new JButton(StringUtils.EMPTY);
+	private final JButton partner2NotesButton = new JButton(StringUtils.EMPTY);
 	private final JLabel childrenLabel = new JLabel("Children:");
 	private final JTable childrenTable = new JTable(new ChildrenTableModel());
-	private final JButton childNotes = new JButton(StringUtils.EMPTY);
+	private final JButton childNotesButton = new JButton(StringUtils.EMPTY);
 	private final JButton eventsButton = new JButton("Events");
 	private final JButton groupsButton = new JButton("Groups");
 	private final JButton culturalRulesButton = new JButton("Cultural Rules");
@@ -161,13 +160,48 @@ public class FamilyRecordDialog extends JDialog{
 
 		partner1Label.setFont(FONT_PRIMARY);
 		partner1Label.setLabelFor(partner1Name);
-		partner1Notes.setIcon(ICON_NOTE);
+		partner1NotesButton.setIcon(ICON_NOTE);
+		partner1NotesButton.setToolTipText("Add note to parent 1");
+		partner1NotesButton.addActionListener(evt -> {
+			final Frame parent = (Frame)getParent();
+			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final GedcomNode partner1 = store.getPartner1(family);
+			noteCitationDialog.loadData(partner1);
+
+			noteCitationDialog.setSize(450, 260);
+			noteCitationDialog.setLocationRelativeTo(parent);
+			noteCitationDialog.setVisible(true);
+		});
 		partner2Label.setFont(FONT_PRIMARY);
 		partner2Label.setLabelFor(partner2Name);
-		partner2Notes.setIcon(ICON_NOTE);
+		partner2NotesButton.setIcon(ICON_NOTE);
+		partner2NotesButton.setToolTipText("Add note to parent 2");
+		partner2NotesButton.addActionListener(evt -> {
+			final Frame parent = (Frame)getParent();
+			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final GedcomNode partner2 = store.getPartner2(family);
+			noteCitationDialog.loadData(partner2);
+
+			noteCitationDialog.setSize(450, 260);
+			noteCitationDialog.setLocationRelativeTo(parent);
+			noteCitationDialog.setVisible(true);
+		});
 		childrenLabel.setFont(FONT_PRIMARY);
 		childrenLabel.setLabelFor(childrenTable);
-		childNotes.setIcon(ICON_NOTE);
+		childNotesButton.setIcon(ICON_NOTE);
+		childNotesButton.setToolTipText("Add note to child");
+		childNotesButton.addActionListener(evt -> {
+			final Frame parent = (Frame)getParent();
+			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
+			final int childIndex = childrenTable.getSelectedRow();
+			final GedcomNode child = store.getIndividual(children.get(childIndex).getXRef());
+			noteCitationDialog.loadData(child);
+
+			noteCitationDialog.setSize(450, 260);
+			noteCitationDialog.setLocationRelativeTo(parent);
+			noteCitationDialog.setVisible(true);
+		});
 
 		eventsButton.addActionListener(e -> {
 			//TODO
@@ -202,14 +236,14 @@ public class FamilyRecordDialog extends JDialog{
 		panelMembers.add(partner1Label, "span 3,wrap");
 		panelMembers.add(partner1Image);
 		panelMembers.add(partner1Name, "grow");
-		panelMembers.add(partner1Notes, "top,wrap");
+		panelMembers.add(partner1NotesButton, "top,wrap");
 		panelMembers.add(partner2Label, "span 3,wrap");
 		panelMembers.add(partner2Image);
 		panelMembers.add(partner2Name, "grow");
-		panelMembers.add(partner2Notes, "top,wrap");
+		panelMembers.add(partner2NotesButton, "top,wrap");
 		panelMembers.add(childrenLabel, "span 3,wrap");
 		panelMembers.add(childrenTable, "span 2,grow");
-		panelMembers.add(childNotes, "top");
+		panelMembers.add(childNotesButton, "top");
 
 		final JPanel panelEvents = new JPanel(new MigLayout());
 		panelEvents.add(eventsButton, "sizegroup button,grow,wrap");
@@ -252,11 +286,11 @@ public class FamilyRecordDialog extends JDialog{
 
 	private void loadData(){
 		final GedcomNode partner1 = store.getPartner1(family);
-		partner1Notes.setEnabled(!partner1.isEmpty());
-		loadPartnerData(partner1, partner1Image, partner1Name, partner1Notes);
+		partner1NotesButton.setEnabled(!partner1.isEmpty());
+		loadPartnerData(partner1, partner1Image, partner1Name, partner1NotesButton);
 		final GedcomNode partner2 = store.getPartner2(family);
-		partner2Notes.setEnabled(!partner2.isEmpty());
-		loadPartnerData(partner2, partner2Image, partner2Name, partner2Notes);
+		partner2NotesButton.setEnabled(!partner2.isEmpty());
+		loadPartnerData(partner2, partner2Image, partner2Name, partner2NotesButton);
 
 		final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
 		final DefaultTableModel childrenTableModel = (DefaultTableModel)childrenTable.getModel();
@@ -268,7 +302,7 @@ public class FamilyRecordDialog extends JDialog{
 
 			childrenTableModel.setValueAt(getIndividualText(child), row, CHILDREN_TABLE_INDEX_NAME);
 		}
-		childNotes.setEnabled(false);
+		childNotesButton.setEnabled(false);
 
 		//TODO
 
@@ -335,7 +369,7 @@ public class FamilyRecordDialog extends JDialog{
 		if(e.getValueIsAdjusting())
 			return;
 
-		childNotes.setEnabled(true);
+		childNotesButton.setEnabled(true);
 
 		final int childSelected = e.getFirstIndex();
 		final GedcomNode child = FamilyPanel.extractChildren(family, store).get(childSelected);
