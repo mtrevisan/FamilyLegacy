@@ -160,8 +160,8 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				break;
 
 			case NOTE_CITATION:
-				final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, this);
-				noteCitationDialog.loadData(editCommand.getContainer());
+				final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, this);
+				noteCitationDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 				noteCitationDialog.setSize(450, 500);
 				noteCitationDialog.setLocationRelativeTo(this);

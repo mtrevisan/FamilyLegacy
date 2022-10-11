@@ -276,6 +276,11 @@ n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. *
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the not (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}	/* A translated version of the note. */
     +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the translated note (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+    +2 CREATION_DATE    {1:1}	/* An object giving the date of the creation of this structure. */
+      +3 DATE <CREATION_DATE>    {1:1}	/* A date object giving the date of the creation of this structure. */
+    +2 CHANGE_DATE    {0:M}	/* An object giving the date of the changing of this structure. */
+      +3 DATE <CHANGE_DATE>    {1:1}	/* A date object giving the date of the changing of this structure. */
+      +3 NOTE @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
   +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
   +1 CREATION_DATE    {1:1}	/* An object giving the date of the creation of this structure. */

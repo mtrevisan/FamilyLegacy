@@ -177,8 +177,8 @@ public class GroupRecordDialog extends JDialog{
 							break;
 
 						case NOTE_CITATION:
-							dialog = new NoteCitationDialog(store, parent);
-							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+							dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(450, 260);
 							break;

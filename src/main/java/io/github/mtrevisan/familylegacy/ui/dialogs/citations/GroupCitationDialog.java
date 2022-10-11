@@ -426,8 +426,8 @@ public class GroupCitationDialog extends JDialog{
 							groupDialog.setVisible(true);
 						}
 						case NOTE_CITATION -> {
-							final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
-							noteCitationDialog.loadData(editCommand.getContainer());
+							final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
+							noteCitationDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							noteCitationDialog.setSize(450, 260);
 							noteCitationDialog.setLocationRelativeTo(parent);

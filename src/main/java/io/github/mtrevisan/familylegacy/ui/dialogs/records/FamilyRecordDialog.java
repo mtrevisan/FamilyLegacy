@@ -164,9 +164,10 @@ public class FamilyRecordDialog extends JDialog{
 		partner1NotesButton.setToolTipText("Add note to parent 1");
 		partner1NotesButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner1 = store.getPartner1(family);
-			noteCitationDialog.loadData(partner1);
+			//TODO onCloseGracefully
+			noteCitationDialog.loadData(partner1, null);
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -178,9 +179,10 @@ public class FamilyRecordDialog extends JDialog{
 		partner2NotesButton.setToolTipText("Add note to parent 2");
 		partner2NotesButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner2 = store.getPartner2(family);
-			noteCitationDialog.loadData(partner2);
+			//TODO onCloseGracefully
+			noteCitationDialog.loadData(partner2, null);
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -192,11 +194,12 @@ public class FamilyRecordDialog extends JDialog{
 		childNotesButton.setToolTipText("Add note to child");
 		childNotesButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = new NoteCitationDialog(store, parent);
+			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
 			final int childIndex = childrenTable.getSelectedRow();
 			final GedcomNode child = store.getIndividual(children.get(childIndex).getXRef());
-			noteCitationDialog.loadData(child);
+			//TODO onCloseGracefully
+			noteCitationDialog.loadData(child, null);
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);

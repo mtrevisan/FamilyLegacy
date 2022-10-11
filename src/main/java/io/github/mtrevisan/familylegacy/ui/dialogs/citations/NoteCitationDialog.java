@@ -69,16 +69,14 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 
-public class NoteCitationDialog extends JDialog implements ActionListener{
+public class NoteCitationDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 4428884121525685915L;
@@ -97,7 +95,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable notesTable = new JTable(new NoteTableModel());
+	private JTable notesTable;
 	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton helpButton = new JButton("Help");
@@ -107,18 +105,64 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	private final Debouncer<NoteCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
+	private String childTag;
+	private Function<GedcomNode, String> firstColumnText;
+	private Runnable addAction;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
-	public NoteCitationDialog(final Flef store, final Frame parent){
+	public static NoteCitationDialog createNoteCitation(final Flef store, final Frame parent){
+		final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
+		dialog.initComponents("ID");
+		dialog.childTag = "NOTE";
+		dialog.firstColumnText = GedcomNode::getID;
+		dialog.addAction = () -> {
+			final GedcomNode newNote = store.create(dialog.childTag);
+
+			final Consumer<Object> onCloseGracefully = ignored -> {
+				//if ok was pressed, add this note to the parent container
+				final String newNoteID = store.addNote(newNote);
+				dialog.container.addChildReference(dialog.childTag, newNoteID);
+
+				//refresh note list
+				dialog.loadData();
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
+		};
+		return dialog;
+	}
+
+	public static NoteCitationDialog createNoteTranslationCitation(final Flef store, final Frame parent){
+		final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
+		dialog.initComponents("language");
+		dialog.childTag = "TRANSLATION";
+		dialog.firstColumnText = note -> store.traverse(note, "LOCALE").getValue();
+		dialog.addAction = () -> {
+			final GedcomNode newNoteTranslation = store.create(dialog.childTag);
+
+			final Consumer<Object> onCloseGracefully = ignored -> {
+				dialog.container.addChild(newNoteTranslation);
+
+				//refresh note list
+				dialog.loadData();
+			};
+
+			//fire edit event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION, newNoteTranslation, onCloseGracefully));
+		};
+		return dialog;
+	}
+
+	private NoteCitationDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
-
-		initComponents();
 	}
 
-	private void initComponents(){
+	private void initComponents(final String firstColumnText){
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -126,6 +170,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			}
 		});
 
+		notesTable = new JTable(new NoteTableModel(firstColumnText));
 		notesTable.setAutoCreateRowSorter(true);
 		notesTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		notesTable.setGridColor(GRID_COLOR);
@@ -153,7 +198,7 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		notesTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
-				addAction();
+				addAction.run();
 			}
 		});
 		notesTableActionMap.put("delete", new AbstractAction(){
@@ -165,21 +210,22 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
 			notesTable.getRowHeight() * 5));
 
-		addButton.addActionListener(evt -> addAction());
+		addButton.addActionListener(evt -> addAction.run());
 
+		final ActionListener acceptAction = evt -> {
+			if(onCloseGracefully != null)
+				onCloseGracefully.accept(this);
+
+			setVisible(false);
+		};
+		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
-		okButton.addActionListener(evt -> {
-			transferListToContainer();
+		okButton.addActionListener(acceptAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced notes!
-
-			dispose();
-		});
-		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this);
-
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[][grow,fill][]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(notesScrollPane, "grow,wrap related");
@@ -187,32 +233,6 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
-	}
-
-	private void transferListToContainer(){
-		//remove all reference to the note from the container
-		container.removeChildrenWithTag("NOTE");
-		//add all the remaining references to notes to the container
-		for(int i = 0; i < notesTable.getRowCount(); i ++){
-			final String id = (String)notesTable.getValueAt(i, TABLE_INDEX_NOTE_ID);
-			container.addChildReference("NOTE", id);
-		}
-	}
-
-	private void addAction(){
-		final GedcomNode newNote = store.create("NOTE");
-
-		final Consumer<Object> onCloseGracefully = ignored -> {
-			//if ok was pressed, add this note to the parent container
-			final String newNoteID = store.addNote(newNote);
-			container.addChildReference("NOTE", newNoteID);
-
-			//refresh note list
-			loadData(container);
-		};
-
-		//fire edit event
-		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
 	}
 
 	private void editAction(){
@@ -231,12 +251,21 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
 		model.removeRow(index);
 
-		//remove from container
-		transferListToContainer();
+		//TODO remove child from container
 	}
 
-	public void loadData(final GedcomNode container){
+	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
+		this.onCloseGracefully = onCloseGracefully;
+
+		loadData();
+
+		repaint();
+	}
+
+	public void loadTranslationData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
+		this.container = container;
+		this.onCloseGracefully = onCloseGracefully;
 
 		loadData();
 
@@ -246,13 +275,14 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 	private void loadData(){
 		setTitle(container == null? "Note citations": "Note citations for " + container.getID());
 
-		final List<GedcomNode> notes = store.traverseAsList(container, "NOTE[]");
+		final List<GedcomNode> notes = store.traverseAsList(container, childTag + "[]");
 		final int size = notes.size();
-		for(int i = 0; i < size; i ++){
-			final String noteXRef = notes.get(i).getXRef();
-			final GedcomNode note = store.getNote(noteXRef);
-			notes.set(i, note);
-		}
+		if("NOTE".equals(childTag))
+			for(int i = 0; i < size; i ++){
+				final String noteXRef = notes.get(i).getXRef();
+				final GedcomNode note = store.getNote(noteXRef);
+				notes.set(i, note);
+			}
 
 		if(size > 0){
 			final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();
@@ -261,13 +291,13 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			for(int row = 0; row < size; row ++){
 				final GedcomNode note = notes.get(row);
 
-				notesModel.setValueAt(note.getID(), row, TABLE_INDEX_NOTE_ID);
+				notesModel.setValueAt(firstColumnText.apply(note), row, TABLE_INDEX_NOTE_ID);
 				notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_NOTE_TEXT);
 			}
 		}
 		else
 			//show a note input dialog
-			addAction();
+			addAction.run();
 	}
 
 	private void filterTableBy(final NoteCitationDialog panel){
@@ -284,11 +314,6 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		sorter.setRowFilter(filter);
 	}
 
-	@Override
-	public final void actionPerformed(final ActionEvent evt){
-		dispose();
-	}
-
 
 	private static class NoteTableModel extends DefaultTableModel{
 
@@ -296,8 +321,8 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		private static final long serialVersionUID = 981117893723288957L;
 
 
-		NoteTableModel(){
-			super(new String[]{"ID", "Text"}, 0);
+		NoteTableModel(final String firstColumnText){
+			super(new String[]{firstColumnText, "Text"}, 0);
 		}
 
 		@Override
@@ -308,19 +333,6 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 		@Override
 		public final boolean isCellEditable(final int row, final int column){
 			return false;
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
 		}
 	}
 
@@ -370,8 +382,8 @@ public class NoteCitationDialog extends JDialog implements ActionListener{
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
-			dialog.loadData(container);
+			final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

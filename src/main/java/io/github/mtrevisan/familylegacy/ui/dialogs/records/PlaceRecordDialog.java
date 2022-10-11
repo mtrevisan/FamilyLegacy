@@ -279,8 +279,8 @@ private final JTextField subordinateField = new JTextField();
 							dialog.setSize(500, 540);
 						}
 						case NOTE_CITATION -> {
-							dialog = new NoteCitationDialog(store, parent);
-							((NoteCitationDialog)dialog).loadData(editCommand.getContainer());
+							dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {

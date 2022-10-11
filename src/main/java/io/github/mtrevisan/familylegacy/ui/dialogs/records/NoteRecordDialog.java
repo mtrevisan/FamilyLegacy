@@ -96,7 +96,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 	public static NoteRecordDialog createTranslationNote(final Flef store, final Frame parent){
 		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
-		dialog.changeNoteInitComponents();
+		dialog.initComponents();
 		return dialog;
 	}
 
@@ -123,15 +123,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 		addTranslationButton.setToolTipText("Add translation");
 		addTranslationButton.addActionListener(evt -> {
-			final GedcomNode newTranslation = store.create("TRANSLATION");
-
-			final Consumer<Object> onAccept = ignored -> {
-				//TODO add node from translation note record dialog
-				note.addChild(newTranslation);
-			};
-
-			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newTranslation, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, note, null));
 		});
 		addCitationButton.setToolTipText("Add citation");
 		addCitationButton.addActionListener(evt -> {
@@ -303,7 +295,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			final Object listener = new Object(){
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
-					if(editCommand.getType() == EditEvent.EditType.NOTE){
+					if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION){
 						final GedcomNode noteTranslation = editCommand.getContainer();
 						final NoteRecordDialog noteDialog = createTranslationNote(store, parent);
 						noteDialog.setTitle("Translation for " + note.getID());
@@ -312,6 +304,16 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						noteDialog.setSize(550, 350);
 						noteDialog.setLocationRelativeTo(parent);
 						noteDialog.setVisible(true);
+					}
+					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION_CITATION){
+						final GedcomNode noteTranslationCitation = editCommand.getContainer();
+						final NoteCitationDialog noteTranslationCitationDialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
+						noteTranslationCitationDialog.setTitle("Note translation citation for " + note.getID());
+						noteTranslationCitationDialog.loadTranslationData(noteTranslationCitation, editCommand.getOnCloseGracefully());
+
+						noteTranslationCitationDialog.setSize(550, 450);
+						noteTranslationCitationDialog.setLocationRelativeTo(parent);
+						noteTranslationCitationDialog.setVisible(true);
 					}
 					else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
 						final GedcomNode sourceCitation = editCommand.getContainer();
