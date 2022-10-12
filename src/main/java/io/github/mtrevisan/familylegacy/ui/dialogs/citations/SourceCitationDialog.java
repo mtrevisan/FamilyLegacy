@@ -345,7 +345,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		okButton.setEnabled(true);
 	}
 
-	private void addAction(){
+	public void addAction(){
 		final GedcomNode newSource = store.create("SOURCE");
 
 		final Consumer<Object> onCloseGracefully = dialog -> {
@@ -378,16 +378,14 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		model.removeRow(index);
 	}
 
-	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
+	public boolean loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
 		this.onCloseGracefully = onCloseGracefully;
 
-		loadData();
-
-		repaint();
+		return loadData();
 	}
 
-	private void loadData(){
+	private boolean loadData(){
 		final List<GedcomNode> sources = store.traverseAsList(container, "SOURCE[]");
 		final int size = sources.size();
 		for(int i = 0; i < size; i ++)
@@ -409,9 +407,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 				sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
 			}
 		}
-		else
-			//show a source input dialog
-			addAction();
+		return (size > 0);
 	}
 
 	private void filterTableBy(final SourceCitationDialog panel){
@@ -502,13 +498,15 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 						}
 						case NOTE_CITATION -> {
 							dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							if(!((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								((NoteCitationDialog)dialog).addAction();
 							dialog.setSize(450, 260);
 						}
 						case NOTE -> {
 							dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
-							((NoteRecordDialog)dialog).setTitle("Note for " + note.getID());
+							dialog.setTitle("Note for " + note.getID());
 							((NoteRecordDialog)dialog).loadData(note, editCommand.getOnCloseGracefully());
 							dialog.setSize(550, 350);
 						}

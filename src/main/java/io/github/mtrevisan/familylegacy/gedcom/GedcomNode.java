@@ -315,6 +315,10 @@ public abstract class GedcomNode{
 			while(itr.hasNext())
 				if(itr.next().equals(node)){
 					itr.remove();
+
+					if(children.isEmpty())
+						children = null;
+
 					break;
 				}
 		}

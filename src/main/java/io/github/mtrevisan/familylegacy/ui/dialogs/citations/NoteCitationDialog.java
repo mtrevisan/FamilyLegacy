@@ -55,6 +55,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
@@ -82,6 +83,7 @@ public class NoteCitationDialog extends JDialog{
 	private static final long serialVersionUID = 4428884121525685915L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	private static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -207,7 +209,7 @@ public class NoteCitationDialog extends JDialog{
 		notesTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
-				addAction.run();
+				addAction();
 			}
 		});
 		notesTableActionMap.put("delete", new AbstractAction(){
@@ -219,20 +221,21 @@ public class NoteCitationDialog extends JDialog{
 		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
 			notesTable.getRowHeight() * 5));
 
-		addButton.addActionListener(evt -> addAction.run());
-
-		final ActionListener acceptAction = evt -> {
+		final ActionListener addAction = evt -> addAction();
+		final ActionListener okAction = evt -> {
 			if(onCloseGracefully != null)
 				onCloseGracefully.accept(this);
 
 			setVisible(false);
 		};
 		final ActionListener cancelAction = evt -> setVisible(false);
+		addButton.addActionListener(addAction);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
-		okButton.addActionListener(acceptAction);
+		okButton.addActionListener(okAction);
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(addAction, INSERT_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[][grow,fill][]"));
 		add(filterLabel, "align label,split 2");
@@ -242,6 +245,10 @@ public class NoteCitationDialog extends JDialog{
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
+	}
+
+	public void addAction(){
+		addAction.run();
 	}
 
 	private void editAction(){
@@ -272,18 +279,18 @@ public class NoteCitationDialog extends JDialog{
 			selectedNote = store.getNote(noteXRef);
 
 		container.removeChild(selectedNote);
+
+		loadData();
 	}
 
-	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
+	public boolean loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
 		this.onCloseGracefully = onCloseGracefully;
 
-		loadData();
-
-		repaint();
+		return loadData();
 	}
 
-	private void loadData(){
+	private boolean loadData(){
 		final List<GedcomNode> notes = store.traverseAsList(container, childTag + "[]");
 		final int size = notes.size();
 		if("NOTE".equals(childTag))
@@ -293,21 +300,16 @@ public class NoteCitationDialog extends JDialog{
 				notes.set(i, note);
 			}
 
-		if(size > 0){
-			final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();
-			notesModel.setRowCount(size);
+		final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();
+		notesModel.setRowCount(size);
+		for(int row = 0; row < size; row ++){
+			final GedcomNode note = notes.get(row);
 
-			for(int row = 0; row < size; row ++){
-				final GedcomNode note = notes.get(row);
-
-				notesModel.setValueAt(note.getID(), row, TABLE_INDEX_NOTE_ID);
-				notesModel.setValueAt(store.traverse(note, "LOCALE").getValue(), row, TABLE_INDEX_NOTE_LANGUAGE);
-				notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_NOTE_TEXT);
-			}
+			notesModel.setValueAt(note.getID(), row, TABLE_INDEX_NOTE_ID);
+			notesModel.setValueAt(store.traverse(note, "LOCALE").getValue(), row, TABLE_INDEX_NOTE_LANGUAGE);
+			notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_NOTE_TEXT);
 		}
-		else
-			//show a note input dialog
-			addAction.run();
+		return (size > 0);
 	}
 
 	private void filterTableBy(final NoteCitationDialog panel){
@@ -384,13 +386,25 @@ public class NoteCitationDialog extends JDialog{
 						noteDialog.setLocationRelativeTo(parent);
 						noteDialog.setVisible(true);
 					}
+					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION_CITATION){
+						final NoteCitationDialog noteCitationDialog = createNoteTranslationCitation(store, parent);
+						final GedcomNode note = editCommand.getContainer();
+						noteCitationDialog.setTitle(note.getID() != null? "Translation citation for " + note.getID() : "New translation citation for " + container.getID());
+						if(!noteCitationDialog.loadData(note, editCommand.getOnCloseGracefully()))
+							noteCitationDialog.addAction();
+
+						noteCitationDialog.setSize(550, 350);
+						noteCitationDialog.setLocationRelativeTo(parent);
+						noteCitationDialog.setVisible(true);
+					}
 					else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
 						final GedcomNode sourceCitation = editCommand.getContainer();
 						final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, parent);
 						sourceCitationDialog.setTitle(sourceCitation.getID() != null
 							? "Source citation for " + sourceCitation.getID()
 							: "New source citation for note for " + container.getID());
-						sourceCitationDialog.loadData(sourceCitation, editCommand.getOnCloseGracefully());
+						if(!sourceCitationDialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
+							sourceCitationDialog.addAction();
 
 						sourceCitationDialog.setSize(550, 450);
 						sourceCitationDialog.setLocationRelativeTo(parent);
@@ -403,7 +417,9 @@ public class NoteCitationDialog extends JDialog{
 			final NoteCitationDialog dialog = createNoteCitation(store, parent);
 //			final NoteCitationDialog dialog = createNoteTranslationCitation(store, parent);
 			dialog.setTitle(container == null? "Note citations": "Note citations for " + container.getID());
-			dialog.loadData(container, null);
+			if(!dialog.loadData(container, null))
+				//show a note input dialog
+				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
