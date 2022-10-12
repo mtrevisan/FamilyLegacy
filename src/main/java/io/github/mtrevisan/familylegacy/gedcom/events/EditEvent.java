@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2019-2022 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -63,16 +63,21 @@ public class EditEvent{
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
-	public EditType getType(){
+	public final EditType getType(){
 		return type;
 	}
 
-	public GedcomNode getContainer(){
+	public final GedcomNode getContainer(){
 		return container;
 	}
 
-	public Consumer<Object> getOnCloseGracefully(){
+	public final Consumer<Object> getOnCloseGracefully(){
 		return onCloseGracefully;
+	}
+
+	@Override
+	public final String toString(){
+		return "EditEvent{" + "type=" + type + ", container=" + container + '}';
 	}
 
 }
