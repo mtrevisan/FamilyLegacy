@@ -29,21 +29,15 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.DatePanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.EventsPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
-import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -52,7 +46,6 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
@@ -66,28 +59,12 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-public class SourceRecordDialog extends JDialog implements TextPreviewListenerInterface{
+public class CalendarRecordDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 1754367426928623503L;
+	private static final long serialVersionUID = 4728999064397477461L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-
-	private static final double DATE_HEIGHT = 17.;
-	private static final double DATE_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
-
-	//https://thenounproject.com/term/weekly-calendar/541199/
-	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
-
-	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
-		StringUtils.EMPTY,
-		"Unreliable/estimated data",
-		"Questionable reliability of evidence",
-		"Secondary evidence, data officially recorded sometime after event",
-		"Direct and primary evidence used, or by dominance of the evidence"});
-	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
-		"transcript", "extract", "abstract"});
 
 	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
 	private final JLabel titleLabel = new JLabel("Title:");
@@ -97,7 +74,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
 	private final JTextField publicationFactsField = new JTextField();
 	private final DatePanel datePanel = new DatePanel();
-	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JLabel mediaTypeLabel = new JLabel("Media type:");
 	private final JTextField mediaTypeField = new JTextField();
 	private final JButton placesButton = new JButton("Places");
@@ -109,13 +85,13 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private GedcomNode source;
+	private GedcomNode calendar;
 
 	private Consumer<Object> onAccept;
 	private final Flef store;
 
 
-	public SourceRecordDialog(final Flef store, final Frame parent){
+	public CalendarRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -127,21 +103,21 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		titleLabel.setLabelFor(titleField);
 
 		placesButton.setEnabled(false);
-		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, source)));
+		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, calendar)));
 
 		repositoriesButton.setEnabled(false);
-		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
+		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, calendar)));
 
 		mediaTypeLabel.setLabelFor(mediaTypeField);
 
 		documentsButton.setEnabled(false);
-		documentsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, source)));
+		documentsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, calendar)));
 
 		sourcesButton.setEnabled(false);
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source)));
+		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar)));
 
 		notesButton.setEnabled(false);
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
+		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar)));
 
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> setVisible(false);
@@ -176,7 +152,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 
 	private boolean sourceContainsEvent(final String event){
 		boolean containsEvent = false;
-		final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
+		final List<GedcomNode> events = store.traverseAsList(calendar, "EVENT[]");
 		for(int i = 0; !containsEvent && i < events.size(); i ++)
 			if(events.get(i).getValue().equalsIgnoreCase(event))
 				containsEvent = true;
@@ -188,42 +164,30 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		final String title = titleField.getText();
 		final String mediaType = mediaTypeField.getText();
 
-		source.replaceChildValue("EVENT", event);
-		source.replaceChildValue("TITLE", title);
+		calendar.replaceChildValue("EVENT", event);
+		calendar.replaceChildValue("TITLE", title);
 		//TODO
 	}
 
-	@Override
-	public final void textChanged(){
-		//TODO
-		okButton.setEnabled(true);
-	}
-
-	@Override
-	@SuppressWarnings("BooleanParameter")
-	public final void onPreviewStateChange(final boolean visible){
-		TextPreviewListenerInterface.centerDivider(this, visible);
-	}
-
-	public final void loadData(final GedcomNode source, final Consumer<Object> onAccept){
-		this.source = source;
+	public final void loadData(final GedcomNode calendar, final Consumer<Object> onAccept){
+		this.calendar = calendar;
 		this.onAccept = onAccept;
 
-		final String id = source.getID();
-		setTitle(id != null? "Source " + id: "New Source");
+		final String id = calendar.getID();
+		setTitle(id != null? "Calendar " + id: "New Calendar");
 
 		final StringJoiner events = new StringJoiner(", ");
-		for(final GedcomNode event : store.traverseAsList(source, "EVENT[]"))
+		for(final GedcomNode event : store.traverseAsList(calendar, "EVENT[]"))
 			events.add(event.getValue());
-		final String title = store.traverse(source, "TITLE").getValue();
-		final String author = store.traverse(source, "AUTHOR").getValue();
-		final String publicationFacts = store.traverse(source, "PUBLICATION_FACTS").getValue();
-		final GedcomNode dateNode = store.traverse(source, "DATE");
+		final String title = store.traverse(calendar, "TITLE").getValue();
+		final String author = store.traverse(calendar, "AUTHOR").getValue();
+		final String publicationFacts = store.traverse(calendar, "PUBLICATION_FACTS").getValue();
+		final GedcomNode dateNode = store.traverse(calendar, "DATE");
 		//TODO
-		final GedcomNode place = store.traverse(source, "PLACE");
-		final GedcomNode placeCertainty = store.traverse(source, "PLACE.CERTAINTY");
-		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
-		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
+		final GedcomNode place = store.traverse(calendar, "PLACE");
+		final GedcomNode placeCertainty = store.traverse(calendar, "PLACE.CERTAINTY");
+		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
+		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
 		eventsPanel.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
@@ -253,7 +217,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode source = store.getSources().get(0);
+		final GedcomNode calendar = store.getCalendars().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -266,14 +230,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(450, 650);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
-							dialog.setSize(450, 450);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -300,8 +256,8 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 			};
 			EventBusService.subscribe(listener);
 
-			final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
-			dialog.loadData(source, null);
+			final CalendarRecordDialog dialog = new CalendarRecordDialog(store, parent);
+			dialog.loadData(calendar, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
 				@Override

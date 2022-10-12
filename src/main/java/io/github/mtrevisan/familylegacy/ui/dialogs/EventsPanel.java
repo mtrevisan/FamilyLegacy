@@ -55,7 +55,7 @@ public class EventsPanel extends JPanel{
 
 	private final JTextField eventField = new JTextField();
 	private final JButton eventAddButton = new JButton("Add");
-	private final TagPanel eventPanel = new TagPanel();
+	private final TagPanel tagPanel = new TagPanel();
 
 	private final Predicate<String> eventExists;
 	private volatile String formerFilterEvent;
@@ -78,7 +78,7 @@ public class EventsPanel extends JPanel{
 		final JScrollPane eventScrollPane = new JScrollPane();
 		eventScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
 		eventScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		eventScrollPane.setViewportView(eventPanel);
+		eventScrollPane.setViewportView(tagPanel);
 
 		setBorder(BorderFactory.createTitledBorder("Events"));
 		add(eventLabel, "align label,split 3");
@@ -99,18 +99,18 @@ public class EventsPanel extends JPanel{
 		eventAddButton.setEnabled(StringUtils.isNotBlank(newEvent) && !alreadyContained);
 
 
-		eventPanel.applyFilter(StringUtils.isNotBlank(newEvent)? newEvent: null);
+		tagPanel.applyFilter(StringUtils.isNotBlank(newEvent)? newEvent: null);
 	}
 
 	private void eventAddButtonAction(final ActionEvent evt){
 		final String newEvent = eventField.getText().trim();
 		final boolean containsEvent = eventExists.test(newEvent);
 		if(!containsEvent){
-			eventPanel.addTag(newEvent);
+			tagPanel.addTag(newEvent);
 
 			//reset input
 			eventField.setText(null);
-			eventPanel.applyFilter(null);
+			tagPanel.applyFilter(null);
 		}
 		else
 			JOptionPane.showOptionDialog(this, "This event is already present", "Warning!",
@@ -118,15 +118,15 @@ public class EventsPanel extends JPanel{
 	}
 
 	public void addTag(final String... tags){
-		eventPanel.addTag(tags);
+		tagPanel.addTag(tags);
 	}
 
 	public void addTag(final Iterable<String> tags){
-		eventPanel.addTag(tags);
+		tagPanel.addTag(tags);
 	}
 
 	public List<String> getTags(){
-		return eventPanel.getTags();
+		return tagPanel.getTags();
 	}
 
 }
