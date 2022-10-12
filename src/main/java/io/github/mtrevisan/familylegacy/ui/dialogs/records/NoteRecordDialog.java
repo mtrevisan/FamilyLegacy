@@ -259,6 +259,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 				if(onAccept != null)
 					onAccept.accept(this);
+
+				setVisible(false);
 			});
 
 			changeNoteDialog.setSize(450, 500);
@@ -342,7 +344,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION_CITATION){
 						final GedcomNode noteTranslationCitation = editCommand.getContainer();
 						final NoteCitationDialog noteTranslationCitationDialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-						noteTranslationCitationDialog.setTitle("Note translation citation for " + note.getID());
+						noteTranslationCitationDialog.setTitle("Translation citation for " + note.getID());
 						if(!noteTranslationCitationDialog.loadData(noteTranslationCitation, editCommand.getOnCloseGracefully()))
 							//show a note input dialog
 							noteTranslationCitationDialog.addAction();

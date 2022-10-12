@@ -264,7 +264,7 @@ public class NoteCitationDialog extends JDialog{
 			selectedNote = store.getNote(noteXRef);
 
 		//fire edit event
-		EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedNote));
+		EventBusService.publish(new EditEvent(("NOTE".equals(childTag)? EditEvent.EditType.NOTE: EditEvent.EditType.NOTE_TRANSLATION), selectedNote));
 	}
 
 	private void deleteAction(){
@@ -369,7 +369,9 @@ public class NoteCitationDialog extends JDialog{
 					if(editCommand.getType() == EditEvent.EditType.NOTE){
 						final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
 						final GedcomNode note = editCommand.getContainer();
-						noteDialog.setTitle(note.getID() != null? "Note for " + note.getID(): "New note for " + container.getID());
+						noteDialog.setTitle(note.getID() != null
+							? "Note for " + note.getID()
+							: "New note for " + container.getID());
 						noteDialog.loadData(note, editCommand.getOnCloseGracefully());
 
 						noteDialog.setSize(550, 350);
@@ -379,7 +381,9 @@ public class NoteCitationDialog extends JDialog{
 					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION){
 						final NoteRecordDialog noteDialog = NoteRecordDialog.createNoteTranslation(store, parent);
 						final GedcomNode note = editCommand.getContainer();
-						noteDialog.setTitle(note.getID() != null? "Translation for " + note.getID() : "New translation for note for " + container.getID());
+						noteDialog.setTitle(note.getID() != null
+							? "Translation for " + note.getID()
+							: "New translation for note for " + container.getID());
 						noteDialog.loadData(note, editCommand.getOnCloseGracefully());
 
 						noteDialog.setSize(550, 350);
@@ -389,7 +393,9 @@ public class NoteCitationDialog extends JDialog{
 					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION_CITATION){
 						final NoteCitationDialog noteCitationDialog = createNoteTranslationCitation(store, parent);
 						final GedcomNode note = editCommand.getContainer();
-						noteCitationDialog.setTitle(note.getID() != null? "Translation citation for " + note.getID() : "New translation citation for " + container.getID());
+						noteCitationDialog.setTitle(note.getID() != null
+							? "Translation citation for " + note.getID()
+							: "New translation citation for " + container.getID());
 						if(!noteCitationDialog.loadData(note, editCommand.getOnCloseGracefully()))
 							noteCitationDialog.addAction();
 
