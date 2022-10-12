@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -101,8 +101,6 @@ public class TagPanel extends JPanel{
 				if(tagsChanged != null)
 					tagsChanged.accept(TagChangeType.ADD, tags);
 			}
-
-			forceRepaint();
 		}
 	}
 
@@ -121,13 +119,8 @@ public class TagPanel extends JPanel{
 			if(tagsChanged != null)
 				tagsChanged.accept(TagChangeType.REMOVE, Collections.singletonList(tag.getTag()));
 
-			forceRepaint();
+			repaint();
 		}
-	}
-
-	private void forceRepaint(){
-		repaint();
-		revalidate();
 	}
 
 	public void applyFilter(final String tag){

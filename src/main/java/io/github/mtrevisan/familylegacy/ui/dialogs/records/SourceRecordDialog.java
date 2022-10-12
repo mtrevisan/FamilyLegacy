@@ -30,12 +30,11 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.EventsPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
-import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
-import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
@@ -51,19 +50,14 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -78,9 +72,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 
 	@Serial
 	private static final long serialVersionUID = 1754367426928623503L;
-
-	/** [ms] */
-	private static final int DEBOUNCER_TIME = 400;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
@@ -100,11 +91,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
 
-	private final JLabel eventLabel = new JLabel("Event(s):");
-	private final JTextField eventField = new JTextField();
-	private final JButton eventAddButton = new JButton("Add");
-	private final JScrollPane eventScrollPane = new JScrollPane();
-	private final TagPanel eventPanel = new TagPanel();
+	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
 	private final JLabel authorLabel = new JLabel("Author:");
@@ -130,9 +117,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<SourceRecordDialog> filterDebouncer = new Debouncer<>(this::filterEventBy, DEBOUNCER_TIME);
-	private volatile String formerFilterEvent;
-
 	private GedcomNode source;
 
 	private Consumer<Object> onAccept;
@@ -148,27 +132,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	}
 
 	private void initComponents(){
-		eventLabel.setLabelFor(eventField);
-		eventField.addKeyListener(new KeyAdapter(){
-			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(SourceRecordDialog.this);
-			}
-		});
-
-		eventAddButton.setEnabled(false);
-		eventAddButton.addActionListener(this::eventAddButtonAction);
-		eventScrollPane.getHorizontalScrollBar().setUnitIncrement(16);
-		eventScrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		eventScrollPane.setViewportView(eventPanel);
-
-		final JPanel eventsPanel = new JPanel();
-		eventsPanel.setBorder(BorderFactory.createTitledBorder("Events"));
-		eventsPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		eventsPanel.add(eventLabel, "align label,split 3");
-		eventsPanel.add(eventField, "grow");
-		eventsPanel.add(eventAddButton, "wrap");
-		eventsPanel.add(eventScrollPane, "grow,height 46");
-
 		titleLabel.setLabelFor(titleField);
 
 		dateLabel.setLabelFor(dateField);
@@ -234,38 +197,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	private void filterEventBy(final SourceRecordDialog dialog){
-		final String newEvent = eventField.getText().trim();
-		if(newEvent.equals(formerFilterEvent))
-			return;
-
-		formerFilterEvent = newEvent;
-
-		//if text to be inserted is already fully contained into the thesaurus, do not enable the button
-		final boolean alreadyContained = sourceContainsEvent(newEvent);
-		eventAddButton.setEnabled(StringUtils.isNotBlank(newEvent) && !alreadyContained);
-
-
-		eventPanel.applyFilter(StringUtils.isNotBlank(newEvent)? newEvent: null);
-	}
-
-	private void eventAddButtonAction(final ActionEvent evt){
-		final String newEvent = eventField.getText().trim();
-		final boolean containsEvent = sourceContainsEvent(newEvent);
-
-		if(!containsEvent){
-			eventPanel.addTag(newEvent);
-
-			//reset input
-			eventField.setText(null);
-			eventPanel.applyFilter(null);
-		}
-		else
-			JOptionPane.showOptionDialog(this,
-				"This event is already present", "Warning!", JOptionPane.DEFAULT_OPTION,
-				JOptionPane.WARNING_MESSAGE, null, null, null);
-	}
-
 	private boolean sourceContainsEvent(final String event){
 		boolean containsEvent = false;
 		final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
@@ -276,7 +207,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	}
 
 	private void okAction(){
-		final String event = String.join(",", eventPanel.getTags());
+		final String event = String.join(",", eventsPanel.getTags());
 		final String title = titleField.getText();
 		final String mediaType = mediaTypeField.getText();
 
@@ -317,7 +248,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
 		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
 
-		eventPanel.addTag(StringUtils.split(events.toString(), ','));
+		eventsPanel.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
