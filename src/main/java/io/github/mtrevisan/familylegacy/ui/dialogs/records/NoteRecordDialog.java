@@ -94,7 +94,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return dialog;
 	}
 
-	public static NoteRecordDialog createTranslationNote(final Flef store, final Frame parent){
+	public static NoteRecordDialog createNoteTranslation(final Flef store, final Frame parent){
 		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
 		dialog.initComponents();
 		return dialog;
@@ -297,7 +297,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 				public void refresh(final EditEvent editCommand){
 					if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION){
 						final GedcomNode noteTranslation = editCommand.getContainer();
-						final NoteRecordDialog noteDialog = createTranslationNote(store, parent);
+						final NoteRecordDialog noteDialog = createNoteTranslation(store, parent);
 						noteDialog.setTitle("Translation for " + note.getID());
 						noteDialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
@@ -309,7 +309,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						final GedcomNode noteTranslationCitation = editCommand.getContainer();
 						final NoteCitationDialog noteTranslationCitationDialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
 						noteTranslationCitationDialog.setTitle("Note translation citation for " + note.getID());
-						noteTranslationCitationDialog.loadTranslationData(noteTranslationCitation, editCommand.getOnCloseGracefully());
+						noteTranslationCitationDialog.loadData(noteTranslationCitation, editCommand.getOnCloseGracefully());
 
 						noteTranslationCitationDialog.setSize(550, 450);
 						noteTranslationCitationDialog.setLocationRelativeTo(parent);
