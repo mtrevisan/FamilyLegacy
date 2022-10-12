@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -44,9 +44,11 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DropMode;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -88,12 +90,13 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-public class SourceCitationDialog extends JDialog implements ActionListener{
+public class SourceCitationDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 8355033011385629078L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	private static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -193,35 +196,24 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 					editAction();
 			}
 		});
-		sourcesTable.getInputMap(JComponent.WHEN_FOCUSED)
-			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		sourcesTable.getActionMap()
-			.put("delete", new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = -6131110796684649318L;
-
-				@Override
-				public void actionPerformed(final ActionEvent evt){
-					deleteAction();
-				}
-
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void readObject(final ObjectInputStream is) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-			});
+		final InputMap sourcesTableInputMap = sourcesTable.getInputMap(JComponent.WHEN_FOCUSED);
+		sourcesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
+		sourcesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		final ActionMap sourcesTableActionMap = sourcesTable.getActionMap();
+		sourcesTableActionMap.put("insert", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				addAction();
+			}
+		});
+		sourcesTableActionMap.put("delete", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				deleteAction();
+			}
+		});
 		sourcesTable.setPreferredScrollableViewportSize(new Dimension(sourcesTable.getPreferredSize().width,
 			sourcesTable.getRowHeight() * 5));
-
-		addButton.addActionListener(evt -> addAction());
 
 		titleLabel.setLabelFor(titleField);
 		GUIHelper.setEnabled(titleLabel, false);
@@ -246,23 +238,23 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		GUIHelper.setEnabled(credibilityLabel, false);
 
-		//TODO link to help
-//		helpButton.addActionListener(evt -> dispose());
-		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			okAction();
-
+		final ActionListener addAction = evt -> addAction();
+		final ActionListener okAction = evt -> {
 			if(onCloseGracefully != null)
 				onCloseGracefully.accept(this);
 
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced source citations!
+			setVisible(false);
+		};
+		final ActionListener cancelAction = evt -> setVisible(false);
+		addButton.addActionListener(addAction);
+		//TODO link to help
+//		helpButton.addActionListener(evt -> dispose());
+		okButton.addActionListener(okAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(addAction, INSERT_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-			dispose();
-		});
-		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this::actionPerformed);
-
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[][grow,fill][][][][][][][]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
@@ -345,7 +337,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		okButton.setEnabled(true);
 	}
 
-	public void addAction(){
+	public final void addAction(){
 		final GedcomNode newSource = store.create("SOURCE");
 
 		final Consumer<Object> onCloseGracefully = dialog -> {
@@ -353,7 +345,7 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 			final String newSourceID = store.addSource(newSource);
 			container.addChildReference("SOURCE", newSourceID);
 
-			//refresh group list
+			//refresh source list
 			loadData();
 		};
 
@@ -375,10 +367,15 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
 		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
-		model.removeRow(index);
+		final String sourceXRef = (String)model.getValueAt(index, TABLE_INDEX_SOURCE_ID);
+		final GedcomNode selectedSource = store.getSource(sourceXRef);
+
+		container.removeChild(selectedSource);
+
+		loadData();
 	}
 
-	public boolean loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
+	public final boolean loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
 		this.onCloseGracefully = onCloseGracefully;
 
@@ -388,24 +385,24 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 	private boolean loadData(){
 		final List<GedcomNode> sources = store.traverseAsList(container, "SOURCE[]");
 		final int size = sources.size();
-		for(int i = 0; i < size; i ++)
-			sources.set(i, store.getSource(sources.get(i).getXRef()));
+		for(int i = 0; i < size; i ++){
+			final String sourceXRef = sources.get(i).getXRef();
+			final GedcomNode note = store.getSource(sourceXRef);
+			sources.set(i, note);
+		}
 
-		if(size > 0){
-			final DefaultTableModel sourcesModel = (DefaultTableModel)sourcesTable.getModel();
-			sourcesModel.setRowCount(size);
+		final DefaultTableModel sourcesModel = (DefaultTableModel)sourcesTable.getModel();
+		sourcesModel.setRowCount(size);
+		for(int row = 0; row < size; row ++){
+			final GedcomNode source = sources.get(row);
 
-			for(int row = 0; row < size; row ++){
-				final GedcomNode source = sources.get(row);
-
-				sourcesModel.setValueAt(source.getID(), row, TABLE_INDEX_SOURCE_ID);
-				final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
-				final StringJoiner sj = new StringJoiner(", ");
-				for(final GedcomNode event : events)
-					sj.add(event.getValue());
-				sourcesModel.setValueAt(sj.toString(), row, TABLE_INDEX_SOURCE_TYPE);
-				sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
-			}
+			sourcesModel.setValueAt(source.getID(), row, TABLE_INDEX_SOURCE_ID);
+			final List<GedcomNode> events = store.traverseAsList(source, "EVENT[]");
+			final StringJoiner sj = new StringJoiner(", ");
+			for(final GedcomNode event : events)
+				sj.add(event.getValue());
+			sourcesModel.setValueAt(sj.toString(), row, TABLE_INDEX_SOURCE_TYPE);
+			sourcesModel.setValueAt(store.traverse(source, "TITLE").getValue(), row, TABLE_INDEX_SOURCE_TITLE);
 		}
 		return (size > 0);
 	}
@@ -425,11 +422,6 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		sorter.setRowFilter(filter);
 	}
 
-	@Override
-	public void actionPerformed(final ActionEvent evt){
-		dispose();
-	}
-
 
 	private static class SourceTableModel extends DefaultTableModel{
 
@@ -442,26 +434,13 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 		}
 
 		@Override
-		public Class<?> getColumnClass(final int column){
+		public final Class<?> getColumnClass(final int column){
 			return String.class;
 		}
 
 		@Override
-		public boolean isCellEditable(final int row, final int column){
+		public final boolean isCellEditable(final int row, final int column){
 			return false;
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
 		}
 	}
 
@@ -489,29 +468,41 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand) throws IOException{
-					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case SOURCE -> {
-							dialog = new SourceRecordDialog(store, parent);
-							((SourceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Source for " + note.getID()
+								: "New source for " + container.getID());
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
 							dialog.setSize(500, 540);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE_CITATION -> {
-							dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							if(!((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
-								((NoteCitationDialog)dialog).addAction();
+								dialog.addAction();
+
 							dialog.setSize(450, 260);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE -> {
-							dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle("Note for " + note.getID());
-							((NoteRecordDialog)dialog).loadData(note, editCommand.getOnCloseGracefully());
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
+
 							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case CROP -> {
-							dialog = new CropDialog(parent);
+							final CropDialog dialog = new CropDialog(parent);
 							final GedcomNode container = editCommand.getContainer();
 							//TODO add base path?
 							final String imagePath = store.traverse(container, "SOURCE")
@@ -519,25 +510,26 @@ public class SourceCitationDialog extends JDialog implements ActionListener{
 							final String crop = store.traverse(container, "CROP")
 								.getValue();
 							final String[] coordinates = (!crop.isEmpty()? StringUtils.split(crop, ' '): null);
-							((CropDialog)dialog).loadData(imagePath, editCommand.getOnCloseGracefully());
+							dialog.loadData(imagePath, editCommand.getOnCloseGracefully());
 							if(coordinates != null){
-								((CropDialog)dialog).setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
-								((CropDialog)dialog).setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
+								dialog.setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+								dialog.setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
 							}
+
 							dialog.setSize(500, 480);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
-					}
-					if(dialog != null){
-						dialog.setLocationRelativeTo(parent);
-						dialog.setVisible(true);
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
 
 			final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-			dialog.setTitle("Source citation for " + container.getID());
-			dialog.loadData(container, null);
+			dialog.setTitle(container.isEmpty()? "Source citations": "Source citations for " + container.getID());
+			if(!dialog.loadData(container, null))
+				//show a note input dialog
+				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

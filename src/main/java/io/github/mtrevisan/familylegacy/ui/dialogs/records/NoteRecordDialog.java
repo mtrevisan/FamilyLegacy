@@ -160,12 +160,12 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, newSourceCitation, onAccept));
 		});
 
-		final ActionListener acceptAction = evt -> okAction();
+		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
-		okButton.addActionListener(acceptAction);
+		okButton.addActionListener(okAction);
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 

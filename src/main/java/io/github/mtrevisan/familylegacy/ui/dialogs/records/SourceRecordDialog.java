@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -74,7 +74,7 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-public class SourceRecordDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
+public class SourceRecordDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 1754367426928623503L;
@@ -134,7 +134,8 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 	private volatile String formerFilterEvent;
 
 	private GedcomNode source;
-	private Consumer<Object> onCloseGracefully;
+
+	private Consumer<Object> onAccept;
 	private final Flef store;
 
 
@@ -147,8 +148,6 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 	}
 
 	private void initComponents(){
-		setTitle("Source");
-
 		eventLabel.setLabelFor(eventField);
 		eventField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -204,20 +203,14 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 		notesButton.setEnabled(false);
 		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
 
+		final ActionListener okAction = evt -> okAction();
+		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
-		okButton.addActionListener(evt -> {
-			okAction();
-
-			if(onCloseGracefully != null)
-				onCloseGracefully.accept(this);
-
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced sources!
-
-			dispose();
-		});
-		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this::actionPerformed);
+		okButton.setEnabled(false);
+		okButton.addActionListener(okAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -243,7 +236,7 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 
 	private void filterEventBy(final SourceRecordDialog dialog){
 		final String newEvent = eventField.getText().trim();
-		if(formerFilterEvent != null && formerFilterEvent.equals(newEvent))
+		if(newEvent.equals(formerFilterEvent))
 			return;
 
 		formerFilterEvent = newEvent;
@@ -293,19 +286,20 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 	}
 
 	@Override
-	public void textChanged(){
+	public final void textChanged(){
 		//TODO
 		okButton.setEnabled(true);
 	}
 
 	@Override
-	public void onPreviewStateChange(final boolean visible){
+	@SuppressWarnings("BooleanParameter")
+	public final void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public void loadData(final GedcomNode source, final Consumer<Object> onCloseGracefully){
+	public final void loadData(final GedcomNode source, final Consumer<Object> onAccept){
 		this.source = source;
-		this.onCloseGracefully = onCloseGracefully;
+		this.onAccept = onAccept;
 
 		final String id = source.getID();
 		setTitle(id != null? "Source " + id: "New Source");
@@ -333,13 +327,6 @@ public class SourceRecordDialog extends JDialog implements ActionListener, TextP
 		documentsButton.setEnabled(true);
 		sourcesButton.setEnabled(true);
 		notesButton.setEnabled(true);
-
-		repaint();
-	}
-
-	@Override
-	public void actionPerformed(final ActionEvent evt){
-		dispose();
 	}
 
 
