@@ -50,7 +50,6 @@ import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -104,7 +103,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return dialog;
 	}
 
-	public static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
+	private static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
 		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
 		dialog.changeNoteInitComponents();
 		return dialog;
@@ -130,7 +129,10 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		addTranslationButton.addActionListener(evt -> {
 			final long originalNoteHash = note.hashCode();
 
-			final Consumer<Object> onAccept = ignored -> addTranslationButton.setBorder(note.hashCode() != originalNoteHash? new LineBorder(Color.BLUE): originalButtonBorder);
+			final Consumer<Object> onAccept = ignored -> {
+				addTranslationButton.setBorder(note.hashCode() != originalNoteHash? new LineBorder(Color.BLUE): originalButtonBorder);
+				addTranslationButton.setSelected(false);
+			};
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, note, onAccept));
 		});
@@ -140,12 +142,13 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			final long originalSourceHash = newSourceCitation.hashCode();
 
 			final Consumer<Object> onAccept = ignored -> {
-				//TODO add node from source citation dialog
+				//add node from source citation dialog
 				note.addChild(newSourceCitation);
 
 				addCitationButton.setBorder(newSourceCitation.hashCode() != originalSourceHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
+				addCitationButton.setSelected(false);
 			};
 
 			//fire edit event
@@ -205,6 +208,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 	}
 
 	@Override
+	@SuppressWarnings("BooleanParameter")
 	public void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
