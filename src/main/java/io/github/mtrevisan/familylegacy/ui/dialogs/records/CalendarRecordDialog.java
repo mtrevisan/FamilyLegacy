@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.DatePanel;
-import io.github.mtrevisan.familylegacy.ui.dialogs.EventsPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -66,9 +65,9 @@ public class CalendarRecordDialog extends JDialog{
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
-	private final JLabel titleLabel = new JLabel("Title:");
-	private final JTextField titleField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
+	//TODO
 	private final JLabel authorLabel = new JLabel("Author:");
 	private final JTextField authorField = new JTextField();
 	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
@@ -100,7 +99,7 @@ public class CalendarRecordDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		titleLabel.setLabelFor(titleField);
+		typeLabel.setLabelFor(typeField);
 
 		placesButton.setEnabled(false);
 		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, calendar)));
@@ -130,9 +129,8 @@ public class CalendarRecordDialog extends JDialog{
 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(eventsPanel, "grow,wrap paragraph");
-		add(titleLabel, "align label,split 2");
-		add(titleField, "grow,wrap");
+		add(typeLabel, "align label,split 2");
+		add(typeField, "grow,wrap");
 		add(authorLabel, "align label,split 2");
 		add(authorField, "grow,wrap");
 		add(publicationFactsLabel, "align label,split 2");
@@ -160,11 +158,9 @@ public class CalendarRecordDialog extends JDialog{
 	}
 
 	private void okAction(){
-		final String event = String.join(",", eventsPanel.getTags());
-		final String title = titleField.getText();
+		final String title = typeField.getText();
 		final String mediaType = mediaTypeField.getText();
 
-		calendar.replaceChildValue("EVENT", event);
 		calendar.replaceChildValue("TITLE", title);
 		//TODO
 	}
@@ -189,8 +185,7 @@ public class CalendarRecordDialog extends JDialog{
 		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
 		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
-		eventsPanel.addTag(StringUtils.split(events.toString(), ','));
-		titleField.setText(title);
+		typeField.setText(title);
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		final String date = dateNode.getValue();

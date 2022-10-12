@@ -1,5 +1,5 @@
 GEDCOM_VERSION=0.0.8
-GEDCOM_DATE=2022-10-07
+GEDCOM_DATE=2022-10-12
 GEDCOM_SOURCE=localhost
 GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.8
 
@@ -327,8 +327,7 @@ n CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address th
 CULTURAL_RULE_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
 n @<XREF:RULE>@ CULTURAL_RULE    {1:1}	/* An xref ID of a cultural rule record. */
   +1 TITLE <CULTURAL_RULE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
-  +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
-    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 DESCRIPTION @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record describing the cultural rule. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
@@ -399,8 +398,7 @@ n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date object giving the date that thi
 CALENDAR_RECORD :=
 n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
   +1 TYPE <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french-republican', 'italic', ...). */
-  +1 DESCRIPTION <CALENDAR_DESCRIPTION>    {0:1}	/* The description of the calendar. */
-    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 DESCRIPTION @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record describing the calendar. */
   +1 CULTURAL_RULE @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural rule record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
@@ -414,8 +412,7 @@ n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
 HISTORIC_EVENT_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
 n @<XREF:HISTORIC>@ HISTORIC_EVENT    {1:1}	/* An xref ID of a cultural rule record. */
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
-  +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the rule. */
-    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the description (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 DESCRIPTION @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record describing the historic event. */
   +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location in which this rule applies. */
     +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
     +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
