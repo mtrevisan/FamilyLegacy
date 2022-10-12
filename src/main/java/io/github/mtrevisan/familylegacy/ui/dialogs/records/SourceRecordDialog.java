@@ -167,8 +167,8 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		add(mediaTypeLabel, "align label,split 2");
 		add(mediaTypeField, "grow,wrap paragraph");
 		add(documentsButton, "sizegroup button2,grow,wrap");
-		add(sourcesButton, "sizegroup button2,grow,wrap");
-		add(notesButton, "sizegroup button2,grow,wrap paragraph");
+		add(notesButton, "sizegroup button2,grow,wrap");
+		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");

@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.DatePanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -65,21 +64,24 @@ public class CalendarRecordDialog extends JDialog{
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
+/*
+  +1 CREATION_DATE    {1:1}
+    +2 DATE <CREATION_DATE>    {1:1}
+  +1 CHANGE_DATE    {0:M}
+    +2 DATE <CHANGE_DATE>    {1:1}
+    +2 NOTE @<XREF:NOTE>@    {0:1}
+*/
+	//TODO mandatory
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JTextField typeField = new JTextField();
-	//TODO
-	private final JLabel authorLabel = new JLabel("Author:");
-	private final JTextField authorField = new JTextField();
-	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
-	private final JTextField publicationFactsField = new JTextField();
-	private final DatePanel datePanel = new DatePanel();
-	private final JLabel mediaTypeLabel = new JLabel("Media type:");
-	private final JTextField mediaTypeField = new JTextField();
-	private final JButton placesButton = new JButton("Places");
-	private final JButton repositoriesButton = new JButton("Repositories");
-	private final JButton documentsButton = new JButton("Documents");
-	private final JButton sourcesButton = new JButton("Sources");
+	//TODO 0 or 1
+	private final JButton descriptionButton = new JButton("Description");
+	//TODO 0 to M
+	private final JButton culturalRulesButton = new JButton("Cultural rules");
+	//TODO 0 to M
 	private final JButton notesButton = new JButton("Notes");
+	//TODO 0 to M
+	private final JButton sourcesButton = new JButton("Sources");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -101,16 +103,8 @@ public class CalendarRecordDialog extends JDialog{
 	private void initComponents(){
 		typeLabel.setLabelFor(typeField);
 
-		placesButton.setEnabled(false);
-		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, calendar)));
-
-		repositoriesButton.setEnabled(false);
-		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, calendar)));
-
-		mediaTypeLabel.setLabelFor(mediaTypeField);
-
-		documentsButton.setEnabled(false);
-		documentsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, calendar)));
+		descriptionButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, calendar)));
+		culturalRulesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE_CITATION, calendar)));
 
 		sourcesButton.setEnabled(false);
 		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar)));
@@ -131,18 +125,10 @@ public class CalendarRecordDialog extends JDialog{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(typeLabel, "align label,split 2");
 		add(typeField, "grow,wrap");
-		add(authorLabel, "align label,split 2");
-		add(authorField, "grow,wrap");
-		add(publicationFactsLabel, "align label,split 2");
-		add(publicationFactsField, "grow,wrap paragraph");
-		add(datePanel, "grow,wrap paragraph");
-		add(placesButton, "sizegroup button2,grow,wrap");
-		add(repositoriesButton, "sizegroup button2,grow,wrap paragraph");
-		add(mediaTypeLabel, "align label,split 2");
-		add(mediaTypeField, "grow,wrap paragraph");
-		add(documentsButton, "sizegroup button2,grow,wrap");
-		add(sourcesButton, "sizegroup button2,grow,wrap");
+		add(descriptionButton, "grow,wrap");
+		add(culturalRulesButton, "grow,wrap");
 		add(notesButton, "sizegroup button2,grow,wrap paragraph");
+		add(sourcesButton, "sizegroup button2,grow,wrap");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -159,7 +145,6 @@ public class CalendarRecordDialog extends JDialog{
 
 	private void okAction(){
 		final String title = typeField.getText();
-		final String mediaType = mediaTypeField.getText();
 
 		calendar.replaceChildValue("TITLE", title);
 		//TODO
@@ -186,17 +171,6 @@ public class CalendarRecordDialog extends JDialog{
 		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
 		typeField.setText(title);
-		authorField.setText(author);
-		publicationFactsField.setText(publicationFacts);
-		final String date = dateNode.getValue();
-		final String calendarXRef = store.traverse(dateNode, "CALENDAR").getXRef();
-		final String dateOriginalText = store.traverse(dateNode, "ORIGINAL_TEXT").getValue();
-		final String dateCredibility = store.traverse(dateNode, "CREDIBILITY").getValue();
-		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
-		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		placesButton.setEnabled(true);
-		repositoriesButton.setEnabled(true);
-		documentsButton.setEnabled(true);
 		sourcesButton.setEnabled(true);
 		notesButton.setEnabled(true);
 	}
