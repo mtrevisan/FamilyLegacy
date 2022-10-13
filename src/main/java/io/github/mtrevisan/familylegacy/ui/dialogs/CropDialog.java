@@ -45,6 +45,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 
+//TODO
 public class CropDialog extends JDialog implements CropListenerInterface{
 
 	private ScaledImage imageHolder;

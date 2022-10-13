@@ -138,6 +138,8 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 	private final Debouncer<CulturalNormRecordDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
+
+	private Consumer<Object> onAccept;
 	private final Flef store;
 
 
@@ -147,13 +149,9 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		this.store = store;
 
 		initComponents();
-
-		loadData();
 	}
 
 	private void initComponents(){
-		setTitle("Rule citations");
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -375,8 +373,9 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public void loadData(final GedcomNode container){
+	public void loadData(final GedcomNode container, final Consumer<Object> onAccept){
 		this.container = container;
+		this.onAccept = onAccept;
 
 		loadData();
 
@@ -466,7 +465,7 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 
 		EventQueue.invokeLater(() -> {
 			final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, new JFrame());
-			dialog.loadData(container);
+			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

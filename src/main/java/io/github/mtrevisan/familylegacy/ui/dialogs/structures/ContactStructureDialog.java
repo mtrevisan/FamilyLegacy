@@ -86,6 +86,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
+//TODO
 public class ContactStructureDialog extends JDialog implements ActionListener{
 
 	@Serial

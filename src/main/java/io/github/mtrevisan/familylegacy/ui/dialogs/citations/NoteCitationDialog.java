@@ -371,7 +371,7 @@ public class NoteCitationDialog extends JDialog{
 							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
-								? "Note for " + note.getID()
+								? "Note " + note.getID()
 								: "New note for " + container.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
@@ -381,11 +381,12 @@ public class NoteCitationDialog extends JDialog{
 						}
 						case NOTE_TRANSLATION -> {
 							final NoteRecordDialog dialog = NoteRecordDialog.createNoteTranslation(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation for " + note.getID()
-								: "New translation for note for " + container.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							final GedcomNode noteTranslation = editCommand.getContainer();
+							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
+								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
+								: "New translation"
+							);
+							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
 							dialog.setLocationRelativeTo(parent);
@@ -395,8 +396,8 @@ public class NoteCitationDialog extends JDialog{
 							final NoteCitationDialog dialog = createNoteTranslationCitation(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
-								? "Translation citation for " + note.getID()
-								: "New translation citation for " + container.getID());
+								? "Translation citations for note " + note.getID()
+								: "Translation citations for new note");
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
@@ -405,12 +406,12 @@ public class NoteCitationDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE_CITATION -> {
-							final GedcomNode sourceCitation = editCommand.getContainer();
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.setTitle(sourceCitation.getID() != null
-								? "Source citation for " + sourceCitation.getID()
-								: "New source citation for note for " + container.getID());
-							if(!dialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Source citations for note " + note.getID()
+								: "Source citations for new note");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
 							dialog.setSize(550, 450);

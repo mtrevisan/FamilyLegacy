@@ -66,6 +66,7 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
+//TODO
 public class SourceRecordDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial

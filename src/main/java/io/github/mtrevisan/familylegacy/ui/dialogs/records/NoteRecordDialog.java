@@ -320,9 +320,9 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		//without creation date
-//		final GedcomNode note = store.getNotes().get(0);
+//		final GedcomNode container = store.getNotes().get(0);
 		//with change date
-		final GedcomNode note = store.getNotes().get(1);
+		final GedcomNode container = store.getNotes().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -333,9 +333,10 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						case NOTE_TRANSLATION -> {
 							final NoteRecordDialog dialog = createNoteTranslation(store, parent);
 							final GedcomNode noteTranslation = editCommand.getContainer();
-							dialog.setTitle(noteTranslation.getID() != null
-								? "Translation " + noteTranslation.getID() + " for note " + note.getID()
-								: "New translation for note " + note.getID());
+							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
+								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
+								: "New translation"
+							);
 							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
@@ -344,11 +345,11 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						}
 						case NOTE_TRANSLATION_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-							final GedcomNode noteTranslationCitation = editCommand.getContainer();
-							dialog.setTitle(noteTranslationCitation.getID() != null
-								? "Translation citation " + noteTranslationCitation.getID() + " for note " + note.getID()
-								: "New translation citation for note " + note.getID());
-							if(!dialog.loadData(noteTranslationCitation, editCommand.getOnCloseGracefully()))
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Translation citations for note " + note.getID()
+								: "Translation citations for new note");
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
 
@@ -360,8 +361,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
 							final GedcomNode source = editCommand.getContainer();
 							dialog.setTitle(source.getID() != null
-								? "Source " + source.getID() + " for note " + note.getID()
-								: "New source for note " + note.getID());
+								? "Source " + source.getID()
+								: "New source for " + container.getID());
 							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 650);
@@ -370,11 +371,10 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						}
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							final GedcomNode sourceCitation = editCommand.getContainer();
-							dialog.setTitle(sourceCitation.getID() != null
-								? "Source citation " + sourceCitation.getID() + " for note " + note.getID()
-								: "New source citation for note " + note.getID());
-							if(!dialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
+							dialog.setTitle(container.getID() != null
+								? "Source citations for note " + container.getID()
+								: "Source citations for new note");
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a source input dialog
 								dialog.addAction();
 
@@ -388,8 +388,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			EventBusService.subscribe(listener);
 
 			final NoteRecordDialog dialog = createNote(store, parent);
-			dialog.setTitle("Note for " + note.getID());
-			dialog.loadData(note, null);
+			dialog.setTitle("Note for " + container.getID());
+			dialog.loadData(container, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
 				@Override

@@ -92,6 +92,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 
+//TODO
 public class DocumentStructureDialog extends JDialog implements ActionListener, TextPreviewListenerInterface{
 
 	@Serial

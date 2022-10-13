@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.CulturalNormRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -90,15 +91,13 @@ public class CulturalNormCitationDialog extends JDialog{
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
 	private static final int ID_PREFERRED_WIDTH = 25;
-	private static final int LANGUAGE_PREFERRED_WIDTH = 65;
 
 	private static final int TABLE_INDEX_CULTURAL_NORM_ID = 0;
-	private static final int TABLE_INDEX_CULTURAL_NORM_LANGUAGE = 1;
-	private static final int TABLE_INDEX_CULTURAL_NORM_TEXT = 2;
+	private static final int TABLE_INDEX_CULTURAL_NORM_TITLE = 1;
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable culturalNormsTable = new JTable(new NoteTableModel());
+	private final JTable culturalNormsTable = new JTable(new CulturalNormTableModel());
 	private final JScrollPane culturalNormsScrollPane = new JScrollPane(culturalNormsTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton helpButton = new JButton("Help");
@@ -108,7 +107,6 @@ public class CulturalNormCitationDialog extends JDialog{
 	private final Debouncer<CulturalNormCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
-	private String childTag;
 	private Runnable addAction;
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
@@ -123,22 +121,20 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		childTag = "NOTE";
-		hideColumn(culturalNormsTable, TABLE_INDEX_CULTURAL_NORM_LANGUAGE);
 		addAction = () -> {
-			final GedcomNode newNote = store.create(childTag);
+			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
 
 			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this note to the parent container
-				final String newNoteID = store.addNote(newNote);
-				container.addChildReference(childTag, newNoteID);
+				final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
+				container.addChildReference("CULTURAL_NORM", newCulturalNormID);
 
 				//refresh note list
 				loadData();
 			};
 
 			//fire add event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, newNote, onCloseGracefully));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, newCulturalNorm, onCloseGracefully));
 		};
 
 		filterLabel.setLabelFor(filterField);
@@ -157,11 +153,9 @@ public class CulturalNormCitationDialog extends JDialog{
 		culturalNormsTable.setTransferHandler(new TableTransferHandle(culturalNormsTable));
 		culturalNormsTable.getTableHeader().setFont(culturalNormsTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(culturalNormsTable, TABLE_INDEX_CULTURAL_NORM_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(culturalNormsTable, TABLE_INDEX_CULTURAL_NORM_LANGUAGE, 0, LANGUAGE_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormsTable.getModel());
 		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_ID, (Comparator<String>)GedcomNode::compareID);
-		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_LANGUAGE, Comparator.naturalOrder());
-		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_TEXT, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_TITLE, Comparator.naturalOrder());
 		culturalNormsTable.setRowSorter(sorter);
 		culturalNormsTable.addMouseListener(new MouseAdapter(){
 			@Override
@@ -230,30 +224,30 @@ public class CulturalNormCitationDialog extends JDialog{
 		//retrieve selected note
 		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
 		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
-		final String noteXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
-		final GedcomNode selectedNote;
-		if(StringUtils.isBlank(noteXRef))
-			selectedNote = store.traverseAsList(container, "TRANSLATION[]")
+		final String culturalNormXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
+		final GedcomNode selectedCulturalNorm;
+		if(StringUtils.isBlank(culturalNormXRef))
+			selectedCulturalNorm = store.traverseAsList(container, "TRANSLATION[]")
 				.get(index);
 		else
-			selectedNote = store.getNote(noteXRef);
+			selectedCulturalNorm = store.getCulturalNorm(culturalNormXRef);
 
 		//fire edit event
-		EventBusService.publish(new EditEvent(("NOTE".equals(childTag)? EditEvent.EditType.NOTE: EditEvent.EditType.NOTE_TRANSLATION), selectedNote));
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, selectedCulturalNorm));
 	}
 
 	private void deleteAction(){
 		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
 		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
-		final String noteXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
-		final GedcomNode selectedNote;
-		if(StringUtils.isBlank(noteXRef))
-			selectedNote = store.traverseAsList(container, "TRANSLATION[]")
+		final String culturalNormXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
+		final GedcomNode selectedCulturalNorm;
+		if(StringUtils.isBlank(culturalNormXRef))
+			selectedCulturalNorm = store.traverseAsList(container, "CULTURAL_NORM[]")
 				.get(index);
 		else
-			selectedNote = store.getNote(noteXRef);
+			selectedCulturalNorm = store.getCulturalNorm(culturalNormXRef);
 
-		container.removeChild(selectedNote);
+		container.removeChild(selectedCulturalNorm);
 
 		loadData();
 	}
@@ -266,30 +260,28 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 	private boolean loadData(){
-		final List<GedcomNode> notes = store.traverseAsList(container, childTag + "[]");
-		final int size = notes.size();
-		if("NOTE".equals(childTag))
-			for(int i = 0; i < size; i ++){
-				final String noteXRef = notes.get(i).getXRef();
-				final GedcomNode note = store.getNote(noteXRef);
-				notes.set(i, note);
-			}
+		final List<GedcomNode> culturalNorms = store.traverseAsList(container, "CULTURAL_NORM[]");
+		final int size = culturalNorms.size();
+		for(int i = 0; i < size; i ++){
+			final String culturalNormXRef = culturalNorms.get(i).getXRef();
+			final GedcomNode culturalNorm = store.getCulturalNorm(culturalNormXRef);
+			culturalNorms.set(i, culturalNorm);
+		}
 
-		final DefaultTableModel notesModel = (DefaultTableModel)culturalNormsTable.getModel();
-		notesModel.setRowCount(size);
+		final DefaultTableModel culturalNormsModel = (DefaultTableModel)culturalNormsTable.getModel();
+		culturalNormsModel.setRowCount(size);
 		for(int row = 0; row < size; row ++){
-			final GedcomNode note = notes.get(row);
+			final GedcomNode culturalNorm = culturalNorms.get(row);
 
-			notesModel.setValueAt(note.getID(), row, TABLE_INDEX_CULTURAL_NORM_ID);
-			notesModel.setValueAt(store.traverse(note, "LOCALE").getValue(), row, TABLE_INDEX_CULTURAL_NORM_LANGUAGE);
-			notesModel.setValueAt(NoteRecordDialog.toVisualText(note), row, TABLE_INDEX_CULTURAL_NORM_TEXT);
+			culturalNormsModel.setValueAt(culturalNorm.getID(), row, TABLE_INDEX_CULTURAL_NORM_ID);
+			culturalNormsModel.setValueAt(store.traverse(culturalNorm, "TITLE").getValue(), row, TABLE_INDEX_CULTURAL_NORM_TITLE);
 		}
 		return (size > 0);
 	}
 
 	private void filterTableBy(final CulturalNormCitationDialog panel){
 		final String text = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_CULTURAL_NORM_ID, TABLE_INDEX_CULTURAL_NORM_TEXT);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_CULTURAL_NORM_ID, TABLE_INDEX_CULTURAL_NORM_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)culturalNormsTable.getRowSorter();
@@ -302,14 +294,14 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 
-	private static class NoteTableModel extends DefaultTableModel{
+	private static class CulturalNormTableModel extends DefaultTableModel{
 
 		@Serial
 		private static final long serialVersionUID = 981117893723288957L;
 
 
-		NoteTableModel(){
-			super(new String[]{"ID", "Language", "Text"}, 0);
+		CulturalNormTableModel(){
+			super(new String[]{"ID", "Title"}, 0);
 		}
 
 		@Override
@@ -342,53 +334,15 @@ public class CulturalNormCitationDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Note for " + note.getID()
-								: "New note for " + container.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+						case CULTURAL_NORM -> {
+							final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, parent);
+							final GedcomNode culturalNorm = editCommand.getContainer();
+							dialog.setTitle(culturalNorm.getID() != null
+								? "Cultural norm " + culturalNorm.getID()
+								: "New cultural norm for " + container.getID());
+							dialog.loadData(culturalNorm, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_TRANSLATION -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNoteTranslation(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation for " + note.getID()
-								: "New translation for note for " + container.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
-
-							dialog.setSize(550, 350);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_TRANSLATION_CITATION -> {
-							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation citation for " + note.getID()
-								: "New translation citation for " + container.getID());
-							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
-
-							dialog.setSize(550, 350);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							final GedcomNode sourceCitation = editCommand.getContainer();
-							dialog.setTitle(sourceCitation.getID() != null
-								? "Source citation for " + sourceCitation.getID()
-								: "New source citation for note for " + container.getID());
-							if(!dialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
-
-							dialog.setSize(550, 450);
+							dialog.setSize(480, 700);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -398,8 +352,7 @@ public class CulturalNormCitationDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
-//			final NoteCitationDialog dialog = createNoteTranslationCitation(store, parent);
-			dialog.setTitle(container.isEmpty()? "Note citations": "Note citations for " + container.getID());
+			dialog.setTitle(container.isEmpty()? "Cultural norm citations": "Cultural norm citations for " + container.getID());
 			if(!dialog.loadData(container, null))
 				//show a note input dialog
 				dialog.addAction();

@@ -470,7 +470,7 @@ public class SourceCitationDialog extends JDialog{
 							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
-								? "Source for " + note.getID()
+								? "Source " + note.getID()
 								: "New source for " + container.getID());
 							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
@@ -491,7 +491,7 @@ public class SourceCitationDialog extends JDialog{
 						case NOTE -> {
 							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle("Note for " + note.getID());
+							dialog.setTitle("Note " + note.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);

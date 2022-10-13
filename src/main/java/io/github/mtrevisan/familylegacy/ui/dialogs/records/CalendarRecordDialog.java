@@ -58,7 +58,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.List;
 import java.util.StringJoiner;
@@ -99,7 +98,7 @@ public class CalendarRecordDialog extends JDialog{
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private GedcomNode calendar;
+	private GedcomNode container;
 	private long originalCulturalNormsHash;
 	private long originalNotesHash;
 	private long originalSourcesHash;
@@ -123,7 +122,13 @@ public class CalendarRecordDialog extends JDialog{
 		final Border originalButtonBorder = okButton.getBorder();
 		noteButton.setToolTipText("Add cultural norm");
 		culturalNormButton.addActionListener(evt -> {
-			final Consumer<Object> onAccept = ignored -> {
+			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
+
+			final Consumer<Object> onCloseGracefully = ignored -> {
+				//if ok was pressed, add this note to the parent container
+				final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
+				container.addChildReference("CULTURAL_NORM", newCulturalNormID);
+
 				culturalNormButton.setBorder(calculateCulturalNormsHashCode() != originalCulturalNormsHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
@@ -132,7 +137,8 @@ public class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onAccept));
+			//fire add event
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, container, onCloseGracefully));
 		});
 
 		noteButton.setToolTipText("Add note");
@@ -146,7 +152,7 @@ public class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container, onAccept));
 		});
 
 		sourceButton.setToolTipText("Add source");
@@ -160,7 +166,7 @@ public class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container, onAccept));
 		});
 
 		final ActionListener okAction = evt -> okAction();
@@ -186,20 +192,20 @@ public class CalendarRecordDialog extends JDialog{
 	}
 
 	private int calculateCulturalNormsHashCode(){
-		return store.traverseAsList(calendar, "CULTURAL_NORM[]").hashCode();
+		return store.traverseAsList(container, "CULTURAL_NORM[]").hashCode();
 	}
 
 	private int calculateNotesHashCode(){
-		return store.traverseAsList(calendar, "NOTE[]").hashCode();
+		return store.traverseAsList(container, "NOTE[]").hashCode();
 	}
 
 	private int calculateSourcesHashCode(){
-		return store.traverseAsList(calendar, "SOURCE[]").hashCode();
+		return store.traverseAsList(container, "SOURCE[]").hashCode();
 	}
 
 	private boolean sourceContainsEvent(final String event){
 		boolean containsEvent = false;
-		final List<GedcomNode> events = store.traverseAsList(calendar, "EVENT[]");
+		final List<GedcomNode> events = store.traverseAsList(container, "EVENT[]");
 		for(int i = 0; !containsEvent && i < events.size(); i ++)
 			if(events.get(i).getValue().equalsIgnoreCase(event))
 				containsEvent = true;
@@ -209,12 +215,12 @@ public class CalendarRecordDialog extends JDialog{
 	private void okAction(){
 		final String type = (String)typeComboBox.getSelectedItem();
 
-		calendar.replaceChildValue("TYPE", type);
+		container.replaceChildValue("TYPE", type);
 		//TODO
 	}
 
 	public final void loadData(final GedcomNode calendar, final Consumer<Object> onAccept){
-		this.calendar = calendar;
+		this.container = calendar;
 		this.onAccept = onAccept;
 
 		originalCulturalNormsHash = calculateCulturalNormsHashCode();
@@ -262,8 +268,8 @@ public class CalendarRecordDialog extends JDialog{
 							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
 							final GedcomNode culturalNormCitation = editCommand.getContainer();
 							dialog.setTitle(culturalNormCitation.getID() != null
-								? "Cultural norm " + culturalNormCitation.getID() + " for calendar " + calendar.getID()
-								: "New cultural norm for calendar " + calendar.getID());
+								? "Cultural norm citation " + culturalNormCitation.getID() + " for calendar " + calendar.getID()
+								: "New cultural norm citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
 								dialog.addAction();
