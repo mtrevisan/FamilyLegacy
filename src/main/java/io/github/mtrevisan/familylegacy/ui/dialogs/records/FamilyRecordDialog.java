@@ -167,7 +167,8 @@ public class FamilyRecordDialog extends JDialog{
 			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner1 = store.getPartner1(family);
 			//TODO onCloseGracefully
-			noteCitationDialog.loadData(partner1, null);
+			if(!noteCitationDialog.loadData(partner1, null))
+				noteCitationDialog.addAction();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -182,7 +183,8 @@ public class FamilyRecordDialog extends JDialog{
 			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner2 = store.getPartner2(family);
 			//TODO onCloseGracefully
-			noteCitationDialog.loadData(partner2, null);
+			if(!noteCitationDialog.loadData(partner2, null))
+				noteCitationDialog.addAction();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -199,7 +201,8 @@ public class FamilyRecordDialog extends JDialog{
 			final int childIndex = childrenTable.getSelectedRow();
 			final GedcomNode child = store.getIndividual(children.get(childIndex).getXRef());
 			//TODO onCloseGracefully
-			noteCitationDialog.loadData(child, null);
+			if(!noteCitationDialog.loadData(child, null))
+				noteCitationDialog.addAction();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);

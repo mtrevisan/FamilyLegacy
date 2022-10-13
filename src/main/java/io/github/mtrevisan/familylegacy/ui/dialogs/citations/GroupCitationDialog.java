@@ -301,6 +301,22 @@ public class GroupCitationDialog extends JDialog{
 		okButton.setEnabled(true);
 	}
 
+	public final void addAction(){
+		final GedcomNode newGroup = store.create("GROUP");
+
+		final Consumer<Object> onCloseGracefully = dialog -> {
+			//if ok was pressed, add this source to the parent container
+			final String newBGroupID = store.addGroup(newGroup);
+			container.addChildReference("GROUP", newBGroupID);
+
+			//refresh source list
+			loadData();
+		};
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP, newGroup, onCloseGracefully));
+	}
+
 	private void editAction(){
 		//retrieve selected note
 		final DefaultTableModel model = (DefaultTableModel)groupsTable.getModel();
@@ -321,15 +337,13 @@ public class GroupCitationDialog extends JDialog{
 		transferListToContainer();
 	}
 
-	public void loadData(final GedcomNode container){
+	public final boolean loadData(final GedcomNode container){
 		this.container = container;
 
-		loadData();
-
-		repaint();
+		return loadData();
 	}
 
-	private void loadData(){
+	private boolean loadData(){
 		final List<GedcomNode> groups = store.traverseAsList(container, "GROUP[]");
 		final int size = groups.size();
 		for(int i = 0; i < size; i ++)
@@ -347,6 +361,7 @@ public class GroupCitationDialog extends JDialog{
 				groupsModel.setValueAt(store.traverse(group, "TYPE").getValue(), row, TABLE_INDEX_GROUP_TYPE);
 			}
 		}
+		return (size > 0);
 	}
 
 	private void filterTableBy(final GroupCitationDialog panel){
@@ -382,19 +397,6 @@ public class GroupCitationDialog extends JDialog{
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
 		}
 	}
 
@@ -451,7 +453,8 @@ public class GroupCitationDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final GroupCitationDialog dialog = new GroupCitationDialog(store, parent);
-			dialog.loadData(container);
+			if(!dialog.loadData(container))
+				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

@@ -269,7 +269,8 @@ private final JTextField subordinateField = new JTextField();
 					switch(editCommand.getType()){
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								dialog.addAction();
 
 							dialog.setSize(450, 450);
 							dialog.setLocationRelativeTo(parent);

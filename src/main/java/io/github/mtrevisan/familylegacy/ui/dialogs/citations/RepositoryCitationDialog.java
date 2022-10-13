@@ -221,6 +221,22 @@ public class RepositoryCitationDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
+	public final void addAction(){
+		final GedcomNode newRepository = store.create("REPOSITORY");
+
+		final Consumer<Object> onCloseGracefully = dialog -> {
+			//if ok was pressed, add this source to the parent container
+			final String newRepositoryID = store.addRepository(newRepository);
+			container.addChildReference("REPOSITORY", newRepositoryID);
+
+			//refresh source list
+			loadData();
+		};
+
+		//fire edit event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newRepository, onCloseGracefully));
+	}
+
 	private void editAction(){
 		//retrieve selected repository
 		final DefaultTableModel model = (DefaultTableModel)repositoryTable.getModel();
@@ -232,15 +248,13 @@ public class RepositoryCitationDialog extends JDialog{
 		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, selectedRepository));
 	}
 
-	public void loadData(final GedcomNode container){
+	public final boolean loadData(final GedcomNode container){
 		this.container = container;
 
-		loadData();
-
-		repaint();
+		return loadData();
 	}
 
-	private void loadData(){
+	private boolean loadData(){
 		final List<GedcomNode> repositories = store.traverseAsList(container, "REPOSITORY[]");
 		final int size = repositories.size();
 		for(int i = 0; i < size; i ++)
@@ -257,6 +271,7 @@ public class RepositoryCitationDialog extends JDialog{
 				repositoriesModel.setValueAt(store.traverse(repository, "NAME").getValue(), row, TABLE_INDEX_REPOSITORY_NAME);
 			}
 		}
+		return (size > 0);
 	}
 
 	private void filterTableBy(final RepositoryCitationDialog panel){
@@ -293,19 +308,6 @@ public class RepositoryCitationDialog extends JDialog{
 		public boolean isCellEditable(final int row, final int column){
 			return false;
 		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
 	}
 
 
@@ -324,7 +326,8 @@ public class RepositoryCitationDialog extends JDialog{
 
 		EventQueue.invokeLater(() -> {
 			final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, new JFrame());
-			dialog.loadData(container);
+			if(!dialog.loadData(container))
+				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

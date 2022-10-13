@@ -199,7 +199,8 @@ public class GroupRecordDialog extends JDialog{
 						case SOURCE_CITATION -> {
 							//TODO
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								dialog.addAction();
 
 							dialog.setSize(450, 450);
 							dialog.setLocationRelativeTo(parent);

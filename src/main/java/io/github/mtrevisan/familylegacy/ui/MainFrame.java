@@ -140,7 +140,8 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			}
 			case GROUP_CITATION -> {
 				final GroupCitationDialog dialog = new GroupCitationDialog(store, this);
-				dialog.loadData(editCommand.getContainer());
+				if(!dialog.loadData(editCommand.getContainer()))
+					dialog.addAction();
 
 				dialog.setSize(450, 500);
 				dialog.setLocationRelativeTo(this);
@@ -177,7 +178,8 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			case SOURCE_CITATION -> {
 				//TODO
 //				final SourceCitationDialog dialog = new SourceCitationDialog(store, this);
-//				dialog.loadData(editCommand.getContainer());
+//				if(!dialog.loadData(editCommand.getContainer()))
+//					dialog.addAction();
 //
 //				dialog.setSize(450, 500);
 //				dialog.setLocationRelativeTo(this);
@@ -195,7 +197,8 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			case EVENT_CITATION -> {
 				//TODO
 //				final EventCitationDialog dialog = new EventCitationDialog(store, this);
-//				dialog.loadData(editCommand.getContainer());
+//				if(!dialog.loadData(editCommand.getContainer()))
+//					dialog.addAction();
 //
 //				dialog.setSize(450, 500);
 //				dialog.setLocationRelativeTo(this);
