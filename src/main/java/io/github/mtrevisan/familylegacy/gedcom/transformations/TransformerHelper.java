@@ -138,7 +138,7 @@ public class TransformerHelper{
 					final List<GedcomNode> nodes = new ArrayList<>(((GedcomNode)pointer).getChildren());
 					removeNodeIfTag(nodes, m.group(PARAM_TAG));
 					removeNodeIf(nodes, m.group(PARAM_VALUE), GedcomNode::getValue);
-					removeNodeIf(nodes,  m.group(PARAM_ID), GedcomNode::getID);
+					removeNodeIf(nodes, m.group(PARAM_ID), GedcomNode::getID);
 					removeNodeIf(nodes, m.group(PARAM_XREF), GedcomNode::getXRef);
 
 					final String index = m.group(PARAM_INDEX);
@@ -208,7 +208,7 @@ public class TransformerHelper{
 					final String tag = m.group(PARAM_TAG);
 					removeNodeIf(nodes, tag, GedcomNode::getTag);
 					removeNodeIf(nodes, m.group(PARAM_VALUE), GedcomNode::getValue);
-					removeNodeIf(nodes,  m.group(PARAM_ID), GedcomNode::getID);
+					removeNodeIf(nodes, m.group(PARAM_ID), GedcomNode::getID);
 					removeNodeIf(nodes, m.group(PARAM_XREF), GedcomNode::getXRef);
 
 					//create node if needed

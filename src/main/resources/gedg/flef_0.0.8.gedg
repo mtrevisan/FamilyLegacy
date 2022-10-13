@@ -397,7 +397,7 @@ n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date object giving the date that thi
 
 CALENDAR_RECORD :=
 n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
-  +1 TYPE <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'hebrew', 'french-republican', 'italic', ...). */
+  +1 TYPE <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
   +1 DESCRIPTION @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record describing the calendar. */
   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */

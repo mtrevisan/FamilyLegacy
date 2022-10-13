@@ -162,34 +162,43 @@ public class RepositoryRecordDialog extends JDialog{
 			final Object listener = new Object(){
 				@EventHandler
 				public void refresh(final EditEvent editCommand) throws IOException{
-					JDialog dialog = null;
 					switch(editCommand.getType()){
 						case PLACE -> {
-							dialog = new PlaceRecordDialog(store, parent);
-							((PlaceRecordDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
 							dialog.setSize(350, 430);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case CONTACT -> {
-							dialog = new ContactStructureDialog(store, parent);
-							((ContactStructureDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final ContactStructureDialog dialog = new ContactStructureDialog(store, parent);
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
 							dialog.setSize(350, 430);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE_CITATION -> {
-							dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							((NoteCitationDialog)dialog).loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								dialog.addAction();
+
 							dialog.setSize(450, 260);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE -> {
-							dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
-							((NoteRecordDialog)dialog).setTitle("Note for " + note.getID());
-							((NoteRecordDialog)dialog).loadData(note, editCommand.getOnCloseGracefully());
+							dialog.setTitle("Note for " + note.getID());
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
+
 							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
-					}
-					if(dialog != null){
-						dialog.setLocationRelativeTo(parent);
-						dialog.setVisible(true);
 					}
 				}
 			};

@@ -47,7 +47,7 @@ public interface FamilyListenerInterface{
 	 * @param currentFamily	Current family `thisParent` is in.
 	 */
 	void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-										  final GedcomNode currentFamily);
+		final GedcomNode currentFamily);
 
 	/**
 	 * Iterate through parents.
@@ -58,6 +58,6 @@ public interface FamilyListenerInterface{
 	 * @param currentFamily	Current family `thisParent` is in.
 	 */
 	void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-									 final GedcomNode currentFamily);
+		final GedcomNode currentFamily);
 
 }

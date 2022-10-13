@@ -31,19 +31,22 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -58,6 +61,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
@@ -68,6 +72,9 @@ public class CalendarRecordDialog extends JDialog{
 	private static final long serialVersionUID = 4728999064397477461L;
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+
+	private static final DefaultComboBoxModel<String> TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist",
+		"french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
 
 	private static final ImageIcon ICON_CULTURAL_NORM = ResourceHelper.getImage("/images/culturalNorm.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
@@ -82,7 +89,7 @@ public class CalendarRecordDialog extends JDialog{
 */
 	//TODO mandatory
 	private final JLabel typeLabel = new JLabel("Type:");
-	private final JTextField typeField = new JTextField();
+	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
 	//TODO 0 or 1
 	private final JButton descriptionButton = new JButton("Description");
 	//TODO 0 to M
@@ -90,7 +97,7 @@ public class CalendarRecordDialog extends JDialog{
 	//TODO 0 to M
 	private final JButton noteButton = new JButton(ICON_NOTE);
 	//TODO 0 to M
-	private final JButton addSourceButton = new JButton(ICON_SOURCE);
+	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -114,7 +121,8 @@ public class CalendarRecordDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		typeLabel.setLabelFor(typeField);
+		typeLabel.setLabelFor(typeComboBox);
+		AutoCompleteDecorator.decorate(typeComboBox);
 
 		final Border originalButtonBorder = okButton.getBorder();
 		descriptionButton.addActionListener(evt -> {
@@ -130,6 +138,7 @@ public class CalendarRecordDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, calendar, onAccept));
 		});
 
+		noteButton.setToolTipText("Add cultural norm");
 		culturalNormButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				culturalNormButton.setBorder(calculateCulturalNormsHashCode() != originalCulturalNormsHash
@@ -143,6 +152,7 @@ public class CalendarRecordDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onAccept));
 		});
 
+		noteButton.setToolTipText("Add note");
 		noteButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				noteButton.setBorder(calculateNotesHashCode() != originalNotesHash
@@ -156,10 +166,10 @@ public class CalendarRecordDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
 		});
 
-		addSourceButton.setToolTipText("Add source");
-		addSourceButton.addActionListener(evt -> {
+		sourceButton.setToolTipText("Add source");
+		sourceButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				addSourceButton.setBorder(calculateSourcesHashCode() != originalSourcesHash
+				sourceButton.setBorder(calculateSourcesHashCode() != originalSourcesHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
 
@@ -181,12 +191,13 @@ public class CalendarRecordDialog extends JDialog{
 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+//		setLayout(new MigLayout("debug", "[grow]"));
 		add(typeLabel, "align label,split 2");
-		add(typeField, "grow,wrap");
+		add(typeComboBox, "grow,wrap");
 		add(descriptionButton, "grow,wrap");
-		add(culturalNormButton, "grow,wrap");
-		add(noteButton, "sizegroup button2,grow,wrap paragraph");
-		add(addSourceButton, "sizegroup button2,grow,wrap");
+		add(culturalNormButton, "split 3,sizegroup button2,center");
+		add(noteButton, "sizegroup button2,center");
+		add(sourceButton, "sizegroup button2,center,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -218,9 +229,9 @@ public class CalendarRecordDialog extends JDialog{
 	}
 
 	private void okAction(){
-		final String title = typeField.getText();
+		final String type = (String)typeComboBox.getSelectedItem();
 
-		calendar.replaceChildValue("TITLE", title);
+		calendar.replaceChildValue("TYPE", type);
 		//TODO
 	}
 
@@ -228,13 +239,15 @@ public class CalendarRecordDialog extends JDialog{
 		this.calendar = calendar;
 		this.onAccept = onAccept;
 
-		final String id = calendar.getID();
-		setTitle(id != null? "Calendar " + id: "New Calendar");
+		originalDescriptionHash = calculateDescriptionHashCode();
+		originalCulturalNormsHash = calculateCulturalNormsHashCode();
+		originalNotesHash = calculateNotesHashCode();
+		originalSourcesHash = calculateSourcesHashCode();
 
 		final StringJoiner events = new StringJoiner(", ");
 		for(final GedcomNode event : store.traverseAsList(calendar, "EVENT[]"))
 			events.add(event.getValue());
-		final String title = store.traverse(calendar, "TITLE").getValue();
+		final String type = store.traverse(calendar, "TYPE").getValue();
 		final String author = store.traverse(calendar, "AUTHOR").getValue();
 		final String publicationFacts = store.traverse(calendar, "PUBLICATION_FACTS").getValue();
 		final GedcomNode dateNode = store.traverse(calendar, "DATE");
@@ -244,8 +257,8 @@ public class CalendarRecordDialog extends JDialog{
 		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
 		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
-		typeField.setText(title);
-		addSourceButton.setEnabled(true);
+		typeComboBox.setSelectedItem(type);
+		sourceButton.setEnabled(true);
 		noteButton.setEnabled(true);
 	}
 
@@ -268,22 +281,6 @@ public class CalendarRecordDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand) throws IOException{
 					switch(editCommand.getType()){
-						case DOCUMENT_CITATION -> {
-							final DocumentStructureDialog dialog = new DocumentStructureDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
-							dialog.setSize(450, 650);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
 							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
@@ -294,12 +291,40 @@ public class CalendarRecordDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
+						case CULTURAL_NORM_CITATION -> {
+							//TODO
+//							final CulturalNormCitationDialog dialog = CulturalNormCitationDialog.createNoteCitation(store, parent);
+//							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+//
+//							dialog.setSize(450, 260);
+//							dialog.setLocationRelativeTo(parent);
+//							dialog.setVisible(true);
+						}
+						case NOTE_CITATION -> {
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								dialog.addAction();
+
+							dialog.setSize(450, 260);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case SOURCE_CITATION -> {
+							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(450, 650);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
 
 			final CalendarRecordDialog dialog = new CalendarRecordDialog(store, parent);
+			dialog.setTitle(calendar.getID() != null? "Calendar " + calendar.getID(): "New Calendar");
 			dialog.loadData(calendar, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
@@ -308,7 +333,7 @@ public class CalendarRecordDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 650);
+			dialog.setSize(300, 185);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

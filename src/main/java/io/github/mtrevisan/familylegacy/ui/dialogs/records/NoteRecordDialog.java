@@ -79,8 +79,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleComboBox localeComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-	private final JButton addTranslationButton = new JButton(ICON_TRANSLATION);
-	private final JButton addSourceButton = new JButton(ICON_SOURCE);
+	private final JButton translationButton = new JButton(ICON_TRANSLATION);
+	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -127,10 +127,10 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		restrictionCheckBox.addActionListener(evt -> textChanged());
 
 		final Border originalButtonBorder = okButton.getBorder();
-		addTranslationButton.setToolTipText("Add translation");
-		addTranslationButton.addActionListener(evt -> {
+		translationButton.setToolTipText("Add translation");
+		translationButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				addTranslationButton.setBorder(calculateTranslationsHashCode() != originalNoteTranslationsHash
+				translationButton.setBorder(calculateTranslationsHashCode() != originalNoteTranslationsHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
 
@@ -140,15 +140,15 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, note, onAccept));
 		});
-		addSourceButton.setToolTipText("Add source");
-		addSourceButton.addActionListener(evt -> {
+		sourceButton.setToolTipText("Add source");
+		sourceButton.addActionListener(evt -> {
 			final GedcomNode source = store.create("SOURCE");
 
 			final Consumer<Object> onAccept = ignored -> {
 				//add node from source citation dialog
 				note.addChild(source);
 
-				addSourceButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
+				sourceButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
 
@@ -172,8 +172,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
 		add(textPreviewView, "spanx 2,spany 2,grow");
-		add(addTranslationButton, "tag add,sizegroup button2,wrap");
-		add(addSourceButton, "tag add,top,sizegroup button2,wrap");
+		add(translationButton, "tag add,sizegroup button2,wrap");
+		add(sourceButton, "tag add,top,sizegroup button2,wrap");
 		add(localeLabel, "align label,spanx 3,split 2,sizegroup label");
 		add(localeComboBox, "spanx 3,wrap");
 		add(restrictionCheckBox, "spanx 3,wrap");

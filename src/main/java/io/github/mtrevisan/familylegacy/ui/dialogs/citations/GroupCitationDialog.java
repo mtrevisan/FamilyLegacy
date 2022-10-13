@@ -418,30 +418,32 @@ public class GroupCitationDialog extends JDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case GROUP -> {
-							final GroupRecordDialog groupDialog = new GroupRecordDialog(store, parent);
-							groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GroupRecordDialog dialog = new GroupRecordDialog(store, parent);
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-							groupDialog.setSize(300, 250);
-							groupDialog.setLocationRelativeTo(parent);
-							groupDialog.setVisible(true);
+							dialog.setSize(300, 250);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE_CITATION -> {
-							final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
-							noteCitationDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								dialog.addAction();
 
-							noteCitationDialog.setSize(450, 260);
-							noteCitationDialog.setLocationRelativeTo(parent);
-							noteCitationDialog.setVisible(true);
+							dialog.setSize(450, 260);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 						case NOTE -> {
-							final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, parent);
+							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
-							noteDialog.setTitle("Note for " + note.getID());
-							noteDialog.loadData(note, editCommand.getOnCloseGracefully());
+							dialog.setTitle("Note for " + note.getID());
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							noteDialog.setSize(550, 350);
-							noteDialog.setLocationRelativeTo(parent);
-							noteDialog.setVisible(true);
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
 						}
 					}
 				}

@@ -130,81 +130,77 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@EventHandler
 	public void refresh(final EditEvent editCommand){
 		switch(editCommand.getType()){
-			case GROUP:
-				final GroupRecordDialog groupDialog = new GroupRecordDialog(store, this);
-				groupDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+			case GROUP -> {
+				final GroupRecordDialog dialog = new GroupRecordDialog(store, this);
+				dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-				groupDialog.setSize(450, 500);
-				groupDialog.setLocationRelativeTo(this);
-				groupDialog.setVisible(true);
-				break;
+				dialog.setSize(450, 500);
+				dialog.setLocationRelativeTo(this);
+				dialog.setVisible(true);
+			}
+			case GROUP_CITATION -> {
+				final GroupCitationDialog dialog = new GroupCitationDialog(store, this);
+				dialog.loadData(editCommand.getContainer());
 
-			case GROUP_CITATION:
-				final GroupCitationDialog groupCitationDialog = new GroupCitationDialog(store, this);
-				groupCitationDialog.loadData(editCommand.getContainer());
-
-				groupCitationDialog.setSize(450, 500);
-				groupCitationDialog.setLocationRelativeTo(this);
-				groupCitationDialog.setVisible(true);
-				break;
-
-			case NOTE:
-				final NoteRecordDialog noteDialog = NoteRecordDialog.createNote(store, this);
+				dialog.setSize(450, 500);
+				dialog.setLocationRelativeTo(this);
+				dialog.setVisible(true);
+			}
+			case NOTE -> {
+				final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, this);
 				final GedcomNode note = editCommand.getContainer();
-				noteDialog.setTitle("Note for " + note.getID());
-				noteDialog.loadData(note, editCommand.getOnCloseGracefully());
+				dialog.setTitle("Note for " + note.getID());
+				dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-				noteDialog.setSize(450, 500);
-				noteDialog.setLocationRelativeTo(this);
-				noteDialog.setVisible(true);
-				break;
+				dialog.setSize(450, 500);
+				dialog.setLocationRelativeTo(this);
+				dialog.setVisible(true);
+			}
+			case NOTE_CITATION -> {
+				final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, this);
+				if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+					//show a note input dialog
+					dialog.addAction();
 
-			case NOTE_CITATION:
-				final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, this);
-				noteCitationDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+				dialog.setSize(450, 500);
+				dialog.setLocationRelativeTo(this);
+				dialog.setVisible(true);
+			}
+			case SOURCE -> {
+				final SourceRecordDialog dialog = new SourceRecordDialog(store, this);
+				dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-				noteCitationDialog.setSize(450, 500);
-				noteCitationDialog.setLocationRelativeTo(this);
-				noteCitationDialog.setVisible(true);
-				break;
-
-			case SOURCE:
-				final SourceRecordDialog sourceDialog = new SourceRecordDialog(store, this);
-				sourceDialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
-
-				sourceDialog.setSize(450, 500);
-				sourceDialog.setLocationRelativeTo(this);
-				sourceDialog.setVisible(true);
-				break;
-
-			case SOURCE_CITATION:
+				dialog.setSize(450, 500);
+				dialog.setLocationRelativeTo(this);
+				dialog.setVisible(true);
+			}
+			case SOURCE_CITATION -> {
 				//TODO
-//				final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, this);
-//				sourceCitationDialog.loadData(editCommand.getContainer());
+//				final SourceCitationDialog dialog = new SourceCitationDialog(store, this);
+//				dialog.loadData(editCommand.getContainer());
 //
-//				sourceCitationDialog.setSize(450, 500);
-//				sourceCitationDialog.setLocationRelativeTo(this);
-//				sourceCitationDialog.setVisible(true);
-				break;
-
-			case EVENT:
+//				dialog.setSize(450, 500);
+//				dialog.setLocationRelativeTo(this);
+//				dialog.setVisible(true);
+			}
+			case EVENT -> {
 				//TODO
-//				final EventDialog eventDialog = new EventDialog(store, this);
-//				eventDialog.loadData(editCommand.getContainer());
+//				final EventDialog dialog = new EventDialog(store, this);
+//				dialog.loadData(editCommand.getContainer());
 //
-//				eventDialog.setSize(450, 500);
-//				eventDialog.setLocationRelativeTo(this);
-//				eventDialog.setVisible(true);
-				break;
-
-			case EVENT_CITATION:
+//				dialog.setSize(450, 500);
+//				dialog.setLocationRelativeTo(this);
+//				dialog.setVisible(true);
+			}
+			case EVENT_CITATION -> {
 				//TODO
-//				final EventCitationDialog eventCitationDialog = new EventCitationDialog(store, this);
-//				eventCitationDialog.loadData(editCommand.getContainer());
+//				final EventCitationDialog dialog = new EventCitationDialog(store, this);
+//				dialog.loadData(editCommand.getContainer());
 //
-//				eventCitationDialog.setSize(450, 500);
-//				eventCitationDialog.setLocationRelativeTo(this);
-//				eventCitationDialog.setVisible(true);
+//				dialog.setSize(450, 500);
+//				dialog.setLocationRelativeTo(this);
+//				dialog.setVisible(true);
+			}
 		}
 	}
 
