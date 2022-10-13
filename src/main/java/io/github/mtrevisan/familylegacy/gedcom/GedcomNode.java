@@ -312,8 +312,9 @@ public abstract class GedcomNode{
 	public void removeChild(final GedcomNode node){
 		if(children != null){
 			final Iterator<GedcomNode> itr = children.iterator();
-			while(itr.hasNext())
-				if(itr.next().equals(node)){
+			while(itr.hasNext()){
+				final GedcomNode currentNode = itr.next();
+				if(currentNode.getXRef() != null && currentNode.getXRef().equals(node.getID()) || currentNode.equals(node)){
 					itr.remove();
 
 					if(children.isEmpty())
@@ -321,6 +322,7 @@ public abstract class GedcomNode{
 
 					break;
 				}
+			}
 		}
 	}
 

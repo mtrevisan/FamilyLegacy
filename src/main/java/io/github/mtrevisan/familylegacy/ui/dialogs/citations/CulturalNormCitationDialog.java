@@ -107,7 +107,6 @@ public class CulturalNormCitationDialog extends JDialog{
 	private final Debouncer<CulturalNormCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
-	private Runnable addAction;
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
@@ -121,22 +120,6 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		addAction = () -> {
-			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
-
-			final Consumer<Object> onCloseGracefully = ignored -> {
-				//if ok was pressed, add this note to the parent container
-				final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
-				container.addChildReference("CULTURAL_NORM", newCulturalNormID);
-
-				//refresh note list
-				loadData();
-			};
-
-			//fire add event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, newCulturalNorm, onCloseGracefully));
-		};
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -217,7 +200,19 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 	public final void addAction(){
-		addAction.run();
+		final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
+
+		final Consumer<Object> onCloseGracefully = ignored -> {
+			//if ok was pressed, add this note to the parent container
+			final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
+			container.addChildReference("CULTURAL_NORM", newCulturalNormID);
+
+			//refresh note list
+			loadData();
+		};
+
+		//fire add event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, newCulturalNorm, onCloseGracefully));
 	}
 
 	private void editAction(){
