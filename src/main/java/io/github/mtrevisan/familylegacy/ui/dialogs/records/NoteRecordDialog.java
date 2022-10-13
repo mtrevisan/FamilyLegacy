@@ -329,51 +329,59 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			final Object listener = new Object(){
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
-					System.out.println("Received event " + editCommand);
+					switch(editCommand.getType()){
+						case NOTE_TRANSLATION -> {
+							final NoteRecordDialog dialog = createNoteTranslation(store, parent);
+							final GedcomNode noteTranslation = editCommand.getContainer();
+							dialog.setTitle(noteTranslation.getID() != null
+								? "Translation " + noteTranslation.getID() + " for note " + note.getID()
+								: "New translation for note " + note.getID());
+							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
-					if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION){
-						final GedcomNode noteTranslation = editCommand.getContainer();
-						final NoteRecordDialog noteDialog = createNoteTranslation(store, parent);
-						noteDialog.setTitle("Translation for " + note.getID());
-						noteDialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case NOTE_TRANSLATION_CITATION -> {
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
+							final GedcomNode noteTranslationCitation = editCommand.getContainer();
+							dialog.setTitle(noteTranslationCitation.getID() != null
+								? "Translation citation " + noteTranslationCitation.getID() + " for note " + note.getID()
+								: "New translation citation for note " + note.getID());
+							if(!dialog.loadData(noteTranslationCitation, editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								dialog.addAction();
 
-						noteDialog.setSize(550, 350);
-						noteDialog.setLocationRelativeTo(parent);
-						noteDialog.setVisible(true);
-					}
-					else if(editCommand.getType() == EditEvent.EditType.NOTE_TRANSLATION_CITATION){
-						final GedcomNode noteTranslationCitation = editCommand.getContainer();
-						final NoteCitationDialog noteTranslationCitationDialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-						noteTranslationCitationDialog.setTitle("Translation citation for " + note.getID());
-						if(!noteTranslationCitationDialog.loadData(noteTranslationCitation, editCommand.getOnCloseGracefully()))
-							//show a note input dialog
-							noteTranslationCitationDialog.addAction();
+							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case SOURCE -> {
+							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
+							final GedcomNode source = editCommand.getContainer();
+							dialog.setTitle(source.getID() != null
+								? "Source " + source.getID() + " for note " + note.getID()
+								: "New source for note " + note.getID());
+							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
-						noteTranslationCitationDialog.setSize(550, 450);
-						noteTranslationCitationDialog.setLocationRelativeTo(parent);
-						noteTranslationCitationDialog.setVisible(true);
-					}
-					else if(editCommand.getType() == EditEvent.EditType.SOURCE){
-						final GedcomNode source = editCommand.getContainer();
-						final SourceRecordDialog sourceRecordDialog = new SourceRecordDialog(store, parent);
-						sourceRecordDialog.setTitle("Source for " + note.getID());
-						sourceRecordDialog.loadData(source, editCommand.getOnCloseGracefully());
+							dialog.setSize(500, 650);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case SOURCE_CITATION -> {
+							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final GedcomNode sourceCitation = editCommand.getContainer();
+							dialog.setTitle(sourceCitation.getID() != null
+								? "Source citation " + sourceCitation.getID() + " for note " + note.getID()
+								: "New source citation for note " + note.getID());
+							if(!dialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
+								//show a source input dialog
+								dialog.addAction();
 
-						sourceRecordDialog.setSize(500, 650);
-						sourceRecordDialog.setLocationRelativeTo(parent);
-						sourceRecordDialog.setVisible(true);
-					}
-					else if(editCommand.getType() == EditEvent.EditType.SOURCE_CITATION){
-						final GedcomNode sourceCitation = editCommand.getContainer();
-						final SourceCitationDialog sourceCitationDialog = new SourceCitationDialog(store, parent);
-						sourceCitationDialog.setTitle("Source citation for " + note.getID());
-						if(!sourceCitationDialog.loadData(sourceCitation, editCommand.getOnCloseGracefully()))
-							//show a source input dialog
-							sourceCitationDialog.addAction();
-
-						sourceCitationDialog.setSize(550, 450);
-						sourceCitationDialog.setLocationRelativeTo(parent);
-						sourceCitationDialog.setVisible(true);
+							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 					}
 				}
 			};

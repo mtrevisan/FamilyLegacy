@@ -260,10 +260,10 @@ public class CalendarRecordDialog extends JDialog{
 					switch(editCommand.getType()){
 						case CULTURAL_NORM_CITATION -> {
 							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
-							final GedcomNode container = editCommand.getContainer();
-							dialog.setTitle(container.getID() != null
-								? "Cultural norm for " + container.getID()
-								: "New cultural norm for " + container.getID());
+							final GedcomNode culturalNormCitation = editCommand.getContainer();
+							dialog.setTitle(culturalNormCitation.getID() != null
+								? "Cultural norm " + culturalNormCitation.getID() + " for calendar " + calendar.getID()
+								: "New cultural norm for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
 								dialog.addAction();
@@ -274,8 +274,10 @@ public class CalendarRecordDialog extends JDialog{
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode container = editCommand.getContainer();
-							dialog.setTitle(container.isEmpty()? "Note citations": "Note citations for " + container.getID());
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for calendar " + calendar.getID()
+								: "New note citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -288,8 +290,8 @@ public class CalendarRecordDialog extends JDialog{
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
 							final GedcomNode sourceCitation = editCommand.getContainer();
 							dialog.setTitle(sourceCitation.getID() != null
-								? "Source citation for " + sourceCitation.getID()
-								: "New source citation for calendar for " + calendar.getID());
+								? "Source citation " + sourceCitation.getID() + " for calendar " + calendar.getID()
+								: "New source citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
