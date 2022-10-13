@@ -83,17 +83,17 @@ import java.util.function.Consumer;
 
 //TODO
 /*
-  +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
-  +1 PLACE @<XREF:PLACE>@    {0:1}
-	+2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}
-	+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+	+1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
+	+1 PLACE @<XREF:PLACE>@    {0:1}
+		+2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}
+		+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
 	+1 NOTE @<XREF:NOTE>@    {0:M}
 	+1 <<SOURCE_CITATION>>    {0:M}
 	+1 CREATION_DATE    {1:1}
-	+2 DATE <CREATION_DATE>    {1:1}
+		+2 DATE <CREATION_DATE>    {1:1}
 	+1 CHANGE_DATE    {0:M}
-	+2 DATE <CHANGE_DATE>    {1:1}
-	+2 NOTE @<XREF:NOTE>@    {0:1}
+		+2 DATE <CHANGE_DATE>    {1:1}
+		+2 NOTE @<XREF:NOTE>@    {0:1}
 */
 public class CulturalNormRecordDialog extends JDialog implements TextPreviewListenerInterface{
 

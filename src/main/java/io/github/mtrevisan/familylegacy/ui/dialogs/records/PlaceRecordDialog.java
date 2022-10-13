@@ -61,6 +61,27 @@ import java.util.function.Consumer;
 
 
 //TODO
+/*
+	+1 NAME <PLACE_NAME>    {0:1}
+		+2 <<TRANSCRIBED_TEXT>>    {0:M}
+	+1 ADDRESS <ADDRESS_LINE>    {0:M}
+		+2 <<TRANSCRIBED_TEXT>>    {0:M}
+		+2 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}
+		+2 CULTURAL_NORM @<XREF:RULE>@    {0:M}
+		+2 NOTE @<XREF:NOTE>@    {0:M}
+		+2 <<SOURCE_CITATION>>    {0:M}
+	+1 MAP    {0:1}
+		+2 LATITUDE <PLACE_LATITUDE>    {1:1}
+		+2 LONGITUDE <PLACE_LONGITUDE>    {1:1}
+		+2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}
+		+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+	+1 SUBORDINATE @<XREF:PLACE>@    {0:1}
+	+1 CREATION_DATE    {1:1}
+		+2 DATE <CREATION_DATE>    {1:1}
+	+1 CHANGE_DATE    {0:M}
+		+2 DATE <CHANGE_DATE>    {1:1}
+		+2 NOTE @<XREF:NOTE>@    {0:1}
+*/
 public class PlaceRecordDialog extends JDialog implements ActionListener{
 
 	@Serial
@@ -105,8 +126,6 @@ private final JTextField subordinateField = new JTextField();
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode place;
-	private volatile boolean updating;
-	private int dataHash;
 
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
@@ -180,7 +199,7 @@ private final JTextField subordinateField = new JTextField();
 			dispose();
 		});
 		getRootPane().registerKeyboardAction(this, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-		cancelButton.addActionListener(this::actionPerformed);
+		cancelButton.addActionListener(this);
 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -197,19 +216,6 @@ private final JTextField subordinateField = new JTextField();
 
 	public void dataChanged(){
 		//TODO
-		if(!updating)
-			okButton.setEnabled(calculateDataHash() != dataHash);
-	}
-
-	private int calculateDataHash(){
-		//TODO
-		final int nameHash = nameField.getText()
-			.hashCode();
-		final int addressHash = addressField.getText()
-			.hashCode();
-		final int addressHierarchyHash = addressHierarchyField.getText()
-			.hashCode();
-		return nameHash ^ addressHash ^ addressHierarchyHash;
 	}
 
 	private void okAction(){
@@ -218,8 +224,6 @@ private final JTextField subordinateField = new JTextField();
 	}
 
 	public void loadData(final GedcomNode place, final Consumer<Object> onCloseGracefully){
-		updating = true;
-
 		this.place = place;
 		this.onCloseGracefully = onCloseGracefully;
 
@@ -235,10 +239,6 @@ private final JTextField subordinateField = new JTextField();
 		nameField.setText(name);
 		addressField.setText(address);
 		addressHierarchyField.setText(addressHierarchy);
-
-		updating = false;
-
-		dataHash = calculateDataHash();
 
 		repaint();
 	}
