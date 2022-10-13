@@ -259,7 +259,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
-				public void refresh(final EditEvent editCommand) throws IOException{
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case DOCUMENT_CITATION -> {
 							final DocumentStructureDialog dialog = new DocumentStructureDialog(store, parent);

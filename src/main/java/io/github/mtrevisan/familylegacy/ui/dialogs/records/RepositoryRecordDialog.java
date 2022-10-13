@@ -161,7 +161,7 @@ public class RepositoryRecordDialog extends JDialog{
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
-				public void refresh(final EditEvent editCommand) throws IOException{
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PLACE -> {
 							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);

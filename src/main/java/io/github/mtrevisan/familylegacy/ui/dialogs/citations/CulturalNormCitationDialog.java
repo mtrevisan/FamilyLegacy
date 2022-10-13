@@ -380,8 +380,8 @@ public class CulturalNormCitationDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE_CITATION -> {
-							final GedcomNode sourceCitation = editCommand.getContainer();
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final GedcomNode sourceCitation = editCommand.getContainer();
 							dialog.setTitle(sourceCitation.getID() != null
 								? "Source citation for " + sourceCitation.getID()
 								: "New source citation for note for " + container.getID());

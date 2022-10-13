@@ -256,10 +256,14 @@ public class CalendarRecordDialog extends JDialog{
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
-				public void refresh(final EditEvent editCommand) throws IOException{
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case CULTURAL_NORM_CITATION -> {
 							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
+							final GedcomNode container = editCommand.getContainer();
+							dialog.setTitle(container.getID() != null
+								? "Cultural norm for " + container.getID()
+								: "New cultural norm for " + container.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
 								dialog.addAction();
@@ -270,6 +274,8 @@ public class CalendarRecordDialog extends JDialog{
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode container = editCommand.getContainer();
+							dialog.setTitle(container.isEmpty()? "Note citations": "Note citations for " + container.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -280,6 +286,10 @@ public class CalendarRecordDialog extends JDialog{
 						}
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final GedcomNode sourceCitation = editCommand.getContainer();
+							dialog.setTitle(sourceCitation.getID() != null
+								? "Source citation for " + sourceCitation.getID()
+								: "New source citation for calendar for " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
