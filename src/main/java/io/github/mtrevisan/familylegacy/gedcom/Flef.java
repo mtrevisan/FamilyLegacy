@@ -65,8 +65,8 @@ public class Flef extends Store{
 	public static final Integer ACTION_COMMAND_NOTE_COUNT = 5;
 	/** Raised upon changes on the number of repositories in the store. */
 	public static final Integer ACTION_COMMAND_REPOSITORY_COUNT = 6;
-	/** Raised upon changes on the number of cultural rules in the store. */
-	public static final Integer ACTION_COMMAND_CULTURAL_RULE_COUNT = 7;
+	/** Raised upon changes on the number of cultural norms in the store. */
+	public static final Integer ACTION_COMMAND_CULTURAL_NORM_COUNT = 7;
 	/** Raised upon changes on the number of sources in the store. */
 	public static final Integer ACTION_COMMAND_SOURCE_COUNT = 8;
 	/** Raised upon changes on the number of calendar in the store. */
@@ -83,7 +83,7 @@ public class Flef extends Store{
 	private static final String ID_PLACE_PREFIX = "P";
 	private static final String ID_NOTE_PREFIX = "N";
 	private static final String ID_REPOSITORY_PREFIX = "R";
-	private static final String ID_CULTURAL_RULE_PREFIX = "C";
+	private static final String ID_CULTURAL_NORM_PREFIX = "C";
 	private static final String ID_SOURCE_PREFIX = "S";
 	private static final String ID_CALENDAR_PREFIX = "K";
 	private static final String ID_HISTORIC_EVENT_PREFIX = "H";
@@ -97,7 +97,7 @@ public class Flef extends Store{
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_REPOSITORY = "REPOSITORY";
-	private static final String TAG_CULTURAL_RULE = "CULTURAL_RULE";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CALENDAR = "CALENDAR";
 	private static final String TAG_HISTORIC_EVENT = "HISTORIC_EVENT";
@@ -121,7 +121,7 @@ public class Flef extends Store{
 	private List<GedcomNode> places;
 	private List<GedcomNode> notes;
 	private List<GedcomNode> repositories;
-	private List<GedcomNode> culturalRules;
+	private List<GedcomNode> culturalNorms;
 	private List<GedcomNode> sources;
 	private List<GedcomNode> calendars;
 	private List<GedcomNode> historicEvents;
@@ -134,7 +134,7 @@ public class Flef extends Store{
 	private TreeMap<String, GedcomNode> placeIndex;
 	private TreeMap<String, GedcomNode> noteIndex;
 	private TreeMap<String, GedcomNode> repositoryIndex;
-	private TreeMap<String, GedcomNode> culturalRuleIndex;
+	private TreeMap<String, GedcomNode> culturalNormIndex;
 	private TreeMap<String, GedcomNode> sourceIndex;
 	private TreeMap<String, GedcomNode> calendarIndex;
 	private TreeMap<String, GedcomNode> historicEventIndex;
@@ -143,7 +143,7 @@ public class Flef extends Store{
 	private Map<Integer, String> eventValue;
 	private Map<Integer, String> placeValue;
 	private Map<Integer, String> repositoryValue;
-	private Map<Integer, String> culturalRuleValue;
+	private Map<Integer, String> culturalNormValue;
 	private Map<Integer, String> sourceValue;
 	private Map<Integer, String> calendarValue;
 
@@ -154,7 +154,7 @@ public class Flef extends Store{
 	private int nextPlaceId = 1;
 	private int nextNoteId = 1;
 	private int nextRepositoryId = 1;
-	private int nextCulturalRuleId = 1;
+	private int nextCulturalNormId = 1;
 	private int nextSourceId = 1;
 	private int nextCalendarId = 1;
 	private int nextHistoricEventId = 1;
@@ -211,7 +211,7 @@ public class Flef extends Store{
 		places = root.getChildrenWithTag(TAG_PLACE);
 		notes = root.getChildrenWithTag(TAG_NOTE);
 		repositories = root.getChildrenWithTag(TAG_REPOSITORY);
-		culturalRules = root.getChildrenWithTag(TAG_CULTURAL_RULE);
+		culturalNorms = root.getChildrenWithTag(TAG_CULTURAL_NORM);
 		sources = root.getChildrenWithTag(TAG_SOURCE);
 		calendars = root.getChildrenWithTag(TAG_CALENDAR);
 		historicEvents = root.getChildrenWithTag(TAG_HISTORIC_EVENT);
@@ -224,7 +224,7 @@ public class Flef extends Store{
 		placeIndex = generateIndexes(places);
 		noteIndex = generateIndexes(notes);
 		repositoryIndex = generateIndexes(repositories);
-		culturalRuleIndex = generateIndexes(culturalRules);
+		culturalNormIndex = generateIndexes(culturalNorms);
 		sourceIndex = generateIndexes(sources);
 		calendarIndex = generateIndexes(calendars);
 		historicEventIndex = generateIndexes(historicEvents);
@@ -233,7 +233,7 @@ public class Flef extends Store{
 		eventValue = reverseMap(eventIndex);
 		placeValue = reverseMap(placeIndex);
 		repositoryValue = reverseMap(repositoryIndex);
-		culturalRuleValue = reverseMap(culturalRuleIndex);
+		culturalNormValue = reverseMap(culturalNormIndex);
 		sourceValue = reverseMap(sourceIndex);
 		calendarValue = reverseMap(calendarIndex);
 
@@ -251,8 +251,8 @@ public class Flef extends Store{
 			nextNoteId = extractLastID(noteIndex.lastKey()) + 1;
 		if(!repositoryIndex.isEmpty())
 			nextRepositoryId = extractLastID(repositoryIndex.lastKey()) + 1;
-		if(!culturalRuleIndex.isEmpty())
-			nextCulturalRuleId = extractLastID(culturalRuleIndex.lastKey()) + 1;
+		if(!culturalNormIndex.isEmpty())
+			nextCulturalNormId = extractLastID(culturalNormIndex.lastKey()) + 1;
 		if(!sourceIndex.isEmpty())
 			nextSourceId = extractLastID(sourceIndex.lastKey()) + 1;
 		if(!calendarIndex.isEmpty())
@@ -292,7 +292,7 @@ public class Flef extends Store{
 				.addChildren(places)
 				.addChildren(notes)
 				.addChildren(repositories)
-				.addChildren(culturalRules)
+				.addChildren(culturalNorms)
 				.addChildren(sources)
 				.addChildren(calendars)
 				.addChildren(historicEvents)
@@ -734,56 +734,56 @@ public class Flef extends Store{
 	}
 
 
-	public List<GedcomNode> getCulturalRules(){
-		return culturalRules;
+	public List<GedcomNode> getCulturalNorms(){
+		return culturalNorms;
 	}
 
-	public GedcomNode getCulturalRule(final String id){
-		return (StringUtils.isNotBlank(id)? culturalRuleIndex.get(id): null);
+	public GedcomNode getCulturalNorm(final String id){
+		return (StringUtils.isNotBlank(id)? culturalNormIndex.get(id): null);
 	}
 
-	public String addCulturalRule(final GedcomNode culturalRule){
-		//search cultural rule
-		String culturalRuleID = (!culturalRule.isEmpty() && culturalRuleValue != null? culturalRuleValue.get(culturalRule.hashCode()): null);
-		if(culturalRuleID == null){
+	public String addCulturalNorm(final GedcomNode culturalNorm){
+		//search cultural norm
+		String culturalNormID = (!culturalNorm.isEmpty() && culturalNormValue != null? culturalNormValue.get(culturalNorm.hashCode()): null);
+		if(culturalNormID == null){
 			//if cultural rule is not found:
-			if(culturalRules == null){
-				culturalRules = new ArrayList<>(1);
-				culturalRuleIndex = new TreeMap<>();
-				culturalRuleValue = new HashMap<>(1);
+			if(culturalNorms == null){
+				culturalNorms = new ArrayList<>(1);
+				culturalNormIndex = new TreeMap<>();
+				culturalNormValue = new HashMap<>(1);
 			}
 
-			culturalRuleID = getNextCulturalRuleID();
-			culturalRule.withID(culturalRuleID);
+			culturalNormID = getNextCulturalNormID();
+			culturalNorm.withID(culturalNormID);
 
-			culturalRules.add(culturalRule);
-			culturalRuleIndex.put(culturalRuleID, culturalRule);
-			culturalRuleValue.put(culturalRule.hashCode(), culturalRuleID);
+			culturalNorms.add(culturalNorm);
+			culturalNormIndex.put(culturalNormID, culturalNorm);
+			culturalNormValue.put(culturalNorm.hashCode(), culturalNormID);
 
-			nextCulturalRuleId ++;
+			nextCulturalNormId++;
 
-			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+			EventBusService.publish(ACTION_COMMAND_CULTURAL_NORM_COUNT);
 		}
 		else
-			culturalRule.withID(culturalRuleID);
-		return culturalRuleID;
+			culturalNorm.withID(culturalNormID);
+		return culturalNormID;
 	}
 
-	public String removeCulturalRule(final GedcomNode culturalRule){
-		if(culturalRules != null){
-			final String culturalRuleID = culturalRule.getID();
-			culturalRules.remove(culturalRule);
-			culturalRuleIndex.remove(culturalRuleID);
+	public String removeCulturalNorm(final GedcomNode culturalNorm){
+		if(culturalNorms != null){
+			final String culturalNormID = culturalNorm.getID();
+			culturalNorms.remove(culturalNorm);
+			culturalNormIndex.remove(culturalNormID);
 
-			EventBusService.publish(ACTION_COMMAND_CULTURAL_RULE_COUNT);
+			EventBusService.publish(ACTION_COMMAND_CULTURAL_NORM_COUNT);
 
-			return culturalRuleID;
+			return culturalNormID;
 		}
 		return null;
 	}
 
-	private String getNextCulturalRuleID(){
-		return ID_CULTURAL_RULE_PREFIX + nextCulturalRuleId;
+	private String getNextCulturalNormID(){
+		return ID_CULTURAL_NORM_PREFIX + nextCulturalNormId;
 	}
 
 

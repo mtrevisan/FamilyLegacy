@@ -18,7 +18,7 @@
 1 EVENT @E1@
 1 GROUP @G1@
 2 ROLE resident
-1 CULTURAL_RULE @C1@
+1 CULTURAL_NORM @C1@
 2 NOTE @N2@
 2 CREDIBILITY 1
 2 RESTRICTION confidential
@@ -41,7 +41,7 @@
 1 NAME place 1
 1 ADDRESS 5002 MyCorpCampus Dr., Hometown, ZZ, 99999, United States
 2 HIERARCHY street, town, county, postal code, country
-2 CULTURAL_RULE @C1@
+2 CULTURAL_NORM @C1@
 2 NOTE @N1@
 2 SOURCE @S1@
 1 MAP
@@ -100,7 +100,13 @@
 1 NOTE @N2@
 0 @R1@ REPOSITORY
 1 NAME state archive
-0 @C1@ CULTURAL_RULE
+0 @K1@ CALENDAR
+1 TYPE gregorian
+1 DESCRIPTION @N1@
+1 CULTURAL_NORM @C1@
+1 NOTE @N2@
+1 SOURCE @S1@
+0 @C1@ CULTURAL_NORM
 1 TITLE Latin names
 1 DESCRIPTION Per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
 1 PLACE @P1@

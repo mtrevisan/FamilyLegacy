@@ -65,10 +65,10 @@ public final class ChildrenPanel extends JPanel{
 	private static final double FAMILY_ASPECT_RATIO = 3501. / 2662.;
 	private static final Dimension FAMILY_SIZE = new Dimension((int)(FAMILY_HEIGHT / FAMILY_ASPECT_RATIO), (int)FAMILY_HEIGHT);
 
-	private static final ImageIcon FAMILY = ResourceHelper.getImage("/images/family.png", FAMILY_SIZE);
+	private static final ImageIcon ICON_FAMILY = ResourceHelper.getImage("/images/family.png", FAMILY_SIZE);
 
 	private static final int CHILD_SEPARATION = 15;
-	static final int FAMILY_ARROW_HEIGHT = FAMILY.getIconHeight() + FamilyPanel.NAVIGATION_ARROW_SEPARATION;
+	static final int FAMILY_ARROW_HEIGHT = ICON_FAMILY.getIconHeight() + FamilyPanel.NAVIGATION_ARROW_SEPARATION;
 
 
 	private List<GedcomNode> children;
@@ -119,9 +119,9 @@ public final class ChildrenPanel extends JPanel{
 				box.setLayout(new MigLayout("flowy,insets 0", "[]",
 					"[]" + FamilyPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
 				final JLabel familyLabel = new JLabel();
-				familyLabel.setMinimumSize(new Dimension(FAMILY.getIconWidth(), FAMILY.getIconHeight()));
+				familyLabel.setMinimumSize(new Dimension(ICON_FAMILY.getIconWidth(), ICON_FAMILY.getIconHeight()));
 				if(isPartner)
-					familyLabel.setIcon(FAMILY);
+					familyLabel.setIcon(ICON_FAMILY);
 				box.add(familyLabel, "alignx right");
 				box.add(individualBox);
 

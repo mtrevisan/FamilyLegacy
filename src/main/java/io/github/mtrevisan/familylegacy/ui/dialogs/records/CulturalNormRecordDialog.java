@@ -82,7 +82,7 @@ import java.util.function.Consumer;
 
 
 //TODO
-public class CulturalRuleRecordDialog extends JDialog implements TextPreviewListenerInterface{
+public class CulturalNormRecordDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 3322392561648823462L;
@@ -94,10 +94,10 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 	private static final int ID_PREFERRED_WIDTH = 25;
 
-	private static final int TABLE_INDEX_RULE_ID = 0;
+	private static final int TABLE_INDEX_NORM_ID = 0;
 	private static final int TABLE_INDEX_RULE_TITLE = 1;
 
-	private static final String KEY_RULE_ID = "ruleID";
+	private static final String KEY_NORM_ID = "normID";
 
 	private static final DefaultComboBoxModel<String> CERTAINTY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
@@ -113,8 +113,8 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable rulesTable = new JTable(new CulturalRuleTableModel());
-	private final JScrollPane rulesScrollPane = new JScrollPane(rulesTable);
+	private final JTable culturalNormsTable = new JTable(new CulturalNormTableModel());
+	private final JScrollPane culturalNormsScrollPane = new JScrollPane(culturalNormsTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton editButton = new JButton("Edit");
 	private final JLabel ruleTitleLabel = new JLabel("Title:");
@@ -129,19 +129,19 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 	private final JComboBox<String> placeCertaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
 	private final JLabel placeCredibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
-	private final JButton notesButton = new JButton("Notes");
-	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton noteButton = new JButton("Notes");
+	private final JButton sourceButton = new JButton("Sources");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<CulturalRuleRecordDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<CulturalNormRecordDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
 	private final Flef store;
 
 
-	public CulturalRuleRecordDialog(final Flef store, final Frame parent){
+	public CulturalNormRecordDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -157,40 +157,40 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(CulturalRuleRecordDialog.this);
+				filterDebouncer.call(CulturalNormRecordDialog.this);
 			}
 		});
 
-		rulesTable.setAutoCreateRowSorter(true);
-		rulesTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		rulesTable.setGridColor(GRID_COLOR);
-		rulesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		rulesTable.setDragEnabled(true);
-		rulesTable.setDropMode(DropMode.INSERT_ROWS);
-		rulesTable.setTransferHandler(new TableTransferHandle(rulesTable));
-		rulesTable.getTableHeader().setFont(rulesTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(rulesTable, TABLE_INDEX_RULE_ID, 0, ID_PREFERRED_WIDTH);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(rulesTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RULE_ID, (Comparator<String>)GedcomNode::compareID);
+		culturalNormsTable.setAutoCreateRowSorter(true);
+		culturalNormsTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		culturalNormsTable.setGridColor(GRID_COLOR);
+		culturalNormsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		culturalNormsTable.setDragEnabled(true);
+		culturalNormsTable.setDropMode(DropMode.INSERT_ROWS);
+		culturalNormsTable.setTransferHandler(new TableTransferHandle(culturalNormsTable));
+		culturalNormsTable.getTableHeader().setFont(culturalNormsTable.getFont().deriveFont(Font.BOLD));
+		TableHelper.setColumnWidth(culturalNormsTable, TABLE_INDEX_NORM_ID, 0, ID_PREFERRED_WIDTH);
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormsTable.getModel());
+		sorter.setComparator(TABLE_INDEX_NORM_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_RULE_TITLE, Comparator.naturalOrder());
-		rulesTable.setRowSorter(sorter);
+		culturalNormsTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
-		rulesTable.getSelectionModel().addListSelectionListener(evt -> {
-			final int selectedRow = rulesTable.getSelectedRow();
+		culturalNormsTable.getSelectionModel().addListSelectionListener(evt -> {
+			final int selectedRow = culturalNormsTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				selectAction(rulesTable.convertRowIndexToModel(selectedRow));
+				selectAction(culturalNormsTable.convertRowIndexToModel(selectedRow));
 			}
 		});
-		rulesTable.addMouseListener(new MouseAdapter(){
+		culturalNormsTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && rulesTable.rowAtPoint(evt.getPoint()) >= 0)
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && culturalNormsTable.rowAtPoint(evt.getPoint()) >= 0)
 					editAction();
 			}
 		});
-		rulesTable.getInputMap(JComponent.WHEN_FOCUSED)
+		culturalNormsTable.getInputMap(JComponent.WHEN_FOCUSED)
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		rulesTable.getActionMap()
+		culturalNormsTable.getActionMap()
 			.put("delete", new AbstractAction(){
 				@Serial
 				private static final long serialVersionUID = 3784664925849526371L;
@@ -213,23 +213,23 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 					throw new NotSerializableException(getClass().getName());
 				}
 			});
-		rulesTable.setPreferredScrollableViewportSize(new Dimension(rulesTable.getPreferredSize().width,
-			rulesTable.getRowHeight() * 5));
+		culturalNormsTable.setPreferredScrollableViewportSize(new Dimension(culturalNormsTable.getPreferredSize().width,
+			culturalNormsTable.getRowHeight() * 5));
 
 		addButton.addActionListener(evt -> {
-			final GedcomNode newRule = store.create("CULTURAL_RULE");
+			final GedcomNode culturalNorm = store.create("CULTURAL_NORM");
 
 			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this rule to the parent container
-				final String newRuleID = store.addCulturalRule(newRule);
-				container.addChildReference("CULTURAL_RULE", newRuleID);
+				final String culturalNormID = store.addCulturalNorm(culturalNorm);
+				container.addChildReference("CULTURAL_NORM", culturalNormID);
 
 				//refresh rule list
 				loadData();
 			};
 
 			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE, newRule, onCloseGracefully));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, culturalNorm, onCloseGracefully));
 		});
 		editButton.addActionListener(evt -> editAction());
 
@@ -261,24 +261,24 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		placePanel.add(placeCredibilityComboBox);
 		GUIHelper.setEnabled(placePanel, false);
 
-		notesButton.setEnabled(false);
+		noteButton.setEnabled(false);
 		//TODO
-//		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
+//		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
 
-		sourcesButton.setEnabled(false);
+		sourceButton.setEnabled(false);
 		//TODO
-//		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
+//		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.setEnabled(false);
 		okButton.addActionListener(evt -> {
 			//remove all reference to the rules from the container
-			container.removeChildrenWithTag("CULTURAL_RULE");
+			container.removeChildrenWithTag("CULTURAL_NORM");
 			//add all the remaining references to rules to the container
-			for(int i = 0; i < rulesTable.getRowCount(); i ++){
-				final String id = (String)rulesTable.getValueAt(i, TABLE_INDEX_RULE_ID);
-				container.addChildReference("CULTURAL_RULE", id);
+			for(int i = 0; i < culturalNormsTable.getRowCount(); i ++){
+				final String id = (String)culturalNormsTable.getValueAt(i, TABLE_INDEX_NORM_ID);
+				container.addChildReference("CULTURAL_NORM", id);
 			}
 
 			//TODO
@@ -294,15 +294,15 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
-		add(rulesScrollPane, "grow,wrap related");
+		add(culturalNormsScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2");
 		add(editButton, "tag edit,sizegroup button2,wrap paragraph");
 		add(ruleTitleLabel, "align label,sizegroup label,split 2");
 		add(ruleTitleField, "grow,wrap");
 		add(descriptionPanel, "grow,wrap");
 		add(placePanel, "grow,wrap paragraph");
-		add(notesButton, "grow,wrap");
-		add(sourcesButton, "grow,wrap paragraph");
+		add(noteButton, "grow,wrap");
+		add(sourceButton, "grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -310,18 +310,18 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 	private void transferListToContainer(){
 		//remove all reference to the  groups from the container
-		container.removeChildrenWithTag("CULTURAL_RULE");
+		container.removeChildrenWithTag("CULTURAL_NORM");
 		//add all the remaining references to groups to the container
-		for(int i = 0; i < rulesTable.getRowCount(); i ++){
-			final String id = (String)rulesTable.getValueAt(i, TABLE_INDEX_RULE_ID);
-			container.addChildReference("CULTURAL_RULE", id);
+		for(int i = 0; i < culturalNormsTable.getRowCount(); i ++){
+			final String id = (String)culturalNormsTable.getValueAt(i, TABLE_INDEX_NORM_ID);
+			container.addChildReference("CULTURAL_NORM", id);
 		}
 	}
 
 	private void selectAction(final int selectedRow){
-		final String selectedRuleID = (String)rulesTable.getValueAt(selectedRow, TABLE_INDEX_RULE_ID);
-		final GedcomNode selectedRule = store.getCulturalRule(selectedRuleID);
-		okButton.putClientProperty(KEY_RULE_ID, selectedRuleID);
+		final String selectedNormID = (String)culturalNormsTable.getValueAt(selectedRow, TABLE_INDEX_NORM_ID);
+		final GedcomNode selectedRule = store.getCulturalNorm(selectedNormID);
+		okButton.putClientProperty(KEY_NORM_ID, selectedNormID);
 
 		ruleTitleField.setEnabled(true);
 		ruleTitleField.setText(store.traverse(selectedRule, "TITLE").getValue());
@@ -335,9 +335,9 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 		GUIHelper.setEnabled(placePanel, true);
 
-		notesButton.setEnabled(true);
+		noteButton.setEnabled(true);
 
-		sourcesButton.setEnabled(true);
+		sourceButton.setEnabled(true);
 
 		//TODO
 
@@ -346,18 +346,18 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 
 	private void editAction(){
 		//retrieve selected rule
-		final DefaultTableModel model = (DefaultTableModel)rulesTable.getModel();
-		final int index = rulesTable.convertRowIndexToModel(rulesTable.getSelectedRow());
-		final String ruleXRef = (String)model.getValueAt(index, TABLE_INDEX_RULE_ID);
-		final GedcomNode selectedRule = store.getCulturalRule(ruleXRef);
+		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
+		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
+		final String ruleXRef = (String)model.getValueAt(index, TABLE_INDEX_NORM_ID);
+		final GedcomNode selectedRule = store.getCulturalNorm(ruleXRef);
 
 		//fire edit event
-		EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE, selectedRule));
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, selectedRule));
 	}
 
 	private void deleteAction(){
-		final DefaultTableModel model = (DefaultTableModel)rulesTable.getModel();
-		final int index = rulesTable.convertRowIndexToModel(rulesTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
+		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
 		model.removeRow(index);
 
 		//remove from container
@@ -384,46 +384,46 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 	}
 
 	private void loadData(){
-		final List<GedcomNode> rules = store.traverseAsList(container, "CULTURAL_RULE[]");
+		final List<GedcomNode> rules = store.traverseAsList(container, "CULTURAL_NORM[]");
 		final int size = rules.size();
 		for(int i = 0; i < size; i ++)
-			rules.set(i, store.getCulturalRule(rules.get(i).getXRef()));
+			rules.set(i, store.getCulturalNorm(rules.get(i).getXRef()));
 
 		if(size > 0){
-			final DefaultTableModel rulesModel = (DefaultTableModel)rulesTable.getModel();
+			final DefaultTableModel rulesModel = (DefaultTableModel)culturalNormsTable.getModel();
 			rulesModel.setRowCount(size);
 
 			for(int row = 0; row < size; row ++){
 				final GedcomNode rule = rules.get(row);
 
-				rulesModel.setValueAt(rule.getID(), row, TABLE_INDEX_RULE_ID);
+				rulesModel.setValueAt(rule.getID(), row, TABLE_INDEX_NORM_ID);
 				rulesModel.setValueAt(store.traverse(rule, "TITLE").getValue(), row, TABLE_INDEX_RULE_TITLE);
 			}
 		}
 	}
 
-	private void filterTableBy(final CulturalRuleRecordDialog panel){
+	private void filterTableBy(final CulturalNormRecordDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RULE_ID, TABLE_INDEX_RULE_TITLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_NORM_ID, TABLE_INDEX_RULE_TITLE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)rulesTable.getRowSorter();
+		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)culturalNormsTable.getRowSorter();
 		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)rulesTable.getModel();
+			final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
 			sorter = new TableRowSorter<>(model);
-			rulesTable.setRowSorter(sorter);
+			culturalNormsTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
 	}
 
 
-	private static class CulturalRuleTableModel extends DefaultTableModel{
+	private static class CulturalNormTableModel extends DefaultTableModel{
 
 		@Serial
 		private static final long serialVersionUID = -581310490684534579L;
 
 
-		CulturalRuleTableModel(){
+		CulturalNormTableModel(){
 			super(new String[]{"ID", "Title"}, 0);
 		}
 
@@ -460,12 +460,12 @@ public class CulturalRuleRecordDialog extends JDialog implements TextPreviewList
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
-			final CulturalRuleRecordDialog dialog = new CulturalRuleRecordDialog(store, new JFrame());
+			final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, new JFrame());
 			dialog.loadData(container);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

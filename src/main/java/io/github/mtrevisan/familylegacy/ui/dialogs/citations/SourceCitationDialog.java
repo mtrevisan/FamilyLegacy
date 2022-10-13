@@ -80,9 +80,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.List;
@@ -139,7 +136,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cropButton = new JButton(CROP);
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JButton helpButton = new JButton("Help");
@@ -228,8 +225,8 @@ public class SourceCitationDialog extends JDialog{
 		cropButton.setEnabled(false);
 		cropButton.addActionListener(evt -> cropAction());
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(evt -> {
+		noteButton.setEnabled(false);
+		noteButton.addActionListener(evt -> {
 			final String selectedSourceID = (String)okButton.getClientProperty(KEY_SOURCE_ID);
 			final GedcomNode selectedSource = store.getSource(selectedSourceID);
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedSource));
@@ -266,7 +263,7 @@ public class SourceCitationDialog extends JDialog{
 		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap");
 		add(cropButton, "wrap");
-		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(noteButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
@@ -329,7 +326,7 @@ public class SourceCitationDialog extends JDialog{
 		cropButton.setEnabled(true);
 		cropButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
 		cropButton.putClientProperty(KEY_SOURCE_CROP, store.traverse(selectedSourceCitation, "CROP").getValue());
-		notesButton.setEnabled(true);
+		noteButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
 		credibilityComboBox.setSelectedIndex(!credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
@@ -453,7 +450,7 @@ public class SourceCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 

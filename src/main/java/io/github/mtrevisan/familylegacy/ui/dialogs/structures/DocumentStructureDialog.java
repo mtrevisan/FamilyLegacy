@@ -107,7 +107,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private static final double OPEN_DOCUMENT_HEIGHT = 24.;
 	private static final double OPEN_DOCUMENT_ASPECT_RATIO = 176. / 134.;
 	private static final Dimension OPEN_DOCUMENT_SIZE = new Dimension((int)(OPEN_DOCUMENT_HEIGHT / OPEN_DOCUMENT_ASPECT_RATIO), (int)OPEN_DOCUMENT_HEIGHT);
-	private static final ImageIcon OPEN_DOCUMENT = ResourceHelper.getImage("/images/openDocument.png", OPEN_DOCUMENT_SIZE);
+	private static final ImageIcon ICON_OPEN_DOCUMENT = ResourceHelper.getImage("/images/openDocument.png", OPEN_DOCUMENT_SIZE);
 
 	private static final int TABLE_INDEX_DOCUMENT_FILE = 0;
 
@@ -123,7 +123,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private final JButton addButton = new JButton("Add");
 	private final JLabel fileLabel = new JLabel("File:");
 	private final JTextField fileField = new JTextField();
-	private final JButton fileButton = new JButton(OPEN_DOCUMENT);
+	private final JButton fileButton = new JButton(ICON_OPEN_DOCUMENT);
 	private final JFileChooser fileChooser = new JFileChooser();
 	private final JCheckBox sphericalCheckBox = new JCheckBox("Spherical");
 	private final JLabel mappingLabel = new JLabel("Mapping:");
@@ -136,7 +136,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private final JLabel extractLocaleLabel = new JLabel("Locale:");
 	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -275,8 +275,8 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		extractPanel.add(extractLocaleLabel, "align label,split 2,sizegroup label");
 		extractPanel.add(extractLocaleComboBox);
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(evt -> {
+		noteButton.setEnabled(false);
+		noteButton.addActionListener(evt -> {
 			final int selectedRow = filesTable.convertRowIndexToModel(filesTable.getSelectedRow());
 			final List<GedcomNode> documents = store.traverseAsList(container, "FILE[]");
 			final GedcomNode selectedDocument = documents.get(selectedRow);
@@ -318,7 +318,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		add(descriptionField, "grow,wrap");
 		add(extractPanel, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
-		add(notesButton, "grow,wrap paragraph");
+		add(noteButton, "grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -414,7 +414,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		extractLocaleComboBox.setSelectedByLanguageTag(extractLanguageTag);
 		restrictionCheckBox.setEnabled(true);
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
-		notesButton.setEnabled(true);
+		noteButton.setEnabled(true);
 
 		updating = false;
 
@@ -526,7 +526,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getSources().get(0);
 

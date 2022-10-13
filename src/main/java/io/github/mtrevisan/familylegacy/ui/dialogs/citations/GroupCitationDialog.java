@@ -114,7 +114,7 @@ public class GroupCitationDialog extends JDialog{
 	private final JTextField groupField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
@@ -225,8 +225,8 @@ public class GroupCitationDialog extends JDialog{
 		roleLabel.setLabelFor(roleField);
 		GUIHelper.setEnabled(roleLabel, false);
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
+		noteButton.setEnabled(false);
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container)));
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		GUIHelper.setEnabled(credibilityLabel, false);
@@ -261,7 +261,7 @@ public class GroupCitationDialog extends JDialog{
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap paragraph");
-		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(noteButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
@@ -290,7 +290,7 @@ public class GroupCitationDialog extends JDialog{
 
 		GUIHelper.setEnabled(roleLabel, true);
 		roleField.setText(store.traverse(selectedGroupCitation, "ROLE").getValue());
-		notesButton.setEnabled(true);
+		noteButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedGroupCitation, "CREDIBILITY").getValue();
 		credibilityComboBox.setSelectedIndex(!credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
@@ -407,7 +407,7 @@ public class GroupCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getIndividuals().get(0);
 

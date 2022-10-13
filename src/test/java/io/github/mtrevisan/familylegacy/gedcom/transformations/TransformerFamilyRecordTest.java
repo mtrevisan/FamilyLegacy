@@ -125,7 +125,7 @@ class TransformerFamilyRecordTest{
 			.addChildReference("EVENT", "E4")
 			.addChildReference("EVENT", "E5")
 			.addChildReference("GROUP", "G1")
-			.addChildReference("CULTURAL_RULE", "C1")
+			.addChildReference("CULTURAL_NORM", "C1")
 			.addChildReference("NOTE", "N1")
 			.addChildReference("SOURCE", "S1")
 			.addChild(transformerFrom.createWithValue("PREFERRED_IMAGE", "IMAGE_FILE_REFERENCE")
@@ -177,7 +177,7 @@ class TransformerFamilyRecordTest{
 			.addChildValue("NAME", "PLACE_NAME");
 		final GedcomNode note = transformerFrom.createWithIDValue("NOTE", "N1", "NOTE 1");
 
-		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: marriage}, {tag: PARTNER1, ref: I1}, {tag: PARTNER2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: GROUP, ref: G1}, {tag: CULTURAL_RULE, ref: C1}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CROP, value: CROP_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03+02:00}]}]", family.toString());
+		Assertions.assertEquals("id: F1, tag: FAMILY, children: [{tag: TYPE, value: marriage}, {tag: PARTNER1, ref: I1}, {tag: PARTNER2, ref: I2}, {tag: CHILD, ref: I3}, {tag: EVENT, ref: E1}, {tag: EVENT, ref: E2}, {tag: EVENT, ref: E3}, {tag: EVENT, ref: E4}, {tag: EVENT, ref: E5}, {tag: GROUP, ref: G1}, {tag: CULTURAL_NORM, ref: C1}, {tag: NOTE, ref: N1}, {tag: SOURCE, ref: S1}, {tag: PREFERRED_IMAGE, value: IMAGE_FILE_REFERENCE, children: [{tag: CROP, value: CROP_COORDINATES}]}, {tag: RESTRICTION, value: RESTRICTION_NOTICE}, {tag: CREATION_DATE, children: [{tag: DATE, value: 2022-03-30T01:02:03+02:00}]}]", family.toString());
 
 		final Flef origin = new Flef();
 		origin.addFamily(family);

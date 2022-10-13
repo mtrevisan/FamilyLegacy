@@ -94,12 +94,12 @@ public class FamilyPanel extends JPanel{
 		(int)(PARTNER_PREV_NEXT_WIDTH * PARTNER_PREV_NEXT_ASPECT_RATIO));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png",
+	private static final ImageIcon ICON_PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png",
 		PARTNER_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon PARTNER_PREVIOUS_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(PARTNER_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARTNER_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon PARTNER_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(PARTNER_NEXT_ENABLED.getImage()));
+	private static final ImageIcon ICON_PARTNER_PREVIOUS_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(ICON_PARTNER_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon ICON_PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARTNER_PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARTNER_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARTNER_NEXT_ENABLED.getImage()));
 
 	/** Height of the marriage line from the bottom of the individual panel [px]. */
 	private static final int FAMILY_CONNECTION_HEIGHT = 15;
@@ -110,7 +110,7 @@ public class FamilyPanel extends JPanel{
 	/** Distance between navigation arrow and box. */
 	static final int NAVIGATION_ARROW_SEPARATION = 3;
 
-	static final int NAVIGATION_ARROW_HEIGHT = PARTNER_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
+	static final int NAVIGATION_ARROW_HEIGHT = ICON_PARTNER_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -223,7 +223,7 @@ public class FamilyPanel extends JPanel{
 		marriagePanel.setMinimumSize(MARRIAGE_PANEL_DIMENSION);
 		marriagePanel.setPreferredSize(MARRIAGE_PANEL_DIMENSION);
 
-		final Dimension minimumSize = new Dimension(PARTNER_PREVIOUS_ENABLED.getIconWidth(), PARTNER_PREVIOUS_ENABLED.getIconHeight());
+		final Dimension minimumSize = new Dimension(ICON_PARTNER_PREVIOUS_ENABLED.getIconWidth(), ICON_PARTNER_PREVIOUS_ENABLED.getIconHeight());
 		if(boxType == BoxPanelType.PRIMARY){
 			partner1PreviousLabel.setMinimumSize(minimumSize);
 			partner1NextLabel.setMinimumSize(minimumSize);
@@ -356,14 +356,14 @@ public class FamilyPanel extends JPanel{
 		partnerPreviousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		ImageIcon icon = null;
 		if(hasMoreFamilies)
-			icon = (partnerPreviousEnabled? PARTNER_PREVIOUS_ENABLED: PARTNER_PREVIOUS_DISABLED);
+			icon = (partnerPreviousEnabled? ICON_PARTNER_PREVIOUS_ENABLED: ICON_PARTNER_PREVIOUS_DISABLED);
 		partnerPreviousLabel.setIcon(icon);
 
 		final boolean partnerNextEnabled = (currentFamilyIndex < otherMarriagesCount - 1);
 		partnerNextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
 		partnerNextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		if(hasMoreFamilies)
-			icon = (partnerNextEnabled? PARTNER_NEXT_ENABLED: PARTNER_NEXT_DISABLED);
+			icon = (partnerNextEnabled? ICON_PARTNER_NEXT_ENABLED: ICON_PARTNER_NEXT_DISABLED);
 		partnerNextLabel.setIcon(icon);
 	}
 

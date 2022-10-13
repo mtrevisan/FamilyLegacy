@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -36,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -44,6 +46,9 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
@@ -64,6 +69,10 @@ public class CalendarRecordDialog extends JDialog{
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
+	private static final ImageIcon ICON_CULTURAL_NORM = ResourceHelper.getImage("/images/culturalNorm.png", 20, 20);
+	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
+	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
+
 /*
   +1 CREATION_DATE    {1:1}
     +2 DATE <CREATION_DATE>    {1:1}
@@ -77,16 +86,20 @@ public class CalendarRecordDialog extends JDialog{
 	//TODO 0 or 1
 	private final JButton descriptionButton = new JButton("Description");
 	//TODO 0 to M
-	private final JButton culturalRulesButton = new JButton("Cultural rules");
+	private final JButton culturalNormButton = new JButton(ICON_CULTURAL_NORM);
 	//TODO 0 to M
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton(ICON_NOTE);
 	//TODO 0 to M
-	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton addSourceButton = new JButton(ICON_SOURCE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode calendar;
+	private long originalDescriptionHash;
+	private long originalCulturalNormsHash;
+	private long originalNotesHash;
+	private long originalSourcesHash;
 
 	private Consumer<Object> onAccept;
 	private final Flef store;
@@ -103,14 +116,59 @@ public class CalendarRecordDialog extends JDialog{
 	private void initComponents(){
 		typeLabel.setLabelFor(typeField);
 
-		descriptionButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, calendar)));
-		culturalRulesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE_CITATION, calendar)));
+		final Border originalButtonBorder = okButton.getBorder();
+		descriptionButton.addActionListener(evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				descriptionButton.setBorder(calculateDescriptionHashCode() != originalDescriptionHash
+					? new LineBorder(Color.BLUE)
+					: originalButtonBorder);
 
-		sourcesButton.setEnabled(false);
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar)));
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar)));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, calendar, onAccept));
+		});
+
+		culturalNormButton.addActionListener(evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				culturalNormButton.setBorder(calculateCulturalNormsHashCode() != originalCulturalNormsHash
+					? new LineBorder(Color.BLUE)
+					: originalButtonBorder);
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onAccept));
+		});
+
+		noteButton.addActionListener(evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				noteButton.setBorder(calculateNotesHashCode() != originalNotesHash
+					? new LineBorder(Color.BLUE)
+					: originalButtonBorder);
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
+		});
+
+		addSourceButton.setToolTipText("Add source");
+		addSourceButton.addActionListener(evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				addSourceButton.setBorder(calculateSourcesHashCode() != originalSourcesHash
+					? new LineBorder(Color.BLUE)
+					: originalButtonBorder);
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar, onAccept));
+		});
 
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> setVisible(false);
@@ -126,12 +184,28 @@ public class CalendarRecordDialog extends JDialog{
 		add(typeLabel, "align label,split 2");
 		add(typeField, "grow,wrap");
 		add(descriptionButton, "grow,wrap");
-		add(culturalRulesButton, "grow,wrap");
-		add(notesButton, "sizegroup button2,grow,wrap paragraph");
-		add(sourcesButton, "sizegroup button2,grow,wrap");
+		add(culturalNormButton, "grow,wrap");
+		add(noteButton, "sizegroup button2,grow,wrap paragraph");
+		add(addSourceButton, "sizegroup button2,grow,wrap");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
+	}
+
+	private int calculateDescriptionHashCode(){
+		return store.traverse(calendar, "DESCRIPTION").hashCode();
+	}
+
+	private int calculateCulturalNormsHashCode(){
+		return store.traverseAsList(calendar, "CULTURAL_NORM[]").hashCode();
+	}
+
+	private int calculateNotesHashCode(){
+		return store.traverseAsList(calendar, "NOTE[]").hashCode();
+	}
+
+	private int calculateSourcesHashCode(){
+		return store.traverseAsList(calendar, "SOURCE[]").hashCode();
 	}
 
 	private boolean sourceContainsEvent(final String event){
@@ -171,8 +245,8 @@ public class CalendarRecordDialog extends JDialog{
 		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
 		typeField.setText(title);
-		sourcesButton.setEnabled(true);
-		notesButton.setEnabled(true);
+		addSourceButton.setEnabled(true);
+		noteButton.setEnabled(true);
 	}
 
 
@@ -184,7 +258,7 @@ public class CalendarRecordDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode calendar = store.getCalendars().get(0);
 

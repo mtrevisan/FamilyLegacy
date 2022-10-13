@@ -56,8 +56,8 @@ public class RepositoryRecordDialog extends JDialog{
 	private final JTextField nameField = new JTextField();
 	private final JButton individualButton = new JButton("Individual");
 	private final JButton placeButton = new JButton("Place");
-	private final JButton contactsButton = new JButton("Contacts");
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton contactButton = new JButton("Contacts");
+	private final JButton noteButton = new JButton("Notes");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -83,9 +83,9 @@ public class RepositoryRecordDialog extends JDialog{
 
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
 
-		contactsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CONTACT, repository)));
+		contactButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CONTACT, repository)));
 
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, repository)));
 
 		okButton.addActionListener(evt -> {
 			final String name = nameField.getText();
@@ -111,8 +111,8 @@ public class RepositoryRecordDialog extends JDialog{
 		add(nameField, "grow,wrap paragraph");
 		add(individualButton, "sizegroup button2,grow,wrap");
 		add(placeButton, "sizegroup button2,grow,wrap");
-		add(contactsButton, "sizegroup button2,grow,wrap");
-		add(notesButton, "sizegroup button2,grow,wrap paragraph");
+		add(contactButton, "sizegroup button2,grow,wrap");
+		add(noteButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -153,7 +153,7 @@ public class RepositoryRecordDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode repository = store.getRepositories().get(0);
 

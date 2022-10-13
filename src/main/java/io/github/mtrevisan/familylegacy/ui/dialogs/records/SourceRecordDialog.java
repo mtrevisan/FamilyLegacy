@@ -78,7 +78,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private static final Dimension DATE_SIZE = new Dimension((int)(DATE_HEIGHT / DATE_ASPECT_RATIO), (int)DATE_HEIGHT);
 
 	//https://thenounproject.com/term/weekly-calendar/541199/
-	private static final ImageIcon DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
+	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
 	private static final DefaultComboBoxModel<String> CREDIBILITY_MODEL = new DefaultComboBoxModel<>(new String[]{
 		StringUtils.EMPTY,
@@ -100,11 +100,11 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JLabel mediaTypeLabel = new JLabel("Media type:");
 	private final JTextField mediaTypeField = new JTextField();
-	private final JButton placesButton = new JButton("Places");
-	private final JButton repositoriesButton = new JButton("Repositories");
-	private final JButton documentsButton = new JButton("Documents");
-	private final JButton sourcesButton = new JButton("Sources");
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton placeButton = new JButton("Places");
+	private final JButton repositoryButton = new JButton("Repositories");
+	private final JButton documentButton = new JButton("Documents");
+	private final JButton sourceButton = new JButton("Sources");
+	private final JButton noteButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -126,22 +126,22 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private void initComponents(){
 		titleLabel.setLabelFor(titleField);
 
-		placesButton.setEnabled(false);
-		placesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, source)));
+		placeButton.setEnabled(false);
+		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, source)));
 
-		repositoriesButton.setEnabled(false);
-		repositoriesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
+		repositoryButton.setEnabled(false);
+		repositoryButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY_CITATION, source)));
 
 		mediaTypeLabel.setLabelFor(mediaTypeField);
 
-		documentsButton.setEnabled(false);
-		documentsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, source)));
+		documentButton.setEnabled(false);
+		documentButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT_CITATION, source)));
 
-		sourcesButton.setEnabled(false);
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source)));
+		sourceButton.setEnabled(false);
+		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source)));
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
+		noteButton.setEnabled(false);
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, source)));
 
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> setVisible(false);
@@ -162,13 +162,13 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		add(publicationFactsLabel, "align label,split 2");
 		add(publicationFactsField, "grow,wrap paragraph");
 		add(datePanel, "grow,wrap paragraph");
-		add(placesButton, "sizegroup button2,grow,wrap");
-		add(repositoriesButton, "sizegroup button2,grow,wrap paragraph");
+		add(placeButton, "sizegroup button2,grow,wrap");
+		add(repositoryButton, "sizegroup button2,grow,wrap paragraph");
 		add(mediaTypeLabel, "align label,split 2");
 		add(mediaTypeField, "grow,wrap paragraph");
-		add(documentsButton, "sizegroup button2,grow,wrap");
-		add(notesButton, "sizegroup button2,grow,wrap");
-		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
+		add(documentButton, "sizegroup button2,grow,wrap");
+		add(noteButton, "sizegroup button2,grow,wrap");
+		add(sourceButton, "sizegroup button2,grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -235,11 +235,11 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		final String dateCredibility = store.traverse(dateNode, "CREDIBILITY").getValue();
 		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		placesButton.setEnabled(true);
-		repositoriesButton.setEnabled(true);
-		documentsButton.setEnabled(true);
-		sourcesButton.setEnabled(true);
-		notesButton.setEnabled(true);
+		placeButton.setEnabled(true);
+		repositoryButton.setEnabled(true);
+		documentButton.setEnabled(true);
+		sourceButton.setEnabled(true);
+		noteButton.setEnabled(true);
 	}
 
 
@@ -251,7 +251,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode source = store.getSources().get(0);
 

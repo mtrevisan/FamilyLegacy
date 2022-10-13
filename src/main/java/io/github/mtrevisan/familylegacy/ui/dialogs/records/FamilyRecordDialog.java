@@ -95,19 +95,19 @@ public class FamilyRecordDialog extends JDialog{
 	private final JLabel partner1Label = new JLabel("Partner 1:");
 	private final ScaledImage partner1Image = new ScaledImage(null);
 	private final JLabel partner1Name = new JLabel(StringUtils.EMPTY);
-	private final JButton partner1NotesButton = new JButton(StringUtils.EMPTY);
+	private final JButton partner1NoteButton = new JButton(StringUtils.EMPTY);
 	private final JLabel partner2Label = new JLabel("Partner 2:");
 	private final ScaledImage partner2Image = new ScaledImage(null);
 	private final JLabel partner2Name = new JLabel(StringUtils.EMPTY);
-	private final JButton partner2NotesButton = new JButton(StringUtils.EMPTY);
+	private final JButton partner2NoteButton = new JButton(StringUtils.EMPTY);
 	private final JLabel childrenLabel = new JLabel("Children:");
 	private final JTable childrenTable = new JTable(new ChildrenTableModel());
-	private final JButton childNotesButton = new JButton(StringUtils.EMPTY);
-	private final JButton eventsButton = new JButton("Events");
-	private final JButton groupsButton = new JButton("Groups");
-	private final JButton culturalRulesButton = new JButton("Cultural Rules");
-	private final JButton notesButton = new JButton("Notes");
-	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton childNoteButton = new JButton(StringUtils.EMPTY);
+	private final JButton eventButton = new JButton("Events");
+	private final JButton groupButton = new JButton("Groups");
+	private final JButton culturalNormButton = new JButton("Cultural norms");
+	private final JButton noteButton = new JButton("Notes");
+	private final JButton sourceButton = new JButton("Sources");
 	private final JLabel restrictionLabel = new JLabel("Restriction:");
 	private final JComboBox<String> restrictionComboBox = new JComboBox<>(RESTRICTION_MODEL);
 
@@ -147,7 +147,7 @@ public class FamilyRecordDialog extends JDialog{
 
 		+1 <<GROUP_CITATION>>    {0:M}
 
-		+1 CULTURAL_RULE @<XREF:RULE>@    {0:M}
+		+1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
 
 		+1 NOTE @<XREF:NOTE>@    {0:M}
 
@@ -160,9 +160,9 @@ public class FamilyRecordDialog extends JDialog{
 
 		partner1Label.setFont(FONT_PRIMARY);
 		partner1Label.setLabelFor(partner1Name);
-		partner1NotesButton.setIcon(ICON_NOTE);
-		partner1NotesButton.setToolTipText("Add note to parent 1");
-		partner1NotesButton.addActionListener(evt -> {
+		partner1NoteButton.setIcon(ICON_NOTE);
+		partner1NoteButton.setToolTipText("Add note to parent 1");
+		partner1NoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
 			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner1 = store.getPartner1(family);
@@ -175,9 +175,9 @@ public class FamilyRecordDialog extends JDialog{
 		});
 		partner2Label.setFont(FONT_PRIMARY);
 		partner2Label.setLabelFor(partner2Name);
-		partner2NotesButton.setIcon(ICON_NOTE);
-		partner2NotesButton.setToolTipText("Add note to parent 2");
-		partner2NotesButton.addActionListener(evt -> {
+		partner2NoteButton.setIcon(ICON_NOTE);
+		partner2NoteButton.setToolTipText("Add note to parent 2");
+		partner2NoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
 			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final GedcomNode partner2 = store.getPartner2(family);
@@ -190,9 +190,9 @@ public class FamilyRecordDialog extends JDialog{
 		});
 		childrenLabel.setFont(FONT_PRIMARY);
 		childrenLabel.setLabelFor(childrenTable);
-		childNotesButton.setIcon(ICON_NOTE);
-		childNotesButton.setToolTipText("Add note to child");
-		childNotesButton.addActionListener(evt -> {
+		childNoteButton.setIcon(ICON_NOTE);
+		childNoteButton.setToolTipText("Add note to child");
+		childNoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
 			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
 			final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
@@ -206,19 +206,19 @@ public class FamilyRecordDialog extends JDialog{
 			noteCitationDialog.setVisible(true);
 		});
 
-		eventsButton.addActionListener(e -> {
+		eventButton.addActionListener(e -> {
 			//TODO
 		});
 
-		groupsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP_CITATION, family)));
+		groupButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP_CITATION, family)));
 
-		culturalRulesButton.addActionListener(e -> {
+		culturalNormButton.addActionListener(e -> {
 			//TODO
 		});
 
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, family)));
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, family)));
 
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, family)));
+		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, family)));
 
 		restrictionLabel.setLabelFor(restrictionComboBox);
 		restrictionComboBox.setEditable(true);
@@ -239,29 +239,29 @@ public class FamilyRecordDialog extends JDialog{
 		panelMembers.add(partner1Label, "span 3,wrap");
 		panelMembers.add(partner1Image);
 		panelMembers.add(partner1Name, "grow");
-		panelMembers.add(partner1NotesButton, "top,wrap");
+		panelMembers.add(partner1NoteButton, "top,wrap");
 		panelMembers.add(partner2Label, "span 3,wrap");
 		panelMembers.add(partner2Image);
 		panelMembers.add(partner2Name, "grow");
-		panelMembers.add(partner2NotesButton, "top,wrap");
+		panelMembers.add(partner2NoteButton, "top,wrap");
 		panelMembers.add(childrenLabel, "span 3,wrap");
 		panelMembers.add(childrenTable, "span 2,grow");
-		panelMembers.add(childNotesButton, "top");
+		panelMembers.add(childNoteButton, "top");
 
 		final JPanel panelEvents = new JPanel(new MigLayout());
-		panelEvents.add(eventsButton, "sizegroup button,grow,wrap");
+		panelEvents.add(eventButton, "sizegroup button,grow,wrap");
 
 		final JPanel panelGroups = new JPanel(new MigLayout());
-		panelGroups.add(groupsButton, "sizegroup button,grow,wrap");
+		panelGroups.add(groupButton, "sizegroup button,grow,wrap");
 
-		final JPanel panelCulturalRules = new JPanel(new MigLayout());
-		panelCulturalRules.add(culturalRulesButton, "sizegroup button,grow,wrap");
+		final JPanel panelCulturalNorms = new JPanel(new MigLayout());
+		panelCulturalNorms.add(culturalNormButton, "sizegroup button,grow,wrap");
 
 		final JPanel panelNotes = new JPanel(new MigLayout());
-		panelNotes.add(notesButton, "sizegroup button,grow,wrap");
+		panelNotes.add(noteButton, "sizegroup button,grow,wrap");
 
 		final JPanel panelSources = new JPanel(new MigLayout());
-		panelSources.add(sourcesButton, "sizegroup button,grow,wrap");
+		panelSources.add(sourceButton, "sizegroup button,grow,wrap");
 
 		final JPanel panelGeneral = new JPanel(new MigLayout());
 		panelGeneral.add(restrictionLabel, "align label,split 2");
@@ -270,7 +270,7 @@ public class FamilyRecordDialog extends JDialog{
 		tabbedPane.add("Members", panelMembers);
 		tabbedPane.add("Events", panelEvents);
 		tabbedPane.add("Groups", panelGroups);
-		tabbedPane.add("Cultural rules", panelCulturalRules);
+		tabbedPane.add("Cultural rules", panelCulturalNorms);
 		tabbedPane.add("Notes", panelNotes);
 		tabbedPane.add("Sources", panelSources);
 		tabbedPane.add("General", panelGeneral);
@@ -289,11 +289,11 @@ public class FamilyRecordDialog extends JDialog{
 
 	private void loadData(){
 		final GedcomNode partner1 = store.getPartner1(family);
-		partner1NotesButton.setEnabled(!partner1.isEmpty());
-		loadPartnerData(partner1, partner1Image, partner1Name, partner1NotesButton);
+		partner1NoteButton.setEnabled(!partner1.isEmpty());
+		loadPartnerData(partner1, partner1Image, partner1Name, partner1NoteButton);
 		final GedcomNode partner2 = store.getPartner2(family);
-		partner2NotesButton.setEnabled(!partner2.isEmpty());
-		loadPartnerData(partner2, partner2Image, partner2Name, partner2NotesButton);
+		partner2NoteButton.setEnabled(!partner2.isEmpty());
+		loadPartnerData(partner2, partner2Image, partner2Name, partner2NoteButton);
 
 		final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
 		final DefaultTableModel childrenTableModel = (DefaultTableModel)childrenTable.getModel();
@@ -305,7 +305,7 @@ public class FamilyRecordDialog extends JDialog{
 
 			childrenTableModel.setValueAt(getIndividualText(child), row, CHILDREN_TABLE_INDEX_NAME);
 		}
-		childNotesButton.setEnabled(false);
+		childNoteButton.setEnabled(false);
 
 		//TODO
 
@@ -372,7 +372,7 @@ public class FamilyRecordDialog extends JDialog{
 		if(e.getValueIsAdjusting())
 			return;
 
-		childNotesButton.setEnabled(true);
+		childNoteButton.setEnabled(true);
 
 		final int childSelected = e.getFirstIndex();
 		final GedcomNode child = FamilyPanel.extractChildren(family, store).get(childSelected);

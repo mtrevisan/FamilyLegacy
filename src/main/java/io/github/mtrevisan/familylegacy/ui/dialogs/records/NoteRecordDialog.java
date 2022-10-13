@@ -72,15 +72,15 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-	private static final ImageIcon TRANSLATION = ResourceHelper.getImage("/images/translation.png", 20, 20);
-	private static final ImageIcon CITATION = ResourceHelper.getImage("/images/citation.png", 20, 20);
+	private static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImage("/images/translation.png", 20, 20);
+	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 
 	private TextPreviewPane textPreviewView;
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final LocaleComboBox localeComboBox = new LocaleComboBox();
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-	private final JButton addTranslationButton = new JButton(TRANSLATION);
-	private final JButton addCitationButton = new JButton(CITATION);
+	private final JButton addTranslationButton = new JButton(ICON_TRANSLATION);
+	private final JButton addSourceButton = new JButton(ICON_SOURCE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -140,15 +140,15 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, note, onAccept));
 		});
-		addCitationButton.setToolTipText("Add citation");
-		addCitationButton.addActionListener(evt -> {
-			final GedcomNode newSourceCitation = store.create("SOURCE");
+		addSourceButton.setToolTipText("Add source");
+		addSourceButton.addActionListener(evt -> {
+			final GedcomNode source = store.create("SOURCE");
 
 			final Consumer<Object> onAccept = ignored -> {
 				//add node from source citation dialog
-				note.addChild(newSourceCitation);
+				note.addChild(source);
 
-				addCitationButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
+				addSourceButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
 
@@ -157,7 +157,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			};
 
 			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, newSourceCitation, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source, onAccept));
 		});
 
 		final ActionListener okAction = evt -> okAction();
@@ -173,7 +173,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
 		add(textPreviewView, "spanx 2,spany 2,grow");
 		add(addTranslationButton, "tag add,sizegroup button2,wrap");
-		add(addCitationButton, "tag add,top,sizegroup button2,wrap");
+		add(addSourceButton, "tag add,top,sizegroup button2,wrap");
 		add(localeLabel, "align label,spanx 3,split 2,sizegroup label");
 		add(localeComboBox, "spanx 3,wrap");
 		add(restrictionCheckBox, "spanx 3,wrap");
@@ -317,7 +317,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		//without creation date
 //		final GedcomNode note = store.getNotes().get(0);

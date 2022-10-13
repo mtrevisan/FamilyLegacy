@@ -59,9 +59,9 @@ public class GroupRecordDialog extends JDialog{
 	private final JTextField nameField = new JTextField();
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JTextField typeField = new JTextField();
-	private final JButton eventsButton = new JButton("Events");
-	private final JButton notesButton = new JButton("Notes");
-	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton eventButton = new JButton("Events");
+	private final JButton noteButton = new JButton("Notes");
+	private final JButton sourceButton = new JButton("Sources");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -94,11 +94,11 @@ public class GroupRecordDialog extends JDialog{
 
 		typeLabel.setLabelFor(typeField);
 
-		eventsButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, group)));
+		eventButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT_CITATION, group)));
 
-		notesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, group)));
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, group)));
 
-		sourcesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
+		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, group)));
 
 		okButton.addActionListener(evt -> {
 			final String name = nameField.getText();
@@ -120,9 +120,9 @@ public class GroupRecordDialog extends JDialog{
 		add(nameField, "grow,wrap");
 		add(typeLabel, "align label,split 2");
 		add(typeField, "grow,wrap paragraph");
-		add(eventsButton, "sizegroup button2,grow,wrap");
-		add(notesButton, "sizegroup button2,grow,wrap");
-		add(sourcesButton, "sizegroup button2,grow,wrap paragraph");
+		add(eventButton, "sizegroup button2,grow,wrap");
+		add(noteButton, "sizegroup button2,grow,wrap");
+		add(sourceButton, "sizegroup button2,grow,wrap paragraph");
 		add(okButton, "tag ok,span,split 2,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
@@ -156,7 +156,7 @@ public class GroupRecordDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode group = store.getGroups().get(0);
 

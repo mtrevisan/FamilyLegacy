@@ -95,7 +95,7 @@ public class RepositoryCitationDialog extends JDialog{
 	private final JTextField repositoryNameField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -152,8 +152,8 @@ public class RepositoryCitationDialog extends JDialog{
 
 				GUIHelper.setEnabled(locationLabel, true);
 				locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
-				notesButton.setEnabled(true);
-				notesButton.setEnabled(true);
+				noteButton.setEnabled(true);
+				noteButton.setEnabled(true);
 
 				okButton.setEnabled(true);
 			}
@@ -188,7 +188,7 @@ public class RepositoryCitationDialog extends JDialog{
 		locationLabel.setLabelFor(locationField);
 		GUIHelper.setEnabled(locationLabel, false);
 
-		notesButton.setEnabled(false);
+		noteButton.setEnabled(false);
 
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
@@ -215,7 +215,7 @@ public class RepositoryCitationDialog extends JDialog{
 		add(repositoryNameField, "grow,wrap");
 		add(locationLabel, "align label,split 2");
 		add(locationField, "grow,wrap paragraph");
-		add(notesButton, "sizegroup button,grow,wrap paragraph");
+		add(noteButton, "sizegroup button,grow,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
 		add(cancelButton, "tag cancel,sizegroup button");
@@ -317,7 +317,7 @@ public class RepositoryCitationDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode sourceCitation = store.traverseAsList(store.getIndividuals().get(0), "SOURCE[]").get(0);
 		final GedcomNode container = store.getSource(sourceCitation.getXRef());

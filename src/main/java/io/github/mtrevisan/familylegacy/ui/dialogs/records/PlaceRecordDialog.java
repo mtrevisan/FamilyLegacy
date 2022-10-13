@@ -86,9 +86,9 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	private final JTextField addressField = new JTextField();
 	private final JLabel addressHierarchyLabel = new JLabel("Hierarchy:");
 	private final JTextField addressHierarchyField = new JTextField();
-	private final JButton culturalRulesButton = new JButton("Cultural rules");
-	private final JButton notesButton = new JButton("Notes");
-	private final JButton sourcesButton = new JButton("Sources");
+	private final JButton culturalNormButton = new JButton("Cultural norms");
+	private final JButton noteButton = new JButton("Notes");
+	private final JButton sourceButton = new JButton("Sources");
 	private final JLabel latitudeLabel = new JLabel("Latitude:");
 	private final JTextField latitudeField = new JTextField();
 	private final JLabel longitudeLabel = new JLabel("Longitude:");
@@ -129,11 +129,11 @@ private final JTextField subordinateField = new JTextField();
 
 		GUIHelper.bindLabelTextChangeUndo(addressHierarchyLabel, addressHierarchyField, evt -> dataChanged());
 
-		culturalRulesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_RULE_CITATION, place)));
+		culturalNormButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, place)));
 
-		notesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, place)));
+		noteButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, place)));
 
-		sourcesButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, place)));
+		sourceButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, place)));
 
 		final JPanel addressPanel = new JPanel();
 		addressPanel.setBorder(BorderFactory.createTitledBorder("Address"));
@@ -142,9 +142,9 @@ private final JTextField subordinateField = new JTextField();
 		addressPanel.add(addressField, "grow,wrap");
 		addressPanel.add(addressHierarchyLabel, "align label,split 2,sizegroup labelAddress");
 		addressPanel.add(addressHierarchyField, "grow,wrap");
-		addressPanel.add(culturalRulesButton, "grow,wrap");
-		addressPanel.add(notesButton, "grow,wrap");
-		addressPanel.add(sourcesButton, "grow");
+		addressPanel.add(culturalNormButton, "grow,wrap");
+		addressPanel.add(noteButton, "grow,wrap");
+		addressPanel.add(sourceButton, "grow");
 
 		GUIHelper.bindLabelTextChangeUndo(latitudeLabel, latitudeField, evt -> dataChanged());
 
@@ -257,7 +257,7 @@ private final JTextField subordinateField = new JTextField();
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode place = store.getPlaces().get(0);
 

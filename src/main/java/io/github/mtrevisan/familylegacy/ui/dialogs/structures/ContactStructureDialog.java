@@ -117,7 +117,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 	private final JMenuItem sendEmailItem = new JMenuItem("Send email…");
 	private final JMenuItem testLinkItem = new JMenuItem("Test link");
 	private final JMenuItem openLinkItem = new JMenuItem("Open link…");
-	private final JButton notesButton = new JButton("Notes");
+	private final JButton noteButton = new JButton("Notes");
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -215,8 +215,8 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		callerIDField.setEnabled(false);
 		GUIHelper.bindLabelTextChangeUndo(callerIDLabel, callerIDField, evt -> dataChanged());
 
-		notesButton.setEnabled(false);
-		notesButton.addActionListener(evt -> {
+		noteButton.setEnabled(false);
+		noteButton.addActionListener(evt -> {
 			final int selectedRow = contactsTable.convertRowIndexToModel(contactsTable.getSelectedRow());
 			final List<GedcomNode> contacts = store.traverseAsList(container, "CONTACT[]");
 			final GedcomNode selectedContact = contacts.get(selectedRow);
@@ -258,7 +258,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		add(typeField, "grow,wrap");
 		add(callerIDLabel, "align label,sizegroup label,split 2");
 		add(callerIDField, "grow,wrap paragraph");
-		add(notesButton, "grow,wrap paragraph");
+		add(noteButton, "grow,wrap paragraph");
 		add(restrictionCheckBox, "wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button");
 		add(okButton, "tag ok,sizegroup button");
@@ -345,7 +345,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		typeField.setText(type);
 		callerIDField.setEnabled(true);
 		callerIDField.setText(callerID);
-		notesButton.setEnabled(true);
+		noteButton.setEnabled(true);
 		restrictionCheckBox.setEnabled(true);
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
@@ -461,7 +461,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.7.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode container = store.getRepositories().get(1);
 
