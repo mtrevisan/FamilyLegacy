@@ -29,22 +29,30 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DropMode;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
@@ -56,6 +64,8 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -71,6 +81,9 @@ public class RepositoryCitationDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 4839647166680455355L;
+
+	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	private static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
@@ -101,6 +114,7 @@ public class RepositoryCitationDialog extends JDialog{
 	private final Debouncer<RepositoryCitationDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode container;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -110,13 +124,9 @@ public class RepositoryCitationDialog extends JDialog{
 		this.store = store;
 
 		initComponents();
-
-		loadData();
 	}
 
 	private void initComponents(){
-		setTitle("Repository citations");
-
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
@@ -163,6 +173,22 @@ public class RepositoryCitationDialog extends JDialog{
 					editAction();
 			}
 		});
+		final InputMap repositoryTableInputMap = repositoryTable.getInputMap(JComponent.WHEN_FOCUSED);
+		repositoryTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
+		repositoryTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		final ActionMap repositoryTableActionMap = repositoryTable.getActionMap();
+		repositoryTableActionMap.put("insert", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				addAction();
+			}
+		});
+		repositoryTableActionMap.put("delete", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				deleteAction();
+			}
+		});
 
 		addButton.addActionListener(evt -> {
 			final GedcomNode newRepository = store.create("REPOSITORY");
@@ -188,21 +214,20 @@ public class RepositoryCitationDialog extends JDialog{
 
 		noteButton.setEnabled(false);
 
+		final ActionListener addAction = evt -> addAction();
+		final ActionListener okAction = evt -> {
+			if(onCloseGracefully != null)
+				onCloseGracefully.accept(this);
+
+			setVisible(false);
+		};
+		final ActionListener cancelAction = evt -> setVisible(false);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
-		okButton.setEnabled(false);
-		okButton.addActionListener(evt -> {
-			final String id = (String)okButton.getClientProperty(KEY_REPOSITORY_ID);
-			final String location = locationField.getText();
-
-			final GedcomNode group = store.traverse(container, "REPOSITORY@" + id);
-			group.replaceChildValue("LOCATION", location);
-
-			//TODO remember, when saving the whole gedcom, to remove all non-referenced repositories!
-
-			dispose();
-		});
-		cancelButton.addActionListener(evt -> dispose());
+		okButton.addActionListener(okAction);
+		cancelButton.addActionListener(cancelAction);
+		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(addAction, INSERT_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
@@ -240,14 +265,36 @@ public class RepositoryCitationDialog extends JDialog{
 		final DefaultTableModel model = (DefaultTableModel)repositoryTable.getModel();
 		final int index = repositoryTable.convertRowIndexToModel(repositoryTable.getSelectedRow());
 		final String repositoryXRef = (String)model.getValueAt(index, TABLE_INDEX_REPOSITORY_ID);
-		final GedcomNode selectedRepository = store.getRepository(repositoryXRef);
+		final GedcomNode selectedRepository;
+		if(StringUtils.isBlank(repositoryXRef))
+			selectedRepository = store.traverseAsList(container, "REPOSITORY[]")
+				.get(index);
+		else
+			selectedRepository = store.getRepository(repositoryXRef);
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, selectedRepository));
 	}
 
-	public final boolean loadData(final GedcomNode container){
+	private void deleteAction(){
+		final DefaultTableModel model = (DefaultTableModel)repositoryTable.getModel();
+		final int index = repositoryTable.convertRowIndexToModel(repositoryTable.getSelectedRow());
+		final String repositoryXRef = (String)model.getValueAt(index, TABLE_INDEX_REPOSITORY_ID);
+		final GedcomNode selectedNote;
+		if(StringUtils.isBlank(repositoryXRef))
+			selectedNote = store.traverseAsList(container, "REPOSITORY[]")
+				.get(index);
+		else
+			selectedNote = store.getRepository(repositoryXRef);
+
+		container.removeChild(selectedNote);
+
+		loadData();
+	}
+
+	public final boolean loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
+		this.onCloseGracefully = onCloseGracefully;
 
 		return loadData();
 	}
@@ -255,19 +302,19 @@ public class RepositoryCitationDialog extends JDialog{
 	private boolean loadData(){
 		final List<GedcomNode> repositories = store.traverseAsList(container, "REPOSITORY[]");
 		final int size = repositories.size();
-		for(int i = 0; i < size; i ++)
-			repositories.set(i, store.getRepository(repositories.get(i).getXRef()));
+		for(int i = 0; i < size; i ++){
+			final String repositoryXRef = repositories.get(i).getXRef();
+			final GedcomNode repository = store.getRepository(repositoryXRef);
+			repositories.set(i, repository);
+		}
 
-		if(size > 0){
-			final DefaultTableModel repositoriesModel = (DefaultTableModel)repositoryTable.getModel();
-			repositoriesModel.setRowCount(size);
+		final DefaultTableModel repositoriesModel = (DefaultTableModel)repositoryTable.getModel();
+		repositoriesModel.setRowCount(size);
+		for(int row = 0; row < size; row ++){
+			final GedcomNode repository = repositories.get(row);
 
-			for(int row = 0; row < size; row ++){
-				final GedcomNode repository = repositories.get(row);
-
-				repositoriesModel.setValueAt(repository.getID(), row, TABLE_INDEX_REPOSITORY_ID);
-				repositoriesModel.setValueAt(store.traverse(repository, "NAME").getValue(), row, TABLE_INDEX_REPOSITORY_NAME);
-			}
+			repositoriesModel.setValueAt(repository.getID(), row, TABLE_INDEX_REPOSITORY_ID);
+			repositoriesModel.setValueAt(store.traverse(repository, "NAME").getValue(), row, TABLE_INDEX_REPOSITORY_NAME);
 		}
 		return (size > 0);
 	}
@@ -323,8 +370,82 @@ public class RepositoryCitationDialog extends JDialog{
 		final GedcomNode container = store.getSource(sourceCitation.getXRef());
 
 		EventQueue.invokeLater(() -> {
-			final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, new JFrame());
-			if(!dialog.loadData(container))
+			final JFrame parent = new JFrame();
+			final Object listener = new Object(){
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					switch(editCommand.getType()){
+						case REPOSITORY -> {
+							final RepositoryRecordDialog dialog = new RepositoryRecordDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Repository " + note.getID()
+								: "New repository for " + container.getID());
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case NOTE -> {
+							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Note " + note.getID()
+								: "New note for " + container.getID());
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case NOTE_TRANSLATION -> {
+							final NoteRecordDialog dialog = NoteRecordDialog.createNoteTranslation(store, parent);
+							final GedcomNode noteTranslation = editCommand.getContainer();
+							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
+								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
+								: "New translation"
+							);
+							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
+
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case NOTE_TRANSLATION_CITATION -> {
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Translation citations for note " + note.getID()
+								: "Translation citations for new note");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.addAction();
+
+							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case SOURCE_CITATION -> {
+							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Source citations for note " + note.getID()
+								: "Source citations for new note");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.addAction();
+
+							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
+
+			final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, parent);
+			dialog.setTitle(container.isEmpty()? "Repository citations": "Repository citations for " + container.getID());
+			if(!dialog.loadData(container, null))
 				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

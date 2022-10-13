@@ -98,8 +98,8 @@ public class NoteCitationDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable notesTable = new JTable(new NoteTableModel());
-	private final JScrollPane notesScrollPane = new JScrollPane(notesTable);
+	private final JTable noteTable = new JTable(new NoteTableModel());
+	private final JScrollPane notesScrollPane = new JScrollPane(noteTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -118,7 +118,7 @@ public class NoteCitationDialog extends JDialog{
 		final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
 		dialog.initComponents();
 		dialog.childTag = "NOTE";
-		hideColumn(dialog.notesTable, TABLE_INDEX_NOTE_LANGUAGE);
+		hideColumn(dialog.noteTable, TABLE_INDEX_NOTE_LANGUAGE);
 		dialog.addAction = () -> {
 			final GedcomNode newNote = store.create(dialog.childTag);
 
@@ -141,7 +141,7 @@ public class NoteCitationDialog extends JDialog{
 		final NoteCitationDialog dialog = new NoteCitationDialog(store, parent);
 		dialog.initComponents();
 		dialog.childTag = "TRANSLATION";
-		hideColumn(dialog.notesTable, TABLE_INDEX_NOTE_ID);
+		hideColumn(dialog.noteTable, TABLE_INDEX_NOTE_ID);
 		dialog.addAction = () -> {
 			final GedcomNode newNoteTranslation = store.create(dialog.childTag);
 
@@ -179,46 +179,46 @@ public class NoteCitationDialog extends JDialog{
 			}
 		});
 
-		notesTable.setAutoCreateRowSorter(true);
-		notesTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		notesTable.setGridColor(GRID_COLOR);
-		notesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		notesTable.setDragEnabled(true);
-		notesTable.setDropMode(DropMode.INSERT_ROWS);
-		notesTable.setTransferHandler(new TableTransferHandle(notesTable));
-		notesTable.getTableHeader().setFont(notesTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(notesTable, TABLE_INDEX_NOTE_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(notesTable, TABLE_INDEX_NOTE_LANGUAGE, 0, LANGUAGE_PREFERRED_WIDTH);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(notesTable.getModel());
+		noteTable.setAutoCreateRowSorter(true);
+		noteTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		noteTable.setGridColor(GRID_COLOR);
+		noteTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		noteTable.setDragEnabled(true);
+		noteTable.setDropMode(DropMode.INSERT_ROWS);
+		noteTable.setTransferHandler(new TableTransferHandle(noteTable));
+		noteTable.getTableHeader().setFont(noteTable.getFont().deriveFont(Font.BOLD));
+		TableHelper.setColumnWidth(noteTable, TABLE_INDEX_NOTE_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(noteTable, TABLE_INDEX_NOTE_LANGUAGE, 0, LANGUAGE_PREFERRED_WIDTH);
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(noteTable.getModel());
 		sorter.setComparator(TABLE_INDEX_NOTE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_NOTE_LANGUAGE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_NOTE_TEXT, Comparator.naturalOrder());
-		notesTable.setRowSorter(sorter);
-		notesTable.addMouseListener(new MouseAdapter(){
+		noteTable.setRowSorter(sorter);
+		noteTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && notesTable.rowAtPoint(evt.getPoint()) >= 0)
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && noteTable.rowAtPoint(evt.getPoint()) >= 0)
 					editAction();
 			}
 		});
-		final InputMap notesTableInputMap = notesTable.getInputMap(JComponent.WHEN_FOCUSED);
-		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
-		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		final ActionMap notesTableActionMap = notesTable.getActionMap();
-		notesTableActionMap.put("insert", new AbstractAction(){
+		final InputMap noteTableInputMap = noteTable.getInputMap(JComponent.WHEN_FOCUSED);
+		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
+		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		final ActionMap noteTableActionMap = noteTable.getActionMap();
+		noteTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				addAction();
 			}
 		});
-		notesTableActionMap.put("delete", new AbstractAction(){
+		noteTableActionMap.put("delete", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				deleteAction();
 			}
 		});
-		notesTable.setPreferredScrollableViewportSize(new Dimension(notesTable.getPreferredSize().width,
-			notesTable.getRowHeight() * 5));
+		noteTable.setPreferredScrollableViewportSize(new Dimension(noteTable.getPreferredSize().width,
+			noteTable.getRowHeight() * 5));
 
 		final ActionListener addAction = evt -> addAction();
 		final ActionListener okAction = evt -> {
@@ -252,8 +252,8 @@ public class NoteCitationDialog extends JDialog{
 
 	private void editAction(){
 		//retrieve selected note
-		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
-		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)noteTable.getModel();
+		final int index = noteTable.convertRowIndexToModel(noteTable.getSelectedRow());
 		final String noteXRef = (String)model.getValueAt(index, TABLE_INDEX_NOTE_ID);
 		final GedcomNode selectedNote;
 		if(StringUtils.isBlank(noteXRef))
@@ -263,12 +263,13 @@ public class NoteCitationDialog extends JDialog{
 			selectedNote = store.getNote(noteXRef);
 
 		//fire edit event
-		EventBusService.publish(new EditEvent(("NOTE".equals(childTag)? EditEvent.EditType.NOTE: EditEvent.EditType.NOTE_TRANSLATION), selectedNote));
+		final EditEvent.EditType type = ("NOTE".equals(childTag)? EditEvent.EditType.NOTE: EditEvent.EditType.NOTE_TRANSLATION);
+		EventBusService.publish(new EditEvent(type, selectedNote));
 	}
 
 	private void deleteAction(){
-		final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
-		final int index = notesTable.convertRowIndexToModel(notesTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)noteTable.getModel();
+		final int index = noteTable.convertRowIndexToModel(noteTable.getSelectedRow());
 		final String noteXRef = (String)model.getValueAt(index, TABLE_INDEX_NOTE_ID);
 		final GedcomNode selectedNote;
 		if(StringUtils.isBlank(noteXRef))
@@ -299,7 +300,7 @@ public class NoteCitationDialog extends JDialog{
 				notes.set(i, note);
 			}
 
-		final DefaultTableModel notesModel = (DefaultTableModel)notesTable.getModel();
+		final DefaultTableModel notesModel = (DefaultTableModel)noteTable.getModel();
 		notesModel.setRowCount(size);
 		for(int row = 0; row < size; row ++){
 			final GedcomNode note = notes.get(row);
@@ -316,11 +317,11 @@ public class NoteCitationDialog extends JDialog{
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_NOTE_ID, TABLE_INDEX_NOTE_TEXT);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)notesTable.getRowSorter();
+		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)noteTable.getRowSorter();
 		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)notesTable.getModel();
+			final DefaultTableModel model = (DefaultTableModel)noteTable.getModel();
 			sorter = new TableRowSorter<>(model);
-			notesTable.setRowSorter(sorter);
+			noteTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
 	}

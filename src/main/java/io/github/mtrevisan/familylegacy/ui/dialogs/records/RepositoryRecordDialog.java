@@ -46,6 +46,7 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.function.Consumer;
 
 
 //TODO
@@ -61,7 +62,8 @@ public class RepositoryRecordDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode repository;
-	private Runnable onCloseGracefully;
+
+	private Consumer<Object> onAccept;
 	private final Flef store;
 
 
@@ -97,8 +99,8 @@ public class RepositoryRecordDialog extends JDialog{
 //			if(!extractLocaleNode.isEmpty())
 //				extractLocaleNode.withValue(extractLanguageTag);
 
-			if(onCloseGracefully != null)
-				onCloseGracefully.run();
+			if(onAccept != null)
+				onAccept.accept(this);
 
 			dispose();
 		});
@@ -116,9 +118,9 @@ public class RepositoryRecordDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button");
 	}
 
-	public void loadData(final GedcomNode repository, final Runnable onCloseGracefully){
+	public void loadData(final GedcomNode repository, final Consumer<Object> onAccept){
 		this.repository = repository;
-		this.onCloseGracefully = onCloseGracefully;
+		this.onAccept = onAccept;
 
 		setTitle("Repository " + repository.getID());
 

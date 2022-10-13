@@ -146,17 +146,17 @@ public class CulturalNormCitationDialog extends JDialog{
 					editAction();
 			}
 		});
-		final InputMap notesTableInputMap = culturalNormsTable.getInputMap(JComponent.WHEN_FOCUSED);
-		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
-		notesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		final ActionMap notesTableActionMap = culturalNormsTable.getActionMap();
-		notesTableActionMap.put("insert", new AbstractAction(){
+		final InputMap noteTableInputMap = culturalNormsTable.getInputMap(JComponent.WHEN_FOCUSED);
+		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
+		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
+		final ActionMap noteTableActionMap = culturalNormsTable.getActionMap();
+		noteTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				addAction();
 			}
 		});
-		notesTableActionMap.put("delete", new AbstractAction(){
+		noteTableActionMap.put("delete", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				deleteAction();
