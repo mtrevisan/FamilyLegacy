@@ -65,7 +65,7 @@ import java.util.function.Consumer;
 
 
 //TODO
-public class CalendarRecordDialog extends JDialog{
+public final class CalendarRecordDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 4728999064397477461L;
@@ -99,7 +99,7 @@ public class CalendarRecordDialog extends JDialog{
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private GedcomNode container;
+	private GedcomNode calendar;
 	private long originalCulturalNormsHash;
 	private long originalNotesHash;
 	private long originalSourcesHash;
@@ -128,7 +128,7 @@ public class CalendarRecordDialog extends JDialog{
 			final Consumer<Object> onCloseGracefully = ignored -> {
 				//if ok was pressed, add this note to the parent container
 				final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
-				container.addChildReference("CULTURAL_NORM", newCulturalNormID);
+				calendar.addChildReference("CULTURAL_NORM", newCulturalNormID);
 
 				culturalNormButton.setBorder(calculateCulturalNormsHashCode() != originalCulturalNormsHash
 					? new LineBorder(Color.BLUE)
@@ -139,7 +139,7 @@ public class CalendarRecordDialog extends JDialog{
 			};
 
 			//fire add event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, container, onCloseGracefully));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onCloseGracefully));
 		});
 
 		noteButton.setToolTipText("Add note");
@@ -153,7 +153,7 @@ public class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
 		});
 
 		sourceButton.setToolTipText("Add source");
@@ -167,7 +167,7 @@ public class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, container, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar, onAccept));
 		});
 
 		final ActionListener okAction = evt -> okAction();
@@ -192,21 +192,9 @@ public class CalendarRecordDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
-	private int calculateCulturalNormsHashCode(){
-		return store.traverseAsList(container, "CULTURAL_NORM[]").hashCode();
-	}
-
-	private int calculateNotesHashCode(){
-		return store.traverseAsList(container, "NOTE[]").hashCode();
-	}
-
-	private int calculateSourcesHashCode(){
-		return store.traverseAsList(container, "SOURCE[]").hashCode();
-	}
-
 	private boolean sourceContainsEvent(final String event){
 		boolean containsEvent = false;
-		final List<GedcomNode> events = store.traverseAsList(container, "EVENT[]");
+		final List<GedcomNode> events = store.traverseAsList(calendar, "EVENT[]");
 		for(int i = 0; !containsEvent && i < events.size(); i ++)
 			if(events.get(i).getValue().equalsIgnoreCase(event))
 				containsEvent = true;
@@ -216,26 +204,32 @@ public class CalendarRecordDialog extends JDialog{
 	private void okAction(){
 		final String type = (String)typeComboBox.getSelectedItem();
 
-		container.replaceChildValue("TYPE", type);
+		calendar.clearAll();
+		calendar.addChild(
+			store.create("TYPE")
+				.withValue(type)
+		);
 		//TODO
+
+		if(onAccept != null)
+			onAccept.accept(this);
+
+		setVisible(false);
 	}
 
-	public final void loadData(final GedcomNode calendar, final Consumer<Object> onAccept){
-		this.container = calendar;
+	public void loadData(final GedcomNode calendar, final Consumer<Object> onAccept){
+		this.calendar = calendar;
 		this.onAccept = onAccept;
 
 		originalCulturalNormsHash = calculateCulturalNormsHashCode();
 		originalNotesHash = calculateNotesHashCode();
 		originalSourcesHash = calculateSourcesHashCode();
 
-		final StringJoiner events = new StringJoiner(", ");
-		for(final GedcomNode event : store.traverseAsList(calendar, "EVENT[]"))
-			events.add(event.getValue());
 		final String type = store.traverse(calendar, "TYPE").getValue();
+		//TODO
 		final String author = store.traverse(calendar, "AUTHOR").getValue();
 		final String publicationFacts = store.traverse(calendar, "PUBLICATION_FACTS").getValue();
 		final GedcomNode dateNode = store.traverse(calendar, "DATE");
-		//TODO
 		final GedcomNode place = store.traverse(calendar, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(calendar, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
@@ -244,6 +238,18 @@ public class CalendarRecordDialog extends JDialog{
 		typeComboBox.setSelectedItem(type);
 		sourceButton.setEnabled(true);
 		noteButton.setEnabled(true);
+	}
+
+	private int calculateCulturalNormsHashCode(){
+		return store.traverseAsList(calendar, "CULTURAL_NORM[]").hashCode();
+	}
+
+	private int calculateNotesHashCode(){
+		return store.traverseAsList(calendar, "NOTE[]").hashCode();
+	}
+
+	private int calculateSourcesHashCode(){
+		return store.traverseAsList(calendar, "SOURCE[]").hashCode();
 	}
 
 

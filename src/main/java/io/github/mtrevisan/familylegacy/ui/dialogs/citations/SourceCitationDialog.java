@@ -314,7 +314,6 @@ public class SourceCitationDialog extends JDialog{
 			loadData();
 		};
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, newSource, onCloseGracefully));
 	}
 
@@ -330,7 +329,6 @@ public class SourceCitationDialog extends JDialog{
 		else
 			selectedSource = store.getSource(sourceXRef);
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, selectedSource));
 	}
 

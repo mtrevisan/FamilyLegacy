@@ -261,7 +261,6 @@ public class NoteCitationDialog extends JDialog{
 		else
 			selectedNote = store.getNote(noteXRef);
 
-		//fire edit event
 		final EditEvent.EditType type = ("NOTE".equals(childTag)? EditEvent.EditType.NOTE: EditEvent.EditType.NOTE_TRANSLATION);
 		EventBusService.publish(new EditEvent(type, selectedNote));
 	}

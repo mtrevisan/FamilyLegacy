@@ -245,7 +245,6 @@ public class RepositoryCitationDialog extends JDialog{
 			loadData();
 		};
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newRepository, onCloseGracefully));
 	}
 
@@ -261,7 +260,6 @@ public class RepositoryCitationDialog extends JDialog{
 		else
 			selectedRepository = store.getRepository(repositoryXRef);
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, selectedRepository));
 	}
 

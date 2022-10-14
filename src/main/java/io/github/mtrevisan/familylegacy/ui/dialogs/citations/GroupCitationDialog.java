@@ -277,7 +277,6 @@ public class GroupCitationDialog extends JDialog{
 			loadData();
 		};
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP, newGroup, onCloseGracefully));
 	}
 
@@ -293,7 +292,6 @@ public class GroupCitationDialog extends JDialog{
 		else
 			selectedGroup = store.getGroup(groupXRef);
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.GROUP, selectedGroup));
 	}
 

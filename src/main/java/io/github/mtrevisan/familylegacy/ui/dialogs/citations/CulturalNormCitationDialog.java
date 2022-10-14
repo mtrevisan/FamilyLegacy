@@ -223,7 +223,6 @@ public class CulturalNormCitationDialog extends JDialog{
 		else
 			selectedCulturalNorm = store.getCulturalNorm(culturalNormXRef);
 
-		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, selectedCulturalNorm));
 	}
 

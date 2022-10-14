@@ -140,14 +140,10 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, note, onAccept));
 		});
+
 		sourceButton.setToolTipText("Add source");
 		sourceButton.addActionListener(evt -> {
-			final GedcomNode source = store.create("SOURCE");
-
 			final Consumer<Object> onAccept = ignored -> {
-				//add node from source citation dialog
-				note.addChild(source);
-
 				sourceButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
 					? new LineBorder(Color.BLUE)
 					: originalButtonBorder);
@@ -157,7 +153,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			};
 
 			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, source, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, note, onAccept));
 		});
 
 		final ActionListener okAction = evt -> okAction();
