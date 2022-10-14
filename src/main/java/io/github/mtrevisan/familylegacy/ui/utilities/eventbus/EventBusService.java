@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
 
+import io.github.mtrevisan.familylegacy.ui.utilities.LoggerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,17 +60,17 @@ public final class EventBusService{
 	public static void subscribe(final Object subscriber){
 		EVENT_BUS.subscribe(subscriber);
 
-		LOGGER.debug("Subscribed: {}", subscriber);
+		LOGGER.debug("Subscribed: '{}', called from {}", subscriber, LoggerHelper.extractCallerClasses()[1].getSimpleName());
 	}
 
 	public static void unsubscribe(final Object subscriber){
 		EVENT_BUS.unsubscribe(subscriber);
 
-		LOGGER.debug("Unsubscribed: {}", subscriber);
+		LOGGER.debug("Unsubscribed: '{}', called from {}", subscriber, LoggerHelper.extractCallerClasses()[1].getSimpleName());
 	}
 
 	public static void publish(final Object event){
-		LOGGER.debug("Event published: {}", event);
+		LOGGER.debug("Event published: '{}', called from {}", event, LoggerHelper.extractCallerClasses()[1].getSimpleName());
 
 		EVENT_BUS.publish(event);
 	}
