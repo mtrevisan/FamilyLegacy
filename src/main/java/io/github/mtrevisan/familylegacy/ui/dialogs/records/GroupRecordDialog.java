@@ -178,6 +178,10 @@ public class GroupRecordDialog extends JDialog{
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for group " + group.getID()
+								: "New note citation for group " + group.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();

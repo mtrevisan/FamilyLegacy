@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,6 +52,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -151,19 +153,8 @@ public class RepositoryCitationDialog extends JDialog{
 		//clicking on a line links it to current repository citation
 		repositoryTable.getSelectionModel().addListSelectionListener(evt -> {
 			final int selectedRow = repositoryTable.getSelectedRow();
-			if(!evt.getValueIsAdjusting() && selectedRow >= 0){
-				final String selectedRepositoryID = (String)repositoryTable.getValueAt(selectedRow, TABLE_INDEX_REPOSITORY_ID);
-				final GedcomNode selectedRepositoryCitation = store.traverse(container, "REPOSITORY@" + selectedRepositoryID);
-				final GedcomNode selectedRepository = store.getRepository(selectedRepositoryID);
-				okButton.putClientProperty(KEY_REPOSITORY_ID, selectedRepositoryID);
-
-				GUIHelper.setEnabled(locationLabel, true);
-				locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
-				noteButton.setEnabled(true);
-				noteButton.setEnabled(true);
-
-				okButton.setEnabled(true);
-			}
+			if(!evt.getValueIsAdjusting() && selectedRow >= 0)
+				selectAction(repositoryTable.convertRowIndexToModel(selectedRow));
 		});
 		repositoryTable.addMouseListener(new MouseAdapter(){
 			@Override
@@ -189,27 +180,16 @@ public class RepositoryCitationDialog extends JDialog{
 			}
 		});
 
-		addButton.addActionListener(evt -> {
-			final GedcomNode newRepository = store.create("REPOSITORY");
-
-			final Consumer<Object> onCloseGracefully = ignored -> {
-				//if ok was pressed, add this repository to the parent container
-				final String newRepositoryID = store.addRepository(newRepository);
-				container.addChildReference("REPOSITORY", newRepositoryID);
-
-				//refresh group list
-				loadData();
-			};
-
-			//fire edit event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newRepository, onCloseGracefully));
-		});
-
 		locationLabel.setLabelFor(locationField);
 		GUIHelper.setEnabled(locationLabel, false);
 
 		noteButton.setToolTipText("Add note");
 		noteButton.setEnabled(false);
+		noteButton.addActionListener(evt -> {
+			final String selectedRepositoryID = (String)okButton.getClientProperty(KEY_REPOSITORY_ID);
+			final GedcomNode selectedRepository = store.getSource(selectedRepositoryID);
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedRepository));
+		});
 
 		final ActionListener addAction = evt -> addAction();
 		final ActionListener okAction = evt -> {
@@ -219,6 +199,7 @@ public class RepositoryCitationDialog extends JDialog{
 			setVisible(false);
 		};
 		final ActionListener cancelAction = evt -> setVisible(false);
+		addButton.addActionListener(addAction);
 		//TODO link to help
 //		helpButton.addActionListener(evt -> dispose());
 		okButton.addActionListener(okAction);
@@ -237,6 +218,19 @@ public class RepositoryCitationDialog extends JDialog{
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
+	}
+
+	private void selectAction(final int selectedRow){
+		final String selectedRepositoryID = (String)repositoryTable.getValueAt(selectedRow, TABLE_INDEX_REPOSITORY_ID);
+		final GedcomNode selectedRepositoryCitation = store.traverse(container, "REPOSITORY@" + selectedRepositoryID);
+		okButton.putClientProperty(KEY_REPOSITORY_ID, selectedRepositoryID);
+
+		GUIHelper.setEnabled(locationLabel, true);
+		locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
+
+		noteButton.setEnabled(true);
+
+		okButton.setEnabled(true);
 	}
 
 	public final void addAction(){
@@ -275,14 +269,14 @@ public class RepositoryCitationDialog extends JDialog{
 		final DefaultTableModel model = (DefaultTableModel)repositoryTable.getModel();
 		final int index = repositoryTable.convertRowIndexToModel(repositoryTable.getSelectedRow());
 		final String repositoryXRef = (String)model.getValueAt(index, TABLE_INDEX_REPOSITORY_ID);
-		final GedcomNode selectedNote;
+		final GedcomNode selectedRepository;
 		if(StringUtils.isBlank(repositoryXRef))
-			selectedNote = store.traverseAsList(container, "REPOSITORY[]")
+			selectedRepository = store.traverseAsList(container, "REPOSITORY[]")
 				.get(index);
 		else
-			selectedNote = store.getRepository(repositoryXRef);
+			selectedRepository = store.getRepository(repositoryXRef);
 
-		container.removeChild(selectedNote);
+		container.removeChild(selectedRepository);
 
 		loadData();
 	}
@@ -362,11 +356,17 @@ public class RepositoryCitationDialog extends JDialog{
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode sourceCitation = store.traverseAsList(store.getIndividuals().get(0), "SOURCE[]").get(0);
-		final GedcomNode container = store.getSource(sourceCitation.getXRef());
+		final GedcomNode source = store.getSource(sourceCitation.getXRef());
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
@@ -375,10 +375,24 @@ public class RepositoryCitationDialog extends JDialog{
 							final GedcomNode repository = editCommand.getContainer();
 							dialog.setTitle(repository.getID() != null
 								? "Repository " + repository.getID()
-								: "New repository for " + container.getID());
+								: "New repository for " + source.getID());
 							dialog.loadData(repository, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case NOTE_CITATION -> {
+							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for source " + source.getID()
+								: "New note citation for source " + source.getID());
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								//show a note input dialog
+								dialog.addAction();
+
+							dialog.setSize(450, 260);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -387,7 +401,7 @@ public class RepositoryCitationDialog extends JDialog{
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
-								: "New note for " + container.getID());
+								: "New note for " + source.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
@@ -439,8 +453,8 @@ public class RepositoryCitationDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, parent);
-			dialog.setTitle(container.isEmpty()? "Repository citations": "Repository citations for " + container.getID());
-			if(!dialog.loadData(container, null))
+			dialog.setTitle(source.isEmpty()? "Repository citations": "Repository citations for " + source.getID());
+			if(!dialog.loadData(source, null))
 				dialog.addAction();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

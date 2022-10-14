@@ -43,12 +43,10 @@ public class DatePanel extends JPanel{
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", 20, 20);
 
-	private static final CredibilityComboBoxModel CREDIBILITY_MODEL = new CredibilityComboBoxModel();
-
 
 	private final JTextField dateField = new JTextField();
 	private final JTextField dateOriginalTextField = new JTextField();
-	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private String calendarXRef;
 
 

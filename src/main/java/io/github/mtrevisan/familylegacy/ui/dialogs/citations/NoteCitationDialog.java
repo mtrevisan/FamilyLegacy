@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,6 +48,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -217,8 +219,6 @@ public class NoteCitationDialog extends JDialog{
 				deleteAction();
 			}
 		});
-		noteTable.setPreferredScrollableViewportSize(new Dimension(noteTable.getPreferredSize().width,
-			noteTable.getRowHeight() * 5));
 
 		final ActionListener addAction = evt -> addAction();
 		final ActionListener okAction = evt -> {
@@ -359,11 +359,17 @@ public class NoteCitationDialog extends JDialog{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = store.getIndividuals().get(0);
+		final GedcomNode individual = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
@@ -372,7 +378,7 @@ public class NoteCitationDialog extends JDialog{
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
-								: "New note for " + container.getID());
+								: "New note for " + individual.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
@@ -425,8 +431,8 @@ public class NoteCitationDialog extends JDialog{
 
 			final NoteCitationDialog dialog = createNoteCitation(store, parent);
 //			final NoteCitationDialog dialog = createNoteTranslationCitation(store, parent);
-			dialog.setTitle(container.isEmpty()? "Note citations": "Note citations for " + container.getID());
-			if(!dialog.loadData(container, null))
+			dialog.setTitle(individual.isEmpty()? "Note citations": "Note citations for " + individual.getID());
+			if(!dialog.loadData(individual, null))
 				//show a note input dialog
 				dialog.addAction();
 

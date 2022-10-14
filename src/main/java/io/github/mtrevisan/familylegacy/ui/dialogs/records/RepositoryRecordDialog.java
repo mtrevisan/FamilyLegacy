@@ -178,6 +178,10 @@ public class RepositoryRecordDialog extends JDialog{
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for repository " + repository.getID()
+								: "New note citation for repository " + repository.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();

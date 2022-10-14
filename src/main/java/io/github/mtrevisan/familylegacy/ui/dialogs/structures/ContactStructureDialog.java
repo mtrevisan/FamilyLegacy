@@ -464,7 +464,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = store.getRepositories().get(1);
+		final GedcomNode repository = store.getRepositories().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -480,6 +480,10 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 					switch(editCommand.getType()){
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for repository " + repository.getID()
+								: "New note citation for repository " + repository.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -504,7 +508,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 			EventBusService.subscribe(listener);
 
 			final ContactStructureDialog dialog = new ContactStructureDialog(store, parent);
-			dialog.loadData(container, null);
+			dialog.loadData(repository, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

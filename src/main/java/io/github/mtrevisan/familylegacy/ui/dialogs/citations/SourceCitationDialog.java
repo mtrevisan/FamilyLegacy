@@ -114,16 +114,14 @@ public class SourceCitationDialog extends JDialog{
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon CROP = ResourceHelper.getImage("/images/crop.png", CROP_SIZE);
 
-	private static final CredibilityComboBoxModel CREDIBILITY_MODEL = new CredibilityComboBoxModel();
-
 	private static final String KEY_SOURCE_ID = "sourceID";
 	private static final String KEY_SOURCE_FILE = "sourceFile";
 	private static final String KEY_SOURCE_CROP = "sourceCrop";
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable sourcesTable = new JTable(new SourceTableModel());
-	private final JScrollPane sourcesScrollPane = new JScrollPane(sourcesTable);
+	private final JTable sourceTable = new JTable(new SourceTableModel());
+	private final JScrollPane sourcesScrollPane = new JScrollPane(sourceTable);
 	private final JButton addButton = new JButton("Add");
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
@@ -134,7 +132,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JButton cropButton = new JButton(CROP);
 	private final JButton noteButton = new JButton("Notes");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -162,37 +160,37 @@ public class SourceCitationDialog extends JDialog{
 			}
 		});
 
-		sourcesTable.setAutoCreateRowSorter(true);
-		sourcesTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		sourcesTable.setGridColor(GRID_COLOR);
-		sourcesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		sourcesTable.setDragEnabled(true);
-		sourcesTable.setDropMode(DropMode.INSERT_ROWS);
-		sourcesTable.setTransferHandler(new TableTransferHandle(sourcesTable));
-		sourcesTable.getTableHeader().setFont(sourcesTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(sourcesTable, TABLE_INDEX_SOURCE_ID, 0, ID_PREFERRED_WIDTH);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(sourcesTable.getModel());
+		sourceTable.setAutoCreateRowSorter(true);
+		sourceTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		sourceTable.setGridColor(GRID_COLOR);
+		sourceTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		sourceTable.setDragEnabled(true);
+		sourceTable.setDropMode(DropMode.INSERT_ROWS);
+		sourceTable.setTransferHandler(new TableTransferHandle(sourceTable));
+		sourceTable.getTableHeader().setFont(sourceTable.getFont().deriveFont(Font.BOLD));
+		TableHelper.setColumnWidth(sourceTable, TABLE_INDEX_SOURCE_ID, 0, ID_PREFERRED_WIDTH);
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(sourceTable.getModel());
 		sorter.setComparator(TABLE_INDEX_SOURCE_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_SOURCE_TYPE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_SOURCE_TITLE, Comparator.naturalOrder());
-		sourcesTable.setRowSorter(sorter);
+		sourceTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
-		sourcesTable.getSelectionModel().addListSelectionListener(evt -> {
-			final int selectedRow = sourcesTable.getSelectedRow();
+		sourceTable.getSelectionModel().addListSelectionListener(evt -> {
+			final int selectedRow = sourceTable.getSelectedRow();
 			if(!evt.getValueIsAdjusting() && selectedRow >= 0)
-				selectAction(sourcesTable.convertRowIndexToModel(selectedRow));
+				selectAction(sourceTable.convertRowIndexToModel(selectedRow));
 		});
-		sourcesTable.addMouseListener(new MouseAdapter(){
+		sourceTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && sourcesTable.rowAtPoint(evt.getPoint()) >= 0)
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && sourceTable.rowAtPoint(evt.getPoint()) >= 0)
 					editAction();
 			}
 		});
-		final InputMap sourcesTableInputMap = sourcesTable.getInputMap(JComponent.WHEN_FOCUSED);
+		final InputMap sourcesTableInputMap = sourceTable.getInputMap(JComponent.WHEN_FOCUSED);
 		sourcesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
 		sourcesTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		final ActionMap sourcesTableActionMap = sourcesTable.getActionMap();
+		final ActionMap sourcesTableActionMap = sourceTable.getActionMap();
 		sourcesTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
@@ -205,8 +203,6 @@ public class SourceCitationDialog extends JDialog{
 				deleteAction();
 			}
 		});
-		sourcesTable.setPreferredScrollableViewportSize(new Dimension(sourcesTable.getPreferredSize().width,
-			sourcesTable.getRowHeight() * 5));
 
 		titleLabel.setLabelFor(titleField);
 		GUIHelper.setEnabled(titleLabel, false);
@@ -291,30 +287,14 @@ public class SourceCitationDialog extends JDialog{
 		EventBusService.publish(new EditEvent(EditEvent.EditType.CROP, fileNode, onCloseGracefully));
 	}
 
-	private void okAction(){
-		final String id = (String)okButton.getClientProperty(KEY_SOURCE_ID);
-		final String location = locationField.getText();
-		final String role = roleField.getText();
-		final String file = (String)cropButton.getClientProperty(KEY_SOURCE_FILE);
-		final String crop = (String)cropButton.getClientProperty(KEY_SOURCE_CROP);
-		final int credibility = credibilityComboBox.getSelectedIndex() - 1;
-
-		final GedcomNode group = store.traverse(container, "SOURCE@" + id);
-		group.replaceChildValue("LOCATION", location);
-		group.replaceChildValue("ROLE", role);
-		group.replaceChildValue("CROP", crop);
-		group.replaceChildValue("FILE", file);
-		group.replaceChildValue("CREDIBILITY", (credibility >= 0? Integer.toString(credibility): null));
-	}
-
 	private void selectAction(final int selectedRow){
-		final String selectedSourceID = (String)sourcesTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
+		final String selectedSourceID = (String)sourceTable.getValueAt(selectedRow, TABLE_INDEX_SOURCE_ID);
 		final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
-		final GedcomNode selectedSource = store.getSource(selectedSourceID);
 		okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
-		GUIHelper.setEnabled(titleLabel, true);
-		titleField.setText(store.traverse(selectedSource, "TITLE").getValue());
 
+		GUIHelper.setEnabled(titleLabel, true);
+		final GedcomNode selectedSource = store.getSource(selectedSourceID);
+		titleField.setText(store.traverse(selectedSource, "TITLE").getValue());
 		GUIHelper.setEnabled(locationLabel, true);
 		locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
 		GUIHelper.setEnabled(roleLabel, true);
@@ -348,20 +328,30 @@ public class SourceCitationDialog extends JDialog{
 
 	private void editAction(){
 		//retrieve selected source
-		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
-		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)sourceTable.getModel();
+		final int index = sourceTable.convertRowIndexToModel(sourceTable.getSelectedRow());
 		final String sourceXRef = (String)model.getValueAt(index, TABLE_INDEX_SOURCE_ID);
-		final GedcomNode selectedSource = store.getSource(sourceXRef);
+		final GedcomNode selectedSource;
+		if(StringUtils.isBlank(sourceXRef))
+			selectedSource = store.traverseAsList(container, "SOURCE[]")
+				.get(index);
+		else
+			selectedSource = store.getRepository(sourceXRef);
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, selectedSource));
 	}
 
 	private void deleteAction(){
-		final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
-		final int index = sourcesTable.convertRowIndexToModel(sourcesTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)sourceTable.getModel();
+		final int index = sourceTable.convertRowIndexToModel(sourceTable.getSelectedRow());
 		final String sourceXRef = (String)model.getValueAt(index, TABLE_INDEX_SOURCE_ID);
-		final GedcomNode selectedSource = store.getSource(sourceXRef);
+		final GedcomNode selectedSource;
+		if(StringUtils.isBlank(sourceXRef))
+			selectedSource = store.traverseAsList(container, "SOURCE[]")
+				.get(index);
+		else
+			selectedSource = store.getRepository(sourceXRef);
 
 		container.removeChild(selectedSource);
 
@@ -384,7 +374,7 @@ public class SourceCitationDialog extends JDialog{
 			sources.set(i, note);
 		}
 
-		final DefaultTableModel sourcesModel = (DefaultTableModel)sourcesTable.getModel();
+		final DefaultTableModel sourcesModel = (DefaultTableModel)sourceTable.getModel();
 		sourcesModel.setRowCount(size);
 		for(int row = 0; row < size; row ++){
 			final GedcomNode source = sources.get(row);
@@ -406,11 +396,11 @@ public class SourceCitationDialog extends JDialog{
 			TABLE_INDEX_SOURCE_TITLE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)sourcesTable.getRowSorter();
+		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)sourceTable.getRowSorter();
 		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)sourcesTable.getModel();
+			final DefaultTableModel model = (DefaultTableModel)sourceTable.getModel();
 			sorter = new TableRowSorter<>(model);
-			sourcesTable.setRowSorter(sorter);
+			sourceTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
 	}
@@ -448,7 +438,7 @@ public class SourceCitationDialog extends JDialog{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = store.getIndividuals().get(0);
+		final GedcomNode individual = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -467,7 +457,7 @@ public class SourceCitationDialog extends JDialog{
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Source " + note.getID()
-								: "New source for " + container.getID());
+								: "New source for " + individual.getID());
 							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 540);
@@ -476,6 +466,10 @@ public class SourceCitationDialog extends JDialog{
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for individual " + individual.getID()
+								: "New note citation for individual " + individual.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -487,7 +481,9 @@ public class SourceCitationDialog extends JDialog{
 						case NOTE -> {
 							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle("Note " + note.getID());
+							dialog.setTitle(note.getID() != null
+								? "Note " + note.getID()
+								: "New note for " + individual.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
@@ -519,8 +515,8 @@ public class SourceCitationDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-			dialog.setTitle(container.isEmpty()? "Source citations": "Source citations for " + container.getID());
-			if(!dialog.loadData(container, null))
+			dialog.setTitle(individual.isEmpty()? "Source citations": "Source citations for " + individual.getID());
+			if(!dialog.loadData(individual, null))
 				//show a note input dialog
 				dialog.addAction();
 

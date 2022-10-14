@@ -140,7 +140,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			}
 			case GROUP_CITATION -> {
 				final GroupCitationDialog dialog = new GroupCitationDialog(store, this);
-				if(!dialog.loadData(editCommand.getContainer()))
+				if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 					dialog.addAction();
 
 				dialog.setSize(450, 500);

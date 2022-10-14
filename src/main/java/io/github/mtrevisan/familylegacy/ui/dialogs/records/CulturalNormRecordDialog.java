@@ -118,7 +118,6 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		"Challenged",
 		"Disproven",
 		"Proven"});
-	private static final CredibilityComboBoxModel CREDIBILITY_MODEL = new CredibilityComboBoxModel();
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -137,7 +136,7 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 	private final JLabel placeCertaintyLabel = new JLabel("Certainty:");
 	private final JComboBox<String> placeCertaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
 	private final JLabel placeCredibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JButton noteButton = new JButton("Notes");
 	private final JButton sourceButton = new JButton("Sources");
 	private final JButton helpButton = new JButton("Help");

@@ -96,8 +96,8 @@ public class CulturalNormCitationDialog extends JDialog{
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
-	private final JTable culturalNormsTable = new JTable(new CulturalNormTableModel());
-	private final JScrollPane culturalNormsScrollPane = new JScrollPane(culturalNormsTable);
+	private final JTable culturalNormTable = new JTable(new CulturalNormTableModel());
+	private final JScrollPane culturalNormsScrollPane = new JScrollPane(culturalNormTable);
 	private final JButton addButton = new JButton("Add");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -126,30 +126,30 @@ public class CulturalNormCitationDialog extends JDialog{
 			}
 		});
 
-		culturalNormsTable.setAutoCreateRowSorter(true);
-		culturalNormsTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		culturalNormsTable.setGridColor(GRID_COLOR);
-		culturalNormsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		culturalNormsTable.setDragEnabled(true);
-		culturalNormsTable.setDropMode(DropMode.INSERT_ROWS);
-		culturalNormsTable.setTransferHandler(new TableTransferHandle(culturalNormsTable));
-		culturalNormsTable.getTableHeader().setFont(culturalNormsTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(culturalNormsTable, TABLE_INDEX_CULTURAL_NORM_ID, 0, ID_PREFERRED_WIDTH);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormsTable.getModel());
+		culturalNormTable.setAutoCreateRowSorter(true);
+		culturalNormTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		culturalNormTable.setGridColor(GRID_COLOR);
+		culturalNormTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		culturalNormTable.setDragEnabled(true);
+		culturalNormTable.setDropMode(DropMode.INSERT_ROWS);
+		culturalNormTable.setTransferHandler(new TableTransferHandle(culturalNormTable));
+		culturalNormTable.getTableHeader().setFont(culturalNormTable.getFont().deriveFont(Font.BOLD));
+		TableHelper.setColumnWidth(culturalNormTable, TABLE_INDEX_CULTURAL_NORM_ID, 0, ID_PREFERRED_WIDTH);
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormTable.getModel());
 		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_CULTURAL_NORM_TITLE, Comparator.naturalOrder());
-		culturalNormsTable.setRowSorter(sorter);
-		culturalNormsTable.addMouseListener(new MouseAdapter(){
+		culturalNormTable.setRowSorter(sorter);
+		culturalNormTable.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && culturalNormsTable.rowAtPoint(evt.getPoint()) >= 0)
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && culturalNormTable.rowAtPoint(evt.getPoint()) >= 0)
 					editAction();
 			}
 		});
-		final InputMap noteTableInputMap = culturalNormsTable.getInputMap(JComponent.WHEN_FOCUSED);
+		final InputMap noteTableInputMap = culturalNormTable.getInputMap(JComponent.WHEN_FOCUSED);
 		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "insert");
 		noteTableInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
-		final ActionMap noteTableActionMap = culturalNormsTable.getActionMap();
+		final ActionMap noteTableActionMap = culturalNormTable.getActionMap();
 		noteTableActionMap.put("insert", new AbstractAction(){
 			@Override
 			public void actionPerformed(final ActionEvent evt){
@@ -162,8 +162,6 @@ public class CulturalNormCitationDialog extends JDialog{
 				deleteAction();
 			}
 		});
-		culturalNormsTable.setPreferredScrollableViewportSize(new Dimension(culturalNormsTable.getPreferredSize().width,
-			culturalNormsTable.getRowHeight() * 5));
 
 		final ActionListener addAction = evt -> addAction();
 		final ActionListener okAction = evt -> {
@@ -216,8 +214,8 @@ public class CulturalNormCitationDialog extends JDialog{
 
 	private void editAction(){
 		//retrieve selected note
-		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
-		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)culturalNormTable.getModel();
+		final int index = culturalNormTable.convertRowIndexToModel(culturalNormTable.getSelectedRow());
 		final String culturalNormXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
 		final GedcomNode selectedCulturalNorm;
 		if(StringUtils.isBlank(culturalNormXRef))
@@ -231,8 +229,8 @@ public class CulturalNormCitationDialog extends JDialog{
 	}
 
 	private void deleteAction(){
-		final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
-		final int index = culturalNormsTable.convertRowIndexToModel(culturalNormsTable.getSelectedRow());
+		final DefaultTableModel model = (DefaultTableModel)culturalNormTable.getModel();
+		final int index = culturalNormTable.convertRowIndexToModel(culturalNormTable.getSelectedRow());
 		final String culturalNormXRef = (String)model.getValueAt(index, TABLE_INDEX_CULTURAL_NORM_ID);
 		final GedcomNode selectedCulturalNorm;
 		if(StringUtils.isBlank(culturalNormXRef))
@@ -262,7 +260,7 @@ public class CulturalNormCitationDialog extends JDialog{
 			culturalNorms.set(i, culturalNorm);
 		}
 
-		final DefaultTableModel culturalNormsModel = (DefaultTableModel)culturalNormsTable.getModel();
+		final DefaultTableModel culturalNormsModel = (DefaultTableModel)culturalNormTable.getModel();
 		culturalNormsModel.setRowCount(size);
 		for(int row = 0; row < size; row ++){
 			final GedcomNode culturalNorm = culturalNorms.get(row);
@@ -278,11 +276,11 @@ public class CulturalNormCitationDialog extends JDialog{
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_CULTURAL_NORM_ID, TABLE_INDEX_CULTURAL_NORM_TITLE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)culturalNormsTable.getRowSorter();
+		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)culturalNormTable.getRowSorter();
 		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)culturalNormsTable.getModel();
+			final DefaultTableModel model = (DefaultTableModel)culturalNormTable.getModel();
 			sorter = new TableRowSorter<>(model);
-			culturalNormsTable.setRowSorter(sorter);
+			culturalNormTable.setRowSorter(sorter);
 		}
 		sorter.setRowFilter(filter);
 	}

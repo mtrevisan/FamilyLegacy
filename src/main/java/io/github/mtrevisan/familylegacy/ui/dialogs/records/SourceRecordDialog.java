@@ -81,7 +81,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
 
-	private static final CredibilityComboBoxModel CREDIBILITY_MODEL = new CredibilityComboBoxModel();
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
 
@@ -276,6 +275,10 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for source " + source.getID()
+								: "New note citation for source " + source.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 

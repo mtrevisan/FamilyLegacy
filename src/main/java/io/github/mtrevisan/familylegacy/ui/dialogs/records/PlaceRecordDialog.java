@@ -95,7 +95,6 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 		"Challenged",
 		"Disproven",
 		"Proven"});
-	private static final CredibilityComboBoxModel CREDIBILITY_MODEL = new CredibilityComboBoxModel();
 
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
@@ -113,7 +112,7 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	private final JLabel certaintyLabel = new JLabel("Certainty:");
 	private final JComboBox<String> certaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> credibilityComboBox = new JComboBox<>(CREDIBILITY_MODEL);
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JLabel subordinateLabel = new JLabel("Subordinate to:");
 	//TODO
 private final JTextField subordinateField = new JTextField();
@@ -282,6 +281,10 @@ private final JTextField subordinateField = new JTextField();
 						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for place " + place.getID()
+								: "New note citation for place " + place.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();

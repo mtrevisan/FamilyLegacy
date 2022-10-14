@@ -529,7 +529,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode container = store.getSources().get(0);
+		final GedcomNode source = store.getSources().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -545,6 +545,10 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 					switch(editCommand.getType()){
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+							final GedcomNode noteCitation = editCommand.getContainer();
+							dialog.setTitle(noteCitation.getID() != null
+								? "Note citation " + noteCitation.getID() + " for source " + source.getID()
+								: "New note citation for source " + source.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -569,7 +573,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 			EventBusService.subscribe(listener);
 
 			final DocumentStructureDialog dialog = new DocumentStructureDialog(store, parent);
-			dialog.loadData(container, null);
+			dialog.loadData(source, null);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
