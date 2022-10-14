@@ -121,7 +121,7 @@ public class CalendarRecordDialog extends JDialog{
 		AutoCompleteDecorator.decorate(typeComboBox);
 
 		final Border originalButtonBorder = okButton.getBorder();
-		noteButton.setToolTipText("Add cultural norm");
+		noteButton.setToolTipText("Add note");
 		culturalNormButton.addActionListener(evt -> {
 			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
 
@@ -184,12 +184,12 @@ public class CalendarRecordDialog extends JDialog{
 //		setLayout(new MigLayout("debug", "[grow]"));
 		add(typeLabel, "align label,split 2");
 		add(typeComboBox, "grow,wrap");
-		add(culturalNormButton, "split 3,sizegroup button2,center");
-		add(noteButton, "sizegroup button2,center");
-		add(sourceButton, "sizegroup button2,center,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(culturalNormButton, "split 3,sizegroup button,center");
+		add(noteButton, "sizegroup button,center");
+		add(sourceButton, "sizegroup button,center,wrap paragraph");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private int calculateCulturalNormsHashCode(){

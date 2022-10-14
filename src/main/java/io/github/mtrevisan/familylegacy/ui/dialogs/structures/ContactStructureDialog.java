@@ -252,7 +252,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(contactsScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
 		add(contactIDLabel, "align label,sizegroup label,split 2");
 		add(contactIDField, "grow,wrap");
 		add(typeLabel, "align label,sizegroup label,split 2");
@@ -261,9 +261,9 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		add(callerIDField, "grow,wrap paragraph");
 		add(noteButton, "grow,wrap paragraph");
 		add(restrictionCheckBox, "wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private void updateContactFieldMenuItems(final String contactID){

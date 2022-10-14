@@ -267,9 +267,9 @@ public class SourceCitationDialog extends JDialog{
 		add(noteButton, "sizegroup button,grow,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private void cropAction(){

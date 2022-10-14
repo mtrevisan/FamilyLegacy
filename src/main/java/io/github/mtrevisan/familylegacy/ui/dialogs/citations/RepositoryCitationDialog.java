@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -43,6 +44,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.DropMode;
+import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -85,6 +87,8 @@ public class RepositoryCitationDialog extends JDialog{
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	private static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 
+	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
+
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
 
@@ -102,11 +106,9 @@ public class RepositoryCitationDialog extends JDialog{
 	private final JTable repositoryTable = new JTable(new RepositoryTableModel());
 	private final JScrollPane repositoriesScrollPane = new JScrollPane(repositoryTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel repositoryNameLabel = new JLabel("Name:");
-	private final JTextField repositoryNameField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
-	private final JButton noteButton = new JButton("Notes");
+	private final JButton noteButton = new JButton(ICON_NOTE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -155,8 +157,6 @@ public class RepositoryCitationDialog extends JDialog{
 				final GedcomNode selectedRepositoryCitation = store.traverse(container, "REPOSITORY@" + selectedRepositoryID);
 				final GedcomNode selectedRepository = store.getRepository(selectedRepositoryID);
 				okButton.putClientProperty(KEY_REPOSITORY_ID, selectedRepositoryID);
-				GUIHelper.setEnabled(repositoryNameLabel, true);
-				repositoryNameField.setText(store.traverse(selectedRepository, "NAME").getValue());
 
 				GUIHelper.setEnabled(locationLabel, true);
 				locationField.setText(store.traverse(selectedRepositoryCitation, "LOCATION").getValue());
@@ -206,12 +206,10 @@ public class RepositoryCitationDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, newRepository, onCloseGracefully));
 		});
 
-		repositoryNameLabel.setLabelFor(repositoryNameField);
-		GUIHelper.setEnabled(repositoryNameLabel, false);
-
 		locationLabel.setLabelFor(locationField);
 		GUIHelper.setEnabled(locationLabel, false);
 
+		noteButton.setToolTipText("Add note");
 		noteButton.setEnabled(false);
 
 		final ActionListener addAction = evt -> addAction();
@@ -233,15 +231,13 @@ public class RepositoryCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(repositoriesScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
-		add(repositoryNameLabel, "align label,sizegroup label,split 2");
-		add(repositoryNameField, "grow,wrap");
+		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
 		add(locationLabel, "align label,split 2");
-		add(locationField, "grow,wrap paragraph");
-		add(noteButton, "sizegroup button,grow,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(locationField, "grow,wrap");
+		add(noteButton, "sizegroup button,wrap paragraph");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	public final void addAction(){
@@ -345,12 +341,12 @@ public class RepositoryCitationDialog extends JDialog{
 		}
 
 		@Override
-		public Class<?> getColumnClass(final int column){
+		public final Class<?> getColumnClass(final int column){
 			return String.class;
 		}
 
 		@Override
-		public boolean isCellEditable(final int row, final int column){
+		public final boolean isCellEditable(final int row, final int column){
 			return false;
 		}
 	}

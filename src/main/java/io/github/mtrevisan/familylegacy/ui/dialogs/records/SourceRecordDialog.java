@@ -163,15 +163,15 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		add(publicationFactsField, "grow,wrap paragraph");
 		add(datePanel, "grow,wrap paragraph");
 		add(placeButton, "sizegroup button2,grow,wrap");
-		add(repositoryButton, "sizegroup button2,grow,wrap paragraph");
+		add(repositoryButton, "sizegroup button,grow,wrap paragraph");
 		add(mediaTypeLabel, "align label,split 2");
 		add(mediaTypeField, "grow,wrap paragraph");
-		add(documentButton, "sizegroup button2,grow,wrap");
-		add(noteButton, "sizegroup button2,grow,wrap");
-		add(sourceButton, "sizegroup button2,grow,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(documentButton, "sizegroup button,grow,wrap");
+		add(noteButton, "sizegroup button,grow,wrap");
+		add(sourceButton, "sizegroup button,grow,wrap paragraph");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private boolean sourceContainsEvent(final String event){

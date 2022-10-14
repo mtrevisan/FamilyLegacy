@@ -172,14 +172,14 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
 		add(textPreviewView, "spanx 2,spany 2,grow");
-		add(translationButton, "tag add,sizegroup button2,wrap");
-		add(sourceButton, "tag add,top,sizegroup button2,wrap");
+		add(translationButton, "tag add,sizegroup button,wrap");
+		add(sourceButton, "tag add,top,sizegroup button,wrap");
 		add(localeLabel, "align label,spanx 3,split 2,sizegroup label");
 		add(localeComboBox, "spanx 3,wrap");
 		add(restrictionCheckBox, "spanx 3,wrap");
-		add(helpButton, "tag help2,spanx 3,split 3,sizegroup button");
-		add(okButton, "tag ok,spanx 3,sizegroup button");
-		add(cancelButton, "tag cancel,spanx 3,sizegroup button");
+		add(helpButton, "tag help2,spanx 3,split 3,sizegroup button2");
+		add(okButton, "tag ok,spanx 3,sizegroup button2");
+		add(cancelButton, "tag cancel,spanx 3,sizegroup button2");
 	}
 
 	private void changeNoteInitComponents(){
@@ -202,9 +202,9 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		add(textPreviewView, "grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	@Override

@@ -77,8 +77,8 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
-		add(okButton, "tag ok,span,split 2,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(okButton, "tag ok,span,split 2,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	public final void loadData(final String path, final Consumer<Object> onCloseGracefully) throws IOException{

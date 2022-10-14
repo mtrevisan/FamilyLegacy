@@ -209,9 +209,9 @@ private final JTextField subordinateField = new JTextField();
 		add(mapPanel, "grow,wrap");
 		add(subordinateLabel, "align label,sizegroup label,split 2");
 		add(subordinateField, "grow,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	public void dataChanged(){

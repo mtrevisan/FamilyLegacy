@@ -120,11 +120,11 @@ public class GroupRecordDialog extends JDialog{
 		add(nameField, "grow,wrap");
 		add(typeLabel, "align label,split 2");
 		add(typeField, "grow,wrap paragraph");
-		add(eventButton, "sizegroup button2,grow,wrap");
-		add(noteButton, "sizegroup button2,grow,wrap");
-		add(sourceButton, "sizegroup button2,grow,wrap paragraph");
-		add(okButton, "tag ok,span,split 2,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(eventButton, "sizegroup button,grow,wrap");
+		add(noteButton, "sizegroup button,grow,wrap");
+		add(sourceButton, "sizegroup button,grow,wrap paragraph");
+		add(okButton, "tag ok,span,split 2,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	public void loadData(final GedcomNode group, final Consumer<Object> onCloseGracefully){

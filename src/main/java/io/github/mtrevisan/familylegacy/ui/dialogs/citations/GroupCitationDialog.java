@@ -257,7 +257,7 @@ public class GroupCitationDialog extends JDialog{
 		add(filterLabel, "align label,sizegroup label,split 2");
 		add(filterField, "grow,wrap");
 		add(groupsScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
 		add(groupLabel, "align label,sizegroup label,split 2");
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
@@ -266,9 +266,9 @@ public class GroupCitationDialog extends JDialog{
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private void transferListToContainer(){

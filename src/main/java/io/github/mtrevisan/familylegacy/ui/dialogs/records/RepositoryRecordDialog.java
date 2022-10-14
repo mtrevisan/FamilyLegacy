@@ -110,12 +110,12 @@ public class RepositoryRecordDialog extends JDialog{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(nameLabel, "align label,split 2");
 		add(nameField, "grow,wrap paragraph");
-		add(individualButton, "sizegroup button2,grow,wrap");
-		add(placeButton, "sizegroup button2,grow,wrap");
-		add(contactButton, "sizegroup button2,grow,wrap");
-		add(noteButton, "sizegroup button2,grow,wrap paragraph");
-		add(okButton, "tag ok,span,split 2,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(individualButton, "sizegroup button,grow,wrap");
+		add(placeButton, "sizegroup button,grow,wrap");
+		add(contactButton, "sizegroup button,grow,wrap");
+		add(noteButton, "sizegroup button,grow,wrap paragraph");
+		add(okButton, "tag ok,span,split 2,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	public void loadData(final GedcomNode repository, final Consumer<Object> onAccept){

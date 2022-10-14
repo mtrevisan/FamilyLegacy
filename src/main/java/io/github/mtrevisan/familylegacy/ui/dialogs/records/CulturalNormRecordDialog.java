@@ -245,10 +245,10 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		editButton.addActionListener(evt -> editAction());
 
 		ruleTitleLabel.setLabelFor(ruleTitleField);
-		ruleTitleField.setEnabled(false);
+		GUIHelper.setEnabled(ruleTitleLabel, false);
 
 		localeLabel.setLabelFor(localeComboBox);
-		localeComboBox.setEnabled(false);
+		GUIHelper.setEnabled(localeLabel, false);
 
 		descriptionPreviewView = TextPreviewPane.createWithPreview(this);
 		descriptionPanel.setBorder(BorderFactory.createTitledBorder("Description"));
@@ -265,7 +265,7 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 //		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE_CITATION, repository)));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		placePanel.add(placeButton, "sizegroup button2,grow,wrap");
+		placePanel.add(placeButton, "sizegroup button,grow,wrap");
 		placePanel.add(placeCertaintyLabel, "align label,split 2");
 		placePanel.add(placeCertaintyComboBox, "wrap");
 		placePanel.add(placeCredibilityLabel, "align label,split 2");
@@ -306,17 +306,17 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(culturalNormsScrollPane, "grow,wrap related");
-		add(addButton, "tag add,split 3,sizegroup button2");
-		add(editButton, "tag edit,sizegroup button2,wrap paragraph");
+		add(addButton, "tag add,split 3,sizegroup button");
+		add(editButton, "tag edit,sizegroup button,wrap paragraph");
 		add(ruleTitleLabel, "align label,sizegroup label,split 2");
 		add(ruleTitleField, "grow,wrap");
 		add(descriptionPanel, "grow,wrap");
 		add(placePanel, "grow,wrap paragraph");
 		add(noteButton, "grow,wrap");
 		add(sourceButton, "grow,wrap paragraph");
-		add(helpButton, "tag help2,split 3,sizegroup button");
-		add(okButton, "tag ok,sizegroup button");
-		add(cancelButton, "tag cancel,sizegroup button");
+		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(okButton, "tag ok,sizegroup button2");
+		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
 	private void transferListToContainer(){
@@ -334,10 +334,10 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		final GedcomNode selectedRule = store.getCulturalNorm(selectedNormID);
 		okButton.putClientProperty(KEY_NORM_ID, selectedNormID);
 
-		ruleTitleField.setEnabled(true);
+		GUIHelper.setEnabled(ruleTitleLabel, true);
 		ruleTitleField.setText(store.traverse(selectedRule, "TITLE").getValue());
 
-		localeComboBox.setEnabled(true);
+		GUIHelper.setEnabled(localeLabel, true);
 
 		GUIHelper.setEnabled(descriptionPanel, true);
 		final String languageTag = store.traverse(selectedRule, "LOCALE").getValue();
