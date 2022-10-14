@@ -193,25 +193,9 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		filesTable.getActionMap()
 			.put("delete", new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 2654469836713369932L;
-
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
-				}
-
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void readObject(final ObjectInputStream is) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		filesTable.setPreferredScrollableViewportSize(new Dimension(filesTable.getPreferredSize().width,

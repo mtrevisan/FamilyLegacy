@@ -87,7 +87,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
-//TODO
 public class GroupCitationDialog extends JDialog{
 
 	@Serial
@@ -239,9 +238,9 @@ public class GroupCitationDialog extends JDialog{
 		add(groupField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap paragraph");
-		add(noteButton, "sizegroup button,grow,wrap paragraph");
+		add(noteButton, "sizegroup button,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
-		add(credibilityComboBox, "grow,wrap");
+		add(credibilityComboBox, "wrap");
 		add(restrictionCheckBox, "wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");

@@ -175,25 +175,9 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		contactsTable.getActionMap()
 			.put("delete", new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 2374666866068519355L;
-
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
-				}
-
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void readObject(final ObjectInputStream is) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		contactsTable.setPreferredScrollableViewportSize(new Dimension(contactsTable.getPreferredSize().width,

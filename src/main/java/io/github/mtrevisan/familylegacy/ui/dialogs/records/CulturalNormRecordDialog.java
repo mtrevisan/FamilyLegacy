@@ -198,25 +198,9 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 			.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
 		culturalNormsTable.getActionMap()
 			.put("delete", new AbstractAction(){
-				@Serial
-				private static final long serialVersionUID = 3784664925849526371L;
-
 				@Override
 				public void actionPerformed(final ActionEvent evt){
 					deleteAction();
-				}
-
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
-				}
-
-				@SuppressWarnings("unused")
-				@Serial
-				private void readObject(final ObjectInputStream is) throws NotSerializableException{
-					throw new NotSerializableException(getClass().getName());
 				}
 			});
 		culturalNormsTable.setPreferredScrollableViewportSize(new Dimension(culturalNormsTable.getPreferredSize().width,
