@@ -316,7 +316,7 @@ public class Flef extends Store{
 
 	/**
 	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id{value}[index]` or `(tag1|tag2)#id{value}[index]` and separated by dots.
+	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[index]` or `(tag1|tag2)#id@xref{value}[index]` and separated by dots.
 	 * @return	The final node.
 	 */
 	public GedcomNode traverse(final GedcomNode origin, final String path){
@@ -325,7 +325,7 @@ public class Flef extends Store{
 
 	/**
 	 * @param origin	Origin node from which to start the traversal.
-	 * @param path	The path to follow from the origin in the form `tag#id{value}[]` or `(tag1|tag2)#id{value}[]` and separated by dots.
+	 * @param path	The path to follow from the origin in the form `tag#id@xref{value}[]` or `(tag1|tag2)#id@xref{value}[]` and separated by dots.
 	 * 	<p>The void array MUST BE last in the sequence.</p>
 	 * @return	The final node list.
 	 */

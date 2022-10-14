@@ -41,6 +41,7 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.util.function.Consumer;
 
@@ -81,10 +82,10 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
-	public final void loadData(final String path, final Consumer<Object> onCloseGracefully) throws IOException{
+	public final void loadData(final File file, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
-		imageHolder.setImage(ResourceHelper.readImage(path));
+		imageHolder.setImage(ResourceHelper.readImage(file));
 
 		repaint();
 	}
@@ -122,8 +123,8 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
-		final String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd";
-//		final String file = "C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
+		final File file = new File("C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd");
+//		final File file = new File("C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Trevisan Mauro Ospitalization 20150304-10.jpg";
 
 		EventQueue.invokeLater(() -> {
 			final CropDialog dialog = new CropDialog(null);

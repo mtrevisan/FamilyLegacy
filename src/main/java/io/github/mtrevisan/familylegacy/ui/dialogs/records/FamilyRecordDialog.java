@@ -60,6 +60,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
+import java.io.File;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -326,9 +327,7 @@ public class FamilyRecordDialog extends JDialog{
 				preferredImage = store.getSource(partnerPreferredImageXRef);
 				final String partnerPreferredImagePath = store.traverse(preferredImage, "FILE")
 					.getValue();
-//				final String basePath = "C:\\Users\\mauro\\Documents\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\";
-//				partnerImage.setImage(ResourceHelper.readImage(basePath + partnerPreferredImagePath));
-				partnerImage.setImage(ResourceHelper.readImage("D:\\Mauro\\DBlkAK2.png"));
+				partnerImage.setImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
 				partnerImage.setMinimumSize(new Dimension(PARTNER_IMAGE_MINIMUM_WIDTH, PARTNER_IMAGE_MINIMUM_HEIGHT));
 				partnerImage.setEnabled(true);
 

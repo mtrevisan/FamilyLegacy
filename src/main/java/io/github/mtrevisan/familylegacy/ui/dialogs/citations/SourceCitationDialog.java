@@ -68,7 +68,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
@@ -79,6 +78,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
@@ -87,7 +87,6 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-//TODO
 public class SourceCitationDialog extends JDialog{
 
 	@Serial
@@ -121,8 +120,6 @@ public class SourceCitationDialog extends JDialog{
 	private final JTable sourceTable = new JTable(new SourceTableModel());
 	private final JScrollPane sourcesScrollPane = new JScrollPane(sourceTable);
 	private final JButton addButton = new JButton("Add");
-	private final JLabel titleLabel = new JLabel("Title:");
-	private final JTextField titleField = new JTextField();
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JLabel roleLabel = new JLabel("Role:");
@@ -202,9 +199,6 @@ public class SourceCitationDialog extends JDialog{
 			}
 		});
 
-		titleLabel.setLabelFor(titleField);
-		GUIHelper.setEnabled(titleLabel, false);
-
 		locationLabel.setLabelFor(locationField);
 		GUIHelper.setEnabled(locationLabel, false);
 
@@ -241,13 +235,11 @@ public class SourceCitationDialog extends JDialog{
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 		getRootPane().registerKeyboardAction(addAction, INSERT_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[][grow,fill][][][][][][][]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[][grow,fill][][][][][][]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
-		add(titleLabel, "align label,sizegroup label,split 2");
-		add(titleField, "grow,wrap");
 		add(locationLabel, "align label,sizegroup label,split 2");
 		add(locationField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
@@ -290,16 +282,18 @@ public class SourceCitationDialog extends JDialog{
 		final GedcomNode selectedSourceCitation = store.traverse(container, "SOURCE@" + selectedSourceID);
 		okButton.putClientProperty(KEY_SOURCE_ID, selectedSourceID);
 
-		GUIHelper.setEnabled(titleLabel, true);
-		final GedcomNode selectedSource = store.getSource(selectedSourceID);
-		titleField.setText(store.traverse(selectedSource, "TITLE").getValue());
 		GUIHelper.setEnabled(locationLabel, true);
 		locationField.setText(store.traverse(selectedSourceCitation, "LOCATION").getValue());
 		GUIHelper.setEnabled(roleLabel, true);
 		roleField.setText(store.traverse(selectedSourceCitation, "ROLE").getValue());
-		cropButton.setEnabled(true);
-		cropButton.putClientProperty(KEY_SOURCE_FILE, store.traverse(selectedSource, "FILE").getValue());
-		cropButton.putClientProperty(KEY_SOURCE_CROP, store.traverse(selectedSourceCitation, "CROP").getValue());
+		final GedcomNode selectedSource = store.getSource(selectedSourceID);
+		final List<GedcomNode> documents = store.traverseAsList(selectedSource, "FILE[]");
+		//only if there is one image
+		if(documents.size() == 1){
+			cropButton.setEnabled(true);
+			cropButton.putClientProperty(KEY_SOURCE_FILE, documents.get(0).getValue());
+			cropButton.putClientProperty(KEY_SOURCE_CROP, store.traverse(selectedSourceCitation, "CROP").getValue());
+		}
 		noteButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
@@ -491,13 +485,12 @@ public class SourceCitationDialog extends JDialog{
 						case CROP -> {
 							final CropDialog dialog = new CropDialog(parent);
 							final GedcomNode container = editCommand.getContainer();
-							//TODO add base path?
 							final String imagePath = store.traverse(container, "SOURCE")
 								.getValue();
 							final String crop = store.traverse(container, "CROP")
 								.getValue();
 							final String[] coordinates = (!crop.isEmpty()? StringUtils.split(crop, ' '): null);
-							dialog.loadData(imagePath, editCommand.getOnCloseGracefully());
+							dialog.loadData(new File(store.getBasePath(), imagePath), editCommand.getOnCloseGracefully());
 							if(coordinates != null){
 								dialog.setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
 								dialog.setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));

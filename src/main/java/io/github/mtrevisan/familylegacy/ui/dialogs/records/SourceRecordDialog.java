@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.EventsPanel;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.DocumentStructureDialog;
-import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.LocaleComboBox;
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;

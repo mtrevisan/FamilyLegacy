@@ -141,12 +141,11 @@ public final class ResourceHelper{
 		return bimage;
 	}
 
-	public static BufferedImage readImage(final String file) throws IOException{
-		final File f = new File(file);
-		if(!f.exists())
-			throw new IllegalArgumentException("File `" + file + "` does not exists.");
+	public static BufferedImage readImage(final File file) throws IOException{
+		if(!file.exists())
+			throw new IllegalArgumentException("File `" + file.getPath() + "` does not exists.");
 
-		try(final ImageInputStream input = ImageIO.createImageInputStream(f)){
+		try(final ImageInputStream input = ImageIO.createImageInputStream(file)){
 			final Iterator<ImageReader> readers = ImageIO.getImageReaders(input);
 			if(readers.hasNext()){
 				final ImageReader reader = readers.next();
@@ -160,12 +159,12 @@ public final class ResourceHelper{
 			}
 			else{
 				//try to read a PDF
-				try(final PDDocument document = PDDocument.load(f)){
+				try(final PDDocument document = PDDocument.load(file)){
 					final PDFRenderer renderer = new PDFRenderer(document);
 					return renderer.renderImageWithDPI(0, 100, ImageType.RGB);
 				}
 				catch(final IllegalArgumentException ignored){
-					throw new IllegalArgumentException("No reader for " + file);
+					throw new IllegalArgumentException("No reader for " + file.getPath());
 				}
 			}
 		}

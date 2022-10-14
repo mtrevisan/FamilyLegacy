@@ -75,6 +75,10 @@ public abstract class Store{
 		this.basePath = basePath;
 	}
 
+	public String getBasePath(){
+		return basePath;
+	}
+
 	static int extractLastID(final CharSequence lastKey){
 		final Matcher m = PATTERN_ID.matcher(lastKey);
 		m.find();

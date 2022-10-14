@@ -41,7 +41,6 @@ import java.util.regex.Pattern;
 
 public class TransformerHelper{
 
-	//tag, or tag{value}, tag[index], or tag{value}[index], or tag#id, or tag#id{value}
 	private static final String PARAM_TAG = "tag";
 	private static final String PARAM_VALUE = "value";
 	private static final String PARAM_INDEX = "index";
