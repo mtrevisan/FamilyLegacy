@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.structures.ContactStructureDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -40,6 +41,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import java.awt.EventQueue;
@@ -157,6 +159,12 @@ public class RepositoryRecordDialog extends JDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){

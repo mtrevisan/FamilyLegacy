@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
@@ -47,6 +48,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -262,6 +264,12 @@ public class HistoricEventRecordDialog extends JDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){

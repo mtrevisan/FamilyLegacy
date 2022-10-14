@@ -401,19 +401,6 @@ public class FamilyRecordDialog extends JDialog{
 		public final boolean isCellEditable(final int row, final int column){
 			return false;
 		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
 	}
 
 

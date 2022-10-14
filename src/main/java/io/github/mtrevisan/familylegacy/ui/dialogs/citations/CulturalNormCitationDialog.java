@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,6 +48,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -321,6 +323,12 @@ public class CulturalNormCitationDialog extends JDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){

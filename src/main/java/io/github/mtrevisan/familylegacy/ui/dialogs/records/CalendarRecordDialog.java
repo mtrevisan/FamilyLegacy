@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.events.DataFormatEvent;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CulturalNormCitationDialog;
@@ -35,6 +36,7 @@ import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
@@ -47,6 +49,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -59,9 +62,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
+import java.util.zip.DataFormatException;
 
 
 //TODO
@@ -89,11 +95,8 @@ public final class CalendarRecordDialog extends JDialog{
 	//TODO mandatory
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
-	//TODO 0 to M
 	private final JButton culturalNormButton = new JButton(ICON_CULTURAL_NORM);
-	//TODO 0 to M
 	private final JButton noteButton = new JButton(ICON_NOTE);
-	//TODO 0 to M
 	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -202,19 +205,66 @@ public final class CalendarRecordDialog extends JDialog{
 	}
 
 	private void okAction(){
+		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+
 		final String type = (String)typeComboBox.getSelectedItem();
+		final Consumer<Object> onCloseGracefully = parent -> setVisible(false);
+		if(StringUtils.isBlank(type))
+			EventBusService.publish(new DataFormatEvent(DataFormatEvent.DataFormatErrorType.MANDATORY_FIELD_MISSING, "type", calendar, onCloseGracefully));
 
-		calendar.clearAll();
-		calendar.addChild(
-			store.create("TYPE")
-				.withValue(type)
-		);
-		//TODO
+		final List<GedcomNode> culturalNorms = store.traverseAsList(calendar, "CULTURAL_NORM[]");
+		final List<GedcomNode> notes = store.traverseAsList(calendar, "NOTE[]");
+		final List<GedcomNode> sources = store.traverseAsList(calendar, "SOURCE[]");
+		final GedcomNode creation = store.traverse(calendar, "CREATION");
 
-		if(onAccept != null)
-			onAccept.accept(this);
+		if(creation.isEmpty()){
+			calendar.clearAll();
+			calendar
+				.addChildValue("TYPE", type)
+				.addChildren(culturalNorms)
+				.addChildren(notes)
+				.addChildren(sources)
+				.addChild(
+					store.create("CREATION")
+						.addChildValue("DATE", now)
+				);
 
-		setVisible(false);
+			if(onAccept != null)
+				onAccept.accept(this);
+
+			setVisible(false);
+		}
+		else{
+			//show note record dialog
+			final GedcomNode changeNote = store.create("NOTE");
+			final NoteRecordDialog changeNoteDialog = NoteRecordDialog.createChangeNote(store, (Frame)getParent());
+			changeNoteDialog.setTitle("Change note for calendar " + calendar.getID());
+			changeNoteDialog.loadData(changeNote, ignored -> {
+				final List<GedcomNode> update = store.traverseAsList(calendar, "UPDATE[]");
+				calendar.clearAll();
+				calendar
+					.addChildValue("TYPE", type)
+					.addChildren(culturalNorms)
+					.addChildren(notes)
+					.addChildren(sources)
+					.addChild(creation)
+					.addChildren(update)
+					.addChild(
+						store.create("UPDATE")
+							.addChildValue("DATE", now)
+							.addChildValue("NOTE", NoteRecordDialog.fromNoteText(changeNote.getValue()))
+					);
+
+				if(onAccept != null)
+					onAccept.accept(this);
+
+				setVisible(false);
+			});
+
+			changeNoteDialog.setSize(450, 500);
+			changeNoteDialog.setLocationRelativeTo(this);
+			changeNoteDialog.setVisible(true);
+		}
 	}
 
 	public void loadData(final GedcomNode calendar, final Consumer<Object> onAccept){
@@ -226,14 +276,10 @@ public final class CalendarRecordDialog extends JDialog{
 		originalSourcesHash = calculateSourcesHashCode();
 
 		final String type = store.traverse(calendar, "TYPE").getValue();
+		final List<GedcomNode> culturalNorms = store.traverseAsList(calendar, "CULTURAL_NORM[]");
+		final List<GedcomNode> notes = store.traverseAsList(calendar, "NOTE[]");
+		final List<GedcomNode> sources = store.traverseAsList(calendar, "SOURCE[]");
 		//TODO
-		final String author = store.traverse(calendar, "AUTHOR").getValue();
-		final String publicationFacts = store.traverse(calendar, "PUBLICATION_FACTS").getValue();
-		final GedcomNode dateNode = store.traverse(calendar, "DATE");
-		final GedcomNode place = store.traverse(calendar, "PLACE");
-		final GedcomNode placeCertainty = store.traverse(calendar, "PLACE.CERTAINTY");
-		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
-		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
 		typeComboBox.setSelectedItem(type);
 		sourceButton.setEnabled(true);
@@ -269,14 +315,38 @@ public final class CalendarRecordDialog extends JDialog{
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
+				public void error(final DataFormatEvent dataFormatEvent){
+					final DataFormatEvent.DataFormatErrorType type = dataFormatEvent.getType();
+					final String reference = dataFormatEvent.getReference();
+					JOptionPane.showMessageDialog(parent, type + " error on field " + reference, "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final String forCalendar = (calendar.getID() != null? " for calendar " + calendar.getID(): " for new calendar");
 					switch(editCommand.getType()){
+						case CULTURAL_NORM -> {
+							final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, parent);
+							dialog.setTitle("Cultural norm" + forCalendar);
+							final GedcomNode culturalNorm = editCommand.getContainer();
+							dialog.setTitle(culturalNorm.getID() != null
+								? "Cultural norm " + culturalNorm.getID() + forCalendar
+								: "New cultural norm" + forCalendar);
+							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+
+							dialog.setSize(480, 700);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 						case CULTURAL_NORM_CITATION -> {
 							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
-							final GedcomNode culturalNormCitation = editCommand.getContainer();
-							dialog.setTitle(culturalNormCitation.getID() != null
-								? "Cultural norm citation " + culturalNormCitation.getID() + " for calendar " + calendar.getID()
-								: "New cultural norm citation for calendar " + calendar.getID());
+							dialog.setTitle("Cultural norm citations" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
 								dialog.addAction();
@@ -285,12 +355,21 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
+						case NOTE -> {
+							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Note " + note.getID() + forCalendar
+								: "New note" + forCalendar);
+							dialog.loadData(note, editCommand.getOnCloseGracefully());
+
+							dialog.setSize(500, 330);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 						case NOTE_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for calendar " + calendar.getID()
-								: "New note citation for calendar " + calendar.getID());
+							dialog.setTitle("Note citations" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -299,12 +378,21 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
+						case SOURCE -> {
+							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
+							final GedcomNode source = editCommand.getContainer();
+							dialog.setTitle(source.getID() != null
+								? "Source " + source.getID() + forCalendar
+								: "New source" + forCalendar);
+							dialog.loadData(source, editCommand.getOnCloseGracefully());
+
+							dialog.setSize(500, 650);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							final GedcomNode sourceCitation = editCommand.getContainer();
-							dialog.setTitle(sourceCitation.getID() != null
-								? "Source citation " + sourceCitation.getID() + " for calendar " + calendar.getID()
-								: "New source citation for calendar " + calendar.getID());
+							dialog.setTitle("Source citation" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 

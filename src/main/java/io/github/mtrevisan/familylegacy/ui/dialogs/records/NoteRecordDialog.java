@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterfac
 import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,6 +48,7 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -106,7 +108,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return dialog;
 	}
 
-	private static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
+	static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
 		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
 		dialog.changeNoteInitComponents();
 		return dialog;
@@ -216,19 +218,23 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 	}
 
 	private void okAction(){
-		final String text = textPreviewView.getText();
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+
+		final String text = fromNoteText(textPreviewView.getText());
 		final List<GedcomNode> translations = store.traverseAsList(note, "TRANSLATION[]");
 		final List<GedcomNode> sources = store.traverseAsList(note, "SOURCE[]");
 		final GedcomNode creation = store.traverse(note, "CREATION");
 		if(creation.isEmpty()){
 			note.clearAll();
-			note.withValue(fromNoteText(text))
+			note.withValue(text)
 				.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
 				.addChildren(translations)
 				.addChildren(sources)
 				.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
-				.addChild(creation);
+				.addChild(
+					store.create("CREATION")
+						.addChildValue("DATE", now)
+				);
 
 			if(onAccept != null)
 				onAccept.accept(this);
@@ -239,11 +245,11 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			//show note record dialog
 			final GedcomNode changeNote = store.create("NOTE");
 			final NoteRecordDialog changeNoteDialog = createChangeNote(store, (Frame)getParent());
-			changeNoteDialog.setTitle("Change note for " + note.getID());
+			changeNoteDialog.setTitle("Change note for note " + note.getID());
 			changeNoteDialog.loadData(changeNote, ignored -> {
 				final List<GedcomNode> update = store.traverseAsList(note, "UPDATE[]");
 				note.clearAll();
-				note.withValue(fromNoteText(text))
+				note.withValue(text)
 					.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
 					.addChildren(translations)
 					.addChildren(sources)
@@ -303,7 +309,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return StringUtils.replace(note.getValue(), "\\n", "↵");
 	}
 
-	private static String fromNoteText(final String text){
+	static String fromNoteText(final String text){
 		return StringUtils.replace(text, "\n", "\\n");
 	}
 
@@ -319,22 +325,29 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		//without creation date
-//		final GedcomNode container = store.getNotes().get(0);
+//		final GedcomNode note = store.getNotes().get(0);
 		//with change date
-		final GedcomNode container = store.getNotes().get(1);
+		final GedcomNode note = store.getNotes().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
 				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final String forNote = (note.getID() != null? " for note " + note.getID(): " for new note");
 					switch(editCommand.getType()){
 						case NOTE_TRANSLATION -> {
 							final NoteRecordDialog dialog = createNoteTranslation(store, parent);
 							final GedcomNode noteTranslation = editCommand.getContainer();
 							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-								: "New translation"
+								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue() + forNote
+								: "New translation" + forNote
 							);
 							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
@@ -344,10 +357,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						}
 						case NOTE_TRANSLATION_CITATION -> {
 							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation citations for note " + note.getID()
-								: "Translation citations for new note");
+							dialog.setTitle("Translation citations" + forNote);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
 								dialog.addAction();
@@ -360,8 +370,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
 							final GedcomNode source = editCommand.getContainer();
 							dialog.setTitle(source.getID() != null
-								? "Source " + source.getID()
-								: "New source for " + container.getID());
+								? "Source " + source.getID() + forNote
+								: "New source" + forNote);
 							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 650);
@@ -370,9 +380,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 						}
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.setTitle(container.getID() != null
-								? "Source citations for note " + container.getID()
-								: "Source citations for new note");
+							dialog.setTitle("Source citations" + forNote);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a source input dialog
 								dialog.addAction();
@@ -387,8 +395,8 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			EventBusService.subscribe(listener);
 
 			final NoteRecordDialog dialog = createNote(store, parent);
-			dialog.setTitle("Note for " + container.getID());
-			dialog.loadData(container, null);
+			dialog.setTitle("Note for " + note.getID());
+			dialog.loadData(note, null);
 
 			dialog.addWindowListener(new WindowAdapter(){
 				@Override

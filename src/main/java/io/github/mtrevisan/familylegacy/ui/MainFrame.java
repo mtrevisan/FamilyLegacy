@@ -49,10 +49,12 @@ import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -124,6 +126,12 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	public void setSelectionListener(final SelectionListenerInterface selectionListener){
 		linkFamilyDialog.setSelectionListener(selectionListener);
 		linkIndividualDialog.setSelectionListener(selectionListener);
+	}
+
+	@EventHandler
+	public void error(final BusExceptionEvent exceptionEvent){
+		final Throwable cause = exceptionEvent.getCause();
+		JOptionPane.showMessageDialog(this, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */

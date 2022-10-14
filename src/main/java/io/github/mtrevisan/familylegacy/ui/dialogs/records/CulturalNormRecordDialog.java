@@ -73,9 +73,6 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.List;
@@ -147,7 +144,7 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 
 	private GedcomNode container;
 
-	private Consumer<Object> onAccept;
+	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
@@ -365,9 +362,9 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public void loadData(final GedcomNode container, final Consumer<Object> onAccept){
+	public void loadData(final GedcomNode container, final Consumer<Object> onCloseGracefully){
 		this.container = container;
-		this.onAccept = onAccept;
+		this.onCloseGracefully = onCloseGracefully;
 
 		loadData();
 
@@ -426,19 +423,6 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		@Override
 		public boolean isCellEditable(final int row, final int column){
 			return false;
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
 		}
 	}
 
