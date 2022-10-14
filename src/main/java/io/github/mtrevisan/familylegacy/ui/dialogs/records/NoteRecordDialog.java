@@ -89,8 +89,6 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode note;
-	private long originalNoteTranslationsHash;
-	private long originalNoteSourcesHash;
 
 	private Consumer<Object> onAccept;
 	private final Flef store;
@@ -129,13 +127,12 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 
 		restrictionCheckBox.addActionListener(evt -> textChanged());
 
-		final Border originalButtonBorder = okButton.getBorder();
 		translationButton.setToolTipText("Add translation");
 		translationButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				translationButton.setBorder(calculateTranslationsHashCode() != originalNoteTranslationsHash
-					? new LineBorder(Color.BLUE)
-					: originalButtonBorder);
+				translationButton.setBorder(store.traverseAsList(note, "TRANSLATION[]").isEmpty()
+					? UIManager.getBorder("Button.border")
+					: new LineBorder(Color.BLUE));
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -147,9 +144,9 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		sourceButton.setToolTipText("Add source");
 		sourceButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				sourceButton.setBorder(calculateSourcesHashCode() != originalNoteSourcesHash
-					? new LineBorder(Color.BLUE)
-					: originalButtonBorder);
+				sourceButton.setBorder(store.traverseAsList(note, "SOURCE[]").isEmpty()
+					? UIManager.getBorder("Button.border")
+					: new LineBorder(Color.BLUE));
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -278,9 +275,6 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		this.note = note;
 		this.onAccept = onAccept;
 
-		originalNoteTranslationsHash = calculateTranslationsHashCode();
-		originalNoteSourcesHash = calculateSourcesHashCode();
-
 		final String text = toNoteText(note);
 		final String languageTag = store.traverse(note, "LOCALE").getValue();
 		final String restriction = store.traverse(note, "RESTRICTION").getValue();
@@ -291,14 +285,13 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			localeComboBox.setSelectedItem(Locale.forLanguageTag(languageTag));
 
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
-	}
 
-	private int calculateTranslationsHashCode(){
-		return store.traverseAsList(note, "TRANSLATION[]").hashCode();
-	}
-
-	private int calculateSourcesHashCode(){
-		return store.traverseAsList(note, "SOURCE[]").hashCode();
+		translationButton.setBorder(store.traverseAsList(note, "TRANSLATION[]").isEmpty()
+			? UIManager.getBorder("Button.border")
+			: new LineBorder(Color.BLUE));
+		sourceButton.setBorder(store.traverseAsList(note, "SOURCE[]").isEmpty()
+			? UIManager.getBorder("Button.border")
+			: new LineBorder(Color.BLUE));
 	}
 
 	private static String toNoteText(final GedcomNode note){

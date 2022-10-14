@@ -184,7 +184,7 @@ public class CulturalNormCitationDialog extends JDialog{
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow,wrap");
 		add(culturalNormsScrollPane, "grow,wrap related");
-		add(addButton, "sizegroup button,wrap paragraph");
+		add(addButton, "tag add,sizegroup button,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

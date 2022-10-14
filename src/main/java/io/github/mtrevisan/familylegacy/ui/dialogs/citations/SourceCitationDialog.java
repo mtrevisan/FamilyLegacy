@@ -297,7 +297,7 @@ public class SourceCitationDialog extends JDialog{
 		noteButton.setEnabled(true);
 		GUIHelper.setEnabled(credibilityLabel, true);
 		final String credibility = store.traverse(selectedSourceCitation, "CREDIBILITY").getValue();
-		credibilityComboBox.setSelectedIndex(!credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
+		credibilityComboBox.setSelectedIndex(credibility != null && !credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
 
 		okButton.setEnabled(true);
 	}

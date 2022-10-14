@@ -205,9 +205,6 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		this.source = source;
 		this.onAccept = onAccept;
 
-		final String id = source.getID();
-		setTitle(id != null? "Source " + id: "New Source");
-
 		final StringJoiner events = new StringJoiner(", ");
 		for(final GedcomNode event : store.traverseAsList(source, "EVENT[]"))
 			events.add(event.getValue());

@@ -70,7 +70,6 @@ import java.util.function.Consumer;
 import java.util.zip.DataFormatException;
 
 
-//TODO
 public final class CalendarRecordDialog extends JDialog{
 
 	@Serial
@@ -103,9 +102,6 @@ public final class CalendarRecordDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private GedcomNode calendar;
-	private long originalCulturalNormsHash;
-	private long originalNotesHash;
-	private long originalSourcesHash;
 
 	private Consumer<Object> onAccept;
 	private final Flef store;
@@ -123,7 +119,6 @@ public final class CalendarRecordDialog extends JDialog{
 		typeLabel.setLabelFor(typeComboBox);
 		AutoCompleteDecorator.decorate(typeComboBox);
 
-		final Border originalButtonBorder = okButton.getBorder();
 		noteButton.setToolTipText("Add note");
 		culturalNormButton.addActionListener(evt -> {
 			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
@@ -133,9 +128,9 @@ public final class CalendarRecordDialog extends JDialog{
 				final String newCulturalNormID = store.addCulturalNorm(newCulturalNorm);
 				calendar.addChildReference("CULTURAL_NORM", newCulturalNormID);
 
-				culturalNormButton.setBorder(calculateCulturalNormsHashCode() != originalCulturalNormsHash
-					? new LineBorder(Color.BLUE)
-					: originalButtonBorder);
+				culturalNormButton.setBorder(store.traverseAsList(calendar, "CULTURAL_NORM[]").isEmpty()
+					? UIManager.getBorder("Button.border")
+					: new LineBorder(Color.BLUE));
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -148,9 +143,9 @@ public final class CalendarRecordDialog extends JDialog{
 		noteButton.setToolTipText("Add note");
 		noteButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				noteButton.setBorder(calculateNotesHashCode() != originalNotesHash
-					? new LineBorder(Color.BLUE)
-					: originalButtonBorder);
+				noteButton.setBorder(store.traverseAsList(calendar, "NOTE[]").isEmpty()
+					? UIManager.getBorder("Button.border")
+					: new LineBorder(Color.BLUE));
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -162,9 +157,9 @@ public final class CalendarRecordDialog extends JDialog{
 		sourceButton.setToolTipText("Add source");
 		sourceButton.addActionListener(evt -> {
 			final Consumer<Object> onAccept = ignored -> {
-				sourceButton.setBorder(calculateSourcesHashCode() != originalSourcesHash
-					? new LineBorder(Color.BLUE)
-					: originalButtonBorder);
+				sourceButton.setBorder(store.traverseAsList(calendar, "SOURCE[]").isEmpty()
+					? UIManager.getBorder("Button.border")
+					: new LineBorder(Color.BLUE));
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -184,7 +179,6 @@ public final class CalendarRecordDialog extends JDialog{
 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-//		setLayout(new MigLayout("debug", "[grow]"));
 		add(typeLabel, "align label,split 2");
 		add(typeComboBox, "grow,wrap");
 		add(culturalNormButton, "split 3,sizegroup button,center");
@@ -271,31 +265,21 @@ public final class CalendarRecordDialog extends JDialog{
 		this.calendar = calendar;
 		this.onAccept = onAccept;
 
-		originalCulturalNormsHash = calculateCulturalNormsHashCode();
-		originalNotesHash = calculateNotesHashCode();
-		originalSourcesHash = calculateSourcesHashCode();
-
 		final String type = store.traverse(calendar, "TYPE").getValue();
-		final List<GedcomNode> culturalNorms = store.traverseAsList(calendar, "CULTURAL_NORM[]");
-		final List<GedcomNode> notes = store.traverseAsList(calendar, "NOTE[]");
-		final List<GedcomNode> sources = store.traverseAsList(calendar, "SOURCE[]");
-		//TODO
 
 		typeComboBox.setSelectedItem(type);
-		sourceButton.setEnabled(true);
+		culturalNormButton.setEnabled(true);
+		culturalNormButton.setBorder(store.traverseAsList(calendar, "CULTURAL_NORM[]").isEmpty()
+			? UIManager.getBorder("Button.border")
+			: new LineBorder(Color.BLUE));
 		noteButton.setEnabled(true);
-	}
-
-	private int calculateCulturalNormsHashCode(){
-		return store.traverseAsList(calendar, "CULTURAL_NORM[]").hashCode();
-	}
-
-	private int calculateNotesHashCode(){
-		return store.traverseAsList(calendar, "NOTE[]").hashCode();
-	}
-
-	private int calculateSourcesHashCode(){
-		return store.traverseAsList(calendar, "SOURCE[]").hashCode();
+		noteButton.setBorder(store.traverseAsList(calendar, "NOTE[]").isEmpty()
+			? UIManager.getBorder("Button.border")
+			: new LineBorder(Color.BLUE));
+		sourceButton.setEnabled(true);
+		sourceButton.setBorder(store.traverseAsList(calendar, "SOURCE[]").isEmpty()
+			? UIManager.getBorder("Button.border")
+			: new LineBorder(Color.BLUE));
 	}
 
 
@@ -392,7 +376,7 @@ public final class CalendarRecordDialog extends JDialog{
 						}
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.setTitle("Source citation" + forCalendar);
+							dialog.setTitle("Source citations" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
