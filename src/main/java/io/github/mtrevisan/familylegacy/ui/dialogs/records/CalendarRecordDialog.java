@@ -39,7 +39,6 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
@@ -52,7 +51,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -65,9 +63,7 @@ import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.StringJoiner;
 import java.util.function.Consumer;
-import java.util.zip.DataFormatException;
 
 
 public final class CalendarRecordDialog extends JDialog{
@@ -84,14 +80,6 @@ public final class CalendarRecordDialog extends JDialog{
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 
-/*
-  +1 CREATION    {1:1}
-    +2 DATE <CREATION_DATE>    {1:1}
-  +1 UPDATE    {0:M}
-    +2 DATE <UPDATE_DATE>    {1:1}
-    +2 NOTE @<XREF:NOTE>@    {0:1}
-*/
-	//TODO mandatory
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JComboBox<String> typeComboBox = new JComboBox<>(TYPE_MODEL);
 	private final JButton culturalNormButton = new JButton(ICON_CULTURAL_NORM);
@@ -117,7 +105,25 @@ public final class CalendarRecordDialog extends JDialog{
 
 	private void initComponents(){
 		typeLabel.setLabelFor(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+		//read all calendar types and add the custom ones to the model
+		final DefaultComboBoxModel<String> calendarModel = (DefaultComboBoxModel<String>)typeComboBox.getModel();
+		final List<GedcomNode> calendars = store.getCalendars();
+		for(final GedcomNode calendar : calendars){
+			final String type = store.traverse(calendar, "TYPE").getValue();
+			if(calendarModel.getIndexOf(type) < 0)
+				calendarModel.addElement(type);
+		}
+		typeComboBox.setEditable(true);
+		typeComboBox.addActionListener(event -> {
+			final int index = typeComboBox.getSelectedIndex();
+			if(index < 0 && "comboBoxEdited".equals(event.getActionCommand())){
+				final String newType = (String)calendarModel.getSelectedItem();
+				if(StringUtils.isNotBlank(newType)){
+					calendarModel.addElement(newType);
+					typeComboBox.setSelectedItem(newType);
+				}
+			}
+		});
 
 		noteButton.setToolTipText("Add note");
 		culturalNormButton.addActionListener(evt -> {
