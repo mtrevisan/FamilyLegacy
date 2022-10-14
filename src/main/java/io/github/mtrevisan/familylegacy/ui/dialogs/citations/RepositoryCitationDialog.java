@@ -402,7 +402,7 @@ public class RepositoryCitationDialog extends JDialog{
 								: "New note for " + source.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
+							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -415,7 +415,7 @@ public class RepositoryCitationDialog extends JDialog{
 							);
 							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
+							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

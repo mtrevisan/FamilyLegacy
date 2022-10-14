@@ -367,9 +367,9 @@ public final class Transformer extends TransformerHelper{
 				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]))
 				.atZone(ZoneId.systemDefault());
 
-			final GedcomNode creationDate = create("CREATION_DATE")
+			final GedcomNode creation = create("CREATION")
 				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
-			destination.addChild(creationDate);
+			destination.addChild(creation);
 		}
 	}
 
@@ -513,9 +513,9 @@ public final class Transformer extends TransformerHelper{
 				.atTime(Integer.parseInt(timeComponents[0]), Integer.parseInt(timeComponents[1]), Integer.parseInt(timeComponents[2]))
 				.atZone(ZoneId.systemDefault());
 
-			final GedcomNode creationDate = create("CREATION_DATE")
+			final GedcomNode creation = create("CREATION")
 				.addChildValue("DATE", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(dateTime));
-			destinationHeader.addChild(creationDate);
+			destinationHeader.addChild(creation);
 		}
 		destinationHeader.addChildValue("COPYRIGHT", traverse(header, "COPR").getValue());
 
@@ -1282,7 +1282,7 @@ public final class Transformer extends TransformerHelper{
 	}
 
 	private void dateTimeFrom(final GedcomNode node, final GedcomNode destination){
-		final String date = traverse(node, "CREATION_DATE.DATE").getValue();
+		final String date = traverse(node, "CREATION.DATE").getValue();
 		if(date != null){
 			final TemporalAccessor dateTime = DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(date);
 			final GedcomNode creationDate = create("CHAN")
@@ -1519,7 +1519,7 @@ public final class Transformer extends TransformerHelper{
 		repositoryCitationFrom(source, destinationSource);
 		noteCitationFrom(source, destinationSource);
 
-		final String date = traverse(source, "CREATION_DATE.DATE").getValue();
+		final String date = traverse(source, "CREATION.DATE").getValue();
 		if(date != null){
 			final int timeStartIndex = date.indexOf('T', 9);
 			destinationSource.addChild(createWithValue("DATE", (timeStartIndex > 0? date.substring(0, timeStartIndex): date))

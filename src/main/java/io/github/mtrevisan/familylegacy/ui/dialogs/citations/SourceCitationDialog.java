@@ -476,7 +476,7 @@ public class SourceCitationDialog extends JDialog{
 								: "New note for " + individual.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
+							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

@@ -153,7 +153,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				dialog.setTitle("Note for " + note.getID());
 				dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-				dialog.setSize(450, 500);
+				dialog.setSize(500, 330);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
 			}

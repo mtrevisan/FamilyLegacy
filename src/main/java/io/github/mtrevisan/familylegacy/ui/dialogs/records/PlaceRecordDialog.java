@@ -77,10 +77,10 @@ import java.util.function.Consumer;
 		+2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}
 		+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
 	+1 SUBORDINATE @<XREF:PLACE>@    {0:1}
-	+1 CREATION_DATE    {1:1}
+	+1 CREATION    {1:1}
 		+2 DATE <CREATION_DATE>    {1:1}
-	+1 CHANGE_DATE    {0:M}
-		+2 DATE <CHANGE_DATE>    {1:1}
+	+1 UPDATE    {0:M}
+		+2 DATE <UPDATE_DATE>    {1:1}
 		+2 NOTE @<XREF:NOTE>@    {0:1}
 */
 public class PlaceRecordDialog extends JDialog implements ActionListener{
@@ -306,7 +306,7 @@ private final JTextField subordinateField = new JTextField();
 							dialog.setTitle("Note for " + note.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
+							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

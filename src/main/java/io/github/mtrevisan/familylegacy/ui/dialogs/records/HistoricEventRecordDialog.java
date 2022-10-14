@@ -80,10 +80,10 @@ public class HistoricEventRecordDialog extends JDialog{
 	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 
 /*
-  +1 CREATION_DATE    {1:1}
+  +1 CREATION    {1:1}
     +2 DATE <CREATION_DATE>    {1:1}
-  +1 CHANGE_DATE    {0:M}
-    +2 DATE <CHANGE_DATE>    {1:1}
+  +1 UPDATE    {0:M}
+    +2 DATE <UPDATE_DATE>    {1:1}
     +2 NOTE @<XREF:NOTE>@    {0:1}
 */
 	//TODO mandatory

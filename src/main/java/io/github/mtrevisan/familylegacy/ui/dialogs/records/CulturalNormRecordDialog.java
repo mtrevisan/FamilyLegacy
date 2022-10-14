@@ -90,10 +90,10 @@ import java.util.function.Consumer;
 		+2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
 	+1 NOTE @<XREF:NOTE>@    {0:M}
 	+1 <<SOURCE_CITATION>>    {0:M}
-	+1 CREATION_DATE    {1:1}
+	+1 CREATION    {1:1}
 		+2 DATE <CREATION_DATE>    {1:1}
-	+1 CHANGE_DATE    {0:M}
-		+2 DATE <CHANGE_DATE>    {1:1}
+	+1 UPDATE    {0:M}
+		+2 DATE <UPDATE_DATE>    {1:1}
 		+2 NOTE @<XREF:NOTE>@    {0:1}
 */
 public class CulturalNormRecordDialog extends JDialog implements TextPreviewListenerInterface{

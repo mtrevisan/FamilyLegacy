@@ -61,6 +61,7 @@ import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
@@ -217,16 +218,17 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 	private void okAction(){
 		final String text = textPreviewView.getText();
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
-		final String creationDate = store.traverse(note, "CREATION_DATE.DATE").getValue();
-		if(creationDate == null){
+		final List<GedcomNode> translations = store.traverseAsList(note, "TRANSLATION[]");
+		final List<GedcomNode> sources = store.traverseAsList(note, "SOURCE[]");
+		final GedcomNode creation = store.traverse(note, "CREATION");
+		if(creation.isEmpty()){
 			note.clearAll();
 			note.withValue(fromNoteText(text))
 				.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
+				.addChildren(translations)
+				.addChildren(sources)
 				.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
-				.addChild(
-					store.create("CREATION_DATE")
-						.addChildValue("DATE", now)
-				);
+				.addChild(creation);
 
 			if(onAccept != null)
 				onAccept.accept(this);
@@ -239,16 +241,17 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 			final NoteRecordDialog changeNoteDialog = createChangeNote(store, (Frame)getParent());
 			changeNoteDialog.setTitle("Change note for " + note.getID());
 			changeNoteDialog.loadData(changeNote, ignored -> {
+				final List<GedcomNode> update = store.traverseAsList(note, "UPDATE[]");
 				note.clearAll();
 				note.withValue(fromNoteText(text))
 					.addChildValue("LOCALE", localeComboBox.getSelectedLanguageTag())
+					.addChildren(translations)
+					.addChildren(sources)
 					.addChildValue("RESTRICTION", (restrictionCheckBox.isSelected()? "confidential": null))
+					.addChild(creation)
+					.addChildren(update)
 					.addChild(
-						store.create("CREATION_DATE")
-							.addChildValue("DATE", creationDate)
-					)
-					.addChild(
-						store.create("CHANGE_DATE")
+						store.create("UPDATE")
 							.addChildValue("DATE", now)
 							.addChildValue("NOTE", fromNoteText(changeNote.getValue()))
 					);
@@ -393,7 +396,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 					System.exit(0);
 				}
 			});
-			dialog.setSize(500, 340);
+			dialog.setSize(500, 330);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

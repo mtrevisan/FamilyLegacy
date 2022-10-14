@@ -547,7 +547,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 							dialog.setTitle("Note for " + note.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(550, 350);
+							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
