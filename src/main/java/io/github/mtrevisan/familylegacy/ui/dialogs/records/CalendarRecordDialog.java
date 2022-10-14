@@ -302,7 +302,7 @@ public class CalendarRecordDialog extends JDialog{
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
-							dialog.setSize(450, 650);
+							dialog.setSize(550, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

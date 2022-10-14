@@ -169,19 +169,26 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 			}
 			case SOURCE -> {
 				final SourceRecordDialog dialog = new SourceRecordDialog(store, this);
-				dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+				final GedcomNode source = editCommand.getContainer();
+				dialog.setTitle(source.getID() != null
+					? "Source " + source.getID()
+					: "New source for " + source.getID());
+				dialog.loadData(source, editCommand.getOnCloseGracefully());
 
-				dialog.setSize(450, 500);
+				dialog.setSize(500, 650);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
 			}
 			case SOURCE_CITATION -> {
 				//TODO
 //				final SourceCitationDialog dialog = new SourceCitationDialog(store, this);
+//				dialog.setTitle(container.getID() != null
+//					? "Source citations for note " + container.getID()
+//					: "Source citations for new note");
 //				if(!dialog.loadData(editCommand.getContainer()))
 //					dialog.addAction();
 //
-//				dialog.setSize(450, 500);
+//				dialog.setSize(550, 450);
 //				dialog.setLocationRelativeTo(this);
 //				dialog.setVisible(true);
 			}

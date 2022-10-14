@@ -96,6 +96,8 @@ public class SourceCitationDialog extends JDialog{
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	private static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 
+	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
+
 	/** [ms] */
 	private static final int DEBOUNCER_TIME = 400;
 
@@ -107,12 +109,8 @@ public class SourceCitationDialog extends JDialog{
 	private static final int TABLE_INDEX_SOURCE_TYPE = 1;
 	private static final int TABLE_INDEX_SOURCE_TITLE = 2;
 
-	private static final double CROP_HEIGHT = 17.;
-	private static final double CROP_ASPECT_RATIO = 270 / 248.;
-	private static final Dimension CROP_SIZE = new Dimension((int)(CROP_HEIGHT / CROP_ASPECT_RATIO), (int)CROP_HEIGHT);
-
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon CROP = ResourceHelper.getImage("/images/crop.png", CROP_SIZE);
+	private static final ImageIcon CROP = ResourceHelper.getImage("/images/crop.png", 20, 20);
 
 	private static final String KEY_SOURCE_ID = "sourceID";
 	private static final String KEY_SOURCE_FILE = "sourceFile";
@@ -130,7 +128,7 @@ public class SourceCitationDialog extends JDialog{
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cropButton = new JButton(CROP);
-	private final JButton noteButton = new JButton("Notes");
+	private final JButton noteButton = new JButton(ICON_NOTE);
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JButton helpButton = new JButton("Help");
@@ -255,9 +253,9 @@ public class SourceCitationDialog extends JDialog{
 		add(roleLabel, "align label,sizegroup label,split 2");
 		add(roleField, "grow,wrap");
 		add(cropButton, "wrap");
-		add(noteButton, "sizegroup button,grow,wrap paragraph");
+		add(noteButton, "sizegroup button,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
-		add(credibilityComboBox, "grow,wrap paragraph");
+		add(credibilityComboBox, "wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
@@ -336,7 +334,7 @@ public class SourceCitationDialog extends JDialog{
 			selectedSource = store.traverseAsList(container, "SOURCE[]")
 				.get(index);
 		else
-			selectedSource = store.getRepository(sourceXRef);
+			selectedSource = store.getSource(sourceXRef);
 
 		//fire edit event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, selectedSource));
@@ -460,7 +458,7 @@ public class SourceCitationDialog extends JDialog{
 								: "New source for " + individual.getID());
 							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 540);
+							dialog.setSize(500, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

@@ -201,21 +201,26 @@ public class GroupRecordDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE_CITATION -> {
-							//TODO
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							dialog.setTitle(group.getID() != null
+								? "Source citations for group " + group.getID()
+								: "Source citations for new group");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
-							dialog.setSize(450, 450);
+							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							//TODO
 							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GedcomNode source = editCommand.getContainer();
+							dialog.setTitle(source.getID() != null
+								? "Source " + source.getID()
+								: "New source for " + group.getID());
+							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 460);
+							dialog.setSize(500, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

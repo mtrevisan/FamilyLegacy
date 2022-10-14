@@ -264,18 +264,25 @@ private final JTextField subordinateField = new JTextField();
 					switch(editCommand.getType()){
 						case SOURCE_CITATION -> {
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							dialog.setTitle(place.getID() != null
+								? "Source citations for place " + place.getID()
+								: "Source citations for new place");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
-							dialog.setSize(450, 450);
+							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
 							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							final GedcomNode source = editCommand.getContainer();
+							dialog.setTitle(source.getID() != null
+								? "Source " + source.getID()
+								: "New source for " + place.getID());
+							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 540);
+							dialog.setSize(500, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

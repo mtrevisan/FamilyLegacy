@@ -430,7 +430,7 @@ public class RepositoryCitationDialog extends JDialog{
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.addAction();
 
-							dialog.setSize(550, 350);
+							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
