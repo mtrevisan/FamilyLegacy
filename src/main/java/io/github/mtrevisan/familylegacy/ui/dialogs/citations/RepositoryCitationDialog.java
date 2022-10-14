@@ -377,11 +377,11 @@ public class RepositoryCitationDialog extends JDialog{
 					switch(editCommand.getType()){
 						case REPOSITORY -> {
 							final RepositoryRecordDialog dialog = new RepositoryRecordDialog(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Repository " + note.getID()
+							final GedcomNode repository = editCommand.getContainer();
+							dialog.setTitle(repository.getID() != null
+								? "Repository " + repository.getID()
 								: "New repository for " + container.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							dialog.loadData(repository, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(550, 350);
 							dialog.setLocationRelativeTo(parent);

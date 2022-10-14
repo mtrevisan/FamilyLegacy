@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2019-2022 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ServiceLoader;
 
 
@@ -40,9 +43,14 @@ import java.util.ServiceLoader;
  */
 public final class EventBusService{
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusService.class);
+
+
 	private static final EventBusInterface EVENT_BUS = new BasicEventBus(false);
 	static{
 		EVENT_BUS.start();
+
+		LOGGER.debug("Event bus started");
 	}
 
 
@@ -50,13 +58,19 @@ public final class EventBusService{
 
 	public static void subscribe(final Object subscriber){
 		EVENT_BUS.subscribe(subscriber);
+
+		LOGGER.debug("Subscribed: {}", subscriber);
 	}
 
 	public static void unsubscribe(final Object subscriber){
 		EVENT_BUS.unsubscribe(subscriber);
+
+		LOGGER.debug("Unsubscribed: {}", subscriber);
 	}
 
 	public static void publish(final Object event){
+		LOGGER.debug("Event published: {}", event);
+
 		EVENT_BUS.publish(event);
 	}
 
