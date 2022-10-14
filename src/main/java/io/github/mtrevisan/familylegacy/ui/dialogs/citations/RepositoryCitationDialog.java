@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -78,7 +78,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
-//TODO
 public class RepositoryCitationDialog extends JDialog{
 
 	@Serial
@@ -450,7 +449,7 @@ public class RepositoryCitationDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(450, 500);
+			dialog.setSize(450, 320);
 			dialog.setLocationRelativeTo(null);
 			dialog.setVisible(true);
 		});

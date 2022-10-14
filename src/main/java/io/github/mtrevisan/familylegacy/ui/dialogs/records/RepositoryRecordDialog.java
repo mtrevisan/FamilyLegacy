@@ -76,8 +76,6 @@ public class RepositoryRecordDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setTitle("Repository");
-
 		nameLabel.setLabelFor(nameField);
 
 		individualButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.INDIVIDUAL_CITATION, repository)));
@@ -121,8 +119,6 @@ public class RepositoryRecordDialog extends JDialog{
 	public void loadData(final GedcomNode repository, final Consumer<Object> onAccept){
 		this.repository = repository;
 		this.onAccept = onAccept;
-
-		setTitle("Repository " + repository.getID());
 
 		final String name = store.traverse(repository, "NAME").getValue();
 		final String title = store.traverse(repository, "TITLE").getValue();
