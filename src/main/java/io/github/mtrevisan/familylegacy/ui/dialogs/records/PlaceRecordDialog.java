@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -40,7 +41,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -92,12 +92,6 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 
 	private static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 
-	private static final DefaultComboBoxModel<String> CERTAINTY_MODEL = new DefaultComboBoxModel<>(new String[]{
-		StringUtils.EMPTY,
-		"Challenged",
-		"Disproven",
-		"Proven"});
-
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
 	private final JLabel addressLabel = new JLabel("Address:");
@@ -112,7 +106,7 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	private final JLabel longitudeLabel = new JLabel("Longitude:");
 	private final JTextField longitudeField = new JTextField();
 	private final JLabel certaintyLabel = new JLabel("Certainty:");
-	private final JComboBox<String> certaintyComboBox = new JComboBox<>(CERTAINTY_MODEL);
+	private final JComboBox<String> certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JLabel subordinateLabel = new JLabel("Subordinate to:");

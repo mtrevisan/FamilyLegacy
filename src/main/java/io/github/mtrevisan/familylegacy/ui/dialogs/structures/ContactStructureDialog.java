@@ -77,6 +77,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -157,7 +158,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		contactsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		contactsTable.setDragEnabled(true);
 		contactsTable.setDropMode(DropMode.INSERT_ROWS);
-		contactsTable.setTransferHandler(new TableTransferHandle(contactsTable));
+		contactsTable.setTransferHandler(new TableTransferHandle(contactsTable, Collections::emptyList, nodes -> {}));
 		contactsTable.getTableHeader().setFont(contactsTable.getFont().deriveFont(Font.BOLD));
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(contactsTable.getModel());
 		sorter.setComparator(TABLE_INDEX_CONTACT_ID, Comparator.naturalOrder());

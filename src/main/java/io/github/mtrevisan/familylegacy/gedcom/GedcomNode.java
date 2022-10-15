@@ -69,10 +69,21 @@ public abstract class GedcomNode{
 		this.level = level;
 	}
 
+	public GedcomNode withLevel(final int level){
+		if(level < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
+
+		this.level = level;
+
+		return this;
+	}
+
 	public GedcomNode withLevel(final String level){
-		this.level = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
-		if(this.level < 0)
-			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + this.level);
+		final int newLevel = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
+		if(newLevel < 0)
+			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + newLevel);
+
+		this.level = newLevel;
 
 		return this;
 	}
@@ -346,7 +357,7 @@ public abstract class GedcomNode{
 		return this;
 	}
 
-	public GedcomNode clearAll(){
+	public void clearAll(){
 		xref = null;
 		value = null;
 
@@ -358,8 +369,34 @@ public abstract class GedcomNode{
 			}
 			children = null;
 		}
+	}
 
-		return this;
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	public GedcomNode clone(){
+		final GedcomNode copy = createNewNodeWithTag(tag)
+			.withLevel(level)
+			.withID(id)
+			.withXRef(xref)
+			.withValue(value);
+		if(children != null)
+			for(final GedcomNode child : children)
+				copy.addChild(child.clone());
+		copy.custom = custom;
+		return copy;
+	}
+
+	public void replaceWith(final GedcomNode node){
+		clearAll();
+
+		withTag(node.tag);
+		withLevel(node.level);
+		withID(node.id);
+		withXRef(node.xref);
+		withValue(node.value);
+		if(node.children != null)
+			for(final GedcomNode child : node.children)
+				addChild(child.clone());
+		custom = node.custom;
 	}
 
 
@@ -379,6 +416,7 @@ public abstract class GedcomNode{
 	public void setCustom(){
 		custom = true;
 	}
+
 
 	@Override
 	public boolean equals(final Object obj){

@@ -81,6 +81,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.StringJoiner;
@@ -161,7 +162,7 @@ public class SourceCitationDialog extends JDialog{
 		sourceTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		sourceTable.setDragEnabled(true);
 		sourceTable.setDropMode(DropMode.INSERT_ROWS);
-		sourceTable.setTransferHandler(new TableTransferHandle(sourceTable));
+		sourceTable.setTransferHandler(new TableTransferHandle(sourceTable, Collections::emptyList, nodes -> {}));
 		sourceTable.getTableHeader().setFont(sourceTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(sourceTable, TABLE_INDEX_SOURCE_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(sourceTable.getModel());

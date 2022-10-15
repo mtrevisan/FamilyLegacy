@@ -74,6 +74,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -170,7 +171,7 @@ public class CulturalNormRecordDialog extends JDialog implements TextPreviewList
 		culturalNormsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		culturalNormsTable.setDragEnabled(true);
 		culturalNormsTable.setDropMode(DropMode.INSERT_ROWS);
-		culturalNormsTable.setTransferHandler(new TableTransferHandle(culturalNormsTable));
+		culturalNormsTable.setTransferHandler(new TableTransferHandle(culturalNormsTable, Collections::emptyList, nodes -> {}));
 		culturalNormsTable.getTableHeader().setFont(culturalNormsTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(culturalNormsTable, TABLE_INDEX_NORM_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormsTable.getModel());

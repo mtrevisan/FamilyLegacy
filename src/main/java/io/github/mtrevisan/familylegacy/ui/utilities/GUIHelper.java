@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2022 Mauro Trevisan
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -26,19 +26,24 @@ package io.github.mtrevisan.familylegacy.ui.utilities;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -91,6 +96,7 @@ public final class GUIHelper{
 		component.setEnabled(enabled);
 	}
 
+
 	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onTextChange){
 		if(label != null)
 			label.setLabelFor(field);
@@ -116,6 +122,7 @@ public final class GUIHelper{
 			});
 	}
 
+
 	public static void addUndoCapability(final JTextComponent component){
 		final Document doc = component.getDocument();
 		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
@@ -126,7 +133,6 @@ public final class GUIHelper{
 		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
-
 
 	private static class UndoAction extends AbstractAction{
 		@Serial
@@ -184,6 +190,14 @@ public final class GUIHelper{
 		private void readObject(final ObjectInputStream is) throws NotSerializableException{
 			throw new NotSerializableException(getClass().getName());
 		}
+	}
+
+	public static void addBorderIfDataPresent(final JButton button, final boolean dataPresent){
+		final Insets insets = button.getInsets();
+		button.setBorder(dataPresent
+			? BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLUE),
+				BorderFactory.createEmptyBorder(insets.top - 1, insets.left - 1, insets.bottom - 1, insets.right - 1))
+			: UIManager.getBorder("Button.border"));
 	}
 
 }

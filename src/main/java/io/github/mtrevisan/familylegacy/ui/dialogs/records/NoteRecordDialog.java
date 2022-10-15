@@ -105,7 +105,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return dialog;
 	}
 
-	static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
+	public static NoteRecordDialog createChangeNote(final Flef store, final Frame parent){
 		final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
 		dialog.changeNoteInitComponents();
 		return dialog;
@@ -301,7 +301,7 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		return StringUtils.replace(note.getValue(), "\\n", "↵");
 	}
 
-	static String fromNoteText(final String text){
+	public static String fromNoteText(final String text){
 		return StringUtils.replace(text, "\n", "\\n");
 	}
 

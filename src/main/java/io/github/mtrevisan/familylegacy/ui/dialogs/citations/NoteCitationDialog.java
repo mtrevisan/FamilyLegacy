@@ -72,6 +72,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -186,7 +187,7 @@ public class NoteCitationDialog extends JDialog{
 		noteTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		noteTable.setDragEnabled(true);
 		noteTable.setDropMode(DropMode.INSERT_ROWS);
-		noteTable.setTransferHandler(new TableTransferHandle(noteTable));
+		noteTable.setTransferHandler(new TableTransferHandle(noteTable, Collections::emptyList, nodes -> {}));
 		noteTable.getTableHeader().setFont(noteTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(noteTable, TABLE_INDEX_NOTE_ID, 0, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(noteTable, TABLE_INDEX_NOTE_LANGUAGE, 0, LANGUAGE_PREFERRED_WIDTH);

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
+
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.TransferHandler;
@@ -37,6 +39,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 public class TableTransferHandle extends TransferHandler{
@@ -46,10 +50,15 @@ public class TableTransferHandle extends TransferHandler{
 
 
 	private final JTable table;
+	private final Supplier<List<GedcomNode>> nodesExtractor;
+	private final Consumer<List<GedcomNode>> nodesSetter;
 
 
-	public TableTransferHandle(final JTable table){
+	public TableTransferHandle(final JTable table, final Supplier<List<GedcomNode>> nodesExtractor,
+			final Consumer<List<GedcomNode>> nodesSetter){
 		this.table = table;
+		this.nodesExtractor = nodesExtractor;
+		this.nodesSetter = nodesSetter;
 	}
 
 	@Override
@@ -93,13 +102,29 @@ public class TableTransferHandle extends TransferHandler{
 				model.removeRow(0);
 			}
 			final Object[] from = rows.get(rowFrom);
+			final List<GedcomNode> nodes = nodesExtractor.get();
+			final GedcomNode nodeFrom = (!nodes.isEmpty()? nodes.get(rowFrom): null);
 			if(rowTo < size){
 				rows.set(rowFrom, rows.get(rowTo));
 				rows.set(rowTo, from);
+
+				if(!nodes.isEmpty()){
+					nodes.set(rowFrom, nodes.get(rowTo));
+					nodes.set(rowTo, nodeFrom);
+
+					nodesSetter.accept(nodes);
+				}
 			}
 			else{
 				rows.remove(rowFrom);
 				rows.add(from);
+
+				if(!nodes.isEmpty()){
+					nodes.remove(rowFrom);
+					nodes.add(nodeFrom);
+
+					nodesSetter.accept(nodes);
+				}
 			}
 			for(final Object[] row : rows)
 				model.addRow(row);

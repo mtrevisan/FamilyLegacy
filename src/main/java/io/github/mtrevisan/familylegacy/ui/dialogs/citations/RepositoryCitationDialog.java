@@ -75,6 +75,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -143,7 +144,7 @@ public class RepositoryCitationDialog extends JDialog{
 		repositoryTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		repositoryTable.setDragEnabled(true);
 		repositoryTable.setDropMode(DropMode.INSERT_ROWS);
-		repositoryTable.setTransferHandler(new TableTransferHandle(repositoryTable));
+		repositoryTable.setTransferHandler(new TableTransferHandle(repositoryTable, Collections::emptyList, nodes -> {}));
 		repositoryTable.getTableHeader().setFont(repositoryTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(repositoryTable, TABLE_INDEX_REPOSITORY_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(repositoryTable.getModel());

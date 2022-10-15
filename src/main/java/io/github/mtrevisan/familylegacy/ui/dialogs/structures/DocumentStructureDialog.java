@@ -83,6 +83,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -175,7 +176,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		filesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		filesTable.setDragEnabled(true);
 		filesTable.setDropMode(DropMode.INSERT_ROWS);
-		filesTable.setTransferHandler(new TableTransferHandle(filesTable));
+		filesTable.setTransferHandler(new TableTransferHandle(filesTable, Collections::emptyList, nodes -> {}));
 		filesTable.getTableHeader().setFont(filesTable.getFont().deriveFont(Font.BOLD));
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(filesTable.getModel());
 		sorter.setComparator(TABLE_INDEX_DOCUMENT_FILE, Comparator.naturalOrder());

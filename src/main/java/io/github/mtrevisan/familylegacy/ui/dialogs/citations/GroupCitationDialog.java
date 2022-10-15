@@ -78,6 +78,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -152,7 +153,7 @@ public class GroupCitationDialog extends JDialog{
 		groupTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		groupTable.setDragEnabled(true);
 		groupTable.setDropMode(DropMode.INSERT_ROWS);
-		groupTable.setTransferHandler(new TableTransferHandle(groupTable));
+		groupTable.setTransferHandler(new TableTransferHandle(groupTable, Collections::emptyList, nodes -> {}));
 		groupTable.getTableHeader().setFont(groupTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(groupTable, TABLE_INDEX_GROUP_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(groupTable.getModel());

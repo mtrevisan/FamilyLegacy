@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.DataFormatEvent;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CulturalNormCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
@@ -114,7 +115,7 @@ public final class CalendarRecordDialog extends JDialog{
 				calendarModel.addElement(type);
 		}
 		typeComboBox.setEditable(true);
-		typeComboBox.addActionListener(event -> {
+		final ActionListener addTypeAction = event -> {
 			final int index = typeComboBox.getSelectedIndex();
 			if(index < 0 && "comboBoxEdited".equals(event.getActionCommand())){
 				final String newType = (String)calendarModel.getSelectedItem();
@@ -123,10 +124,11 @@ public final class CalendarRecordDialog extends JDialog{
 					typeComboBox.setSelectedItem(newType);
 				}
 			}
-		});
+		};
+		typeComboBox.addActionListener(addTypeAction);
 
-		noteButton.setToolTipText("Add note");
-		culturalNormButton.addActionListener(evt -> {
+		culturalNormButton.setToolTipText("Add cultural norm");
+		final ActionListener addCulturalNormAction = evt -> {
 			final GedcomNode newCulturalNorm = store.create("CULTURAL_NORM");
 
 			final Consumer<Object> onCloseGracefully = ignored -> {
@@ -144,10 +146,11 @@ public final class CalendarRecordDialog extends JDialog{
 
 			//fire add event
 			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onCloseGracefully));
-		});
+		};
+		culturalNormButton.addActionListener(addCulturalNormAction);
 
 		noteButton.setToolTipText("Add note");
-		noteButton.addActionListener(evt -> {
+		final ActionListener addNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				noteButton.setBorder(store.traverseAsList(calendar, "NOTE[]").isEmpty()
 					? UIManager.getBorder("Button.border")
@@ -158,10 +161,11 @@ public final class CalendarRecordDialog extends JDialog{
 			};
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
-		});
+		};
+		noteButton.addActionListener(addNoteAction);
 
 		sourceButton.setToolTipText("Add source");
-		sourceButton.addActionListener(evt -> {
+		final ActionListener addSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				sourceButton.setBorder(store.traverseAsList(calendar, "SOURCE[]").isEmpty()
 					? UIManager.getBorder("Button.border")
@@ -172,7 +176,8 @@ public final class CalendarRecordDialog extends JDialog{
 			};
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, calendar, onAccept));
-		});
+		};
+		sourceButton.addActionListener(addSourceAction);
 
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> setVisible(false);
@@ -322,7 +327,7 @@ public final class CalendarRecordDialog extends JDialog{
 					final String forCalendar = (calendar.getID() != null? " for calendar " + calendar.getID(): " for new calendar");
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
-							final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, parent);
+							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 							dialog.setTitle("Cultural norm" + forCalendar);
 							final GedcomNode culturalNorm = editCommand.getContainer();
 							dialog.setTitle(culturalNorm.getID() != null

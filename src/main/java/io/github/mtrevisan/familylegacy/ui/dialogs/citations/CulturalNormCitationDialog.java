@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.CulturalNormRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
@@ -72,6 +72,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -133,7 +134,7 @@ public class CulturalNormCitationDialog extends JDialog{
 		culturalNormTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		culturalNormTable.setDragEnabled(true);
 		culturalNormTable.setDropMode(DropMode.INSERT_ROWS);
-		culturalNormTable.setTransferHandler(new TableTransferHandle(culturalNormTable));
+		culturalNormTable.setTransferHandler(new TableTransferHandle(culturalNormTable, Collections::emptyList, nodes -> {}));
 		culturalNormTable.getTableHeader().setFont(culturalNormTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(culturalNormTable, TABLE_INDEX_CULTURAL_NORM_ID, 0, ID_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(culturalNormTable.getModel());
@@ -333,7 +334,7 @@ public class CulturalNormCitationDialog extends JDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
-							final CulturalNormRecordDialog dialog = new CulturalNormRecordDialog(store, parent);
+							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 							final GedcomNode culturalNorm = editCommand.getContainer();
 							dialog.setTitle(culturalNorm.getID() != null
 								? "Cultural norm " + culturalNorm.getID()
