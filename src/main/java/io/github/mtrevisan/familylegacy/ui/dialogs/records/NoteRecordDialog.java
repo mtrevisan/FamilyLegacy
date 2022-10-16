@@ -317,9 +317,9 @@ public final class NoteRecordDialog extends JDialog implements TextPreviewListen
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		//without creation date
-//		final GedcomNode note = store.getNotes().get(0);
+		final GedcomNode note = store.getNotes().get(0);
 		//with change date
-		final GedcomNode note = store.getNotes().get(1);
+//		final GedcomNode note = store.getNotes().get(1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();

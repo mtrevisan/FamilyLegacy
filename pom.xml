@@ -82,7 +82,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.13.4</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>2.13.4.2</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>2.7.0</jayway.json-path.version>-->
 <!--		<fasterxml.jackson-databind.version>2.12.5</fasterxml.jackson-databind.version>-->
@@ -98,11 +98,11 @@
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<slf4j.slf4j-api.version>2.0.3</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.4.3</logback.logback-classic.version>
+		<logback.logback-classic.version>1.4.4</logback.logback-classic.version>
 
 		<!-- JUnit -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-		<junit.junit-jupiter-engine.version>5.9.0</junit.junit-jupiter-engine.version>
+		<junit.junit-jupiter-engine.version>5.9.1</junit.junit-jupiter-engine.version>
 	</properties>
 
 	<profiles>

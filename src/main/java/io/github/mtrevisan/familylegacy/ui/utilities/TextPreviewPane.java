@@ -52,6 +52,7 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
@@ -85,8 +86,12 @@ public class TextPreviewPane extends JSplitPane{
 			.build();
 	}
 
+	private static final String HTML_START = "<html>";
+	private static final String HTML_END = "</html>";
+	@SuppressWarnings("ConstantConditions")
 	private static final File FILE_HTML_STANDARD_CSS = new File(TextPreviewPane.class.getResource("/markdown/css/markdown.css")
 		.getFile());
+	@SuppressWarnings("ConstantConditions")
 	private static final File FILE_HTML_GITHUB_CSS = new File(TextPreviewPane.class.getResource("/markdown/css/markdown-github.css")
 		.getFile());
 	private static final String HTML_NEWLINE = "\n";
@@ -113,7 +118,7 @@ public class TextPreviewPane extends JSplitPane{
 	private static final String HTML_BODY_END = new StringJoiner(HTML_NEWLINE)
 		.add(StringUtils.EMPTY)
 		.add("</body>")
-		.add("</html>")
+		.add(HTML_END)
 		.toString();
 	private static final JFileChooser EXPORT_FILE_CHOOSER;
 	static{
@@ -185,16 +190,14 @@ public class TextPreviewPane extends JSplitPane{
 			ScrollableContainerHost.ScrollType.VERTICAL));
 		previewScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		previewScroll.setVisible(false);
-		pane.setRightComponent(previewScroll);
-
 		pane.attachPreviewPopUpMenu(previewScroll);
+		pane.setRightComponent(previewScroll);
+		pane.setResizeWeight(0.5);
 
 		pane.setOneTouchExpandable(true);
 		pane.setContinuousLayout(true);
-		GUIHelper.executeOnEventDispatchThread(() -> {
-			pane.setDividerLocation(1.);
-			pane.setDividerSize(0);
-		});
+		pane.setDividerLocation(1.);
+		pane.setDividerSize(0);
 
 		return pane;
 	}
@@ -212,7 +215,8 @@ public class TextPreviewPane extends JSplitPane{
 	 */
 	private String renderHtml(final String markdown){
 		final Node document = MARKDOWN_PARSER.parse(markdown);
-		return HTML_RENDERER.render(document);
+		final String renderedDocument = HTML_RENDERER.render(document);
+		return  HTML_START + renderedDocument + HTML_END;
 	}
 
 	/**
@@ -246,6 +250,7 @@ public class TextPreviewPane extends JSplitPane{
 			+ HTML_BODY_END;
 	}
 
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	private String extractStyle(final File htmlCssFile){
 		String style = StringUtils.EMPTY;
 		if(htmlCssFile != null && htmlCssFile.exists()){
@@ -269,19 +274,18 @@ public class TextPreviewPane extends JSplitPane{
 		final JCheckBoxMenuItem previewItem = new JCheckBoxMenuItem("Preview");
 		previewItem.addActionListener(event -> {
 			final boolean previewVisible = ((AbstractButton)event.getSource()).isSelected();
+			if(previewVisible){
+				setDividerLocation(0.5);
+				setDividerSize(5);
+			}
+			else{
+				setDividerLocation(1.);
+				setDividerSize(0);
+			}
+			previewScroll.setVisible(previewVisible);
+
 			if(listener != null)
 				listener.onPreviewStateChange(previewVisible);
-			if(previewVisible)
-				GUIHelper.executeOnEventDispatchThread(() -> {
-					setDividerLocation(0.5);
-					setDividerSize(5);
-				});
-			else
-				GUIHelper.executeOnEventDispatchThread(() -> {
-					setDividerLocation(1.);
-					setDividerSize(0);
-				});
-			previewScroll.setVisible(previewVisible);
 		});
 		popupMenu.add(previewItem);
 
@@ -307,7 +311,10 @@ public class TextPreviewPane extends JSplitPane{
 
 	public void setText(final String title, String text, final String languageTag){
 		if(listener != null){
+			removeAllActionListeners(htmlExportStandardItem);
 			htmlExportStandardItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_STANDARD_CSS));
+
+			removeAllActionListeners(htmlExportGithubItem);
 			htmlExportGithubItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_GITHUB_CSS));
 		}
 
@@ -322,9 +329,14 @@ public class TextPreviewPane extends JSplitPane{
 		if(previewView != null && listener != null){
 			final String html = renderHtml(text);
 			previewView.setText(html);
-
 			previewView.setCaretPosition(0);
 		}
+	}
+
+	private void removeAllActionListeners(final JMenuItem menuItem){
+		final ActionListener[] actionListeners = menuItem.getActionListeners();
+		for(final ActionListener actionListener : actionListeners)
+			menuItem.removeActionListener(actionListener);
 	}
 
 	public String getText(){

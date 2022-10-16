@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CulturalNormCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -274,14 +274,14 @@ public class HistoricEventRecordDialog extends JDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case CULTURAL_NORM_CITATION -> {
-							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
+							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 							final GedcomNode culturalNormCitation = editCommand.getContainer();
 							dialog.setTitle(culturalNormCitation.getID() != null
 								? "Cultural norm citation " + culturalNormCitation.getID() + " for calendar " + calendar.getID()
 								: "New cultural norm citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(450, 260);
 							dialog.setLocationRelativeTo(parent);

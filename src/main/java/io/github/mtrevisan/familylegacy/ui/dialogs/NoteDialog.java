@@ -83,36 +83,25 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 
-//TODO
-/*
-n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}
-	+1 LOCALE <LOCALE_CODE>    {0:1}
-	+1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}
-		+2 LOCALE <LOCALE_CODE>    {0:1}
-		+2 <<MODIFICATION_STRUCTURE>>	{1:1}
-	+1 <<SOURCE_CITATION>>    {0:M}
-	+1 RESTRICTION <confidential>    {0:1}
-	+1 <<MODIFICATION_STRUCTURE>>	{1:1}
-*/
 public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = - 7902103855362510456L;
 
+	private enum NoteType{DEFAULT, TRANSLATION, UPDATE}
+
 	private static final String RECORD_TAG = "NOTE";
 	private static final String ARRAY = "[]";
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
-	private static final String RECORD_TITLE = "TITLE";
-	private static final String RECORD_CERTAINTY = "CERTAINTY";
-	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
+	private static final String RECORD_LOCALE = "LOCALE";
+	private static final String RECORD_RESTRICTION = "RESTRICTION";
 	private static final String RECORD_NOTE = "NOTE";
-	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
 	private static final String RECORD_TRANSLATION_ARRAY = "TRANSLATION" + ARRAY;
 	private static final String RECORD_SOURCE_ARRAY = "SOURCE" + ARRAY;
-	private static final String RECORD_PLACE = "PLACE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
 	private static final String RECORD_UPDATE = "UPDATE";
@@ -128,11 +117,12 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
-	private static final int ID_PREFERRED_WIDTH = 25;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_LANGUAGE = 65;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
 	private static final int TABLE_INDEX_RECORD_LANGUAGE = 1;
-	private static final int TABLE_INDEX_RECORD_TEXT = 1;
+	private static final int TABLE_INDEX_RECORD_TEXT = 2;
 	private static final int TABLE_ROWS_SHOWN = 4;
 
 	private static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImage("/images/translation.png", 20, 20);
@@ -161,12 +151,14 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	private GedcomNode originalRecord;
 	private GedcomNode record;
 
+	private NoteType noteType;
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
 
 
 	public static NoteDialog createNote(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.noteType = NoteType.DEFAULT;
 		dialog.initCitationsComponents();
 		dialog.initRecordComponents();
 		dialog.initLayout();
@@ -175,17 +167,17 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 	public static NoteDialog createNoteTranslation(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
-		dialog.initCitationsComponents();
-		dialog.initChangeComponents();
-		dialog.initChangeLayout();
+		dialog.noteType = NoteType.TRANSLATION;
+		dialog.initUpdateComponents();
+		dialog.initUpdateLayout();
 		return dialog;
 	}
 
-	public static NoteDialog createChangeNote(final Flef store, final Frame parent){
+	public static NoteDialog createUpdateNote(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
-		dialog.initCitationsComponents();
-		dialog.initChangeComponents();
-		dialog.initChangeLayout();
+		dialog.noteType = NoteType.UPDATE;
+		dialog.initUpdateComponents();
+		dialog.initUpdateLayout();
 		return dialog;
 	}
 
@@ -216,7 +208,8 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			}));
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_LANGUAGE, 0, TABLE_PREFERRED_WIDTH_RECORD_LANGUAGE);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_RECORD_LANGUAGE, Comparator.naturalOrder());
@@ -266,7 +259,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		restrictionCheckBox.setEnabled(false);
 
 		translationButton.setToolTipText("Add translation");
-		translationButton.addActionListener(evt -> {
+		final ActionListener addTranslationAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> translations = store.traverseAsList(record, RECORD_TRANSLATION_ARRAY);
 				GUIHelper.addBorderIfDataPresent(translationButton, !translations.isEmpty());
@@ -276,7 +269,8 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			};
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, record, onAccept));
-		});
+		};
+		translationButton.addActionListener(addTranslationAction);
 		translationButton.setEnabled(false);
 
 		sourceButton.setToolTipText("Add source");
@@ -305,35 +299,35 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(filterLabel, "align label,split 2");
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
+		add(filterLabel, "align label,spanx 3,split 2");
 		add(filterField, "grow,wrap");
-		add(recordScrollPane, "grow,wrap related");
-		add(newButton, "tag add,split 2,sizegroup button");
+		add(recordScrollPane, "growx,spanx 3,wrap related");
+		add(newButton, "tag add,spanx 3,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
 
-		add(textPreviewView, "spanx 2,spany 2,grow");
+		//FIXME
+//		add(textPreviewView, "spany 2,grow");
+		add(textPreviewView, "spany 2,height 188!,grow");
 		add(translationButton, "tag add,sizegroup button,wrap");
 		add(sourceButton, "tag add,top,sizegroup button,wrap");
 		add(localeLabel, "align label,spanx 3,split 2,sizegroup label");
-		add(localeComboBox, "spanx 3,wrap");
+		add(localeComboBox, "wrap");
 		add(restrictionCheckBox, "spanx 3,wrap paragraph");
 
-		add(helpButton, "tag help2,split 3,sizegroup button2");
+		add(helpButton, "tag help2,spanx 3,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
-	private void initChangeComponents(){
-		textPreviewView = TextPreviewPane.createWithPreview(this);
-		textPreviewView.setEnabled(false);
+	private void initUpdateComponents(){
+		textPreviewView = TextPreviewPane.createWithoutPreview(this);
 
 		localeLabel.setLabelFor(localeComboBox);
 		localeComboBox.addActionListener(evt -> textChanged());
-		GUIHelper.setEnabled(localeLabel, false);
 	}
 
-	private void initChangeLayout(){
+	private void initUpdateLayout(){
 //		final ActionListener helpAction = evt -> helpAction();
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> cancelAction();
@@ -343,13 +337,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[fill,grow]"));
-		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
-		add(recordScrollPane, "grow,wrap related");
-		add(newButton, "tag add,split 2,sizegroup button");
-		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
-
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[fill,grow][][]"));
 		add(textPreviewView, "grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
@@ -370,7 +358,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public void loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
+	public boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
 		this.originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
@@ -386,10 +374,12 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 				final GedcomNode node = records.get(row);
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
-				model.setValueAt(store.traverse(node, "LOCALE").getValue(), row, TABLE_INDEX_RECORD_LANGUAGE);
+				model.setValueAt(store.traverse(node, RECORD_LOCALE).getValue(), row, TABLE_INDEX_RECORD_LANGUAGE);
 				model.setValueAt(NoteRecordDialog.toVisualText(node), row, TABLE_INDEX_RECORD_TEXT);
 			}
 		}
+
+		return (size > 0);
 	}
 
 	private List<GedcomNode> extractRecords(){
@@ -418,20 +408,25 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	private void selectAction(){
 		final GedcomNode selectedRecord = getSelectedRecord();
 
-		GUIHelper.setEnabled(recordTitleLabel, true);
-		recordTitleField.setText(store.traverse(selectedRecord, RECORD_TITLE).getValue());
+		final String text = toNoteText(selectedRecord);
+		final String languageTag = store.traverse(selectedRecord, RECORD_LOCALE)
+			.getValue();
+		final String restriction = store.traverse(selectedRecord, RECORD_RESTRICTION)
+			.getValue();
 
-		GUIHelper.setEnabled(placePanel, true);
-		final GedcomNode place = store.traverse(selectedRecord, RECORD_PLACE);
-		GUIHelper.addBorderIfDataPresent(placeButton, !place.isEmpty());
-		final String certainty = store.traverse(place, RECORD_CERTAINTY).getValue();
-		placeCertaintyComboBox.setSelectedIndex(certainty != null? Integer.parseInt(certainty) + 1: 0);
-		final String credibility = store.traverse(place, RECORD_CREDIBILITY).getValue();
-		placeCredibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
+		textPreviewView.setText(getTitle(), text, languageTag);
+		GUIHelper.setEnabled(textPreviewView, true);
 
-		final List<GedcomNode> notes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
-		GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
-		noteButton.setEnabled(true);
+		if(languageTag != null)
+			localeComboBox.setSelectedItem(Locale.forLanguageTag(languageTag));
+		localeComboBox.setEnabled(true);
+
+		restrictionCheckBox.setSelected("confidential".equals(restriction));
+		restrictionCheckBox.setEnabled(true);
+
+		final List<GedcomNode> translations = store.traverseAsList(selectedRecord, RECORD_TRANSLATION_ARRAY);
+		GUIHelper.addBorderIfDataPresent(translationButton, !translations.isEmpty());
+		translationButton.setEnabled(true);
 
 		final List<GedcomNode> sources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
@@ -442,9 +437,25 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	}
 
 	private GedcomNode getSelectedRecord(){
-		final int selectedRow = recordTable.convertRowIndexToModel(recordTable.getSelectedRow());
+		final int selectedRow = recordTable.getSelectedRow();
 		final String recordID = (String)recordTable.getValueAt(selectedRow, TABLE_INDEX_RECORD_ID);
 		return store.getNote(recordID);
+	}
+
+	private static String toNoteText(final GedcomNode note){
+		return StringUtils.replace(note.getValue(), "\\n", "\n");
+	}
+
+	public static String toVisualText(final GedcomNode note){
+		return StringUtils.replace(note.getValue(), "\\n", "↵");
+	}
+
+	public static String fromNoteText(final String text){
+		return StringUtils.replace(text, "\n", "\\n");
+	}
+
+	public void showNewRecord(){
+		newAction();
 	}
 
 	private void newAction(){
@@ -468,18 +479,18 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		recordTable.setRowSelectionInterval(oldSize, oldSize);
 		//make selected row visible
 		recordTable.scrollRectToVisible(recordTable.getCellRect(oldSize, 0, true));
-		selectAction();
 	}
 
 	private void deleteAction(){
-		GUIHelper.setEnabled(recordTitleLabel, false);
-		GUIHelper.setEnabled(placePanel, false);
-		noteButton.setEnabled(false);
+		GUIHelper.setEnabled(textPreviewView, false);
+		localeComboBox.setEnabled(false);
+		restrictionCheckBox.setEnabled(false);
+		translationButton.setEnabled(false);
 		sourceButton.setEnabled(false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-		final int index = recordTable.convertRowIndexToModel(recordTable.getSelectedRow());
+		final int index = recordTable.getSelectedRow();
 		final String recordID = (String)model.getValueAt(index, TABLE_INDEX_RECORD_ID);
 		final GedcomNode selectedRecord;
 		if(StringUtils.isBlank(recordID))
@@ -507,23 +518,24 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 			setVisible(false);
 		}
+		else if(noteType != NoteType.DEFAULT){
+			record.addChild(
+				store.create(RECORD_UPDATE)
+					.addChildValue(RECORD_DATE, now)
+					.addChildValue(RECORD_NOTE, NoteDialog.fromNoteText(textPreviewView.getText()))
+			);
+
+			if(onCloseGracefully != null)
+				onCloseGracefully.accept(this);
+
+			setVisible(false);
+		}
 		else{
 			//show note record dialog
 			final GedcomNode changeNote = store.create(RECORD_NOTE);
-			final NoteDialog changeNoteDialog = NoteDialog.createChangeNote(store, (Frame)getParent());
+			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
 			changeNoteDialog.setTitle("Change note for calendar " + record.getID());
-			changeNoteDialog.loadData(changeNote, ignored -> {
-				record.addChild(
-					store.create(RECORD_UPDATE)
-						.addChildValue(RECORD_DATE, now)
-						.addChildValue(RECORD_NOTE, NoteDialog.fromNoteText(changeNote.getValue()))
-				);
-
-				if(onCloseGracefully != null)
-					onCloseGracefully.accept(this);
-
-				setVisible(false);
-			});
+			changeNoteDialog.loadData(changeNote, ignored -> {});
 
 			changeNoteDialog.setSize(450, 500);
 			changeNoteDialog.setLocationRelativeTo(this);
@@ -545,7 +557,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Title"}, 0);
+			super(new String[]{"ID", "Language", "Text"}, 0);
 		}
 
 		@Override
@@ -596,20 +608,6 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for " + container.getID()
-								: "New note citation for " + container.getID());
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
 							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
@@ -618,7 +616,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 								: "New note for " + container.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 330);
+							dialog.setSize(500, 513);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -666,9 +664,10 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteDialog dialog = new NoteDialog(store, parent);
+			final NoteDialog dialog = NoteDialog.createNote(store, parent);
 			dialog.setTitle(container.getID() != null? "Note for " + container.getID(): "Note");
-			dialog.loadData(container, null);
+			if(!dialog.loadData(container, null))
+				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
@@ -676,7 +675,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(464, 446);
+			dialog.setSize(500, 513);
 			dialog.setLocationRelativeTo(null);
 //			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 //				@Override

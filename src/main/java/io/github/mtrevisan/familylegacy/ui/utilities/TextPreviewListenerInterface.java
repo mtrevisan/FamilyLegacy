@@ -35,7 +35,9 @@ public interface TextPreviewListenerInterface{
 
 
 	static void centerDivider(final Component component, final boolean previewVisible){
-		component.setSize((previewVisible? component.getWidth() * 2: component.getWidth() / 2), component.getHeight());
+		final int width = component.getWidth();
+		final int height = component.getHeight();
+		component.setSize((previewVisible? width * 2: width / 2), height);
 	}
 
 }

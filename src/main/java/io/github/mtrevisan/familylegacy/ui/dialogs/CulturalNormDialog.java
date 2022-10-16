@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
@@ -104,7 +103,6 @@ public class CulturalNormDialog extends JDialog{
 	private static final String RECORD_PLACE = "PLACE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
-	private static final String RECORD_UPDATE = "UPDATE";
 	private static final String ACTION_MAP_KEY_INSERT = "insert";
 	private static final String ACTION_MAP_KEY_DELETE = "delete";
 
@@ -117,7 +115,7 @@ public class CulturalNormDialog extends JDialog{
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 
-	private static final int ID_PREFERRED_WIDTH = 25;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
 	private static final int TABLE_INDEX_RECORD_TITLE = 1;
@@ -152,6 +150,8 @@ public class CulturalNormDialog extends JDialog{
 
 	private GedcomNode originalRecord;
 	private GedcomNode record;
+	private GedcomNode previouslySelectedRecord;
+	private long previouslySelectedRecordHash;
 
 	private Consumer<Object> onCloseGracefully;
 	private final Flef store;
@@ -194,7 +194,7 @@ public class CulturalNormDialog extends JDialog{
 			}));
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_RECORD_TITLE, Comparator.naturalOrder());
@@ -235,10 +235,15 @@ public class CulturalNormDialog extends JDialog{
 		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> {
 			final String newTitle = titleField.getText();
 			if(StringUtils.isNotBlank(newTitle)){
-				store.traverse(getSelectedRecord(), RECORD_TITLE).withValue(newTitle);
+				final GedcomNode selectedRecord = getSelectedRecord();
+				final GedcomNode titleNode = store.traverse(selectedRecord, RECORD_TITLE);
+				if(titleNode.isEmpty())
+					selectedRecord.addChildValue(RECORD_TITLE, newTitle);
+				else
+					titleNode.withValue(newTitle);
 
 				//update table
-				final int selectedRow = recordTable.convertRowIndexToModel(recordTable.getSelectedRow());
+				final int selectedRow = recordTable.getSelectedRow();
 				recordTable.setValueAt(newTitle, selectedRow, TABLE_INDEX_RECORD_TITLE);
 			}
 		});
@@ -246,14 +251,34 @@ public class CulturalNormDialog extends JDialog{
 
 		placeCertaintyLabel.setLabelFor(placeCertaintyComboBox);
 		placeCertaintyComboBox.addActionListener(evt -> {
-			final int certainty = placeCertaintyComboBox.getSelectedIndex() - 1;
-			store.traverse(getSelectedRecord(), RECORD_CERTAINTY).withValue(Integer.toString(certainty));
+			final GedcomNode selectedRecord = getSelectedRecord();
+			final int selectedIndex = placeCertaintyComboBox.getSelectedIndex();
+			if(selectedIndex > 0){
+				final String certainty = Integer.toString(selectedIndex - 1);
+				final GedcomNode certaintyNode = store.traverse(selectedRecord, RECORD_CERTAINTY);
+				if(certaintyNode.isEmpty())
+					selectedRecord.addChildValue(RECORD_CERTAINTY, certainty);
+				else
+					certaintyNode.withValue(certainty);
+			}
+			else
+				selectedRecord.removeChildrenWithTag(RECORD_CERTAINTY);
 		});
 
 		placeCredibilityLabel.setLabelFor(placeCredibilityComboBox);
 		placeCredibilityComboBox.addActionListener(evt -> {
-			final int certainty = placeCredibilityComboBox.getSelectedIndex() - 1;
-			store.traverse(getSelectedRecord(), RECORD_CREDIBILITY).withValue(Integer.toString(certainty));
+			final GedcomNode selectedRecord = getSelectedRecord();
+			final int selectedIndex = placeCredibilityComboBox.getSelectedIndex();
+			if(selectedIndex > 0){
+				final String credibility = Integer.toString(selectedIndex - 1);
+				final GedcomNode credibilityNode = store.traverse(selectedRecord, RECORD_CREDIBILITY);
+				if(credibilityNode.isEmpty())
+					selectedRecord.addChildValue(RECORD_CREDIBILITY, credibility);
+				else
+					credibilityNode.withValue(credibility);
+			}
+			else
+				selectedRecord.removeChildrenWithTag(RECORD_CREDIBILITY);
 		});
 
 		placeButton.addActionListener(e -> {
@@ -329,7 +354,7 @@ public class CulturalNormDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
-	public void loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
+	public boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
 		this.originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
@@ -348,6 +373,8 @@ public class CulturalNormDialog extends JDialog{
 				model.setValueAt(store.traverse(node, RECORD_TITLE).getValue(), row, TABLE_INDEX_RECORD_TITLE);
 			}
 		}
+
+		return (size > 0);
 	}
 
 	private List<GedcomNode> extractRecords(){
@@ -374,6 +401,28 @@ public class CulturalNormDialog extends JDialog{
 
 	private void selectAction(){
 		final GedcomNode selectedRecord = getSelectedRecord();
+		if(previouslySelectedRecord != null && previouslySelectedRecord.hashCode() != previouslySelectedRecordHash){
+			final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+
+			if(store.traverse(record, RECORD_CREATION).isEmpty())
+				record.addChild(
+					store.create(RECORD_CREATION)
+						.addChildValue(RECORD_DATE, now)
+				);
+			else{
+				//show note record dialog
+				final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
+				changeNoteDialog.setTitle("Change note for cultural norm " + selectedRecord.getID());
+				changeNoteDialog.loadData(record, dialog -> {});
+
+				changeNoteDialog.setSize(450, 500);
+				changeNoteDialog.setLocationRelativeTo(this);
+				changeNoteDialog.setVisible(true);
+			}
+		}
+		previouslySelectedRecord = selectedRecord;
+		previouslySelectedRecordHash = selectedRecord.hashCode();
+
 
 		GUIHelper.setEnabled(titleLabel, true);
 		titleField.setText(store.traverse(selectedRecord, RECORD_TITLE).getValue());
@@ -381,9 +430,11 @@ public class CulturalNormDialog extends JDialog{
 		GUIHelper.setEnabled(placePanel, true);
 		final GedcomNode place = store.traverse(selectedRecord, RECORD_PLACE);
 		GUIHelper.addBorderIfDataPresent(placeButton, !place.isEmpty());
-		final String certainty = store.traverse(place, RECORD_CERTAINTY).getValue();
+		final String certainty = store.traverse(place, RECORD_CERTAINTY)
+			.getValue();
 		placeCertaintyComboBox.setSelectedIndex(certainty != null? Integer.parseInt(certainty) + 1: 0);
-		final String credibility = store.traverse(place, RECORD_CREDIBILITY).getValue();
+		final String credibility = store.traverse(place, RECORD_CREDIBILITY)
+			.getValue();
 		placeCredibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 		final List<GedcomNode> notes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
@@ -399,9 +450,13 @@ public class CulturalNormDialog extends JDialog{
 	}
 
 	private GedcomNode getSelectedRecord(){
-		final int selectedRow = recordTable.convertRowIndexToModel(recordTable.getSelectedRow());
+		final int selectedRow = recordTable.getSelectedRow();
 		final String recordID = (String)recordTable.getValueAt(selectedRow, TABLE_INDEX_RECORD_ID);
 		return store.getCulturalNorm(recordID);
+	}
+
+	public void showNewRecord(){
+		newAction();
 	}
 
 	private void newAction(){
@@ -425,7 +480,6 @@ public class CulturalNormDialog extends JDialog{
 		recordTable.setRowSelectionInterval(oldSize, oldSize);
 		//make selected row visible
 		recordTable.scrollRectToVisible(recordTable.getCellRect(oldSize, 0, true));
-		selectAction();
 	}
 
 	private void deleteAction(){
@@ -436,7 +490,7 @@ public class CulturalNormDialog extends JDialog{
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-		final int index = recordTable.convertRowIndexToModel(recordTable.getSelectedRow());
+		final int index = recordTable.getSelectedRow();
 		final String recordID = (String)model.getValueAt(index, TABLE_INDEX_RECORD_ID);
 		final GedcomNode selectedRecord;
 		if(StringUtils.isBlank(recordID))
@@ -466,21 +520,10 @@ public class CulturalNormDialog extends JDialog{
 		}
 		else{
 			//show note record dialog
-			final GedcomNode changeNote = store.create(RECORD_NOTE);
-			final NoteRecordDialog changeNoteDialog = NoteRecordDialog.createChangeNote(store, (Frame)getParent());
-			changeNoteDialog.setTitle("Change note for calendar " + record.getID());
-			changeNoteDialog.loadData(changeNote, ignored -> {
-				record.addChild(
-					store.create(RECORD_UPDATE)
-						.addChildValue(RECORD_DATE, now)
-						.addChildValue(RECORD_NOTE, NoteRecordDialog.fromNoteText(changeNote.getValue()))
-				);
-
-				if(onCloseGracefully != null)
-					onCloseGracefully.accept(this);
-
-				setVisible(false);
-			});
+			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
+			final GedcomNode selectedRecord = getSelectedRecord();
+			changeNoteDialog.setTitle("Change note for cultural norm " + selectedRecord.getID());
+			changeNoteDialog.loadData(record, dialog -> {});
 
 			changeNoteDialog.setSize(450, 500);
 			changeNoteDialog.setLocationRelativeTo(this);
@@ -553,34 +596,20 @@ public class CulturalNormDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for " + container.getID()
-								: "New note citation for " + container.getID());
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
 								: "New note for " + container.getID());
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 330);
+							dialog.setSize(500, 513);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
 						case NOTE_TRANSLATION -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNoteTranslation(store, parent);
+							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
 							final GedcomNode noteTranslation = editCommand.getContainer();
 							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
 								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
@@ -625,7 +654,8 @@ public class CulturalNormDialog extends JDialog{
 
 			final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 			dialog.setTitle(container.getID() != null? "Cultural norm for " + container.getID(): "Cultural norm");
-			dialog.loadData(container, null);
+			if(!dialog.loadData(container, null))
+				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

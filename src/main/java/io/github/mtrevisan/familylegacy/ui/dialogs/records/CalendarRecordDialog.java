@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.gedcom.events.DataFormatEvent;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.CulturalNormCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -340,11 +339,11 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case CULTURAL_NORM_CITATION -> {
-							final CulturalNormCitationDialog dialog = new CulturalNormCitationDialog(store, parent);
+							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 							dialog.setTitle("Cultural norm citations" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a cultural norm input dialog
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(450, 260);
 							dialog.setLocationRelativeTo(parent);
