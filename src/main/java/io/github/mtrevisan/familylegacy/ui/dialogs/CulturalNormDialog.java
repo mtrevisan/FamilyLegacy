@@ -268,17 +268,18 @@ public class CulturalNormDialog extends JDialog{
 		placeCredibilityLabel.setLabelFor(placeCredibilityComboBox);
 		placeCredibilityComboBox.addActionListener(evt -> {
 			final GedcomNode selectedRecord = getSelectedRecord();
+			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
 			final int selectedIndex = placeCredibilityComboBox.getSelectedIndex();
 			if(selectedIndex > 0){
 				final String credibility = Integer.toString(selectedIndex - 1);
-				final GedcomNode credibilityNode = store.traverse(selectedRecord, RECORD_CREDIBILITY);
+				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
 				if(credibilityNode.isEmpty())
-					selectedRecord.addChildValue(RECORD_CREDIBILITY, credibility);
+					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
 				else
 					credibilityNode.withValue(credibility);
 			}
 			else
-				selectedRecord.removeChildrenWithTag(RECORD_CREDIBILITY);
+				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
 		});
 
 		placeButton.addActionListener(e -> {
@@ -400,28 +401,36 @@ public class CulturalNormDialog extends JDialog{
 	}
 
 	private void selectAction(){
+		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final GedcomNode selectedRecord = getSelectedRecord();
+		if(store.traverse(selectedRecord, RECORD_CREATION).isEmpty())
+			selectedRecord.addChild(
+				store.create(RECORD_CREATION)
+					.addChildValue(RECORD_DATE, now)
+			);
 		if(previouslySelectedRecord != null && previouslySelectedRecord.hashCode() != previouslySelectedRecordHash){
-			final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+			//show note record dialog
+			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
+			changeNoteDialog.setTitle("Change note for cultural norm " + previouslySelectedRecord.getID());
+			changeNoteDialog.loadData(previouslySelectedRecord, dialog -> {
+				previouslySelectedRecord = selectedRecord;
+				previouslySelectedRecordHash = selectedRecord.hashCode();
+			});
+//			changeNoteDialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+//				@Override
+//				public void componentResized(java.awt.event.ComponentEvent e) {
+//					System.out.println("Resized to " + e.getComponent().getSize());
+//				}
+//			});
 
-			if(store.traverse(record, RECORD_CREATION).isEmpty())
-				record.addChild(
-					store.create(RECORD_CREATION)
-						.addChildValue(RECORD_DATE, now)
-				);
-			else{
-				//show note record dialog
-				final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-				changeNoteDialog.setTitle("Change note for cultural norm " + selectedRecord.getID());
-				changeNoteDialog.loadData(record, dialog -> {});
-
-				changeNoteDialog.setSize(450, 500);
-				changeNoteDialog.setLocationRelativeTo(this);
-				changeNoteDialog.setVisible(true);
-			}
+			changeNoteDialog.setSize(450, 209);
+			changeNoteDialog.setLocationRelativeTo(this);
+			changeNoteDialog.setVisible(true);
 		}
-		previouslySelectedRecord = selectedRecord;
-		previouslySelectedRecordHash = selectedRecord.hashCode();
+		else{
+			previouslySelectedRecord = selectedRecord;
+			previouslySelectedRecordHash = selectedRecord.hashCode();
+		}
 
 
 		GUIHelper.setEnabled(titleLabel, true);
@@ -502,6 +511,10 @@ public class CulturalNormDialog extends JDialog{
 		record.removeChild(selectedRecord);
 
 		model.removeRow(index);
+
+
+		//clear previously selected row
+		previouslySelectedRecord = null;
 	}
 
 	private void okAction(){

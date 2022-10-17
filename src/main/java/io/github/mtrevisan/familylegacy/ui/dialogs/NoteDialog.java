@@ -338,7 +338,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[fill,grow][][]"));
-		add(textPreviewView, "grow,wrap");
+		add(textPreviewView, "height 100!,grow,wrap");
 		add(localeLabel, "align label,split 2,sizegroup label");
 		add(localeComboBox, "wrap");
 
