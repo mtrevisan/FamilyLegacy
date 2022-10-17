@@ -30,8 +30,8 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -202,7 +202,7 @@ public class GroupCitationDialog extends JDialog{
 		noteButton.addActionListener(evt -> {
 			final String selectedGroupID = (String)okButton.getClientProperty(KEY_GROUP_ID);
 			final GedcomNode selectedGroup = store.getSource(selectedGroupID);
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedGroup));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedGroup));
 		});
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
@@ -413,27 +413,14 @@ public class GroupCitationDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for individual " + individual.getID()
-								: "New note citation for individual " + individual.getID());
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
 								: "New note for " + individual.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);

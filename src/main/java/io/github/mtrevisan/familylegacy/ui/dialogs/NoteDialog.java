@@ -163,7 +163,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		return dialog;
 	}
 
-	static NoteDialog createNoteTranslation(final Flef store, final Frame parent){
+	public static NoteDialog createNoteTranslation(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.noteType = NoteType.TRANSLATION;
 		dialog.initUpdateComponents();
@@ -171,7 +171,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		return dialog;
 	}
 
-	static NoteDialog createUpdateNote(final Flef store, final Frame parent){
+	public static NoteDialog createUpdateNote(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.noteType = NoteType.UPDATE;
 		dialog.initUpdateComponents();

@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -116,10 +116,10 @@ public class GroupEventRecordDialog extends JDialog{
 		individualNoteButton.setToolTipText("Add note to parent 1");
 		individualNoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
+			final NoteDialog noteCitationDialog = NoteDialog.createNote(store, parent);
 			//TODO onCloseGracefully
 			if(!noteCitationDialog.loadData(individual, null))
-				noteCitationDialog.addAction();
+				noteCitationDialog.showNewRecord();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -136,7 +136,7 @@ public class GroupEventRecordDialog extends JDialog{
 			//TODO
 		});
 
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, individual)));
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, individual)));
 
 		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, individual)));
 

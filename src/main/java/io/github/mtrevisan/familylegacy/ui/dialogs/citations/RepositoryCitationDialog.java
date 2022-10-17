@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -189,7 +189,7 @@ public class RepositoryCitationDialog extends JDialog{
 		noteButton.addActionListener(evt -> {
 			final String selectedRepositoryID = (String)okButton.getClientProperty(KEY_REPOSITORY_ID);
 			final GedcomNode selectedRepository = store.getSource(selectedRepositoryID);
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, selectedRepository));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, selectedRepository));
 		});
 
 		final ActionListener addAction = evt -> addAction();
@@ -381,53 +381,28 @@ public class RepositoryCitationDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for source " + source.getID()
-								: "New note citation for source " + source.getID());
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
 								: "New note for " + source.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
 						case NOTE_TRANSLATION -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNoteTranslation(store, parent);
-							final GedcomNode noteTranslation = editCommand.getContainer();
-							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-								: "New translation"
-							);
-							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-
-							dialog.setSize(500, 330);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_TRANSLATION_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
+							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Translation citations for note " + note.getID()
 								: "Translation citations for new note");
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								//FIXME
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);

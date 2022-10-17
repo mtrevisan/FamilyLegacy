@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
@@ -139,9 +139,9 @@ private final JTextField subordinateField = new JTextField();
 
 		GUIHelper.bindLabelTextChangeUndo(addressHierarchyLabel, addressHierarchyField, evt -> dataChanged());
 
-		culturalNormButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, place)));
+		culturalNormButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, place)));
 
-		noteButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, place)));
+		noteButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, place)));
 
 		sourceButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, place)));
 
@@ -288,25 +288,12 @@ private final JTextField subordinateField = new JTextField();
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							final GedcomNode noteCitation = editCommand.getContainer();
-							dialog.setTitle(noteCitation.getID() != null
-								? "Note citation " + noteCitation.getID() + " for place " + place.getID()
-								: "New note citation for place " + place.getID());
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle("Note for " + note.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(500, 330);
 							dialog.setLocationRelativeTo(parent);

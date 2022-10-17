@@ -34,11 +34,10 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.FamilyRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
@@ -156,22 +155,13 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				dialog.setVisible(true);
 			}
 			case NOTE -> {
-				final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, this);
+				final NoteDialog dialog = NoteDialog.createNote(store, this);
 				final GedcomNode note = editCommand.getContainer();
 				dialog.setTitle("Note for " + note.getID());
-				dialog.loadData(note, editCommand.getOnCloseGracefully());
+				if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+					dialog.showNewRecord();
 
 				dialog.setSize(500, 330);
-				dialog.setLocationRelativeTo(this);
-				dialog.setVisible(true);
-			}
-			case NOTE_CITATION -> {
-				final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, this);
-				if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-					//show a note input dialog
-					dialog.addAction();
-
-				dialog.setSize(450, 500);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
 			}

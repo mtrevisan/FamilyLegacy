@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
@@ -162,11 +162,11 @@ public class FamilyRecordDialog extends JDialog{
 		partner1NoteButton.setToolTipText("Add note to parent 1");
 		partner1NoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
+			final NoteDialog noteCitationDialog = NoteDialog.createNote(store, parent);
 			final GedcomNode partner1 = store.getPartner1(family);
 			//TODO onCloseGracefully
 			if(!noteCitationDialog.loadData(partner1, null))
-				noteCitationDialog.addAction();
+				noteCitationDialog.showNewRecord();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -178,11 +178,11 @@ public class FamilyRecordDialog extends JDialog{
 		partner2NoteButton.setToolTipText("Add note to parent 2");
 		partner2NoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
+			final NoteDialog noteCitationDialog = NoteDialog.createNote(store, parent);
 			final GedcomNode partner2 = store.getPartner2(family);
 			//TODO onCloseGracefully
 			if(!noteCitationDialog.loadData(partner2, null))
-				noteCitationDialog.addAction();
+				noteCitationDialog.showNewRecord();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -194,13 +194,13 @@ public class FamilyRecordDialog extends JDialog{
 		childNoteButton.setToolTipText("Add note to child");
 		childNoteButton.addActionListener(evt -> {
 			final Frame parent = (Frame)getParent();
-			final NoteCitationDialog noteCitationDialog = NoteCitationDialog.createNoteCitation(store, parent);
+			final NoteDialog noteCitationDialog = NoteDialog.createNote(store, parent);
 			final List<GedcomNode> children = FamilyPanel.extractChildren(family, store);
 			final int childIndex = childrenTable.getSelectedRow();
 			final GedcomNode child = store.getIndividual(children.get(childIndex).getXRef());
 			//TODO onCloseGracefully
 			if(!noteCitationDialog.loadData(child, null))
-				noteCitationDialog.addAction();
+				noteCitationDialog.showNewRecord();
 
 			noteCitationDialog.setSize(450, 260);
 			noteCitationDialog.setLocationRelativeTo(parent);
@@ -217,7 +217,7 @@ public class FamilyRecordDialog extends JDialog{
 			//TODO
 		});
 
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, family)));
+		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, family)));
 
 		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE_CITATION, family)));
 

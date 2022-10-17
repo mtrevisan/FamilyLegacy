@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
@@ -141,7 +141,7 @@ public class HistoricEventRecordDialog extends JDialog{
 			};
 
 			//fire add event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, container, onCloseGracefully));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, container, onCloseGracefully));
 		});
 
 		noteButton.setToolTipText("Add note");
@@ -155,7 +155,7 @@ public class HistoricEventRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, container, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, container, onAccept));
 		});
 
 		sourceButton.setToolTipText("Add source");
@@ -273,7 +273,7 @@ public class HistoricEventRecordDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case CULTURAL_NORM_CITATION -> {
+						case CULTURAL_NORM -> {
 							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 							final GedcomNode culturalNormCitation = editCommand.getContainer();
 							dialog.setTitle(culturalNormCitation.getID() != null
@@ -287,15 +287,15 @@ public class HistoricEventRecordDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
+						case NOTE -> {
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode noteCitation = editCommand.getContainer();
 							dialog.setTitle(noteCitation.getID() != null
 								? "Note citation " + noteCitation.getID() + " for calendar " + calendar.getID()
 								: "New note citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								//show a note input dialog
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(450, 260);
 							dialog.setLocationRelativeTo(parent);

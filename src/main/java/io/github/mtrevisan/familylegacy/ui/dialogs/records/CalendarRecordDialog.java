@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.DataFormatEvent;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
@@ -144,7 +144,7 @@ public final class CalendarRecordDialog extends JDialog{
 			};
 
 			//fire add event
-			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM_CITATION, calendar, onCloseGracefully));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, calendar, onCloseGracefully));
 		};
 		culturalNormButton.addActionListener(addCulturalNormAction);
 
@@ -159,7 +159,7 @@ public final class CalendarRecordDialog extends JDialog{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_CITATION, calendar, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, calendar, onAccept));
 		};
 		noteButton.addActionListener(addNoteAction);
 
@@ -241,7 +241,7 @@ public final class CalendarRecordDialog extends JDialog{
 		else{
 			//show note record dialog
 			final GedcomNode changeNote = store.create("NOTE");
-			final NoteRecordDialog changeNoteDialog = NoteRecordDialog.createChangeNote(store, (Frame)getParent());
+			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
 			changeNoteDialog.setTitle("Change note for calendar " + calendar.getID());
 			changeNoteDialog.loadData(changeNote, ignored -> {
 				final List<GedcomNode> update = store.traverseAsList(calendar, "UPDATE[]");
@@ -256,7 +256,7 @@ public final class CalendarRecordDialog extends JDialog{
 					.addChild(
 						store.create("UPDATE")
 							.addChildValue("DATE", now)
-							.addChildValue("NOTE", NoteRecordDialog.fromNoteText(changeNote.getValue()))
+							.addChildValue("NOTE", NoteDialog.fromNoteText(changeNote.getValue()))
 					);
 
 				if(onAccept != null)
@@ -332,25 +332,15 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.setTitle(culturalNorm.getID() != null
 								? "Cultural norm " + culturalNorm.getID() + forCalendar
 								: "New cultural norm" + forCalendar);
-							dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(480, 700);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case CULTURAL_NORM_CITATION -> {
-							final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
-							dialog.setTitle("Cultural norm citations" + forCalendar);
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a cultural norm input dialog
-								dialog.showNewRecord();
-
-							dialog.setSize(450, 260);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
 						case NOTE -> {
-							final NoteRecordDialog dialog = NoteRecordDialog.createNote(store, parent);
+							final NoteDialog dialog = NoteDialog.createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID() + forCalendar
@@ -358,17 +348,6 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.loadData(note, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 330);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteCitation(store, parent);
-							dialog.setTitle("Note citations" + forCalendar);
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								//show a note input dialog
-								dialog.addAction();
-
-							dialog.setSize(450, 260);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
