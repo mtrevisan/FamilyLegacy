@@ -165,7 +165,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		return dialog;
 	}
 
-	public static NoteDialog createNoteTranslation(final Flef store, final Frame parent){
+	static NoteDialog createNoteTranslation(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.noteType = NoteType.TRANSLATION;
 		dialog.initUpdateComponents();
@@ -173,7 +173,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		return dialog;
 	}
 
-	public static NoteDialog createUpdateNote(final Flef store, final Frame parent){
+	static NoteDialog createUpdateNote(final Flef store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.noteType = NoteType.UPDATE;
 		dialog.initUpdateComponents();
@@ -348,19 +348,19 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	}
 
 	@Override
-	public void textChanged(){
+	public final void textChanged(){
 		okButton.setEnabled(StringUtils.isNotBlank(textPreviewView.getText()));
 	}
 
 	@Override
 	@SuppressWarnings("BooleanParameter")
-	public void onPreviewStateChange(final boolean visible){
+	public final void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	public boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
+	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
-		this.originalRecord = record.clone();
+		originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
 
 		final List<GedcomNode> records = extractRecords();
@@ -454,7 +454,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		return StringUtils.replace(text, "\n", "\\n");
 	}
 
-	public void showNewRecord(){
+	public final void showNewRecord(){
 		newAction();
 	}
 
@@ -561,12 +561,12 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		}
 
 		@Override
-		public Class<?> getColumnClass(final int column){
+		public final Class<?> getColumnClass(final int column){
 			return String.class;
 		}
 
 		@Override
-		public boolean isCellEditable(final int row, final int column){
+		public final boolean isCellEditable(final int row, final int column){
 			return false;
 		}
 	}

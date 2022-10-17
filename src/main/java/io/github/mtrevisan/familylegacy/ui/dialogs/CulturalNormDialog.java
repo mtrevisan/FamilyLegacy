@@ -355,7 +355,7 @@ public class CulturalNormDialog extends JDialog{
 		add(cancelButton, "tag cancel,sizegroup button2");
 	}
 
-	public boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
+	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
 		this.originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
@@ -464,7 +464,7 @@ public class CulturalNormDialog extends JDialog{
 		return store.getCulturalNorm(recordID);
 	}
 
-	public void showNewRecord(){
+	public final void showNewRecord(){
 		newAction();
 	}
 
@@ -562,12 +562,12 @@ public class CulturalNormDialog extends JDialog{
 		}
 
 		@Override
-		public Class<?> getColumnClass(final int column){
+		public final Class<?> getColumnClass(final int column){
 			return String.class;
 		}
 
 		@Override
-		public boolean isCellEditable(final int row, final int column){
+		public final boolean isCellEditable(final int row, final int column){
 			return false;
 		}
 	}
