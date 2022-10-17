@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
@@ -538,7 +537,7 @@ public class CulturalNormDialog extends JDialog{
 			changeNoteDialog.setTitle("Change note for cultural norm " + selectedRecord.getID());
 			changeNoteDialog.loadData(record, dialog -> {});
 
-			changeNoteDialog.setSize(450, 500);
+			changeNoteDialog.setSize(450, 209);
 			changeNoteDialog.setLocationRelativeTo(this);
 			changeNoteDialog.setVisible(true);
 		}
@@ -630,20 +629,7 @@ public class CulturalNormDialog extends JDialog{
 							);
 							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 330);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_TRANSLATION_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation citations for note " + note.getID()
-								: "Translation citations for new note");
-							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
-
-							dialog.setSize(550, 450);
+							dialog.setSize(450, 209);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

@@ -30,9 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.NoteCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -268,7 +266,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 				okButton.grabFocus();
 			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION_CITATION, record, onAccept));
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE_TRANSLATION, record, onAccept));
 		};
 		translationButton.addActionListener(addTranslationAction);
 		translationButton.setEnabled(false);
@@ -375,7 +373,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
 				model.setValueAt(store.traverse(node, RECORD_LOCALE).getValue(), row, TABLE_INDEX_RECORD_LANGUAGE);
-				model.setValueAt(NoteRecordDialog.toVisualText(node), row, TABLE_INDEX_RECORD_TEXT);
+				model.setValueAt(toVisualText(node), row, TABLE_INDEX_RECORD_TEXT);
 			}
 		}
 
@@ -522,7 +520,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			record.addChild(
 				store.create(RECORD_UPDATE)
 					.addChildValue(RECORD_DATE, now)
-					.addChildValue(RECORD_NOTE, NoteDialog.fromNoteText(textPreviewView.getText()))
+					.addChildValue(RECORD_NOTE, fromNoteText(textPreviewView.getText()))
 			);
 
 			if(onCloseGracefully != null)
@@ -533,11 +531,11 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		else{
 			//show note record dialog
 			final GedcomNode changeNote = store.create(RECORD_NOTE);
-			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
+			final NoteDialog changeNoteDialog = createUpdateNote(store, (Frame)getParent());
 			changeNoteDialog.setTitle("Change note for calendar " + record.getID());
 			changeNoteDialog.loadData(changeNote, ignored -> {});
 
-			changeNoteDialog.setSize(450, 500);
+			changeNoteDialog.setSize(450, 209);
 			changeNoteDialog.setLocationRelativeTo(this);
 			changeNoteDialog.setVisible(true);
 		}
@@ -609,7 +607,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							dialog.setVisible(true);
 						}
 						case NOTE -> {
-							final NoteDialog dialog = NoteDialog.createNote(store, parent);
+							final NoteDialog dialog = createNote(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Note " + note.getID()
@@ -621,7 +619,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							dialog.setVisible(true);
 						}
 						case NOTE_TRANSLATION -> {
-							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
+							final NoteDialog dialog = createNoteTranslation(store, parent);
 							final GedcomNode noteTranslation = editCommand.getContainer();
 							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
 								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
@@ -629,20 +627,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							);
 							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(500, 330);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case NOTE_TRANSLATION_CITATION -> {
-							final NoteCitationDialog dialog = NoteCitationDialog.createNoteTranslationCitation(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Translation citations for note " + note.getID()
-								: "Translation citations for new note");
-							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
-
-							dialog.setSize(550, 450);
+							dialog.setSize(450, 209);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -664,7 +649,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteDialog dialog = NoteDialog.createNote(store, parent);
+			final NoteDialog dialog = createNote(store, parent);
 			dialog.setTitle(container.getID() != null? "Note for " + container.getID(): "Note");
 			if(!dialog.loadData(container, null))
 				dialog.showNewRecord();
