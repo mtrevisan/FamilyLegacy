@@ -241,6 +241,7 @@ public class SourceCitationDialog extends JDialog{
 		add(filterField, "grow,wrap");
 		add(sourcesScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button,wrap paragraph");
+
 		add(locationLabel, "align label,sizegroup label,split 2");
 		add(locationField, "grow,wrap");
 		add(roleLabel, "align label,sizegroup label,split 2");
@@ -249,6 +250,7 @@ public class SourceCitationDialog extends JDialog{
 		add(noteButton, "sizegroup button,wrap paragraph");
 		add(credibilityLabel, "align label,sizegroup label,split 2");
 		add(credibilityComboBox, "wrap paragraph");
+
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

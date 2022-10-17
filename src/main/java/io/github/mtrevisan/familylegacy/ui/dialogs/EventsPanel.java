@@ -129,4 +129,8 @@ public class EventsPanel extends JPanel{
 		return tagPanel.getTags();
 	}
 
+	public void clearTags(){
+		tagPanel.removeAll();
+	}
+
 }

@@ -31,8 +31,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -73,33 +71,44 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 
-public class CulturalNormDialog extends JDialog{
+public class SourceDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 3322392561648823462L;
+	private static final long serialVersionUID = 5873775240948872171L;
 
-	private static final String RECORD_TAG = "CULTURAL_NORM";
+	private static final String RECORD_TAG = "SOURCE";
 	private static final String ARRAY = "[]";
+	private static final String REFERENCE = "@";
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
 	private static final String RECORD_TITLE = "TITLE";
-	private static final String RECORD_CERTAINTY = "CERTAINTY";
 	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
 	private static final String RECORD_NOTE = "NOTE";
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
-	private static final String RECORD_SOURCE_ARRAY = "SOURCE" + ARRAY;
-	private static final String RECORD_PLACE = "PLACE";
+	private static final String RECORD_FILE = "FILE";
+	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
+	private static final String RECORD_SOURCE = "SOURCE";
+	private static final String RECORD_SOURCE_REFERENCE = RECORD_SOURCE + REFERENCE;
+	private static final String RECORD_CROP = "CROP";
+	private static final String RECORD_EVENT = "EVENT";
+	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
+	private static final String RECORD_LOCATION = "LOCATION";
+	private static final String RECORD_ROLE = "ROLE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
 	private static final String ACTION_MAP_KEY_INSERT = "insert";
@@ -117,11 +126,13 @@ public class CulturalNormDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_TITLE = 1;
+	private static final int TABLE_INDEX_RECORD_TYPE = 1;
+	private static final int TABLE_INDEX_RECORD_TITLE = 2;
 	private static final int TABLE_ROWS_SHOWN = 4;
 
+	//https://thenounproject.com/search/?q=cut&i=3132059
+	private static final ImageIcon ICON_CROP = ResourceHelper.getImage("/images/crop.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
-	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -130,22 +141,26 @@ public class CulturalNormDialog extends JDialog{
 	private final JButton newButton = new JButton("New");
 	private final JButton deleteButton = new JButton("Delete");
 
+	private final JPanel citationPanel = new JPanel();
+	private final JLabel locationLabel = new JLabel("Location:");
+	private final JTextField locationField = new JTextField();
+	private final JLabel roleLabel = new JLabel("Role:");
+	private final JTextField roleField = new JTextField();
+	private final JButton cropButton = new JButton(ICON_CROP);
+	private final JButton noteButton = new JButton(ICON_NOTE);
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+
+	private final JPanel recordPanel = new JPanel();
+	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
-	private final JPanel placePanel = new JPanel();
-	private final JButton placeButton = new JButton("Place");
-	private final JLabel placeCertaintyLabel = new JLabel("Certainty:");
-	private final JComboBox<String> placeCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-	private final JLabel placeCredibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> placeCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-	private final JButton noteButton = new JButton(ICON_NOTE);
-	private final JButton sourceButton = new JButton(ICON_SOURCE);
 
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<CulturalNormDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<SourceDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode originalRecord;
 	private GedcomNode record;
@@ -156,7 +171,7 @@ public class CulturalNormDialog extends JDialog{
 	private final Flef store;
 
 
-	public CulturalNormDialog(final Flef store, final Frame parent){
+	public SourceDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -176,7 +191,7 @@ public class CulturalNormDialog extends JDialog{
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(CulturalNormDialog.this);
+				filterDebouncer.call(SourceDialog.this);
 			}
 		});
 
@@ -196,6 +211,7 @@ public class CulturalNormDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
+		sorter.setComparator(TABLE_INDEX_RECORD_TYPE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_RECORD_TITLE, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
@@ -231,69 +247,14 @@ public class CulturalNormDialog extends JDialog{
 	}
 
 	private void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> {
-			final String newTitle = titleField.getText();
-			if(StringUtils.isNotBlank(newTitle)){
-				final GedcomNode selectedRecord = getSelectedRecord();
-				final GedcomNode titleNode = store.traverse(selectedRecord, RECORD_TITLE);
-				if(titleNode.isEmpty())
-					selectedRecord.addChildValue(RECORD_TITLE, newTitle);
-				else
-					titleNode.withValue(newTitle);
+		//citation part:
+		locationLabel.setLabelFor(locationField);
 
-				//update table
-				final int selectedRow = recordTable.getSelectedRow();
-				recordTable.setValueAt(newTitle, selectedRow, TABLE_INDEX_RECORD_TITLE);
-			}
-		});
-		GUIHelper.setEnabled(titleLabel, false);
+		roleLabel.setLabelFor(roleField);
 
-		placeCertaintyLabel.setLabelFor(placeCertaintyComboBox);
-		placeCertaintyComboBox.addActionListener(evt -> {
-			final GedcomNode selectedRecord = getSelectedRecord();
-			final int selectedIndex = placeCertaintyComboBox.getSelectedIndex();
-			if(selectedIndex > 0){
-				final String certainty = Integer.toString(selectedIndex - 1);
-				final GedcomNode certaintyNode = store.traverse(selectedRecord, RECORD_CERTAINTY);
-				if(certaintyNode.isEmpty())
-					selectedRecord.addChildValue(RECORD_CERTAINTY, certainty);
-				else
-					certaintyNode.withValue(certainty);
-			}
-			else
-				selectedRecord.removeChildrenWithTag(RECORD_CERTAINTY);
-		});
-
-		placeCredibilityLabel.setLabelFor(placeCredibilityComboBox);
-		placeCredibilityComboBox.addActionListener(evt -> {
-			final GedcomNode selectedRecord = getSelectedRecord();
-			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
-			final int selectedIndex = placeCredibilityComboBox.getSelectedIndex();
-			if(selectedIndex > 0){
-				final String credibility = Integer.toString(selectedIndex - 1);
-				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
-				if(credibilityNode.isEmpty())
-					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
-				else
-					credibilityNode.withValue(credibility);
-			}
-			else
-				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
-		});
-
-		placeButton.addActionListener(e -> {
-			final GedcomNode selectedRecord = getSelectedRecord();
-
-			EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, selectedRecord));
-		});
-		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
-		placePanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		placePanel.add(placeButton, "sizegroup button,wrap");
-		placePanel.add(placeCertaintyLabel, "align label,split 2");
-		placePanel.add(placeCertaintyComboBox, "wrap");
-		placePanel.add(placeCredibilityLabel, "align label,split 2");
-		placePanel.add(placeCredibilityComboBox);
-		GUIHelper.setEnabled(placePanel, false);
+		cropButton.setToolTipText("Define a crop");
+		cropButton.addActionListener(evt -> cropAction());
+		cropButton.setEnabled(false);
 
 		noteButton.setToolTipText("Add note");
 		final ActionListener addNoteAction = evt -> {
@@ -310,23 +271,34 @@ public class CulturalNormDialog extends JDialog{
 		noteButton.addActionListener(addNoteAction);
 		noteButton.setEnabled(false);
 
-		sourceButton.setToolTipText("Add source");
-		final ActionListener addSourceAction = evt -> {
-			final Consumer<Object> onAccept = ignored -> {
-				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
+		credibilityLabel.setLabelFor(credibilityComboBox);
 
-				//put focus on the ok button
-				okButton.grabFocus();
-			};
 
-			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, record, onAccept));
-		};
-		sourceButton.addActionListener(addSourceAction);
-		sourceButton.setEnabled(false);
+		//record part:
+		//TODO
 	}
 
 	private void initLayout(){
+		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
+		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(locationField, "grow,wrap");
+		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(roleField, "grow,wrap");
+		citationPanel.add(cropButton, "sizegroup button,split 2,center");
+		citationPanel.add(noteButton, "sizegroup button,center,wrap");
+		citationPanel.add(credibilityLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(credibilityComboBox);
+		GUIHelper.setEnabled(citationPanel, false);
+
+		recordPanel.setBorder(BorderFactory.createTitledBorder("Record"));
+		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanel.add(eventsPanel, "grow,wrap");
+		recordPanel.add(titleLabel, "align label,split 2");
+		recordPanel.add(titleField, "grow,wrap");
+		//TODO
+		GUIHelper.setEnabled(recordPanel, false);
+
 //		final ActionListener helpAction = evt -> helpAction();
 		final ActionListener okAction = evt -> okAction();
 		final ActionListener cancelAction = evt -> cancelAction();
@@ -343,15 +315,55 @@ public class CulturalNormDialog extends JDialog{
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
 
-		add(titleLabel, "align label,sizegroup label,split 2");
-		add(titleField, "grow,wrap");
-		add(placePanel, "grow,wrap");
-		add(noteButton, "sizegroup button,split 2,center");
-		add(sourceButton, "sizegroup button,center,wrap paragraph");
+		add(citationPanel, "grow,wrap paragraph");
+
+		add(recordPanel, "grow,wrap paragraph");
 
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");
+	}
+
+	//TODO
+	private void cropAction(){
+		final GedcomNode selectedRecord = getSelectedRecord();
+		final GedcomNode selectedCitation = getSelectedCitation(selectedRecord.getID());
+		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
+		final String imagePath = documents.get(0)
+			.getValue();
+		final String cropCoordinates = store.traverse(selectedCitation, RECORD_CROP)
+			.getValue();
+		final GedcomNode imageData = store.create(RECORD_FILE)
+			.addChildValue(RECORD_SOURCE, imagePath)
+			.addChildValue(RECORD_CROP, cropCoordinates);
+
+		final Consumer<Object> onCloseGracefully = cropDialog -> {
+			final Point cropStartPoint = ((CropDialog)cropDialog).getCropStartPoint();
+			final Point cropEndPoint = ((CropDialog)cropDialog).getCropEndPoint();
+			final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+			sj.add(Integer.toString(cropStartPoint.x));
+			sj.add(Integer.toString(cropStartPoint.y));
+			sj.add(Integer.toString(cropEndPoint.x));
+			sj.add(Integer.toString(cropEndPoint.y));
+
+			selectedRecord.removeChildrenWithTag(RECORD_CROP);
+			selectedRecord.addChildValue(RECORD_CROP, sj.toString());
+
+			//refresh group list
+//			loadData();
+		};
+
+		//fire image crop event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.CROP, imageData, onCloseGracefully));
+	}
+
+	private boolean sourceContainsEvent(final String event){
+		boolean containsEvent = false;
+		final List<GedcomNode> events = store.traverseAsList(record, RECORD_EVENT_ARRAY);
+		for(int i = 0; !containsEvent && i < events.size(); i ++)
+			if(events.get(i).getValue().equalsIgnoreCase(event))
+				containsEvent = true;
+		return containsEvent;
 	}
 
 	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
@@ -370,6 +382,12 @@ public class CulturalNormDialog extends JDialog{
 				final GedcomNode node = records.get(row);
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
+				final List<GedcomNode> events = store.traverseAsList(node, RECORD_EVENT_ARRAY);
+				final String[] eventTags = new String[events.size()];
+				for(int i = 0; i < events.size(); i ++)
+					eventTags[i] = events.get(i)
+						.getValue();
+				model.setValueAt(String.join(", ", eventTags), row, TABLE_INDEX_RECORD_TYPE);
 				model.setValueAt(store.traverse(node, RECORD_TITLE).getValue(), row, TABLE_INDEX_RECORD_TITLE);
 			}
 		}
@@ -381,13 +399,14 @@ public class CulturalNormDialog extends JDialog{
 		final List<GedcomNode> records = store.traverseAsList(record, RECORD_TAG_ARRAY);
 		final int size = records.size();
 		for(int i = 0; i < size; i ++)
-			records.set(i, store.getCulturalNorm(records.get(i).getXRef()));
+			records.set(i, store.getSource(records.get(i).getXRef()));
 		return records;
 	}
 
-	private void filterTableBy(final CulturalNormDialog panel){
+	private void filterTableBy(final SourceDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_TYPE, TABLE_INDEX_RECORD_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -399,9 +418,11 @@ public class CulturalNormDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
+	//TODO
 	private void selectAction(){
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final GedcomNode selectedRecord = getSelectedRecord();
+		final GedcomNode selectedCitation = getSelectedCitation(selectedRecord.getID());
 		if(store.traverse(selectedRecord, RECORD_CREATION).isEmpty())
 			selectedRecord.addChild(
 				store.create(RECORD_CREATION)
@@ -410,10 +431,10 @@ public class CulturalNormDialog extends JDialog{
 		if(previouslySelectedRecord != null && previouslySelectedRecord.hashCode() != previouslySelectedRecordHash){
 			//show note record dialog
 			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-			changeNoteDialog.setTitle("Change note for cultural norm " + previouslySelectedRecord.getID());
+			changeNoteDialog.setTitle("Change note for source " + previouslySelectedRecord.getID());
 			changeNoteDialog.loadData(previouslySelectedRecord, dialog -> {
 				previouslySelectedRecord = selectedRecord;
-				previouslySelectedRecordHash = selectedRecord.hashCode();
+				previouslySelectedRecordHash = selectedRecord.hashCode() ^ selectedCitation.hashCode();
 			});
 
 			changeNoteDialog.setSize(450, 209);
@@ -422,30 +443,34 @@ public class CulturalNormDialog extends JDialog{
 		}
 		else{
 			previouslySelectedRecord = selectedRecord;
-			previouslySelectedRecordHash = selectedRecord.hashCode();
+			previouslySelectedRecordHash = selectedRecord.hashCode() ^ selectedCitation.hashCode();
 		}
 
 
-		GUIHelper.setEnabled(titleLabel, true);
-		titleField.setText(store.traverse(selectedRecord, RECORD_TITLE).getValue());
-
-		GUIHelper.setEnabled(placePanel, true);
-		final GedcomNode place = store.traverse(selectedRecord, RECORD_PLACE);
-		GUIHelper.addBorderIfDataPresent(placeButton, !place.isEmpty());
-		final String certainty = store.traverse(place, RECORD_CERTAINTY)
-			.getValue();
-		placeCertaintyComboBox.setSelectedIndex(certainty != null? Integer.parseInt(certainty) + 1: 0);
-		final String credibility = store.traverse(place, RECORD_CREDIBILITY)
-			.getValue();
-		placeCredibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
-
-		final List<GedcomNode> notes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
+		//fill citation panel:
+		GUIHelper.setEnabled(citationPanel, true);
+		locationField.setText(store.traverse(selectedCitation, RECORD_LOCATION).getValue());
+		roleField.setText(store.traverse(selectedCitation, RECORD_ROLE).getValue());
+		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
+		//only if there is one image
+		cropButton.setEnabled(documents.size() == 1);
+		final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
 		GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
-		noteButton.setEnabled(true);
+		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
+			.getValue();
+		credibilityComboBox.setSelectedIndex(credibility != null && !credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
 
-		final List<GedcomNode> sources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
-		GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
-		sourceButton.setEnabled(true);
+
+		//fill record panel:
+		GUIHelper.setEnabled(recordPanel, true);
+		eventsPanel.clearTags();
+		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
+		final String[] eventTags = new String[events.size()];
+		for(int i = 0; i < events.size(); i ++)
+			eventTags[i] = events.get(i)
+				.getValue();
+		eventsPanel.addTag(eventTags);
+		//TODO
 
 
 		deleteButton.setEnabled(true);
@@ -454,7 +479,11 @@ public class CulturalNormDialog extends JDialog{
 	private GedcomNode getSelectedRecord(){
 		final int selectedRow = recordTable.getSelectedRow();
 		final String recordID = (String)recordTable.getValueAt(selectedRow, TABLE_INDEX_RECORD_ID);
-		return store.getCulturalNorm(recordID);
+		return store.getSource(recordID);
+	}
+
+	private GedcomNode getSelectedCitation(final String recordID){
+		return store.traverse(record, RECORD_SOURCE_REFERENCE + recordID);
 	}
 
 	public final void showNewRecord(){
@@ -466,7 +495,7 @@ public class CulturalNormDialog extends JDialog{
 		final GedcomNode newRecord = store.create(RECORD_TAG);
 
 		//add to store
-		final String recordID = store.addCulturalNorm(newRecord);
+		final String recordID = store.addSource(newRecord);
 		record.addChildReference(RECORD_TAG, recordID);
 
 		//reset filter
@@ -485,10 +514,8 @@ public class CulturalNormDialog extends JDialog{
 	}
 
 	private void deleteAction(){
-		GUIHelper.setEnabled(titleLabel, false);
-		GUIHelper.setEnabled(placePanel, false);
-		noteButton.setEnabled(false);
-		sourceButton.setEnabled(false);
+		GUIHelper.setEnabled(citationPanel, false);
+		GUIHelper.setEnabled(recordPanel, false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -499,7 +526,7 @@ public class CulturalNormDialog extends JDialog{
 			selectedRecord = store.traverseAsList(record, RECORD_TAG_ARRAY)
 				.get(index);
 		else
-			selectedRecord = store.getCulturalNorm(recordID);
+			selectedRecord = store.getSource(recordID);
 
 		record.removeChild(selectedRecord);
 
@@ -528,7 +555,7 @@ public class CulturalNormDialog extends JDialog{
 			//show note record dialog
 			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
 			final GedcomNode selectedRecord = getSelectedRecord();
-			changeNoteDialog.setTitle("Change note for cultural norm " + selectedRecord.getID());
+			changeNoteDialog.setTitle("Change note for source " + selectedRecord.getID());
 			changeNoteDialog.loadData(record, dialog -> {});
 
 			changeNoteDialog.setSize(450, 209);
@@ -547,11 +574,11 @@ public class CulturalNormDialog extends JDialog{
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = -581310490684534579L;
+		private static final long serialVersionUID = 3717450687790596773L;
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Title"}, 0);
+			super(new String[]{"ID", "Type", "Title"}, 0);
 		}
 
 		@Override
@@ -590,17 +617,30 @@ public class CulturalNormDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case PLACE -> {
-							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
-							final GedcomNode place = editCommand.getContainer();
-							dialog.setTitle(place.getID() != null
-								? "Place " + place.getID()
-								: "New place for " + container.getID());
-							dialog.loadData(place, editCommand.getOnCloseGracefully());
+						case CROP -> {
+							try{
+								final CropDialog dialog = new CropDialog(parent);
+								final GedcomNode imageData = editCommand.getContainer();
+								final String imagePath = store.traverse(imageData, RECORD_SOURCE)
+									.getValue();
+								final String cropCoordinates = store.traverse(imageData, RECORD_CROP)
+									.getValue();
+								final String[] coordinates = (!cropCoordinates.isEmpty()
+									? StringUtils.split(cropCoordinates, ' ')
+									: null);
+								dialog.loadData(new File(store.getBasePath(), imagePath), editCommand.getOnCloseGracefully());
+								if(coordinates != null){
+									dialog.setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+									dialog.setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
+								}
 
-							dialog.setSize(500, 470);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
+								dialog.setSize(500, 480);
+								dialog.setLocationRelativeTo(parent);
+								dialog.setVisible(true);
+							}
+							catch(final IOException ioe){
+								ioe.printStackTrace();
+							}
 						}
 						case NOTE -> {
 							final NoteDialog dialog = NoteDialog.createNote(store, parent);
@@ -645,8 +685,8 @@ public class CulturalNormDialog extends JDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
-			dialog.setTitle(container.getID() != null? "Cultural norm for " + container.getID(): "Cultural norm");
+			final SourceDialog dialog = new SourceDialog(store, parent);
+			dialog.setTitle(container.getID() != null? "Source for " + container.getID(): "Source");
 			if(!dialog.loadData(container, null))
 				dialog.showNewRecord();
 
@@ -656,14 +696,14 @@ public class CulturalNormDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(464, 446);
+			dialog.setSize(464, 650);
 			dialog.setLocationRelativeTo(null);
-//			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-//				@Override
-//				public void componentResized(java.awt.event.ComponentEvent e) {
-//					System.out.println("Resized to " + e.getComponent().getSize());
-//				}
-//			});
+			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
+				@Override
+				public void componentResized(java.awt.event.ComponentEvent e) {
+					System.out.println("Resized to " + e.getComponent().getSize());
+				}
+			});
 			dialog.setVisible(true);
 		});
 	}
