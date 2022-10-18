@@ -289,9 +289,9 @@ public class CulturalNormDialog extends JDialog{
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		placePanel.add(placeButton, "sizegroup button,wrap");
-		placePanel.add(placeCertaintyLabel, "align label,split 2");
+		placePanel.add(placeCertaintyLabel, "align label,sizegroup label,split 2");
 		placePanel.add(placeCertaintyComboBox, "wrap");
-		placePanel.add(placeCredibilityLabel, "align label,split 2");
+		placePanel.add(placeCredibilityLabel, "align label,sizegroup label,split 2");
 		placePanel.add(placeCredibilityComboBox);
 		GUIHelper.setEnabled(placePanel, false);
 
@@ -356,7 +356,7 @@ public class CulturalNormDialog extends JDialog{
 
 	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
-		this.originalRecord = record.clone();
+		originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
 
 		final List<GedcomNode> records = extractRecords();

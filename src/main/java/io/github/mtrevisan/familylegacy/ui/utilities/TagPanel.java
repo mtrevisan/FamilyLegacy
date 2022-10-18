@@ -88,6 +88,7 @@ public class TagPanel extends JPanel{
 		addTag(Arrays.asList(tags));
 	}
 
+
 	public void addTag(final Iterable<String> tags){
 		synchronized(getTreeLock()){
 			if(tags == null)
@@ -100,6 +101,8 @@ public class TagPanel extends JPanel{
 
 				if(tagsChanged != null)
 					tagsChanged.accept(TagChangeType.ADD, tags);
+
+				revalidate();
 			}
 		}
 	}

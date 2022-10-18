@@ -97,6 +97,7 @@ public class SourceDialog extends JDialog{
 	private static final String REFERENCE = "@";
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
 	private static final String RECORD_TITLE = "TITLE";
+	private static final String RECORD_AUTHOR = "AUTHOR";
 	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
 	private static final String RECORD_NOTE = "NOTE";
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
@@ -107,6 +108,9 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_CROP = "CROP";
 	private static final String RECORD_EVENT = "EVENT";
 	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
+	private static final String RECORD_PUBLICATION_FACTS = "PUBLICATION_FACTS";
+	private static final String RECORD_CALENDAR = "CALENDAR";
+	private static final String RECORD_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String RECORD_LOCATION = "LOCATION";
 	private static final String RECORD_ROLE = "ROLE";
 	private static final String RECORD_CREATION = "CREATION";
@@ -155,6 +159,11 @@ public class SourceDialog extends JDialog{
 	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
+	private final JLabel authorLabel = new JLabel("Author:");
+	private final JTextField authorField = new JTextField();
+	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
+	private final JTextField publicationFactsField = new JTextField();
+	private final DatePanel datePanel = new DatePanel();
 
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -275,6 +284,12 @@ public class SourceDialog extends JDialog{
 
 
 		//record part:
+		titleLabel.setLabelFor(titleField);
+
+		authorLabel.setLabelFor(authorField);
+
+		publicationFactsLabel.setLabelFor(publicationFactsField);
+
 		//TODO
 	}
 
@@ -294,8 +309,13 @@ public class SourceDialog extends JDialog{
 		recordPanel.setBorder(BorderFactory.createTitledBorder("Record"));
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel.add(eventsPanel, "grow,wrap");
-		recordPanel.add(titleLabel, "align label,split 2");
+		recordPanel.add(titleLabel, "align label,sizegroup label,split 2");
 		recordPanel.add(titleField, "grow,wrap");
+		recordPanel.add(authorLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(authorField, "grow,wrap");
+		recordPanel.add(publicationFactsLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(publicationFactsField, "grow,wrap paragraph");
+		recordPanel.add(datePanel, "grow,wrap paragraph");
 		//TODO
 		GUIHelper.setEnabled(recordPanel, false);
 
@@ -358,8 +378,10 @@ public class SourceDialog extends JDialog{
 	}
 
 	private boolean sourceContainsEvent(final String event){
+		final GedcomNode selectedRecord = getSelectedRecord();
+		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
+
 		boolean containsEvent = false;
-		final List<GedcomNode> events = store.traverseAsList(record, RECORD_EVENT_ARRAY);
 		for(int i = 0; !containsEvent && i < events.size(); i ++)
 			if(events.get(i).getValue().equalsIgnoreCase(event))
 				containsEvent = true;
@@ -368,7 +390,7 @@ public class SourceDialog extends JDialog{
 
 	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
 		this.record = record;
-		this.originalRecord = record.clone();
+		originalRecord = record.clone();
 		this.onCloseGracefully = onCloseGracefully;
 
 		final List<GedcomNode> records = extractRecords();
@@ -449,27 +471,47 @@ public class SourceDialog extends JDialog{
 
 		//fill citation panel:
 		GUIHelper.setEnabled(citationPanel, true);
-		locationField.setText(store.traverse(selectedCitation, RECORD_LOCATION).getValue());
-		roleField.setText(store.traverse(selectedCitation, RECORD_ROLE).getValue());
+		final String location = store.traverse(selectedCitation, RECORD_LOCATION)
+			.getValue();
+		final String role = store.traverse(selectedCitation, RECORD_ROLE)
+			.getValue();
+		final List<GedcomNode> notes = store.traverseAsList(selectedCitation, RECORD_NOTE_ARRAY);
+		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
+			.getValue();
+		locationField.setText(location);
+		roleField.setText(role);
 		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
 		//only if there is one image
 		cropButton.setEnabled(documents.size() == 1);
-		final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
 		GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
-		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
-			.getValue();
 		credibilityComboBox.setSelectedIndex(credibility != null && !credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
 
 
 		//fill record panel:
+		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
+		final String title = store.traverse(selectedRecord, RECORD_TITLE)
+			.getValue();
+		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
+			.getValue();
+		final String publicationFacts = store.traverse(selectedRecord, RECORD_PUBLICATION_FACTS)
+			.getValue();
+		final GedcomNode dateNode = store.traverse(selectedRecord, RECORD_DATE);
+		final String date = dateNode.getValue();
+		final String calendarXRef = store.traverse(dateNode, RECORD_CALENDAR).getXRef();
+		final String dateOriginalText = store.traverse(dateNode, RECORD_ORIGINAL_TEXT).getValue();
+		final String dateCredibility = store.traverse(dateNode, RECORD_CREDIBILITY).getValue();
+		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
 		GUIHelper.setEnabled(recordPanel, true);
 		eventsPanel.clearTags();
-		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
 		final String[] eventTags = new String[events.size()];
 		for(int i = 0; i < events.size(); i ++)
 			eventTags[i] = events.get(i)
 				.getValue();
 		eventsPanel.addTag(eventTags);
+		titleField.setText(title);
+		authorField.setText(author);
+		publicationFactsField.setText(publicationFacts);
+		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
 		//TODO
 
 
@@ -696,7 +738,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(464, 650);
+			dialog.setSize(502, 815);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
