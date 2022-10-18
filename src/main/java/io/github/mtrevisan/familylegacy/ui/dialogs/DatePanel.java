@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 
+//TODO
 public class DatePanel extends JPanel{
 
 	//https://thenounproject.com/term/weekly-calendar/541199/
@@ -47,6 +48,7 @@ public class DatePanel extends JPanel{
 	private final JTextField dateField = new JTextField();
 	private final JTextField dateOriginalTextField = new JTextField();
 	private final JComboBox<String> dateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+
 	private String calendarXRef;
 
 

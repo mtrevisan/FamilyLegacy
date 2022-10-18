@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -632,13 +631,13 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Source citations for note " + note.getID()
-								: "Source citations for new note");
-							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+							final SourceDialog dialog = new SourceDialog(store, parent);
+							final GedcomNode container = editCommand.getContainer();
+							dialog.setTitle(container.getID() != null
+								? "Source for note " + container.getID()
+								: "Source for new note");
+							if(!dialog.loadData(container, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);

@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.citations.RepositoryCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -110,6 +110,9 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_EVENT = "EVENT";
 	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
 	private static final String RECORD_PUBLICATION_FACTS = "PUBLICATION_FACTS";
+	private static final String RECORD_PLACE = "PLACE";
+	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
+	private static final String RECORD_MEDIA_TYPE = "MEDIA_TYPE";
 	private static final String RECORD_CALENDAR = "CALENDAR";
 	private static final String RECORD_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String RECORD_LOCATION = "LOCATION";
@@ -138,6 +141,8 @@ public class SourceDialog extends JDialog{
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon ICON_CROP = ResourceHelper.getImage("/images/crop.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
+	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png", 20, 20);
+	private static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png", 20, 20);
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -165,9 +170,10 @@ public class SourceDialog extends JDialog{
 	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
 	private final JTextField publicationFactsField = new JTextField();
 	private final DatePanel datePanel = new DatePanel();
-	private final JButton placeButton = new JButton("Places");
-//  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
-//  +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+	private final JButton publicationPlaceButton = new JButton(ICON_PLACE);
+	private final JButton repositoryButton = new JButton(ICON_REPOSITORY);
+	private final JLabel mediaTypeLabel = new JLabel("Media type:");
+	private final JTextField mediaTypeField = new JTextField();
 //  +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
 //  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
 //  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
@@ -298,8 +304,13 @@ public class SourceDialog extends JDialog{
 
 		publicationFactsLabel.setLabelFor(publicationFactsField);
 
-		placeButton.setEnabled(false);
-		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+		publicationPlaceButton.setToolTipText("Place of publication");
+		publicationPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+
+		repositoryButton.setToolTipText("Repository");
+		repositoryButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, getSelectedRecord())));
+
+		mediaTypeLabel.setLabelFor(mediaTypeField);
 
 		//TODO
 	}
@@ -325,9 +336,12 @@ public class SourceDialog extends JDialog{
 		recordPanel.add(authorLabel, "align label,sizegroup label,split 2");
 		recordPanel.add(authorField, "grow,wrap");
 		recordPanel.add(publicationFactsLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(publicationFactsField, "grow,wrap paragraph");
-		recordPanel.add(datePanel, "grow,wrap paragraph");
-		recordPanel.add(placeButton, "sizegroup button2,grow,wrap");
+		recordPanel.add(publicationFactsField, "grow,wrap");
+		recordPanel.add(datePanel, "grow,wrap");
+		recordPanel.add(publicationPlaceButton, "sizegroup button,split 2,center,wrap");
+		recordPanel.add(repositoryButton, "sizegroup button,center,wrap");
+		recordPanel.add(mediaTypeLabel, "align label,split 2");
+		recordPanel.add(mediaTypeField, "grow,wrap paragraph");
 		//TODO
 		GUIHelper.setEnabled(recordPanel, false);
 
@@ -509,10 +523,17 @@ public class SourceDialog extends JDialog{
 			.getValue();
 		final GedcomNode dateNode = store.traverse(selectedRecord, RECORD_DATE);
 		final String date = dateNode.getValue();
-		final String calendarXRef = store.traverse(dateNode, RECORD_CALENDAR).getXRef();
-		final String dateOriginalText = store.traverse(dateNode, RECORD_ORIGINAL_TEXT).getValue();
-		final String dateCredibility = store.traverse(dateNode, RECORD_CREDIBILITY).getValue();
+		final String calendarXRef = store.traverse(dateNode, RECORD_CALENDAR)
+			.getXRef();
+		final String dateOriginalText = store.traverse(dateNode, RECORD_ORIGINAL_TEXT)
+			.getValue();
+		final String dateCredibility = store.traverse(dateNode, RECORD_CREDIBILITY)
+			.getValue();
 		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
+		final GedcomNode publicationPlace = store.traverse(selectedRecord, RECORD_PLACE);
+		final List<GedcomNode> repositories = store.traverseAsList(selectedRecord, RECORD_REPOSITORY_ARRAY);
+		final String mediaType = store.traverse(selectedRecord, RECORD_MEDIA_TYPE)
+			.getValue();
 		GUIHelper.setEnabled(recordPanel, true);
 		eventsPanel.clearTags();
 		final String[] eventTags = new String[events.size()];
@@ -524,7 +545,9 @@ public class SourceDialog extends JDialog{
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		placeButton.setEnabled(true);
+		GUIHelper.addBorderIfDataPresent(publicationPlaceButton, !publicationPlace.isEmpty());
+		GUIHelper.addBorderIfDataPresent(repositoryButton, !repositories.isEmpty());
+		mediaTypeField.setText(mediaType);
 		//TODO
 
 
@@ -571,7 +594,6 @@ public class SourceDialog extends JDialog{
 	private void deleteAction(){
 		GUIHelper.setEnabled(citationPanel, false);
 		GUIHelper.setEnabled(recordPanel, false);
-		placeButton.setEnabled(false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -700,11 +722,11 @@ public class SourceDialog extends JDialog{
 						}
 						case NOTE -> {
 							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-							final GedcomNode note = editCommand.getContainer();
-							dialog.setTitle(note.getID() != null
-								? "Note " + note.getID()
+							final GedcomNode source = editCommand.getContainer();
+							dialog.setTitle(source.getID() != null
+								? "Note " + source.getID()
 								: "New note for " + container.getID());
-							dialog.loadData(note, editCommand.getOnCloseGracefully());
+							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 513);
 							dialog.setLocationRelativeTo(parent);
@@ -749,6 +771,19 @@ public class SourceDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
+						case REPOSITORY -> {
+							final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Repository for source " + note.getID()
+								: "Repository for new source");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.addAction();
+
+							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
 					}
 				}
 			};
@@ -765,7 +800,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(502, 815);
+			dialog.setSize(502, 930);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
