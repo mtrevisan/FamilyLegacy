@@ -214,7 +214,7 @@ private final JTextField subordinateField = new JTextField();
 		System.out.println();
 	}
 
-	public void loadData(final GedcomNode place, final Consumer<Object> onCloseGracefully){
+	public boolean loadData(final GedcomNode place, final Consumer<Object> onCloseGracefully){
 		this.place = place;
 		this.onCloseGracefully = onCloseGracefully;
 
@@ -232,11 +232,18 @@ private final JTextField subordinateField = new JTextField();
 		addressHierarchyField.setText(addressHierarchy);
 
 		repaint();
+
+		return false;
 	}
 
 	@Override
 	public void actionPerformed(final ActionEvent evt){
 		dispose();
+	}
+
+	public final void showNewRecord(){
+		//TODO
+//		newAction();
 	}
 
 

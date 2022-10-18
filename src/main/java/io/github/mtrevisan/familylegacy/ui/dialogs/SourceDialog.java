@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -164,6 +165,13 @@ public class SourceDialog extends JDialog{
 	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
 	private final JTextField publicationFactsField = new JTextField();
 	private final DatePanel datePanel = new DatePanel();
+	private final JButton placeButton = new JButton("Places");
+//  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
+//  +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+//  +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
+//  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+//  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -290,6 +298,9 @@ public class SourceDialog extends JDialog{
 
 		publicationFactsLabel.setLabelFor(publicationFactsField);
 
+		placeButton.setEnabled(false);
+		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+
 		//TODO
 	}
 
@@ -316,6 +327,7 @@ public class SourceDialog extends JDialog{
 		recordPanel.add(publicationFactsLabel, "align label,sizegroup label,split 2");
 		recordPanel.add(publicationFactsField, "grow,wrap paragraph");
 		recordPanel.add(datePanel, "grow,wrap paragraph");
+		recordPanel.add(placeButton, "sizegroup button2,grow,wrap");
 		//TODO
 		GUIHelper.setEnabled(recordPanel, false);
 
@@ -512,6 +524,7 @@ public class SourceDialog extends JDialog{
 		authorField.setText(author);
 		publicationFactsField.setText(publicationFacts);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
+		placeButton.setEnabled(true);
 		//TODO
 
 
@@ -558,6 +571,7 @@ public class SourceDialog extends JDialog{
 	private void deleteAction(){
 		GUIHelper.setEnabled(citationPanel, false);
 		GUIHelper.setEnabled(recordPanel, false);
+		placeButton.setEnabled(false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -710,13 +724,26 @@ public class SourceDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
-								? "Source citations for note " + note.getID()
-								: "Source citations for new note");
+								? "Source for source " + note.getID()
+								: "Source for new source");
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
+
+							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case PLACE -> {
+							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Place for source " + note.getID()
+								: "Place for new source");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);
