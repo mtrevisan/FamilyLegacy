@@ -634,7 +634,7 @@ public class CulturalNormDialog extends JDialog{
 								? "Source citations for note " + note.getID()
 								: "Source citations for new note");
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);

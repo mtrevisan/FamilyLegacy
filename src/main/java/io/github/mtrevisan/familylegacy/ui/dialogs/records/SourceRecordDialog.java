@@ -274,7 +274,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 								? "Source citations for source " + source.getID()
 								: "Source citations for new source");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);

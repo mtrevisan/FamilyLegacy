@@ -201,7 +201,7 @@ public class GroupRecordDialog extends JDialog{
 								? "Source citations for group " + group.getID()
 								: "Source citations for new group");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);

@@ -367,7 +367,7 @@ public final class CalendarRecordDialog extends JDialog{
 							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
 							dialog.setTitle("Source citations" + forCalendar);
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 650);
 							dialog.setLocationRelativeTo(parent);

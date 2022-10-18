@@ -308,7 +308,7 @@ public class ResearchStatusRecordDialog extends JDialog{
 								? "Source citation " + sourceCitation.getID() + " for calendar " + calendar.getID()
 								: "New source citation for calendar " + calendar.getID());
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 650);
 							dialog.setLocationRelativeTo(parent);

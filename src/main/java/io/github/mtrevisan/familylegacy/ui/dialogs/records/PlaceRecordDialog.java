@@ -277,7 +277,7 @@ private final JTextField subordinateField = new JTextField();
 								? "Source citations for place " + place.getID()
 								: "Source citations for new place");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
 							dialog.setLocationRelativeTo(parent);
