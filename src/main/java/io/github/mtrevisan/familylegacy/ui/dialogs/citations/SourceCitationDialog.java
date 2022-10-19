@@ -531,10 +531,20 @@ public class SourceCitationDialog extends JDialog{
 		previouslySelectedRecord = null;
 	}
 
-	//TODO
 	private void editAction(){
 		final GedcomNode selectedRecord = getSelectedRecord();
+		final Consumer<Object> onCloseGracefully = ignored -> {
+			//TODO
 System.out.println("edit " + selectedRecord.getID());
+			final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
+			GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
+
+			//put focus on the ok button
+			okButton.grabFocus();
+		};
+
+		//fire image crop event
+		EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, selectedRecord, onCloseGracefully));
 	}
 
 	private void okAction(){

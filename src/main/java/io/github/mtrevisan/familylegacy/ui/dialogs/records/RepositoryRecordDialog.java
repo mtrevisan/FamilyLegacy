@@ -125,11 +125,11 @@ public class RepositoryRecordDialog extends JDialog{
 		final String name = store.traverse(repository, "NAME").getValue();
 		final String title = store.traverse(repository, "TITLE").getValue();
 		final String author = store.traverse(repository, "AUTHOR").getValue();
-		final String publicationFacts = store.traverse(repository, "PUBLICATION_FACTS").getValue();
-		final GedcomNode dateNode = store.traverse(repository, "DATE");
 		final GedcomNode place = store.traverse(repository, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(repository, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(repository, "PLACE.CREDIBILITY");
+		final GedcomNode dateNode = store.traverse(repository, "DATE");
+		final String publisher = store.traverse(repository, "PUBLISHER").getValue();
 		final boolean hasRepositories = !store.traverseAsList(repository, "REPOSITORY[]").isEmpty();
 		final String mediaType = store.traverse(repository, "MEDIA_TYPE").getValue();
 		final boolean hasFiles = !store.traverseAsList(repository, "FILE[]").isEmpty();

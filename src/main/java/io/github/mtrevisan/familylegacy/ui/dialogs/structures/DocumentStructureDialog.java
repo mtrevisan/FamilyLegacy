@@ -133,8 +133,8 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(EXTRACT_TYPE_MODEL);
 	private final JLabel extractLocaleLabel = new JLabel("Locale:");
 	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
-	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton noteButton = new JButton("Notes");
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");

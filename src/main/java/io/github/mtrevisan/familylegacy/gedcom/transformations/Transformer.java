@@ -946,7 +946,7 @@ public final class Transformer extends TransformerHelper{
 		SOURCE.DATE.value = SOUR.DATA.EVEN.DATE.value
 		transfer DATA.EVEN.PLAC to SOURCE.PLACE
 		SOURCE.AUTHOR.value = SOUR.AUTH.value
-		SOURCE.PUBLICATION_FACTS.value = SOUR.PUBL.value
+		SOURCE.PUBLISHER.value = SOUR.PUBL.value
 		transfer SOUR.REPO to SOURCE.REPOSITORY
 		for-each SOUR.OBJE xref
 			load OBJE[rec] from SOUR.OBJE.xref
@@ -975,17 +975,17 @@ public final class Transformer extends TransformerHelper{
 			final String[] events = StringUtils.split(sourceDataEvent.getValue(), ',');
 			final String title = traverse(source, "TITL").getValue();
 			final String author = traverse(source, "AUTH").getValue();
-			final String publicationFacts = traverse(source, "PUBL").getValue();
+			final String publisher = traverse(source, "PUBL").getValue();
 			final GedcomNode destinationSource = createWithIDValue("SOURCE", source.getID(), value);
 			if(events != null)
 				for(final String event : events)
 					destinationSource.addChildValue("EVENT", event.trim());
 			destinationSource.addChildValue("TITLE", title)
-				.addChildValue("AUTHOR", author)
-				.addChildValue("PUBLICATION_FACTS", publicationFacts);
+				.addChildValue("AUTHOR", author);
+			placeStructureFrom(sourceDataEvent, destinationSource, destination);
 			GedcomNode date = traverse(sourceDataEvent, "DATE");
 			addDateTo(date, destinationSource, destination);
-			placeStructureFrom(sourceDataEvent, destinationSource, destination);
+			destinationSource.addChildValue("PUBLISHER", publisher);
 			repositoryCitationTo(source, destinationSource, origin, destination);
 			GedcomNode preferredMedia = multimediaCitationTo(source, destinationSource, origin, destination);
 			noteCitationTo(sourceData, destinationSource, origin, destination);
@@ -1012,10 +1012,10 @@ public final class Transformer extends TransformerHelper{
 					if(events != null)
 						for(final String event : events)
 							destinationSource.addChildValue("EVENT", event.trim());
-					destinationSubSource.replaceChildValue("AUTHOR", author)
-						.replaceChildValue("PUBLICATION_FACTS", publicationFacts);
+					destinationSubSource.replaceChildValue("AUTHOR", author);
 					addDateTo(date, destinationSubSource, destination);
 					final GedcomNode object = objects.get(i);
+					destinationSubSource.replaceChildValue("PUBLISHER", publisher);
 					sourceRecordMultimediaCitationTo(object, destinationSubSource, origin, destination);
 					noteCitationTo(sourceData, destinationSubSource, origin, destination);
 					noteCitationTo(source, destinationSubSource, origin, destination);
@@ -1452,7 +1452,7 @@ public final class Transformer extends TransformerHelper{
 		SOUR.DATA.EVEN.DATE.value = SOURCE.DATE.value
 		SOUR.AUTH.value = SOURCE.AUTHOR.value
 		SOUR.TITL.value = SOURCE.TITLE.value
-		SOUR.PUBL.value = SOURCE.PUBLICATION_FACTS.value
+		SOUR.PUBL.value = SOURCE.PUBLISHER.value
 		transfer SOURCE.REPOSITORY to SOUR.REPO
 		transfer SOURCE.NOTE to SOUR.OBJE
 		for-each SOURCE.FILE xref
@@ -1484,7 +1484,7 @@ public final class Transformer extends TransformerHelper{
 			)
 			.addChildValue("AUTH", traverse(source, "AUTHOR").getValue())
 			.addChildValue("TITL", traverse(source, "TITLE").getValue())
-			.addChildValue("PUBL", traverse(source, "PUBLICATION_FACTS").getValue());
+			.addChildValue("PUBL", traverse(source, "PUBLISHER").getValue());
 		//extract preferred image
 		final GedcomNode preferredImage = traverse(parent, "PREFERRED_IMAGE");
 		final String preferredImageCrop = (preferredImage != null? traverse(preferredImage, "CROP").getValue(): null);

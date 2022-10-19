@@ -50,6 +50,7 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -58,6 +59,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -109,8 +111,8 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_CROP = "CROP";
 	private static final String RECORD_EVENT = "EVENT";
 	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
-	private static final String RECORD_PUBLICATION_FACTS = "PUBLICATION_FACTS";
 	private static final String RECORD_PLACE = "PLACE";
+	private static final String RECORD_PUBLISHER = "PUBLISHER";
 	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
 	private static final String RECORD_MEDIA_TYPE = "MEDIA_TYPE";
 	private static final String RECORD_CALENDAR = "CALENDAR";
@@ -140,6 +142,7 @@ public class SourceDialog extends JDialog{
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon ICON_CROP = ResourceHelper.getImage("/images/crop.png", 20, 20);
+	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png", 20, 20);
 	private static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png", 20, 20);
@@ -157,27 +160,26 @@ public class SourceDialog extends JDialog{
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JButton cropButton = new JButton(ICON_CROP);
-	private final JButton noteButton = new JButton(ICON_NOTE);
+	private final JButton citationNoteButton = new JButton(ICON_NOTE);
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private final JPanel recordPanel = new JPanel();
-	private final EventsPanel eventsPanel = new EventsPanel(this::sourceContainsEvent);
+	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
 	private final JLabel authorLabel = new JLabel("Author:");
 	private final JTextField authorField = new JTextField();
-	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
-	private final JTextField publicationFactsField = new JTextField();
-	private final DatePanel datePanel = new DatePanel();
 	private final JButton publicationPlaceButton = new JButton(ICON_PLACE);
+	private final DatePanel datePanel = new DatePanel();
+	private final JLabel publisherLabel = new JLabel("Publisher:");
+	private final JTextField publisherField = new JTextField();
 	private final JButton repositoryButton = new JButton(ICON_REPOSITORY);
 	private final JLabel mediaTypeLabel = new JLabel("Media type:");
 	private final JTextField mediaTypeField = new JTextField();
-//  +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
-//  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
-//  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
-//  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+	private final JButton documentButton = new JButton("Documents");
+	private final JButton sourceButton = new JButton(ICON_SOURCE);
+	private final JButton recordNoteButton = new JButton(ICON_NOTE);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -279,11 +281,11 @@ public class SourceDialog extends JDialog{
 		cropButton.addActionListener(evt -> cropAction());
 		cropButton.setEnabled(false);
 
-		noteButton.setToolTipText("Add note");
-		final ActionListener addNoteAction = evt -> {
+		citationNoteButton.setToolTipText("Add citation note");
+		final ActionListener addCitationNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
+				GUIHelper.addBorderIfDataPresent(citationNoteButton, !notes.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -291,8 +293,8 @@ public class SourceDialog extends JDialog{
 
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, record, onAccept));
 		};
-		noteButton.addActionListener(addNoteAction);
-		noteButton.setEnabled(false);
+		citationNoteButton.addActionListener(addCitationNoteAction);
+		citationNoteButton.setEnabled(false);
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
 
@@ -302,7 +304,7 @@ public class SourceDialog extends JDialog{
 
 		authorLabel.setLabelFor(authorField);
 
-		publicationFactsLabel.setLabelFor(publicationFactsField);
+		publisherLabel.setLabelFor(publisherField);
 
 		publicationPlaceButton.setToolTipText("Place of publication");
 		publicationPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
@@ -313,6 +315,21 @@ public class SourceDialog extends JDialog{
 		mediaTypeLabel.setLabelFor(mediaTypeField);
 
 		//TODO
+
+		recordNoteButton.setToolTipText("Add record note");
+		final ActionListener addRecordNoteAction = evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
+				GUIHelper.addBorderIfDataPresent(recordNoteButton, !notes.isEmpty());
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, record, onAccept));
+		};
+		recordNoteButton.addActionListener(addRecordNoteAction);
+		recordNoteButton.setEnabled(false);
 	}
 
 	private void initLayout(){
@@ -323,27 +340,38 @@ public class SourceDialog extends JDialog{
 		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(roleField, "grow,wrap");
 		citationPanel.add(cropButton, "sizegroup button,split 2,center");
-		citationPanel.add(noteButton, "sizegroup button,center,wrap");
+		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
 		citationPanel.add(credibilityLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
-		recordPanel.setBorder(BorderFactory.createTitledBorder("Record"));
-		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel.add(eventsPanel, "grow,wrap");
-		recordPanel.add(titleLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(titleField, "grow,wrap");
-		recordPanel.add(authorLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(authorField, "grow,wrap");
-		recordPanel.add(publicationFactsLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(publicationFactsField, "grow,wrap");
-		recordPanel.add(datePanel, "grow,wrap");
-		recordPanel.add(publicationPlaceButton, "sizegroup button,split 2,center,wrap");
-		recordPanel.add(repositoryButton, "sizegroup button,center,wrap");
-		recordPanel.add(mediaTypeLabel, "align label,split 2");
-		recordPanel.add(mediaTypeField, "grow,wrap paragraph");
+		final JPanel recordPanel1 = new JPanel();
+		recordPanel1.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanel1.add(titleLabel, "align label,sizegroup label,split 2");
+		recordPanel1.add(titleField, "grow,wrap");
+		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
+		recordPanel1.add(authorField, "grow,wrap");
+		recordPanel1.add(publicationPlaceButton, "sizegroup button,split 2,center,wrap");
+		recordPanel1.add(datePanel, "grow,wrap");
+		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
+		recordPanel1.add(publisherField, "grow");
+		final JPanel recordPanel2 = new JPanel();
+		recordPanel2.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanel2.add(repositoryButton, "sizegroup button,center,wrap");
+		recordPanel2.add(mediaTypeLabel, "align label,split 2");
+		recordPanel2.add(mediaTypeField, "grow,wrap");
+//+1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
+//+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+		recordPanel2.add(recordNoteButton, "sizegroup button,center,wrap");
+		recordPanel2.add(restrictionCheckBox, "wrap");
+		final JPanel recordPanel3 = new JPanel();
+		recordPanel3.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		//TODO
-		GUIHelper.setEnabled(recordPanel, false);
+		tabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
+		tabbedPane.add("reference", recordPanel1);
+		tabbedPane.add("other", recordPanel2);
+		tabbedPane.add("three", recordPanel3);
+		GUIHelper.setEnabled(tabbedPane, false);
 
 //		final ActionListener helpAction = evt -> helpAction();
 		final ActionListener okAction = evt -> okAction();
@@ -363,7 +391,7 @@ public class SourceDialog extends JDialog{
 
 		add(citationPanel, "grow,wrap paragraph");
 
-		add(recordPanel, "grow,wrap paragraph");
+		add(tabbedPane, "grow,wrap paragraph");
 
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
@@ -401,17 +429,6 @@ public class SourceDialog extends JDialog{
 
 		//fire image crop event
 		EventBusService.publish(new EditEvent(EditEvent.EditType.CROP, imageData, onCloseGracefully));
-	}
-
-	private boolean sourceContainsEvent(final String event){
-		final GedcomNode selectedRecord = getSelectedRecord();
-		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
-
-		boolean containsEvent = false;
-		for(int i = 0; !containsEvent && i < events.size(); i ++)
-			if(events.get(i).getValue().equalsIgnoreCase(event))
-				containsEvent = true;
-		return containsEvent;
 	}
 
 	public final boolean loadData(final GedcomNode record, final Consumer<Object> onCloseGracefully){
@@ -501,7 +518,7 @@ public class SourceDialog extends JDialog{
 			.getValue();
 		final String role = store.traverse(selectedCitation, RECORD_ROLE)
 			.getValue();
-		final List<GedcomNode> notes = store.traverseAsList(selectedCitation, RECORD_NOTE_ARRAY);
+		final List<GedcomNode> citationNotes = store.traverseAsList(selectedCitation, RECORD_NOTE_ARRAY);
 		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
 			.getValue();
 		locationField.setText(location);
@@ -509,7 +526,7 @@ public class SourceDialog extends JDialog{
 		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
 		//only if there is one image
 		cropButton.setEnabled(documents.size() == 1);
-		GUIHelper.addBorderIfDataPresent(noteButton, !notes.isEmpty());
+		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
 		credibilityComboBox.setSelectedIndex(credibility != null && !credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
 
 
@@ -519,7 +536,7 @@ public class SourceDialog extends JDialog{
 			.getValue();
 		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
 			.getValue();
-		final String publicationFacts = store.traverse(selectedRecord, RECORD_PUBLICATION_FACTS)
+		final String publicationFacts = store.traverse(selectedRecord, RECORD_PUBLISHER)
 			.getValue();
 		final GedcomNode dateNode = store.traverse(selectedRecord, RECORD_DATE);
 		final String date = dateNode.getValue();
@@ -534,21 +551,17 @@ public class SourceDialog extends JDialog{
 		final List<GedcomNode> repositories = store.traverseAsList(selectedRecord, RECORD_REPOSITORY_ARRAY);
 		final String mediaType = store.traverse(selectedRecord, RECORD_MEDIA_TYPE)
 			.getValue();
-		GUIHelper.setEnabled(recordPanel, true);
-		eventsPanel.clearTags();
-		final String[] eventTags = new String[events.size()];
-		for(int i = 0; i < events.size(); i ++)
-			eventTags[i] = events.get(i)
-				.getValue();
-		eventsPanel.addTag(eventTags);
+		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
+		GUIHelper.setEnabled(tabbedPane, true);
 		titleField.setText(title);
 		authorField.setText(author);
-		publicationFactsField.setText(publicationFacts);
+		publisherField.setText(publicationFacts);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
 		GUIHelper.addBorderIfDataPresent(publicationPlaceButton, !publicationPlace.isEmpty());
 		GUIHelper.addBorderIfDataPresent(repositoryButton, !repositories.isEmpty());
 		mediaTypeField.setText(mediaType);
 		//TODO
+		GUIHelper.addBorderIfDataPresent(recordNoteButton, !citationNotes.isEmpty());
 
 
 		deleteButton.setEnabled(true);
@@ -593,7 +606,7 @@ public class SourceDialog extends JDialog{
 
 	private void deleteAction(){
 		GUIHelper.setEnabled(citationPanel, false);
-		GUIHelper.setEnabled(recordPanel, false);
+		GUIHelper.setEnabled(tabbedPane, false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -800,7 +813,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(515, 930);
+			dialog.setSize(515, 708);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

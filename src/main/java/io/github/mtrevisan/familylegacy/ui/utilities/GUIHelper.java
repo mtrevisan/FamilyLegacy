@@ -51,6 +51,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.function.Consumer;
@@ -83,17 +84,14 @@ public final class GUIHelper{
 
 	public static void setEnabled(final JComponent component, final boolean enabled){
 		final Deque<Component> stack = new LinkedList<>();
-		for(final Component comp : component.getComponents())
-			stack.add(comp);
+		stack.add(component);
 		while(!stack.isEmpty()){
 			final Component comp = stack.pop();
 			if(comp instanceof Container container)
-				for(final Component subComp : container.getComponents())
-					stack.add(subComp);
+				stack.addAll(Arrays.asList(container.getComponents()));
 
 			comp.setEnabled(enabled);
 		}
-		component.setEnabled(enabled);
 	}
 
 

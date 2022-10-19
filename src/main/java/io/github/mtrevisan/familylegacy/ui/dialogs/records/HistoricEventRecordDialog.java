@@ -235,12 +235,12 @@ public class HistoricEventRecordDialog extends JDialog{
 			events.add(event.getValue());
 		final String type = store.traverse(calendar, "TYPE").getValue();
 		final String author = store.traverse(calendar, "AUTHOR").getValue();
-		final String publicationFacts = store.traverse(calendar, "PUBLICATION_FACTS").getValue();
-		final GedcomNode dateNode = store.traverse(calendar, "DATE");
 		//TODO
 		final GedcomNode place = store.traverse(calendar, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(calendar, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(calendar, "PLACE.CREDIBILITY");
+		final GedcomNode dateNode = store.traverse(calendar, "DATE");
+		final String publisher = store.traverse(calendar, "PUBLISHER").getValue();
 		final String mediaType = store.traverse(calendar, "MEDIA_TYPE").getValue();
 
 		typeComboBox.setSelectedItem(type);

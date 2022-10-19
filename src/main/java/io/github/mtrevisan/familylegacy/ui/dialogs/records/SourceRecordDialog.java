@@ -81,6 +81,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", DATE_SIZE);
+	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 
 	private static final DefaultComboBoxModel<String> EXTRACT_TYPE_MODEL = new DefaultComboBoxModel<>(new String[]{StringUtils.EMPTY,
 		"transcript", "extract", "abstract"});
@@ -91,7 +92,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final JLabel authorLabel = new JLabel("Author:");
 	private final JTextField authorField = new JTextField();
 	private final JLabel publicationFactsLabel = new JLabel("Publication facts:");
-	private final JTextField publicationFactsField = new JTextField();
+	private final JTextField publisherField = new JTextField();
 	private final DatePanel datePanel = new DatePanel();
 	private final LocaleComboBox extractLocaleComboBox = new LocaleComboBox();
 	private final JLabel mediaTypeLabel = new JLabel("Media type:");
@@ -99,7 +100,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 	private final JButton placeButton = new JButton("Places");
 	private final JButton repositoryButton = new JButton("Repositories");
 	private final JButton documentButton = new JButton("Documents");
-	private final JButton sourceButton = new JButton("Sources");
+	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JButton noteButton = new JButton("Notes");
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
@@ -156,7 +157,7 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 		add(authorLabel, "align label,split 2");
 		add(authorField, "grow,wrap");
 		add(publicationFactsLabel, "align label,split 2");
-		add(publicationFactsField, "grow,wrap paragraph");
+		add(publisherField, "grow,wrap paragraph");
 		add(datePanel, "grow,wrap paragraph");
 		add(placeButton, "sizegroup button2,grow,wrap");
 		add(repositoryButton, "sizegroup button,grow,wrap paragraph");
@@ -210,23 +211,23 @@ public class SourceRecordDialog extends JDialog implements TextPreviewListenerIn
 			events.add(event.getValue());
 		final String title = store.traverse(source, "TITLE").getValue();
 		final String author = store.traverse(source, "AUTHOR").getValue();
-		final String publicationFacts = store.traverse(source, "PUBLICATION_FACTS").getValue();
-		final GedcomNode dateNode = store.traverse(source, "DATE");
 		//TODO
 		final GedcomNode place = store.traverse(source, "PLACE");
 		final GedcomNode placeCertainty = store.traverse(source, "PLACE.CERTAINTY");
 		final GedcomNode placeCredibility = store.traverse(source, "PLACE.CREDIBILITY");
+		final GedcomNode dateNode = store.traverse(source, "DATE");
+		final String publisher = store.traverse(source, "PUBLISHER").getValue();
 		final String mediaType = store.traverse(source, "MEDIA_TYPE").getValue();
 
 		eventsPanel.addTag(StringUtils.split(events.toString(), ','));
 		titleField.setText(title);
 		authorField.setText(author);
-		publicationFactsField.setText(publicationFacts);
 		final String date = dateNode.getValue();
 		final String calendarXRef = store.traverse(dateNode, "CALENDAR").getXRef();
 		final String dateOriginalText = store.traverse(dateNode, "ORIGINAL_TEXT").getValue();
 		final String dateCredibility = store.traverse(dateNode, "CREDIBILITY").getValue();
 		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
+		publisherField.setText(publisher);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
 		placeButton.setEnabled(true);
 		repositoryButton.setEnabled(true);
