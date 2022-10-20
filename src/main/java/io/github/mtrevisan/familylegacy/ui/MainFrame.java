@@ -174,7 +174,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				if(!dialog.loadData(source, editCommand.getOnCloseGracefully()))
 					dialog.showNewRecord();
 
-				dialog.setSize(515, 708);
+				dialog.setSize(515, 672);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
 			}

@@ -93,7 +93,7 @@ import java.util.function.Consumer;
 public class SourceDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 5873775240948872171L;
+	private static final long serialVersionUID = 2881852604999341353L;
 
 	private static final String RECORD_TAG = "SOURCE";
 	private static final String ARRAY = "[]";
@@ -681,7 +681,7 @@ public class SourceDialog extends JDialog{
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = 3717450687790596773L;
+		private static final long serialVersionUID = 9160260240620354886L;
 
 
 		RecordTableModel(){
@@ -783,7 +783,7 @@ public class SourceDialog extends JDialog{
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 708);
+							dialog.setSize(515, 672);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -829,7 +829,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(515, 708);
+			dialog.setSize(515, 672);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -43,11 +43,15 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.util.function.Consumer;
 
 
 //TODO
 public class CropDialog extends JDialog implements CropListenerInterface{
+
+	@Serial
+	private static final long serialVersionUID = 3777867436237271707L;
 
 	private ScaledImage imageHolder;
 	private final JButton okButton = new JButton("Ok");

@@ -36,10 +36,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import java.io.Serial;
 
 
 //TODO
 public class DatePanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = -8468501231004246071L;
 
 	//https://thenounproject.com/term/weekly-calendar/541199/
 	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", 20, 20);

@@ -279,7 +279,7 @@ private final JTextField subordinateField = new JTextField();
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 708);
+							dialog.setSize(515, 672);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

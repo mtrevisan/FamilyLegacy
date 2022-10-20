@@ -40,11 +40,15 @@ import javax.swing.ScrollPaneConstants;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.Serial;
 import java.util.List;
 import java.util.function.Predicate;
 
 
 public class EventsPanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = -7880424830738959838L;
 
 	/**
 	 * [ms]

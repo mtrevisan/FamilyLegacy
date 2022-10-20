@@ -335,7 +335,7 @@ public class RepositoryDialog extends JDialog{
 		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(locationField, "grow,wrap");
-		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
+		citationPanel.add(citationNoteButton, "sizegroup button,center");
 		GUIHelper.setEnabled(citationPanel, false);
 
 		final JPanel recordPanel1 = new JPanel();
@@ -690,7 +690,7 @@ public class RepositoryDialog extends JDialog{
 							if(!dialog.loadData(repository, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 708);
+							dialog.setSize(515, 672);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -736,7 +736,7 @@ public class RepositoryDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(515, 708);
+			dialog.setSize(515, 672);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

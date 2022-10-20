@@ -87,7 +87,7 @@ import java.util.function.Consumer;
 public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 	@Serial
-	private static final long serialVersionUID = - 7902103855362510456L;
+	private static final long serialVersionUID = -7902103855362510456L;
 
 	private enum NoteType{DEFAULT, TRANSLATION, UPDATE}
 
@@ -550,7 +550,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = -581310490684534579L;
+		private static final long serialVersionUID = 5739133578770733096L;
 
 
 		RecordTableModel(){
@@ -639,7 +639,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							if(!dialog.loadData(container, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 708);
+							dialog.setSize(515, 672);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

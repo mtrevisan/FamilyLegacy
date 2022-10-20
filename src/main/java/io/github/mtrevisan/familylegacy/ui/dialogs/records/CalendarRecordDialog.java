@@ -359,7 +359,7 @@ public final class CalendarRecordDialog extends JDialog{
 								: "New source" + forCalendar);
 							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
-							dialog.setSize(515, 708);
+							dialog.setSize(515, 672);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
