@@ -283,7 +283,7 @@ public class ResearchStatusRecordDialog extends JDialog{
 								//show a cultural norm input dialog
 								dialog.showNewRecord();
 
-							dialog.setSize(450, 260);
+							dialog.setSize(464, 446);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -310,7 +310,7 @@ public class ResearchStatusRecordDialog extends JDialog{
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(550, 650);
+							dialog.setSize(515, 708);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

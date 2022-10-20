@@ -639,7 +639,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 							if(!dialog.loadData(container, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(550, 450);
+							dialog.setSize(515, 708);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

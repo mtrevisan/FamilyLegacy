@@ -98,6 +98,7 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_TAG = "SOURCE";
 	private static final String ARRAY = "[]";
 	private static final String REFERENCE = "@";
+	private static final String RECORD_TAG_REFERENCE = RECORD_TAG + REFERENCE;
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
 	private static final String RECORD_TITLE = "TITLE";
 	private static final String RECORD_AUTHOR = "AUTHOR";
@@ -108,7 +109,6 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
 	private static final String RECORD_DOCUMENT_ARRAY = "DOCUMENT" + ARRAY;
 	private static final String RECORD_SOURCE = "SOURCE";
-	private static final String RECORD_SOURCE_REFERENCE = RECORD_SOURCE + REFERENCE;
 	private static final String RECORD_SOURCE_ARRAY = RECORD_SOURCE + ARRAY;
 	private static final String RECORD_CROP = "CROP";
 	private static final String RECORD_PLACE = "PLACE";
@@ -587,7 +587,7 @@ public class SourceDialog extends JDialog{
 	}
 
 	private GedcomNode getSelectedCitation(final String recordID){
-		return store.traverse(record, RECORD_SOURCE_REFERENCE + recordID);
+		return store.traverse(record, RECORD_TAG_REFERENCE + recordID);
 	}
 
 	public final void showNewRecord(){
@@ -780,7 +780,7 @@ public class SourceDialog extends JDialog{
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(550, 450);
+							dialog.setSize(515, 708);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
