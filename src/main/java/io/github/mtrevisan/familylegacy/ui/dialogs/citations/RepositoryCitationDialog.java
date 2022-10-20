@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -409,7 +410,7 @@ public class RepositoryCitationDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Source citations for note " + note.getID()

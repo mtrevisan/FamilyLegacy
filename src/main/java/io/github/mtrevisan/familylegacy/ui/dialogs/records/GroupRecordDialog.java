@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -195,27 +195,15 @@ public class GroupRecordDialog extends JDialog{
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
-						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+						case SOURCE -> {
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							dialog.setTitle(group.getID() != null
-								? "Source citations for group " + group.getID()
-								: "Source citations for new group");
+								? "Source for group " + group.getID()
+								: "Source for new group");
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case SOURCE -> {
-							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
-							final GedcomNode source = editCommand.getContainer();
-							dialog.setTitle(source.getID() != null
-								? "Source " + source.getID()
-								: "New source for " + group.getID());
-							dialog.loadData(source, editCommand.getOnCloseGracefully());
-
-							dialog.setSize(500, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

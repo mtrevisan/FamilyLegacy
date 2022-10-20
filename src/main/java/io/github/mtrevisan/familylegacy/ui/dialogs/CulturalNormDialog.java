@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
@@ -628,7 +627,7 @@ public class CulturalNormDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Source citations for note " + note.getID()

@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -302,7 +302,7 @@ public class HistoricEventRecordDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							final GedcomNode sourceCitation = editCommand.getContainer();
 							dialog.setTitle(sourceCitation.getID() != null
 								? "Source citation " + sourceCitation.getID() + " for calendar " + calendar.getID()

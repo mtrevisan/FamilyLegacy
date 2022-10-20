@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
@@ -272,7 +272,7 @@ private final JTextField subordinateField = new JTextField();
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							dialog.setTitle(place.getID() != null
 								? "Source citations for place " + place.getID()
 								: "Source citations for new place");
@@ -280,18 +280,6 @@ private final JTextField subordinateField = new JTextField();
 								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case SOURCE -> {
-							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
-							final GedcomNode source = editCommand.getContainer();
-							dialog.setTitle(source.getID() != null
-								? "Source " + source.getID()
-								: "New source for " + place.getID());
-							dialog.loadData(source, editCommand.getOnCloseGracefully());
-
-							dialog.setSize(500, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

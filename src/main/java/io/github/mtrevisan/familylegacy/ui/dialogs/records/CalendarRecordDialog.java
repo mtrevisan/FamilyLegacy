@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -352,7 +352,7 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							final SourceRecordDialog dialog = new SourceRecordDialog(store, parent);
+							final SourceDialog dialog = new SourceDialog(store, parent);
 							final GedcomNode source = editCommand.getContainer();
 							dialog.setTitle(source.getID() != null
 								? "Source " + source.getID() + forCalendar
@@ -360,16 +360,6 @@ public final class CalendarRecordDialog extends JDialog{
 							dialog.loadData(source, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 650);
-							dialog.setLocationRelativeTo(parent);
-							dialog.setVisible(true);
-						}
-						case SOURCE_CITATION -> {
-							final SourceCitationDialog dialog = new SourceCitationDialog(store, parent);
-							dialog.setTitle("Source citations" + forCalendar);
-							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-								dialog.showNewRecord();
-
-							dialog.setSize(550, 650);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

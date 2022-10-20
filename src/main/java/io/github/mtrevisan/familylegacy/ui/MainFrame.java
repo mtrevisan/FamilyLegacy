@@ -35,10 +35,10 @@ import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.FamilyRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
@@ -166,29 +166,17 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 				dialog.setVisible(true);
 			}
 			case SOURCE -> {
-				final SourceRecordDialog dialog = new SourceRecordDialog(store, this);
+				final SourceDialog dialog = new SourceDialog(store, this);
 				final GedcomNode source = editCommand.getContainer();
 				dialog.setTitle(source.getID() != null
 					? "Source " + source.getID()
 					: "New source for " + source.getID());
-				dialog.loadData(source, editCommand.getOnCloseGracefully());
+				if(!dialog.loadData(source, editCommand.getOnCloseGracefully()))
+					dialog.showNewRecord();
 
 				dialog.setSize(500, 650);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
-			}
-			case SOURCE_CITATION -> {
-				//TODO
-//				final SourceCitationDialog dialog = new SourceCitationDialog(store, this);
-//				dialog.setTitle(container.getID() != null
-//					? "Source citations for note " + container.getID()
-//					: "Source citations for new note");
-//				if(!dialog.loadData(editCommand.getContainer()))
-//					dialog.addAction();
-//
-//				dialog.setSize(550, 450);
-//				dialog.setLocationRelativeTo(this);
-//				dialog.setVisible(true);
 			}
 			case EVENT -> {
 				//TODO
