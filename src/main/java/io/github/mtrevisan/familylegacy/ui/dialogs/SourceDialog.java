@@ -475,8 +475,11 @@ public class SourceDialog extends JDialog{
 	private List<GedcomNode> extractRecords(){
 		final List<GedcomNode> records = store.traverseAsList(record, RECORD_TAG_ARRAY);
 		final int size = records.size();
-		for(int i = 0; i < size; i ++)
-			records.set(i, store.getSource(records.get(i).getXRef()));
+		for(int i = 0; i < size; i ++){
+			final String recordXRef = records.get(i).getXRef();
+			final GedcomNode record = store.getSource(recordXRef);
+			records.set(i, record);
+		}
 		return records;
 	}
 
