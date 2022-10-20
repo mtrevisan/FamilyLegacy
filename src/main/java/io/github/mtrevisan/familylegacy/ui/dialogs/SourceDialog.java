@@ -106,11 +106,11 @@ public class SourceDialog extends JDialog{
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
 	private static final String RECORD_FILE = "FILE";
 	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
+	private static final String RECORD_DOCUMENT_ARRAY = "DOCUMENT" + ARRAY;
 	private static final String RECORD_SOURCE = "SOURCE";
 	private static final String RECORD_SOURCE_REFERENCE = RECORD_SOURCE + REFERENCE;
+	private static final String RECORD_SOURCE_ARRAY = RECORD_SOURCE + ARRAY;
 	private static final String RECORD_CROP = "CROP";
-	private static final String RECORD_EVENT = "EVENT";
-	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
 	private static final String RECORD_PLACE = "PLACE";
 	private static final String RECORD_PUBLISHER = "PUBLISHER";
 	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
@@ -136,8 +136,7 @@ public class SourceDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_TYPE = 1;
-	private static final int TABLE_INDEX_RECORD_TITLE = 2;
+	private static final int TABLE_INDEX_RECORD_TITLE = 1;
 	private static final int TABLE_ROWS_SHOWN = 4;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
@@ -236,7 +235,6 @@ public class SourceDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
-		sorter.setComparator(TABLE_INDEX_RECORD_TYPE, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_RECORD_TITLE, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		//clicking on a line links it to current source citation
@@ -314,7 +312,32 @@ public class SourceDialog extends JDialog{
 
 		mediaTypeLabel.setLabelFor(mediaTypeField);
 
-		//TODO
+		final ActionListener addRecordDocumentAction = evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				final List<GedcomNode> documents = store.traverseAsList(record, RECORD_DOCUMENT_ARRAY);
+				GUIHelper.addBorderIfDataPresent(sourceButton, !documents.isEmpty());
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT, record, onAccept));
+		};
+		documentButton.addActionListener(addRecordDocumentAction);
+
+		sourceButton.setToolTipText("Add source");
+		final ActionListener addRecordSourceAction = evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
+				GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, record, onAccept));
+		};
+		sourceButton.addActionListener(addRecordSourceAction);
 
 		recordNoteButton.setToolTipText("Add record note");
 		final ActionListener addRecordNoteAction = evt -> {
@@ -329,7 +352,6 @@ public class SourceDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, record, onAccept));
 		};
 		recordNoteButton.addActionListener(addRecordNoteAction);
-		recordNoteButton.setEnabled(false);
 	}
 
 	private void initLayout(){
@@ -351,26 +373,22 @@ public class SourceDialog extends JDialog{
 		recordPanel1.add(titleField, "grow,wrap");
 		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(authorField, "grow,wrap");
-		recordPanel1.add(publicationPlaceButton, "sizegroup button,split 2,center,wrap");
+		recordPanel1.add(publicationPlaceButton, "split 2,center,wrap");
 		recordPanel1.add(datePanel, "grow,wrap");
 		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(publisherField, "grow");
 		final JPanel recordPanel2 = new JPanel();
 		recordPanel2.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel2.add(repositoryButton, "sizegroup button,center,wrap");
+		recordPanel2.add(repositoryButton, "center,wrap");
 		recordPanel2.add(mediaTypeLabel, "align label,split 2");
 		recordPanel2.add(mediaTypeField, "grow,wrap");
-//+1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
-//+1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
-		recordPanel2.add(recordNoteButton, "sizegroup button,center,wrap");
+		recordPanel2.add(documentButton, "split 3,center");
+		recordPanel2.add(sourceButton, "center");
+		recordPanel2.add(recordNoteButton, "center,wrap");
 		recordPanel2.add(restrictionCheckBox, "wrap");
-		final JPanel recordPanel3 = new JPanel();
-		recordPanel3.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		//TODO
 		tabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		tabbedPane.add("reference", recordPanel1);
 		tabbedPane.add("other", recordPanel2);
-		tabbedPane.add("three", recordPanel3);
 		GUIHelper.setEnabled(tabbedPane, false);
 
 //		final ActionListener helpAction = evt -> helpAction();
@@ -447,12 +465,6 @@ public class SourceDialog extends JDialog{
 				final GedcomNode node = records.get(row);
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
-				final List<GedcomNode> events = store.traverseAsList(node, RECORD_EVENT_ARRAY);
-				final String[] eventTags = new String[events.size()];
-				for(int i = 0; i < events.size(); i ++)
-					eventTags[i] = events.get(i)
-						.getValue();
-				model.setValueAt(String.join(", ", eventTags), row, TABLE_INDEX_RECORD_TYPE);
 				model.setValueAt(store.traverse(node, RECORD_TITLE).getValue(), row, TABLE_INDEX_RECORD_TITLE);
 			}
 		}
@@ -470,8 +482,7 @@ public class SourceDialog extends JDialog{
 
 	private void filterTableBy(final SourceDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_TYPE, TABLE_INDEX_RECORD_TITLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -531,7 +542,6 @@ public class SourceDialog extends JDialog{
 
 
 		//fill record panel:
-		final List<GedcomNode> events = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
 		final String title = store.traverse(selectedRecord, RECORD_TITLE)
 			.getValue();
 		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
@@ -551,6 +561,8 @@ public class SourceDialog extends JDialog{
 		final List<GedcomNode> repositories = store.traverseAsList(selectedRecord, RECORD_REPOSITORY_ARRAY);
 		final String mediaType = store.traverse(selectedRecord, RECORD_MEDIA_TYPE)
 			.getValue();
+		final List<GedcomNode> recordDocuments = store.traverseAsList(selectedRecord, RECORD_DOCUMENT_ARRAY);
+		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
 		GUIHelper.setEnabled(tabbedPane, true);
 		titleField.setText(title);
@@ -560,8 +572,9 @@ public class SourceDialog extends JDialog{
 		GUIHelper.addBorderIfDataPresent(publicationPlaceButton, !publicationPlace.isEmpty());
 		GUIHelper.addBorderIfDataPresent(repositoryButton, !repositories.isEmpty());
 		mediaTypeField.setText(mediaType);
-		//TODO
-		GUIHelper.addBorderIfDataPresent(recordNoteButton, !citationNotes.isEmpty());
+		GUIHelper.addBorderIfDataPresent(documentButton, !recordDocuments.isEmpty());
+		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
+		GUIHelper.addBorderIfDataPresent(recordNoteButton, !recordNotes.isEmpty());
 
 
 		deleteButton.setEnabled(true);
@@ -669,7 +682,7 @@ public class SourceDialog extends JDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Type", "Title"}, 0);
+			super(new String[]{"ID", "Title"}, 0);
 		}
 
 		@Override
