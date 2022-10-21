@@ -635,7 +635,7 @@ public class CulturalNormDialog extends JDialog{
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 672);
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

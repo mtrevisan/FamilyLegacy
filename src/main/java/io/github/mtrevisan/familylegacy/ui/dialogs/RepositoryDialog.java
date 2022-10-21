@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.citations.RepositoryCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -50,6 +51,7 @@ import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -146,6 +148,8 @@ public class RepositoryDialog extends JDialog{
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JButton citationNoteButton = new JButton(ICON_NOTE);
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JLabel titleLabel = new JLabel("Title:");
@@ -272,6 +276,23 @@ public class RepositoryDialog extends JDialog{
 		citationNoteButton.addActionListener(addCitationNoteAction);
 		citationNoteButton.setEnabled(false);
 
+		credibilityLabel.setLabelFor(credibilityComboBox);
+		credibilityComboBox.addActionListener(evt -> {
+			final GedcomNode selectedRecord = getSelectedRecord();
+			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
+			final int selectedIndex = credibilityComboBox.getSelectedIndex();
+			if(selectedIndex > 0){
+				final String credibility = Integer.toString(selectedIndex - 1);
+				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
+				if(credibilityNode.isEmpty())
+					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
+				else
+					credibilityNode.withValue(credibility);
+			}
+			else
+				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
+		});
+
 
 		//record part:
 		titleLabel.setLabelFor(titleField);
@@ -335,7 +356,9 @@ public class RepositoryDialog extends JDialog{
 		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(locationField, "grow,wrap");
-		citationPanel.add(citationNoteButton, "sizegroup button,center");
+		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
+		citationPanel.add(credibilityLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
 		final JPanel recordPanel1 = new JPanel();
@@ -373,14 +396,13 @@ public class RepositoryDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "grow");
+		add(tabbedPane, "span 1 5,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
 
 		add(citationPanel, "grow,wrap paragraph");
-
-		add(tabbedPane, "grow,wrap paragraph");
 
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
@@ -435,7 +457,6 @@ public class RepositoryDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
-	//TODO
 	private void selectAction(){
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final GedcomNode selectedRecord = getSelectedRecord();
@@ -473,6 +494,7 @@ public class RepositoryDialog extends JDialog{
 			.getValue();
 		locationField.setText(location);
 		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
+		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
 		//fill record panel:
@@ -690,7 +712,7 @@ public class RepositoryDialog extends JDialog{
 							if(!dialog.loadData(repository, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 672);
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -736,7 +758,7 @@ public class RepositoryDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(515, 672);
+			dialog.setSize(946, 396);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -203,7 +203,7 @@ public class GroupRecordDialog extends JDialog{
 							if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 672);
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}

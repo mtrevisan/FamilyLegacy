@@ -783,7 +783,7 @@ public class SourceDialog extends JDialog{
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
-							dialog.setSize(515, 672);
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -829,7 +829,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(515, 672);
+			dialog.setSize(946, 396);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
