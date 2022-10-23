@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2022 Mauro Trevisan
+ * Copyright (c) 2022 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -85,24 +85,27 @@ import java.util.List;
 import java.util.function.Consumer;
 
 
-public class RepositoryDialog extends JDialog{
+public class GroupDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 5873775240948872171L;
+	private static final long serialVersionUID = -3846833238043091625L;
 
-	private static final String RECORD_TAG = "REPOSITORY";
+	private static final String RECORD_TAG = "GROUP";
 	private static final String ARRAY = "[]";
 	private static final String REFERENCE = "@";
 	private static final String RECORD_TAG_REFERENCE = RECORD_TAG + REFERENCE;
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
-	private static final String RECORD_NAME = "NAME";
+	private static final String RECORD_TITLE = "TITLE";
 	private static final String RECORD_AUTHOR = "AUTHOR";
 	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
 	private static final String RECORD_NOTE = "NOTE";
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
+	private static final String RECORD_FILE = "FILE";
+	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
 	private static final String RECORD_DOCUMENT_ARRAY = "DOCUMENT" + ARRAY;
 	private static final String RECORD_SOURCE = "SOURCE";
 	private static final String RECORD_SOURCE_ARRAY = RECORD_SOURCE + ARRAY;
+	private static final String RECORD_CROP = "CROP";
 	private static final String RECORD_PLACE = "PLACE";
 	private static final String RECORD_PUBLISHER = "PUBLISHER";
 	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
@@ -110,6 +113,7 @@ public class RepositoryDialog extends JDialog{
 	private static final String RECORD_CALENDAR = "CALENDAR";
 	private static final String RECORD_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String RECORD_LOCATION = "LOCATION";
+	private static final String RECORD_ROLE = "ROLE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
 	private static final String ACTION_MAP_KEY_INSERT = "insert";
@@ -127,14 +131,12 @@ public class RepositoryDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_NAME = 1;
+	private static final int TABLE_INDEX_RECORD_TITLE = 1;
 	private static final int TABLE_ROWS_SHOWN = 4;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
-	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png", 20, 20);
-	private static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png", 20, 20);
 
 	private final JLabel filterLabel = new JLabel("Filter:");
 	private final JTextField filterField = new JTextField();
@@ -144,34 +146,30 @@ public class RepositoryDialog extends JDialog{
 	private final JButton deleteButton = new JButton("Delete");
 
 	private final JPanel citationPanel = new JPanel();
-	private final JLabel locationLabel = new JLabel("Location:");
-	private final JTextField locationField = new JTextField();
+	private final JLabel roleLabel = new JLabel("Role:");
+	private final JTextField roleField = new JTextField();
 	private final JButton citationNoteButton = new JButton(ICON_NOTE);
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JLabel titleLabel = new JLabel("Title:");
-	private final JTextField titleField = new JTextField();
-	private final JLabel authorLabel = new JLabel("Author:");
-	private final JTextField authorField = new JTextField();
-	private final JButton publicationPlaceButton = new JButton(ICON_PLACE);
-	private final DatePanel datePanel = new DatePanel();
-	private final JLabel publisherLabel = new JLabel("Publisher:");
-	private final JTextField publisherField = new JTextField();
-	private final JButton repositoryButton = new JButton(ICON_REPOSITORY);
-	private final JLabel mediaTypeLabel = new JLabel("Media type:");
-	private final JTextField mediaTypeField = new JTextField();
-	private final JButton documentButton = new JButton("Documents");
-	private final JButton sourceButton = new JButton(ICON_SOURCE);
-	private final JButton recordNoteButton = new JButton(ICON_NOTE);
-	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JLabel nameLabel = new JLabel("Name:");
+	private final JTextField nameField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
+	private final JButton individualButton = new JButton("Individuals");
+	private final JButton familyButton = new JButton("Families");
+	private final EventsPanel eventsPanel = new EventsPanel(this::groupContainsEvent);
+
+	private final JButton recordNoteButton = new JButton(ICON_NOTE);
+	private final JButton sourceButton = new JButton(ICON_SOURCE);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final Debouncer<RepositoryDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
+	private final Debouncer<GroupDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCER_TIME);
 
 	private GedcomNode originalRecord;
 	private GedcomNode record;
@@ -182,7 +180,7 @@ public class RepositoryDialog extends JDialog{
 	private final Flef store;
 
 
-	public RepositoryDialog(final Flef store, final Frame parent){
+	public GroupDialog(final Flef store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -202,7 +200,7 @@ public class RepositoryDialog extends JDialog{
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(RepositoryDialog.this);
+				filterDebouncer.call(GroupDialog.this);
 			}
 		});
 
@@ -222,9 +220,9 @@ public class RepositoryDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
-		sorter.setComparator(TABLE_INDEX_RECORD_NAME, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_TITLE, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
-		//clicking on a line links it to current repository citation
+		//clicking on a line links it to current group citation
 		recordTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
 				if(!evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
@@ -258,7 +256,7 @@ public class RepositoryDialog extends JDialog{
 
 	private void initRecordComponents(){
 		//citation part:
-		locationLabel.setLabelFor(locationField);
+		roleLabel.setLabelFor(roleField);
 
 		citationNoteButton.setToolTipText("Add citation note");
 		final ActionListener addCitationNoteAction = evt -> {
@@ -275,34 +273,34 @@ public class RepositoryDialog extends JDialog{
 		citationNoteButton.addActionListener(addCitationNoteAction);
 		citationNoteButton.setEnabled(false);
 
+		credibilityLabel.setLabelFor(credibilityComboBox);
+		credibilityComboBox.addActionListener(evt -> {
+			final GedcomNode selectedRecord = getSelectedRecord();
+			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
+			final int selectedIndex = credibilityComboBox.getSelectedIndex();
+			if(selectedIndex > 0){
+				final String credibility = Integer.toString(selectedIndex - 1);
+				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
+				if(credibilityNode.isEmpty())
+					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
+				else
+					credibilityNode.withValue(credibility);
+			}
+			else
+				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
+		});
+
 
 		//record part:
-		titleLabel.setLabelFor(titleField);
+		nameLabel.setLabelFor(nameField);
 
-		authorLabel.setLabelFor(authorField);
+		typeLabel.setLabelFor(typeField);
 
-		publisherLabel.setLabelFor(publisherField);
+		individualButton.setToolTipText("Place of publication");
+		individualButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
 
-		publicationPlaceButton.setToolTipText("Place of publication");
-		publicationPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
-
-		repositoryButton.setToolTipText("Repository");
-		repositoryButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, getSelectedRecord())));
-
-		mediaTypeLabel.setLabelFor(mediaTypeField);
-
-		final ActionListener addRecordDocumentAction = evt -> {
-			final Consumer<Object> onAccept = ignored -> {
-				final List<GedcomNode> documents = store.traverseAsList(record, RECORD_DOCUMENT_ARRAY);
-				GUIHelper.addBorderIfDataPresent(sourceButton, !documents.isEmpty());
-
-				//put focus on the ok button
-				okButton.grabFocus();
-			};
-
-			EventBusService.publish(new EditEvent(EditEvent.EditType.DOCUMENT, record, onAccept));
-		};
-		documentButton.addActionListener(addRecordDocumentAction);
+		familyButton.setToolTipText("Repository");
+		familyButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, getSelectedRecord())));
 
 		sourceButton.setToolTipText("Add source");
 		final ActionListener addRecordSourceAction = evt -> {
@@ -331,52 +329,29 @@ public class RepositoryDialog extends JDialog{
 			EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, record, onAccept));
 		};
 		recordNoteButton.addActionListener(addRecordNoteAction);
-
-		credibilityLabel.setLabelFor(credibilityComboBox);
-		credibilityComboBox.addActionListener(evt -> {
-			final GedcomNode selectedRecord = getSelectedRecord();
-			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
-			final int selectedIndex = credibilityComboBox.getSelectedIndex();
-			if(selectedIndex > 0){
-				final String credibility = Integer.toString(selectedIndex - 1);
-				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
-				if(credibilityNode.isEmpty())
-					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
-				else
-					credibilityNode.withValue(credibility);
-			}
-			else
-				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
-		});
 	}
 
 	private void initLayout(){
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
 		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
-		citationPanel.add(locationField, "grow,wrap");
-		citationPanel.add(citationNoteButton, "sizegroup button,center");
+		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(roleField, "grow,wrap");
+		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
+		citationPanel.add(credibilityLabel, "align label,sizegroup label,split 2");
+		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
-		final JPanel recordPanel1 = new JPanel(new MigLayout());
-		recordPanel1.add(titleLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(titleField, "grow,wrap");
-		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(authorField, "grow,wrap");
-		recordPanel1.add(publicationPlaceButton, "split 2,center,wrap");
-		recordPanel1.add(datePanel, "grow,wrap");
-		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(publisherField, "grow");
-		final JPanel recordPanel2 = new JPanel(new MigLayout());
-		recordPanel2.add(repositoryButton, "center,wrap");
-		recordPanel2.add(mediaTypeLabel, "align label,sizegroup label,split 2");
-		recordPanel2.add(mediaTypeField, "grow,wrap");
-		recordPanel2.add(documentButton, "split 3,center");
+		final JPanel recordPanel1 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanel1.add(nameLabel, "align label,sizegroup label,split 2");
+		recordPanel1.add(nameField, "grow,wrap");
+		recordPanel1.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanel1.add(typeField, "grow,wrap");
+		recordPanel1.add(individualButton, "split 2,center,wrap");
+		final JPanel recordPanel2 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanel2.add(familyButton, "center,wrap");
 		recordPanel2.add(sourceButton, "center");
 		recordPanel2.add(recordNoteButton, "center,wrap");
 		recordPanel2.add(restrictionCheckBox, "wrap");
-		recordPanel2.add(credibilityLabel, "align label,sizegroup label,split 2");
-		recordPanel2.add(credibilityComboBox);
 		tabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		tabbedPane.add("reference", recordPanel1);
 		tabbedPane.add("other", recordPanel2);
@@ -391,7 +366,7 @@ public class RepositoryDialog extends JDialog{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow");
 		add(tabbedPane, "span 1 5,grow,wrap paragraph");
@@ -422,7 +397,7 @@ public class RepositoryDialog extends JDialog{
 				final GedcomNode node = records.get(row);
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
-				model.setValueAt(store.traverse(node, RECORD_NAME).getValue(), row, TABLE_INDEX_RECORD_NAME);
+				model.setValueAt(store.traverse(node, RECORD_TITLE).getValue(), row, TABLE_INDEX_RECORD_TITLE);
 			}
 		}
 
@@ -434,15 +409,24 @@ public class RepositoryDialog extends JDialog{
 		final int size = records.size();
 		for(int i = 0; i < size; i ++){
 			final String recordXRef = records.get(i).getXRef();
-			final GedcomNode record = store.getRepository(recordXRef);
+			final GedcomNode record = store.getGroup(recordXRef);
 			records.set(i, record);
 		}
 		return records;
 	}
 
-	private void filterTableBy(final RepositoryDialog panel){
+	private boolean groupContainsEvent(final String event){
+		boolean containsEvent = false;
+		final List<GedcomNode> events = store.traverseAsList(record, "EVENT[]");
+		for(int i = 0; !containsEvent && i < events.size(); i ++)
+			if(events.get(i).getValue().equalsIgnoreCase(event))
+				containsEvent = true;
+		return containsEvent;
+	}
+
+	private void filterTableBy(final GroupDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_NAME);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -454,6 +438,7 @@ public class RepositoryDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
+	//TODO
 	private void selectAction(){
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final GedcomNode selectedRecord = getSelectedRecord();
@@ -466,7 +451,7 @@ public class RepositoryDialog extends JDialog{
 		if(previouslySelectedRecord != null && previouslySelectedRecord.hashCode() != previouslySelectedRecordHash){
 			//show note record dialog
 			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-			changeNoteDialog.setTitle("Change note for repository " + previouslySelectedRecord.getID());
+			changeNoteDialog.setTitle("Change note for group " + previouslySelectedRecord.getID());
 			changeNoteDialog.loadData(previouslySelectedRecord, dialog -> {
 				previouslySelectedRecord = selectedRecord;
 				previouslySelectedRecordHash = selectedRecord.hashCode() ^ selectedCitation.hashCode();
@@ -484,18 +469,19 @@ public class RepositoryDialog extends JDialog{
 
 		//fill citation panel:
 		GUIHelper.setEnabled(citationPanel, true);
-		final String location = store.traverse(selectedCitation, RECORD_LOCATION)
+		final String role = store.traverse(selectedCitation, RECORD_ROLE)
 			.getValue();
 		final List<GedcomNode> citationNotes = store.traverseAsList(selectedCitation, RECORD_NOTE_ARRAY);
 		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
 			.getValue();
-		locationField.setText(location);
+		roleField.setText(role);
+		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
 		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
 		//fill record panel:
-		final String title = store.traverse(selectedRecord, RECORD_NAME)
+		final String title = store.traverse(selectedRecord, RECORD_TITLE)
 			.getValue();
 		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
 			.getValue();
@@ -514,18 +500,13 @@ public class RepositoryDialog extends JDialog{
 		final List<GedcomNode> repositories = store.traverseAsList(selectedRecord, RECORD_REPOSITORY_ARRAY);
 		final String mediaType = store.traverse(selectedRecord, RECORD_MEDIA_TYPE)
 			.getValue();
-		final List<GedcomNode> recordDocuments = store.traverseAsList(selectedRecord, RECORD_DOCUMENT_ARRAY);
 		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
 		GUIHelper.setEnabled(tabbedPane, true);
-		titleField.setText(title);
-		authorField.setText(author);
-		publisherField.setText(publicationFacts);
-		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		GUIHelper.addBorderIfDataPresent(publicationPlaceButton, !publicationPlace.isEmpty());
-		GUIHelper.addBorderIfDataPresent(repositoryButton, !repositories.isEmpty());
-		mediaTypeField.setText(mediaType);
-		GUIHelper.addBorderIfDataPresent(documentButton, !recordDocuments.isEmpty());
+		nameField.setText(title);
+		typeField.setText(author);
+		GUIHelper.addBorderIfDataPresent(individualButton, !publicationPlace.isEmpty());
+		GUIHelper.addBorderIfDataPresent(familyButton, !repositories.isEmpty());
 		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
 		GUIHelper.addBorderIfDataPresent(recordNoteButton, !recordNotes.isEmpty());
 
@@ -536,7 +517,7 @@ public class RepositoryDialog extends JDialog{
 	private GedcomNode getSelectedRecord(){
 		final int selectedRow = recordTable.getSelectedRow();
 		final String recordID = (String)recordTable.getValueAt(selectedRow, TABLE_INDEX_RECORD_ID);
-		return store.getRepository(recordID);
+		return store.getGroup(recordID);
 	}
 
 	private GedcomNode getSelectedCitation(final String recordID){
@@ -552,7 +533,7 @@ public class RepositoryDialog extends JDialog{
 		final GedcomNode newRecord = store.create(RECORD_TAG);
 
 		//add to store
-		final String recordID = store.addRepository(newRecord);
+		final String recordID = store.addGroup(newRecord);
 		record.addChildReference(RECORD_TAG, recordID);
 
 		//reset filter
@@ -583,7 +564,7 @@ public class RepositoryDialog extends JDialog{
 			selectedRecord = store.traverseAsList(record, RECORD_TAG_ARRAY)
 				.get(index);
 		else
-			selectedRecord = store.getRepository(recordID);
+			selectedRecord = store.getGroup(recordID);
 
 		record.removeChild(selectedRecord);
 
@@ -612,7 +593,7 @@ public class RepositoryDialog extends JDialog{
 			//show note record dialog
 			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
 			final GedcomNode selectedRecord = getSelectedRecord();
-			changeNoteDialog.setTitle("Change note for repository " + selectedRecord.getID());
+			changeNoteDialog.setTitle("Change note for group " + selectedRecord.getID());
 			changeNoteDialog.loadData(record, dialog -> {});
 
 			changeNoteDialog.setSize(450, 209);
@@ -631,7 +612,7 @@ public class RepositoryDialog extends JDialog{
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = 3717450687790596773L;
+		private static final long serialVersionUID = -7463243250214703789L;
 
 
 		RecordTableModel(){
@@ -660,8 +641,7 @@ public class RepositoryDialog extends JDialog{
 		final Flef store = new Flef();
 		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
-		final GedcomNode sourceCitation = store.traverseAsList(store.getIndividuals().get(0), "SOURCE[]").get(0);
-		final GedcomNode container = store.getSource(sourceCitation.getXRef());
+		final GedcomNode container = store.getIndividuals().get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -677,11 +657,11 @@ public class RepositoryDialog extends JDialog{
 					switch(editCommand.getType()){
 						case NOTE -> {
 							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-							final GedcomNode repository = editCommand.getContainer();
-							dialog.setTitle(repository.getID() != null
-								? "Note " + repository.getID()
+							final GedcomNode group = editCommand.getContainer();
+							dialog.setTitle(group.getID() != null
+								? "Note " + group.getID()
 								: "New note for " + container.getID());
-							dialog.loadData(repository, editCommand.getOnCloseGracefully());
+							dialog.loadData(group, editCommand.getOnCloseGracefully());
 
 							dialog.setSize(500, 513);
 							dialog.setLocationRelativeTo(parent);
@@ -701,12 +681,12 @@ public class RepositoryDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case SOURCE -> {
-							final RepositoryDialog dialog = new RepositoryDialog(store, parent);
-							final GedcomNode repository = editCommand.getContainer();
-							dialog.setTitle(repository.getID() != null
-								? "Source for repository " + repository.getID()
-								: "Source for new repository");
-							if(!dialog.loadData(repository, editCommand.getOnCloseGracefully()))
+							final GroupDialog dialog = new GroupDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Source for group " + note.getID()
+								: "Source for new group");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
 							dialog.setSize(946, 396);
@@ -715,14 +695,27 @@ public class RepositoryDialog extends JDialog{
 						}
 						case PLACE -> {
 							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
-							final GedcomNode repository = editCommand.getContainer();
-							dialog.setTitle(repository.getID() != null
-								? "Place for repository " + repository.getID()
-								: "Place for new repository");
-							if(!dialog.loadData(repository, editCommand.getOnCloseGracefully()))
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Place for group " + note.getID()
+								: "Place for new group");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
 								dialog.showNewRecord();
 
 							dialog.setSize(550, 450);
+							dialog.setLocationRelativeTo(parent);
+							dialog.setVisible(true);
+						}
+						case REPOSITORY -> {
+							final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+							final GedcomNode note = editCommand.getContainer();
+							dialog.setTitle(note.getID() != null
+								? "Repository for group " + note.getID()
+								: "Repository for new group");
+							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
+								dialog.showNewRecord();
+
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -731,8 +724,8 @@ public class RepositoryDialog extends JDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final RepositoryDialog dialog = new RepositoryDialog(store, parent);
-			dialog.setTitle(container.getID() != null? "Repository for " + container.getID(): "Repository");
+			final GroupDialog dialog = new GroupDialog(store, parent);
+			dialog.setTitle(container.getID() != null? "Group for " + container.getID(): "Group");
 			if(!dialog.loadData(container, null))
 				dialog.showNewRecord();
 
@@ -742,7 +735,7 @@ public class RepositoryDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(946, 369);
+			dialog.setSize(945, 423);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.RepositoryCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
@@ -295,6 +294,21 @@ public class SourceDialog extends JDialog{
 		citationNoteButton.setEnabled(false);
 
 		credibilityLabel.setLabelFor(credibilityComboBox);
+		credibilityComboBox.addActionListener(evt -> {
+			final GedcomNode selectedRecord = getSelectedRecord();
+			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
+			final int selectedIndex = credibilityComboBox.getSelectedIndex();
+			if(selectedIndex > 0){
+				final String credibility = Integer.toString(selectedIndex - 1);
+				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
+				if(credibilityNode.isEmpty())
+					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
+				else
+					credibilityNode.withValue(credibility);
+			}
+			else
+				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
+		});
 
 
 		//record part:
@@ -367,8 +381,7 @@ public class SourceDialog extends JDialog{
 		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
-		final JPanel recordPanel1 = new JPanel();
-		recordPanel1.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		final JPanel recordPanel1 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel1.add(titleLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(titleField, "grow,wrap");
 		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
@@ -377,10 +390,9 @@ public class SourceDialog extends JDialog{
 		recordPanel1.add(datePanel, "grow,wrap");
 		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(publisherField, "grow");
-		final JPanel recordPanel2 = new JPanel();
-		recordPanel2.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		final JPanel recordPanel2 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel2.add(repositoryButton, "center,wrap");
-		recordPanel2.add(mediaTypeLabel, "align label,split 2");
+		recordPanel2.add(mediaTypeLabel, "align label,sizegroup label,split 2");
 		recordPanel2.add(mediaTypeField, "grow,wrap");
 		recordPanel2.add(documentButton, "split 3,center");
 		recordPanel2.add(sourceButton, "center");
@@ -402,14 +414,13 @@ public class SourceDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "grow");
+		add(tabbedPane, "span 1 5,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
 
 		add(citationPanel, "grow,wrap paragraph");
-
-		add(tabbedPane, "grow,wrap paragraph");
 
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
@@ -541,7 +552,7 @@ public class SourceDialog extends JDialog{
 		//only if there is one image
 		cropButton.setEnabled(documents.size() == 1);
 		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
-		credibilityComboBox.setSelectedIndex(credibility != null && !credibility.isEmpty()? Integer.parseInt(credibility) + 1: 0);
+		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
 		//fill record panel:
@@ -801,15 +812,15 @@ public class SourceDialog extends JDialog{
 							dialog.setVisible(true);
 						}
 						case REPOSITORY -> {
-							final RepositoryCitationDialog dialog = new RepositoryCitationDialog(store, parent);
+							final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 							final GedcomNode note = editCommand.getContainer();
 							dialog.setTitle(note.getID() != null
 								? "Repository for source " + note.getID()
 								: "Repository for new source");
 							if(!dialog.loadData(note, editCommand.getOnCloseGracefully()))
-								dialog.addAction();
+								dialog.showNewRecord();
 
-							dialog.setSize(550, 450);
+							dialog.setSize(946, 396);
 							dialog.setLocationRelativeTo(parent);
 							dialog.setVisible(true);
 						}
@@ -829,7 +840,7 @@ public class SourceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(946, 396);
+			dialog.setSize(945, 423);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

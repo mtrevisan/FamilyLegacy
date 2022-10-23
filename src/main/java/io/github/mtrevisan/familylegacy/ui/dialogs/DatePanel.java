@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.ui.dialogs;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -57,23 +56,23 @@ public class DatePanel extends JPanel{
 
 
 	public DatePanel(){
-		super(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		super(new MigLayout());
 
 		final JLabel dateLabel = new JLabel("Date:");
 		dateLabel.setLabelFor(dateField);
 		final JLabel dateCredibilityLabel = new JLabel("Credibility:");
 		dateCredibilityLabel.setLabelFor(dateCredibilityComboBox);
+		final JButton dateButton = new JButton(ICON_DATE);
+		final JLabel dateOriginalTextLabel = new JLabel("Original text:");
 
 		setBorder(BorderFactory.createTitledBorder("Date"));
 		add(dateLabel, "align label,split 3,sizegroup label");
 		add(dateField, "grow");
-		final JButton dateButton = new JButton(ICON_DATE);
 		add(dateButton, "wrap");
-		final JLabel dateOriginalTextLabel = new JLabel("Original text:");
 		add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
 		add(dateOriginalTextField, "grow,wrap");
 		add(dateCredibilityLabel, "align label,split 2,sizegroup label");
-		add(dateCredibilityComboBox, "grow");
+		add(dateCredibilityComboBox);
 	}
 
 	public final void loadData(final String date, final String calendarXRef, final String dateOriginalText, final int dateCredibilityIndex){
