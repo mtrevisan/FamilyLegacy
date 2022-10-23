@@ -152,7 +152,7 @@ public class GroupDialog extends JDialog{
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel recordPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
 	private final JLabel typeLabel = new JLabel("Type:");
@@ -160,7 +160,6 @@ public class GroupDialog extends JDialog{
 	private final JButton individualButton = new JButton("Individuals");
 	private final JButton familyButton = new JButton("Families");
 	private final EventsPanel eventsPanel = new EventsPanel(this::groupContainsEvent);
-
 	private final JButton recordNoteButton = new JButton(ICON_NOTE);
 	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
@@ -341,21 +340,18 @@ public class GroupDialog extends JDialog{
 		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
-		final JPanel recordPanel1 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel1.add(nameLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(nameField, "grow,wrap");
-		recordPanel1.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(typeField, "grow,wrap");
-		recordPanel1.add(individualButton, "split 2,center,wrap");
-		final JPanel recordPanel2 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel2.add(familyButton, "center,wrap");
-		recordPanel2.add(sourceButton, "center");
-		recordPanel2.add(recordNoteButton, "center,wrap");
-		recordPanel2.add(restrictionCheckBox, "wrap");
-		tabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
-		tabbedPane.add("reference", recordPanel1);
-		tabbedPane.add("other", recordPanel2);
-		GUIHelper.setEnabled(tabbedPane, false);
+		recordPanel.setBorder(BorderFactory.createTitledBorder("Record"));
+		recordPanel.add(nameLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(nameField, "grow,wrap");
+		recordPanel.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(typeField, "grow,wrap");
+		recordPanel.add(individualButton, "split 2,center");
+		recordPanel.add(familyButton, "center,wrap");
+		recordPanel.add(eventsPanel, "grow,wrap");
+		recordPanel.add(recordNoteButton, "split 2,center");
+		recordPanel.add(sourceButton, "center,wrap");
+		recordPanel.add(restrictionCheckBox, "wrap");
+		GUIHelper.setEnabled(recordPanel, false);
 
 //		final ActionListener helpAction = evt -> helpAction();
 		final ActionListener okAction = evt -> okAction();
@@ -369,7 +365,7 @@ public class GroupDialog extends JDialog{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow");
-		add(tabbedPane, "span 1 5,grow,wrap paragraph");
+		add(recordPanel, "span 1 5,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
@@ -502,7 +498,7 @@ public class GroupDialog extends JDialog{
 			.getValue();
 		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
-		GUIHelper.setEnabled(tabbedPane, true);
+		GUIHelper.setEnabled(recordPanel, true);
 		nameField.setText(title);
 		typeField.setText(author);
 		GUIHelper.addBorderIfDataPresent(individualButton, !publicationPlace.isEmpty());
@@ -553,7 +549,7 @@ public class GroupDialog extends JDialog{
 
 	private void deleteAction(){
 		GUIHelper.setEnabled(citationPanel, false);
-		GUIHelper.setEnabled(tabbedPane, false);
+		GUIHelper.setEnabled(recordPanel, false);
 		deleteButton.setEnabled(false);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
