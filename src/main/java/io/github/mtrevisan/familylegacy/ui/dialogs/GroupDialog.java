@@ -58,7 +58,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -95,24 +94,23 @@ public class GroupDialog extends JDialog{
 	private static final String REFERENCE = "@";
 	private static final String RECORD_TAG_REFERENCE = RECORD_TAG + REFERENCE;
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
-	private static final String RECORD_TITLE = "TITLE";
+	private static final String RECORD_NAME = "NAME";
 	private static final String RECORD_AUTHOR = "AUTHOR";
 	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
+	private static final String RECORD_EVENT = "EVENT";
+	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
 	private static final String RECORD_NOTE = "NOTE";
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
 	private static final String RECORD_FILE = "FILE";
 	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
-	private static final String RECORD_DOCUMENT_ARRAY = "DOCUMENT" + ARRAY;
 	private static final String RECORD_SOURCE = "SOURCE";
 	private static final String RECORD_SOURCE_ARRAY = RECORD_SOURCE + ARRAY;
-	private static final String RECORD_CROP = "CROP";
 	private static final String RECORD_PLACE = "PLACE";
 	private static final String RECORD_PUBLISHER = "PUBLISHER";
 	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
 	private static final String RECORD_MEDIA_TYPE = "MEDIA_TYPE";
 	private static final String RECORD_CALENDAR = "CALENDAR";
 	private static final String RECORD_ORIGINAL_TEXT = "ORIGINAL_TEXT";
-	private static final String RECORD_LOCATION = "LOCATION";
 	private static final String RECORD_ROLE = "ROLE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
@@ -131,10 +129,11 @@ public class GroupDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_TITLE = 1;
+	private static final int TABLE_INDEX_RECORD_NAME = 1;
 	private static final int TABLE_ROWS_SHOWN = 4;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
+	private static final ImageIcon ICON_EVENT = ResourceHelper.getImage("/images/event.png", 20, 20);
 	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 
@@ -159,7 +158,7 @@ public class GroupDialog extends JDialog{
 	private final JTextField typeField = new JTextField();
 	private final JButton individualButton = new JButton("Individuals");
 	private final JButton familyButton = new JButton("Families");
-	private final EventsPanel eventsPanel = new EventsPanel(this::groupContainsEvent);
+	private final JButton eventButton = new JButton(ICON_EVENT);
 	private final JButton recordNoteButton = new JButton(ICON_NOTE);
 	private final JButton sourceButton = new JButton(ICON_SOURCE);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
@@ -219,7 +218,7 @@ public class GroupDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
-		sorter.setComparator(TABLE_INDEX_RECORD_TITLE, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_NAME, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		//clicking on a line links it to current group citation
 		recordTable.getSelectionModel()
@@ -315,6 +314,20 @@ public class GroupDialog extends JDialog{
 		};
 		sourceButton.addActionListener(addRecordSourceAction);
 
+		eventButton.setToolTipText("Add record event");
+		final ActionListener addRecordEventAction = evt -> {
+			final Consumer<Object> onAccept = ignored -> {
+				final List<GedcomNode> events = store.traverseAsList(record, RECORD_EVENT_ARRAY);
+				GUIHelper.addBorderIfDataPresent(eventButton, !events.isEmpty());
+
+				//put focus on the ok button
+				okButton.grabFocus();
+			};
+
+			EventBusService.publish(new EditEvent(EditEvent.EditType.EVENT, record, onAccept));
+		};
+		eventButton.addActionListener(addRecordEventAction);
+
 		recordNoteButton.setToolTipText("Add record note");
 		final ActionListener addRecordNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
@@ -347,8 +360,8 @@ public class GroupDialog extends JDialog{
 		recordPanel.add(typeField, "grow,wrap");
 		recordPanel.add(individualButton, "split 2,center");
 		recordPanel.add(familyButton, "center,wrap");
-		recordPanel.add(eventsPanel, "grow,wrap");
-		recordPanel.add(recordNoteButton, "split 2,center");
+		recordPanel.add(eventButton, "split 3,center");
+		recordPanel.add(recordNoteButton, "center");
 		recordPanel.add(sourceButton, "center,wrap");
 		recordPanel.add(restrictionCheckBox, "wrap");
 		GUIHelper.setEnabled(recordPanel, false);
@@ -393,7 +406,7 @@ public class GroupDialog extends JDialog{
 				final GedcomNode node = records.get(row);
 
 				model.setValueAt(node.getID(), row, TABLE_INDEX_RECORD_ID);
-				model.setValueAt(store.traverse(node, RECORD_TITLE).getValue(), row, TABLE_INDEX_RECORD_TITLE);
+				model.setValueAt(store.traverse(node, RECORD_NAME).getValue(), row, TABLE_INDEX_RECORD_NAME);
 			}
 		}
 
@@ -411,18 +424,9 @@ public class GroupDialog extends JDialog{
 		return records;
 	}
 
-	private boolean groupContainsEvent(final String event){
-		boolean containsEvent = false;
-		final List<GedcomNode> events = store.traverseAsList(record, "EVENT[]");
-		for(int i = 0; !containsEvent && i < events.size(); i ++)
-			if(events.get(i).getValue().equalsIgnoreCase(event))
-				containsEvent = true;
-		return containsEvent;
-	}
-
 	private void filterTableBy(final GroupDialog panel){
-		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
+		final String name = filterField.getText();
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(name, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_NAME);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -477,7 +481,7 @@ public class GroupDialog extends JDialog{
 
 
 		//fill record panel:
-		final String title = store.traverse(selectedRecord, RECORD_TITLE)
+		final String name = store.traverse(selectedRecord, RECORD_NAME)
 			.getValue();
 		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
 			.getValue();
@@ -499,7 +503,7 @@ public class GroupDialog extends JDialog{
 		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
 		GUIHelper.setEnabled(recordPanel, true);
-		nameField.setText(title);
+		nameField.setText(name);
 		typeField.setText(author);
 		GUIHelper.addBorderIfDataPresent(individualButton, !publicationPlace.isEmpty());
 		GUIHelper.addBorderIfDataPresent(familyButton, !repositories.isEmpty());
@@ -612,7 +616,7 @@ public class GroupDialog extends JDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Title"}, 0);
+			super(new String[]{"ID", "Name"}, 0);
 		}
 
 		@Override
