@@ -278,7 +278,7 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. 
 
 
 CONTACT_STRUCTURE :=
-n CONTACT <CONTACT_ADDRESS>    {0:M}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
+n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
   +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
   +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
     +2 <<TRANSCRIBED_TEXT>>    {0:M}

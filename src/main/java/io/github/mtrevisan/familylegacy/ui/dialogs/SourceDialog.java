@@ -370,7 +370,7 @@ public class SourceDialog extends JDialog{
 
 	private void initLayout(){
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
-		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		citationPanel.setLayout(new MigLayout());
 		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(locationField, "grow,wrap");
 		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
@@ -381,7 +381,7 @@ public class SourceDialog extends JDialog{
 		citationPanel.add(credibilityComboBox);
 		GUIHelper.setEnabled(citationPanel, false);
 
-		final JPanel recordPanel1 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		final JPanel recordPanel1 = new JPanel(new MigLayout());
 		recordPanel1.add(titleLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(titleField, "grow,wrap");
 		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
@@ -390,7 +390,7 @@ public class SourceDialog extends JDialog{
 		recordPanel1.add(datePanel, "grow,wrap");
 		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
 		recordPanel1.add(publisherField, "grow");
-		final JPanel recordPanel2 = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		final JPanel recordPanel2 = new JPanel(new MigLayout());
 		recordPanel2.add(repositoryButton, "center,wrap");
 		recordPanel2.add(mediaTypeLabel, "align label,sizegroup label,split 2");
 		recordPanel2.add(mediaTypeField, "grow,wrap");
@@ -412,10 +412,10 @@ public class SourceDialog extends JDialog{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[50%][50%]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow");
-		add(tabbedPane, "span 1 5,grow,wrap paragraph");
+		add(tabbedPane, "span 1 4,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");

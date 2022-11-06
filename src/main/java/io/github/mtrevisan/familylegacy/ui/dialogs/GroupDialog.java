@@ -95,22 +95,16 @@ public class GroupDialog extends JDialog{
 	private static final String RECORD_TAG_REFERENCE = RECORD_TAG + REFERENCE;
 	private static final String RECORD_TAG_ARRAY = RECORD_TAG + ARRAY;
 	private static final String RECORD_NAME = "NAME";
-	private static final String RECORD_AUTHOR = "AUTHOR";
+	private static final String RECORD_TYPE = "TYPE";
 	private static final String RECORD_CREDIBILITY = "CREDIBILITY";
 	private static final String RECORD_EVENT = "EVENT";
 	private static final String RECORD_EVENT_ARRAY = RECORD_EVENT + ARRAY;
 	private static final String RECORD_NOTE = "NOTE";
 	private static final String RECORD_NOTE_ARRAY = RECORD_NOTE + ARRAY;
-	private static final String RECORD_FILE = "FILE";
-	private static final String RECORD_FILE_ARRAY = RECORD_FILE + ARRAY;
 	private static final String RECORD_SOURCE = "SOURCE";
 	private static final String RECORD_SOURCE_ARRAY = RECORD_SOURCE + ARRAY;
-	private static final String RECORD_PLACE = "PLACE";
-	private static final String RECORD_PUBLISHER = "PUBLISHER";
-	private static final String RECORD_REPOSITORY_ARRAY = "REPOSITORY" + ARRAY;
-	private static final String RECORD_MEDIA_TYPE = "MEDIA_TYPE";
-	private static final String RECORD_CALENDAR = "CALENDAR";
-	private static final String RECORD_ORIGINAL_TEXT = "ORIGINAL_TEXT";
+	private static final String RECORD_INDIVIDUALS_ARRAY = "INDIVIDUAL" + ARRAY;
+	private static final String RECORD_FAMILY_ARRAY = "FAMILY" + ARRAY;
 	private static final String RECORD_ROLE = "ROLE";
 	private static final String RECORD_CREATION = "CREATION";
 	private static final String RECORD_DATE = "DATE";
@@ -151,7 +145,7 @@ public class GroupDialog extends JDialog{
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private final JPanel recordPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+	private final JPanel recordPanel = new JPanel(new MigLayout());
 	private final JLabel nameLabel = new JLabel("Name:");
 	private final JTextField nameField = new JTextField();
 	private final JLabel typeLabel = new JLabel("Type:");
@@ -274,18 +268,17 @@ public class GroupDialog extends JDialog{
 		credibilityLabel.setLabelFor(credibilityComboBox);
 		credibilityComboBox.addActionListener(evt -> {
 			final GedcomNode selectedRecord = getSelectedRecord();
-			final GedcomNode selectedRecordPlace = store.traverse(selectedRecord, RECORD_PLACE);
 			final int selectedIndex = credibilityComboBox.getSelectedIndex();
 			if(selectedIndex > 0){
 				final String credibility = Integer.toString(selectedIndex - 1);
-				final GedcomNode credibilityNode = store.traverse(selectedRecordPlace, RECORD_CREDIBILITY);
+				final GedcomNode credibilityNode = store.traverse(selectedRecord, RECORD_CREDIBILITY);
 				if(credibilityNode.isEmpty())
-					selectedRecordPlace.addChildValue(RECORD_CREDIBILITY, credibility);
+					selectedRecord.addChildValue(RECORD_CREDIBILITY, credibility);
 				else
 					credibilityNode.withValue(credibility);
 			}
 			else
-				selectedRecordPlace.removeChildrenWithTag(RECORD_CREDIBILITY);
+				selectedRecord.removeChildrenWithTag(RECORD_CREDIBILITY);
 		});
 
 
@@ -345,7 +338,7 @@ public class GroupDialog extends JDialog{
 
 	private void initLayout(){
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
-		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		citationPanel.setLayout(new MigLayout());
 		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(roleField, "grow,wrap");
 		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
@@ -375,10 +368,10 @@ public class GroupDialog extends JDialog{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[50%][50%]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow");
-		add(recordPanel, "span 1 5,grow,wrap paragraph");
+		add(recordPanel, "span 1 4,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
@@ -438,7 +431,6 @@ public class GroupDialog extends JDialog{
 		sorter.setRowFilter(filter);
 	}
 
-	//TODO
 	private void selectAction(){
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final GedcomNode selectedRecord = getSelectedRecord();
@@ -475,7 +467,6 @@ public class GroupDialog extends JDialog{
 		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
 			.getValue();
 		roleField.setText(role);
-		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
 		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
@@ -483,32 +474,21 @@ public class GroupDialog extends JDialog{
 		//fill record panel:
 		final String name = store.traverse(selectedRecord, RECORD_NAME)
 			.getValue();
-		final String author = store.traverse(selectedRecord, RECORD_AUTHOR)
+		final String type = store.traverse(selectedRecord, RECORD_TYPE)
 			.getValue();
-		final String publicationFacts = store.traverse(selectedRecord, RECORD_PUBLISHER)
-			.getValue();
-		final GedcomNode dateNode = store.traverse(selectedRecord, RECORD_DATE);
-		final String date = dateNode.getValue();
-		final String calendarXRef = store.traverse(dateNode, RECORD_CALENDAR)
-			.getXRef();
-		final String dateOriginalText = store.traverse(dateNode, RECORD_ORIGINAL_TEXT)
-			.getValue();
-		final String dateCredibility = store.traverse(dateNode, RECORD_CREDIBILITY)
-			.getValue();
-		final int dateCredibilityIndex = (dateCredibility != null? Integer.parseInt(dateCredibility): 0);
-		final GedcomNode publicationPlace = store.traverse(selectedRecord, RECORD_PLACE);
-		final List<GedcomNode> repositories = store.traverseAsList(selectedRecord, RECORD_REPOSITORY_ARRAY);
-		final String mediaType = store.traverse(selectedRecord, RECORD_MEDIA_TYPE)
-			.getValue();
-		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
+		final List<GedcomNode> individuals = store.traverseAsList(selectedRecord, RECORD_INDIVIDUALS_ARRAY);
+		final List<GedcomNode> families = store.traverseAsList(selectedRecord, RECORD_FAMILY_ARRAY);
+		final List<GedcomNode> recordEvents = store.traverseAsList(selectedRecord, RECORD_EVENT_ARRAY);
 		final List<GedcomNode> recordNotes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
+		final List<GedcomNode> recordSources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
 		GUIHelper.setEnabled(recordPanel, true);
 		nameField.setText(name);
-		typeField.setText(author);
-		GUIHelper.addBorderIfDataPresent(individualButton, !publicationPlace.isEmpty());
-		GUIHelper.addBorderIfDataPresent(familyButton, !repositories.isEmpty());
-		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
+		typeField.setText(type);
+		GUIHelper.addBorderIfDataPresent(individualButton, !individuals.isEmpty());
+		GUIHelper.addBorderIfDataPresent(familyButton, !families.isEmpty());
+		GUIHelper.addBorderIfDataPresent(eventButton, !recordEvents.isEmpty());
 		GUIHelper.addBorderIfDataPresent(recordNoteButton, !recordNotes.isEmpty());
+		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
 
 
 		deleteButton.setEnabled(true);
@@ -735,7 +715,7 @@ public class GroupDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(945, 423);
+			dialog.setSize(905, 396);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

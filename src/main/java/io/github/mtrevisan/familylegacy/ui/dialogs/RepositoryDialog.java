@@ -352,7 +352,7 @@ public class RepositoryDialog extends JDialog{
 
 	private void initLayout(){
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
-		citationPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		citationPanel.setLayout(new MigLayout());
 		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(locationField, "grow,wrap");
 		citationPanel.add(citationNoteButton, "sizegroup button,center");
@@ -391,10 +391,10 @@ public class RepositoryDialog extends JDialog{
 		cancelButton.addActionListener(cancelAction);
 		getRootPane().registerKeyboardAction(cancelAction, ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[50%][50%]"));
 		add(filterLabel, "align label,split 2");
 		add(filterField, "grow");
-		add(tabbedPane, "span 1 5,grow,wrap paragraph");
+		add(tabbedPane, "span 1 4,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");

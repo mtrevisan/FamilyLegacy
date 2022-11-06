@@ -32,13 +32,12 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
+import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.citations.GroupCitationDialog;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.FamilyRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.GroupRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
@@ -138,19 +137,13 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	public void refresh(final EditEvent editCommand){
 		switch(editCommand.getType()){
 			case GROUP -> {
-				final GroupRecordDialog dialog = new GroupRecordDialog(store, this);
-				dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully());
+				final GroupDialog dialog = new GroupDialog(store, this);
+				final GedcomNode container = editCommand.getContainer();
+				dialog.setTitle(container.getID() != null? "Group for " + container.getID(): "Group");
+				if(!dialog.loadData(container, editCommand.getOnCloseGracefully()))
+					dialog.showNewRecord();
 
-				dialog.setSize(450, 500);
-				dialog.setLocationRelativeTo(this);
-				dialog.setVisible(true);
-			}
-			case GROUP_CITATION -> {
-				final GroupCitationDialog dialog = new GroupCitationDialog(store, this);
-				if(!dialog.loadData(editCommand.getContainer(), editCommand.getOnCloseGracefully()))
-					dialog.addAction();
-
-				dialog.setSize(450, 500);
+				dialog.setSize(905, 396);
 				dialog.setLocationRelativeTo(this);
 				dialog.setVisible(true);
 			}
