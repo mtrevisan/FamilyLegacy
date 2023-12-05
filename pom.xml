@@ -61,7 +61,7 @@
 
 		<!-- Logging -->
 		<slf4j.slf4j-api.version>1.7.30</slf4j.slf4j-api.version>
-		<logback.logback-classic.version>1.2.3</logback.logback-classic.version>
+		<logback.logback-classic.version>1.2.13</logback.logback-classic.version>
 
 		<!-- JUnit -->
 		<junit.junit-jupiter-engine.version>5.7.0</junit.junit-jupiter-engine.version>
