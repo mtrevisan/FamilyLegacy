@@ -1,0 +1,384 @@
+GEDCOM_VERSION=0.0.8
+GEDCOM_DATE=2022-10-19
+GEDCOM_SOURCE=localhost
+GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.8
+
+
+ROOT :=
+n <<HEADER>>    {1:1}
+n <<RECORD>>    {0:M}
+n <<END_OF_FILE>>    {1:1}
+
+
+HEADER :=
+n HEADER    {1:1}
+  +1 PROTOCOL <PROTOCOL_NAME>    {1:1}
+    +2 NAME <NAME_OF_PROTOCOL>    {1:1}	/* The name of the protocol. */
+    +2 VERSION <VERSION_NUMBER>    {1:1}	/* An identifier that represents the version of the protocol. It is defined and changed by the creators of the product. */
+  +1 SOURCE <APPROVED_SYSTEM_ID>    {1:1}	/* A system identification name which was obtained through the GEDCOM registration process. This name must be unique from any other product. Spaces within the name must be substituted with an underscore. */
+    +2 NAME <NAME_OF_PRODUCT>    {0:1}	/* The name of the software product that produced this transmission. */
+    +2 VERSION <VERSION_NUMBER>    {0:1}	/* An identifier that represents the version level assigned to the system. It is defined and changed by the creators of the product. */
+    +2 CORPORATE <NAME_OF_BUSINESS>    {0:1}	/* Name of the business, corporation, or person that produced or commissioned the product. */
+  +1 DATE <CREATION_DATE>    {1:1}	/* A date object giving the date this source was created. */
+  +1 COPYRIGHT <COPYRIGHT_SOURCE_DATA>    {0:1}	/* A copyright statement needed to protect the copyrights of the submitter of this GEDCOM file. */
+  +1 SUBMITTER    {1:1}	/* The submitter of this file. */
+    +2 NAME <SUBMITTER_NAME>    {1:1}	/* The name of the submitter formatted for display and address generation. */
+    +2 PLACE    {0:1}
+      +3 ADDRESS <ADDRESS_LINE>    {0:1}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
+        +4 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
+      +3 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
+        +4 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
+        +4 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+      +3 NOTE <PLACE_NOTE_STRUCTURE>   {0:M}	/* A list of notes. */
+    +2 <<CONTACT_STRUCTURE>>    {0:M}
+    +2 NOTE <SUBMITTER_NOTE_STRUCTURE>    {0:M}	/* A list of notes. */
+  +1 NOTE <CONTENT_DESCRIPTION>    {0:1}	/* A note that a user enters to describe the contents of the file in terms of "ancestors or descendants of" so that the person receiving the data knows what genealogical information the transmission contains. */
+
+
+RECORD :=
+[
+n <<INDIVIDUAL_RECORD>>    {1:1}
+|
+n <<FAMILY_RECORD>>    {1:1}
+|
+n <<GROUP_RECORD>>    {1:1}
+|
+n <<INDIVIDUAL_EVENT_RECORD>>    {1:1}
+|
+n <<FAMILY_EVENT_RECORD>>    {1:1}
+|
+n <<GROUP_EVENT_RECORD>>    {1:1}
+|
+n <<PLACE_RECORD>>    {1:1}
+|
+n <<NOTE_RECORD>>    {1:1}
+|
+n <<REPOSITORY_RECORD>>    {1:1}
+|
+n <<CULTURAL_NORM_RECORD>>    {1:1}
+|
+n <<SOURCE_RECORD>>    {1:1}
+|
+n <<CALENDAR_RECORD>>    {1:1}
+|
+n <<HISTORIC_EVENT_RECORD>>    {1:1}
+|
+n <<RESEARCH_STATUS_RECORD>>    {1:1}
+]
+
+
+END_OF_FILE :=
+n EOF    {1:1}
+
+
+INDIVIDUAL_RECORD :=	/* A representation of a historical individual, together with the facts and events believed to apply to that individual and the sources of those data. */
+n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}	/* An xref ID of an individual record. */
+  +1 <<PERSONAL_NAME_STRUCTURE>>    {0:M}	/* A list of PERSONAL_NAME_STRUCTURE objects giving the names associated with this individual. */
+  +1 SEX <SEX_VALUE>    {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE, UNKNOWN). */
+  +1 FAMILY_CHILD @<XREF:FAMILY>@    {0:M}	/* An xref ID of a family record this individual is a child of. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of the status of a child to family link. "challenged": Linking this child to this family is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this child belongs to this family, but the linkage has been disproven. "proven" = The linkage has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 FAMILY_PARTNER @<XREF:FAMILY>@    {0:M}	/* An xref ID of a family record this individual is a parent of. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of the status of a parent to family link. "challenged": Linking this parent to this family is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this parent belongs to this family, but the linkage has been disproven. "proven" = The linkage has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 ASSOCIATION @<XREF:ID>@    {0:M}	/* An xref ID of the individual/family this individual is associated with. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+    +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 ALIAS @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of individual aliases of this individual. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of the status of a parent to family link. "challenged": Linking this parent to this family is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this parent belongs to this family, but the linkage has been disproven. "proven" = The linkage has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record associated with the alias. */
+  +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of EVENT objects giving the events or attributes associated with this individual. */
+  +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION objects. */
+  +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
+    +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+
+PERSONAL_NAME_STRUCTURE :=
+n NAME    {1:1}
+  +1 TYPE <NAME_TYPE>    {0:1}	/* Indicates the name type, for example the name issued or assumed as an immigrant. For example: 'birth'/BIRTH_NAME (name given on birth certificate), 'aka'/ALSO_KNOWN_AS (an unofficial pseudonym, also known as, alias, etc), 'nickname'/NICKNAME (a familiar name), 'immigrant'/IMMIGRANT (name assumed at the time of immigration), 'legal' (legally changed name), 'married'/MARRIAGE_NAME (name assumed at marriage), 'adoption' (name assumed upon adoption), 'fostering' (name assumed upon fostering), 'religious'/RELIGIOUS_NAME, etc -- https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md. */
+  +1 TITLE <TITLE_PIECE>    {0:1}	/* Non-indexing name piece that appears before the given name parts, usually titles (eg. soldier, sir). */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 INDIVIDUAL_NAME <INDIVIDUAL_NAME_PIECE>    {0:1}	/* Given name(s). */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+    +2 SUFFIX <INDIVIDUAL_NAME_PIECE_SUFFIX>    {0:1}	/* Non-indexing name piece that appears after the given name parts, usually generational marks or ordinals (eg. junior, senior). */
+      +3 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 INDIVIDUAL_NICKNAME <NICKNAME_NAME_PIECE>    {0:1}	/* A descriptive or familiar name used in connection with one's proper name. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 FAMILY_NAME <FAMILY_NAME_PIECE>    {0:M}	/* Surname or family name. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 FAMILY_NICKNAME <FAMILY_NICKNAME_PIECE>    {0:1}	/* additional name of the family used to distinguish from other families with the same surname. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+
+
+TRANSCRIBED_TEXT :=
+n PHONETIC <PHONETIC_SYSTEM>    {0:1}	/* Usually IPA, but other systems can be used (ex. canIPA). */
+  +1 VALUE <PHONETIC_NAME_PIECE>    {1:1}	/* Phonetic/phonematic component. */
+n TRANSCRIPTION <TRANSCRIPTION_SYSTEM>    {0:1}	/* Indicates the system used in transcript the text to the romanized variation (eg. 'romaji', 'pinyin', 'wagegiles', ...). */
+  +1 TYPE <TRANSCRIPTION_TYPE>    {0:1}	/* Type of transcription, usually 'romanized' (but it can be 'anglicized', 'cyrillized', 'francized', 'gairaigized', 'latinized', etc). */
+  +1 VALUE <TRANSCRIPTION_NAME_PIECE>    {1:1}	/* Transcribed component. */
+
+
+FAMILY_RECORD :=
+n @<XREF:FAMILY>@ FAMILY    {1:1}	/* An xref ID of a family record. */
+  +1 PARTNER1 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of an individual record affected by this event. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 PARTNER2 @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of an individual record affected by this event. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}	/* A vector of xref IDs of children in this family. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of EVENT objects giving the events associated with this family. */
+  +1 <<GROUP_CITATION>>    {0:M}	/* A list of GROUP_CITATION objects. */
+  +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
+    +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+GROUP_CITATION :=
+n GROUP @<XREF:GROUP>@    {1:1}	/* An xref ID of a group record. */
+  +1 ROLE <ROLE_IN_GROUP>    {0:1}	/* Indicates what role this person played in the group that is being cited in this context. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+GROUP_RECORD :=	/* A group can be of genealogical, historical, or general interest. Examples of groups that might be useful in genealogy research are households and neighborhoods as found in a census. A biological or legal traditional family (father, mother, children) is documented in a Family record rather than a Group record. Family-like groups such as communes, orphanages, group homes, and so on are documented here. */
+n @<XREF:GROUP>@ GROUP    {1:1}	/* An xref ID of a group record. */
+  +1 NAME <GROUP_NAME>    {1:1}	/* The name of the group. */
+  +1 TYPE <TYPE_DESCRIPTION>    {0:1}	/* The type of the group. For example 'neighborhood', 'fraternity', 'ladies club', 'literary society', etc. */
+  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:M}	/* A list of xref IDs of individual records. */
+  +1 FAMILY @<XREF:FAMILY>@    {0:M}	/* A list of xref IDs of family records. */
+  +1 EVENT @<XREF:EVENT>@    {0:M}	/* A list of EVENT objects giving the events associated with this group. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+/* https://wiki.phpgedview.net/en/index.php/Facts_and_Events */
+/* http://www.gencom.org.nz/GEDCOM_tags.html */
+/* Life related types are: BIRTH (the exiting of the womb), MIDWIFE, ADOPTION (the creation of a parent-child relationship not associated with birth), CHARACTERISTIC (physical characteristics of a person, in the format `key1: value1, key2: value2`), ANECDOTE, DEATH (the end of life), CHILDREN_COUNT (the reported number of children known to belong to this family, regardless of whether the associated children are represented in the corresponding structure; this is not necessarily the count of children listed in a family structure), MARRIAGES_COUNT, CORONER_REPORT (the act of including an individual in a report by a coroner, a public official, on the investigation into the causes and circumstances of any death which occurred through violence or suddenly with marks of suspicion), BURIAL (the depositing of the body (in whole or in part) of the deceased), CREMATION (the burning of the body (in whole or in part) of the deceased). */
+/* Family related types are: ENGAGEMENT (the agreement of a couple to enter into a marriage in the future), MARRIAGE_BANN (a public notice of an intent to marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE_LICENCE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a legal arrangement to modify property rights upon marriage), MARRIAGE (the creation of a family unit (via a legal, religious, customary, common-law, or other form of union)), DIVORCE_FILED (the legal action expressing intent to divorce), DIVORCE_DECREE (an individual's participation in a decree of a court marking the legal separation of a man and woman, totally dissolving the marriage relation), DIVORCE (the ending of a marriage between still-living individuals), ANNULMENT (declaring a marriage to be invalid, as though it had never occurred). */
+/* Achievements related types are: RESIDENCE, EDUCATION (an educational degree or attainment), GRADUATION (the conclusion of formal education), OCCUPATION (what this person does as a livelihood), RETIREMENT (the cessation of gainful employment, typically because sufficient wealth has been accumulated to no longer necessitate such), MILITARY_AWARD (the act of receiving a medal or honor for military service in a particular campaign or for a particular service), MILITARY_DISCHARGE (a release from serving in the armed forces), MILITARY_INDUCTION (to take into the armed forces), MILITARY_MUSTER_ROLL (the act of including an individual in a list or account of the enlisted persons in a military or naval unit), MILITARY_SERVICE (the act of serving in the armed forces), MILITARY_RANK (the military rank acquired by an individual), MILITARY_RELEASE (the act of releasing from active to inactive military duty), MILITARY_RESIGNATION (the act of resigning from serving in the military; resigning a commission), MILITARY_RETIREMENT (to retire or withdraw from active duty in the armed forces), PRISON (the act of punishment imposed by law or otherwise in the course of administration of justice), PARDON (the act of exempting an individual from the punishment the law inflicts for a crime that person has committed), MEMBERSHIP (the act of becoming a member; joining a group), JURY_DUTY (the act of serving on a jury), MEDICAL, HOSPITALIZATION, ILLNESS (the act of losing good health; sickness; disease), HONOR (to be recognized for an achievement), HOLOCAUST_LIBERATION (the liberation of the Holocaust survivor from place of internment), HOLOCAUST_DEPORTATION (deportation of Holocaust victim/survivor from place of residence), HOLOCAUST_DEPARTURE (the departure of the Holocaust survivor from the place of internment), HOLOCAUST_ARRIVAL (the arrival of a Holocaust victim/survivor to the place of internment) EMANCIPATION (the emancipation of a minor child by its parents, which involves an entire surrender of the right to the care, custody, and earnings of such child as well as the renunciation of parental duties), BANKRUPTCY (the act of taking possession by the trustee of property of the bankrupt). */
+/* National/government related types are: CASTE (the social, religious, or racial caste tow which an individual belongs), NATIONALITY (a group to which a person is associated, typically by birth, like nation or tribe), EMIGRATION (the departure from the nation or land in which one has nativity or citizenship), IMMIGRATION (the entering of a nation or land in which one does not have nativity or citizenship), NATURALIZATION (the gaining of citizenship in a new nation or land), CENSUS (an inventory of persons or households in a population), SSN (Social Security Number). */
+/* Possessions and titles related types are: POSSESSION (a list of objects or land owned by the person), TITLE (a title given a person associated with a local or national notion of nobility or royalty), WILL (the creation of a legal document regarding the disposition of a person’s estate upon death), PROBATE (the judicial actions associated with the disposition of the estate of the deceased), DEED (the judicial actions associated with the transferring (conveyancing) the title to a property), GUARDIANSHIP (the act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of her/himself), ESCROW (an individual's participation in a deed or bond held by a third party until certain conditions are met by other parties), CHANCERY (the resolution through impartial justice between two parties whose claims conflict). */
+/* Religious and social related types are: RELIGION (the name of a religion with which the event was affiliated). */
+/* Custom type: <EVENT_TYPE> (a descriptive word or phrase used to further classify the parent event or the attribute tag). */
+
+
+INDIVIDUAL_EVENT_RECORD :=
+[
+n @<XREF:EVENT>@ EVENT    {1:1}
+  +1 TYPE BIRTH    {1:1}
+  +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
+  +1 FAMILY @<XREF:FAMILY>@    {0:1}	/* An xref ID of a family record affected by this event. */
+  +1 TWIN @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) that are twins. */
+|
+n @<XREF:EVENT>@ EVENT    {1:1}
+  +1 TYPE ADOPTION    {1:1}
+  +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
+  +1 FAMILY @<XREF:FAMILY>@    {1:1}	/* An xref ID of a family record affected by this event. */
+  +1 PEDIGREE_PARTNER1 <PEDIGREE_TYPE>    {0:1}	/* Contains a description of how this child is related to the superstructure’s pointed-to. Known values include 'biological' (indicates birth parents), 'adopted' (indicates adoptive parents), 'foster' (indicates child was included in a foster family), 'guardian'. */
+  +1 PEDIGREE_PARTNER2 <PEDIGREE_TYPE>    {0:1}	/* Contains a description of how this child is related to the superstructure’s pointed-to. Known values include 'biological' (indicates birth parents), 'adopted' (indicates adoptive parents), 'foster' (indicates child was included in a foster family), 'guardian'. */
+|
+n @<XREF:EVENT>@ EVENT    {1:1}
+  +1 TYPE [ CHARACTERISTIC | ANECDOTE | DEATH | CORONER_REPORT | CREMATION | BURIAL | RESIDENCE | EDUCATION | GRADUATION | OCCUPATION | RETIREMENT | MILITARY_INDUCTION | MILITARY_MUSTER_ROLL | MILITARY_SERVICE | MILITARY_RANK | MILITARY_AWARD | MILITARY_RELEASE | MILITARY_DISCHARGE | MILITARY_RESIGNATION | MILITARY_RETIREMENT | PRISON | PARDON | MEMBERSHIP | JURY_DUTY | MEDICAL | HOSPITALIZATION | ILLNESS | HONOR | HOLOCAUST_DEPORTATION | HOLOCAUST_ARRIVAL | HOLOCAUST_LIBERATION | HOLOCAUST_DEPARTURE | EMANCIPATION | BANKRUPTCY | CASTE | NATIONALITY | EMIGRATION | IMMIGRATION | NATURALIZATION | CENSUS | SSN | TITLE | POSSESSION | DEED | ESCROW | CHANCERY | WILL | PROBATE | GUARDIANSHIP | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <EVENT_TYPE> ]    {1:1}
+  +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
+]
+
+FAMILY_EVENT_RECORD :=
+n @<XREF:EVENT>@ EVENT    {1:1}
+  +1 TYPE [ ENGAGEMENT | MARRIAGE_BANN | MARRIAGE_CONTRACT | MARRIAGE_LICENCE | MARRIAGE_SETTLEMENT | MARRIAGE | CHILDREN_COUNT | ADOPTION | DIVORCE_FILED | DIVORCE_DECREE | DIVORCE | ANNULMENT | RESIDENCE | CENSUS | <EVENT_TYPE> ]    {1:1}
+  +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
+
+GROUP_EVENT_RECORD :=
+n @<XREF:EVENT>@ EVENT    {1:1}
+  +1 TYPE <EVENT_TYPE>    {1:1}
+  +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
+  +1 GROUP @<XREF:GROUP>@    {0:M}	/* An xref ID of a group record(s) affected by this event. */
+
+
+EVENT_STRUCTURE :=
+n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or family, or the value of an attribute. */
+n <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
+n PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location of the event. */
+  +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened in the given place. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+n AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
+n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
+  +1 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event cause has really caused the event. "challenged": Cause is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this cause caused the event, but the fact has been disproven. "proven" = The cause-effect has been proven. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+n CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+n NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+n <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
+n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+n RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+n <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+PLACE_RECORD :=
+n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
+  +1 NAME <PLACE_NAME>    {0:1}	/* The name of the place formatted for display and address generation. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 ADDRESS <ADDRESS_LINE>    {0:M}	/* The address line usually contain the addressee’s street and city information so that it forms an address that meets mailing requirements. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+    +2 HIERARCHY <ADDRESS_HIERARCHY>    {0:1}	/* Jurisdictional entities that are named in a sequence from the lowest to the highest jurisdiction. */
+    +2 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+    +2 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+    +2 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
+    +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
+    +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the event has really happened. "challenged": Event is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this event happened, but the fact has been disproven. "proven" = The linkage has been proven. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A SUBORDINATE object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+NOTE_RECORD :=
+n @<XREF:NOTE>@ NOTE <SUBMITTER_TEXT>    {1:1}	/* An xref ID of a note record. */ /* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
+  +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the not (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}	/* A translated version of the note. */
+    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the translated note (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+    +2 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+REPOSITORY_CITATION :=
+n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
+  +1 LOCATION <WHERE_WITHIN_REPOSITORY>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+
+
+REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
+n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}	/* An xref ID of a repository record. */
+  +1 NAME <NAME_OF_REPOSITORY>    {1:1}	/* The official name of the archive in which the stated source material is stored. */
+  +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual, if present in the tree and is the repository of a source. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location of the repository. */
+  +1 <<CONTACT_STRUCTURE>>    {0:M}
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+CONTACT_STRUCTURE :=
+n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address. */
+  +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
+  +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
+    +2 <<TRANSCRIBED_TEXT>>    {0:M}
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+CULTURAL_NORM_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
+n @<XREF:RULE>@ CULTURAL_NORM    {1:1}	/* An xref ID of a cultural norm record. */
+  +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location in which this rule applies. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+/* per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne). */
+/* uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
+/* donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
+
+
+SOURCE_CITATION :=
+n SOURCE @<XREF:SOURCE>@    {1:1}	/* An xref ID of a source record. */
+  +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+  +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER, HUSBAND/PARTNER1, MOTHER/PARTNER2, WIFE, SPOUSE/PARENT, POWER_OF_ATTORNEY, PRISONER, etc. */
+  +1 CROP <CROP_COORDINATES>    {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+/* https://www.evidenceexplained.com/content/sample-quickcheck-models. */
+SOURCE_RECORD :=
+n @<XREF:SOURCE>@ SOURCE    {1:1}	/* An xref ID of a source record. */
+  +1 TITLE <SOURCE_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
+  +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the place this source was created. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the source has really referenced the given place. "challenged": Place is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this source referenced that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a place, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date this source was created. */
+  +1 PUBLISHER <SOURCE_PUBLISHER>    {0:1}	/* Name of the publisher of the publication. */
+  +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
+  +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
+  +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to the GEDCOM context. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+DOCUMENT_STRUCTURE :=
+n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}	/* A complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data to be linked to the GEDCOM context. Remote reference would include a network address where the document data may be obtained. */
+  +1 SPHERICAL Y    {0:1}	/* Whether the file is spherical (panorama/360° or truly spherical U/V mapped). */
+  +1 MAPPING <MAPPING_TYPE>    {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
+  +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}	/* A description of the source. For example 'cover', 'back', etc. */
+  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+    +2 TYPE <EXTRACT_TYPE>    {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
+    +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 RESTRICTION <confidential>    {0:1}	/* Specifies how the superstructure should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+
+
+DATE_STRUCTURE :=
+n DATE <ENTRY_RECORDING_DATE>    {1:1}	/* A date object giving the date that this event happened (usually derived from the original input). */
+  +1 CALENDAR @<XREF:CALENDAR>@    {0:1}		/* An xref ID of a calendar type. */
+  +1 ORIGINAL_TEXT <ORIGINAL_INPUT_TEXT>    {0:1}	/* A date object giving the date that this event data was entered into the original source document. */
+  +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+
+
+CALENDAR_RECORD :=
+n @<XREF:CALENDAR>@ CALENDAR    {1:1}	/* An xref ID of a calendar record. */
+  +1 TYPE <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
+  +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}	/* An xref ID of a cultural norm record. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+HISTORIC_EVENT_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
+n @<XREF:HISTORIC>@ HISTORIC_EVENT    {1:1}	/* An xref ID of a cultural rule record. */
+  +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+  +1 PLACE @<XREF:PLACE>@    {0:1}	/* A PLACE object giving the location in which this rule applies. */
+    +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* A status code that allows passing on the users opinion of whether the rule has really happened in the given place. "challenged": Rule is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this rule happened in that place, but the fact has been disproven. "proven" = The linkage has been proven in that place. */
+    +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects. */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+RESEARCH_STATUS_RECORD :=
+n @<XREF:RESEARCH>@ RESEARCH_STATUS    {1:1}	/* An xref ID of a research status record. */
+  +1 STATUS <RESEARCH_STATUS>    {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
+  +1 ASSOCIATION @<XREF:ID>@    {0:M}	/* An xref ID of a record that lacks research. */
+  +1 DESCRIPTION <RULE_DESCRIPTION>    {0:1}	/* The description of the research status. */
+  +1 <<MODIFICATION_STRUCTURE>>	{1:1}	/* An object giving data about the creation/modification of this structure. */
+
+
+MODIFICATION_STRUCTURE :=
+n CREATION    {1:1}	/* An object giving the date of the creation of this structure. */
+  +1 DATE <CREATION_DATE>    {1:1}	/* A date object giving the date of the creation of this structure. */
+n UPDATE    {0:M}	/* An object giving the date of the changing of this structure. */
+  +1 DATE <UPDATE_DATE>    {1:1}	/* A date object giving the date of the changing of this structure. */
+  +1 NOTE @<XREF:NOTE>@    {0:1}	/* An xref ID of a note record. */

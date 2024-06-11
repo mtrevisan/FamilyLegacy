@@ -1,0 +1,532 @@
+GEDCOM_VERSION=0.0.9
+GEDCOM_DATE=2024-06-10
+GEDCOM_SOURCE=localhost
+GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.9
+/* https://treebard.com/gedcom.html#relationships */
+
+
+/* What the source says at the citation within the source. */
+ASSERTION_TABLE :=
+n <XREF:ASSERTION> ASSERTION  {1:1}
+  +1 CITATION <XREF:CITATION> {1:1}
+  +1 EVENT <XREF:EVENT>       {0:1}
+  +1 NAME <XREF:NAME>         {0:1}
+  +1 DATES <TEXT>             {0:1}
+  +1 PLACES <TEXT>            {0:1}
+  +1 PARTICULARS <TEXT>       {0:1}
+  +1 AGES <TEXT>              {0:1}
+  +1 NAMES <TEXT>             {0:1}
+  +1 ROLE <TEXT>              {0:1}	/* What role this person or family played in the event that is being cited in this context. Known values are: CHILD, FATHER,
+  +1 CERTAINTY <TEXT>         {0:1}	/* A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion. "challenged": Cause is suspect, but the linkage has been neither proven nor disproven. "disproven": There has been a claim by some that this cause caused the assertion, but the fact has been disproven. "proven" = The cause-effect has been proven. */
+  +1 CREDIBILITY <NUMBER>     {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 RESTRICTION <TEXT>       {0:1}	/* Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
+
+/* Where a source makes an assertion. */
+CITATION_TABLE :=
+n <XREF:CITATION> CITATION {1:1}
+  +1 SOURCE <XREF:SOURCE>  {1:1}
+  +1 CROP <TEXT>           {1:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+  +1 RESTRICTION <TEXT>    {0:1}	/* Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
+
+/* A transcription of a citation. */
+RECORD_TABLE :=
+n <XREF:RECORD> RECORD        {1:1}
+  +1 RECORD <TEXT>            {0:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](TABLE@<XREF:ID>)`. */
+  +1 LOCALE <TEXT>            {0:1}	/* The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
+  +1 TYPE <TEXT>              {0:1}	/* Can be "original", "translitteration", or "translation" (must be unique among a citation). */
+  +1 CITATION <XREF:CITATION> {1:1}
+
+SOURCE_TABLE :=
+n <XREF:SOURCE> SOURCE          {1:1}
+  +1 MEDIA_TYPE <TEXT>          {0:1}	/* The medium of the source, i.e. "book", "magazine", "newspaper", "map", "manuscript", "photo", "reel-to-reel tape", "VHS cassette", "conversation", "audio file", etc. */
+  +1 TITLE <TEXT>               {0:1}	/* The title of the source (must be unique among all the sources). */
+  +1 AUTHOR <TEXT>              {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
+  +1 PLACE <XREF:PLACE>         {0:1}	/* The place this source was created. */
+  +1 PLACE_CREDIBILITY <NUMBER> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 DATE <TEXT>                {1:1}	/* The date this source was created (usually derived from the original input). */
+  +1 DATE_ORIGINAL_TEXT <TEXT>  {0:1}	/* The date this source was created as written into the original source document. */
+  +1 DATE_CREDIBILITY <NUMBER>  {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 LOCATION <TEXT>            {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
+  +1 RESTRICTION <TEXT>         {0:1}	/* Known values and their meaning are: <null> (public), "confidential" (should not be distributed or exported). */
+
+
+
+
+CHANGE_DATE_TABLE :=
+n @<XREF:CHANGE_DATE>@ CHANGE_DATE      {1:1}
+  +1 CHANGE_DATES <TEXT>                {0:1}
+  +1 CHANGE_TIMES <TEXT>                {0:1}
+  +1 PERSON @<XREF:PERSON>@             {0:1}	/* unique */
+  +1 SOURCE @<XREF:SOURCE>@             {0:1}	/* unique */
+  +1 NOTE @<XREF:NOTE>@                 {0:1}	/* unique */
+  +1 MEDIA @<XREF:MEDIA>@               {0:1}	/* unique */
+  +1 REPOSITORY @<XREF:REPOSITORY>@     {0:1}	/* unique */
+  +1 COUPLE @<XREF:COUPLE>@             {0:1}	/* unique */
+  +1 CONTACT @<XREF:CONTACT>@           {0:1}	/* unique */
+  +1 PLACE @<XREF:PLACE>@               {0:1}	/* unique */
+  +1 PLACE_NAME @<XREF:PLACE_NAME>@     {0:1}	/* unique */
+  +1 NESTED_PLACE @<XREF:NESTED_PLACE>@ {0:1}	/* unique */
+  +1 NAME @<XREF:NAME>@                 {0:1}	/* unique */
+  +1 CITATION @<XREF:CITATION>@         {0:1}	/* unique */
+  +1 EVENT @<XREF:EVENT>@               {0:1}	/* unique */
+  +1 ASSERTION @<XREF:ASSERTION>@       {0:1}	/* unique */
+
+PERSON_TABLE :=
+n @<XREF:PERSON>@ PERSON {1:1}
+  +1 SEX <SEX_VALUE>     {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE). */
+  +1 GENDER <TEXT>       {0:1}
+
+NOTE_TABLE :=
+n @<XREF:NOTE>@ NOTE {1:1}
+  +1 NOTES <TEXT>    {1:1}
+  +1 PRIVATE <TEXT>  {1:1}	/* (one of TRUE, FALSE) */
+
+MEDIA_TABLE :=
+n @<XREF:MEDIA>@ MEDIA              {1:1}
+  +1 FILE_NAMES <TEXT>              {1:1}	/* unique */
+  +1 CAPTIONS <TEXT>                {0:1}
+  +1 TITLES <TEXT>                  {0:1}
+  +1 MEDIA_TYPE @<XREF:MEDIA_TYPE>@ {0:1}
+
+MEDIA_TYPE_TABLE :=
+n @<XREF:MEDIA_TYPE>@ MEDIA_TYPE {1:1}
+  +1 MEDIA_TYPES <TEXT>          {1:1}	/* unique */
+  +1 BUILT_IN <TEXT>             {0:1}	/* (one of TRUE, FALSE) */
+  +1 HIDDEN <TEXT>               {0:1}	/* (one of TRUE, FALSE) */
+
+REPOSITORY_TABLE :=
+n @<XREF:REPOSITORY>@ REPOSITORY {1:1}
+  +1 REPOSITORIES <TEXT>         {1:1}	/* unique */
+
+COUPLE_TABLE :=
+n @<XREF:COUPLE>@ COUPLE       {1:1}
+  +1 PERSON1 @<XREF:PERSON>@   {0:1}
+  +1 PERSON2 @<XREF:PERSON>@   {0:1}
+  +1 FAMILY_DESCRIPTION <TEXT> {0:1}
+
+CONTACT_TABLE :=
+n @<XREF:CONTACT>@ CONTACT {1:1}
+  +1 CONTACTS <TEXT>       {0:1}	/* unique */
+  +1 POSITION <TEXT>       {0:1}
+  +1 COMPANY <TEXT>        {0:1}
+  +1 EMAIL <TEXT>          {0:1}
+  +1 ADDRESS <TEXT>        {0:1}
+  +1 PHONE <TEXT>          {0:1}
+  +1 CELL <TEXT>           {0:1}
+  +1 WEBSITE <TEXT>        {0:1}
+  +1 BLOG <TEXT>           {0:1}
+  +1 FORUM <TEXT>          {0:1}
+  +1 PRIVATE <TEXT>        {1:1}	/* (one of TRUE, FALSE) */
+  +1 LANGUAGE <TEXT>       {0:1}
+  +1 SUBMITTED <TEXT>      {0:1}
+  +1 DETAIL <TEXT>         {0:1}
+
+PLACE_TABLE :=
+n @<XREF:PLACE>@ PLACE            {1:1}
+  +1 LATITUDE <TEXT>              {0:1}
+  +1 LONGITUDE <TEXT>             {0:1}
+  +1 CARTESIAN_COORDINATES <TEXT> {0:1}
+  +1 TOWNSHIP <TEXT>              {0:1}
+  +1 RANGE <TEXT>                 {0:1}
+  +1 SECTION <TEXT>               {0:1}
+  +1 LEGAL_SUBDIVISION <TEXT>     {0:1}
+  +1 HINT <TEXT>                  {0:1}
+  +1 CHECK_DUPLICATES <TEXT>      {1:1}	/* (one of TRUE, FALSE) */
+
+PLACE_NAME_TABLE :=
+n @<XREF:PLACE_NAME>@ PLACE_NAME {1:1}
+  +1 PLACE_NAMES <TEXT>          {1:1}
+  +1 PLACE @<XREF:PLACE>@        {0:1}
+  +1 MAIN_PLACE_NAME <TEXT>      {1:1}	/* (one of TRUE, FALSE) */
+
+NESTED_PLACE_TABLE :=
+n @<XREF:NESTED_PLACE>@ NESTED_PLACE {1:1}	/* unique nest0..8 */
+  +1 NEST0 @<XREF:PLACE>@            {0:1}
+  +1 NEST1 @<XREF:PLACE>@            {0:1}
+  +1 NEST2 @<XREF:PLACE>@            {0:1}
+  +1 NEST3 @<XREF:PLACE>@            {0:1}
+  +1 NEST4 @<XREF:PLACE>@            {0:1}
+  +1 NEST5 @<XREF:PLACE>@            {0:1}
+  +1 NEST6 @<XREF:PLACE>@            {0:1}
+  +1 NEST7 @<XREF:PLACE>@            {0:1}
+  +1 NEST8 @<XREF:PLACE>@            {0:1}
+
+NAME_TABLE :=
+n @<XREF:NAME>@ NAME              {1:1}
+  +1 PERSON @<XREF:PERSON>@       {1:1}
+  +1 NAMES <TEXT>                 {1:1}
+  +1 NAME_TYPE @<XREF:NAME_TYPE>@ {0:1}
+  +1 SORT_ORDER <TEXT>            {1:1}
+  +1 USED_BY <TEXT>               {0:1}
+
+EVENT_TABLE :=
+n @<XREF:EVENT>@ EVENT                  {1:1}
+  +1 DATE <TEXT>                        {0:1}
+  +1 PARTICULARS <TEXT>                 {0:1}
+  +1 AGE <TEXT>                         {0:1}
+  +1 PERSON @<XREF:PERSON>@             {0:1}
+  +1 EVENT_TYPE @<XREF:EVENT_TYPE>@     {1:1}
+  +1 DATE_SORTER <TEXT>                 {0:1}
+  +1 NESTED_PLACE @<XREF:NESTED_PLACE>@ {0:1}
+  +1 COUPLE @<XREF:COUPLE>@             {0:1}
+  +1 AGE1 <TEXT>                        {0:1}
+  +1 AGE2 <TEXT>                        {0:1}
+
+NAME_TYPE_TABLE :=
+n @<XREF:NAME_TYPE>@ NAME_TYPE {1:1}
+  +1 NAME_TYPES <TEXT>         {1:1}	/* unique */
+  +1 HIERARCHY <TEXT>          {0:1}	/* integer */
+  +1 BUILT_IN <TEXT>           {0:1}	/* (one of TRUE, FALSE) */
+  +1 HIDDEN <TEXT>             {0:1}	/* (one of TRUE, FALSE) */
+
+EVENT_TYPE_TABLE :=
+n @<XREF:EVENT_TYPE>@ EVENT_TYPE {1:1}
+  +1 EVENT_TYPES <TEXT>          {1:1}	/* unique */
+  +1 BUILT_IN <TEXT>             {0:1}	/* (one of TRUE, FALSE) */
+  +1 HIDDEN <TEXT>               {0:1}	/* (one of TRUE, FALSE) */
+  +1 COUPLE <TEXT>               {0:1}	/* (one of TRUE, FALSE) */
+  +1 AFTER_DEATH <TEXT>          {0:1}	/* (one of TRUE, FALSE) */
+  +1 MARITAL <TEXT>              {0:1}	/* (one of TRUE, FALSE) */
+
+
+
+CREATE TABLE "chart"
+  (
+     chart_id      INTEGER PRIMARY KEY,
+     chart_name    TEXT NOT NULL DEFAULT '',
+     chart_type_id INTEGER REFERENCES chart_type (chart_type_id)
+  );
+
+CREATE TABLE "chart_type"
+  (
+     chart_type_id INTEGER PRIMARY KEY,
+     chart_types   TEXT UNIQUE NOT NULL,
+     built_in      BOOLEAN DEFAULT 1,
+     hidden        BOOLEAN DEFAULT 0
+  );
+
+CREATE TABLE "colors_type"
+  (
+     colors_type_id INTEGER PRIMARY KEY,
+     color1         TEXT NOT NULL,
+     color2         TEXT NOT NULL,
+     color3         TEXT NOT NULL,
+     color4         TEXT NOT NULL,
+     built_in       BOOLEAN NOT NULL DEFAULT 1,
+     hidden         BOOLEAN NOT NULL DEFAULT 0
+  );
+
+CREATE TABLE "current"
+  (
+     current_id      INTEGER PRIMARY KEY,
+     nested_place_id INTEGER,
+     person_id       INTEGER,
+     citation_id     INTEGER REFERENCES citation (citation_id),
+     source_id       INTEGER REFERENCES source (source_id),
+     image_directory TEXT DEFAULT '',
+     FOREIGN KEY (person_id) REFERENCES person (person_id),
+     FOREIGN KEY (nested_place_id) REFERENCES nested_place (nested_place_id)
+  );
+
+CREATE TABLE "date_format"
+  (
+     date_format_id INTEGER PRIMARY KEY,
+     date_formats   TEXT NOT NULL DEFAULT 'alpha_dmy',
+     abt            TEXT NOT NULL DEFAULT 'abt',
+     est            TEXT NOT NULL DEFAULT 'est',
+     cal            TEXT NOT NULL DEFAULT 'calc',
+     bef_aft        TEXT NOT NULL DEFAULT 'bef/aft',
+     bc_ad          TEXT NOT NULL DEFAULT 'BCE/CE',
+     os_ns          TEXT NOT NULL DEFAULT 'OS/NS',
+     span           TEXT NOT NULL DEFAULT 'from_to',
+     range          TEXT NOT NULL DEFAULT 'btwn_&'
+  );
+
+CREATE TABLE demo
+  (
+     id   INTEGER PRIMARY KEY,
+     NAME VARCHAR(20),
+     hint TEXT
+  );
+
+CREATE TABLE "font_preference"
+  (
+     format_id           INTEGER PRIMARY KEY,
+     output_font         TEXT,
+     input_font          TEXT,
+     font_size           INTEGER,
+     default_output_font TEXT NOT NULL DEFAULT 'courier',
+     default_input_font  TEXT NOT NULL DEFAULT 'dejavu sans mono',
+     default_font_size   INTEGER NOT NULL DEFAULT 12
+  );
+
+CREATE TABLE handle
+  (
+     handle_id     INTEGER PRIMARY KEY,
+     contact_id    INTEGER NOT NULL,
+     repository_id INTEGER,
+     handles       TEXT NOT NULL,
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id)
+  );
+
+CREATE TABLE "kin_type"
+  (
+     kin_type_id      INTEGER PRIMARY KEY,
+     kin_types        TEXT UNIQUE NOT NULL,
+     abbrev_kin_types TEXT,
+     built_in         BOOLEAN NOT NULL DEFAULT 1,
+     hidden           BOOLEAN NOT NULL DEFAULT 0
+  );
+
+CREATE TABLE "locator"
+  (
+     locator_id      INTEGER PRIMARY KEY,
+     locators        TEXT,
+     locator_type_id INTEGER,
+     person_id       INTEGER REFERENCES person (person_id),
+     couple_id       INTEGER REFERENCES couple (couple_id),
+     media_id        INTEGER REFERENCES media (media_id),
+     note_id         INTEGER REFERENCES note (note_id),
+     repository_id   INTEGER REFERENCES repository (repository_id),
+     source_id       INTEGER REFERENCES source (source_id),
+     contact_id      INTEGER REFERENCES contact (contact_id),
+     citation_id     INTEGER REFERENCES citation (citation_id),
+     assertion_id    INTEGER REFERENCES assertion (assertion_id),
+     FOREIGN KEY (locator_type_id) REFERENCES locator_type (locator_type_id)
+  );
+
+CREATE TABLE "locator_type"
+  (
+     locator_type_id INTEGER PRIMARY KEY,
+     locator_types   TEXT NOT NULL,
+     built_in        BOOLEAN DEFAULT 1,
+     hidden          BOOLEAN DEFAULT 0,
+     abbreviation    TEXT DEFAULT NULL
+  );
+
+CREATE TABLE "media_links"
+  (
+     media_links_id  INTEGER PRIMARY KEY,
+     main_image      BOOLEAN DEFAULT 0,
+     person_id       INTEGER DEFAULT NULL,
+     couple_id       INTEGER DEFAULT NULL,
+     place_id        INTEGER DEFAULT NULL,
+     source_id       INTEGER DEFAULT NULL,
+     citation_id     INTEGER DEFAULT NULL,
+     event_id        INTEGER DEFAULT NULL,
+     assertion_id    INTEGER DEFAULT NULL,
+     name_id         INTEGER DEFAULT NULL,
+     chart_id        INTEGER DEFAULT NULL,
+     contact_id      INTEGER DEFAULT NULL,
+     repository_id   INTEGER DEFAULT NULL,
+     project_id      INTEGER DEFAULT NULL,
+     to_do_id        INTEGER DEFAULT NULL,
+     report_id       INTEGER DEFAULT NULL,
+     media_id        INTEGER DEFAULT NULL REFERENCES media (media_id),
+     nested_place_id INTEGER DEFAULT NULL REFERENCES nested_place (
+     nested_place_id),
+     FOREIGN KEY (person_id) REFERENCES person (person_id),
+     FOREIGN KEY (couple_id) REFERENCES couple (couple_id),
+     FOREIGN KEY (place_id) REFERENCES place (place_id),
+     FOREIGN KEY (source_id) REFERENCES source (source_id),
+     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
+     FOREIGN KEY (event_id) REFERENCES event (event_id),
+     FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id),
+     FOREIGN KEY (name_id) REFERENCES NAME (name_id),
+     FOREIGN KEY (chart_id) REFERENCES chart (chart_id),
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+     FOREIGN KEY (project_id) REFERENCES project (project_id),
+     FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
+     FOREIGN KEY (report_id) REFERENCES report (report_id)
+  );
+
+CREATE TABLE "notes_links"
+  (
+     notes_links_id   INTEGER PRIMARY KEY,
+     note_id          INTEGER,
+     note_topic       TEXT DEFAULT NULL COLLATE nocase,
+     note_topic_order INTEGER,
+     person_id        INTEGER,
+     place_id         INTEGER,
+     place_name_id    INTEGER,
+     name_id          INTEGER,
+     source_id        INTEGER,
+     citation_id      INTEGER,
+     event_id         INTEGER,
+     assertion_id     INTEGER,
+     project_id       INTEGER,
+     to_do_id         INTEGER,
+     contact_id       INTEGER,
+     repository_id    INTEGER,
+     report_id        INTEGER,
+     chart_id         INTEGER,
+     media_id         INTEGER,
+     couple_id        INTEGER REFERENCES couple (couple_id),
+     FOREIGN KEY (person_id) REFERENCES person (person_id),
+     FOREIGN KEY (place_id) REFERENCES place (place_id),
+     FOREIGN KEY (place_name_id) REFERENCES place_name (place_name_id),
+     FOREIGN KEY (name_id) REFERENCES NAME (name_id),
+     FOREIGN KEY (source_id) REFERENCES source (source_id),
+     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
+     FOREIGN KEY (event_id) REFERENCES event (event_id),
+     FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id),
+     FOREIGN KEY (project_id) REFERENCES project (project_id),
+     FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
+     FOREIGN KEY (media_id) REFERENCES media (media_id),
+     FOREIGN KEY (note_id) REFERENCES note (note_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+     FOREIGN KEY (report_id) REFERENCES report (report_id),
+     FOREIGN KEY (chart_id) REFERENCES chart (chart_id),
+     UNIQUE (note_id, note_topic, person_id),
+     UNIQUE (note_id, note_topic, place_id),
+     UNIQUE (note_id, note_topic, place_name_id),
+     UNIQUE (note_id, note_topic, name_id),
+     UNIQUE (note_id, note_topic, source_id),
+     UNIQUE (note_id, note_topic, citation_id),
+     UNIQUE (note_id, note_topic, event_id),
+     UNIQUE (note_id, note_topic, assertion_id),
+     UNIQUE (note_id, note_topic, project_id),
+     UNIQUE (note_id, note_topic, to_do_id),
+     UNIQUE (note_id, note_topic, contact_id),
+     UNIQUE (note_id, note_topic, repository_id),
+     UNIQUE (note_id, note_topic, report_id),
+     UNIQUE (note_id, note_topic, chart_id),
+     UNIQUE (note_id, note_topic, media_id),
+     UNIQUE (note_id, note_topic, couple_id)
+  );
+
+CREATE TABLE places_types
+  (
+     places_types_id     INTEGER PRIMARY KEY,
+     place_id            INTEGER,
+     place_name_id       INTEGER,
+     date_of_creation    TEXT NOT NULL DEFAULT '',
+     date_of_dissolution TEXT NOT NULL DEFAULT '',
+     place_type_id       INTEGER,
+     FOREIGN KEY (place_id) REFERENCES place (place_id),
+     FOREIGN KEY (place_name_id) REFERENCES place_name (place_name_id),
+     FOREIGN KEY (place_type_id) REFERENCES place_type (place_type_id)
+  );
+
+CREATE TABLE "place_type"
+  (
+     place_type_id INTEGER PRIMARY KEY,
+     place_types   TEXT UNIQUE NOT NULL,
+     description   TEXT DEFAULT '',
+     built_in      BOOLEAN DEFAULT 1,
+     hidden        BOOLEAN DEFAULT 0
+  );
+
+CREATE TABLE preferences
+  (
+     preferences_id     INTEGER PRIMARY KEY,
+     use_default_images BOOLEAN
+  );
+
+CREATE TABLE project
+  (
+     project_id      INTEGER PRIMARY KEY,
+     projects        TEXT NOT NULL DEFAULT '',
+     project_summary TEXT
+  );
+
+CREATE TABLE "report"
+  (
+     report_id      INTEGER PRIMARY KEY,
+     report_name    TEXT NOT NULL DEFAULT '',
+     report_type_id INTEGER REFERENCES report_type (report_type_id)
+  );
+
+CREATE TABLE "report_type"
+  (
+     report_type_id INTEGER PRIMARY KEY,
+     report_types   TEXT UNIQUE NOT NULL,
+     built_in       BOOLEAN DEFAULT 1,
+     hidden         BOOLEAN DEFAULT 0
+  );
+
+CREATE TABLE repositories_links
+  (
+     repositories_links_id INTEGER PRIMARY KEY,
+     repository_type_id    INTEGER DEFAULT NULL,
+     source_id             INTEGER DEFAULT NULL,
+     citation_id           INTEGER DEFAULT NULL,
+     repository_id         INTEGER DEFAULT NULL,
+     locator_id            INTEGER DEFAULT NULL,
+     media_id              INTEGER DEFAULT NULL,
+     contact_id            INTEGER DEFAULT NULL,
+     FOREIGN KEY (repository_type_id) REFERENCES repository_type (
+     repository_type_id),
+     FOREIGN KEY (source_id) REFERENCES source (source_id),
+     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+     FOREIGN KEY (locator_id) REFERENCES locator (locator_id),
+     FOREIGN KEY (media_id) REFERENCES media (media_id),
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
+  );
+
+CREATE TABLE "repository_type"
+  (
+     repository_type_id INTEGER PRIMARY KEY,
+     repository_types   TEXT NOT NULL,
+     built_in           BOOLEAN DEFAULT 1,
+     hidden             BOOLEAN DEFAULT 0
+  );
+
+CREATE TABLE roles_links
+  (
+     roles_links_id INTEGER PRIMARY KEY,
+     role_type_id   INTEGER NOT NULL,
+     person_id      INTEGER NOT NULL,
+     event_id       INTEGER NOT NULL,
+     FOREIGN KEY (role_type_id) REFERENCES role_type (role_type_id),
+     FOREIGN KEY (person_id) REFERENCES person (person_id),
+     FOREIGN KEY (event_id) REFERENCES event (event_id)
+  );
+
+CREATE TABLE "role_type"
+  (
+     role_type_id INTEGER PRIMARY KEY,
+     role_types   TEXT UNIQUE NOT NULL,
+     built_in     BOOLEAN NOT NULL DEFAULT 0,
+     hidden       BOOLEAN NOT NULL DEFAULT 0
+  );
+
+CREATE TABLE to_do
+  (
+     to_do_id INTEGER PRIMARY KEY,
+     to_dos   TEXT NOT NULL DEFAULT '',
+     priority INTEGER
+  );
+
+CREATE TABLE transcription
+  (
+     transcription_id      INTEGER PRIMARY KEY,
+     name_id               INTEGER,
+     nested_place_id       INTEGER,
+     transcription_type_id INTEGER,
+     transcriptions        TEXT NOT NULL,
+     FOREIGN KEY (name_id) REFERENCES NAME (name_id),
+     FOREIGN KEY (nested_place_id) REFERENCES nested_place (nested_place_id),
+     FOREIGN KEY (transcription_type_id) REFERENCES transcription_type (
+     transcription_type_id)
+  );
+
+CREATE TABLE "transcription_type"
+  (
+     transcription_type_id INTEGER PRIMARY KEY,
+     transcription_types   TEXT UNIQUE NOT NULL,
+     romanized             BOOLEAN DEFAULT 0,
+     phonetic              BOOLEAN DEFAULT 0,
+     built_in              BOOLEAN NOT NULL DEFAULT 1,
+     hidden                BOOLEAN NOT NULL DEFAULT 0
+  );
+
+SOURCE_TYPE_TABLE :=
+n @<XREF:SOURCE_TYPE>@ SOURCE_TYPE {1:1}
+  +1 SOURCE_TYPES <TEXT>           {1:1}
+  +1 BUILT_IN <TEXT>               {0:1}	/* (one of TRUE, FALSE) */
+  +1 HIDDEN <TEXT>                 {0:1}	/* (one of TRUE, FALSE) */
