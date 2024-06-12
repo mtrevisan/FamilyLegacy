@@ -16,6 +16,24 @@ CREATE TABLE "assertion"
      FOREIGN KEY (name_id) REFERENCES NAME (name_id)
   );
 
+CREATE TABLE "citation"
+  (
+     citation_id INTEGER PRIMARY KEY,
+     source_id   INTEGER NOT NULL,
+     citations   TEXT,
+     FOREIGN KEY (source_id) REFERENCES source (source_id)
+  );
+
+CREATE TABLE "source"
+  (
+     source_id      INTEGER PRIMARY KEY,
+     sources        TEXT UNIQUE,
+     source_type_id INTEGER REFERENCES source_type (source_type_id),
+     author         TEXT NOT NULL DEFAULT '',
+     description    TEXT NOT NULL DEFAULT ''
+  );
+
+
 CREATE TABLE "change_date"
   (
      change_date_id  INTEGER PRIMARY KEY,
@@ -64,14 +82,6 @@ CREATE TABLE "chart_type"
      chart_types   TEXT UNIQUE NOT NULL,
      built_in      BOOLEAN DEFAULT 1,
      hidden        BOOLEAN DEFAULT 0
-  );
-
-CREATE TABLE "citation"
-  (
-     citation_id INTEGER PRIMARY KEY,
-     source_id   INTEGER NOT NULL,
-     citations   TEXT,
-     FOREIGN KEY (source_id) REFERENCES source (source_id)
   );
 
 CREATE TABLE "colors_type"
@@ -523,15 +533,6 @@ CREATE TABLE "role_type"
      role_types   TEXT UNIQUE NOT NULL,
      built_in     BOOLEAN NOT NULL DEFAULT 0,
      hidden       BOOLEAN NOT NULL DEFAULT 0
-  );
-
-CREATE TABLE "source"
-  (
-     source_id      INTEGER PRIMARY KEY,
-     sources        TEXT UNIQUE,
-     source_type_id INTEGER REFERENCES source_type (source_type_id),
-     author         TEXT NOT NULL DEFAULT '',
-     description    TEXT NOT NULL DEFAULT ''
   );
 
 CREATE TABLE "source_type"
