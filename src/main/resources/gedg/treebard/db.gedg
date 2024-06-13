@@ -2,7 +2,7 @@ GEDCOM_VERSION=0.0.9
 GEDCOM_DATE=2024-06-10
 GEDCOM_SOURCE=localhost
 GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.9
-/* https://treebard.com/gedcom.html#relationships 25 */
+/* https://treebard.com/gedcom.html#relationships 39 */
 /* https://treebard.proboards.com/search/results?captcha_id=captcha_search&what_all=database+table+description&who_only_made_by=0&display_as=0&search=Search */
 
 
