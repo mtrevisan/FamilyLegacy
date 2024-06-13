@@ -1,45 +1,151 @@
+/* ASSERTION_TABLE */
 CREATE TABLE "assertion"
   (
      assertion_id INTEGER PRIMARY KEY,
-     citation_id  INTEGER NOT NULL,
-     event_id     INTEGER,
-     name_id      INTEGER,
-     dates        TEXT NOT NULL DEFAULT '',
-     places       TEXT NOT NULL DEFAULT '',
-     particulars  TEXT NOT NULL DEFAULT '',
-     ages         TEXT NOT NULL DEFAULT '',
-     names        TEXT NOT NULL DEFAULT '',
-     roles        TEXT NOT NULL DEFAULT '',
-     surety       FLOAT DEFAULT NULL,
+     citation_id  INTEGER NOT NULL,	/* ASSERTION_TABLE.CITATION */
+     event_id     INTEGER,	/* ASSERTION_TABLE.EVENT */
+     name_id      INTEGER,	/* ASSERTION_TABLE.NAME */
+     dates        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.DATES */
+     places       TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.PLACES */
+     particulars  TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.PARTICULARS */
+     ages         TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.AGES */
+     names        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.NAMES */
+     roles        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.ROLE */
+     surety       FLOAT DEFAULT NULL,	/* ASSERTION_TABLE.CERTAINTY/CREDIBILITY */
      FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
      FOREIGN KEY (event_id) REFERENCES event (event_id),
      FOREIGN KEY (name_id) REFERENCES NAME (name_id)
   );
 
+/* CITATION_TABLE */
 CREATE TABLE "citation"
   (
      citation_id INTEGER PRIMARY KEY,
-     source_id   INTEGER NOT NULL,
-     citations   TEXT,
+     source_id   INTEGER NOT NULL,	/* CITATION_TABLE.SOURCE */
+     citations   TEXT,	/* CITATION_TABLE.LOCATION */
      FOREIGN KEY (source_id) REFERENCES source (source_id)
   );
 
+/* SOURCE_TABLE */
 CREATE TABLE "source"
   (
      source_id      INTEGER PRIMARY KEY,
-     sources        TEXT UNIQUE,
-     source_type_id INTEGER REFERENCES source_type (source_type_id),
-     author         TEXT NOT NULL DEFAULT '',
-     description    TEXT NOT NULL DEFAULT ''
+     sources        TEXT UNIQUE,	/* SOURCE_TABLE.ID */
+     source_type_id INTEGER REFERENCES source_type (source_type_id),	/* SOURCE_TABLE.SOURCE_TYPE */
+     author         TEXT NOT NULL DEFAULT '',	/* SOURCE_TABLE.AUTHOR */
+     description    TEXT NOT NULL DEFAULT ''	/* RECORD_TABLE */
+  );
+
+/* SOURCE_TABLE */
+CREATE TABLE "source_type"	/* SOURCE_TABLE.SOURCE_TYPE */
+  (
+     source_type_id INTEGER PRIMARY KEY,
+     source_types   TEXT NOT NULL,
+     built_in       BOOLEAN DEFAULT 1,
+     hidden         BOOLEAN DEFAULT 0
+  );
+
+/* REPOSITORY_TABLE */
+CREATE TABLE "repository"
+  (
+     repository_id INTEGER PRIMARY KEY,
+     repositories  TEXT UNIQUE NOT NULL	/* REPOSITORY_TABLE.ID */
+  );
+
+/* REPOSITORY_TABLE */
+CREATE TABLE "repository_type"	/* REPOSITORY_TABLE.TYPE */
+  (
+     repository_type_id INTEGER PRIMARY KEY,
+     repository_types   TEXT NOT NULL,
+     built_in           BOOLEAN DEFAULT 1,
+     hidden             BOOLEAN DEFAULT 0
+  );
+
+/* DONE */
+CREATE TABLE repositories_links
+  (
+     repositories_links_id INTEGER PRIMARY KEY,
+     repository_type_id    INTEGER DEFAULT NULL,
+     source_id             INTEGER DEFAULT NULL,
+     citation_id           INTEGER DEFAULT NULL,
+     repository_id         INTEGER DEFAULT NULL,
+     locator_id            INTEGER DEFAULT NULL,
+     media_id              INTEGER DEFAULT NULL,
+     contact_id            INTEGER DEFAULT NULL,
+     FOREIGN KEY (repository_type_id) REFERENCES repository_type (
+     repository_type_id),
+     FOREIGN KEY (source_id) REFERENCES source (source_id),
+     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+     FOREIGN KEY (locator_id) REFERENCES locator (locator_id),
+     FOREIGN KEY (media_id) REFERENCES media (media_id),
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
+  );
+
+/* MEDIA_TABLE */
+CREATE TABLE "media"
+  (
+     media_id      INTEGER PRIMARY KEY,
+     file_names    TEXT UNIQUE NOT NULL,	/* MEDIA_TABLE.ID */
+     captions      TEXT,	/* RECORD_TABLE */
+     titles        TEXT DEFAULT '',	/* MEDIA_TABLE.TITLE */
+     media_type_id INTEGER DEFAULT 1 REFERENCES media_type (media_type_id)	/* MEDIA_TABLE.TYPE */
+  );
+
+/* MEDIA_JUNCTION_TABLE */
+CREATE TABLE "media_links"
+  (
+     media_links_id  INTEGER PRIMARY KEY,
+     main_image      BOOLEAN DEFAULT 0,	/* MEDIA_JUNCTION_TABLE.MAIN_IMAGE */
+     person_id       INTEGER DEFAULT NULL,	/* MEDIA_JUNCTION_TABLE.REFERENCE */
+     couple_id       INTEGER DEFAULT NULL,
+     place_id        INTEGER DEFAULT NULL,
+     source_id       INTEGER DEFAULT NULL,
+     citation_id     INTEGER DEFAULT NULL,
+     event_id        INTEGER DEFAULT NULL,
+     assertion_id    INTEGER DEFAULT NULL,
+     name_id         INTEGER DEFAULT NULL,
+     chart_id        INTEGER DEFAULT NULL,
+     contact_id      INTEGER DEFAULT NULL,
+     repository_id   INTEGER DEFAULT NULL,
+     project_id      INTEGER DEFAULT NULL,
+     to_do_id        INTEGER DEFAULT NULL,
+     report_id       INTEGER DEFAULT NULL,
+     media_id        INTEGER DEFAULT NULL REFERENCES media (media_id),
+     nested_place_id INTEGER DEFAULT NULL REFERENCES nested_place (nested_place_id),
+     FOREIGN KEY (person_id) REFERENCES person (person_id),
+     FOREIGN KEY (couple_id) REFERENCES couple (couple_id),
+     FOREIGN KEY (place_id) REFERENCES place (place_id),
+     FOREIGN KEY (source_id) REFERENCES source (source_id),
+     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
+     FOREIGN KEY (event_id) REFERENCES event (event_id),
+     FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id),
+     FOREIGN KEY (name_id) REFERENCES NAME (name_id),
+     FOREIGN KEY (chart_id) REFERENCES chart (chart_id),
+     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
+     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
+     FOREIGN KEY (project_id) REFERENCES project (project_id),
+     FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
+     FOREIGN KEY (report_id) REFERENCES report (report_id)
+  );
+
+/* MEDIA_JUNCTION_TABLE */
+CREATE TABLE "media_type"	/* MEDIA_TABLE.TYPE */
+  (
+     media_type_id INTEGER PRIMARY KEY,
+     media_types   TEXT UNIQUE NOT NULL,
+     built_in      BOOLEAN DEFAULT 1,
+     hidden        BOOLEAN DEFAULT 0
   );
 
 
-CREATE TABLE "change_date"
+/* MODIFICATION_TABLE */
+CREATE TABLE "change_date"	/* MODIFICATION_TABLE */
   (
      change_date_id  INTEGER PRIMARY KEY,
-     change_dates    TEXT NOT NULL DEFAULT '00 month, 0000',
-     change_times    TEXT DEFAULT '',
-     person_id       INTEGER UNIQUE DEFAULT NULL,
+     change_dates    TEXT NOT NULL DEFAULT '00 month, 0000',	/* MODIFICATION_TABLE.UPDATE_DATE */
+     change_times    TEXT DEFAULT '',	/* MODIFICATION_TABLE.UPDATE_DATE */
+     person_id       INTEGER UNIQUE DEFAULT NULL,	/* CHANGE_DATE_TABLE.REFERENCE */
      source_id       INTEGER UNIQUE DEFAULT NULL,
      note_id         INTEGER UNIQUE DEFAULT NULL,
      media_id        INTEGER UNIQUE DEFAULT NULL,
@@ -69,6 +175,7 @@ CREATE TABLE "change_date"
      FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id)
   );
 
+/* DONE */
 CREATE TABLE "chart"
   (
      chart_id      INTEGER PRIMARY KEY,
@@ -76,6 +183,7 @@ CREATE TABLE "chart"
      chart_type_id INTEGER REFERENCES chart_type (chart_type_id)
   );
 
+/* DONE */
 CREATE TABLE "chart_type"
   (
      chart_type_id INTEGER PRIMARY KEY,
@@ -84,6 +192,7 @@ CREATE TABLE "chart_type"
      hidden        BOOLEAN DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE "colors_type"
   (
      colors_type_id INTEGER PRIMARY KEY,
@@ -95,35 +204,38 @@ CREATE TABLE "colors_type"
      hidden         BOOLEAN NOT NULL DEFAULT 0
   );
 
+/* CONTACT_TABLE */
 CREATE TABLE "contact"
   (
      contact_id INTEGER PRIMARY KEY,
-     contacts   TEXT UNIQUE,
-     position   TEXT NOT NULL DEFAULT '',
-     company    TEXT NOT NULL DEFAULT '',
-     email      TEXT NOT NULL DEFAULT '',
-     address    TEXT NOT NULL DEFAULT '',
-     phone      TEXT NOT NULL DEFAULT '',
-     cell       TEXT NOT NULL DEFAULT '',
-     website    TEXT NOT NULL DEFAULT '',
-     blog       TEXT NOT NULL DEFAULT '',
-     forum      TEXT NOT NULL DEFAULT '',
-     private    BOOLEAN NOT NULL DEFAULT 1,
-     language   TEXT NOT NULL DEFAULT '',
-     submitted  TEXT NOT NULL DEFAULT '',
-     detail     TEXT NOT NULL DEFAULT ''
+     contacts   TEXT UNIQUE,	/* CONTACT_TABLE.CALLER_ID */
+     position   TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.ADDRESS */
+     company    TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     email      TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     address    TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     phone      TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     cell       TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     website    TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     blog       TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     forum      TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     private    BOOLEAN NOT NULL DEFAULT 1,	/* CONTACT_TABLE.RESTRICTION */
+     language   TEXT NOT NULL DEFAULT '',	/* CONTACT_TABLE.NOTE */
+     submitted  TEXT NOT NULL DEFAULT '',	/* ? */
+     detail     TEXT NOT NULL DEFAULT ''	/* CONTACT_TABLE.NOTE */
   );
 
+/* COUPLE_TABLE */
 CREATE TABLE "couple"
   (
      couple_id          INTEGER PRIMARY KEY,
-     person_id1         INTEGER DEFAULT NULL,
-     person_id2         INTEGER DEFAULT NULL,
-     family_description TEXT NOT NULL DEFAULT '',
+     person_id1         INTEGER DEFAULT NULL,	/* COUPLE_TABLE.PERSON1 */
+     person_id2         INTEGER DEFAULT NULL,	/* COUPLE_TABLE.PERSON2 */
+     family_description TEXT NOT NULL DEFAULT '',	/* COUPLE_TABLE.DESCRIPTION */
      FOREIGN KEY (person_id1) REFERENCES person (person_id),
      FOREIGN KEY (person_id2) REFERENCES person (person_id)
   );
 
+/* DONE */
 CREATE TABLE "current"
   (
      current_id      INTEGER PRIMARY KEY,
@@ -136,6 +248,7 @@ CREATE TABLE "current"
      FOREIGN KEY (nested_place_id) REFERENCES nested_place (nested_place_id)
   );
 
+/* DONE */
 CREATE TABLE "date_format"
   (
      date_format_id INTEGER PRIMARY KEY,
@@ -150,6 +263,7 @@ CREATE TABLE "date_format"
      range          TEXT NOT NULL DEFAULT 'btwn_&'
   );
 
+/* DONE */
 CREATE TABLE demo
   (
      id   INTEGER PRIMARY KEY,
@@ -175,6 +289,7 @@ CREATE TABLE "event"
      FOREIGN KEY (event_type_id) REFERENCES event_type (event_type_id)
   );
 
+/* DONE */
 CREATE TABLE "event_type"
   (
      event_type_id INTEGER PRIMARY KEY,
@@ -186,6 +301,7 @@ CREATE TABLE "event_type"
      marital       BOOLEAN NOT NULL DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE "font_preference"
   (
      format_id           INTEGER PRIMARY KEY,
@@ -197,16 +313,18 @@ CREATE TABLE "font_preference"
      default_font_size   INTEGER NOT NULL DEFAULT 12
   );
 
+/* CONTACT_JUNCTION */
 CREATE TABLE handle
   (
      handle_id     INTEGER PRIMARY KEY,
      contact_id    INTEGER NOT NULL,
      repository_id INTEGER,
-     handles       TEXT NOT NULL,
+     handles       TEXT NOT NULL,	/* ? */
      FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
      FOREIGN KEY (repository_id) REFERENCES repository (repository_id)
   );
 
+/* DONE */
 CREATE TABLE "kin_type"
   (
      kin_type_id      INTEGER PRIMARY KEY,
@@ -216,6 +334,7 @@ CREATE TABLE "kin_type"
      hidden           BOOLEAN NOT NULL DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE "locator"
   (
      locator_id      INTEGER PRIMARY KEY,
@@ -233,6 +352,7 @@ CREATE TABLE "locator"
      FOREIGN KEY (locator_type_id) REFERENCES locator_type (locator_type_id)
   );
 
+/* DONE */
 CREATE TABLE "locator_type"
   (
      locator_type_id INTEGER PRIMARY KEY,
@@ -242,81 +362,30 @@ CREATE TABLE "locator_type"
      abbreviation    TEXT DEFAULT NULL
   );
 
-CREATE TABLE "media"
-  (
-     media_id      INTEGER PRIMARY KEY,
-     file_names    TEXT UNIQUE NOT NULL,
-     captions      TEXT,
-     titles        TEXT DEFAULT '',
-     media_type_id INTEGER DEFAULT 1 REFERENCES media_type (media_type_id)
-  );
-
-CREATE TABLE "media_links"
-  (
-     media_links_id  INTEGER PRIMARY KEY,
-     main_image      BOOLEAN DEFAULT 0,
-     person_id       INTEGER DEFAULT NULL,
-     couple_id       INTEGER DEFAULT NULL,
-     place_id        INTEGER DEFAULT NULL,
-     source_id       INTEGER DEFAULT NULL,
-     citation_id     INTEGER DEFAULT NULL,
-     event_id        INTEGER DEFAULT NULL,
-     assertion_id    INTEGER DEFAULT NULL,
-     name_id         INTEGER DEFAULT NULL,
-     chart_id        INTEGER DEFAULT NULL,
-     contact_id      INTEGER DEFAULT NULL,
-     repository_id   INTEGER DEFAULT NULL,
-     project_id      INTEGER DEFAULT NULL,
-     to_do_id        INTEGER DEFAULT NULL,
-     report_id       INTEGER DEFAULT NULL,
-     media_id        INTEGER DEFAULT NULL REFERENCES media (media_id),
-     nested_place_id INTEGER DEFAULT NULL REFERENCES nested_place (
-     nested_place_id),
-     FOREIGN KEY (person_id) REFERENCES person (person_id),
-     FOREIGN KEY (couple_id) REFERENCES couple (couple_id),
-     FOREIGN KEY (place_id) REFERENCES place (place_id),
-     FOREIGN KEY (source_id) REFERENCES source (source_id),
-     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
-     FOREIGN KEY (event_id) REFERENCES event (event_id),
-     FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id),
-     FOREIGN KEY (name_id) REFERENCES NAME (name_id),
-     FOREIGN KEY (chart_id) REFERENCES chart (chart_id),
-     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
-     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
-     FOREIGN KEY (project_id) REFERENCES project (project_id),
-     FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
-     FOREIGN KEY (report_id) REFERENCES report (report_id)
-  );
-
-CREATE TABLE "media_type"
-  (
-     media_type_id INTEGER PRIMARY KEY,
-     media_types   TEXT UNIQUE NOT NULL,
-     built_in      BOOLEAN DEFAULT 1,
-     hidden        BOOLEAN DEFAULT 0
-  );
-
+/* NAME_TABLE */
 CREATE TABLE "name"
   (
      name_id      INTEGER PRIMARY KEY,
-     person_id    INTEGER NOT NULL,
-     names        TEXT NOT NULL,
-     name_type_id INTEGER NOT NULL DEFAULT 18,
-     sort_order   TEXT NOT NULL,
-     used_by      TEXT NOT NULL DEFAULT '',
+     person_id    INTEGER NOT NULL,	/* NAME_TABLE.PERSON */
+     names        TEXT NOT NULL,	/* NAME_TABLE.NAME */
+     name_type_id INTEGER NOT NULL DEFAULT 18,	/* NAME_TABLE.TYPE */
+     sort_order   TEXT NOT NULL,	/* NAME_TABLE.SORT_ORDER */
+     used_by      TEXT NOT NULL DEFAULT '',	/* ? */
      FOREIGN KEY (person_id) REFERENCES person (person_id),
      FOREIGN KEY (name_type_id) REFERENCES name_type (name_type_id)
   );
 
+/* NAME_TABLE.TYPE */
 CREATE TABLE "name_type"
   (
      name_type_id INTEGER PRIMARY KEY,
      name_types   TEXT UNIQUE NOT NULL,
-     hierarchy    INTEGER DEFAULT 999,
+     hierarchy    INTEGER DEFAULT 999,	/* ? */
      built_in     BOOLEAN DEFAULT 1,
      hidden       BOOLEAN DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE "nested_place"
   (
      nested_place_id INTEGER PRIMARY KEY,
@@ -341,19 +410,21 @@ CREATE TABLE "nested_place"
      UNIQUE (nest0, nest1, nest2, nest3, nest4, nest5, nest6, nest7, nest8)
   );
 
-CREATE TABLE "note"
+/* NOTE_TABLE */
+CREATE TABLE "note"	/* NOTE_TABLE */
   (
      note_id INTEGER PRIMARY KEY,
-     notes   TEXT NOT NULL DEFAULT '',
-     private BOOLEAN NOT NULL DEFAULT 0
+     notes   TEXT NOT NULL DEFAULT '',	/* RECORD_TABLE */
+     private BOOLEAN NOT NULL DEFAULT 0	/* NOTE_TABLE.RESTRICTION */
   );
 
+/* NOTE_JUNCTION_TABLE */
 CREATE TABLE "notes_links"
   (
      notes_links_id   INTEGER PRIMARY KEY,
      note_id          INTEGER,
-     note_topic       TEXT DEFAULT NULL COLLATE nocase,
-     note_topic_order INTEGER,
+     note_topic       TEXT DEFAULT NULL COLLATE nocase,	/* ? */
+     note_topic_order INTEGER,	/* ? */
      person_id        INTEGER,
      place_id         INTEGER,
      place_name_id    INTEGER,
@@ -404,26 +475,29 @@ CREATE TABLE "notes_links"
      UNIQUE (note_id, note_topic, couple_id)
   );
 
+/* PERSON_TABLE */
 CREATE TABLE person
   (
      person_id INTEGER PRIMARY KEY,
-     gender    TEXT NOT NULL DEFAULT 'unknown'
+     gender    TEXT NOT NULL DEFAULT 'unknown'	/* PERSON_TABLE.GENDER */
   );
 
+/* PLACE_TABLE */
 CREATE TABLE "place"
   (
      place_id              INTEGER PRIMARY KEY,
-     latitude              TEXT DEFAULT '',
-     longitude             TEXT DEFAULT '',
-     cartesian_coordinates TEXT DEFAULT '',
-     township              TEXT DEFAULT '',
-     range                 TEXT DEFAULT '',
-     section               TEXT DEFAULT '',
-     legal_subdivision     TEXT DEFAULT '',
-     hint                  TEXT DEFAULT NULL,
-     check_dupes           BOOLEAN DEFAULT 1
+     latitude              TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     longitude             TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     cartesian_coordinates TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     township              TEXT DEFAULT '',	/* ? */
+     range                 TEXT DEFAULT '',	/* ? */
+     section               TEXT DEFAULT '',	/* ? */
+     legal_subdivision     TEXT DEFAULT '',	/* ? */
+     hint                  TEXT DEFAULT NULL,	/* ? */
+     check_dupes           BOOLEAN DEFAULT 1	/* ? */
   );
 
+/* DONE */
 CREATE TABLE places_types
   (
      places_types_id     INTEGER PRIMARY KEY,
@@ -437,6 +511,7 @@ CREATE TABLE places_types
      FOREIGN KEY (place_type_id) REFERENCES place_type (place_type_id)
   );
 
+/* DONE */
 CREATE TABLE place_name
   (
      place_name_id   INTEGER PRIMARY KEY,
@@ -445,6 +520,7 @@ CREATE TABLE place_name
      main_place_name BOOLEAN NOT NULL DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE "place_type"
   (
      place_type_id INTEGER PRIMARY KEY,
@@ -454,12 +530,14 @@ CREATE TABLE "place_type"
      hidden        BOOLEAN DEFAULT 0
   );
 
+/* DONE */
 CREATE TABLE preferences
   (
      preferences_id     INTEGER PRIMARY KEY,
      use_default_images BOOLEAN
   );
 
+/* DONE */
 CREATE TABLE project
   (
      project_id      INTEGER PRIMARY KEY,
@@ -467,6 +545,7 @@ CREATE TABLE project
      project_summary TEXT
   );
 
+/* DONE */
 CREATE TABLE "report"
   (
      report_id      INTEGER PRIMARY KEY,
@@ -474,6 +553,7 @@ CREATE TABLE "report"
      report_type_id INTEGER REFERENCES report_type (report_type_id)
   );
 
+/* DONE */
 CREATE TABLE "report_type"
   (
      report_type_id INTEGER PRIMARY KEY,
@@ -482,40 +562,7 @@ CREATE TABLE "report_type"
      hidden         BOOLEAN DEFAULT 0
   );
 
-CREATE TABLE repositories_links
-  (
-     repositories_links_id INTEGER PRIMARY KEY,
-     repository_type_id    INTEGER DEFAULT NULL,
-     source_id             INTEGER DEFAULT NULL,
-     citation_id           INTEGER DEFAULT NULL,
-     repository_id         INTEGER DEFAULT NULL,
-     locator_id            INTEGER DEFAULT NULL,
-     media_id              INTEGER DEFAULT NULL,
-     contact_id            INTEGER DEFAULT NULL,
-     FOREIGN KEY (repository_type_id) REFERENCES repository_type (
-     repository_type_id),
-     FOREIGN KEY (source_id) REFERENCES source (source_id),
-     FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
-     FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
-     FOREIGN KEY (locator_id) REFERENCES locator (locator_id),
-     FOREIGN KEY (media_id) REFERENCES media (media_id),
-     FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
-  );
-
-CREATE TABLE "repository"
-  (
-     repository_id INTEGER PRIMARY KEY,
-     repositories  TEXT UNIQUE NOT NULL
-  );
-
-CREATE TABLE "repository_type"
-  (
-     repository_type_id INTEGER PRIMARY KEY,
-     repository_types   TEXT NOT NULL,
-     built_in           BOOLEAN DEFAULT 1,
-     hidden             BOOLEAN DEFAULT 0
-  );
-
+/* DONE */
 CREATE TABLE roles_links
   (
      roles_links_id INTEGER PRIMARY KEY,
@@ -527,6 +574,7 @@ CREATE TABLE roles_links
      FOREIGN KEY (event_id) REFERENCES event (event_id)
   );
 
+/* DONE */
 CREATE TABLE "role_type"
   (
      role_type_id INTEGER PRIMARY KEY,
@@ -535,21 +583,15 @@ CREATE TABLE "role_type"
      hidden       BOOLEAN NOT NULL DEFAULT 0
   );
 
-CREATE TABLE "source_type"
-  (
-     source_type_id INTEGER PRIMARY KEY,
-     source_types   TEXT NOT NULL,
-     built_in       BOOLEAN DEFAULT 1,
-     hidden         BOOLEAN DEFAULT 0
-  );
-
+/* RESEARCH_STATUS_TABLE */
 CREATE TABLE to_do
   (
      to_do_id INTEGER PRIMARY KEY,
      to_dos   TEXT NOT NULL DEFAULT '',
-     priority INTEGER
+     priority INTEGER	/* RESEARCH_STATUS_TABLE.PRIORITY */
   );
 
+/* NOTE_TABLE */
 CREATE TABLE transcription
   (
      transcription_id      INTEGER PRIMARY KEY,
@@ -563,6 +605,7 @@ CREATE TABLE transcription
      transcription_type_id)
   );
 
+/* NOTE_TABLE */
 CREATE TABLE "transcription_type"
   (
      transcription_type_id INTEGER PRIMARY KEY,
