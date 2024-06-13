@@ -351,3 +351,374 @@ n @<XREF:HISTORIC>@ HISTORIC_EVENT    {1:1}	/* An xref ID of a cultural rule rec
   +1 PLACE_CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* A quantitative evaluation of the credibility of a rule, based upon its supporting evidence. Some systems use this feature to rank multiple conflicting opinions for display of most likely information first. It is not intended to eliminate the receiver's need to evaluate the evidence for themselves. 0 = unreliable/estimated data 1 = Questionable reliability of evidence 2 = Secondary evidence, data officially recorded sometime after event 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
 */
+
+
+/*
+
+-- ************************************** ASSERTION
+
+CREATE TABLE ASSERTION
+(
+ "ID"           numeric NOT NULL,
+ CITATION_ID    numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ TYPE           text NOT NULL,
+ ROLE           text NULL,
+ CERTAINTY      text NULL,
+ CREDIBILITY    numeric NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON ASSERTION
+(
+ CITATION_ID
+);
+
+-- ************************************** CITATION
+
+CREATE TABLE CITATION
+(
+ "ID"         numeric NOT NULL,
+ SOURCE_ID    numeric NOT NULL,
+ LOCATION     text NULL,
+ EXTRACT_ID   numeric NULL,
+ EXTRACT_TYPE text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON CITATION
+(
+ SOURCE_ID
+);
+
+CREATE INDEX FK_2 ON CITATION
+(
+ EXTRACT_ID
+);
+
+-- ************************************** NOTE
+
+CREATE TABLE NOTE
+(
+ "ID"               numeric NOT NULL,
+ RECORD             text NOT NULL,
+ LOCALE             text NULL,
+ TYPE               text NULL,
+ TRANSCRIPTION      text NOT NULL,
+ TRANSCRIPTION_TYPE text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+-- ************************************** NOTE_JUNCTION
+
+CREATE TABLE NOTE_JUNCTION
+(
+ "ID"           numeric NOT NULL,
+ NOTE_ID        numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON NOTE_JUNCTION
+(
+ NOTE_ID
+);
+
+-- ************************************** "SOURCE"
+
+CREATE TABLE "SOURCE"
+(
+ "ID"                 numeric NOT NULL,
+ IDENTIFIER           text NOT NULL,
+ SOURCE_TYPE          text NULL,
+ AUTHOR               text NULL,
+ PLACE_ID             numeric NULL,
+ PLACE_CREDIBILITY    numeric NULL,
+ "DATE"               text NULL,
+ CALENDAR_ID          numeric NOT NULL,
+ DATE_ORIGINAL        text NULL,
+ CALENDAR_ORIGINAL_ID numeric NOT NULL,
+ DATE_CREDIBILITY     numeric NULL,
+ REPOSITORY_ID        numeric NOT NULL,
+ LOCATION             text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON "SOURCE"
+(
+ PLACE_ID
+);
+
+CREATE INDEX FK_2 ON "SOURCE"
+(
+ REPOSITORY_ID
+);
+
+CREATE INDEX FK_3 ON "SOURCE"
+(
+ CALENDAR_ID
+);
+
+CREATE INDEX FK_4 ON "SOURCE"
+(
+ CALENDAR_ORIGINAL_ID
+);
+
+-- ************************************** PLACE
+
+CREATE TABLE PLACE
+(
+ "ID"                 numeric NOT NULL,
+ IDENTIFIER           text NOT NULL,
+ NAME                 text NULL,
+ TYPE                 text NULL,
+ "POSITION"           text NULL,
+ POSITION_CREDIBILITY numeric NULL,
+ PRIMARY_PLACE_ID     numeric NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON PLACE
+(
+ PRIMARY_PLACE_ID
+);
+
+-- ************************************** REPOSITORY
+
+CREATE TABLE REPOSITORY
+(
+ "ID"       numeric NOT NULL,
+ IDENTIFIER text NOT NULL,
+ TYPE       text NULL,
+ PERSON_ID  numeric NOT NULL,
+ PLACE_ID   numeric NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON REPOSITORY
+(
+ PLACE_ID
+);
+
+CREATE INDEX FK_2 ON REPOSITORY
+(
+ PERSON_ID
+);
+
+-- ************************************** MEDIA
+
+CREATE TABLE MEDIA
+(
+ "ID"            numeric NOT NULL,
+ IDENTIFIER      text NOT NULL,
+ TITLE           text NULL,
+ TYPE            text NULL,
+ IMAGE_SPHERICAL boolean NULL,
+ IMAGE_MAPPING   text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+
+-- ************************************** MEDIA_JUNCTION
+
+CREATE TABLE MEDIA_JUNCTION
+(
+ "ID"           numeric NOT NULL,
+ MEDIA_ID       numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON MEDIA_JUNCTION
+(
+ MEDIA_ID
+);
+
+-- ************************************** MODIFICATION
+
+CREATE TABLE MODIFICATION
+(
+ "ID"           numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ CREATION_DATE  date NOT NULL,
+ UPDATE_DATE    date NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+
+-- ************************************** RESEARCH_STATUS
+
+CREATE TABLE RESEARCH_STATUS
+(
+ "ID"           numeric NOT NULL,
+ STATUS         text NOT NULL,
+ PRIORITY       numeric NOT NULL,
+ DESCRIPTION    text NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+-- ************************************** CONTACT
+
+CREATE TABLE CONTACT
+(
+ "ID"        numeric NOT NULL,
+ CALLER_ID   text NOT NULL,
+ ADDRESS     text NOT NULL,
+ RESTRICTION text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+
+-- ************************************** CONTACT_JUNCTION
+
+CREATE TABLE CONTACT_JUNCTION
+(
+ "ID"           numeric NOT NULL,
+ CONTACT_ID     numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON CONTACT_JUNCTION
+(
+ CONTACT_ID
+);
+
+-- ************************************** PERSON
+
+CREATE TABLE PERSON
+(
+ "ID"     numeric NOT NULL,
+ SEX      text NULL,
+ GENDER   text NULL,
+ IMAGE_ID numeric NULL,
+ CROP     text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON PERSON
+(
+ IMAGE_ID
+);
+
+-- ************************************** NAME
+
+CREATE TABLE NAME
+(
+ "ID"       numeric NOT NULL,
+ PERSON_ID  numeric NOT NULL,
+ NAME_ID    numeric NOT NULL,
+ TYPE       text NOT NULL,
+ SORT_ORDER text NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON NAME
+(
+ PERSON_ID
+);
+
+CREATE INDEX FK_2 ON NAME
+(
+ NAME_ID
+);
+
+-- ************************************** COUPLE
+
+CREATE TABLE COUPLE
+(
+ "ID"       numeric NOT NULL,
+ PERSON1_ID numeric NULL,
+ PERSON2_ID numeric NULL,
+ IMAGE_ID   numeric NULL,
+ CROP       text NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON COUPLE
+(
+ PERSON1_ID
+);
+
+CREATE INDEX FK_2 ON COUPLE
+(
+ PERSON2_ID
+);
+
+CREATE INDEX FK_3 ON COUPLE
+(
+ IMAGE_ID
+);
+
+-- ************************************** RESTRICTION_JUNCTION
+
+CREATE TABLE RESTRICTION_JUNCTION
+(
+ "ID"           numeric NOT NULL,
+ REFERENCE_TYPE text NOT NULL,
+ REFERENCE_ID   numeric NOT NULL,
+ RESTRICTION    text NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+-- ************************************** CULTURAL_NORM
+
+CREATE TABLE CULTURAL_NORM
+(
+ "ID"              numeric NOT NULL,
+ DESCRIPTION       text NOT NULL,
+ PLACE_ID          numeric NULL,
+ PLACE_CERTAINTY   text NULL,
+ PLACE_CREDIBILITY numeric NULL,
+ "DATE"            text NULL,
+ CALENDAR_ID       numeric NULL,
+ DATE_CERTAINTY    text NULL,
+ DATE_CREDIBILITY  numeric NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON CULTURAL_NORM
+(
+ PLACE_ID
+);
+
+CREATE INDEX FK_2 ON CULTURAL_NORM
+(
+ CALENDAR_ID
+);
+
+-- ************************************** CULTURAL_NORM_JUNCTION
+
+CREATE TABLE CULTURAL_NORM_JUNCTION
+(
+ "ID"             numeric NOT NULL,
+ CULTURAL_NORM_ID numeric NOT NULL,
+ REFERENCE_TYPE   text NOT NULL,
+ REFERENCE_ID     numeric NOT NULL,
+ CERTAINTY        text NULL,
+ CREDIBILITY      numeric NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+CREATE INDEX FK_1 ON CULTURAL_NORM_JUNCTION
+(
+ CULTURAL_NORM_ID
+);
+
+-- ************************************** CALENDAR
+
+CREATE TABLE CALENDAR
+(
+ "ID" numeric NOT NULL,
+ TYPE text NOT NULL,
+ CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
+);
+
+*/
