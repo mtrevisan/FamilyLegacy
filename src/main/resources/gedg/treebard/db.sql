@@ -3,15 +3,15 @@ CREATE TABLE "assertion"
   (
      assertion_id INTEGER PRIMARY KEY,
      citation_id  INTEGER NOT NULL,	/* ASSERTION_TABLE.CITATION */
-     event_id     INTEGER,	/* ASSERTION_TABLE.EVENT */
-     name_id      INTEGER,	/* ASSERTION_TABLE.NAME */
-     dates        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.DATES */
-     places       TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.PLACES */
-     particulars  TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.PARTICULARS */
-     ages         TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.AGES */
-     names        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.NAMES */
+     event_id     INTEGER,	/* ASSERTION_TABLE.REFERENCE_TYPE, ASSERTION_TABLE.REFERENCE_ID */
+     name_id      INTEGER,
+     dates        TEXT NOT NULL DEFAULT '',	/* Q. non credo sia necessario scrivere una descrizione dell'asserzione, in quanto viene collegata a un'altra tabella (es. evento) */
+     places       TEXT NOT NULL DEFAULT '',
+     particulars  TEXT NOT NULL DEFAULT '',
+     ages         TEXT NOT NULL DEFAULT '',
+     names        TEXT NOT NULL DEFAULT '',
      roles        TEXT NOT NULL DEFAULT '',	/* ASSERTION_TABLE.ROLE */
-     surety       FLOAT DEFAULT NULL,	/* ASSERTION_TABLE.CERTAINTY/CREDIBILITY */
+     surety       FLOAT DEFAULT NULL,	/* ASSERTION_TABLE.CERTAINTY/CREDIBILITY Q. vale la pena dividere in certainty e credibility?*/
      FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
      FOREIGN KEY (event_id) REFERENCES event (event_id),
      FOREIGN KEY (name_id) REFERENCES NAME (name_id)
@@ -22,7 +22,7 @@ CREATE TABLE "citation"
   (
      citation_id INTEGER PRIMARY KEY,
      source_id   INTEGER NOT NULL,	/* CITATION_TABLE.SOURCE */
-     citations   TEXT,	/* CITATION_TABLE.LOCATION */
+     citations   TEXT,	/* CITATION_TABLE.EXTRACT */
      FOREIGN KEY (source_id) REFERENCES source (source_id)
   );
 
@@ -30,7 +30,7 @@ CREATE TABLE "citation"
 CREATE TABLE "source"
   (
      source_id      INTEGER PRIMARY KEY,
-     sources        TEXT UNIQUE,	/* SOURCE_TABLE.ID */
+     sources        TEXT UNIQUE,	/* SOURCE_TABLE.IDENTIFIER */
      source_type_id INTEGER REFERENCES source_type (source_type_id),	/* SOURCE_TABLE.SOURCE_TYPE */
      author         TEXT NOT NULL DEFAULT '',	/* SOURCE_TABLE.AUTHOR */
      description    TEXT NOT NULL DEFAULT ''	/* RECORD_TABLE */
@@ -49,7 +49,7 @@ CREATE TABLE "source_type"	/* SOURCE_TABLE.SOURCE_TYPE */
 CREATE TABLE "repository"
   (
      repository_id INTEGER PRIMARY KEY,
-     repositories  TEXT UNIQUE NOT NULL	/* REPOSITORY_TABLE.ID */
+     repositories  TEXT UNIQUE NOT NULL	/* REPOSITORY_TABLE.IDENTIFIER */
   );
 
 /* REPOSITORY_TABLE */
@@ -72,8 +72,7 @@ CREATE TABLE repositories_links
      locator_id            INTEGER DEFAULT NULL,
      media_id              INTEGER DEFAULT NULL,
      contact_id            INTEGER DEFAULT NULL,
-     FOREIGN KEY (repository_type_id) REFERENCES repository_type (
-     repository_type_id),
+     FOREIGN KEY (repository_type_id) REFERENCES repository_type (repository_type_id),
      FOREIGN KEY (source_id) REFERENCES source (source_id),
      FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
      FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
@@ -81,6 +80,30 @@ CREATE TABLE repositories_links
      FOREIGN KEY (media_id) REFERENCES media (media_id),
      FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
   );
+
+
+-- 'assertion' table:
+-- 1. I don't think it is necessary to write a description of the assertion (e.g. 'dates', 'places', etc), as it is linked to another table (e.g. 'date' table, 'place' table, etc), or I don't see something that you do see instead?
+-- 2. Added 'credibility': A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence.
+
+-- 'citation' table:
+-- 1. Added 'extract_type'. Can be 'transcript' (means a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content)
+-- 2. Why use a locator instead of a 'location' parameter? A citation inside a source is cited only once, so there seems to be a 1-to-1 relation between the citation and the location of the citation within a source, isn't there?
+
+-- 'source' table:
+-- 1. Added a 'place' (of publication), a 'date' (of publication), a 'repository' (where the source is located), and a 'location' within a repository (see reasoning in 'citation' table, point number 2).
+
+-- 'source_type' and 'repository_type' table:
+-- 1. I don't see the need for this table (see reasoning in 'citation' table, point number 2).
+-- 2. What are 'built_in' and 'hidden' for?
+
+-- 'repository' table:
+-- 1. Added a 'person' (responsible for this repository -- a source can be stored inside a person's house).
+-- 2. Added a 'place' (where the repository is located).
+
+-- 'repositories_links' table:
+-- 1. I fail to see the need for this table. Here, for example, a set of citations can be said to belong to a repository, where in reality they belong to a source. On the other hand, a set of citations can be said to belongs to a source, where that knowledge is already present within the 'citation' table.
+
 
 /* MEDIA_TABLE */
 CREATE TABLE "media"
@@ -271,6 +294,7 @@ CREATE TABLE demo
      hint TEXT
   );
 
+/* EVENT_TABLE */
 CREATE TABLE "event"
   (
      event_id        INTEGER PRIMARY KEY,
