@@ -55,13 +55,13 @@ public abstract class Store{
 	protected String basePath;
 
 
-	public final Store load(final String grammarFile, final String gedcomFile) throws GedcomGrammarParseException, GedcomParseException{
+	public final Store load(final String grammarFile, final String dataFile) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomGrammar grammar = GedcomGrammar.create(grammarFile);
 
-		final GedcomNode root = GedcomParser.parse(gedcomFile, grammar);
+		final GedcomNode root = GedcomParser.parse(dataFile, grammar);
 
-		final int index = StringUtils.lastIndexOfAny(gedcomFile, "/", "\\");
-		create(root, (index > 0? gedcomFile.substring(0, index): gedcomFile));
+		final int index = StringUtils.lastIndexOfAny(dataFile, "/", "\\");
+		create(root, (index > 0? dataFile.substring(0, index): dataFile));
 
 		return this;
 	}

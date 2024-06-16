@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
@@ -573,9 +574,11 @@ public class CulturalNormDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
-			.transform();
-		final GedcomNode container = store.getIndividuals().get(0);
+//		final Store load = store.load("/gedg/treebard/FLeF.gedg", "src/main/resources/ged/small.flef.ged");
+		final Store load = store.load("/gedg/treebard/FLeF.gedg", "src/main/resources/ged/small.newflef.ged");
+		load.transform();
+		final GedcomNode container = store.getIndividuals()
+			.get(0);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
