@@ -40,9 +40,7 @@ CREATE TABLE "source"
 CREATE TABLE "source_type"	/* SOURCE_TABLE.SOURCE_TYPE */
   (
      source_type_id INTEGER PRIMARY KEY,
-     source_types   TEXT NOT NULL,
-     built_in       BOOLEAN DEFAULT 1,
-     hidden         BOOLEAN DEFAULT 0
+     source_types   TEXT NOT NULL
   );
 
 /* REPOSITORY_TABLE */
@@ -56,9 +54,7 @@ CREATE TABLE "repository"
 CREATE TABLE "repository_type"	/* REPOSITORY_TABLE.TYPE */
   (
      repository_type_id INTEGER PRIMARY KEY,
-     repository_types   TEXT NOT NULL,
-     built_in           BOOLEAN DEFAULT 1,
-     hidden             BOOLEAN DEFAULT 0
+     repository_types   TEXT NOT NULL
   );
 
 /* DONE */
@@ -71,7 +67,6 @@ CREATE TABLE repositories_links
      repository_id         INTEGER DEFAULT NULL,
      locator_id            INTEGER DEFAULT NULL,
      media_id              INTEGER DEFAULT NULL,
-     contact_id            INTEGER DEFAULT NULL,
      FOREIGN KEY (repository_type_id) REFERENCES repository_type (repository_type_id),
      FOREIGN KEY (source_id) REFERENCES source (source_id),
      FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
@@ -79,6 +74,92 @@ CREATE TABLE repositories_links
      FOREIGN KEY (locator_id) REFERENCES locator (locator_id),
      FOREIGN KEY (media_id) REFERENCES media (media_id),
      FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
+  );
+
+/* DONE */
+CREATE TABLE "date_format"
+  (
+     date_format_id INTEGER PRIMARY KEY,
+     date_formats   TEXT NOT NULL DEFAULT 'alpha_dmy',
+     abt            TEXT NOT NULL DEFAULT 'abt',
+     est            TEXT NOT NULL DEFAULT 'est',
+     cal            TEXT NOT NULL DEFAULT 'calc',
+     bef_aft        TEXT NOT NULL DEFAULT 'bef/aft',
+     bc_ad          TEXT NOT NULL DEFAULT 'BCE/CE',
+     os_ns          TEXT NOT NULL DEFAULT 'OS/NS',
+     span           TEXT NOT NULL DEFAULT 'from_to',
+     range          TEXT NOT NULL DEFAULT 'btwn_&'
+  );
+
+/* PLACE_TABLE */
+CREATE TABLE "place"
+  (
+     place_id              INTEGER PRIMARY KEY,
+     latitude              TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     longitude             TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     cartesian_coordinates TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
+     township              TEXT DEFAULT '',	/* ? */
+     range                 TEXT DEFAULT '',	/* ? */
+     section               TEXT DEFAULT '',	/* ? */
+     legal_subdivision     TEXT DEFAULT '',	/* ? */
+     hint                  TEXT DEFAULT NULL,	/* ? */
+     check_dupes           BOOLEAN DEFAULT 1	/* ? */
+  );
+
+/* DONE */
+CREATE TABLE places_types
+  (
+     places_types_id     INTEGER PRIMARY KEY,
+     place_id            INTEGER,
+     place_name_id       INTEGER,
+     date_of_creation    TEXT NOT NULL DEFAULT '',
+     date_of_dissolution TEXT NOT NULL DEFAULT '',
+     place_type_id       INTEGER,
+     FOREIGN KEY (place_id) REFERENCES place (place_id),
+     FOREIGN KEY (place_name_id) REFERENCES place_name (place_name_id),
+     FOREIGN KEY (place_type_id) REFERENCES place_type (place_type_id)
+  );
+
+/* DONE */
+CREATE TABLE place_name
+  (
+     place_name_id   INTEGER PRIMARY KEY,
+     place_names     TEXT NOT NULL,
+     place_id        INTEGER REFERENCES place (place_id),
+     main_place_name BOOLEAN NOT NULL DEFAULT 0
+  );
+
+/* DONE */
+CREATE TABLE "place_type"
+  (
+     place_type_id INTEGER PRIMARY KEY,
+     place_types   TEXT UNIQUE NOT NULL,
+     description   TEXT DEFAULT ''
+  );
+
+/* DONE */
+CREATE TABLE "nested_place"
+  (
+     nested_place_id INTEGER PRIMARY KEY,
+     nest0           INTEGER NOT NULL DEFAULT 1,
+     nest1           INTEGER NOT NULL DEFAULT 1,
+     nest2           INTEGER NOT NULL DEFAULT 1,
+     nest3           INTEGER NOT NULL DEFAULT 1,
+     nest4           INTEGER NOT NULL DEFAULT 1,
+     nest5           INTEGER NOT NULL DEFAULT 1,
+     nest6           INTEGER NOT NULL DEFAULT 1,
+     nest7           INTEGER NOT NULL DEFAULT 1,
+     nest8           INTEGER NOT NULL DEFAULT 1,
+     FOREIGN KEY (nest0) REFERENCES place (place_id),
+     FOREIGN KEY (nest1) REFERENCES place (place_id),
+     FOREIGN KEY (nest2) REFERENCES place (place_id),
+     FOREIGN KEY (nest3) REFERENCES place (place_id),
+     FOREIGN KEY (nest4) REFERENCES place (place_id),
+     FOREIGN KEY (nest5) REFERENCES place (place_id),
+     FOREIGN KEY (nest6) REFERENCES place (place_id),
+     FOREIGN KEY (nest7) REFERENCES place (place_id),
+     FOREIGN KEY (nest8) REFERENCES place (place_id),
+     UNIQUE (nest0, nest1, nest2, nest3, nest4, nest5, nest6, nest7, nest8)
   );
 
 
@@ -116,6 +197,13 @@ CREATE TABLE "media"
   );
 
 /* MEDIA_JUNCTION_TABLE */
+CREATE TABLE "media_type"	/* MEDIA_TABLE.TYPE */
+  (
+     media_type_id INTEGER PRIMARY KEY,
+     media_types   TEXT UNIQUE NOT NULL
+  );
+
+/* MEDIA_JUNCTION_TABLE */
 CREATE TABLE "media_links"
   (
      media_links_id  INTEGER PRIMARY KEY,
@@ -150,15 +238,6 @@ CREATE TABLE "media_links"
      FOREIGN KEY (project_id) REFERENCES project (project_id),
      FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
      FOREIGN KEY (report_id) REFERENCES report (report_id)
-  );
-
-/* MEDIA_JUNCTION_TABLE */
-CREATE TABLE "media_type"	/* MEDIA_TABLE.TYPE */
-  (
-     media_type_id INTEGER PRIMARY KEY,
-     media_types   TEXT UNIQUE NOT NULL,
-     built_in      BOOLEAN DEFAULT 1,
-     hidden        BOOLEAN DEFAULT 0
   );
 
 
@@ -210,9 +289,7 @@ CREATE TABLE "chart"
 CREATE TABLE "chart_type"
   (
      chart_type_id INTEGER PRIMARY KEY,
-     chart_types   TEXT UNIQUE NOT NULL,
-     built_in      BOOLEAN DEFAULT 1,
-     hidden        BOOLEAN DEFAULT 0
+     chart_types   TEXT UNIQUE NOT NULL
   );
 
 /* DONE */
@@ -222,9 +299,7 @@ CREATE TABLE "colors_type"
      color1         TEXT NOT NULL,
      color2         TEXT NOT NULL,
      color3         TEXT NOT NULL,
-     color4         TEXT NOT NULL,
-     built_in       BOOLEAN NOT NULL DEFAULT 1,
-     hidden         BOOLEAN NOT NULL DEFAULT 0
+     color4         TEXT NOT NULL
   );
 
 /* CONTACT_TABLE */
@@ -272,21 +347,6 @@ CREATE TABLE "current"
   );
 
 /* DONE */
-CREATE TABLE "date_format"
-  (
-     date_format_id INTEGER PRIMARY KEY,
-     date_formats   TEXT NOT NULL DEFAULT 'alpha_dmy',
-     abt            TEXT NOT NULL DEFAULT 'abt',
-     est            TEXT NOT NULL DEFAULT 'est',
-     cal            TEXT NOT NULL DEFAULT 'calc',
-     bef_aft        TEXT NOT NULL DEFAULT 'bef/aft',
-     bc_ad          TEXT NOT NULL DEFAULT 'BCE/CE',
-     os_ns          TEXT NOT NULL DEFAULT 'OS/NS',
-     span           TEXT NOT NULL DEFAULT 'from_to',
-     range          TEXT NOT NULL DEFAULT 'btwn_&'
-  );
-
-/* DONE */
 CREATE TABLE demo
   (
      id   INTEGER PRIMARY KEY,
@@ -318,8 +378,6 @@ CREATE TABLE "event_type"
   (
      event_type_id INTEGER PRIMARY KEY,
      event_types   TEXT UNIQUE NOT NULL,
-     built_in      BOOLEAN NOT NULL DEFAULT 0,
-     hidden        BOOLEAN NOT NULL DEFAULT 0,
      couple        BOOLEAN NOT NULL DEFAULT 0,
      after_death   BOOLEAN NOT NULL DEFAULT 0,
      marital       BOOLEAN NOT NULL DEFAULT 0
@@ -353,9 +411,7 @@ CREATE TABLE "kin_type"
   (
      kin_type_id      INTEGER PRIMARY KEY,
      kin_types        TEXT UNIQUE NOT NULL,
-     abbrev_kin_types TEXT,
-     built_in         BOOLEAN NOT NULL DEFAULT 1,
-     hidden           BOOLEAN NOT NULL DEFAULT 0
+     abbrev_kin_types TEXT
   );
 
 /* DONE */
@@ -381,8 +437,6 @@ CREATE TABLE "locator_type"
   (
      locator_type_id INTEGER PRIMARY KEY,
      locator_types   TEXT NOT NULL,
-     built_in        BOOLEAN DEFAULT 1,
-     hidden          BOOLEAN DEFAULT 0,
      abbreviation    TEXT DEFAULT NULL
   );
 
@@ -404,34 +458,7 @@ CREATE TABLE "name_type"
   (
      name_type_id INTEGER PRIMARY KEY,
      name_types   TEXT UNIQUE NOT NULL,
-     hierarchy    INTEGER DEFAULT 999,	/* ? */
-     built_in     BOOLEAN DEFAULT 1,
-     hidden       BOOLEAN DEFAULT 0
-  );
-
-/* DONE */
-CREATE TABLE "nested_place"
-  (
-     nested_place_id INTEGER PRIMARY KEY,
-     nest0           INTEGER NOT NULL DEFAULT 1,
-     nest1           INTEGER NOT NULL DEFAULT 1,
-     nest2           INTEGER NOT NULL DEFAULT 1,
-     nest3           INTEGER NOT NULL DEFAULT 1,
-     nest4           INTEGER NOT NULL DEFAULT 1,
-     nest5           INTEGER NOT NULL DEFAULT 1,
-     nest6           INTEGER NOT NULL DEFAULT 1,
-     nest7           INTEGER NOT NULL DEFAULT 1,
-     nest8           INTEGER NOT NULL DEFAULT 1,
-     FOREIGN KEY (nest0) REFERENCES place (place_id),
-     FOREIGN KEY (nest1) REFERENCES place (place_id),
-     FOREIGN KEY (nest2) REFERENCES place (place_id),
-     FOREIGN KEY (nest3) REFERENCES place (place_id),
-     FOREIGN KEY (nest4) REFERENCES place (place_id),
-     FOREIGN KEY (nest5) REFERENCES place (place_id),
-     FOREIGN KEY (nest6) REFERENCES place (place_id),
-     FOREIGN KEY (nest7) REFERENCES place (place_id),
-     FOREIGN KEY (nest8) REFERENCES place (place_id),
-     UNIQUE (nest0, nest1, nest2, nest3, nest4, nest5, nest6, nest7, nest8)
+     hierarchy    INTEGER DEFAULT 999	/* ? */
   );
 
 /* NOTE_TABLE */
@@ -447,8 +474,6 @@ CREATE TABLE "notes_links"
   (
      notes_links_id   INTEGER PRIMARY KEY,
      note_id          INTEGER,
-     note_topic       TEXT DEFAULT NULL COLLATE nocase,	/* ? */
-     note_topic_order INTEGER,	/* ? */
      person_id        INTEGER,
      place_id         INTEGER,
      place_name_id    INTEGER,
@@ -457,12 +482,7 @@ CREATE TABLE "notes_links"
      citation_id      INTEGER,
      event_id         INTEGER,
      assertion_id     INTEGER,
-     project_id       INTEGER,
-     to_do_id         INTEGER,
-     contact_id       INTEGER,
      repository_id    INTEGER,
-     report_id        INTEGER,
-     chart_id         INTEGER,
      media_id         INTEGER,
      couple_id        INTEGER REFERENCES couple (couple_id),
      FOREIGN KEY (person_id) REFERENCES person (person_id),
@@ -473,14 +493,9 @@ CREATE TABLE "notes_links"
      FOREIGN KEY (citation_id) REFERENCES citation (citation_id),
      FOREIGN KEY (event_id) REFERENCES event (event_id),
      FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id),
-     FOREIGN KEY (project_id) REFERENCES project (project_id),
-     FOREIGN KEY (to_do_id) REFERENCES to_do (to_do_id),
-     FOREIGN KEY (contact_id) REFERENCES contact (contact_id),
      FOREIGN KEY (media_id) REFERENCES media (media_id),
      FOREIGN KEY (note_id) REFERENCES note (note_id),
      FOREIGN KEY (repository_id) REFERENCES repository (repository_id),
-     FOREIGN KEY (report_id) REFERENCES report (report_id),
-     FOREIGN KEY (chart_id) REFERENCES chart (chart_id),
      UNIQUE (note_id, note_topic, person_id),
      UNIQUE (note_id, note_topic, place_id),
      UNIQUE (note_id, note_topic, place_name_id),
@@ -504,54 +519,6 @@ CREATE TABLE person
   (
      person_id INTEGER PRIMARY KEY,
      gender    TEXT NOT NULL DEFAULT 'unknown'	/* PERSON_TABLE.GENDER */
-  );
-
-/* PLACE_TABLE */
-CREATE TABLE "place"
-  (
-     place_id              INTEGER PRIMARY KEY,
-     latitude              TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
-     longitude             TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
-     cartesian_coordinates TEXT DEFAULT '',	/* PLACE_TABLE.POSITION */
-     township              TEXT DEFAULT '',	/* ? */
-     range                 TEXT DEFAULT '',	/* ? */
-     section               TEXT DEFAULT '',	/* ? */
-     legal_subdivision     TEXT DEFAULT '',	/* ? */
-     hint                  TEXT DEFAULT NULL,	/* ? */
-     check_dupes           BOOLEAN DEFAULT 1	/* ? */
-  );
-
-/* DONE */
-CREATE TABLE places_types
-  (
-     places_types_id     INTEGER PRIMARY KEY,
-     place_id            INTEGER,
-     place_name_id       INTEGER,
-     date_of_creation    TEXT NOT NULL DEFAULT '',
-     date_of_dissolution TEXT NOT NULL DEFAULT '',
-     place_type_id       INTEGER,
-     FOREIGN KEY (place_id) REFERENCES place (place_id),
-     FOREIGN KEY (place_name_id) REFERENCES place_name (place_name_id),
-     FOREIGN KEY (place_type_id) REFERENCES place_type (place_type_id)
-  );
-
-/* DONE */
-CREATE TABLE place_name
-  (
-     place_name_id   INTEGER PRIMARY KEY,
-     place_names     TEXT NOT NULL,
-     place_id        INTEGER REFERENCES place (place_id),
-     main_place_name BOOLEAN NOT NULL DEFAULT 0
-  );
-
-/* DONE */
-CREATE TABLE "place_type"
-  (
-     place_type_id INTEGER PRIMARY KEY,
-     place_types   TEXT UNIQUE NOT NULL,
-     description   TEXT DEFAULT '',
-     built_in      BOOLEAN DEFAULT 1,
-     hidden        BOOLEAN DEFAULT 0
   );
 
 /* DONE */
@@ -581,9 +548,7 @@ CREATE TABLE "report"
 CREATE TABLE "report_type"
   (
      report_type_id INTEGER PRIMARY KEY,
-     report_types   TEXT UNIQUE NOT NULL,
-     built_in       BOOLEAN DEFAULT 1,
-     hidden         BOOLEAN DEFAULT 0
+     report_types   TEXT UNIQUE NOT NULL
   );
 
 /* DONE */
@@ -602,9 +567,7 @@ CREATE TABLE roles_links
 CREATE TABLE "role_type"
   (
      role_type_id INTEGER PRIMARY KEY,
-     role_types   TEXT UNIQUE NOT NULL,
-     built_in     BOOLEAN NOT NULL DEFAULT 0,
-     hidden       BOOLEAN NOT NULL DEFAULT 0
+     role_types   TEXT UNIQUE NOT NULL
   );
 
 /* RESEARCH_STATUS_TABLE */
@@ -635,7 +598,27 @@ CREATE TABLE "transcription_type"
      transcription_type_id INTEGER PRIMARY KEY,
      transcription_types   TEXT UNIQUE NOT NULL,
      romanized             BOOLEAN DEFAULT 0,
-     phonetic              BOOLEAN DEFAULT 0,
-     built_in              BOOLEAN NOT NULL DEFAULT 1,
-     hidden                BOOLEAN NOT NULL DEFAULT 0
+     phonetic              BOOLEAN DEFAULT 0
   );
+
+CREATE TABLE IF NOT EXISTS "traits_tbd" (
+  traits_tbd_id INTEGER PRIMARY KEY, 
+  assertion_id INTEGER UNIQUE DEFAULT null, 
+  surety REAL DEFAULT null, 
+  event_type_id INTEGER UNIQUE DEFAULT null, 
+  couple BOOLEAN DEFAULT null, 
+  marital BOOLEAN DEFAULT null, 
+  after_death BOOLEAN DEFAULT null, 
+  locator_type_id INTEGER UNIQUE DEFAULT null, 
+  abbreviations TEXT DEFAULT null, 
+  transcription_type_id INTEGER UNIQUE DEFAULT null, 
+  romanized BOOLEAN DEFAULT null, 
+  phonetic BOOLEAN DEFAULT null, 
+  place_id INTEGER UNIQUE DEFAULT null, 
+  hint TEXT DEFAULT null, 
+  FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id), 
+  FOREIGN KEY (event_type_id) REFERENCES event_type (event_type_id), 
+  FOREIGN KEY (locator_type_id) REFERENCES locator_type (locator_type_id), 
+  FOREIGN KEY (transcription_type_id) REFERENCES transcription_type (transcription_type_id), 
+  FOREIGN KEY (place_id) REFERENCES place (place_id)
+);

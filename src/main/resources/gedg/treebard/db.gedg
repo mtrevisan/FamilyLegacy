@@ -2,7 +2,7 @@ GEDCOM_VERSION=0.0.10
 GEDCOM_DATE=2024-06-10
 GEDCOM_SOURCE=localhost
 GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.10
-/* https://treebard.com/gedcom.html#relationships 71 */
+/* https://treebard.com/gedcom.html#relationships */
 /* https://treebard.proboards.com/search/results?captcha_id=captcha_search&what_all=database+table+description&who_only_made_by=0&display_as=0&search=Search */
 
 
@@ -20,35 +20,27 @@ n <<CITATION_TABLE>>               {1:1}
 |
 n <<SOURCE_TABLE>>                 {1:1}
 |
-n <<DATE_TABLE>>                   {1:1}
+n <<REPOSITORY_TABLE>>             {1:1}
 |
 n <<HISTORIC_DATE_TABLE>>          {1:1}
 |
-n <<REPOSITORY_TABLE>>             {1:1}
-|
-n <<NOTE_TABLE>>                   {1:1}
-|
-n <<NOTE_JUNCTION_TABLE>>          {1:1}
-|
-n <<MEDIA_TABLE>>                  {1:1}
-|
-n <<MEDIA_JUNCTION_TABLE>>         {1:1}
-|
-n <<MODIFICATION_TABLE>>           {1:1}
+n <<CALENDAR_TABLE>>               {1:1}
 |
 n <<PLACE_TABLE>>                  {1:1}
 |
 n <<HISTORIC_PLACE_TABLE>>         {1:1}
 |
-n <<RESEARCH_STATUS_TABLE>>        {1:1}
+n <<LOCALIZED_TEXT_TABLE>>         {1:1}
 |
-n <<CONTACT_TABLE>>                {1:1}
+n <<NOTE_TABLE>>                   {1:1}
 |
-n <<CONTACT_JUNCTION_TABLE>>       {1:1}
+n <<MEDIA_TABLE>>                  {1:1}
+|
+n <<MEDIA_JUNCTION_TABLE>>         {1:1}
 |
 n <<PERSON_TABLE>>                 {1:1}
 |
-n <<NAME_TABLE>>                   {1:1}
+n <<PERSON_NAME_TABLE>>            {1:1}
 |
 n <<GROUP_TABLE>>                  {1:1}
 |
@@ -56,51 +48,61 @@ n <<GROUP_JUNCTION_TABLE>>         {1:1}
 |
 n <<EVENT_TABLE>>                  {1:1}
 |
-n <<RESTRICTION_TABLE>>            {1:1}
-|
-n <<CALENDAR_TABLE>>               {1:1}
-|
 n <<CULTURAL_NORM_TABLE>>          {1:1}
 |
 n <<CULTURAL_NORM_JUNCTION_TABLE>> {1:1}
+|
+n <<RESTRICTION_TABLE>>            {1:1}
+|
+n <<MODIFICATION_TABLE>>           {1:1}
+|
+n <<RESEARCH_STATUS_TABLE>>        {1:1}
+|
+n <<CONTACT_TABLE>>                {1:1}
+|
+n <<CONTACT_JUNCTION_TABLE>>       {1:1}
 ]
 
 
-/* A contact can be linked to specify who is/are the submitter(s), or a note, that describes the contents of the database. */
+/* A note can be linked to describe the contents of the database. */
 PROJECT_TABLE :=
-n <XREF> PROJECT                  {1:1}
-  +1 PROTOCOL_NAME <TEXT>         {1:1}	/* "Family LEgacy Format" */
-  +1 PROTOCOL_VERSION <TEXT>      {1:1}	/* "0.0.9" */
-  +1 COPYRIGHT <TEXT>             {0:1}	/* A copyright statement. */
-  +1 SUBMITTER_PLACE <XREF:PLACE> {0:1}	/* The location of the submitter. */
+n <XREF> PROJECT             {1:1}
+  +1 PROTOCOL_NAME <TEXT>    {1:1}	/* "Family LEgacy Format" */
+  +1 PROTOCOL_VERSION <TEXT> {1:1}	/* "0.0.10" */
+  +1 COPYRIGHT <TEXT>        {0:1}	/* A copyright statement. */
+  +1 NOTE <TEXT>             {0:1}
 
 END_OF_FILE :=
 n EOF {1:1}
 
 
 
+/* Assertion - Citation - Source - Repository */
+/* --- */
+
 /* What the source says at the citation within the source. */
 ASSERTION_TABLE :=
 n <XREF> ASSERTION            {1:1}
   +1 CITATION <XREF:CITATION> {1:1}	/* The citation from which this assertion is derived. */
-  +1 REFERENCE_TYPE <TEXT>    {1:1}	/* The table name this record is attached to (ex. "place", "cultural norm", "date", "event", "repository", "person", "group", "media", "name", "contact"). */
+  +1 REFERENCE_TABLE <TEXT>   {1:1}	/* The table name this record is attached to (ex. "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name"). */
   +1 REFERENCE_ID <NUMERIC>   {1:1}	/* The ID of the referenced record in the table. */
   +1 ROLE <TEXT>              {0:1}	/* What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "husband", "wife", "midwife", "partner 1/2", "spouse", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney"). */
   +1 CERTAINTY <TEXT>         {0:1}	/* A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 CREDIBILITY <NUMERIC>    {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
 
 /* Where a source makes an assertion. */
+/* Transcriptions and translitterations can be attached through a localized text. */
 CITATION_TABLE :=
-n <XREF> CITATION         {1:1}
-  +1 SOURCE <XREF:SOURCE> {1:1}	/* The source from which this citation is extracted. */
-  +1 LOCATION <TEXT>      {0:1}	/* The location of the citation inside the source (ex. "page 27, number 8, row 2"). */
-  +1 EXTRACT <XREF:NOTE>  {0:1}	/* A verbatim copy of any description contained within the source. */
-  +1 EXTRACT_TYPE <TEXT>  {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
+n <XREF> CITATION                  {1:1}
+  +1 SOURCE <XREF:SOURCE>          {1:1}	/* The source from which this citation is extracted. */
+  +1 LOCATION <TEXT>               {0:1}	/* The location of the citation inside the source (ex. "page 27, number 8, row 2"). */
+  +1 EXTRACT <XREF:LOCALIZED_TEXT> {0:1}	/* A verbatim copy of any description contained within the source. */
+  +1 EXTRACT_TYPE <TEXT>           {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
 
 /* https://www.evidenceexplained.com/content/sample-quickcheck-models. */
 SOURCE_TABLE :=
 n <XREF> SOURCE                   {1:1}
-  +1 IDENTIFIER <TEXT>            {1:1}	/* The title of the source (must be unique among all the sources, ex. "1880 US Census"). */
+  +1 IDENTIFIER <TEXT>            {1:1}	/* The title of the source (must be unique, ex. "1880 US Census"). */
   +1 SOURCE_TYPE <TEXT>           {0:1}	/* ex. "newspaper", "technical journal", "magazine", "genealory newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "religious record", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "religious record", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record" */
   +1 AUTHOR <TEXT>                {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 PLACE <XREF:HISTORIC_PLACE>  {0:1}	/* The place this source was created. */
@@ -108,153 +110,148 @@ n <XREF> SOURCE                   {1:1}
   +1 REPOSITORY <XREF:REPOSITORY> {1:1}	/* The repository from which this source is contained. */
   +1 LOCATION <TEXT>              {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28'). */
 
-DATE_TABLE :=
-n <XREF> DATE                          {1:1}
+/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
+REPOSITORY_TABLE :=
+n <XREF> REPOSITORY       {1:1}
+  +1 IDENTIFIER <TEXT>    {1:1}	/* Repository identifier (must be unique, ex. "familysearch.org", or "University College London") */
+  +1 TYPE <TEXT>          {0:1}	/* Repository type (ex. "public library", "college library", "national library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "library", "government agency", "funeral home", "private library", "prison library", "trunk in the attic"). */
+  +1 PERSON <XREF:PERSON> {0:1}	/* An xref ID of the person, if present in the tree and is the repository of a source. */
+
+
+/* Date */
+/* --- */
+
+HISTORIC_DATE_TABLE :=
+n <XREF> HISTORIC_DATE                 {1:1}
   +1 DATE <TEXT>                       {1:1}	/* The date. */
   +1 CALENDAR <XREF:CALENDAR>          {0:1}	/* An xref ID of a calendar type. */
   +1 DATE_ORIGINAL <TEXT>              {0:1}	/* The date as written into a document. */
-  +1 ORIGINAL_CALENDAR <XREF:CALENDAR> {0:1}	/* An xref ID of a calendar type for the original date. */
+  +1 CALENDAR_ORIGINAL <XREF:CALENDAR> {0:1}	/* An xref ID of a calendar type for the original date. */
+  +1 CERTAINTY <TEXT>                  {0:1}	/* A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
+  +1 CREDIBILITY <NUMERIC>             {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
 
-HISTORIC_DATE_TABLE :=
-n <XREF> HISTORIC_DATE     {1:1}
-  +1 DATE <XREF:DATE>      {1:1}
-  +1 CERTAINTY <TEXT>      {0:1}	/* A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+CALENDAR_TABLE :=
+n <XREF> CALENDAR {1:1}
+  +1 TYPE <TEXT>  {1:1}	/* A calendar type (ex. "gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french republican", "coptic", "soviet eternal", "ethiopian", "mayan", "venetan"). */
 
-/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
-REPOSITORY_TABLE :=
-n <XREF> REPOSITORY              {1:1}
-  +1 IDENTIFIER <TEXT>           {1:1}	/* Repository identifier (must be unique, ex. "familysearch.org", or "University College London") */
-  +1 TYPE <TEXT>                 {0:1}	/* Repository type (ex. "public library", "college library", "national library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "library", "government agency", "funeral home", "private library", "prison library", "trunk in the attic"). */
-  +1 PERSON <XREF:PERSON>        {0:1}	/* An xref ID of the person, if present in the tree and is the repository of a source. */
-  +1 PLACE <XREF:HISTORIC_PLACE> {0:1}	/* The place this repository is located. */
 
-/* A text. */
-NOTE_TABLE :=
-n <XREF> NOTE                  {1:1}
-  +1 RECORD <TEXT>             {1:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. */
+/* Place */
+/* --- */
+
+/* Transcriptions and translitterations of the name can be attached through a localized text. */
+PLACE_TABLE :=
+n <XREF> PLACE                        {1:1}
+  +1 IDENTIFIER <TEXT>                {1:1}	/* An identifier for the place (must be unique). */
+  +1 NAME <XREF:LOCALIZED_TEXT>       {1:1}	/* A verbatim copy of the name written in the original language. */
+  +1 TYPE <TEXT>                      {0:1}	/* The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address") */
+  +1 COORDINATE <TEXT>                {0:1}	/* Ex. a latitude and longitude pair, or X and Y coordinates. */
+  +1 COORDINATE_TYPE <TEXT>           {0:1}	/* The coordinate type (ex. "WGS84", "UTM"). */
+  +1 COORDINATE_CREDIBILITY <NUMERIC> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
+  +1 PRIMARY_PLACE <XREF:PLACE>       {0:1}	/* The (primary) place this place is the same as. */
+  +1 IMAGE <XREF:MEDIA>               {0:1}	/* The primary image for this place. */
+  +1 IMAGE_CROP <TEXT>                {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
+
+HISTORIC_PLACE_TABLE :=
+n <XREF> HISTORIC_PLACE    {1:1}
+  +1 PLACE <XREF:PLACE>    {1:1}	/* The location. */
+  +1 CERTAINTY <TEXT>      {0:1}	/* A status code that allows passing on the users opinion of whether the location is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
+  +1 CREDIBILITY <NUMERIC> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
+
+
+/* Localized text - Note */
+/* --- */
+
+LOCALIZED_TEXT_TABLE :=
+n <XREF> LOCALIZED_TEXT        {1:1}
+  +1 TEXT <TEXT>               {1:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. */
   +1 LOCALE <TEXT>             {0:1}	/* The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 TYPE <TEXT>               {0:1}	/* Can be "original", "translitteration", or "translation" (must be unique among a citation). */
   +1 TRANSCRIPTION <TEXT>      {0:1}	/* Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul"). */
-  +1 TRANSCRIPTION_TYPE <TEXT> {0:1}	/* Type of transcription, usually 'romanized' (but it can be 'anglicized', 'cyrillized', 'francized', 'gairaigized', 'latinized', etc). */
+  +1 TRANSCRIPTION_TYPE <TEXT> {0:1}	/* Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc). */
+  +1 REFERENCE_TABLE <TEXT>    {1:1}	/* The table name this record is attached to (ex. "citation", "person name", "place"). */
+  +1 REFERENCE_ID <NUMERIC>    {1:1}	/* The ID of the referenced record in the table. */
 
-NOTE_JUNCTION_TABLE :=
-n <XREF> NOTE_JUNCTION      {1:1}
-  +1 NOTE <XREF:NOTE>       {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (ex. "project", "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "name", "person", "group", "contact", "research status", "media"). */
-  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
+NOTE_TABLE :=
+n <XREF> NOTE               {1:1}
+  +1 NOTE <TEXT>            {1:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. */
+  +1 REFERENCE_TABLE <TEXT> {0:1}	/* The table name this record is attached to (ex. "project", "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "person name", "person", "group", "research status", "media"). */
+  +1 REFERENCE_ID <NUMERIC> {0:1}	/* The ID of the referenced record in the table. */
+
+
+/* Media */
+/* --- */
 
 MEDIA_TABLE :=
-n <XREF> MEDIA              {1:1}
-  +1 IDENTIFIER <TEXT>      {1:1}	/* An identifier for the media (must be unique, ex. a complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data). */
-  +1 TITLE <TEXT>           {0:1}	/* The name of the media. */
-  +1 TYPE <TEXT>            {0:1}	/* (ex. ""image, "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom") */
-  +1 IMAGE_SPHERICAL <BOOL> {0:1}	/* Whether the file is spherical (panorama/360° or truly spherical U/V mapped). */
-  +1 IMAGE_MAPPING <TEXT>   {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
+n <XREF> MEDIA               {1:1}
+  +1 IDENTIFIER <TEXT>       {1:1}	/* An identifier for the media (must be unique, ex. a complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data). */
+  +1 TITLE <TEXT>            {0:1}	/* The name of the media. */
+  +1 TYPE <TEXT>             {0:1}	/* (ex. "photo, "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom") */
+  +1 IMAGE_PROJECTION <TEXT> {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
 
 MEDIA_JUNCTION_TABLE :=
 n <XREF> MEDIA_JUNCTION     {1:1}
   +1 MEDIA <XREF:MEDIA>     {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "name", "person", "group", "media", "contact", "research status"). */
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status"). */
   +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
 
-MODIFICATION_TABLE :=
-n <XREF> MODIFICATION       {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (any except itself). */
-  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
-  +1 CREATION_DATE <DATE>   {1:1}	/* The creation date of a record. */
-  +1 UPDATE_DATE <DATE>     {0:1}	/* The changing date of a record. */
 
-/* FIXME SUBORDINATE <XREF:PLACE>? */
-PLACE_TABLE :=
-n <XREF> PLACE                      {1:1}
-  +1 IDENTIFIER <TEXT>              {1:1}	/* An identifier for the place (must be unique). */
-  +1 NAME <TEXT>                    {0:1}	/* The name of the place. */
-  +1 TYPE <TEXT>                    {0:1}	/* The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address") */
-  +1 POSITION <TEXT>                {0:1}	/* Latitude and longitude pair. */
-  +1 POSITION_CREDIBILITY <NUMERIC> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
-  +1 PRIMARY_PLACE <XREF:PLACE>     {0:1}	/* The (primary) place this place is the same as. */
-  +1 IMAGE <XREF:MEDIA>             {0:1}	/* The primary image for this place. */
-  +1 IMAGE_CROP <TEXT>              {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-
-HISTORIC_PLACE_TABLE :=
-n <XREF> HISTORIC_PLACE    {1:1}
-  +1 PLACE <XREF:PLACE>    {0:1}	/* The location. */
-  +1 CERTAINTY <TEXT>      {0:1}	/* A status code that allows passing on the users opinion of whether the location is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC> {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
-
-RESEARCH_STATUS_TABLE :=
-n <XREF> RESEARCH_STATUS    {1:1}
-  +1 STATUS <TEXT>          {0:1}	/* Research status, can be 'active' (currently being searched), 'ended' (all the information has been found). */
-  +1 PRIORITY <NUMERIC>     {0:1}	/* Priority. */
-  +1 DESCRIPTION <TEXT>     {0:1}	/* The description of the research status. */
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (any except "project" and itself). */
-  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
-
-/* Usually a note can be attached that contains a phone number, languages spoken, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address, or other things. */
-CONTACT_TABLE :=
-n <XREF> CONTACT      {1:1}
-  +1 CALLER_ID <TEXT> {1:1}	/* Indicates the name of the person associated with this contact. */
-
-CONTACT_JUNCTION_TABLE :=
-n <XREF> CONTACT_JUNCTION   {1:1}
-  +1 CONTACT <XREF:CONTACT> {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (ex. "project", "assertion", "repository", "cultural norm", "event", "place", "note", "name", "person", "group", "media", "research status", "restriction"). */
-  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
+/* Person */
+/* --- */
 
 PERSON_TABLE :=
 n <XREF> PERSON         {1:1}
-  +1 SEX <TEXT>         {0:1}	/* A code that indicates the sexual anatomy of the individual (one of MALE, FEMALE). */
   +1 IMAGE <XREF:MEDIA> {0:1}	/* The primary image for this person. */
   +1 IMAGE_CROP <TEXT>  {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
 
-/* FIXME FAMILY_NICKNAME? */
-NAME_TABLE :=
-n <XREF> NAME             {1:1}
-  +1 PERSON <XREF:PERSON> {1:1}
-  +1 NAME <XREF:NOTE>     {1:1}
-  +1 TYPE <TEXT>          {0:1}	/* (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md) */
-  +1 SORT_ORDER <TEXT>    {0:1}
+/* Transcriptions and translitterations of the name can be attached through a localized text. */
+PERSON_NAME_TABLE :=
+n <XREF> PERSON_NAME               {1:1}
+  +1 PERSON <XREF:PERSON>          {1:1}
+  +1 NAME <XREF:LOCALIZED_TEXT>    {0:1}	/* A verbatim copy of the name written in the original language. */
+  +1 TYPE <TEXT>                   {0:1}	/* (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md) */
+  +1 ALTERNATIVE_SORT_ORDER <TEXT> {0:1}
+
+
+/* Group */
+/* --- */
 
 /* A group can be of genealogical, historical, or general interest. Examples of groups that might be useful in genealogy research are households and neighborhoods as found in a census. */
 GROUP_TABLE :=
 n <XREF> GROUP          {1:1}
-  +1 DESCRIPTION <TEXT> {0:1}	/* The description of the group. */
   +1 TYPE <TEXT>        {0:1}	/* The type of the group (ex. "family", "neighborhood", "fraternity", "ladies club", "literary society"). */
-  +1 IMAGE <XREF:MEDIA> {0:1}	/* The primary image for this couple. */
+  +1 IMAGE <XREF:MEDIA> {0:1}	/* The primary image for this group. */
   +1 IMAGE_CROP <TEXT>  {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
 
 GROUP_JUNCTION_TABLE :=
 n <XREF> GROUP_JUNCTION     {1:1}
   +1 GROUP <XREF:GROUP>     {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (ex. "person", "group"). */
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to (ex. "person", "group"). */
   +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
   +1 ROLE <TEXT>            {0:1}	/* What role the referenced entity played in the group that is being cited in this context (ex. "husband", "wife", "child", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader"). */
   +1 CERTAINTY <TEXT>       {0:1}	/* A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC>  {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 CREDIBILITY <NUMERIC>  {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
 
+
+/* Event */
+/* --- */
+
+/* assertion can be made about "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name" */
+/* a conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated */
+/* an event is a collection of conclusions/bare assertions about something (a description) happened somewhere (a "place") at a certain time (a "date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name") */
 EVENT_TABLE :=
 n <XREF> EVENT                   {1:1}
-  +1 EVENT_TYPE <TEXT>           {1:1}	/* (ex. "historic", "birth", "marriage", "death", "coroner report", "cremation", "burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award") */
+  +1 EVENT_TYPE <TEXT>           {1:1}	/* (ex. "historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award") */
   +1 DESCRIPTION <TEXT>          {0:1}	/* The description of the event. */
   +1 PLACE <XREF:HISTORIC_PLACE> {0:1}	/* The place this event happened. */
   +1 DATE <XREF:HISTORIC_DATE>   {0:1}	/* The date this event has happened. */
-  +1 REFERENCE_TYPE <TEXT>       {1:1}	/* The table name this record is attached to (ex. "repository", "place", "person", "group"). */
+  +1 REFERENCE_TABLE <TEXT>      {1:1}	/* The table name this record is attached to (ex. "person", "group", "place", "repository", "cultural norm", "calendar", "media", "person name"). */
   +1 REFERENCE_ID <NUMERIC>      {1:1}	/* The ID of the referenced record in the table. */
-  +1 CERTAINTY <TEXT>            {0:1}	/* A status code that allows passing on the users opinion of whether the event took place (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC>       {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
 
-RESTRICTION_TABLE :=
-n <XREF> RESTRICTION        {1:1}
-  +1 REFERENCE_TYPE <TEXT>  {1:1}	/* The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "date", "historic date", "event", "place", "historic place", "note", "name", "person", "group", "media", "contact"). */
-  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
-  +1 RESTRICTION <TEXT>     {1:1}	/* Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
 
-CALENDAR_TABLE :=
-n <XREF> CALENDAR {1:1}
-  +1 TYPE <TEXT>  {1:1}	/* A calendar type (ex. "gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan", "more veneto"). */
+/* Cultural norm */
+/* --- */
 
-/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old.
+/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assertions made about a citation.
 Ex. per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne):
  - uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
  - donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
@@ -264,15 +261,51 @@ n <XREF> CULTURAL_NORM           {1:1}
   +1 PLACE <XREF:HISTORIC_PLACE> {0:1}	/* The place this rule applies. */
   +1 DATE <XREF:HISTORIC_DATE>   {0:1}	/* The date this cultural norm was in effect. */
   +1 CERTAINTY <TEXT>            {0:1}	/* A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC>       {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 CREDIBILITY <NUMERIC>       {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
 
 CULTURAL_NORM_JUNCTION_TABLE :=
 n <XREF> CULTURAL_NORM_JUNCTION         {1:1}
   +1 CULTURAL_NORM <XREF:CULTURAL_NORM> {1:1}
-  +1 REFERENCE_TYPE <TEXT>              {1:1}	/* The table name this record is attached to (ex. "assertion", "event", "note", "name", "person", "group"). */
+  +1 REFERENCE_TABLE <TEXT>             {1:1}	/* The table name this record is attached to (ex. "assertion", "event", "note", "person", "person name", "group"). */
   +1 REFERENCE_ID <NUMERIC>             {1:1}	/* The ID of the referenced record in the table. */
   +1 CERTAINTY <TEXT>                   {0:1}	/* A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain"). */
-  +1 CREDIBILITY <NUMERIC>              {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence. 0 = unreliable/estimated data 1 = Questionable reliability of evidence. 2 = Secondary evidence, data officially recorded sometime after assertion. 3 = Direct and primary evidence used, or by dominance of the evidence. */
+  +1 CREDIBILITY <NUMERIC>              {0:1}	/* A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence) */
+
+
+/* Other application-related things */
+/* --- */
+
+RESTRICTION_TABLE :=
+n <XREF> RESTRICTION        {1:1}
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "date", "historic date", "event", "place", "historic place", "note", "person name", "person", "group", "media"). */
+  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
+  +1 RESTRICTION <TEXT>     {1:1}	/* Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported). */
+
+MODIFICATION_TABLE :=
+n <XREF> MODIFICATION       {1:1}
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to. */
+  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
+  +1 CREATION_DATE <DATE>   {1:1}	/* The creation date of a record. */
+  +1 UPDATE_DATE <DATE>     {0:1}	/* The changing date of a record. */
+
+RESEARCH_STATUS_TABLE :=
+n <XREF> RESEARCH_STATUS    {1:1}
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to. */
+  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
+  +1 DESCRIPTION <TEXT>     {1:1}	/* The description of the research status. */
+  +1 STATUS <TEXT>          {0:1}	/* Research status (ex. "active": currently being searched, "ended": all the information has been found). */
+  +1 PRIORITY <NUMERIC>     {0:1}	/* Priority. */
+
+CONTACT_TABLE :=
+n <XREF> CONTACT      {1:1}
+  +1 CALLER_ID <TEXT> {1:1}	/* Indicates the name of the person associated with this contact. */
+  +1 NOTE <TEXT>      {0:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. Usually it contains a phone number, languages spoken, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address, or other things. */
+
+CONTACT_JUNCTION_TABLE :=
+n <XREF> CONTACT_JUNCTION   {1:1}
+  +1 CONTACT <XREF:CONTACT> {1:1}
+  +1 REFERENCE_TABLE <TEXT> {1:1}	/* The table name this record is attached to. */
+  +1 REFERENCE_ID <NUMERIC> {1:1}	/* The ID of the referenced record in the table. */
 
 
 
@@ -286,275 +319,3 @@ n <XREF> CULTURAL_NORM_JUNCTION         {1:1}
 /* Possessions and titles related types are: POSSESSION (a list of objects or land owned by the person), TITLE (a title given a person associated with a local or national notion of nobility or royalty), WILL (the creation of a legal document regarding the disposition of a person’s estate upon death), PROBATE (the judicial actions associated with the disposition of the estate of the deceased), DEED (the judicial actions associated with the transferring (conveyancing) the title to a property), GUARDIANSHIP (the act of legally appointing an individual to take care of the affairs of someone who is young or cannot take care of her/himself), ESCROW (an individual's participation in a deed or bond held by a third party until certain conditions are met by other parties), CHANCERY (the resolution through impartial justice between two parties whose claims conflict). */
 /* Religious and social related types are: RELIGION (the name of a religion with which the event was affiliated). */
 /* Custom type: <EVENT_TYPE> (a descriptive word or phrase used to further classify the parent event or the attribute tag). */
-
-
-/*
-
-CREATE TABLE PROJECT
-(
- "ID"               numeric NOT NULL,
- PROTOCOL_NAME      text NOT NULL,
- PROTOCOL_VERSION   text NOT NULL,
- COPYRIGHT          text NOT NULL,
- SUBMITTER_PLACE_ID numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE ASSERTION
-(
- "ID"           numeric NOT NULL,
- CITATION_ID    numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- ROLE           text NULL,
- CERTAINTY      text NULL,
- CREDIBILITY    numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CALENDAR
-(
- "ID" numeric NOT NULL,
- TYPE text NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CITATION
-(
- "ID"         numeric NOT NULL,
- SOURCE_ID    numeric NOT NULL,
- LOCATION     text NULL,
- EXTRACT_ID   numeric NULL,
- EXTRACT_TYPE text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CONTACT
-(
- "ID"        numeric NOT NULL,
- CALLER_ID   text NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CONTACT_JUNCTION
-(
- "ID"           numeric NOT NULL,
- CONTACT_ID     numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE "GROUP"
-(
- "ID"        numeric NOT NULL,
- DESCRIPTION text NULL,
- TYPE        text NULL,
- IMAGE_ID   numeric NULL,
- IMAGE_CROP text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE GROUP_JUNCTION
-(
- "ID"           numeric NOT NULL,
- GROUP_ID       numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- ROLE           text NULL,
- CERTAINTY      text NULL,
- CREDIBILITY    numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CULTURAL_NORM
-(
- "ID"        numeric NOT NULL,
- DESCRIPTION text NOT NULL,
- PLACE_ID    numeric NULL,
- DATE_ID     numeric NULL,
- CERTAINTY   text NULL,
- CREDIBILITY numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE CULTURAL_NORM_JUNCTION
-(
- "ID"             numeric NOT NULL,
- CULTURAL_NORM_ID numeric NOT NULL,
- REFERENCE_TYPE   text NOT NULL,
- REFERENCE_ID     numeric NOT NULL,
- CERTAINTY        text NULL,
- CREDIBILITY      numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE "DATE"
-(
- "ID"                 numeric NOT NULL,
- "DATE"               text NOT NULL,
- CALENDAR_ID          numeric NULL,
- DATE_ORIGINAL        text NULL,
- ORIGINAL_CALENDAR_ID numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE EVENT
-(
- "ID"           numeric NOT NULL,
- EVENT_TYPE     text NOT NULL,
- DESCRIPTION    text NOT NULL,
- PLACE_ID       numeric NULL,
- DATE_ID        numeric NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CERTAINTY      text NULL,
- CREDIBILITY    numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE HISTORIC_DATE
-(
- "ID"        numeric NOT NULL,
- DATE_ID     numeric NOT NULL,
- CERTAINTY   text NULL,
- CREDIBILITY numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE HISTORIC_PLACE
-(
- "ID"        numeric NOT NULL,
- PLACE_ID    numeric NOT NULL,
- CERTAINTY   text NULL,
- CREDIBILITY numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE MEDIA
-(
- "ID"            numeric NOT NULL,
- IDENTIFIER      text NOT NULL,
- TITLE           text NULL,
- TYPE            text NULL,
- IMAGE_SPHERICAL boolean NULL,
- IMAGE_MAPPING   text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE MEDIA_JUNCTION
-(
- "ID"           numeric NOT NULL,
- MEDIA_ID       numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE MODIFICATION
-(
- "ID"           numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CREATION_DATE  date NOT NULL,
- UPDATE_DATE    date NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE NAME
-(
- "ID"       numeric NOT NULL,
- PERSON_ID  numeric NOT NULL,
- NAME_ID    numeric NOT NULL,
- TYPE       text NOT NULL,
- SORT_ORDER text NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE NOTE
-(
- "ID"               numeric NOT NULL,
- RECORD             text NOT NULL,
- LOCALE             text NULL,
- TYPE               text NULL,
- TRANSCRIPTION      text NOT NULL,
- TRANSCRIPTION_TYPE text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE NOTE_JUNCTION
-(
- "ID"           numeric NOT NULL,
- NOTE_ID        numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE PERSON
-(
- "ID"       numeric NOT NULL,
- SEX        text NULL,
- IMAGE_ID   numeric NULL,
- IMAGE_CROP text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE PLACE
-(
- "ID"                 numeric NOT NULL,
- IDENTIFIER           text NOT NULL,
- NAME                 text NULL,
- TYPE                 text NULL,
- "POSITION"           text NULL,
- POSITION_CREDIBILITY numeric NULL,
- PRIMARY_PLACE_ID     numeric NULL,
- IMAGE_ID             numeric NULL,
- IMAGE_CROP           text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE REPOSITORY
-(
- "ID"       numeric NOT NULL,
- IDENTIFIER text NOT NULL,
- TYPE       text NULL,
- PERSON_ID  numeric NOT NULL,
- PLACE_ID   numeric NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE RESEARCH_STATUS
-(
- "ID"           numeric NOT NULL,
- STATUS         text NOT NULL,
- PRIORITY       numeric NOT NULL,
- DESCRIPTION    text NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE RESTRICTION
-(
- "ID"           numeric NOT NULL,
- REFERENCE_TYPE text NOT NULL,
- REFERENCE_ID   numeric NOT NULL,
- RESTRICTION    text NOT NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-CREATE TABLE "SOURCE"
-(
- "ID"          numeric NOT NULL,
- IDENTIFIER    text NOT NULL,
- SOURCE_TYPE   text NULL,
- AUTHOR        text NULL,
- PLACE_ID      numeric NULL,
- DATE_ID       numeric NULL,
- REPOSITORY_ID numeric NOT NULL,
- LOCATION      text NULL,
- CONSTRAINT PK_1 PRIMARY KEY ( "ID" )
-);
-
-*/
