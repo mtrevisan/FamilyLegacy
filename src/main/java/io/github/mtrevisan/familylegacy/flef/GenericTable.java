@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.flef;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -9,6 +10,7 @@ public class GenericTable{
 	private final String name;
 	private final List<GenericColumn> columns;
 	private final List<String> primaryKeys;
+	private final List<String[]> uniques;
 	private final List<ForeignKey> foreignKeys;
 
 	private final List<GenericRecord> records;
@@ -18,6 +20,7 @@ public class GenericTable{
 		this.name = name;
 		this.columns = new ArrayList<>(0);
 		this.primaryKeys = new ArrayList<>(0);
+		this.uniques = new ArrayList<>(0);
 		this.foreignKeys = new ArrayList<>(0);
 
 		this.records = new ArrayList<>(0);
@@ -53,12 +56,20 @@ public class GenericTable{
 		records.add(record);
 	}
 
-	public List<String> getPrimaryKeys() {
+	public List<String> getPrimaryKeys(){
 		return primaryKeys;
 	}
 
-	public void addPrimaryKeyColumn(final String column) {
+	public void addPrimaryKeyColumn(final String column){
 		primaryKeys.add(column);
+	}
+
+	public List<String[]> getUniques(){
+		return uniques;
+	}
+
+	public void addUniques(final String[] columns){
+		uniques.add(columns);
 	}
 
 	public List<ForeignKey> getForeignKeys(){
@@ -74,9 +85,10 @@ public class GenericTable{
 		return "Table{"
 			+ "name='" + name + '\''
 			+ (!columns.isEmpty()? ", columns=" + columns: "")
-			+ (!records.isEmpty()? ", records=" + records: "")
-			+ (! primaryKeys.isEmpty()? ", primaryKeys=" + primaryKeys: "")
+			+ (!primaryKeys.isEmpty()? ", primaryKeys=" + primaryKeys: "")
+			+ (!uniques.isEmpty()? ", uniques=" + Arrays.toString(uniques.stream().map(Arrays::toString).toArray()): "")
 			+ (!foreignKeys.isEmpty()? ", foreignKeys=" + foreignKeys: "")
+			+ (!records.isEmpty()? ", records=" + records: "")
 			+ '}';
 	}
 

@@ -1,8 +1,5 @@
 package io.github.mtrevisan.familylegacy.flef;
 
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class GenericColumn{
 
@@ -11,18 +8,14 @@ public class GenericColumn{
 	private final Integer size;
 	private boolean isNullable;
 	private String primaryKeyOrder;
-	private final List<String> constraints;
 	private String foreignKeyTable;
 	private String foreignKeyColumn;
-	private String defaultValue;
-	private String checkCondition;
 
 
 	public GenericColumn(final String name, final String type, final Integer size){
 		this.name = name;
 		this.type = type;
 		this.size = size;
-		this.constraints = new ArrayList<>(0);
 	}
 
 
@@ -58,14 +51,6 @@ public class GenericColumn{
 		this.primaryKeyOrder = primaryKeyOrder;
 	}
 
-	public List<String> getConstraints(){
-		return constraints;
-	}
-
-	public void addConstraint(final String constraint){
-		this.constraints.add(constraint);
-	}
-
 	public String getForeignKeyTable(){
 		return foreignKeyTable;
 	}
@@ -82,33 +67,16 @@ public class GenericColumn{
 		this.foreignKeyColumn = foreignKeyColumn;
 	}
 
-	public String getDefaultValue(){
-		return defaultValue;
-	}
-
-	public void setDefaultValue(final String defaultValue){
-		this.defaultValue = defaultValue;
-	}
-
-	public String getCheckCondition(){
-		return checkCondition;
-	}
-
-	public void setCheckCondition(final String checkCondition){
-		this.checkCondition = checkCondition;
-	}
-
 	@Override
 	public String toString(){
 		return "Column{"
 			+ "name='" + name + '\''
 			+ ", type='" + type + '\''
+			+ ", size='" + size + '\''
 			+ ", nullable=" + isNullable
-			+ (!constraints.isEmpty()? ", constraints=" + constraints: "")
+			+ (primaryKeyOrder != null? ", primaryKeyOrder='" + primaryKeyOrder + '\'': "")
 			+ (foreignKeyTable != null? ", foreignKeyTable='" + foreignKeyTable + '\'': "")
 			+ (foreignKeyColumn != null? ", foreignKeyColumn='" + foreignKeyColumn + '\'': "")
-			+ (defaultValue != null? ", defaultValue='" + defaultValue + '\'': "")
-			+ (checkCondition != null? ", checkCondition='" + checkCondition + '\'': "")
 			+ '}';
 	}
 
