@@ -17,7 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class SQLFileParser{
+public final class SQLFileParser{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileParser.class);
 
@@ -36,7 +36,7 @@ public class SQLFileParser{
 	private final Map<String, GenericTable> tables = new HashMap<>();
 
 
-	public final void load(final String grammarFile, final String dataFile) throws IOException{
+	public void load(final String grammarFile, final String dataFile) throws IOException{
 		parse(grammarFile);
 
 		populate(dataFile);
