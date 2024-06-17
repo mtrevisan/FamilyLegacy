@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Mauro Trevisan
+ * Copyright (c) 2020 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,24 +22,25 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef;
-
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomFileParser;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarParseException;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.flef.sql.SQLFileParser;
-
-import java.io.IOException;
+package io.github.mtrevisan.familylegacy.flef.gedcom;
 
 
-public class Main{
+final class GedcomGrammarLineCustom extends GedcomGrammarLine{
 
-	public static void main(final String[] args) throws IOException, GedcomGrammarParseException, GedcomParseException{
-		final SQLFileParser sqlParser = new SQLFileParser();
-		sqlParser.load("src/main/resources/gedg/treebard/FLeF.sql", "src/main/resources/gedg/treebard/FLeF.data");
+	private final GedcomNode node;
 
-		final GedcomFileParser gedcomParser = new GedcomFileParser();
-		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+
+	public static GedcomGrammarLineCustom create(final GedcomNode node){
+		return new GedcomGrammarLineCustom(node);
+	}
+
+	private GedcomGrammarLineCustom(final GedcomNode node){
+		this.node = node;
+	}
+
+	@Override
+	public String toString(){
+		return "[custom tag grammar line] " + node;
 	}
 
 }

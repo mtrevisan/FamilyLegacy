@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2021 Mauro Trevisan
+ * Copyright (c) 2020 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,24 +22,31 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef;
-
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomFileParser;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarParseException;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.flef.sql.SQLFileParser;
-
-import java.io.IOException;
+package io.github.mtrevisan.familylegacy.flef.gedcom;
 
 
-public class Main{
+/** The gedcom grammar file needs these keywords before the first structure. */
+enum GrammarFileHeaderKeywords{
 
-	public static void main(final String[] args) throws IOException, GedcomGrammarParseException, GedcomParseException{
-		final SQLFileParser sqlParser = new SQLFileParser();
-		sqlParser.load("src/main/resources/gedg/treebard/FLeF.sql", "src/main/resources/gedg/treebard/FLeF.data");
+	/** The version of the gedcom grammar. */
+	GEDCOM_VERSION("GEDCOM_VERSION"),
+	/** The date of the gedcom grammar. */
+	GEDCOM_DATE("GEDCOM_DATE"),
+	/** The source of the gedcom grammar (The website/file/book/...). */
+	GEDCOM_SOURCE("GEDCOM_SOURCE"),
+	/**
+	 * A description about the gedcom grammar file.
+	 * <p>List any modifications of the grammar structures here and give any additional information.<br>
+	 * The description can have multiple lines. Everything after the GRAMPS_DESCRIPTION keyword and the next keyword or the first
+	 * structure will be taken as description.</p>
+	 */
+	GEDCOM_DESCRIPTION("GEDCOM_DESCRIPTION");
 
-		final GedcomFileParser gedcomParser = new GedcomFileParser();
-		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+
+	final String value;
+
+	GrammarFileHeaderKeywords(final String value){
+		this.value = value;
 	}
 
 }

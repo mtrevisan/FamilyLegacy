@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.flef;
+package io.github.mtrevisan.familylegacy.flef.sql;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.flef;
+package io.github.mtrevisan.familylegacy.flef.sql;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -30,8 +30,14 @@ public class SQLFileParser{
 	private final Map<String, GenericTable> tables = new HashMap<>();
 
 
-	public void parse(final String filePath) throws IOException{
-		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath))){
+	public final void load(final String grammarFile, final String dataFile) throws IOException{
+		parse(grammarFile);
+
+		populate(dataFile);
+	}
+
+	public void parse(final String grammarFile) throws IOException{
+		try(final BufferedReader reader = new BufferedReader(new FileReader(grammarFile))){
 			String line;
 			GenericTable currentTable = null;
 			while((line = reader.readLine()) != null){
@@ -223,9 +229,9 @@ public class SQLFileParser{
 	}
 
 
-	public void populate(final String filePath) throws IOException{
+	public void populate(final String dataFile) throws IOException{
 		final DataPopulator populator = new DataPopulator();
-		populator.populate(tables, filePath);
+		populator.populate(tables, dataFile);
 	}
 
 
