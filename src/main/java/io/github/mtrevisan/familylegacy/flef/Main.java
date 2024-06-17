@@ -25,8 +25,10 @@
 package io.github.mtrevisan.familylegacy.flef;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,21 +38,38 @@ import java.util.Map;
 
 public class Main{
 
-	public static void main(final String[] args){
-		final String filePath = "src/main/resources/ged/small.newflef.ged";
+	public static void main(final String[] args) throws IOException{
+		SQLFileParser parser = new SQLFileParser();
+		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
+		Map<String, GenericTable> tables = parser.getTables();
 
-		final Map<String, List<Map<String, String>>> tables = readTables(filePath);
+		try(InputStream is = new FileInputStream("src/main/resources/gedg/treebard/FLeF.sql")){
+//			final SQLFileParser parser = new SQLFileParser();
+//			parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
 
-		for(final String tableName : tables.keySet()){
-			final List<Map<String, String>> rows = tables.get(tableName);
-			if(rows.isEmpty())
-				continue;
-
-			System.out.println("table: " + tableName);
-			for(final Map<String, String> row : rows)
-				System.out.println(row);
+//			final DataValidator validator = new DataValidator(parser.getTables());
+//			validator.validate("src/main/resources/ged/small.newflef.ged");
+		}
+		catch(final IOException ioe){
+			ioe.printStackTrace();
 		}
 	}
+
+//	public static void main(final String[] args){
+//		final String filePath = "src/main/resources/ged/small.newflef.ged";
+//
+//		final Map<String, List<Map<String, String>>> tables = readTables(filePath);
+//
+//		for(final String tableName : tables.keySet()){
+//			final List<Map<String, String>> rows = tables.get(tableName);
+//			if(rows.isEmpty())
+//				continue;
+//
+//			System.out.println("table: " + tableName);
+//			for(final Map<String, String> row : rows)
+//				System.out.println(row);
+//		}
+//	}
 
 	private static Map<String, List<Map<String, String>>> readTables(final String filePath){
 		final Map<String, List<Map<String, String>>> tables = new HashMap<>();

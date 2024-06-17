@@ -2,7 +2,7 @@
 
 CREATE TABLE ASSERTION
 (
- "ID"            numeric NOT NULL,
+ "ID"            numeric NOT NULL PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,
  REFERENCE_TABLE text NOT NULL,
  REFERENCE_ID    numeric NOT NULL,
