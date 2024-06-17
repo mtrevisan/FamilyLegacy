@@ -161,7 +161,7 @@ LOCALIZED_TEXT_TABLE :=
 n LOCALIZED_TEXT <XREF>        {1:1}
   +1 TEXT <TEXT>               {1:1}	/* Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. */
   +1 LOCALE <TEXT>             {0:1}	/* The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
-  +1 TYPE <TEXT>               {0:1}	/* Can be "original", "translitteration", or "translation" (must be unique among a citation). */
+  +1 TYPE <TEXT>               {0:1}	/* Can be "original", "translitteration", or "translation". */
   +1 TRANSCRIPTION <TEXT>      {0:1}	/* Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul"). */
   +1 TRANSCRIPTION_TYPE <TEXT> {0:1}	/* Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc). */
   +1 REFERENCE_TABLE <TEXT>    {1:1}	/* The table name this record is attached to (ex. "citation", "person name", "place"). */
