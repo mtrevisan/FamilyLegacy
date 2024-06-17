@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class SQLFileParser{
 
 	private static final String SQL_COMMENT = "--";
-	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s]+)\"?");
+	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"]+)\"?");
 	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?");
 	private static final Pattern CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("FOREIGN\\s+KEY\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
@@ -85,6 +85,9 @@ public class SQLFileParser{
 					currentTable.addColumn(column);
 				}
 			}
+
+			if(currentTable != null)
+				tables.put(currentTable.getName(), currentTable);
 		}
 	}
 
@@ -93,16 +96,12 @@ public class SQLFileParser{
 	}
 
 
-//	public static void main(final String[] args){
-//		try{
-//			SQLFileParser parser = new SQLFileParser();
-//			parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
-//
-//			parser.getTables().forEach((tableName, table) -> System.out.println(table));
-//		}
-//		catch(IOException e){
-//			e.printStackTrace();
-//		}
-//	}
+	public static void main(final String[] args) throws IOException{
+		final SQLFileParser parser = new SQLFileParser();
+		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
+
+		parser.getTables()
+			.forEach((tableName, table) -> System.out.println(table));
+	}
 
 }

@@ -43,16 +43,8 @@ public class Main{
 		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
 		Map<String, GenericTable> tables = parser.getTables();
 
-		try(InputStream is = new FileInputStream("src/main/resources/gedg/treebard/FLeF.sql")){
-//			final SQLFileParser parser = new SQLFileParser();
-//			parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
-
-//			final DataValidator validator = new DataValidator(parser.getTables());
-//			validator.validate("src/main/resources/ged/small.newflef.ged");
-		}
-		catch(final IOException ioe){
-			ioe.printStackTrace();
-		}
+		DataPopulator populator = new DataPopulator(tables);
+		populator.populate("src/main/resources/gedg/treebard/FLeF.data");
 	}
 
 //	public static void main(final String[] args){
