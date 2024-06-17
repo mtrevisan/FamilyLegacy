@@ -1,5 +1,9 @@
 package io.github.mtrevisan.familylegacy.flef.sql;
 
+import io.github.mtrevisan.familylegacy.services.TimeWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,6 +18,8 @@ import java.util.regex.Pattern;
 
 
 public class SQLFileParser{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileParser.class);
 
 	private static final String SQL_COMMENT = "--";
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"]+)\"?");
@@ -37,6 +43,10 @@ public class SQLFileParser{
 	}
 
 	public void parse(final String grammarFile) throws IOException{
+		final TimeWatch watch = TimeWatch.start();
+
+		LOGGER.info("Parsing FLeF format...");
+
 		try(final BufferedReader reader = new BufferedReader(new FileReader(grammarFile))){
 			String line;
 			GenericTable currentTable = null;
@@ -87,10 +97,14 @@ public class SQLFileParser{
 
 			if(currentTable != null)
 				tables.put(currentTable.getName(), currentTable);
-		}
 
-		validatePrimaryKeys();
-		validateForeignKeys();
+			validatePrimaryKeys();
+			validateForeignKeys();
+		}
+		finally{
+			watch.stop();
+			LOGGER.info("Parsed FLeF format in {}", watch.toStringMillis());
+		}
 	}
 
 	private static void handlePrimaryKeyConstraint(final Matcher matcher, final GenericTable currentTable){
