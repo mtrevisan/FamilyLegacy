@@ -2,40 +2,50 @@ package io.github.mtrevisan.familylegacy.flef;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 
-public class GenericTable{
+class GenericTable{
+
+	static final GenericKey NO_KEY = new GenericKey(null);
+
 
 	private final String name;
 	private final List<GenericColumn> columns;
-	private final List<String> primaryKeys;
-	private final List<String[]> uniques;
-	private final List<ForeignKey> foreignKeys;
+	private final Set<String> primaryKeys;
+	private final Set<String[]> uniques;
+	private final Set<ForeignKey> foreignKeys;
 
-	private final List<GenericRecord> records;
+	private final Map<String, Integer> columnIndex;
+	private final Map<GenericKey, GenericRecord> records;
 
 
-	public GenericTable(final String name){
+	GenericTable(final String name){
 		this.name = name;
-		this.columns = new ArrayList<>(0);
-		this.primaryKeys = new ArrayList<>(0);
-		this.uniques = new ArrayList<>(0);
-		this.foreignKeys = new ArrayList<>(0);
+		columns = new ArrayList<>(0);
+		primaryKeys = new HashSet<>(0);
+		uniques = new HashSet<>(0);
+		foreignKeys = new HashSet<>(0);
 
-		this.records = new ArrayList<>(0);
+		columnIndex = new HashMap<>(0);
+		records = new HashMap<>(0);
 	}
 
 
-	public String getName(){
+	String getName(){
 		return name;
 	}
 
-	public List<GenericColumn> getColumns(){
+	List<GenericColumn> getColumns(){
 		return columns;
 	}
 
-	public GenericColumn findColumn(final String name){
+	GenericColumn findColumn(final String name){
 		for(int i = 0, length = columns.size(); i < length; i ++){
 			final GenericColumn column = columns.get(i);
 			if(column.getName().equals(name))
@@ -44,41 +54,68 @@ public class GenericTable{
 		return null;
 	}
 
-	public void addColumn(final GenericColumn column){
+	void addColumn(final GenericColumn column){
+		columnIndex.put(column.getName(), columnIndex.size());
+
 		columns.add(column);
 	}
 
-	public List<GenericRecord> getRecords(){
+	Map<GenericKey, GenericRecord> getRecords(){
 		return records;
 	}
 
-	public void addRecord(final GenericRecord record){
-		records.add(record);
+	void addRecord(final GenericRecord record){
+		final GenericKey primaryKeyValue = extractKey(record);
+
+		records.put(primaryKeyValue, record);
 	}
 
-	public List<String> getPrimaryKeys(){
+	private GenericKey extractKey(final GenericRecord record){
+		final Object[] primaryKeyValue = new Object[primaryKeys.size()];
+		int index = 0;
+		for(final String primaryKey : primaryKeys)
+			primaryKeyValue[index ++] = getValueForColumn(record, primaryKey);
+		return new GenericKey(primaryKeyValue);
+	}
+
+	Set<String> getPrimaryKeys(){
 		return primaryKeys;
 	}
 
-	public void addPrimaryKeyColumn(final String column){
+	void addPrimaryKeyColumn(final String column){
 		primaryKeys.add(column);
 	}
 
-	public List<String[]> getUniques(){
+	Set<String[]> getUniques(){
 		return uniques;
 	}
 
-	public void addUniques(final String[] columns){
+	void addUniques(final String[] columns){
 		uniques.add(columns);
 	}
 
-	public List<ForeignKey> getForeignKeys(){
+	Set<ForeignKey> getForeignKeys(){
 		return foreignKeys;
 	}
 
-	public void addForeignKey(final ForeignKey foreignKey){
+	void addForeignKey(final ForeignKey foreignKey){
 		foreignKeys.add(foreignKey);
 	}
+
+
+	boolean hasRecord(final GenericKey primaryKeyValue){
+		return records.containsKey(primaryKeyValue);
+	}
+
+	GenericRecord findRecord(final GenericKey primaryKeyValue){
+		return records.get(primaryKeyValue);
+	}
+
+	Object getValueForColumn(final GenericRecord record, final String columnName){
+		final Integer index = columnIndex.get(columnName);
+		return (index != null? record.getFields()[index]: NO_KEY);
+	}
+
 
 	@Override
 	public String toString(){

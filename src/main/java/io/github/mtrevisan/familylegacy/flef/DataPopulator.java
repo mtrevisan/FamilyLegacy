@@ -5,7 +5,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +14,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
-public class DataPopulator{
+class DataPopulator{
 
 	private static final String FIELD_SEPARATOR = "|";
 	private static final String SPACE = " ";
@@ -23,17 +22,12 @@ public class DataPopulator{
 	private static final Pattern HEADER_PATTERN = Pattern.compile("\\|?([^|]+)\\|?");
 
 
-	private final Map<String, GenericTable> tables;
+	DataPopulator(){}
 
 
-	public DataPopulator(final Map<String, GenericTable> tables){
-		this.tables = tables;
-	}
-
-
-	public void populate(final String filePath) throws IOException{
+	void populate(final Map<String, GenericTable> tables, final String filePath) throws IOException{
 		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath))){
-			String currentTableName = null;
+			GenericTable currentTable = null;
 			List<String> currentTableHeaders = new ArrayList<>(0);
 			String[] currentTableData = null;
 
@@ -50,26 +44,23 @@ public class DataPopulator{
 
 				Matcher matcher = TABLE_NAME_PATTERN.matcher(line);
 				if(matcher.find()){
-					if(currentTableData != null){
-						final GenericTable currentTable = tables.get(currentTableName);
-						if(currentTable == null)
-							throw new IllegalArgumentException("Table " + currentTableName + " not found");
+					if(currentTableData != null)
 						currentTable.addRecord(GenericRecord.create(currentTableData));
-					}
 
-					currentTableName = matcher.group(1);
+					final String currentTableName = matcher.group(1);
+					currentTable = tables.get(currentTableName);
+					if(currentTable == null)
+						throw new IllegalArgumentException("Table " + currentTableName + " not found");
 
 					currentTableHeaders.clear();
+					currentTableData = null;
 				}
-				else if(currentTableName != null){
+				else if(currentTable != null){
 					if(currentTableHeaders.isEmpty()){
 						//assume this is the header line
 						currentTableHeaders = parseHeaders(line);
 
 						//perform schema validation
-						final GenericTable currentTable = tables.get(currentTableName);
-						if(currentTable == null)
-							throw new IllegalArgumentException("Table " + currentTableName + " not found");
 						final Set<String> columnNames = currentTable.getColumns().stream()
 							.map(GenericColumn::getName)
 							.collect(Collectors.toSet());
@@ -79,14 +70,18 @@ public class DataPopulator{
 								+ ", found " + currentTableHeaders);
 					}
 					else{
+						if(currentTableData != null)
+							currentTable.addRecord(GenericRecord.create(currentTableData));
+
 						//assume this is a data line
 						currentTableData = parseDataRow(line);
-
-						//TODO perform data validation
 					}
 				}
 			}
 		}
+
+		//TODO validateDataType(tables);
+		validateForeignKeys(tables);
 	}
 
 	private static List<String> parseHeaders(final String line){
@@ -107,37 +102,35 @@ public class DataPopulator{
 		return rowData;
 	}
 
+	private void validateForeignKeys(final Map<String, GenericTable> tables){
+		for(final GenericTable table : tables.values()){
+			final String tableName = table.getName();
+			final Set<ForeignKey> foreignKeys = table.getForeignKeys();
 
-	public static void main(final String[] args) throws IOException{
-		final SQLFileParser parser = new SQLFileParser();
-		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
+			final Map<GenericKey, GenericRecord> records = table.getRecords();
+			for(final Map.Entry<GenericKey, GenericRecord> record : records.entrySet()){
+				final GenericKey recordKey = record.getKey();
+				final GenericRecord recordRow = record.getValue();
 
-		final DataPopulator populator = new DataPopulator(parser.getTables());
-		populator.populate("src/main/resources/gedg/treebard/FLeF.data");
+				for(final ForeignKey foreignKey : foreignKeys){
+					final String[] tableColumnName = foreignKey.columnName();
+					final String referencedTableName = foreignKey.foreignTable();
 
-		populator.tables.forEach((tableName, table) -> {
-			final List<GenericRecord> records = table.getRecords();
-			if(!records.isEmpty()){
-				System.out.println(tableName);
-				records.forEach(datum -> {
-					final List<GenericColumn> columns = table.getColumns();
-					final Map<String, Object> result = new LinkedHashMap<>(columns.size());
-						final String[] fields = datum.getFields();
-					int i = 0;
-					for(final GenericColumn column : columns){
-						if(i == fields.length)
-							break;
-
-						if(fields[i] != null)
-							result.put(column.getName(), fields[i]);
-
-						i ++;
+					for(int i = 0, length = tableColumnName.length; i < length; i ++){
+						String column = tableColumnName[i];
+						final Object key = table.getValueForColumn(recordRow, column);
+						if(key != GenericTable.NO_KEY){
+							final GenericTable referencedTable = tables.get(referencedTableName);
+							if(!referencedTable.hasRecord(recordKey)){
+								referencedTable.hasRecord(recordKey);
+								throw new IllegalArgumentException("Table " + referencedTableName + " does not have record " + key
+									+ " referenced by " + tableName + "." + column);
+							}
+						}
 					}
-					System.out.println(result);
-				});
-				System.out.println();
+				}
 			}
-		});
+		}
 	}
 
 }

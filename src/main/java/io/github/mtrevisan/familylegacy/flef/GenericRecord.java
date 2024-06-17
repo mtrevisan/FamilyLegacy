@@ -3,22 +3,22 @@ package io.github.mtrevisan.familylegacy.flef;
 import java.util.Arrays;
 
 
-public class GenericRecord{
+class GenericRecord{
 
-	private final String[] fields;
+	private final Object[] fields;
 
 
-	public static GenericRecord create(final String[] fields){
+	static GenericRecord create(final Object[] fields){
 		return new GenericRecord(fields);
 	}
 
 
-	private GenericRecord(final String[] fields){
+	private GenericRecord(final Object[] fields){
 		this.fields = fields;
 	}
 
 
-	public String[] getFields(){
+	Object[] getFields(){
 		return fields;
 	}
 

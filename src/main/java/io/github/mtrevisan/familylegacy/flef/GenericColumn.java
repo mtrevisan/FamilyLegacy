@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.flef;
 
 
-public class GenericColumn{
+class GenericColumn{
 
 	private final String name;
 	private final String type;
@@ -12,60 +12,61 @@ public class GenericColumn{
 	private String foreignKeyColumn;
 
 
-	public GenericColumn(final String name, final String type, final Integer size){
+	GenericColumn(final String name, final String type, final Integer size){
 		this.name = name;
 		this.type = type;
 		this.size = size;
 	}
 
 
-	public String getName(){
+	String getName(){
 		return name;
 	}
 
-	public String getType(){
+	String getType(){
 		return type;
 	}
 
-	public Integer getSize(){
+	Integer getSize(){
 		return size;
 	}
 
-	public boolean isNullable(){
+	boolean isNullable(){
 		return isNullable;
 	}
 
-	public void setNullable(final boolean nullable){
+	void setNullable(final boolean nullable){
 		isNullable = nullable;
 	}
 
-	public boolean isPrimaryKey(){
+	boolean isPrimaryKey(){
 		return (primaryKeyOrder != null);
 	}
 
-	public String getPrimaryKeyOrder(){
+	String getPrimaryKeyOrder(){
 		return primaryKeyOrder;
 	}
 
-	public void setPrimaryKeyOrder(final String primaryKeyOrder){
+	void setPrimaryKeyOrder(final String primaryKeyOrder){
 		this.primaryKeyOrder = primaryKeyOrder;
 	}
 
-	public String getForeignKeyTable(){
+	String getForeignKeyTable(){
 		return foreignKeyTable;
 	}
 
-	public void setForeignKeyTable(final String foreignKeyTable){
+	void setForeignKeyTable(final String foreignKeyTable){
 		this.foreignKeyTable = foreignKeyTable;
 	}
 
-	public String getForeignKeyColumn(){
+	String getForeignKeyColumn(){
 		return foreignKeyColumn;
 	}
 
-	public void setForeignKeyColumn(final String foreignKeyColumn){
+	void setForeignKeyColumn(final String foreignKeyColumn){
 		this.foreignKeyColumn = foreignKeyColumn;
 	}
+
 
 	@Override
 	public String toString(){
