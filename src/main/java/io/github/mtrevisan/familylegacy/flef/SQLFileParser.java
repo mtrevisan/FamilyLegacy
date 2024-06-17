@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +75,10 @@ public class SQLFileParser{
 		final String primaryKeyName = matcher.group(2);
 		final String primaryKeySortOrder = matcher.group(3);
 		final GenericColumn primaryKeyColumn = currentTable.findColumn(primaryKeyName);
+		if(primaryKeyColumn == null)
+			throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + primaryKeyName);
+
+		currentTable.addPrimaryKeyColumn(primaryKeyName);
 		primaryKeyColumn.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)
 			? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
 	}
@@ -85,6 +90,7 @@ public class SQLFileParser{
 		final GenericColumn foreignKeyColumn = currentTable.findColumn(columnName);
 		foreignKeyColumn.setForeignKeyTable(foreignTable);
 		foreignKeyColumn.setForeignKeyColumn(foreignColumn);
+		currentTable.addForeignKey(new ForeignKey(columnName, foreignTable, foreignColumn));
 	}
 
 	private static void handleColumnDefinition(final Matcher matcher, final GenericTable currentTable){
@@ -99,6 +105,8 @@ public class SQLFileParser{
 			column.setNullable(true);
 		final String primaryKey = matcher.group(5);
 		if(primaryKey != null){
+			currentTable.addPrimaryKeyColumn(columnName);
+
 			final String primaryKeySortOrder = matcher.group(6);
 			column.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
 		}
@@ -111,6 +119,8 @@ public class SQLFileParser{
 			final String tableName = table.getName();
 
 			final List<String> primaryKeys = table.getPrimaryKeys();
+			if(primaryKeys.isEmpty())
+				throw new IllegalArgumentException("Table " + tableName + " does not have primary keys");
 			for(final String primaryKeyName : primaryKeys)
 				if(table.findColumn(primaryKeyName) == null)
 					throw new IllegalArgumentException("Table " + tableName + " does not have column " + primaryKeyName);
@@ -144,7 +154,8 @@ public class SQLFileParser{
 					if(!referencedColumn.isPrimaryKey())
 						throw new IllegalArgumentException("Table " + tableName + ", referenced column " + referencedTable.getName()
 							+ "." + referencedColumnName + " is not a primary key");
-					if(!tableColumn.getType().equals(referencedColumn.getType()) || !tableColumn.getSize().equals(referencedColumn.getSize()))
+					if(!Objects.equals(tableColumn.getType(), referencedColumn.getType())
+							|| !Objects.equals(tableColumn.getSize(), referencedColumn.getSize()))
 						throw new IllegalArgumentException("Column " + tableName + "." + tableColumnName + " and referenced column "
 							+ referencedTable.getName() + "." + referencedColumnName + " does not have the same type or size");
 				}
