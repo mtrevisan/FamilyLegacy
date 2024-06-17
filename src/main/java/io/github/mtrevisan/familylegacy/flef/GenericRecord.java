@@ -1,28 +1,24 @@
 package io.github.mtrevisan.familylegacy.flef;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 
 public class GenericRecord{
 
-	private final Map<String, Object> fields;
+	private final String[] fields;
 
 
-	public GenericRecord(){
-		this.fields = new HashMap<>();
+	public static GenericRecord create(final String[] fields){
+		return new GenericRecord(fields);
 	}
 
 
-	public void setField(final String key, final Object value){
-		fields.put(key, value);
+	private GenericRecord(final String[] fields){
+		this.fields = fields;
 	}
 
-	public Object getField(final String key){
-		return fields.get(key);
-	}
 
-	public Map<String, Object> getFields(){
+	public String[] getFields(){
 		return fields;
 	}
 
@@ -30,7 +26,7 @@ public class GenericRecord{
 	@Override
 	public String toString(){
 		return "Record{"
-			+ "fields=" + fields
+			+ "fields=" + Arrays.toString(fields)
 			+ '}';
 	}
 

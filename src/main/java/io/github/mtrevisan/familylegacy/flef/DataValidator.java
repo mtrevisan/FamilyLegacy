@@ -31,30 +31,31 @@ public class DataValidator{
 		final String[] parts = line.split(":");
 		final String tableName = parts[0].trim();
 		final String recordString = parts[1].trim();
-		final GenericRecord record = parseRecord(recordString);
-
-		if(tables.containsKey(tableName)){
-			final List<GenericRecord> records = tables.get(tableName);
-			if(records.contains(record))
-				System.out.println("Record validated: " + record);
-			else
-				System.out.println("Record not found: " + record);
-		}
-		else
-			System.out.println("Table not found: " + tableName);
+//		final GenericRecord record = parseRecord(recordString);
+//
+//		if(tables.containsKey(tableName)){
+//			final List<GenericRecord> records = tables.get(tableName);
+//			if(records.contains(record))
+//				System.out.println("Record validated: " + record);
+//			else
+//				System.out.println("Record not found: " + record);
+//		}
+//		else
+//			System.out.println("Table not found: " + tableName);
 	}
 
 	private GenericRecord parseRecord(final String recordString){
-		final GenericRecord record = new GenericRecord();
-		final String[] fields = recordString.split(",");
-		for(final String field : fields){
-			final String[] keyValue = field.trim()
-				.split("=");
-			final String key = keyValue[0].trim();
-			final String value = keyValue[1].trim();
-			record.setField(key, value);
-		}
-		return record;
+//		final GenericRecord record = GenericRecord.create();
+//		final String[] fields = recordString.split(",");
+//		for(final String field : fields){
+//			final String[] keyValue = field.trim()
+//				.split("=");
+//			final String key = keyValue[0].trim();
+//			final String value = keyValue[1].trim();
+//			record.setField(key, value);
+//		}
+//		return record;
+		return null;
 	}
 
 }

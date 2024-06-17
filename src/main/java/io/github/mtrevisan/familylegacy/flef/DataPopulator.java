@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +24,6 @@ public class DataPopulator{
 
 
 	private final Map<String, GenericTable> tables;
-	private final Map<String, List<String[]>> tableData = new HashMap<>();
 
 
 	public DataPopulator(final Map<String, GenericTable> tables){
@@ -37,7 +35,7 @@ public class DataPopulator{
 		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath))){
 			String currentTableName = null;
 			List<String> currentTableHeaders = new ArrayList<>(0);
-			List<String[]> currentTableData = new ArrayList<>(0);
+			String[] currentTableData = null;
 
 			String line;
 			while((line = reader.readLine()) != null){
@@ -52,10 +50,11 @@ public class DataPopulator{
 
 				Matcher matcher = TABLE_NAME_PATTERN.matcher(line);
 				if(matcher.find()){
-					if(!currentTableData.isEmpty()){
-						tableData.put(currentTableName, currentTableData);
-
-						currentTableData = new ArrayList<>();
+					if(currentTableData != null){
+						final GenericTable currentTable = tables.get(currentTableName);
+						if(currentTable == null)
+							throw new IllegalArgumentException("Table " + currentTableName + " not found");
+						currentTable.addRecord(GenericRecord.create(currentTableData));
 					}
 
 					currentTableName = matcher.group(1);
@@ -81,11 +80,9 @@ public class DataPopulator{
 					}
 					else{
 						//assume this is a data line
-						final String[] rowData = parseDataRow(line);
+						currentTableData = parseDataRow(line);
 
 						//TODO perform data validation
-
-						currentTableData.add(rowData);
 					}
 				}
 			}
@@ -118,20 +115,21 @@ public class DataPopulator{
 		final DataPopulator populator = new DataPopulator(parser.getTables());
 		populator.populate("src/main/resources/gedg/treebard/FLeF.data");
 
-		populator.tableData.forEach((tableName, tableData) -> {
-			if(!tableData.isEmpty()){
+		populator.tables.forEach((tableName, table) -> {
+			final List<GenericRecord> records = table.getRecords();
+			if(!records.isEmpty()){
 				System.out.println(tableName);
-				tableData.forEach(datum -> {
-					final GenericTable table = parser.getTables().get(tableName);
+				records.forEach(datum -> {
 					final List<GenericColumn> columns = table.getColumns();
 					final Map<String, Object> result = new LinkedHashMap<>(columns.size());
+						final String[] fields = datum.getFields();
 					int i = 0;
 					for(final GenericColumn column : columns){
-						if(i == datum.length)
+						if(i == fields.length)
 							break;
 
-						if(datum[i] != null)
-							result.put(column.getName(), datum[i]);
+						if(fields[i] != null)
+							result.put(column.getName(), fields[i]);
 
 						i ++;
 					}

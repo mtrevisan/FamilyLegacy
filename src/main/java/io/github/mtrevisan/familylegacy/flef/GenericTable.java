@@ -8,17 +8,19 @@ public class GenericTable{
 
 	private final String name;
 	private final List<GenericColumn> columns;
+	private final List<String> primaryKeys;
+	private final List<ForeignKey> foreignKeys;
+
 	private final List<GenericRecord> records;
-	private final List<String> primaryKey;
-	private final List<String> foreignKeys;
 
 
 	public GenericTable(final String name){
 		this.name = name;
-		this.columns = new ArrayList<>();
-		this.records = new ArrayList<>();
-		this.primaryKey = new ArrayList<>();
-		this.foreignKeys = new ArrayList<>();
+		this.columns = new ArrayList<>(0);
+		this.primaryKeys = new ArrayList<>(0);
+		this.foreignKeys = new ArrayList<>(0);
+
+		this.records = new ArrayList<>(0);
 	}
 
 
@@ -51,19 +53,19 @@ public class GenericTable{
 		records.add(record);
 	}
 
-	public List<String> getPrimaryKey() {
-		return primaryKey;
+	public List<String> getPrimaryKeys() {
+		return primaryKeys;
 	}
 
 	public void addPrimaryKeyColumn(final String column) {
-		primaryKey.add(column);
+		primaryKeys.add(column);
 	}
 
-	public List<String> getForeignKeys(){
+	public List<ForeignKey> getForeignKeys(){
 		return foreignKeys;
 	}
 
-	public void addForeignKey(final String foreignKey){
+	public void addForeignKey(final ForeignKey foreignKey){
 		foreignKeys.add(foreignKey);
 	}
 
@@ -73,7 +75,7 @@ public class GenericTable{
 			+ "name='" + name + '\''
 			+ (!columns.isEmpty()? ", columns=" + columns: "")
 			+ (!records.isEmpty()? ", records=" + records: "")
-			+ (!primaryKey.isEmpty()? ", primaryKey=" + primaryKey: "")
+			+ (! primaryKeys.isEmpty()? ", primaryKeys=" + primaryKeys: "")
 			+ (!foreignKeys.isEmpty()? ", foreignKeys=" + foreignKeys: "")
 			+ '}';
 	}

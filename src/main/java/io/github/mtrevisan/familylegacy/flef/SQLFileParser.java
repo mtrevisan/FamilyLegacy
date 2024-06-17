@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,50 +47,111 @@ public class SQLFileParser{
 
 				matcher = CONSTRAINT_PATTERN.matcher(line);
 				if(matcher.find()){
-					final String primaryKeyName = matcher.group(2);
-					final String primaryKeySortOrder = matcher.group(3);
-					final GenericColumn primaryKeyColumn = currentTable.findColumn(primaryKeyName);
-					primaryKeyColumn.setPrimaryKey(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)
-						? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
+					handleConstraint(matcher, currentTable);
 					continue;
 				}
 
 				matcher = FOREIGN_KEY_PATTERN.matcher(line);
 				if(matcher.find()){
-					final String columnName = matcher.group(1);
-					final String foreignTable = matcher.group(2);
-					final String foreignColumn = matcher.group(3);
-					final GenericColumn foreignKeyColumn = currentTable.findColumn(columnName);
-					foreignKeyColumn.setForeignKeyTable(foreignTable);
-					foreignKeyColumn.setForeignKeyColumn(foreignColumn);
+					handleForeignKey(matcher, currentTable);
 					continue;
 				}
 
 				matcher = COLUMN_DEFINITION_PATTERN.matcher(line);
-				if(matcher.find()){
-					final String columnName = matcher.group(1);
-					final String columnType = matcher.group(2);
-					final String columnSize = matcher.group(3);
-					final GenericColumn column = new GenericColumn(columnName, columnType,
-						(columnSize != null? Integer.parseInt(columnSize): null));
-
-					final String notNull = matcher.group(4);
-					if(notNull != null && !notNull.contains(SQL_NOT))
-						column.setNullable(true);
-					final String primaryKey = matcher.group(5);
-					if(primaryKey != null){
-						final String primaryKeySortOrder = matcher.group(6);
-						column.setPrimaryKey(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
-					}
-
-					currentTable.addColumn(column);
-				}
+				if(matcher.find())
+					handleColumnDefinition(matcher, currentTable);
 			}
 
 			if(currentTable != null)
 				tables.put(currentTable.getName(), currentTable);
 		}
+
+		validatePrimaryKeys();
+		validateForeignKeys();
 	}
+
+	private static void handleConstraint(final Matcher matcher, final GenericTable currentTable){
+		final String primaryKeyName = matcher.group(2);
+		final String primaryKeySortOrder = matcher.group(3);
+		final GenericColumn primaryKeyColumn = currentTable.findColumn(primaryKeyName);
+		primaryKeyColumn.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)
+			? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
+	}
+
+	private static void handleForeignKey(final Matcher matcher, final GenericTable currentTable){
+		final String columnName = matcher.group(1);
+		final String foreignTable = matcher.group(2);
+		final String foreignColumn = matcher.group(3);
+		final GenericColumn foreignKeyColumn = currentTable.findColumn(columnName);
+		foreignKeyColumn.setForeignKeyTable(foreignTable);
+		foreignKeyColumn.setForeignKeyColumn(foreignColumn);
+	}
+
+	private static void handleColumnDefinition(final Matcher matcher, final GenericTable currentTable){
+		final String columnName = matcher.group(1);
+		final String columnType = matcher.group(2);
+		final String columnSize = matcher.group(3);
+		final GenericColumn column = new GenericColumn(columnName, columnType,
+			(columnSize != null? Integer.parseInt(columnSize): null));
+
+		final String notNull = matcher.group(4);
+		if(notNull != null && !notNull.contains(SQL_NOT))
+			column.setNullable(true);
+		final String primaryKey = matcher.group(5);
+		if(primaryKey != null){
+			final String primaryKeySortOrder = matcher.group(6);
+			column.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
+		}
+
+		currentTable.addColumn(column);
+	}
+
+	private void validatePrimaryKeys(){
+		for(final GenericTable table : tables.values()){
+			final String tableName = table.getName();
+
+			final List<String> primaryKeys = table.getPrimaryKeys();
+			for(final String primaryKeyName : primaryKeys)
+				if(table.findColumn(primaryKeyName) == null)
+					throw new IllegalArgumentException("Table " + tableName + " does not have column " + primaryKeyName);
+		}
+	}
+
+	private void validateForeignKeys(){
+		for(final GenericTable table : tables.values()){
+			final String tableName = table.getName();
+
+			final List<ForeignKey> foreignKeys = table.getForeignKeys();
+			if(!foreignKeys.isEmpty()){
+				for(final ForeignKey entry : foreignKeys){
+					final String referencedTableName = entry.foreignTable();
+					final GenericTable referencedTable = tables.get(referencedTableName);
+					final String referencedColumnName = entry.foreignColumn();
+
+					final String tableColumnName = entry.columnName();
+					final GenericColumn tableColumn = table.findColumn(tableColumnName);
+					if(tableColumn == null)
+						throw new IllegalArgumentException("Table " + tableName + " does not have column " + tableColumnName);
+
+					if(referencedTable == null)
+						throw new IllegalArgumentException("Table " + tableName + ", referenced table " + referencedTableName
+							+ " does not exists");
+
+					final GenericColumn referencedColumn = referencedTable.findColumn(referencedColumnName);
+					if(referencedColumn == null)
+						throw new IllegalArgumentException("Table " + tableName + ", referenced table " + referencedTable.getName()
+							+ " does not contains column " + referencedColumnName);
+					if(!referencedColumn.isPrimaryKey())
+						throw new IllegalArgumentException("Table " + tableName + ", referenced column " + referencedTable.getName()
+							+ "." + referencedColumnName + " is not a primary key");
+					if(!tableColumn.getType().equals(referencedColumn.getType()) || !tableColumn.getSize().equals(referencedColumn.getSize()))
+						throw new IllegalArgumentException("Column " + tableName + "." + tableColumnName + " and referenced column "
+							+ referencedTable.getName() + "." + referencedColumnName + " does not have the same type or size");
+				}
+			}
+		}
+	}
+
 
 	public Map<String, GenericTable> getTables(){
 		return tables;

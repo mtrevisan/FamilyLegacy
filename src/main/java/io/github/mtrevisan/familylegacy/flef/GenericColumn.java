@@ -10,7 +10,7 @@ public class GenericColumn{
 	private final String type;
 	private final Integer size;
 	private boolean isNullable;
-	private String primaryKey;
+	private String primaryKeyOrder;
 	private final List<String> constraints;
 	private String foreignKeyTable;
 	private String foreignKeyColumn;
@@ -22,7 +22,7 @@ public class GenericColumn{
 		this.name = name;
 		this.type = type;
 		this.size = size;
-		this.constraints = new ArrayList<>();
+		this.constraints = new ArrayList<>(0);
 	}
 
 
@@ -46,12 +46,16 @@ public class GenericColumn{
 		isNullable = nullable;
 	}
 
-	public String getPrimaryKey(){
-		return primaryKey;
+	public boolean isPrimaryKey(){
+		return (primaryKeyOrder != null);
 	}
 
-	public void setPrimaryKey(final String primaryKey){
-		this.primaryKey = primaryKey;
+	public String getPrimaryKeyOrder(){
+		return primaryKeyOrder;
+	}
+
+	public void setPrimaryKeyOrder(final String primaryKeyOrder){
+		this.primaryKeyOrder = primaryKeyOrder;
 	}
 
 	public List<String> getConstraints(){
