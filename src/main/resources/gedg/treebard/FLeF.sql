@@ -55,6 +55,8 @@ CREATE TABLE REPOSITORY
  IDENTIFIER text NOT NULL UNIQUE,	-- Repository identifier (must be unique, ex. "familysearch.org", or "University College London").
  "TYPE"     text,							-- Repository type (ex. "public library", "college library", "national library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "library", "government agency", "funeral home", "private library", "prison library", "trunk in the attic").
  PERSON_ID  numeric,						-- An xref ID of the person, if present in the tree and is the repository of a source.
+ PLACE_ID   numeric,						-- The place this repository is.
+ FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" )
 );
 
@@ -157,6 +159,7 @@ CREATE TABLE MEDIA_JUNCTION
 (
  "ID"            numeric PRIMARY KEY,
  MEDIA_ID        numeric NOT NULL,
+ IMAGE_CROP      text,					-- Top-left and bottom-right coordinates of the enclosing box inside an image.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" )
