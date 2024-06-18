@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.flef;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericColumn;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericRecord;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericTable;
-import org.h2.tools.RunScript;
+//import org.h2.tools.RunScript;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -81,12 +81,12 @@ public class DatabaseManager{
 				foreignKeyConstraints.add(foreignKeyMatcher.group());
 
 			//execute table creation scripts
-			for(final String tableCreation : tableCreations)
-				RunScript.execute(connection, new StringReader(tableCreation));
+//			for(final String tableCreation : tableCreations)
+//				RunScript.execute(connection, new StringReader(tableCreation));
 
 			//execute foreign key constraint scripts
-			for(final String foreignKeyConstraint : foreignKeyConstraints)
-				RunScript.execute(connection, new StringReader(foreignKeyConstraint));
+//			for(final String foreignKeyConstraint : foreignKeyConstraints)
+//				RunScript.execute(connection, new StringReader(foreignKeyConstraint));
 
 			System.out.println("Database initialized successfully.");
 		}

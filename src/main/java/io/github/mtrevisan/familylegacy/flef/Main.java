@@ -51,8 +51,8 @@ public class Main{
 		final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
 		sqlParser.load(grammarFile, "src/main/resources/gedg/treebard/FLeF.data");
 
-		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
-		dbManager.initialize(grammarFile);
+//		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
+//		dbManager.initialize(grammarFile);
 	}
 
 }
