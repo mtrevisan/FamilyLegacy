@@ -204,14 +204,16 @@ CREATE TABLE GROUP_JUNCTION
 
 -- Event
 
--- 1. Assertion can be made about "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name".
--- 2. A conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated.
--- 3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (a "place") at a certain time (a "date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name").
+/*
+1. Assertion can be made about "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name".
+2. A conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated.
+3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (a "place") at a certain time (a "date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name").
+*/
 CREATE TABLE EVENT
 (
  "ID"            numeric PRIMARY KEY,
  EVENT_TYPE      text NOT NULL,		-- (ex. "historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award")
- DESCRIPTION     text,					-- The description of the event.
+ DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        numeric,				-- The place this event happened.
  DATE_ID         numeric,				-- The date this event has happened.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "repository", "cultural norm", "calendar", "media", "person name").
@@ -224,10 +226,12 @@ CREATE TABLE EVENT
 -- Cultural norm
 
 -- Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assertions made about a citation.
--- Ex.
--- 1. per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
--- 2. uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
--- 3. donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
+/*
+Ex.
+ - per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
+ - uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
+ - donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
+*/
 CREATE TABLE CULTURAL_NORM
 (
  "ID"        numeric PRIMARY KEY,

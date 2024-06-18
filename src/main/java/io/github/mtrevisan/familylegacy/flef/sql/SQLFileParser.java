@@ -22,7 +22,9 @@ public final class SQLFileParser{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileParser.class);
 
-	private static final String SQL_COMMENT = "--";
+	private static final String SQL_COMMENT_LINE_START = "--";
+	private static final String SQL_COMMENT_BLOCK_START = "/*";
+	private static final String SQL_COMMENT_BLOCK_END = "*/";
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"(]+)\"?");
 	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s,]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?(\\s+FOREIGN\\s+KEY\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?");
 	private static final Pattern PRIMARY_KEY_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
@@ -51,12 +53,43 @@ public final class SQLFileParser{
 		try(final BufferedReader reader = new BufferedReader(new FileReader(grammarFile))){
 			String line;
 			GenericTable currentTable = null;
+			boolean inBlockComment = false;
 			while((line = reader.readLine()) != null){
 				line = line.trim();
 
-				if(line.isEmpty() || line.startsWith(SQL_COMMENT))
+				//manage comments:
+				if(inBlockComment){
+					final int blockCommentEnd = line.indexOf(SQL_COMMENT_BLOCK_END);
+					if(blockCommentEnd < 0)
+						continue;
+
+					line = line.substring(blockCommentEnd + SQL_COMMENT_BLOCK_END.length());
+					inBlockComment = false;
+				}
+				else{
+					final int blockCommentStart = line.indexOf(SQL_COMMENT_BLOCK_START);
+					if(blockCommentStart >= 0){
+						final String preLine = line.substring(0, blockCommentStart);
+						inBlockComment = true;
+
+						final int blockCommentEnd = line.indexOf(SQL_COMMENT_BLOCK_END, blockCommentStart);
+						if(blockCommentEnd >= 0){
+							final String postLine = line.substring(blockCommentEnd + SQL_COMMENT_BLOCK_END.length());
+							inBlockComment = false;
+							line = preLine + postLine;
+						}
+						else
+							line = preLine;
+					}
+					final int lineCommentStart = line.indexOf(SQL_COMMENT_LINE_START);
+					if(lineCommentStart >= 0)
+						line = line.substring(0, lineCommentStart);
+				}
+				if(line.isEmpty())
 					continue;
 
+
+				//manage sql line:
 				Matcher matcher = CREATE_TABLE_PATTERN.matcher(line);
 				if(matcher.find()){
 					if(currentTable != null)
@@ -100,6 +133,8 @@ public final class SQLFileParser{
 			if(currentTable != null)
 				tables.put(currentTable.getName(), currentTable);
 
+
+			//validate:
 			validatePrimaryKeys();
 			validateForeignKeys();
 		}
