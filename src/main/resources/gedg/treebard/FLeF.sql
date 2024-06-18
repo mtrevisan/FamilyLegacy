@@ -127,7 +127,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternative name for sorting").
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternative sort name").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
