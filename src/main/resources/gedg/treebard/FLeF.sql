@@ -127,7 +127,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name").
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternative name for sorting").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
@@ -180,7 +180,7 @@ CREATE TABLE PERSON_NAME
  PERSON_ID                 numeric NOT NULL,
  NAME_ID                   numeric,				-- A verbatim copy of the name written in the original language.
  "TYPE"                    text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
- ALTERNATIVE_SORT_ORDER_ID numeric,
+ NAME_ALTERNATIVE_SORT_ID numeric,
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ),
  FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ),
  FOREIGN KEY (ALTERNATIVE_SORT_ORDER_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
