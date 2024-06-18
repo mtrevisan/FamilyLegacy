@@ -47,7 +47,8 @@ CREATE TABLE "SOURCE"
  FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" )
 );
 
--- A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
+-- A representation of where a source or set of sources is located
+-- May be formal, like a library, or informal, like the owner of a family book.
 CREATE TABLE REPOSITORY
 (
  "ID"       numeric PRIMARY KEY,
@@ -115,13 +116,21 @@ CREATE TABLE HISTORIC_PLACE
 CREATE TABLE LOCALIZED_TEXT
 (
  "ID"               numeric PRIMARY KEY,
+ REFERENCE_COLUMN   text NOT NULL,	-- The column name this record is attached to (ex. "extract", "name").
  TEXT               text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  LOCALE             text,				-- The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47).
  "TYPE"             text,				-- Can be "original", "transliteration", or "translation".
  TRANSCRIPTION      text,				-- Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul").
- TRANSCRIPTION_TYPE text,				-- Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc).
- REFERENCE_TABLE    text,				-- The table name this record is attached to (ex. "citation", "person name", "place").
- REFERENCE_ID       numeric			-- The ID of the referenced record in the table.
+ TRANSCRIPTION_TYPE text				-- Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc).
+);
+
+CREATE TABLE LOCALIZED_TEXT_JUNCTION
+(
+	"ID"              numeric PRIMARY KEY,
+	LOCALIZED_TEXT_ID numeric NOT NULL,
+	REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
+	REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
+	FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES "LOCALIZED_TEXT" ( "ID" )
 );
 
 CREATE TABLE NOTE
@@ -229,7 +238,7 @@ CREATE TABLE EVENT
 -- Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This effects the interpretation of recorded information and the assertions made about a citation.
 /*
 Ex.
- - per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
+ - per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in *-us* per il maschile e *-a* per il femminile).
 
 https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V
 https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://elearning.unite.it/pluginfile.php/284578/mod_folder/content/0/ZZ%2520-%2520Lezioni%252028-30%2520novembre%25202023/3.%2520L_EREDITA_NAPOLEONICA_lezione.pdf%3Fforcedownload%3D1&ved=2ahUKEwiMj_Lx2-SGAxVM_7sIHc5-ATEQFnoECA8QAw&usg=AOvVaw1VloSAbSzRjtU1QBFag5uC

@@ -84,6 +84,7 @@ class DataPopulator{
 				currentTable.addRecord(GenericRecord.create(currentTableData));
 		}
 
+		//TODO validateNotNull(tables);
 		//TODO validateDataType(tables);
 		validateForeignKeys(tables);
 	}

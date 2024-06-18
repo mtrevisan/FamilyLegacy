@@ -4,7 +4,7 @@ ID|CITATION_ID|REFERENCE_TABLE|REFERENCE_ID|ROLE|CERTAINTY|CREDIBILITY
 
 CITATION
 ID|SOURCE_ID|LOCATION|EXTRACT_ID|EXTRACT_TYPE
-1|1|there|1|whole
+1|1|there|2|whole
 
 SOURCE
 ID|IDENTIFIER|SOURCE_TYPE|AUTHOR|PLACE_ID|DATE_ID|REPOSITORY_ID|LOCATION
@@ -39,11 +39,16 @@ ID|PLACE_ID|CERTAINTY|CREDIBILITY
 
 
 LOCALIZED_TEXT
-ID|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE|REFERENCE_TABLE|REFERENCE_ID
-1|Regno italico|it|original|||place|1
-2|testo secondario|it|type|tèsto sekondario|venetan|place|2
-3|nome cognome|it|original||||
-4|cognome nome|it|original||||
+ID|REFERENCE_COLUMN|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE
+1|Regno italico|name|it|original||
+2|testo secondario|extract|it|type|tèsto sekondario|vec
+3|nome cognome|name|it|original||
+4|cognome nome|name|it|original||
+
+LOCALIZED_TEXT_JUNCTION
+ID|LOCALIZED_TEXT_ID|REFERENCE_TABLE|REFERENCE_ID
+1|1|place|1
+2|2|place|2
 
 NOTE
 ID|NOTE|REFERENCE_TABLE|REFERENCE_ID
@@ -88,7 +93,7 @@ ID|EVENT_TYPE|DESCRIPTION|PLACE_ID|DATE_ID|REFERENCE_TABLE|REFERENCE_ID
 
 CULTURAL_NORM
 ID|IDENTIFIER|DESCRIPTION|PLACE_ID|DATE_START_ID|DATE_END_ID|CERTAINTY|CREDIBILITY
-1|latin names|per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne)||||certain|3
+1|latin names|per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in *-us* per il maschile e *-a* per il femminile)||||certain|3
 2|male legal age|secondo il codice napoleonico: 23 anni minore, 29 anni maggiore|1|1|2|certain|3
 3|male respectful act|secondo il [codice napoleonico](https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V): atto rispettoso fino ai 30|1|1|2|certain|3
 4|female legal age|secondo il codice napoleonico: 22 anni minore|1|1|3|certain|3
@@ -96,7 +101,6 @@ ID|IDENTIFIER|DESCRIPTION|PLACE_ID|DATE_START_ID|DATE_END_ID|CERTAINTY|CREDIBILI
 
 CULTURAL_NORM_JUNCTION
 ID|CULTURAL_NORM_ID|REFERENCE_TABLE|REFERENCE_ID|CERTAINTY|CREDIBILITY
-1|1|event|1|cert|2
 
 
 RESTRICTION
