@@ -1,12 +1,11 @@
 package io.github.mtrevisan.familylegacy.flef.sql;
 
-
 class GenericColumn{
 
 	private final String name;
 	private final String type;
 	private final Integer size;
-	private boolean isNullable;
+	private boolean isNullable = true;
 	private String primaryKeyOrder;
 	private String foreignKeyTable;
 	private String foreignKeyColumn;
@@ -35,8 +34,8 @@ class GenericColumn{
 		return isNullable;
 	}
 
-	void setNullable(final boolean nullable){
-		isNullable = nullable;
+	void setNotNullable(){
+		isNullable = false;
 	}
 
 	boolean isPrimaryKey(){
@@ -55,15 +54,12 @@ class GenericColumn{
 		return foreignKeyTable;
 	}
 
-	void setForeignKeyTable(final String foreignKeyTable){
-		this.foreignKeyTable = foreignKeyTable;
-	}
-
 	String getForeignKeyColumn(){
 		return foreignKeyColumn;
 	}
 
-	void setForeignKeyColumn(final String foreignKeyColumn){
+	void setForeignKey(final String foreignKeyTable, final String foreignKeyColumn){
+		this.foreignKeyTable = foreignKeyTable;
 		this.foreignKeyColumn = foreignKeyColumn;
 	}
 
@@ -76,8 +72,7 @@ class GenericColumn{
 			+ ", size='" + size + '\''
 			+ ", nullable=" + isNullable
 			+ (primaryKeyOrder != null? ", primaryKeyOrder='" + primaryKeyOrder + '\'': "")
-			+ (foreignKeyTable != null? ", foreignKeyTable='" + foreignKeyTable + '\'': "")
-			+ (foreignKeyColumn != null? ", foreignKeyColumn='" + foreignKeyColumn + '\'': "")
+			+ (foreignKeyTable != null && foreignKeyColumn != null? ", foreignKeyTable='" + foreignKeyTable + '.' + foreignKeyColumn + '\'': "")
 			+ '}';
 	}
 

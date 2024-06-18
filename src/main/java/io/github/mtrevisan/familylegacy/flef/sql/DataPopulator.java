@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -47,7 +48,8 @@ class DataPopulator{
 					if(currentTableData != null)
 						currentTable.addRecord(GenericRecord.create(currentTableData));
 
-					final String currentTableName = matcher.group(1);
+					final String currentTableName = matcher.group(1)
+						.toLowerCase(Locale.ROOT);
 					currentTable = tables.get(currentTableName);
 					if(currentTable == null)
 						throw new IllegalArgumentException("Table " + currentTableName + " not found");
@@ -87,8 +89,12 @@ class DataPopulator{
 	private static List<String> parseHeaders(final String line){
 		final List<String> headers = new ArrayList<>();
 		final Matcher matcher = HEADER_PATTERN.matcher(line);
-		while(matcher.find())
-			headers.add(matcher.group(1).trim());
+		while(matcher.find()){
+			final String header = matcher.group(1)
+				.toLowerCase(Locale.ROOT)
+				.trim();
+			headers.add(header);
+		}
 
 		return headers;
 	}

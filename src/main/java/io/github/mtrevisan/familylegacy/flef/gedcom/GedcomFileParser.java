@@ -365,13 +365,13 @@ public final class GedcomFileParser{
 	}
 
 
-	public static void main(final String[] args) throws IOException, GedcomGrammarParseException, GedcomParseException{
+	public static void main(final String[] args) throws GedcomGrammarParseException, GedcomParseException{
 		final GedcomFileParser parser = new GedcomFileParser();
 		parser.parse("/gedg/gedcom_5.5.1.tcgb.gedg");
 		parser.populate("src/main/resources/ged/large.ged");
 
 		parser.root.children
-			.forEach(child -> System.out.println(child));
+			.forEach(System.out::println);
 	}
 
 }

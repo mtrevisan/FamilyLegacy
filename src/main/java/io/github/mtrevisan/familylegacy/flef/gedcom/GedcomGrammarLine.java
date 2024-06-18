@@ -242,14 +242,14 @@ class GedcomGrammarLine{
 	}
 
 	/**
-	 * @return	List of all the xref names on this line.
+	 * @return	Set of all the external reference names on this line.
 	 */
 	public Set<String> getXRefNames(){
 		return xrefNames;
 	}
 
 	/**
-	 * @return	List of all the value names in this line.
+	 * @return	Set of all the value names in this line.
 	 */
 	public Set<String> getValueNames(){
 		return valueNames;

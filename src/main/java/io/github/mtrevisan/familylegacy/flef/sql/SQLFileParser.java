@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -22,12 +23,12 @@ public final class SQLFileParser{
 	private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileParser.class);
 
 	private static final String SQL_COMMENT = "--";
-	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"]+)\"?");
-	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?");
+	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"(]+)\"?");
+	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s,]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?(\\s+FOREIGN\\s+KEY\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?");
 	private static final Pattern PRIMARY_KEY_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
 	private static final Pattern UNIQUE_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+UNIQUE\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)");
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("FOREIGN\\s+KEY\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
-	private static final Pattern UNIQUE_PATTERN = Pattern.compile("UNIQUE\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
+	private static final Pattern UNIQUE_PATTERN = Pattern.compile("UNIQUE\\s+\\(\\s*\"?([^\\s\",]+)\"?\\s*\\)");
 	private static final String SORT_DIRECTION_ASC = "ASC";
 	private static final String SORT_DIRECTION_DESC = "DESC";
 	private static final String SQL_NOT = "NOT";
@@ -61,7 +62,8 @@ public final class SQLFileParser{
 					if(currentTable != null)
 						tables.put(currentTable.getName(), currentTable);
 
-					final String tableName = matcher.group(2);
+					final String tableName = matcher.group(2)
+						.toLowerCase(Locale.ROOT);
 					currentTable = new GenericTable(tableName);
 					continue;
 				}
@@ -108,7 +110,9 @@ public final class SQLFileParser{
 	}
 
 	private static void handlePrimaryKeyConstraint(final Matcher matcher, final GenericTable currentTable){
-		final String[] primaryKeyNames = matcher.group(2).split(",");
+		final String[] primaryKeyNames = matcher.group(2)
+			.toLowerCase(Locale.ROOT)
+			.split(",");
 		final String primaryKeySortOrder = matcher.group(3);
 		for(final String primaryKeyName : primaryKeyNames){
 			final GenericColumn primaryKeyColumn = currentTable.findColumn(primaryKeyName);
@@ -117,14 +121,17 @@ public final class SQLFileParser{
 					+ " for primary key");
 
 			currentTable.addPrimaryKeyColumn(primaryKeyName);
-			primaryKeyColumn.setNullable(false);
-			primaryKeyColumn.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)
+			primaryKeyColumn.setNotNullable();
+			primaryKeyColumn.setPrimaryKeyOrder(primaryKeySortOrder == null
+				|| primaryKeySortOrder.toUpperCase(Locale.ROOT).contains(SORT_DIRECTION_ASC)
 				? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
 		}
 	}
 
 	private static void handleUniqueConstraint(final Matcher matcher, final GenericTable currentTable){
-		final String[] uniqueNames = matcher.group(2).split(",");
+		final String[] uniqueNames = matcher.group(2)
+			.toLowerCase(Locale.ROOT)
+			.split(",");
 		for(final String uniqueName : uniqueNames){
 			final GenericColumn uniqueColumn = currentTable.findColumn(uniqueName);
 			if(uniqueColumn == null)
@@ -135,43 +142,50 @@ public final class SQLFileParser{
 	}
 
 	private static void handleForeignKey(final Matcher matcher, final GenericTable currentTable){
-		final String[] columnName = matcher.group(1).split(",");
-		final String foreignTable = matcher.group(2);
-		final String[] foreignColumn = matcher.group(3).split(",");
+		final String[] columnName = matcher.group(1)
+			.toLowerCase(Locale.ROOT)
+			.split(",");
+		final String foreignTable = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
+		final String[] foreignColumn = matcher.group(3)
+			.toLowerCase(Locale.ROOT)
+			.split(",");
 		if(columnName.length != foreignColumn.length)
 			throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have the same amount of foreign columns as "
 				+ foreignTable);
 		for(int i = 0, length = columnName.length; i < length; i ++){
 			final GenericColumn foreignKeyColumn = currentTable.findColumn(columnName[i]);
 			if(foreignKeyColumn == null)
-				throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + foreignKeyColumn
+				throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + columnName[i]
 					+ " for primary key");
 
-			foreignKeyColumn.setForeignKeyTable(foreignTable);
-			foreignKeyColumn.setForeignKeyColumn(foreignColumn[i]);
+			foreignKeyColumn.setForeignKey(foreignTable, foreignColumn[i]);
 		}
 		currentTable.addForeignKey(new ForeignKey(columnName, foreignTable, foreignColumn));
 	}
 
 	private static void handleUnique(final Matcher matcher, final GenericTable currentTable){
-		final String columnName = matcher.group(1);
+		final String columnName = matcher.group(1)
+			.toLowerCase(Locale.ROOT);
 		final GenericColumn column = currentTable.findColumn(columnName);
 		if(column == null)
-			throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + column + " for unique");
+			throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + columnName + " for unique");
 
 		currentTable.addUniques(new String[]{columnName});
 	}
 
 	private static void handleColumnDefinition(final Matcher matcher, final GenericTable currentTable){
-		final String columnName = matcher.group(1);
-		final String columnType = matcher.group(2);
+		final String columnName = matcher.group(1)
+			.toLowerCase(Locale.ROOT);
+		final String columnType = matcher.group(2)
+			.toLowerCase(Locale.ROOT);
 		final String columnSize = matcher.group(3);
 		final GenericColumn column = new GenericColumn(columnName, columnType,
 			(columnSize != null? Integer.parseInt(columnSize): null));
 
 		final String notNull = matcher.group(4);
-		if(notNull != null && !notNull.contains(SQL_NOT))
-			column.setNullable(true);
+		if(notNull != null && !notNull.toUpperCase(Locale.ROOT).contains(SQL_NOT))
+			column.setNotNullable();
 		final String unique = matcher.group(5);
 		if(unique != null)
 			currentTable.addUniques(new String[]{columnName});
@@ -180,7 +194,17 @@ public final class SQLFileParser{
 			currentTable.addPrimaryKeyColumn(columnName);
 
 			final String primaryKeySortOrder = matcher.group(7);
-			column.setPrimaryKeyOrder(primaryKeySortOrder == null || primaryKeySortOrder.contains(SORT_DIRECTION_ASC)? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
+			column.setPrimaryKeyOrder(primaryKeySortOrder == null
+				|| primaryKeySortOrder.toUpperCase(Locale.ROOT).contains(SORT_DIRECTION_ASC)? SORT_DIRECTION_ASC: SORT_DIRECTION_DESC);
+		}
+		final String foreignKey = matcher.group(8);
+		if(foreignKey != null){
+			final String foreignTable = matcher.group(9)
+				.toLowerCase(Locale.ROOT);
+			final String foreignColumn = matcher.group(10)
+				.toLowerCase(Locale.ROOT);
+
+			column.setForeignKey(foreignTable, foreignColumn);
 		}
 
 		currentTable.addColumn(column);

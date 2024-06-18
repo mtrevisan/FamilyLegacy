@@ -299,7 +299,8 @@ final class GedcomGrammar{
 	}
 
 	public GedcomGrammarStructure getRootStructure(){
-		return variations.get(TAG_ROOT).get(0);
+		return variations.get(TAG_ROOT)
+			.getFirst();
 	}
 
 	/**

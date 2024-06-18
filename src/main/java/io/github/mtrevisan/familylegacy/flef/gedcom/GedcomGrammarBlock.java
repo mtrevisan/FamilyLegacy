@@ -77,10 +77,10 @@ class GedcomGrammarBlock{
 
 		//gets the line index which is at the very beginning of a line
 		//(the line index is either "n" or "+NUMBER", where NUMBER is 0-99)
-		final String lineIndex = RegexHelper.getFirstMatching(block.get(0), LEVEL_PATTERN);
+		final String lineIndex = RegexHelper.getFirstMatching(block.getFirst(), LEVEL_PATTERN);
 		if(lineIndex == null)
 			throw GedcomGrammarParseException.create("On line '{}'. The format of the line index is not valid. "
-				+ "A index can either be 'n' or '+' followed by a positive number 1-99.", block.get(0));
+				+ "A index can either be 'n' or '+' followed by a positive number 1-99.", block.getFirst());
 
 		final List<String> subBlock = new ArrayList<>(block.size());
 		GedcomGrammarLine lastGrammarLine = null;

@@ -47,7 +47,7 @@ class GenericTable{
 	GenericColumn findColumn(final String name){
 		for(int i = 0, length = columns.size(); i < length; i ++){
 			final GenericColumn column = columns.get(i);
-			if(column.getName().equals(name))
+			if(column.getName().equalsIgnoreCase(name))
 				return column;
 		}
 		return null;

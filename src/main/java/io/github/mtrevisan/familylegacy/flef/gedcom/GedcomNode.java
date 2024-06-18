@@ -338,22 +338,16 @@ public abstract class GedcomNode{
 	}
 
 	public GedcomNode removeChildrenWithTag(final String tag){
-		if(children != null){
-			final Iterator<GedcomNode> itr = children.iterator();
-			while(itr.hasNext())
-				if(tag.equals(itr.next().tag))
-					itr.remove();
-		}
+		if(children != null)
+			children.removeIf(gedcomNode -> tag.equals(gedcomNode.tag));
+
 		return this;
 	}
 
 	public GedcomNode removeChildrenWithTag(final String... tags){
-		if(children != null){
-			final Iterator<GedcomNode> itr = children.iterator();
-			while(itr.hasNext())
-				if(ArrayUtils.contains(tags, itr.next().tag))
-					itr.remove();
-		}
+		if(children != null)
+			children.removeIf(gedcomNode -> ArrayUtils.contains(tags, gedcomNode.tag));
+
 		return this;
 	}
 
