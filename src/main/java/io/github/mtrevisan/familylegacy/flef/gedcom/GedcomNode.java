@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -280,7 +281,7 @@ public abstract class GedcomNode{
 		if(StringUtils.contains(tag, '.')){
 			List<GedcomNode> subChildren = new ArrayList<>(1);
 			subChildren.add(this);
-			final String[] subtags = StringUtils.split(tag, '.');
+			final String[] subtags = StringHelper.split(tag, '.');
 			for(int i = 0; i < subtags.length; i ++)
 				subChildren = getChildrenWithTag(subChildren, subtags[i]);
 			return subChildren;

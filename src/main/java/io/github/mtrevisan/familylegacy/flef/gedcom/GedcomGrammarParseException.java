@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -42,7 +42,7 @@ public final class GedcomGrammarParseException extends Exception{
 
 
 	public static GedcomGrammarParseException create(final String message, final Object... parameters){
-		return new GedcomGrammarParseException(JavaHelper.textFormat(message, parameters));
+		return new GedcomGrammarParseException(StringHelper.format(message, parameters));
 	}
 
 	private GedcomGrammarParseException(final String message){

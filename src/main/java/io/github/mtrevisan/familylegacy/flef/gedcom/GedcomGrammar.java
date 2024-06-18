@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -153,7 +153,7 @@ final class GedcomGrammar{
 				//file header lines
 				if(processFileHeader){
 					if(!RegexHelper.matches(line, STRUCTURE_NAME_PATTERN)){
-						final String[] components = StringUtils.split(line, '=');
+						final String[] components = StringHelper.split(line, '=');
 						if(GrammarFileHeaderKeywords.GEDCOM_VERSION.value.equals(components[0]))
 							gedcomVersion = components[1];
 						else if(GrammarFileHeaderKeywords.GEDCOM_DATE.value.equals(components[0]))

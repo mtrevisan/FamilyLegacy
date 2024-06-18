@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -52,7 +52,7 @@ public final class GedcomParseException extends Exception{
 	}
 
 	public GedcomParseException(final Throwable cause, final String message, final Object... parameters){
-		super(JavaHelper.textFormat(message, parameters), cause);
+		super(StringHelper.format(message, parameters), cause);
 	}
 
 	public GedcomParseException skipAddLineNumber(){

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -102,7 +103,7 @@ class GedcomGrammarLine{
 		gedcomDefinitionLine = gedcomDefinitionLine.trim();
 
 		//split for each space
-		final String[] components = StringUtils.split(gedcomDefinitionLine, ' ');
+		final String[] components = StringHelper.split(gedcomDefinitionLine, ' ');
 		//check if line could be valid
 		if(components.length < 1 || components.length > 4){
 			LOGGER.error("[ERROR] Failed to parse line '{}'. Number of items not in the range.", gedcomDefinitionLine);
@@ -117,14 +118,14 @@ class GedcomGrammarLine{
 			else if(components[i].contains("@") && RegexHelper.matches(components[i], MULTIPLE_X_REFS)){
 				//Multiple XREF ([@<XREF>@|@<XREF>@|<NULL>...])
 				//At least one @ has to be present
-				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, StringUtils.EMPTY), '|');
+				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, StringUtils.EMPTY), '|');
 				Collections.addAll(sl.xrefNames, values);
 			}
 			else if(RegexHelper.matches(components[i], MIN_MAX_PATTERN)){
 				//{MIN:MAX}
 				//{MIN:MAX*}
 				//{MIN:MAX}*
-				final String[] minmax = StringUtils.split(RegexHelper.removeAll(components[i], MIN_MAX_REPLACE), ':');
+				final String[] minmax = StringHelper.split(RegexHelper.removeAll(components[i], MIN_MAX_REPLACE), ':');
 				sl.min = Integer.parseInt(minmax[0]);
 				sl.max = ("M".equals(minmax[1])? -1: Integer.parseInt(minmax[1]));
 			}
@@ -136,7 +137,7 @@ class GedcomGrammarLine{
 				sl.valueNames.add(RegexHelper.removeAll(components[i], VALUE_REPLACE));
 			else if(RegexHelper.matches(components[i], MULTIPLE_VALUES)){
 				//Multiple VALUE ([<ABC>|<DEF>|<GHI>...])
-				final String[] values = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
+				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
 				Collections.addAll(sl.valueNames, values);
 			}
 			else if(RegexHelper.matches(components[i], TAG_PATTERN)){
@@ -152,7 +153,7 @@ class GedcomGrammarLine{
 			}
 			else if(RegexHelper.contains(components[i], MULTIPLE_TAGS)){
 				//Multiple TAG ([ABC|DEF|GHI...])
-				final String[] tags = StringUtils.split(RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, StringUtils.EMPTY), '|');
+				final String[] tags = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_TAGS_REPLACE, StringUtils.EMPTY), '|');
 				for(final String tag : tags){
 					if(sl.xrefNames.isEmpty())
 						sl.tagNamesBeforeXRef.add(tag);
@@ -165,7 +166,7 @@ class GedcomGrammarLine{
 			else if(tagIndex != -1 && i == tagIndex + 1 && RegexHelper.contains(components[i], MULTIPLE_VALUE_POSSIBILITIES)){
 				//Value possibilities. They can only appear right after the tag
 				//Example: DEAT [Y|<NULL>]
-				final String[] possibilities = StringUtils.split(
+				final String[] possibilities = StringHelper.split(
 					RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
 				for(final String possibility : possibilities)
 					sl.valuePossibilities.add(!"NULL".equalsIgnoreCase(possibility)? possibility: null);
