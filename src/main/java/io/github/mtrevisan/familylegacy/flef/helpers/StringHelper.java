@@ -109,8 +109,8 @@ public final class StringHelper{
 		int currentIndex = 0;
 		int start = fromIndex;
 		for(int i = fromIndex; i < length; i ++){
-			char currentChar = text.charAt(i);
-			if(currentChar == separatorChar && escapeChar != null && i > 0 && previousChar != escapeChar){
+			final char currentChar = text.charAt(i);
+			if(currentChar == separatorChar && (escapeChar == null || i > 0 && previousChar != escapeChar)){
 				if(start != i)
 					result[currentIndex] = text.substring(start, i);
 				currentIndex ++;
