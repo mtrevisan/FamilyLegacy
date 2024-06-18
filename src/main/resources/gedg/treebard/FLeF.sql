@@ -167,13 +167,14 @@ CREATE TABLE PERSON
 -- Transcriptions and transliterations of the name can be attached through a localized text.
 CREATE TABLE PERSON_NAME
 (
- "ID"                   numeric PRIMARY KEY,
- PERSON_ID              numeric NOT NULL,
- NAME_ID                numeric,				-- A verbatim copy of the name written in the original language.
- "TYPE"                 text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
- ALTERNATIVE_SORT_ORDER text,
+ "ID"                      numeric PRIMARY KEY,
+ PERSON_ID                 numeric NOT NULL,
+ NAME_ID                   numeric,				-- A verbatim copy of the name written in the original language.
+ "TYPE"                    text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
+ ALTERNATIVE_SORT_ORDER_ID numeric,
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ),
- FOREIGN KEY (NAME_ID) REFERENCES PERSON_NAME ( "ID" )
+ FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ),
+ FOREIGN KEY (ALTERNATIVE_SORT_ORDER_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
 );
 
 
@@ -229,19 +230,25 @@ CREATE TABLE EVENT
 /*
 Ex.
  - per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne).
- - uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
- - donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V).
+
+https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V
+https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://elearning.unite.it/pluginfile.php/284578/mod_folder/content/0/ZZ%2520-%2520Lezioni%252028-30%2520novembre%25202023/3.%2520L_EREDITA_NAPOLEONICA_lezione.pdf%3Fforcedownload%3D1&ved=2ahUKEwiMj_Lx2-SGAxVM_7sIHc5-ATEQFnoECA8QAw&usg=AOvVaw1VloSAbSzRjtU1QBFag5uC
+ - uomini: 23 anni minore, 29 anni maggiore (31 JAN 1807 - 19 FEB 1811) (25, atto rispettoso comunque fino ai 30).
+ - donne: 22 anni minore (31 JAN 1807 - 13 MAY 1809) (21, atto rispettoso comunque fino ai 25).
 */
 CREATE TABLE CULTURAL_NORM
 (
- "ID"        numeric PRIMARY KEY,
- DESCRIPTION text NOT NULL,	-- The description of the rule.
- PLACE_ID    numeric,			-- The place this rule applies.
- DATE_ID     numeric,			-- The date this cultural norm was in effect.
- CERTAINTY   text,				-- A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ "ID"          numeric PRIMARY KEY,
+ IDENTIFIER    text,				-- A (short) identifier of the rule.
+ DESCRIPTION   text NOT NULL,	-- The description of the rule.
+ PLACE_ID      numeric,			-- The place this rule applies.
+ DATE_START_ID numeric,			-- The date this cultural norm went into effect.
+ DATE_END_ID   numeric,			-- The date this cultural norm stopped being in effect.
+ CERTAINTY     text,				-- A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
+ CREDIBILITY   numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
  FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" )
+ FOREIGN KEY (DATE_START_ID) REFERENCES HISTORIC_DATE ( "ID" ),
+ FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" )
 );
 
 CREATE TABLE CULTURAL_NORM_JUNCTION

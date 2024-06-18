@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -102,12 +103,38 @@ class GenericTable{
 	}
 
 
-	boolean hasRecord(final GenericKey primaryKeyValue){
-		return records.containsKey(primaryKeyValue);
+	boolean hasRecord(final GenericKey key){
+		return records.containsKey(key);
 	}
 
-	GenericRecord findRecord(final GenericKey primaryKeyValue){
-		return records.get(primaryKeyValue);
+	boolean hasRecord(final String[] reference, final GenericKey key){
+		//if reference is the primary key of this table
+		if(primaryKeys.containsAll(List.of(reference)))
+			return hasRecord(key);
+
+		return (findRecord(reference, key) != null);
+	}
+
+	GenericRecord findRecord(final GenericKey key){
+		return records.get(key);
+	}
+
+	//iterate over records searching for the one that has in the columns defined by `reference` the values inside `key`
+	GenericRecord findRecord(final String[] reference, final GenericKey key){
+		for(final GenericRecord record : records.values()){
+			boolean found = true;
+			for(int i = 0; i < reference.length; i ++){
+				final String columnName = reference[i];
+				final Object value = getValueForColumn(record, columnName);
+				if(!Objects.equals(value, key.key()[i])){
+					found = false;
+					break;
+				}
+			}
+			if(found)
+				return record;
+		}
+		return null;
 	}
 
 	Object getValueForColumn(final GenericRecord record, final String columnName){

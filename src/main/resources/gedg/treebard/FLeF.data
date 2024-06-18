@@ -17,29 +17,33 @@ ID|IDENTIFIER|TYPE|PERSON_ID
 
 HISTORIC_DATE
 ID|DATE|CALENDAR_ID|DATE_ORIGINAL|CALENDAR_ORIGINAL_ID|CERTAINTY|CREDIBILITY
-1|time|1|tenpo|2|cert|1
+1|31 JAN 1807|1|||possible|3
+2|19 FEB 1811|1|||possible|3
+3|13 MAY 1809|1|||possible|3
 
 CALENDAR
 ID|TYPE
-1|julian
+1|gregorian
 2|venetan
 
 
 PLACE
 ID|IDENTIFIER|NAME_ID|TYPE|COORDINATE|COORDINATE_TYPE|COORDINATE_CREDIBILITY|PRIMARY_PLACE_ID|IMAGE_ID|IMAGE_CROP
-1|primary|1|building|45.65,12.19|wgs84|cred||1|12,27,85,68
+1|Regno italico|1|reign|||certain||3|
 2|place|1|building|45.65,12.19|wgs84|cred|1|1|12,27,85,68
 
 HISTORIC_PLACE
 ID|PLACE_ID|CERTAINTY|CREDIBILITY
-1|1|cert|1
+1|1|certain|3
 2|2|cert|2
 
 
 LOCALIZED_TEXT
 ID|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE|REFERENCE_TABLE|REFERENCE_ID
-1|testo primario|it|type|tèsto primario|venetan|place|1
+1|Regno italico|it|original|||place|1
 2|testo secondario|it|type|tèsto sekondario|venetan|place|2
+3|nome cognome|it|original||||
+4|cognome nome|it|original||||
 
 NOTE
 ID|NOTE|REFERENCE_TABLE|REFERENCE_ID
@@ -63,8 +67,8 @@ ID|IMAGE_ID|IMAGE_CROP
 1|2|0,0,10,10
 
 PERSON_NAME
-ID|PERSON_ID|NAME_ID|TYPE|ALTERNATIVE_SORT_ORDER
-1|1|nome cognome|birth name|cognome nome
+ID|PERSON_ID|NAME_ID|TYPE|ALTERNATIVE_SORT_ORDER_ID
+1|1|3|birth name|4
 
 
 GROUP
@@ -83,8 +87,12 @@ ID|EVENT_TYPE|DESCRIPTION|PLACE_ID|DATE_ID|REFERENCE_TABLE|REFERENCE_ID
 
 
 CULTURAL_NORM
-ID|DESCRIPTION|PLACE_ID|DATE_ID|CERTAINTY|CREDIBILITY
-1|règola|1|1|cert|2
+ID|IDENTIFIER|DESCRIPTION|PLACE_ID|DATE_START_ID|DATE_END_ID|CERTAINTY|CREDIBILITY
+1|latin names|per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in -us per gli uomini e -a per le donne)||||certain|3
+2|male legal age|secondo il codice napoleonico: 23 anni minore, 29 anni maggiore|1|1|2|certain|3
+3|male respectful act|secondo il [codice napoleonico](https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V): atto rispettoso fino ai 30|1|1|2|certain|3
+4|female legal age|secondo il codice napoleonico: 22 anni minore|1|1|3|certain|3
+5|female respectful act|secondo il [codice napoleonico](https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V): atto rispettoso fino ai 25|1|1|3|certain|3
 
 CULTURAL_NORM_JUNCTION
 ID|CULTURAL_NORM_ID|REFERENCE_TABLE|REFERENCE_ID|CERTAINTY|CREDIBILITY

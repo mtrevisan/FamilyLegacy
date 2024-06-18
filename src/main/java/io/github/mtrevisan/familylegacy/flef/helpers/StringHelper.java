@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.flef.helpers;
 
 import org.slf4j.helpers.MessageFormatter;
 
-import java.nio.charset.StandardCharsets;
-
 
 /**
  * A collection of convenience methods for working with {@link String} objects.
@@ -65,7 +63,7 @@ public final class StringHelper{
 	 * @return	A list of parsed strings.
 	 */
 	public static String[] split(final String text, final char separatorChar){
-		return split(text, 0, separatorChar);
+		return split(text, 0, separatorChar, null);
 	}
 
 	/**
@@ -76,27 +74,52 @@ public final class StringHelper{
 	 * </p>
 	 *
 	 * @param text	The text to parse.
-	 * @param fromIndex	Index in text to start from.
 	 * @param separatorChar	The character used as the delimiter.
+	 * @param escapeChar	The character used to escape a delimiter.
 	 * @return	A list of parsed strings.
 	 */
-	public static String[] split(final String text, final int fromIndex, final char separatorChar){
+	public static String[] split(final String text, final char separatorChar, final char escapeChar){
+		return split(text, 0, separatorChar, escapeChar);
+	}
+
+	/**
+	 * Split the given text into an array, separator specified.
+	 * <p>
+	 * The separator is not included in the returned String array.
+	 * </p>
+	 *
+	 * @param text	The text to parse.
+	 * @param fromIndex	Index in text to start from.
+	 * @param separatorChar	The character used as the delimiter.
+	 * @param escapeChar	The character used to escape a delimiter.
+	 * @return	A list of parsed strings.
+	 */
+	public static String[] split(final String text, final int fromIndex, final char separatorChar, final Character escapeChar){
 		final int length = text.length();
 		if(length == 0)
 			return EMPTY_STRING_ARRAY;
 
-		final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-		final String[] result = createSplitResult(bytes, fromIndex, separatorChar);
+		int count = 1;
+		for(int i = fromIndex; i < length; i ++)
+			if(text.charAt(i) == separatorChar)
+				count ++;
+		final String[] result = new String[count];
 
+		char previousChar = 0;
 		int currentIndex = 0;
 		int start = fromIndex;
-		for(int i = fromIndex; i < length; i ++)
-			if(bytes[i] == separatorChar){
+		for(int i = fromIndex; i < length; i ++){
+			char currentChar = text.charAt(i);
+			if(currentChar == separatorChar && escapeChar != null && i > 0 && previousChar != escapeChar){
 				if(start != i)
-					result[currentIndex ++] = text.substring(start, i);
+					result[currentIndex] = text.substring(start, i);
+				currentIndex ++;
 
 				start = i + 1;
 			}
+
+			previousChar = currentChar;
+		}
 		if(start != length)
 			result[currentIndex] = text.substring(start);
 

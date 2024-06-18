@@ -1,15 +1,18 @@
 package io.github.mtrevisan.familylegacy.flef.sql;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,7 +21,7 @@ import java.util.stream.Collectors;
 class DataPopulator{
 
 	private static final String FIELD_SEPARATOR = "|";
-	private static final String SPACE = " ";
+	private static final char ESCAPE = '\\';
 	private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^([A-Z_]+)$");
 	private static final Pattern HEADER_PATTERN = Pattern.compile("\\|?([^|]+)\\|?");
 
@@ -39,11 +42,7 @@ class DataPopulator{
 				if(line.isEmpty())
 					continue;
 
-				//add trailing space to ensure split works correctly
-				if(line.endsWith(FIELD_SEPARATOR))
-					line += SPACE;
-
-				Matcher matcher = TABLE_NAME_PATTERN.matcher(line);
+				final Matcher matcher = TABLE_NAME_PATTERN.matcher(line);
 				if(matcher.find()){
 					if(currentTableData != null)
 						currentTable.addRecord(GenericRecord.create(currentTableData));
@@ -76,7 +75,7 @@ class DataPopulator{
 							currentTable.addRecord(GenericRecord.create(currentTableData));
 
 						//assume this is a data line
-						currentTableData = parseDataRow(line);
+						currentTableData = StringHelper.split(line, FIELD_SEPARATOR.charAt(0), ESCAPE);
 					}
 				}
 			}
@@ -102,15 +101,6 @@ class DataPopulator{
 		return headers;
 	}
 
-	private static String[] parseDataRow(final String line){
-		final StringTokenizer tokenizer = new StringTokenizer(line, FIELD_SEPARATOR);
-		final String[] rowData = new String[tokenizer.countTokens()];
-		int index = 0;
-		while(tokenizer.hasMoreTokens())
-			rowData[index ++] = tokenizer.nextToken();
-		return rowData;
-	}
-
 	private void validateForeignKeys(final Map<String, GenericTable> tables){
 		for(final GenericTable table : tables.values()){
 			final String tableName = table.getName();
@@ -118,25 +108,26 @@ class DataPopulator{
 
 			final Map<GenericKey, GenericRecord> records = table.getRecords();
 			for(final Map.Entry<GenericKey, GenericRecord> record : records.entrySet()){
-				final GenericKey recordKey = record.getKey();
 				final GenericRecord recordRow = record.getValue();
 
 				for(final ForeignKey foreignKey : foreignKeys){
 					final String[] tableColumnName = foreignKey.columnName();
 					final String referencedTableName = foreignKey.foreignTable();
+					final String[] referencedTableColumn = foreignKey.foreignColumn();
 
-					for(int i = 0, length = tableColumnName.length; i < length; i ++){
-						String column = tableColumnName[i];
-						final Object key = table.getValueForColumn(recordRow, column);
-						if(key != GenericTable.NO_KEY){
-							final GenericTable referencedTable = tables.get(referencedTableName);
-							if(!referencedTable.hasRecord(recordKey)){
-								referencedTable.hasRecord(recordKey);
-								throw new IllegalArgumentException("Table " + referencedTableName + " does not have record " + key
-									+ " referenced by " + tableName + "." + column);
-							}
-						}
-					}
+					final Object[] externalKeyValue = new Object[tableColumnName.length];
+					int index = 0;
+					for(int i = 0, length = tableColumnName.length; i < length; i ++)
+						externalKeyValue[index++] = table.getValueForColumn(recordRow, tableColumnName[i]);
+					if(Arrays.stream(externalKeyValue).allMatch(Objects::isNull))
+            		continue;
+
+					final GenericKey externalKey = new GenericKey(externalKeyValue);
+
+					final GenericTable referencedTable = tables.get(referencedTableName);
+					if(!referencedTable.hasRecord(referencedTableColumn, externalKey))
+						throw new IllegalArgumentException("Table " + referencedTableName + " does not have record "
+							+ Arrays.toString(externalKeyValue) + " referenced by " + tableName + "." + Arrays.toString(tableColumnName));
 				}
 			}
 		}
