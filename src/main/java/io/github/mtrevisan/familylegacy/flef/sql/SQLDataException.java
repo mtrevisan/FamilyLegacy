@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.gedcom;
+package io.github.mtrevisan.familylegacy.flef.sql;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 
@@ -35,18 +35,25 @@ import java.io.Serial;
 /**
  * Exception that occurred when parsing the grammar linked file.
  */
-public final class GedcomGrammarParseException extends Exception{
+public final class SQLDataException extends Exception{
 
 	@Serial
-	private static final long serialVersionUID = -9166944783238433522L;
+	private static final long serialVersionUID = -2622010220105588794L;
 
 
-	public static GedcomGrammarParseException create(final String message, final Object... parameters){
-		return new GedcomGrammarParseException(StringHelper.format(message, parameters));
+	private boolean skipAddLineNumber;
+
+
+	public SQLDataException(final Throwable cause){
+		super(cause);
 	}
 
-	private GedcomGrammarParseException(final String message){
-		super(message);
+	public SQLDataException(final String message, final Object... parameters){
+		this(null, message, parameters);
+	}
+
+	public SQLDataException(final Throwable cause, final String message, final Object... parameters){
+		super(StringHelper.format(message, parameters), cause);
 	}
 
 

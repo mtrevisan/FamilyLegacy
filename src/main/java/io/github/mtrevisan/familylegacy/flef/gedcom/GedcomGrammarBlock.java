@@ -58,7 +58,7 @@ class GedcomGrammarBlock{
 	/**
 	 * Parses the given block with all the lines.
 	 */
-	boolean parse(final List<String> block) throws GedcomGrammarParseException{
+	boolean parse(final List<String> block) throws GedcomGrammarException{
 		/* Example:
 		 * n TAG something
 		 *   +1 TAG something
@@ -79,7 +79,7 @@ class GedcomGrammarBlock{
 		//(the line index is either "n" or "+NUMBER", where NUMBER is 0-99)
 		final String lineIndex = RegexHelper.getFirstMatching(block.getFirst(), LEVEL_PATTERN);
 		if(lineIndex == null)
-			throw GedcomGrammarParseException.create("On line '{}'. The format of the line index is not valid. "
+			throw GedcomGrammarException.create("On line '{}'. The format of the line index is not valid. "
 				+ "A index can either be 'n' or '+' followed by a positive number 1-99.", block.getFirst());
 
 		final List<String> subBlock = new ArrayList<>(block.size());
@@ -110,7 +110,7 @@ class GedcomGrammarBlock{
 	 * Process a sub block.
 	 */
 	private boolean parseSubBlock(final List<String> subBlock, final GedcomGrammarLine parentGrammarLine)
-			throws GedcomGrammarParseException{
+			throws GedcomGrammarException{
 		final GedcomGrammarBlock grammarSubBlock = new GedcomGrammarBlock();
 		if(!grammarSubBlock.parse(subBlock))
 			return false;

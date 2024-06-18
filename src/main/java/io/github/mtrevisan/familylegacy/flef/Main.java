@@ -24,17 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.flef;
 
+import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomFileParser;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarParseException;
-import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomParseException;
+import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
+import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLFileParser;
-
-import java.io.IOException;
+import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 
 
 public class Main{
 
-	public static void main(final String[] args) throws IOException, GedcomGrammarParseException, GedcomParseException{
+	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException{
 		final SQLFileParser sqlParser = new SQLFileParser();
 		sqlParser.load("src/main/resources/gedg/treebard/FLeF.sql", "src/main/resources/gedg/treebard/FLeF.data");
 

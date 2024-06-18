@@ -22,30 +22,30 @@ public final class SQLFileParser{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SQLFileParser.class);
 
-	private static final String SQL_COMMENT_LINE_START = "--";
-	private static final String SQL_COMMENT_BLOCK_START = "/*";
-	private static final String SQL_COMMENT_BLOCK_END = "*/";
+	private static final String COMMENT_LINE_START = "--";
+	private static final String COMMENT_BLOCK_START = "/*";
+	private static final String COMMENT_BLOCK_END = "*/";
+	private static final String SORT_DIRECTION_ASC = "ASC";
+	private static final String SORT_DIRECTION_DESC = "DESC";
+	private static final String NOT = "NOT";
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"(]+)\"?");
 	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s,]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?(\\s+FOREIGN\\s+KEY\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?");
 	private static final Pattern PRIMARY_KEY_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
 	private static final Pattern UNIQUE_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+UNIQUE\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)");
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("FOREIGN\\s+KEY\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
 	private static final Pattern UNIQUE_PATTERN = Pattern.compile("UNIQUE\\s+\\(\\s*\"?([^\\s\",]+)\"?\\s*\\)");
-	private static final String SORT_DIRECTION_ASC = "ASC";
-	private static final String SORT_DIRECTION_DESC = "DESC";
-	private static final String SQL_NOT = "NOT";
 
 
 	private final Map<String, GenericTable> tables = new HashMap<>();
 
 
-	public void load(final String grammarFile, final String dataFile) throws IOException{
+	public void load(final String grammarFile, final String dataFile) throws SQLGrammarException, SQLDataException{
 		parse(grammarFile);
 
 		populate(dataFile);
 	}
 
-	public void parse(final String grammarFile) throws IOException{
+	public void parse(final String grammarFile) throws SQLGrammarException{
 		final TimeWatch watch = TimeWatch.start();
 
 		LOGGER.info("Parsing FLeF format...");
@@ -59,29 +59,29 @@ public final class SQLFileParser{
 
 				//manage comments:
 				if(inBlockComment){
-					final int blockCommentEnd = line.indexOf(SQL_COMMENT_BLOCK_END);
+					final int blockCommentEnd = line.indexOf(COMMENT_BLOCK_END);
 					if(blockCommentEnd < 0)
 						continue;
 
-					line = line.substring(blockCommentEnd + SQL_COMMENT_BLOCK_END.length());
+					line = line.substring(blockCommentEnd + COMMENT_BLOCK_END.length());
 					inBlockComment = false;
 				}
 				else{
-					final int blockCommentStart = line.indexOf(SQL_COMMENT_BLOCK_START);
+					final int blockCommentStart = line.indexOf(COMMENT_BLOCK_START);
 					if(blockCommentStart >= 0){
 						final String preLine = line.substring(0, blockCommentStart);
 						inBlockComment = true;
 
-						final int blockCommentEnd = line.indexOf(SQL_COMMENT_BLOCK_END, blockCommentStart);
+						final int blockCommentEnd = line.indexOf(COMMENT_BLOCK_END, blockCommentStart);
 						if(blockCommentEnd >= 0){
-							final String postLine = line.substring(blockCommentEnd + SQL_COMMENT_BLOCK_END.length());
+							final String postLine = line.substring(blockCommentEnd + COMMENT_BLOCK_END.length());
 							inBlockComment = false;
 							line = preLine + postLine;
 						}
 						else
 							line = preLine;
 					}
-					final int lineCommentStart = line.indexOf(SQL_COMMENT_LINE_START);
+					final int lineCommentStart = line.indexOf(COMMENT_LINE_START);
 					if(lineCommentStart >= 0)
 						line = line.substring(0, lineCommentStart);
 				}
@@ -138,8 +138,12 @@ public final class SQLFileParser{
 			validatePrimaryKeys();
 			validateForeignKeys();
 		}
+		catch(final IOException ioe){
+			throw new SQLGrammarException(ioe);
+		}
 		finally{
 			watch.stop();
+
 			LOGGER.info("Parsed FLeF format in {}", watch.toStringMillis());
 		}
 	}
@@ -219,7 +223,7 @@ public final class SQLFileParser{
 			(columnSize != null? Integer.parseInt(columnSize): null));
 
 		final String notNull = matcher.group(4);
-		if(notNull != null && !notNull.toUpperCase(Locale.ROOT).contains(SQL_NOT))
+		if(notNull != null && !notNull.toUpperCase(Locale.ROOT).contains(NOT))
 			column.setNotNullable();
 		final String unique = matcher.group(5);
 		if(unique != null)
@@ -302,13 +306,18 @@ public final class SQLFileParser{
 	}
 
 
-	public void populate(final String dataFile) throws IOException{
-		final DataPopulator populator = new DataPopulator();
-		populator.populate(tables, dataFile);
+	public void populate(final String dataFile) throws SQLDataException{
+		try{
+			final DataPopulator populator = new DataPopulator();
+			populator.populate(tables, dataFile);
+		}
+		catch(final IOException ioe){
+			throw new SQLDataException(ioe);
+		}
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	public static void main(final String[] args) throws SQLGrammarException, SQLDataException{
 		final SQLFileParser parser = new SQLFileParser();
 		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");
 

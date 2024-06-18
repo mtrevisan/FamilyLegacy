@@ -68,11 +68,11 @@ final class GedcomGrammarStructure{
 	private final GedcomGrammarBlock grammarBlock;
 
 
-	public static GedcomGrammarStructure create(final String structureName, final List<String> block) throws GedcomGrammarParseException{
+	public static GedcomGrammarStructure create(final String structureName, final List<String> block) throws GedcomGrammarException{
 		return new GedcomGrammarStructure(structureName, block);
 	}
 
-	private GedcomGrammarStructure(final String structureName, final List<String> block) throws GedcomGrammarParseException{
+	private GedcomGrammarStructure(final String structureName, final List<String> block) throws GedcomGrammarException{
 		this.structureName = structureName;
 		grammarBlock = new GedcomGrammarBlock();
 		grammarBlock.parse(block);

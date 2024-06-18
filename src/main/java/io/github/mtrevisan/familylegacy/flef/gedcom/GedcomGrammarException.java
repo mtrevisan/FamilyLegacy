@@ -35,34 +35,20 @@ import java.io.Serial;
 /**
  * Exception that occurred when parsing the grammar linked file.
  */
-public final class GedcomParseException extends Exception{
+public final class GedcomGrammarException extends Exception{
 
 	@Serial
-	private static final long serialVersionUID = 5406838363806389443L;
-
-	private boolean skipAddLineNumber;
+	private static final long serialVersionUID = -9166944783238433522L;
 
 
-	public GedcomParseException(final Throwable cause){
-		super(cause);
+	public static GedcomGrammarException create(final String message, final Object... parameters){
+		return new GedcomGrammarException(StringHelper.format(message, parameters));
 	}
 
-	public GedcomParseException(final String message, final Object... parameters){
-		this(null, message, parameters);
+	private GedcomGrammarException(final String message){
+		super(message);
 	}
 
-	public GedcomParseException(final Throwable cause, final String message, final Object... parameters){
-		super(StringHelper.format(message, parameters), cause);
-	}
-
-	public GedcomParseException skipAddLineNumber(){
-		skipAddLineNumber = true;
-		return this;
-	}
-
-	public boolean isSkipAddLineNumber(){
-		return skipAddLineNumber;
-	}
 
 	@Serial
 	@SuppressWarnings("unused")

@@ -100,9 +100,9 @@ final class GedcomGrammar{
 	 *
 	 * @param grammarFile	The grammar file.
 	 */
-	public static GedcomGrammar create(final String grammarFile) throws GedcomGrammarParseException{
+	public static GedcomGrammar create(final String grammarFile) throws GedcomGrammarException{
 		if(!grammarFile.endsWith("." + GEDCOM_FILENAME_EXTENSION))
-			throw GedcomGrammarParseException.create("Invalid GEDCOM grammar file: only files with extension {} are supported",
+			throw GedcomGrammarException.create("Invalid GEDCOM grammar file: only files with extension {} are supported",
 				GEDCOM_FILENAME_EXTENSION);
 
 		try(final InputStream is = GedcomGrammar.class.getResourceAsStream(grammarFile)){
@@ -112,7 +112,7 @@ final class GedcomGrammar{
 			return create(is);
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw GedcomGrammarParseException.create("Grammar file '{}' not found!", grammarFile);
+			throw GedcomGrammarException.create("Grammar file '{}' not found!", grammarFile);
 		}
 	}
 
@@ -121,7 +121,7 @@ final class GedcomGrammar{
 	 *
 	 * @param is	The grammar file.
 	 */
-	public static GedcomGrammar create(final InputStream is) throws GedcomGrammarParseException{
+	public static GedcomGrammar create(final InputStream is) throws GedcomGrammarException{
 		final GedcomGrammar grammar = new GedcomGrammar();
 		grammar.parse(is);
 		return grammar;
@@ -129,7 +129,7 @@ final class GedcomGrammar{
 
 	private GedcomGrammar(){}
 
-	private void parse(final InputStream is) throws GedcomGrammarParseException{
+	private void parse(final InputStream is) throws GedcomGrammarException{
 		LOGGER.info("Parsing GEDCOM grammar objects...");
 
 		int lineCount = 0;
@@ -170,13 +170,13 @@ final class GedcomGrammar{
 						else if(descriptionFound)
 							gedcomDescription.add(line);
 						else
-							throw GedcomGrammarParseException.create("Unrecognized line '{}' at index {}", line, lineCount);
+							throw GedcomGrammarException.create("Unrecognized line '{}' at index {}", line, lineCount);
 
 						continue;
 					}
 					else{
 						if(gedcomVersion == null)
-							throw GedcomGrammarParseException.create("Invalid gedcom grammar file format. "
+							throw GedcomGrammarException.create("Invalid gedcom grammar file format. "
 								+ "The file needs a header with the following keywords: {}", Arrays.toString(GrammarFileHeaderKeywords.values()));
 
 						LOGGER.trace("Gedcom version: {}", gedcomVersion);
@@ -223,10 +223,10 @@ final class GedcomGrammar{
 			for(final Map.Entry<String, Map<String, List<GedcomGrammarStructure>>> idToLink : idToVariationsLinks.entrySet())
 				for(final String structureName : idToLink.getValue().keySet())
 					if(!idToVariationsLinks.containsKey(structureName) && !variationsLinksToId.containsKey(structureName))
-						throw GedcomGrammarParseException.create("Record {} not found", structureName);
+						throw GedcomGrammarException.create("Record {} not found", structureName);
 		}
 		catch(final Exception e){
-			throw GedcomGrammarParseException.create("Failed to read line {}: {}", lineCount, e.getMessage(), e);
+			throw GedcomGrammarException.create("Failed to read line {}: {}", lineCount, e.getMessage(), e);
 		}
 
 		LOGGER.info("Adding objects done ({} structures parsed)", structures.size());
@@ -236,7 +236,7 @@ final class GedcomGrammar{
 	 * Parses a block, starting from the block name (like FAMILY_EVENT_DETAIL etc.) to the last line, just before a new block name begins.
 	 * <p>A block contains the block name on the first line, and might contain multiple block variations.</p>
 	 */
-	private void parseBlock(final List<String> block) throws GedcomGrammarParseException{
+	private void parseBlock(final List<String> block) throws GedcomGrammarException{
 		//the first line is the structure name
 		final String structureName = RegexHelper.getFirstMatching(block.get(0), ID_PATTERN);
 
@@ -264,7 +264,7 @@ final class GedcomGrammar{
 	/**
 	 * Processes a sub-block, which only contains gedcom lines (without structure name and without variations).
 	 */
-	private void parseSubBlock(final String structureName, final List<String> subBlockView) throws GedcomGrammarParseException{
+	private void parseSubBlock(final String structureName, final List<String> subBlockView) throws GedcomGrammarException{
 		//parse the sub block and build the new structure
 		final GedcomGrammarStructure grammarStructure = GedcomGrammarStructure.create(structureName, new ArrayList<>(subBlockView));
 

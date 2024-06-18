@@ -60,13 +60,13 @@ public final class GedcomFileParser{
 	private final Map<String, List<GedcomNode>> tables = new HashMap<>();
 
 
-	public void load(final String grammarFile, final String dataFile) throws GedcomGrammarParseException, GedcomParseException{
+	public void load(final String grammarFile, final String dataFile) throws GedcomGrammarException, GedcomDataException{
 		parse(grammarFile);
 
 		populate(dataFile);
 	}
 
-	public void parse(final String grammarFile) throws GedcomGrammarParseException{
+	public void parse(final String grammarFile) throws GedcomGrammarException{
 		grammar = GedcomGrammar.create(grammarFile);
 	}
 
@@ -75,9 +75,9 @@ public final class GedcomFileParser{
 	 *
 	 * @param dataFile	The GEDCOM file.
 	 */
-	public void populate(final String dataFile) throws GedcomParseException{
+	public void populate(final String dataFile) throws GedcomDataException{
 		if(!dataFile.endsWith(GEDCOM_EXTENSION))
-			throw new GedcomParseException("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
+			throw new GedcomDataException("Invalid GEDCOM file: only files with extension {} are supported", GEDCOM_EXTENSION);
 
 		final TimeWatch watch = TimeWatch.start();
 
@@ -97,15 +97,16 @@ public final class GedcomFileParser{
 			}
 		}
 		catch(final IllegalArgumentException | IOException e){
-			throw new GedcomParseException((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), dataFile);
+			throw new GedcomDataException((e.getMessage() == null? "GEDCOM file '{}' not found!": e.getMessage()), dataFile);
 		}
 		finally{
 			watch.stop();
+
 			LOGGER.info("Parsed GEDCOM format in {}", watch.toStringMillis());
 		}
 	}
 
-	private GedcomNode parseGedcom(final InputStream is) throws GedcomParseException{
+	private GedcomNode parseGedcom(final InputStream is) throws GedcomDataException{
 		root = GedcomNodeBuilder.createRoot();
 
 		int lineCount = -1;
@@ -123,23 +124,23 @@ public final class GedcomFileParser{
 
 				//skip empty lines
 				if(Character.isWhitespace(line.charAt(0)) || StringUtils.isBlank(line))
-					throw new GedcomParseException("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
+					throw new GedcomDataException("GEDCOM file cannot contain an empty line, or a line starting with space, at line {}",
 						lineCount);
 
 				//parse the line into five fields: level, ID, tag, xref, value
 				final GedcomNode child = GedcomNodeBuilder.parse(line);
 				if(child == null)
-					throw new GedcomParseException("Line {} does not appear to be a standard appending content to the last tag started: {}",
+					throw new GedcomDataException("Line {} does not appear to be a standard appending content to the last tag started: {}",
 						lineCount, line);
 
 				currentLevel = child.getLevel();
 				//if `currentLevel` is greater than `previousLevel+1`, ignore it until it comes back down
 				if(currentLevel > previousLevel + 1)
-					throw new GedcomParseException("current-level > previous-level + 1");
+					throw new GedcomDataException("current-level > previous-level + 1");
 				if(currentLevel < 0)
-					throw new GedcomParseException("current-level < 0");
+					throw new GedcomDataException("current-level < 0");
 				if(child.getTag() == null)
-					throw new GedcomParseException("Tag not found");
+					throw new GedcomDataException("Tag not found");
 
 				//close pending levels
 				while(currentLevel <= previousLevel){
@@ -172,7 +173,7 @@ public final class GedcomFileParser{
 			ids.add("#DHEBREW");
 			references.removeAll(ids);
 			if(!references.isEmpty())
-				throw new GedcomParseException("Cannot find object for IDs [{}]", String.join(", ", references))
+				throw new GedcomDataException("Cannot find object for IDs [{}]", String.join(", ", references))
 					.skipAddLineNumber();
 
 			return root;
@@ -180,16 +181,16 @@ public final class GedcomFileParser{
 		catch(final IllegalArgumentException e){
 			throw e;
 		}
-		catch(final GedcomParseException gpe){
+		catch(final GedcomDataException gpe){
 			if(!gpe.isSkipAddLineNumber())
-				throw new GedcomParseException(gpe.getMessage() + " on line {}", lineCount);
+				throw new GedcomDataException(gpe.getMessage() + " on line {}", lineCount);
 			throw gpe;
 		}
 		catch(final Exception e){
 			if(lineCount < 0)
-				throw new GedcomParseException("Failed to read file", e);
+				throw new GedcomDataException("Failed to read file", e);
 
-			throw new GedcomParseException("Failed to read line {}", lineCount);
+			throw new GedcomDataException("Failed to read line {}", lineCount);
 		}
 	}
 
@@ -200,7 +201,7 @@ public final class GedcomFileParser{
 		grammarBlockOrLineStack.push(grammar.getRootStructure().getGrammarBlock());
 	}
 
-	private void startElement(final GedcomNode child) throws GedcomParseException{
+	private void startElement(final GedcomNode child) throws GedcomDataException{
 		final GedcomNode parent = nodeStack.peek();
 		final Object parentGrammarBlockOrLine = grammarBlockOrLineStack.peek();
 
@@ -213,7 +214,7 @@ public final class GedcomFileParser{
 			if(parentGrammarBlockOrLine instanceof GedcomGrammarLine)
 				addedGrammarLine = GedcomGrammarLineCustom.create(child);
 			else
-				throw new GedcomParseException("Cannot have custom tag {} here, inside block of {}", child.getTag(),
+				throw new GedcomDataException("Cannot have custom tag {} here, inside block of {}", child.getTag(),
 					parentGrammarBlockOrLine.toString());
 		}
 
@@ -274,7 +275,7 @@ public final class GedcomFileParser{
 		return new GedcomGrammarLine[2];
 	}
 
-	private void endElement() throws GedcomParseException{
+	private void endElement() throws GedcomDataException{
 		final GedcomNode child = nodeStack.pop();
 		final Object grammarBlockOrLine = grammarBlockOrLineStack.pop();
 
@@ -282,13 +283,13 @@ public final class GedcomFileParser{
 	}
 
 	//FIXME ugliness
-	private void validate(final GedcomNode node, final Object grammarBlockOrLine) throws GedcomParseException{
+	private void validate(final GedcomNode node, final Object grammarBlockOrLine) throws GedcomDataException{
 		if(grammarBlockOrLine instanceof final GedcomGrammarLine grammarLine){
 			//validate min-max constraints:
 			final String tag = node.getTag();
 			checkConstraints(tag, 1, grammarLine);
 			if(!grammarLine.getValuePossibilities().isEmpty() && !grammarLine.getValuePossibilities().contains(node.getValue()))
-				throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", tag,
+				throw new GedcomDataException("Value violated on tag {}, should have been one of {}, was {}", tag,
 					grammarLine.getValuePossibilities().toString(), node.getValue());
 
 
@@ -297,7 +298,7 @@ public final class GedcomFileParser{
 			for(final Map.Entry<String, List<String>> entry : childrenValueBucket.entrySet()){
 				final GedcomGrammarBlock childBlock = grammarLine.getChildBlock();
 				if(childBlock == null)
-					throw new GedcomParseException("Children of parent tag does not exists: {}", grammarBlockOrLine);
+					throw new GedcomDataException("Children of parent tag does not exists: {}", grammarBlockOrLine);
 
 				final String entryTag = entry.getKey();
 				final int entryCount = entry.getValue().size();
@@ -310,7 +311,7 @@ public final class GedcomFileParser{
 					checkConstraints(entryTag, entryCount, (addedGrammarLine[0] != null? addedGrammarLine[0]: grammarLine));
 					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
 							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
-						throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", tag,
+						throw new GedcomDataException("Value violated on tag {}, should have been one of {}, was {}", tag,
 							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
 				}
 			}
@@ -318,7 +319,7 @@ public final class GedcomFileParser{
 		else{
 			//validate children of root:
 			if(!nodeStack.isEmpty())
-				throw new GedcomParseException("Badly formatted GEDCOM, tags are not properly closed");
+				throw new GedcomDataException("Badly formatted GEDCOM, tags are not properly closed");
 
 			final GedcomGrammarBlock grammarBlock = (GedcomGrammarBlock)grammarBlockOrLine;
 			final Map<String, List<String>> childrenValueBucket = bucketByTag(node);
@@ -334,7 +335,7 @@ public final class GedcomFileParser{
 					checkConstraints(entryTag, entryCount, addedGrammarLine[0]);
 					if(addedGrammarLine[1] != null && !addedGrammarLine[1].getValuePossibilities().isEmpty()
 							&& !addedGrammarLine[1].getValuePossibilities().containsAll(entryValues))
-						throw new GedcomParseException("Value violated on tag {}, should have been one of {}, was {}", entryTag,
+						throw new GedcomDataException("Value violated on tag {}, should have been one of {}, was {}", entryTag,
 							addedGrammarLine[1].getValuePossibilities().toString(), entryValues.toString());
 				}
 			}
@@ -353,19 +354,19 @@ public final class GedcomFileParser{
 	}
 
 	private void checkConstraints(final String tag, final Integer count, final GedcomGrammarLine grammarLine)
-			throws GedcomParseException{
+			throws GedcomDataException{
 		final int min = grammarLine.getMin();
 		if(count < min)
-			throw new GedcomParseException("Minimum constraint violated on tag {}, should have been at least {}, was {}", tag,
+			throw new GedcomDataException("Minimum constraint violated on tag {}, should have been at least {}, was {}", tag,
 				min, count);
 		final int max = grammarLine.getMax();
 		if(max != -1 && max < count)
-			throw new GedcomParseException("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
+			throw new GedcomDataException("Maximum constraint violated on tag {}, should have been at most {}, was {}", tag,
 				max, count);
 	}
 
 
-	public static void main(final String[] args) throws GedcomGrammarParseException, GedcomParseException{
+	public static void main(final String[] args) throws GedcomGrammarException, GedcomDataException{
 		final GedcomFileParser parser = new GedcomFileParser();
 		parser.parse("/gedg/gedcom_5.5.1.tcgb.gedg");
 		parser.populate("src/main/resources/ged/large.ged");
