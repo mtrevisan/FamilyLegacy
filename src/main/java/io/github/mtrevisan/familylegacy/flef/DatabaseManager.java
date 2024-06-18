@@ -1,5 +1,8 @@
 package io.github.mtrevisan.familylegacy.flef;
 
+import io.github.mtrevisan.familylegacy.flef.sql.GenericColumn;
+import io.github.mtrevisan.familylegacy.flef.sql.GenericRecord;
+import io.github.mtrevisan.familylegacy.flef.sql.GenericTable;
 import org.h2.tools.RunScript;
 
 import java.io.IOException;
@@ -8,9 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,11 +27,19 @@ public class DatabaseManager{
 	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?FOREIGN\\s+KEY.*?;");
 
 
-	private DatabaseManager(){}
+	private final String jdbcURL;
+	private final String user;
+	private final String password;
 
 
-	static void initialize(final String sqlFile, final String jdbcURL, final String user, final String password) throws SQLException,
-			IOException{
+	public DatabaseManager(final String jdbcURL, final String user, final String password){
+		this.jdbcURL = jdbcURL;
+		this.user = user;
+		this.password = password;
+	}
+
+
+	public void initialize(final String sqlFile) throws SQLException, IOException{
 		try(final Connection connection = DriverManager.getConnection(jdbcURL, user, password)){
 			final String sql = Files.readString(Paths.get(sqlFile));
 
@@ -76,6 +89,50 @@ public class DatabaseManager{
 				RunScript.execute(connection, new StringReader(foreignKeyConstraint));
 
 			System.out.println("Database initialized successfully.");
+		}
+	}
+
+
+	public void insert(final GenericTable table, final GenericRecord record) throws SQLException{
+		final StringJoiner fieldNames = new StringJoiner(", ", "(", ")");
+		final StringJoiner placeholders = new StringJoiner(", ", "(", ")");
+
+		final String tableName = table.getName();
+		final List<GenericColumn> columns = table.getColumns();
+		for(int i = 0, length = columns.size(); i < length; i ++){
+			fieldNames.add(columns.get(i).getName());
+			placeholders.add("?");
+		}
+
+		final String sql = "INSERT INTO \"" + tableName + "\" " + fieldNames + " VALUES " + placeholders;
+
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+			 	final PreparedStatement pstmt = connection.prepareStatement(sql);
+				){
+			final Object[] fields = record.getFields();
+			for(int i = 0, length = fields.length; i < length; i ++)
+				pstmt.setObject(i + 1, fields[i]);
+
+			pstmt.executeUpdate();
+		}
+	}
+
+
+	public void update(final GenericTable table, final GenericRecord record) throws SQLException{
+		final String tableName = table.getName();
+		final List<GenericColumn> columns = table.getColumns();
+		final Object[] fields = record.getFields();
+
+		//TODO
+
+		final String sql = "UPDATE \"" + tableName + "\" SET SOURCE_ID = ?, LOCATION = ?, EXTRACT_ID = ?, EXTRACT_TYPE = ? WHERE ID = ?";
+
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				PreparedStatement pstmt = connection.prepareStatement(sql);
+				){
+			pstmt.executeUpdate();
 		}
 	}
 

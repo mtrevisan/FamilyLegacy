@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 
-class GenericTable{
+public class GenericTable{
 
 	static final GenericKey NO_KEY = new GenericKey(null);
 
@@ -37,11 +37,11 @@ class GenericTable{
 	}
 
 
-	String getName(){
+	public String getName(){
 		return name;
 	}
 
-	List<GenericColumn> getColumns(){
+	public List<GenericColumn> getColumns(){
 		return columns;
 	}
 

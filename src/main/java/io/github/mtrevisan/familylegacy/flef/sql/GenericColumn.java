@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.flef.sql;
 
-class GenericColumn{
+
+public class GenericColumn{
 
 	private final String name;
 	private final String type;
@@ -18,7 +19,7 @@ class GenericColumn{
 	}
 
 
-	String getName(){
+	public String getName(){
 		return name;
 	}
 

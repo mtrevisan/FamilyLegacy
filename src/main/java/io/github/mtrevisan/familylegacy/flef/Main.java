@@ -44,14 +44,15 @@ public class Main{
 
 	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException,
 			SQLException, IOException{
+		final GedcomFileParser gedcomParser = new GedcomFileParser();
+		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+
 		final SQLFileParser sqlParser = new SQLFileParser();
 		final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
 		sqlParser.load(grammarFile, "src/main/resources/gedg/treebard/FLeF.data");
 
-		final GedcomFileParser gedcomParser = new GedcomFileParser();
-		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
-
-		DatabaseManager.initialize(grammarFile, JDBC_URL, USER, PASSWORD);
+		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
+		dbManager.initialize(grammarFile);
 	}
 
 }

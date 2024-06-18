@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.flef.sql;
 import java.util.Arrays;
 
 
-class GenericRecord{
+public class GenericRecord{
 
 	private final Object[] fields;
 
@@ -18,7 +18,7 @@ class GenericRecord{
 	}
 
 
-	Object[] getFields(){
+	public Object[] getFields(){
 		return fields;
 	}
 
