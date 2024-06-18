@@ -6,7 +6,7 @@
 -- Assertion - Citation - Source - Repository
 
 -- What the source says at the citation within the source.
-CREATE TABLE ASSERTION
+CREATE TABLE "ASSERTION"
 (
  "ID"            numeric PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,	-- The citation from which this assertion is derived.
