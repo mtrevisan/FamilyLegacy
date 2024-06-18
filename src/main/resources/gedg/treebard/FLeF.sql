@@ -258,15 +258,6 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 
 -- Other application-related things
 
-CREATE TABLE PROJECT
-(
- "ID"             numeric PRIMARY KEY,
- PROTOCOL_NAME    text NOT NULL,	-- "Family LEgacy Format"
- PROTOCOL_VERSION text NOT NULL,	-- "0.0.10"
- COPYRIGHT        text,				-- A copyright statement.
- NOTE             text
-);
-
 CREATE TABLE RESTRICTION
 (
  "ID"            numeric PRIMARY KEY,
@@ -308,6 +299,15 @@ CREATE TABLE CONTACT_JUNCTION
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to.
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (CONTACT_ID) REFERENCES CONTACT ( "ID" )
+);
+
+CREATE TABLE PROJECT
+(
+   "ID"             numeric PRIMARY KEY,
+   PROTOCOL_NAME    text NOT NULL,	-- "Family LEgacy Format"
+   PROTOCOL_VERSION text NOT NULL,	-- "0.0.10"
+   COPYRIGHT        text,				-- A copyright statement.
+   NOTE             text
 );
 
 

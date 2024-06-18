@@ -80,6 +80,9 @@ class DataPopulator{
 					}
 				}
 			}
+
+			if(currentTableData != null)
+				currentTable.addRecord(GenericRecord.create(currentTableData));
 		}
 
 		//TODO validateDataType(tables);
