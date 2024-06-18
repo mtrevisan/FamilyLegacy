@@ -31,15 +31,27 @@ import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLFileParser;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 
 public class Main{
 
-	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException{
+	private static final String JDBC_URL = "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1";
+	private static final String USER = "sa";
+	private static final String PASSWORD = "";
+
+
+	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException,
+			SQLException, IOException{
 		final SQLFileParser sqlParser = new SQLFileParser();
-		sqlParser.load("src/main/resources/gedg/treebard/FLeF.sql", "src/main/resources/gedg/treebard/FLeF.data");
+		final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
+		sqlParser.load(grammarFile, "src/main/resources/gedg/treebard/FLeF.data");
 
 		final GedcomFileParser gedcomParser = new GedcomFileParser();
 		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
+
+		DatabaseManager.initialize(grammarFile, JDBC_URL, USER, PASSWORD);
 	}
 
 }

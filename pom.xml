@@ -69,6 +69,10 @@
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.9.0</apache.commons-validator.version>
 
+		<!-- Database -->
+		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+		<h2.version>2.2.224</h2.version>
+
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
 		<miglayout-swing.version>11.3</miglayout-swing.version>
@@ -322,6 +326,12 @@
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>${apache.commons-validator.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.version}</version>
 		</dependency>
 
 		<dependency>

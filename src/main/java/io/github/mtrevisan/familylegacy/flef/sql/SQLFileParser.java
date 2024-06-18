@@ -28,12 +28,12 @@ public final class SQLFileParser{
 	private static final String SORT_DIRECTION_ASC = "ASC";
 	private static final String SORT_DIRECTION_DESC = "DESC";
 	private static final String NOT = "NOT";
-	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"(]+)\"?");
-	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("\"?([^\\s\"]+)\"?\\s+([^\\s,]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?(\\s+FOREIGN\\s+KEY\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?");
-	private static final Pattern PRIMARY_KEY_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
-	private static final Pattern UNIQUE_CONSTRAINT_PATTERN = Pattern.compile("CONSTRAINT\\s+([^\\s]+)\\s+UNIQUE\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)");
-	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("FOREIGN\\s+KEY\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
-	private static final Pattern UNIQUE_PATTERN = Pattern.compile("UNIQUE\\s+\\(\\s*\"?([^\\s\",]+)\"?\\s*\\)");
+	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+(?:(IF\\s+NOT\\s+EXISTS)?\\s+)?\"?([^\\s\"(]+)\"?");
+	private static final Pattern COLUMN_DEFINITION_PATTERN = Pattern.compile("(?i)\"?([^\\s\"]+)\"?\\s+([^\\s,]+(?:\\s*\\(([^)]+)\\))?)(\\s+(?:NOT\\s+)?NULL)?(\\s+UNIQUE)?(\\s+PRIMARY\\s+KEY(?:\\s+(ASC|DESC))?)?(\\s+FOREIGN\\s+KEY\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?");
+	private static final Pattern PRIMARY_KEY_CONSTRAINT_PATTERN = Pattern.compile("(?i)CONSTRAINT\\s+([^\\s]+)\\s+PRIMARY\\s+KEY\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)(?:\\s+(ASC|DESC))?");
+	private static final Pattern UNIQUE_CONSTRAINT_PATTERN = Pattern.compile("(?i)CONSTRAINT\\s+([^\\s]+)\\s+UNIQUE\\s+\\(\\s+\"?([^\\s\"]+)\"?\\s+\\)");
+	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)FOREIGN\\s+KEY\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)");
+	private static final Pattern UNIQUE_PATTERN = Pattern.compile("(?i)UNIQUE\\s+\\(\\s*\"?([^\\s\",]+)\"?\\s*\\)");
 
 
 	private final Map<String, GenericTable> tables = new HashMap<>();
