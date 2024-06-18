@@ -136,9 +136,9 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 CREATE TABLE NOTE
 (
  "ID"            numeric PRIMARY KEY,
- NOTE            text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
- REFERENCE_TABLE text,				-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "person name", "person", "group", "research status", "media").
- REFERENCE_ID    numeric			-- The ID of the referenced record in the table.
+ NOTE            text NOT NULL,		-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "person name", "person", "group", "research status", "media").
+ REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
 
 
