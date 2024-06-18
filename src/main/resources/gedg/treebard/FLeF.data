@@ -39,16 +39,16 @@ ID|PLACE_ID|CERTAINTY|CREDIBILITY
 
 
 LOCALIZED_TEXT
-ID|REFERENCE_COLUMN|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE
-1|Regno italico|name|it|original||
-2|testo secondario|extract|it|type|tèsto sekondario|vec
-3|nome cognome|name|it|original||
-4|cognome nome|name|it|original||
+ID|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE
+1|Regno italico|it|original||
+2|testo secondario|it|type|tèsto sekondario|vec
+3|nome cognome|it|original||
+4|cognome nome|it|original||
 
 LOCALIZED_TEXT_JUNCTION
-ID|LOCALIZED_TEXT_ID|REFERENCE_TABLE|REFERENCE_ID
-1|1|place|1
-2|2|place|2
+ID|LOCALIZED_TEXT_ID|REFERENCE_TYPE|REFERENCE_TABLE|REFERENCE_ID
+1|1|name|place|1
+2|2|extract|place|2
 
 NOTE
 ID|NOTE|REFERENCE_TABLE|REFERENCE_ID

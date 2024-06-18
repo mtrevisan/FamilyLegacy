@@ -19,7 +19,7 @@ CREATE TABLE ASSERTION
 );
 
 -- Where a source makes an assertion.
--- Transcriptions and transliterations can be attached through a localized text.
+-- Transcriptions and transliterations can be attached through a localized text (with type "extract").
 CREATE TABLE CITATION
 (
  "ID"         numeric PRIMARY KEY,
@@ -83,7 +83,7 @@ CREATE TABLE CALENDAR
 
 -- Place
 
--- Transcriptions and transliterations of the name can be attached through a localized text.
+-- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
 CREATE TABLE PLACE
 (
  "ID"                   numeric PRIMARY KEY,
@@ -116,7 +116,6 @@ CREATE TABLE HISTORIC_PLACE
 CREATE TABLE LOCALIZED_TEXT
 (
  "ID"               numeric PRIMARY KEY,
- REFERENCE_COLUMN   text NOT NULL,	-- The column name this record is attached to (ex. "extract", "name").
  TEXT               text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  LOCALE             text,				-- The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47).
  "TYPE"             text,				-- Can be "original", "transliteration", or "translation".
@@ -126,11 +125,12 @@ CREATE TABLE LOCALIZED_TEXT
 
 CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
-	"ID"              numeric PRIMARY KEY,
-	LOCALIZED_TEXT_ID numeric NOT NULL,
-	REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
-	REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
-	FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES "LOCALIZED_TEXT" ( "ID" )
+ "ID"              numeric PRIMARY KEY,
+ LOCALIZED_TEXT_ID numeric NOT NULL,
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name").
+ REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
+ REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
+ FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
 );
 
 CREATE TABLE NOTE
@@ -173,7 +173,7 @@ CREATE TABLE PERSON
  FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" )
 );
 
--- Transcriptions and transliterations of the name can be attached through a localized text.
+-- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
 CREATE TABLE PERSON_NAME
 (
  "ID"                      numeric PRIMARY KEY,
