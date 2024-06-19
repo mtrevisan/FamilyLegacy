@@ -637,13 +637,21 @@ public class Main{
 
 	private static Map<String, List<Map<String, Object>>> transfer(List<String> lines){
 		final Map<String, List<Map<String, Object>>> tables = new HashMap<>();
-		for(String line : lines){
+		for(int i = 0, length = lines.size(); i < length; i ++){
+			String line = lines.get(i);
 			if(line.matches("INDI\\[\\d+]")){
 				List<Map<String, Object>> persons = tables.computeIfAbsent("person", k -> new ArrayList<>());
 				int personID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
 				Map<String, Object> person = new HashMap<>();
 				person.put("id", personID);
 				persons.add(person);
+
+				String personParent = line;
+				String subline;
+				int j = i;
+				while((subline = lines.get(j)).startsWith(personParent)){
+					//TODO
+				}
 			}
 			else if(line.matches("FAM\\[\\d+]")){
 				List<Map<String, Object>> groups = tables.computeIfAbsent("group", k -> new ArrayList<>());
