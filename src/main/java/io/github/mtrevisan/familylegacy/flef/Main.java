@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -86,7 +87,7 @@ public class Main{
 		final String baseDirectory = "C:\\mauro\\mine\\projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
 		final String gedcomFilename = "TGMZ.ged";
 		String flatGedcomFilename = "TGMZ.txt";
-		flatGedcomFilename = null;
+flatGedcomFilename = null;
 		final List<String> lines = flatGedcom(baseDirectory, gedcomFilename, flatGedcomFilename);
 		final GedcomObject root = extractor(lines);
 		final Map<String, List<Map<String, Object>>> tables = transfer(root);
@@ -358,13 +359,100 @@ public class Main{
 		final List<GedcomObject> sources = map.get("SOUR");
 
 		final Map<String, List<Map<String, Object>>> output = new HashMap<>();
+		transferProject(output);
+		transferCalendar(output);
 		transferRepositories(output, repositories);
-		transferNotes(output, notes);
+		transferGroups(output, groups);
+		//TODO assertions, citations, sources, historic_date, place, historic_place, localized_text, localized_text_junction, note, media, media_junction, person, person_name, event
+//		transferNotes(output, notes);
 
 		return output;
 	}
 
-	private static void transferRepositories(Map<String, List<Map<String, Object>>> output, List<GedcomObject> repositories){
+	private static void transferProject(final Map<String, List<Map<String, Object>>> output){
+		final List<Map<String, Object>> flefProjects = output.computeIfAbsent("project", k -> new ArrayList<>());
+
+		final Map<String, Object> flefProject = new HashMap<>();
+		flefProjects.add(flefProject);
+		flefProject.put("id", 1);
+		flefProject.put("protocol_name", "Family LEgacy Format");
+		flefProject.put("protocol_version", "0.0.10");
+		flefProject.put("copyright", "(c) 2024 Mauro Trevisan");
+	}
+
+	private static void transferCalendar(final Map<String, List<Map<String, Object>>> output){
+		final List<Map<String, Object>> flefCalendars = output.computeIfAbsent("calendar", k -> new ArrayList<>());
+
+		Map<String, Object> flefCalendar = new HashMap<>();
+		flefCalendars.add(flefCalendar);
+		flefCalendar.put("id", 1);
+		flefCalendar.put("type", "gregorian");
+
+		flefCalendar = new HashMap<>();
+		flefCalendars.add(flefCalendar);
+		flefCalendar.put("id", 2);
+		flefCalendar.put("type", "julian");
+
+		flefCalendar = new HashMap<>();
+		flefCalendars.add(flefCalendar);
+		flefCalendar.put("id", 3);
+		flefCalendar.put("type", "venetan");
+	}
+
+	private static void transferGroups(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> groups){
+		final List<Map<String, Object>> flefGroups = output.computeIfAbsent("group", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefGroupJunctions = output.computeIfAbsent("group_junction", k -> new ArrayList<>());
+
+		for(final GedcomObject group : groups){
+			final Map<String, GedcomObject> children = group.children;
+
+			final GedcomObject husband = getFirstStartingWith(children, "HUSB");
+			final GedcomObject wife = getFirstStartingWith(children, "WIFE");
+			boolean verifiedMarriage = false;
+			final List<GedcomObject> marriages = getAllStartingWith(children, "MARR");
+			for(final GedcomObject marriage : marriages)
+				if(getFirstStartingWith(marriage.children, "SOUR") != null){
+					verifiedMarriage = true;
+					break;
+				}
+			if(husband != null || wife != null){
+				final Map<String, Object> flefGroup = new HashMap<>();
+				flefGroups.add(flefGroup);
+				flefGroup.put("id", group.id);
+				flefGroup.put("type", "family");
+
+				if(husband != null){
+					final Map<String, Object> flefGroupJunction = new HashMap<>();
+					flefGroupJunctions.add(flefGroupJunction);
+					flefGroupJunction.put("id", flefGroupJunction.size() + 1);
+					flefGroupJunction.put("group_id", group.id);
+					flefGroupJunction.put("reference_table", "person");
+					flefGroupJunction.put("reference_id", husband.id);
+					flefGroupJunction.put("role", "partner");
+					if(verifiedMarriage){
+						flefGroupJunction.put("certainty", "certain");
+						flefGroupJunction.put("credibility", 3);
+					}
+				}
+
+				if(wife != null){
+					final Map<String, Object> flefGroupJunction = new HashMap<>();
+					flefGroupJunctions.add(flefGroupJunction);
+					flefGroupJunction.put("id", flefGroupJunction.size() + 1);
+					flefGroupJunction.put("group_id", group.id);
+					flefGroupJunction.put("reference_table", "person");
+					flefGroupJunction.put("reference_id", wife.id);
+					flefGroupJunction.put("role", "partner");
+					if(verifiedMarriage){
+						flefGroupJunction.put("certainty", "certain");
+						flefGroupJunction.put("credibility", 3);
+					}
+				}
+			}
+		}
+	}
+
+	private static void transferRepositories(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> repositories){
 		final List<Map<String, Object>> flefRepositories = output.computeIfAbsent("repository", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
@@ -403,7 +491,7 @@ public class Main{
 		}
 	}
 
-	private static void transferNotes(Map<String, List<Map<String, Object>>> output, List<GedcomObject> notes){
+	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> notes){
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
@@ -444,6 +532,14 @@ public class Main{
 			if(child.type.equals(tag))
 				return child;
 		return null;
+	}
+
+	private static List<GedcomObject> getAllStartingWith(final Map<String, GedcomObject> children, final String tag){
+		final List<GedcomObject> output = new ArrayList<>();
+		for(final GedcomObject child : children.values())
+			if(child.type.equals(tag))
+				output.add(child);
+		return output;
 	}
 
 	private static Map<String, List<GedcomObject>> createFirstLevelMap(final GedcomObject root){
@@ -608,68 +704,6 @@ public class Main{
 
 		Files.write(Paths.get(baseDirectory + "\\ged\\output\\source.txt"),
 			source);
-	}
-
-	private static void repository_historicPlace_place_name(final String baseDirectory) throws IOException{
-		Path path = Paths.get(baseDirectory + "\\ged\\TMGZ.txt");
-		List<String> lines = Files.readAllLines(path);
-
-		List<String> name = new ArrayList<>();
-		name.add("LOCALIZED_TEXT");
-		name.add("ID|TEXT|LOCALE|TYPE|TRANSCRIPTION|TRANSCRIPTION_TYPE");
-		List<String> repository = new ArrayList<>();
-		repository.add("REPOSITORY");
-		repository.add("ID|IDENTIFIER|TYPE|PERSON_ID|PLACE_ID");
-		List<String> place = new ArrayList<>();
-		place.add("PLACE");
-		place.add("ID|IDENTIFIER|NAME_ID|TYPE|COORDINATE|COORDINATE_TYPE|COORDINATE_CREDIBILITY|PRIMARY_PLACE_ID|IMAGE_ID|IMAGE_CROP");
-		List<String> historicPlace = new ArrayList<>();
-		historicPlace.add("HISTORIC_PLACE");
-		historicPlace.add("ID|PLACE_ID|CERTAINTY|CREDIBILITY");
-
-		String repositoryID = null;
-		String identifier = null;
-		String plac = null;
-		for(int i = 0; i < lines.size(); i++){
-			String line = lines.get(i);
-
-			if(line.startsWith("REPOSITORY="))
-				repositoryID = line.split("=")[1];
-			else if(line.startsWith("REPOSITORY.IDENTIFIER=")){
-				if(identifier != null){
-					String namID = "" + (Integer.parseInt(repositoryID) + 10_000);
-					String placID = "" + (Integer.parseInt(repositoryID) + 20_000);
-					String histPlacID = "" + (Integer.parseInt(repositoryID) + 30_000);
-					if(plac != null){
-						name.add(namID + "|" + plac + "|it|original||");
-						place.add(placID + "|" + plac + "|" + namID + "|||||||");
-						historicPlace.add(histPlacID + "|" + placID + "|certain|3");
-					}
-					else
-						histPlacID = "";
-					repository.add(repositoryID + "|" + identifier + "|||" + histPlacID);
-
-					repositoryID = null;
-					plac = null;
-				}
-
-				identifier = line.split("=")[1];
-			}
-			else if(line.startsWith("REPOSITORY.PLACE="))
-				plac = line.split("=")[1];
-		}
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\name.txt"),
-			name);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\place.txt"),
-			place);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\historicPlace.txt"),
-			historicPlace);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\repository.txt"),
-			repository);
 	}
 
 }
