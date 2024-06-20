@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,10 +35,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 
 
@@ -48,6 +49,25 @@ public class Main{
 	private static final String JDBC_URL = "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1";
 	private static final String USER = "sa";
 	private static final String PASSWORD = "";
+
+	private static final List<String> REMOVAL_TAGS = Arrays.asList("SUBN", ".CHAN ", ".CHAN.DATE ", ".CHAN.DATE.TIME ", ".ADDR.", ".CONC ",
+		".FORM ", "._PUBL ", "._CUT Y", ".NAME //");
+
+	private static final List<String> SUFFIXES = Arrays.asList(".NAME ", ".EDUC ", ".EVEN ", ".OCCU ", ".SEX ", ".PLAC ", ".NOTE ", ".SSN ",
+		".DSCR ", ".RELI ", ".PROP ", ".NCHI ", ".TEXT ");
+
+	private static final Set<String> SUFFIXES_Y = new HashSet<>(Arrays.asList("BIRT Y", "DEAT Y", "CREM Y", "BURI Y", "RETI Y", "EMIG Y",
+		"IMMI Y", "ADOP Y", "NATU Y", "CENS Y", "GRAD Y", "ORDN Y", "WILL Y", "ENGA Y", "MARR Y", "MARL Y", "MARB Y", "MARS Y", "DIV Y"));
+
+	private static final String[] IDENTIFIERS = {"SEX", "MARR", "MARL", "MARB", "MARS", "BIRT", "DEAT", "CREM", "BURI", "RETI", "RESI",
+		"RELI", "ENGA", "DSCR", "SSN", "EMIG", "IMMI", "ADOP", "PROP", "NATU", "CENS", "GRAD", "ORDN", "NCHI", "WILL", "DIV"};
+
+	private static class GedcomObject{
+		String type;
+		int id;
+		final Map<String, GedcomObject> children = new HashMap<>();
+		final Map<String, String> attributes = new HashMap<>();
+	}
 
 
 	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException,
@@ -65,9 +85,11 @@ public class Main{
 //		final String baseDirectory = "C:\\Users\\mauro\\Projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
 		final String baseDirectory = "C:\\mauro\\mine\\projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
 		final String gedcomFilename = "TGMZ.ged";
-		final String flatGedcomFilename = "TGMZ.txt";
+		String flatGedcomFilename = "TGMZ.txt";
+		flatGedcomFilename = null;
 		final List<String> lines = flatGedcom(baseDirectory, gedcomFilename, flatGedcomFilename);
-		final Map<String, List<Map<String, Object>>> tables = transfer(lines);
+		final GedcomObject root = extractor(lines);
+		final Map<String, List<Map<String, Object>>> tables = transfer(root);
 	}
 
 	private static List<String> flatGedcom(final String baseDirectory, final String gedcomFilename, final String flatGedcomFilename)
@@ -165,11 +187,7 @@ public class Main{
 		}
 
 		output.replaceAll(s -> s.substring(2).trim());
-		output.replaceAll(s -> (s.endsWith("BIRT Y") || s.endsWith("DEAT Y") || s.endsWith("CREM Y") || s.endsWith("BURI Y")
-			|| s.endsWith("RETI Y") || s.endsWith("EMIG Y") || s.endsWith("IMMI Y") || s.endsWith("ADOP Y") || s.endsWith("NATU Y")
-			|| s.endsWith("CENS Y") || s.endsWith("GRAD Y") || s.endsWith("ORDN Y") || s.endsWith("WILL Y") || s.endsWith("ENGA Y")
-			|| s.endsWith("MARR Y") || s.endsWith("MARL Y") || s.endsWith("MARB Y") || s.endsWith("MARS Y") || s.endsWith("DIV Y")
-			? s.substring(0, s.length() - 2): s));
+		output.replaceAll(s -> SUFFIXES_Y.stream().anyMatch(s::endsWith)? s.substring(0, s.length() - 2): s);
 
 		output.removeIf(line -> line.contains("].NAME.GIVN ") || line.contains("].NAME.SURN "));
 		output.removeIf(line -> line.contains(".RIN "));
@@ -209,22 +227,6 @@ public class Main{
 				}
 			}
 
-			if(line.contains(".MAP.")){
-				String prevLine = output.get(i - 1);
-				if(prevLine.endsWith(".MAP")){
-					StringJoiner sj = new StringJoiner(", ");
-					int j = i;
-					while(j < output.size() && output.get(j).contains(".MAP.")){
-						String coord = output.get(j).split(" ", 2)[1];
-						char coordSign = coord.charAt(0);
-						sj.add((coordSign == 'S' || coordSign == 'W'? "-": "") + coord.substring(1));
-
-						j ++;
-					}
-					output.set(i - 1, prevLine + " " + sj);
-				}
-			}
-
 			if(line.contains(".CONC ")){
 				String prevLine = output.get(i - 1);
 				int j = i;
@@ -237,381 +239,41 @@ public class Main{
 			}
 		}
 
-		output.removeIf(line -> line.contains(".CHAN ") || line.contains(".CHAN.DATE ") || line.contains(".CHAN.DATE.TIME ")
-			|| line.contains(".ADDR.") || line.contains(".MAP.") || line.contains(".CONC ") || line.contains("].FORM ")
-			|| line.contains("._PUBL ") || line.contains("._CUT Y") || line.endsWith(".NAME //"));
-
-		int index = 0;
-		Iterator<String> itr = output.iterator();
-		while(itr.hasNext()){
-			String line = itr.next();
-
-			if(line.contains(".PLAC ")){
-				String prevLine = output.get(index - 1);
-				if(prevLine.contains(".ADDR ") && prevLine.endsWith(line.split(" ", 2)[1])){
-					itr.remove();
-
-					index --;
-				}
-			}
-
-			index ++;
-		}
+		output.removeIf(line -> REMOVAL_TAGS.stream().anyMatch(line::contains));
 
 		for(int i = 0; i < output.size(); i ++){
 			String line = output.get(i);
 
-			if(line.contains(".NAME ") || line.contains(".EDUC ") || line.contains(".EVEN ") || line.contains(".OCCU ")
-					|| line.contains(".SEX ") || line.contains(".PLAC ") || line.contains(".NOTE ") || line.contains(".SSN ")
-					|| line.contains(".DSCR ") || line.contains(".RELI ") || line.contains(".PROP ") || line.contains(".NCHI ")){
+			if(SUFFIXES.stream().anyMatch(line::contains)){
 				String[] components = line.split(" ", 2);
 				output.set(i, components[0]);
 				output.add(i + 1, components[0] + ".DESC " + components[1]);
 			}
 		}
+
 		int nameID = 1;
 		int educID = 1;
 		int evenID = 1;
 		int occuID = 1;
+		int mapID = 1;
 		int placID = 1;
 		int conclusionID = 1;
 		int noteID = 10_000;
+		int textID = 20_000;
 		for(int i = 0; i < output.size(); i ++){
-			String line = output.get(i);
-
-			if(line.contains(".NAME.")){
-				line = line.replace(".NAME.", ".NAME[" + (nameID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".NAME")){
-				line += "[" + nameID + "]";
-				output.set(i, line);
-				nameID ++;
-			}
-
-			if(line.contains(".EDUC.")){
-				line = line.replace(".EDUC.", ".EDUC[" + (educID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".EDUC")){
-				line += "[" + educID + "]";
-				output.set(i, line);
-				educID ++;
-			}
-
-			if(line.contains(".EVEN.")){
-				boolean another = (line.indexOf(".EVEN.", line.indexOf(".EVEN") + 1) >= 0);
-				line = line.replaceFirst(".EVEN.", ".EVEN[" + (evenID - 1 - (another? 1: 0)) + "].");
-				line = line.replace(".EVEN.", ".EVEN[" + (evenID - 1) + "].");
-				output.set(i, line);
-				if(another)
-					evenID ++;
-			}
-			else if(line.endsWith(".EVEN")){
-				line += "[" + evenID + "]";
-				output.set(i, line);
-				evenID ++;
-			}
-			if(line.contains(".EVEN.")){
-				line = line.replace(".EVEN.", ".EVEN[" + (evenID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".EVEN")){
-				line += "[" + evenID + "]";
-				output.set(i, line);
-				evenID ++;
-			}
-
-			if(line.contains(".OCCU.")){
-				line = line.replace(".OCCU.", ".OCCU[" + (occuID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".OCCU")){
-				line += "[" + occuID + "]";
-				output.set(i, line);
-				occuID ++;
-			}
-
-			if(line.contains(".PLAC.")){
-				line = line.replace(".PLAC.", ".PLAC[" + (placID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".PLAC")){
-				line += "[" + placID + "]";
-				output.set(i, line);
-				placID ++;
-			}
-
-			if(line.contains(".SEX.")){
-				line = line.replace(".SEX.", ".SEX[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".SEX")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".MARR.")){
-				line = line.replace(".MARR.", ".MARR[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".MARR")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".MARL.")){
-				line = line.replace(".MARL.", ".MARL[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".MARL")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".MARB.")){
-				line = line.replace(".MARB.", ".MARB[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".MARB")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".MARS.")){
-				line = line.replace(".MARS.", ".MARS[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".MARS")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".BIRT.")){
-				line = line.replace(".BIRT.", ".BIRT[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".BIRT")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".DEAT.")){
-				line = line.replace(".DEAT.", ".DEAT[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".DEAT")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".CREM.")){
-				line = line.replace(".CREM.", ".CREM[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".CREM")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".BURI.")){
-				line = line.replace(".BURI.", ".BURI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".BURI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".RETI.")){
-				line = line.replace(".RETI.", ".RETI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".RETI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".RESI.")){
-				line = line.replace(".RESI.", ".RESI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".RESI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".RELI.")){
-				line = line.replace(".RELI.", ".RELI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".RELI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".ENGA.")){
-				line = line.replace(".ENGA.", ".ENGA[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".ENGA")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".DSCR.")){
-				line = line.replace(".DSCR.", ".DSCR[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".DSCR")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".SSN.")){
-				line = line.replace(".SSN.", ".SSN[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".SSN")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".EMIG.")){
-				line = line.replace(".EMIG.", ".EMIG[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".EMIG")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".IMMI.")){
-				line = line.replace(".IMMI.", ".IMMI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".IMMI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".ADOP.")){
-				line = line.replace(".ADOP.", ".ADOP[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".ADOP")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".PROP.")){
-				line = line.replace(".PROP.", ".PROP[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".PROP")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".NATU.")){
-				line = line.replace(".NATU.", ".NATU[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".NATU")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".CENS.")){
-				line = line.replace(".CENS.", ".CENS[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".CENS")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".GRAD.")){
-				line = line.replace(".GRAD.", ".GRAD[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".GRAD")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".ORDN.")){
-				line = line.replace(".ORDN.", ".ORDN[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".ORDN")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".NCHI.")){
-				line = line.replace(".NCHI.", ".NCHI[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".NCHI")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".WILL.")){
-				line = line.replace(".WILL.", ".WILL[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".WILL")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".DIV.")){
-				line = line.replace(".DIV.", ".DIV[" + (conclusionID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".DIV")){
-				line += "[" + conclusionID + "]";
-				output.set(i, line);
-				conclusionID ++;
-			}
-
-			if(line.contains(".NOTE.")){
-				line = line.replace(".NOTE.", ".NOTE[" + (noteID - 1) + "].");
-				output.set(i, line);
-			}
-			else if(line.endsWith(".NOTE")){
-				line += "[" + noteID + "]";
-				output.set(i, line);
-				noteID ++;
-			}
+			nameID = manageID("NAME", nameID, output, i);
+			educID = manageID("EDUC", educID, output, i);
+			occuID = manageID("OCCU", occuID, output, i);
+			mapID = manageID("MAP", mapID, output, i);
+			placID = manageID("PLAC", placID, output, i);
+			textID = manageID("TEXT", textID, output, i);
+			noteID = manageID("NOTE", noteID, output, i);
+			evenID = manageID("EVEN", evenID, output, i);
+			for(final String identifier : IDENTIFIERS)
+				conclusionID = manageID(identifier, conclusionID, output, i);
 		}
+		for(int i = 0; i < output.size(); i ++)
+			evenID = manageID("EVEN", evenID, output, i);
 
 		output.replaceAll(s -> {
 			final String[] split = s.split(" ", 2);
@@ -629,64 +291,172 @@ public class Main{
 			return s;
 		});
 
-		Files.write(Paths.get(baseDirectory + flatGedcomFilename),
-			output);
+		if(flatGedcomFilename != null)
+			Files.write(Paths.get(baseDirectory + flatGedcomFilename), output);
 
 		return output;
 	}
 
-	private static Map<String, List<Map<String, Object>>> transfer(List<String> lines){
-		final Map<String, List<Map<String, Object>>> tables = new HashMap<>();
-		for(int i = 0, length = lines.size(); i < length; i ++){
-			String line = lines.get(i);
-			if(line.matches("INDI\\[\\d+]")){
-				List<Map<String, Object>> persons = tables.computeIfAbsent("person", k -> new ArrayList<>());
-				int personID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
-				Map<String, Object> person = new HashMap<>();
-				person.put("id", personID);
-				persons.add(person);
+	private static int manageID(final String tag, final int id, final List<String> output, final int i){
+		String line = output.get(i);
+		if(line.contains("." + tag + ".")){
+			line = line.replaceFirst("\\." + tag + "\\.", "." + tag + "[" + (id - 1) + "].");
+			output.set(i, line);
+		}
+		else if(line.endsWith("." + tag)){
+			line += "[" + id + "]";
+			output.set(i, line);
+			return id + 1;
+		}
+		return id;
+	}
 
-				String personParent = line;
-				String subline;
-				int j = i;
-				while((subline = lines.get(j)).startsWith(personParent)){
-					//TODO
+	private static GedcomObject extractor(final List<String> lines){
+		final GedcomObject root = new GedcomObject();
+		Map<String, GedcomObject> context = new HashMap<>();
+		context.put("", root);
+
+		for(String line : lines){
+			line = line.trim();
+
+			if(!line.contains("=") && line.matches(".*\\[\\d+]$")){
+				final int lastDotIndex = line.lastIndexOf('.');
+				final String parentKey = (lastDotIndex == - 1? "": line.substring(0, lastDotIndex));
+				final String key = line.substring(lastDotIndex + 1);
+
+				final GedcomObject parent = context.get(parentKey);
+				final GedcomObject child = new GedcomObject();
+				child.type = key.substring(0, key.indexOf('['));
+				child.id = Integer.parseInt(key.substring(key.indexOf('[') + 1, key.length() - 1));
+				parent.children.put(key, child);
+				context.put(line, child);
+			}
+			else if(line.contains("=")){
+				final int lastDotIndex = line.lastIndexOf('.', line.indexOf('='));
+				final String parentKey = line.substring(0, lastDotIndex);
+				final GedcomObject parent = context.get(parentKey);
+				final String[] parts = line.split("=", 2);
+				final String attributeKey = parts[0].substring(lastDotIndex + 1);
+				if(parent.attributes.containsKey(attributeKey)){
+					if(!attributeKey.equals("CONT"))
+						throw new IllegalArgumentException("error while squashing " + attributeKey + ": not managed (yet)");
+
+					parts[1] = parent.attributes.get(attributeKey) + "\r\n" + parts[1];
 				}
-			}
-			else if(line.matches("FAM\\[\\d+]")){
-				List<Map<String, Object>> groups = tables.computeIfAbsent("group", k -> new ArrayList<>());
-				int groupID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
-				Map<String, Object> group = new HashMap<>();
-				group.put("id", groupID);
-				groups.add(group);
-			}
-			else if(line.matches("SOUR\\[\\d+]")){
-				List<Map<String, Object>> sources = tables.computeIfAbsent("source", k -> new ArrayList<>());
-				int sourceID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
-				Map<String, Object> scource = new HashMap<>();
-				scource.put("id", sourceID);
-				sources.add(scource);
-			}
-			else if(line.matches("REPO\\[\\d+]")){
-				List<Map<String, Object>> repositories = tables.computeIfAbsent("repository", k -> new ArrayList<>());
-				int repositoryID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
-				Map<String, Object> repository = new HashMap<>();
-				repository.put("id", repositoryID);
-				repositories.add(repository);
-			}
-			else if(line.matches("NOTE\\[\\d+]")){
-				List<Map<String, Object>> notes = tables.computeIfAbsent("note", k -> new ArrayList<>());
-				int noteID = Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']')));
-				Map<String, Object> note = new HashMap<>();
-				note.put("id", noteID);
-				notes.add(note);
+				parent.attributes.put(attributeKey, parts[1]);
 			}
 		}
-
-		//TODO
-
-		return tables;
+		return root;
 	}
+
+	private static Map<String, List<Map<String, Object>>> transfer(final GedcomObject root){
+		final Map<String, List<GedcomObject>> map = createFirstLevelMap(root);
+		final List<GedcomObject> groups = map.get("FAM");
+		final List<GedcomObject> repositories = map.get("REPO");
+		final List<GedcomObject> notes = map.get("NOTE");
+		final List<GedcomObject> persons = map.get("INDI");
+		final List<GedcomObject> sources = map.get("SOUR");
+
+		final Map<String, List<Map<String, Object>>> output = new HashMap<>();
+		transferRepositories(output, repositories);
+		transferNotes(output, notes);
+
+		return output;
+	}
+
+	private static void transferRepositories(Map<String, List<Map<String, Object>>> output, List<GedcomObject> repositories){
+		final List<Map<String, Object>> flefRepositories = output.computeIfAbsent("repository", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+
+		for(final GedcomObject repository : repositories){
+			final Map<String, GedcomObject> children = repository.children;
+			final Map<String, String> attributes = repository.attributes;
+
+			final String addr = attributes.get("ADDR");
+			final GedcomObject name = getFirstStartingWith(children, "NAME");
+			final String repositoryName = name.attributes.get("DESC");
+			final GedcomObject plac = getFirstStartingWith(children, "PLAC");
+			if(addr != null || plac != null){
+				final String address = (addr != null? addr: plac.attributes.get("DESC"));
+
+				final Map<String, Object> flefLocalizedText = new HashMap<>();
+				flefLocalizedTexts.add(flefLocalizedText);
+				flefLocalizedText.put("id", name.id);
+				flefLocalizedText.put("text", repositoryName);
+				flefLocalizedText.put("locale", "it");
+				flefLocalizedText.put("type", "original");
+
+				final Map<String, Object> flefPlace = new HashMap<>();
+				flefPlaces.add(flefPlace);
+				flefPlace.put("id", plac.id);
+				flefPlace.put("identifier", address);
+				flefPlace.put("name_id", name.id);
+			}
+
+			final Map<String, Object> flefRepository = new HashMap<>();
+			flefRepositories.add(flefRepository);
+			flefRepository.put("id", repository.id);
+			flefRepository.put("identifier", repositoryName);
+			if(plac != null)
+				flefRepository.put("place_id", plac.id);
+		}
+	}
+
+	private static void transferNotes(Map<String, List<Map<String, Object>>> output, List<GedcomObject> notes){
+		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
+
+		for(final GedcomObject note : notes){
+			final Map<String, GedcomObject> children = note.children;
+			final Map<String, String> attributes = note.attributes;
+
+			final String text = attributes.get("CONT");
+			if(children.isEmpty()){
+				final Map<String, Object> flefNote = new HashMap<>();
+				flefNotes.add(flefNote);
+				flefNote.put("id", note.id);
+				flefNote.put("note", text);
+				flefNote.put("reference_table", null);
+				flefNote.put("reference_id", null);
+			}
+			else
+				for(final GedcomObject child : children.values()){
+					final String qualityOfData = child.attributes.get("QUAY");
+
+					//TODO duplicate note for each source?
+					final Map<String, Object> flefNote = new HashMap<>();
+					flefNotes.add(flefNote);
+					flefNote.put("id", note.id);
+					flefNote.put("note", text);
+					flefNote.put("reference_table", null);
+					flefNote.put("reference_id", null);
+
+					System.out.println(qualityOfData);
+				}
+		}
+	}
+
+	private static GedcomObject getFirstStartingWith(final Map<String, GedcomObject> children, final String tag){
+		for(final GedcomObject child : children.values())
+			if(child.type.equals(tag))
+				return child;
+		return null;
+	}
+
+	private static Map<String, List<GedcomObject>> createFirstLevelMap(final GedcomObject root){
+		final Map<String, List<GedcomObject>> firstLevelMap = new HashMap<>();
+		for(final Map.Entry<String, GedcomObject> entry : root.children.entrySet()){
+			String key = entry.getKey();
+			key = key.substring(0, key.indexOf('['));
+			firstLevelMap.computeIfAbsent(key, k -> new ArrayList<>())
+				.add(entry.getValue());
+		}
+		return firstLevelMap;
+	}
+
 
 	private static void media_note_mediaJunction_source(final String baseDirectory) throws IOException{
 		Path path = Paths.get(baseDirectory + "\\ged\\TMGZ.txt");

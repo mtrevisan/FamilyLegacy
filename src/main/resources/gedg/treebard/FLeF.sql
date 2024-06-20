@@ -56,7 +56,7 @@ CREATE TABLE REPOSITORY
  "TYPE"     text,							-- Repository type (ex. "public library", "college library", "national library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "library", "government agency", "funeral home", "private library", "prison library", "trunk in the attic").
  PERSON_ID  numeric,						-- An xref ID of the person, if present in the tree and is the repository of a source.
  PLACE_ID   numeric,						-- The place this repository is.
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ),
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" )
 );
 
