@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
-import org.apache.commons.collections.CollectionUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,14 +82,14 @@ public class Main{
 //		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
 //		dbManager.initialize(grammarFile);
 
-//		final String baseDirectory = "C:\\Users\\mauro\\Projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
-		final String baseDirectory = "C:\\mauro\\mine\\projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
+		final String baseDirectory = "C:\\Users\\mauro\\Projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
+//		final String baseDirectory = "C:\\mauro\\mine\\projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
 		final String gedcomFilename = "TGMZ.ged";
 		String flatGedcomFilename = "TGMZ.txt";
 flatGedcomFilename = null;
 		final List<String> lines = flatGedcom(baseDirectory, gedcomFilename, flatGedcomFilename);
 		final GedcomObject root = extractor(lines);
-		final Map<String, List<Map<String, Object>>> tables = transfer(root);
+		final Map<String, List<Map<String, Object>>> tables = transfer(root, lines);
 	}
 
 	private static List<String> flatGedcom(final String baseDirectory, final String gedcomFilename, final String flatGedcomFilename)
@@ -259,8 +258,8 @@ flatGedcomFilename = null;
 		int mapID = 1;
 		int placID = 1;
 		int conclusionID = 1;
-		int noteID = 10_000;
-		int textID = 20_000;
+		int noteID = 100;
+		int textID = 5_000;
 		for(int i = 0; i < output.size(); i ++){
 			nameID = manageID("NAME", nameID, output, i);
 			educID = manageID("EDUC", educID, output, i);
@@ -350,7 +349,7 @@ flatGedcomFilename = null;
 		return root;
 	}
 
-	private static Map<String, List<Map<String, Object>>> transfer(final GedcomObject root){
+	private static Map<String, List<Map<String, Object>>> transfer(final GedcomObject root, final List<String> lines){
 		final Map<String, List<GedcomObject>> map = createFirstLevelMap(root);
 		final List<GedcomObject> groups = map.get("FAM");
 		final List<GedcomObject> repositories = map.get("REPO");
@@ -363,8 +362,10 @@ flatGedcomFilename = null;
 		transferCalendar(output);
 		transferRepositories(output, repositories);
 		transferGroups(output, groups);
-		//TODO assertions, citations, sources, historic_date, place, historic_place, localized_text, localized_text_junction, note, media, media_junction, person, person_name, event
-//		transferNotes(output, notes);
+		transferNotes(output, notes, lines);
+		transferSources(output, sources);
+		//TODO assertions, citations, sources, historic_date, place, historic_place, localized_text, localized_text_junction, note, media,
+		// media_junction, person, person_name, event
 
 		return output;
 	}
@@ -491,39 +492,66 @@ flatGedcomFilename = null;
 		}
 	}
 
-	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> notes){
+	//TODO
+	private static void transferSources(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> sources){
+		final List<Map<String, Object>> flefSources = output.computeIfAbsent("sources", k -> new ArrayList<>());
+
+		for(final GedcomObject source : sources){
+			final Map<String, GedcomObject> children = source.children;
+			final Map<String, String> attributes = source.attributes;
+
+//			final String addr = attributes.get("ADDR");
+//			final GedcomObject name = getFirstStartingWith(children, "NAME");
+//			final String repositoryName = name.attributes.get("DESC");
+//			final GedcomObject plac = getFirstStartingWith(children, "PLAC");
+//			if(addr != null || plac != null){
+//				final String address = (addr != null? addr: plac.attributes.get("DESC"));
+//
+//				final Map<String, Object> flefLocalizedText = new HashMap<>();
+//				flefLocalizedTexts.add(flefLocalizedText);
+//				flefLocalizedText.put("id", name.id);
+//				flefLocalizedText.put("text", repositoryName);
+//				flefLocalizedText.put("locale", "it");
+//				flefLocalizedText.put("type", "original");
+//
+//				final Map<String, Object> flefPlace = new HashMap<>();
+//				flefPlaces.add(flefPlace);
+//				flefPlace.put("id", plac.id);
+//				flefPlace.put("identifier", address);
+//				flefPlace.put("name_id", name.id);
+//			}
+//
+//			final Map<String, Object> flefRepository = new HashMap<>();
+//			flefSources.add(flefRepository);
+//			flefRepository.put("id", source.id);
+//			flefRepository.put("identifier", repositoryName);
+//			if(plac != null)
+//				flefRepository.put("place_id", plac.id);
+		}
+	}
+
+	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> notes,
+			final List<String> lines){
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 
 		for(final GedcomObject note : notes){
-			final Map<String, GedcomObject> children = note.children;
+			final String noteID = ".NOTE[" + note.id + "]";
+			final List<Integer> personIDs = new ArrayList<>();
+			for(final String line : lines)
+				if(line.contains(noteID))
+					personIDs.add(Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']'))));
+
 			final Map<String, String> attributes = note.attributes;
 
 			final String text = attributes.get("CONT");
-			if(children.isEmpty()){
+			for(final Integer personID : personIDs){
 				final Map<String, Object> flefNote = new HashMap<>();
 				flefNotes.add(flefNote);
 				flefNote.put("id", note.id);
 				flefNote.put("note", text);
-				flefNote.put("reference_table", null);
-				flefNote.put("reference_id", null);
+				flefNote.put("reference_table", "person");
+				flefNote.put("reference_id", personID);
 			}
-			else
-				for(final GedcomObject child : children.values()){
-					final String qualityOfData = child.attributes.get("QUAY");
-
-					//TODO duplicate note for each source?
-					final Map<String, Object> flefNote = new HashMap<>();
-					flefNotes.add(flefNote);
-					flefNote.put("id", note.id);
-					flefNote.put("note", text);
-					flefNote.put("reference_table", null);
-					flefNote.put("reference_id", null);
-
-					System.out.println(qualityOfData);
-				}
 		}
 	}
 
