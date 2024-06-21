@@ -10,7 +10,7 @@ CREATE TABLE "ASSERTION"
 (
  "ID"            numeric PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,	-- The citation from which this assertion is derived.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name")
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "repository", "person", "group", "media", "person name")
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
@@ -36,7 +36,7 @@ CREATE TABLE "SOURCE"
 (
  "ID"          numeric PRIMARY KEY,
  IDENTIFIER    text NOT NULL UNIQUE,	-- The title of the source (must be unique, ex. "1880 US Census").
- SOURCE_TYPE   text,							-- ex. "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "religious record", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "religious record", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record".
+ SOURCE_TYPE   text,							-- ex. "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record".
  AUTHOR        text,							-- The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
  PLACE_ID      numeric,						-- The place this source was created.
  DATE_ID       numeric,						-- The date this source was created.
@@ -152,7 +152,9 @@ CREATE TABLE MEDIA
  IDENTIFIER       text NOT NULL UNIQUE,	-- An identifier for the media (must be unique, ex. a complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data).
  TITLE            text,							-- The name of the media.
  "TYPE"           text,							-- (ex. "photo, "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom")
- IMAGE_PROJECTION text							-- The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image).
+ IMAGE_PROJECTION text,							-- The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image).
+ DATE_ID          numeric,						-- The date this media was first recorded.
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" )
 );
 
 CREATE TABLE MEDIA_JUNCTION
@@ -218,9 +220,9 @@ CREATE TABLE GROUP_JUNCTION
 -- Event
 
 /*
-1. Assertion can be made about "place", "cultural norm", "date", "calendar", "repository", "person", "group", "media", "person name".
+1. Assertion can be made about "historic place", "cultural norm", "historic date", "calendar", "repository", "person", "group", "media", "person name".
 2. A conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated.
-3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (a "place") at a certain time (a "date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name").
+3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (an "historic place") at a certain time (an "historic date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name").
 */
 CREATE TABLE EVENT
 (

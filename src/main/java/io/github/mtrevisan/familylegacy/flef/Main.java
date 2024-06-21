@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,8 +58,9 @@ public class Main{
 	private static final List<String> SUFFIXES = Arrays.asList(".NAME ", ".EDUC ", ".EVEN ", ".OCCU ", ".SEX ", ".PLAC ", ".NOTE ", ".SSN ",
 		".DSCR ", ".RELI ", ".PROP ", ".NCHI ", ".TEXT ");
 
-	private static final Set<String> SUFFIXES_Y = new HashSet<>(Arrays.asList("BIRT Y", "DEAT Y", "CREM Y", "BURI Y", "RETI Y", "EMIG Y",
-		"IMMI Y", "ADOP Y", "NATU Y", "CENS Y", "GRAD Y", "ORDN Y", "WILL Y", "ENGA Y", "MARR Y", "MARL Y", "MARB Y", "MARS Y", "DIV Y"));
+	private static final Set<String> SUFFIXES_Y = new HashSet<>(Arrays.asList("BIRT Y", "CHR Y", "DEAT Y", "BURI Y", "CREM Y", "ADOP Y",
+		"BAPM Y", "BARM Y", "BASM Y", "BLES Y", "CHRA Y", "CONF Y", "FCOM Y", "ORDN Y", "NATU Y", "EMIG Y", "IMMI Y", "CENS Y", "PROB Y",
+		"WILL Y", "GRAD Y", "RETI Y", "ANUL Y", "DIV Y", "DIVF Y", "ENGA Y", "MARB Y", "MARC Y", "MARR Y", "MARL Y", "MARS Y", "RESI Y"));
 
 	private static final String[] IDENTIFIERS = {"SEX", "MARR", "MARL", "MARB", "MARS", "BIRT", "DEAT", "CREM", "BURI", "RETI", "RESI",
 		"RELI", "ENGA", "DSCR", "SSN", "EMIG", "IMMI", "ADOP", "PROP", "NATU", "CENS", "GRAD", "ORDN", "NCHI", "WILL", "DIV"};
@@ -70,8 +73,8 @@ public class Main{
 	}
 
 
-	public static void main(final String[] args) throws SQLGrammarException, SQLDataException, GedcomGrammarException, GedcomDataException,
-			SQLException, IOException{
+	public static void main(final String[] args) throws URISyntaxException, SQLGrammarException, SQLDataException, GedcomGrammarException,
+			GedcomDataException, SQLException, IOException{
 //		final GedcomFileParser gedcomParser = new GedcomFileParser();
 //		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 
@@ -82,19 +85,19 @@ public class Main{
 //		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
 //		dbManager.initialize(grammarFile);
 
-		final String baseDirectory = "C:\\Users\\mauro\\Projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
-//		final String baseDirectory = "C:\\mauro\\mine\\projects\\FamilyLegacy\\src\\main\\resources\\ged\\";
-		final String gedcomFilename = "TGMZ.ged";
-		String flatGedcomFilename = "TGMZ.txt";
+		final String gedcomFilename = "ged\\TGMZ.ged";
+		String flatGedcomFilename = "ged\\TGMZ.txt";
 flatGedcomFilename = null;
-		final List<String> lines = flatGedcom(baseDirectory, gedcomFilename, flatGedcomFilename);
+		final List<String> lines = flatGedcom(gedcomFilename, flatGedcomFilename);
 		final GedcomObject root = extractor(lines);
 		final Map<String, List<Map<String, Object>>> tables = transfer(root, lines);
 	}
 
-	private static List<String> flatGedcom(final String baseDirectory, final String gedcomFilename, final String flatGedcomFilename)
-			throws IOException{
-		Path path = Paths.get(baseDirectory + gedcomFilename);
+	private static List<String> flatGedcom(final String gedcomFilename, final String flatGedcomFilename) throws URISyntaxException,
+			IOException{
+		final URL resourceInput = Main.class.getClassLoader().getResource(gedcomFilename);
+		final Path path = Paths.get(resourceInput.toURI());
+
 		List<String> lines = Files.readAllLines(path);
 
 		lines.replaceAll(s -> s.replaceAll("@@", "@"));
@@ -200,11 +203,11 @@ flatGedcomFilename = null;
 			if(line.endsWith(".CHAN")){
 				dateLine = output.get(i + 1);
 				if(dateLine.contains(".CHAN.DATE ")){
-					dateLine = dateLine.substring(dateLine.indexOf(" ") + 1);
+					dateLine = dateLine.substring(dateLine.indexOf(' ') + 1);
 
 					timeLine = output.get(i + 2);
 					if(timeLine.contains(".CHAN.DATE.TIME "))
-						timeLine = timeLine.substring(timeLine.indexOf(" ") + 1);
+						timeLine = timeLine.substring(timeLine.indexOf(' ') + 1);
 					else
 						timeLine = null;
 				}
@@ -291,8 +294,10 @@ flatGedcomFilename = null;
 			return s;
 		});
 
-		if(flatGedcomFilename != null)
-			Files.write(Paths.get(baseDirectory + flatGedcomFilename), output);
+		if(flatGedcomFilename != null){
+			final URL resourceOutput = Main.class.getClassLoader().getResource(flatGedcomFilename);
+			Files.write(Paths.get(resourceOutput.toURI()), output);
+		}
 
 		return output;
 	}
@@ -326,8 +331,8 @@ flatGedcomFilename = null;
 
 				final GedcomObject parent = context.get(parentKey);
 				final GedcomObject child = new GedcomObject();
-				child.type = key.substring(0, key.indexOf('['));
-				child.id = Integer.parseInt(key.substring(key.indexOf('[') + 1, key.length() - 1));
+				child.type = extractType(key);
+				child.id = extractID(key);
 				parent.children.put(key, child);
 				context.put(line, child);
 			}
@@ -354,18 +359,18 @@ flatGedcomFilename = null;
 		final List<GedcomObject> groups = map.get("FAM");
 		final List<GedcomObject> repositories = map.get("REPO");
 		final List<GedcomObject> notes = map.get("NOTE");
-		final List<GedcomObject> persons = map.get("INDI");
 		final List<GedcomObject> sources = map.get("SOUR");
+		final List<GedcomObject> persons = map.get("INDI");
 
 		final Map<String, List<Map<String, Object>>> output = new HashMap<>();
 		transferProject(output);
 		transferCalendar(output);
-		transferRepositories(output, repositories);
+		transferCulturalNorm(output);
 		transferGroups(output, groups);
+		transferRepositories(output, repositories);
 		transferNotes(output, notes, lines);
 		transferSources(output, sources);
-		//TODO assertions, citations, sources, historic_date, place, historic_place, localized_text, localized_text_junction, note, media,
-		// media_junction, person, person_name, event
+		transferPersons(output, persons);
 
 		return output;
 	}
@@ -400,53 +405,268 @@ flatGedcomFilename = null;
 		flefCalendar.put("type", "venetan");
 	}
 
+	private static void transferCulturalNorm(final Map<String, List<Map<String, Object>>> output){
+		final List<Map<String, Object>> flefCulturalNorms = output.computeIfAbsent("cultural_norm", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+
+		final Map<String, Object> flefLocalizedText = new HashMap<>();
+		flefLocalizedTexts.add(flefLocalizedText);
+		flefLocalizedText.put("id", 10_000);
+		flefLocalizedText.put("text", "Regno Lombardo-Veneto");
+		flefLocalizedText.put("locale", "it");
+		flefLocalizedText.put("type", "original");
+
+		Map<String, Object> flefPlace = new HashMap<>();
+		flefPlaces.add(flefPlace);
+		final int placeID = flefPlaces.size();
+		flefPlace.put("id", placeID);
+		flefPlace.put("identifier", "Regno Lombardo-Veneto");
+		flefPlace.put("name_id", 10_000);
+		flefPlace.put("type", "reign");
+
+		Map<String, Object> flefHistoricPlace = new HashMap<>();
+		flefHistoricPlaces.add(flefHistoricPlace);
+		final int historicPlaceID = flefHistoricPlaces.size();
+		flefHistoricPlace.put("id", historicPlaceID);
+		flefHistoricPlace.put("place_id", placeID);
+		flefHistoricPlace.put("certainty", "certain");
+		flefHistoricPlace.put("credibility", 3);
+
+		Map<String, Object> flefHistoricDate = new HashMap<>();
+		flefHistoricDates.add(flefHistoricDate);
+		final int dateStartID = flefHistoricDates.size();
+		flefHistoricDate.put("id", dateStartID);
+		flefHistoricDate.put("date", "31 JAN 1807");
+		flefHistoricDate.put("calendar_id", 1);
+		flefHistoricDate = new HashMap<>();
+		flefHistoricDates.add(flefHistoricDate);
+		final int dateEndID = flefHistoricDates.size();
+		flefHistoricDate.put("id", dateStartID);
+		flefHistoricDate.put("date", "19 FEB 1811");
+		flefHistoricDate.put("calendar_id", 1);
+
+		Map<String, Object> flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 1);
+		flefCulturalNorm.put("identifier", "nomi latini");
+		flefCulturalNorm.put("description", "per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in *-us* per il maschile e *-a* per il femminile)");
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 2);
+		flefCulturalNorm.put("identifier", "napoleonic code age of majority in men");
+		flefCulturalNorm.put("description", "23 anni minore, 29 anni maggiore");
+		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("date_start_id", dateStartID);
+		flefCulturalNorm.put("date_end_id", dateEndID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 3);
+		flefCulturalNorm.put("identifier", "napoleonic code respectful act for men");
+		flefCulturalNorm.put("description", "fino ai 30");
+		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("date_start_id", dateStartID);
+		flefCulturalNorm.put("date_end_id", dateEndID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 4);
+		flefCulturalNorm.put("identifier", "napoleonic code age of majority in women");
+		flefCulturalNorm.put("description", "22 anni minore");
+		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("date_start_id", dateStartID);
+		flefCulturalNorm.put("date_end_id", dateEndID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 5);
+		flefCulturalNorm.put("identifier", "napoleonic code respectful act for women");
+		flefCulturalNorm.put("description", "fino ai 25");
+		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("date_start_id", dateStartID);
+		flefCulturalNorm.put("date_end_id", dateEndID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+	}
+
 	private static void transferGroups(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> groups){
 		final List<Map<String, Object>> flefGroups = output.computeIfAbsent("group", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefGroupJunctions = output.computeIfAbsent("group_junction", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent("assertion", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 
 		for(final GedcomObject group : groups){
 			final Map<String, GedcomObject> children = group.children;
 
 			final GedcomObject husband = getFirstStartingWith(children, "HUSB");
 			final GedcomObject wife = getFirstStartingWith(children, "WIFE");
-			boolean verifiedMarriage = false;
 			final List<GedcomObject> marriages = getAllStartingWith(children, "MARR");
-			for(final GedcomObject marriage : marriages)
-				if(getFirstStartingWith(marriage.children, "SOUR") != null){
-					verifiedMarriage = true;
-					break;
+			for(final GedcomObject marriage : marriages){
+				final Map<String, GedcomObject> marriageChildren = marriage.children;
+				final String marriageDate = marriage.attributes.get("DATE");
+				final List<GedcomObject> marriageNotes = getAllStartingWith(marriageChildren, "NOTE");
+				final List<GedcomObject> marriageSources = getAllStartingWith(marriageChildren, "SOUR");
+				final GedcomObject marriagePlace = getFirstStartingWith(marriageChildren, "PLAC");
+				for(final GedcomObject note : marriageNotes){
+//					final String desc = note.attributes.get("DESC");
+//					final String time = (desc.startsWith("ore ")? desc: null);
+//					if(time != null){
+//						//TODO add to marriage date
+//						System.out.println();
+//					}
+//					else{
+//						//add note
+//						final GedcomObject noteSource = getFirstStartingWith(note.children, "SOUR");
+//						if(noteSource != null){
+//							final GedcomObject noteSourceEvent = getFirstStartingWith(noteSource.children, "EVEN");
+//							if(noteSourceEvent != null){
+//								final String noteSourceEventDesc = noteSourceEvent.attributes.get("DESC");
+//								if(noteSourceEventDesc == null){
+//									System.out.println();
+//								}
+//								else if(noteSourceEventDesc.equals("MARR")){
+//									final Map<String, Object> flefNote = new HashMap<>();
+//									flefNotes.add(flefNote);
+//									flefNote.put("id", note.id);
+//									flefNote.put("note", desc);
+//									flefNote.put("reference_table", "source");
+//									flefNote.put("reference_id", noteSource.id);
+//								}
+//								else
+//									System.out.println();
+//							}
+//							else{
+//								final Map<String, Object> flefNote = new HashMap<>();
+//								flefNotes.add(flefNote);
+//								flefNote.put("id", note.id);
+//								flefNote.put("note", desc);
+//								flefNote.put("reference_table", "source");
+//								flefNote.put("reference_id", noteSource.id);
+//							}
+//						}
+//						else if(!marriageSources.isEmpty()){
+//							if(marriageSources.size() == 1){
+//								final Map<String, Object> flefNote = new HashMap<>();
+//								flefNotes.add(flefNote);
+//								flefNote.put("id", note.id);
+//								flefNote.put("note", desc);
+//								flefNote.put("reference_table", "source");
+//								flefNote.put("reference_id", marriageSources.getFirst().id);
+//							}
+//							else
+//								System.out.println();
+//						}
+//						else
+//							System.out.println();
+//					}
 				}
-			if(husband != null || wife != null){
-				final Map<String, Object> flefGroup = new HashMap<>();
-				flefGroups.add(flefGroup);
-				flefGroup.put("id", group.id);
-				flefGroup.put("type", "family");
+				for(final GedcomObject marriageSource : marriageSources){
+					if(marriagePlace != null){
+						//create citation
+						final Map<String, Object> flefCitation = new HashMap<>();
+						flefCitations.add(flefCitation);
+						final int citationID = flefCitations.size();
+						flefCitation.put("id", citationID);
+						flefCitation.put("source_id", marriageSource.id);
+						flefCitation.put("location", null);
+						flefCitation.put("extract_id", null);
+						flefCitation.put("extract_type", "transcript");
 
-				if(husband != null){
-					final Map<String, Object> flefGroupJunction = new HashMap<>();
-					flefGroupJunctions.add(flefGroupJunction);
-					flefGroupJunction.put("id", flefGroupJunction.size() + 1);
-					flefGroupJunction.put("group_id", group.id);
-					flefGroupJunction.put("reference_table", "person");
-					flefGroupJunction.put("reference_id", husband.id);
-					flefGroupJunction.put("role", "partner");
-					if(verifiedMarriage){
-						flefGroupJunction.put("certainty", "certain");
-						flefGroupJunction.put("credibility", 3);
+						//create assertion connected to a place
+						final Map<String, Object> flefAssertion = new HashMap<>();
+						flefAssertions.add(flefAssertion);
+						flefAssertion.put("id", flefAssertions.size());
+						flefAssertion.put("citation_id", citationID);
+						flefAssertion.put("reference_table", "historic_place");
+						flefAssertion.put("reference_id", marriagePlace.id);
+						flefAssertion.put("role", null);
+						flefAssertion.put("certainty", null);
+						flefAssertion.put("credibility", 3);
 					}
+
+					if(marriageDate != null){
+						//create citation
+						final Map<String, Object> flefCitation = new HashMap<>();
+						flefCitations.add(flefCitation);
+						final int citationID = flefCitations.size();
+						flefCitation.put("id", citationID);
+						flefCitation.put("source_id", marriageSource.id);
+						flefCitation.put("location", null);
+						flefCitation.put("extract_id", null);
+						flefCitation.put("extract_type", "transcript");
+
+						//TODO
+//						final String marriageDesc = marriage.attributes.get("DESC");
+//						final String time = (marriageDesc.startsWith("ore ")? marriageDesc: null);
+						final Map<String, Object> flefHistoricDate = new HashMap<>();
+						flefHistoricDates.add(flefHistoricDate);
+						final int marriageDateID = flefHistoricDates.size();
+//						flefHistoricDate.put("id", marriageDateID);
+//						flefHistoricDate.put("date", "31 JAN 1807");
+
+						//create assertion connected to a date
+						final Map<String, Object> flefAssertion = new HashMap<>();
+						flefAssertions.add(flefAssertion);
+						flefAssertion.put("id", flefAssertions.size());
+						flefAssertion.put("citation_id", citationID);
+						flefAssertion.put("reference_table", "historic_date");
+						flefAssertion.put("reference_id", marriageDateID);
+						flefAssertion.put("role", null);
+						flefAssertion.put("certainty", null);
+						flefAssertion.put("credibility", 3);
+					}
+
+//					System.out.println();
 				}
 
-				if(wife != null){
-					final Map<String, Object> flefGroupJunction = new HashMap<>();
-					flefGroupJunctions.add(flefGroupJunction);
-					flefGroupJunction.put("id", flefGroupJunction.size() + 1);
-					flefGroupJunction.put("group_id", group.id);
-					flefGroupJunction.put("reference_table", "person");
-					flefGroupJunction.put("reference_id", wife.id);
-					flefGroupJunction.put("role", "partner");
-					if(verifiedMarriage){
-						flefGroupJunction.put("certainty", "certain");
-						flefGroupJunction.put("credibility", 3);
+				final boolean verifiedMarriage = !marriageSources.isEmpty();
+
+				if(husband != null || wife != null){
+					final Map<String, Object> flefGroup = new HashMap<>();
+					flefGroups.add(flefGroup);
+					flefGroup.put("id", marriage.id);
+					flefGroup.put("type", "family");
+
+					if(husband != null){
+						final Map<String, Object> flefGroupJunction = new HashMap<>();
+						flefGroupJunctions.add(flefGroupJunction);
+						flefGroupJunction.put("id", flefGroupJunctions.size());
+						flefGroupJunction.put("group_id", marriage.id);
+						flefGroupJunction.put("reference_table", "person");
+						flefGroupJunction.put("reference_id", husband.id);
+						flefGroupJunction.put("role", "partner");
+						if(verifiedMarriage){
+							flefGroupJunction.put("certainty", "certain");
+							flefGroupJunction.put("credibility", 3);
+						}
+					}
+
+					if(wife != null){
+						final Map<String, Object> flefGroupJunction = new HashMap<>();
+						flefGroupJunctions.add(flefGroupJunction);
+						flefGroupJunction.put("id", flefGroupJunctions.size());
+						flefGroupJunction.put("group_id", marriage.id);
+						flefGroupJunction.put("reference_table", "person");
+						flefGroupJunction.put("reference_id", wife.id);
+						flefGroupJunction.put("role", "partner");
+						if(verifiedMarriage){
+							flefGroupJunction.put("certainty", "certain");
+							flefGroupJunction.put("credibility", 3);
+						}
 					}
 				}
 			}
@@ -492,46 +712,8 @@ flatGedcomFilename = null;
 		}
 	}
 
-	//TODO
-	private static void transferSources(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> sources){
-		final List<Map<String, Object>> flefSources = output.computeIfAbsent("sources", k -> new ArrayList<>());
-
-		for(final GedcomObject source : sources){
-			final Map<String, GedcomObject> children = source.children;
-			final Map<String, String> attributes = source.attributes;
-
-//			final String addr = attributes.get("ADDR");
-//			final GedcomObject name = getFirstStartingWith(children, "NAME");
-//			final String repositoryName = name.attributes.get("DESC");
-//			final GedcomObject plac = getFirstStartingWith(children, "PLAC");
-//			if(addr != null || plac != null){
-//				final String address = (addr != null? addr: plac.attributes.get("DESC"));
-//
-//				final Map<String, Object> flefLocalizedText = new HashMap<>();
-//				flefLocalizedTexts.add(flefLocalizedText);
-//				flefLocalizedText.put("id", name.id);
-//				flefLocalizedText.put("text", repositoryName);
-//				flefLocalizedText.put("locale", "it");
-//				flefLocalizedText.put("type", "original");
-//
-//				final Map<String, Object> flefPlace = new HashMap<>();
-//				flefPlaces.add(flefPlace);
-//				flefPlace.put("id", plac.id);
-//				flefPlace.put("identifier", address);
-//				flefPlace.put("name_id", name.id);
-//			}
-//
-//			final Map<String, Object> flefRepository = new HashMap<>();
-//			flefSources.add(flefRepository);
-//			flefRepository.put("id", source.id);
-//			flefRepository.put("identifier", repositoryName);
-//			if(plac != null)
-//				flefRepository.put("place_id", plac.id);
-		}
-	}
-
 	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> notes,
-			final List<String> lines){
+		final List<String> lines){
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 
 		for(final GedcomObject note : notes){
@@ -539,7 +721,7 @@ flatGedcomFilename = null;
 			final List<Integer> personIDs = new ArrayList<>();
 			for(final String line : lines)
 				if(line.contains(noteID))
-					personIDs.add(Integer.parseInt(line.substring(line.indexOf('[') + 1, line.indexOf(']'))));
+					personIDs.add(extractID(line));
 
 			final Map<String, String> attributes = note.attributes;
 
@@ -553,6 +735,133 @@ flatGedcomFilename = null;
 				flefNote.put("reference_id", personID);
 			}
 		}
+	}
+
+	private static void transferSources(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> sources){
+		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefMedias = output.computeIfAbsent("media", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
+
+		for(final GedcomObject source : sources){
+			final Map<String, GedcomObject> children = source.children;
+			final Map<String, String> attributes = source.attributes;
+
+			final Integer repoID = extractID(attributes.get("REPO"));
+			final String auth = attributes.get("AUTH");
+			final String titl = attributes.get("TITL");
+			final Map<String, Object> flefSource = new HashMap<>();
+			flefSources.add(flefSource);
+			flefSource.put("id", source.id);
+			flefSource.put("identifier", titl);
+			//FIXME fix null
+			flefSource.put("source_type", null);
+			flefSource.put("author", auth);
+			//FIXME fix null
+			flefSource.put("place_id", null);
+			//FIXME fix null
+			flefSource.put("date_id", null);
+			flefSource.put("repository_id", repoID);
+			//FIXME fix null
+			flefSource.put("location", null);
+
+			final List<GedcomObject> medias = getAllStartingWith(children, "OBJE");
+			for(final GedcomObject media : medias){
+				final Map<String, String> mediaAttributes = media.attributes;
+
+				final String title = mediaAttributes.get("TITL");
+				final String date = mediaAttributes.get("_DATE");
+				final String identifier = mediaAttributes.get("FILE");
+
+				final int dateID = flefHistoricDates.size() + 1;
+				if(date != null){
+					final Map<String, Object> flefHistoricDate = new HashMap<>();
+					flefHistoricDates.add(flefHistoricDate);
+					flefHistoricDate.put("id", dateID);
+					flefHistoricDate.put("date", date);
+				}
+				final Map<String, Object> flefMedia = new HashMap<>();
+				flefMedias.add(flefMedia);
+				flefMedia.put("id", media.id);
+				flefMedia.put("identifier", identifier);
+				flefMedia.put("title", title);
+				final boolean isImage = (identifier.endsWith(".jpg") || identifier.endsWith(".psd") || identifier.endsWith(".png")
+					|| identifier.endsWith(".bmp") || identifier.endsWith(".gif") || identifier.endsWith(".tif"));
+				flefMedia.put("type", (isImage
+					? "photo":
+					(identifier.endsWith(".mp4")
+						? "video"
+						: "TODO see identifier")));
+				if(isImage)
+					flefMedia.put("image_projection", "rectangular");
+				if(date != null)
+					flefMedia.put("date_id", dateID);
+			}
+
+			final List<GedcomObject> notes = getAllStartingWith(children, "NOTE");
+			if(notes.size() > 1)
+				for(final GedcomObject note : notes){
+					final Map<String, String> noteAttributes = note.attributes;
+
+					final String text = noteAttributes.get("DESC");
+					final Map<String, Object> flefNote = new HashMap<>();
+					flefNotes.add(flefNote);
+					flefNote.put("id", note.id);
+					flefNote.put("note", text);
+					flefNote.put("reference_table", "source");
+					flefNote.put("reference_id", source.id);
+				}
+
+			final GedcomObject citation = getFirstStartingWith(children, "TEXT");
+			if(citation != null){
+				final String flefLocation = (notes.size() == 1? notes.getFirst().attributes.get("DESC"): "TODO see notes");
+				final Map<String, Object> flefCitation = new HashMap<>();
+				flefCitations.add(flefCitation);
+				flefCitation.put("id", citation.id);
+				flefCitation.put("source_id", source.id);
+				flefCitation.put("location", flefLocation);
+				flefCitation.put("extract_id", citation.id);
+				flefCitation.put("extract_type", "transcript");
+
+				String flefText = citation.attributes.get("DESC");
+				String body = citation.attributes.get("CONT");
+				if(body != null)
+					flefText += "\\r\\n" + body;
+				final Map<String, Object> flefLocalizedText = new HashMap<>();
+				flefLocalizedTexts.add(flefLocalizedText);
+				flefLocalizedText.put("id", citation.id);
+				flefLocalizedText.put("text", flefText);
+				flefLocalizedText.put("locale", "TODO see text");
+				flefLocalizedText.put("type", "original");
+			}
+		}
+	}
+
+	//TODO assertions, place, historic_place, localized_text_junction, media_junction, person, person_name, event
+	private static void transferPersons(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> persons){
+		final List<Map<String, Object>> flefSources = output.computeIfAbsent("person", k -> new ArrayList<>());
+
+		for(final GedcomObject person : persons){
+			final Map<String, GedcomObject> children = person.children;
+			final Map<String, String> attributes = person.attributes;
+
+			//TODO
+		}
+	}
+
+
+	private static String extractType(final String text){
+		return (text != null
+			? text.substring(0, text.indexOf('['))
+			: null);
+	}
+
+	private static Integer extractID(final String text){
+		return (text != null
+			? Integer.valueOf(text.substring(text.indexOf('[') + 1, text.indexOf(']')))
+			: null);
 	}
 
 	private static GedcomObject getFirstStartingWith(final Map<String, GedcomObject> children, final String tag){
@@ -573,165 +882,11 @@ flatGedcomFilename = null;
 	private static Map<String, List<GedcomObject>> createFirstLevelMap(final GedcomObject root){
 		final Map<String, List<GedcomObject>> firstLevelMap = new HashMap<>();
 		for(final Map.Entry<String, GedcomObject> entry : root.children.entrySet()){
-			String key = entry.getKey();
-			key = key.substring(0, key.indexOf('['));
+			final String key = extractType(entry.getKey());
 			firstLevelMap.computeIfAbsent(key, k -> new ArrayList<>())
 				.add(entry.getValue());
 		}
 		return firstLevelMap;
-	}
-
-
-	private static void media_note_mediaJunction_source(final String baseDirectory) throws IOException{
-		Path path = Paths.get(baseDirectory + "\\ged\\TMGZ.txt");
-		List<String> lines = Files.readAllLines(path);
-
-		Map<String, Integer> mediaMap = new HashMap<>();
-		List<String> media = new ArrayList<>();
-		media.add("MEDIA");
-		media.add("ID|IDENTIFIER|TITLE|TYPE|IMAGE_PROJECTION");
-		List<String> mediaJunction = new ArrayList<>();
-		mediaJunction.add("MEDIA_JUNCTION");
-		mediaJunction.add("ID|MEDIA_ID|IMAGE_CROP|REFERENCE_TABLE|REFERENCE_ID");
-		List<String> note = new ArrayList<>();
-		note.add("NOTE");
-		note.add("ID|NOTE|REFERENCE_TABLE|REFERENCE_ID");
-		List<String> source = new ArrayList<>();
-		source.add("SOURCE");
-		source.add("ID|IDENTIFIER|SOURCE_TYPE|AUTHOR|PLACE_ID|DATE_ID|REPOSITORY_ID|LOCATION");
-
-		String personID = null;
-		String sourceID = null;
-		String mediaTitle = null;
-		String mediaIdentifier = null;
-		String mediaCrop = null;
-		String mediaDate = null;
-		//TODO
-		String mediaNote = null;
-		String sourceIdentifier = null;
-		String sourceLocation = null;
-		String sourceRepository = null;
-		String sourceAuthor = null;
-		for(int i = 0; i < lines.size(); i++){
-			String line = lines.get(i);
-
-			if(line.startsWith("PERSON=")){
-				if(personID != null && mediaIdentifier != null){
-					Integer mediaID = mediaMap.get(mediaIdentifier);
-					if(mediaID == null){
-						mediaID = media.size() - 1;
-						mediaMap.put(mediaIdentifier, mediaID);
-
-						media.add(mediaID + "|" + mediaIdentifier + "|" + mediaTitle + "||rectangular");
-					}
-
-					mediaJunction.add((mediaJunction.size() - 1) + "|" + mediaID + "|" + (mediaCrop != null? mediaCrop: "") + "|person|" + personID);
-
-					if(mediaDate != null){
-						String noteID = "" + (mediaID + 40_000);
-						note.add(noteID + "|" + mediaDate + "|media|" + mediaID);
-					}
-
-					mediaTitle = null;
-					mediaIdentifier = null;
-					mediaCrop = null;
-					mediaDate = null;
-					sourceIdentifier = null;
-					sourceLocation = null;
-					sourceRepository = null;
-					sourceAuthor = null;
-				}
-
-				personID = line.split("=")[1];
-				sourceID = null;
-			}
-			else if(line.startsWith("SOURCE=")){
-				if(sourceID != null && mediaIdentifier != null){
-					Integer mediaID = mediaMap.get(mediaIdentifier);
-					if(mediaID == null){
-						mediaID = media.size() - 1;
-						mediaMap.put(mediaIdentifier, mediaID);
-
-						media.add(mediaID + "|" + mediaIdentifier + "|" + mediaTitle + "||rectangular");
-					}
-
-					if(personID != null)
-						mediaJunction.add((mediaJunction.size() - 1) + "|" + mediaID + "|" + (mediaCrop != null? mediaCrop: "") + "|person|" + personID);
-					else{
-						mediaJunction.add((mediaJunction.size() - 1) + "|" + mediaID + "|" + (mediaCrop != null? mediaCrop: "") + "|source|" + sourceID);
-						source.add(sourceID + "|" + sourceIdentifier + "||" + (sourceAuthor != null? sourceAuthor: "") + "|||"
-							+ (sourceRepository != null? sourceRepository: "") + "|" + (sourceLocation != null? sourceLocation: ""));
-					}
-
-					if(mediaDate != null){
-						String noteID = "" + (mediaID + 40_000);
-						note.add(noteID + "|" + mediaDate + "|media|" + mediaID);
-					}
-
-					mediaTitle = null;
-					mediaIdentifier = null;
-					mediaCrop = null;
-					mediaDate = null;
-					sourceIdentifier = null;
-					sourceLocation = null;
-					sourceRepository = null;
-					sourceAuthor = null;
-				}
-
-				personID = null;
-				sourceID = line.split("=")[1];
-			}
-			else if(line.startsWith("MEDIA.TITLE.1=")){
-				if(mediaTitle != null && mediaIdentifier != null){
-					Integer mediaID = mediaMap.get(mediaIdentifier);
-					if(mediaID == null){
-						mediaID = media.size() - 1;
-						mediaMap.put(mediaIdentifier, mediaID);
-
-						media.add(mediaID + "|" + mediaIdentifier + "|" + mediaTitle + "||rectangular");
-					}
-
-					if(personID != null)
-						mediaJunction.add((mediaJunction.size() - 1) + "|" + mediaID + "|" + (mediaCrop != null? mediaCrop: "") + "|person|" + personID);
-					else if(sourceID != null)
-						mediaJunction.add((mediaJunction.size() - 1) + "|" + mediaID + "|" + (mediaCrop != null? mediaCrop: "") + "|source|" + sourceID);
-					else
-						throw new IllegalArgumentException("Something wrong happened");
-
-					mediaIdentifier = null;
-					mediaCrop = null;
-					mediaDate = null;
-				}
-
-				mediaTitle = line.split("=")[1];
-			}
-			else if(line.startsWith("MEDIA.IDENTIFIER.1="))
-				mediaIdentifier = line.split("=")[1];
-			else if(line.startsWith("MEDIA.IMAGE_CROP.1="))
-				mediaCrop = line.split("=")[1];
-			else if(line.startsWith("MEDIA.DATE.1="))
-				mediaDate = line.split("=")[1];
-			else if(line.startsWith("SOURCE.IDENTIFIER="))
-				sourceIdentifier = line.split("=")[1];
-			else if(line.startsWith("SOURCE.LOCATION="))
-				sourceLocation = line.split("=")[1];
-			else if(line.startsWith("SOURCE.REPOSITORY="))
-				sourceRepository = line.split("=")[1];
-			else if(line.startsWith("SOURCE.AUTHOR="))
-				sourceAuthor = line.split("=")[1];
-		}
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\media.txt"),
-			media);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\mediaJunction.txt"),
-			mediaJunction);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\note.txt"),
-			note);
-
-		Files.write(Paths.get(baseDirectory + "\\ged\\output\\source.txt"),
-			source);
 	}
 
 }
