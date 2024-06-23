@@ -87,18 +87,20 @@ public class Main{
 
 		final String gedcomFilename = "ged\\TGMZ.ged";
 		String flatGedcomFilename = "ged\\TGMZ.txt";
-flatGedcomFilename = null;
-		final List<String> lines = flatGedcom(gedcomFilename, flatGedcomFilename);
+		boolean flat = false;
+
+		final List<String> lines;
+		if(flat)
+			lines = flatGedcom(gedcomFilename, flatGedcomFilename);
+		else
+			lines = readFile(flatGedcomFilename);
 		final GedcomObject root = extractor(lines);
 		final Map<String, List<Map<String, Object>>> tables = transfer(root, lines);
 	}
 
 	private static List<String> flatGedcom(final String gedcomFilename, final String flatGedcomFilename) throws URISyntaxException,
 			IOException{
-		final URL resourceInput = Main.class.getClassLoader().getResource(gedcomFilename);
-		final Path path = Paths.get(resourceInput.toURI());
-
-		List<String> lines = Files.readAllLines(path);
+		final List<String> lines = readFile(gedcomFilename);
 
 		lines.replaceAll(s -> s.replaceAll("@@", "@"));
 
@@ -300,6 +302,13 @@ flatGedcomFilename = null;
 		}
 
 		return output;
+	}
+
+	private static List<String> readFile(final String gedcomFilename) throws URISyntaxException, IOException{
+		final URL resourceInput = Main.class.getClassLoader().getResource(gedcomFilename);
+		final Path path = Paths.get(resourceInput.toURI());
+
+		return Files.readAllLines(path);
 	}
 
 	private static int manageID(final String tag, final int id, final List<String> output, final int i){
