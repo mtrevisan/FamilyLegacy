@@ -90,18 +90,18 @@ public class Main{
 		boolean flat = false;
 
 		final List<String> lines;
-		if(flat)
-			lines = flatGedcom(gedcomFilename, flatGedcomFilename);
+		if(flat){
+			final List<String> gedcomLines = readFile(gedcomFilename);
+			lines = flatGedcom(gedcomLines, flatGedcomFilename);
+		}
 		else
 			lines = readFile(flatGedcomFilename);
 		final GedcomObject root = extractor(lines);
 		final Map<String, List<Map<String, Object>>> tables = transfer(root, lines);
 	}
 
-	private static List<String> flatGedcom(final String gedcomFilename, final String flatGedcomFilename) throws URISyntaxException,
+	private static List<String> flatGedcom(final List<String> lines, final String flatGedcomFilename) throws URISyntaxException,
 			IOException{
-		final List<String> lines = readFile(gedcomFilename);
-
 		lines.replaceAll(s -> s.replaceAll("@@", "@"));
 
 		List<String> output = new ArrayList<>();
@@ -517,29 +517,168 @@ public class Main{
 		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent("assertion", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
 
 		for(final GedcomObject group : groups){
 			final Map<String, GedcomObject> children = group.children;
+
+			final List<GedcomObject> marriageChildrenPerson = getAllStartingWith(children, "CHIL");
+			final GedcomObject marriageChildrenCount = getFirstStartingWith(children, "NCHI");
+			if(marriageChildrenCount != null){
+				String count = marriageChildrenCount.attributes.get("DESC");
+				if(count != null && Integer.parseInt(count) != marriageChildrenPerson.size()){
+					int childrenCount = Integer.parseInt(count) - marriageChildrenPerson.size();
+					if(childrenCount < 0)
+						throw new IllegalArgumentException("Cannot have a negative count children");
+					else
+						System.out.println("TODO: Add " + childrenCount + " more children to family " + group.id);
+				}
+			}
 
 			final GedcomObject husband = getFirstStartingWith(children, "HUSB");
 			final GedcomObject wife = getFirstStartingWith(children, "WIFE");
 			final List<GedcomObject> marriages = getAllStartingWith(children, "MARR");
 			for(final GedcomObject marriage : marriages){
 				final Map<String, GedcomObject> marriageChildren = marriage.children;
-				final String marriageDate = marriage.attributes.get("DATE");
+				String marriageDate = marriage.attributes.get("DATE");
 				final List<GedcomObject> marriageNotes = getAllStartingWith(marriageChildren, "NOTE");
+				for(final GedcomObject note : marriageNotes){
+					final String desc = note.attributes.get("DESC");
+					if(desc.startsWith("ore ")){
+						//add to marriage date
+						marriageDate = (marriageDate != null? marriageDate + " ": "") + desc.substring("ore ".length());
+						break;
+					}
+				}
 				final List<GedcomObject> marriageSources = getAllStartingWith(marriageChildren, "SOUR");
 				final GedcomObject marriagePlace = getFirstStartingWith(marriageChildren, "PLAC");
+
+				//add date
+				Integer marriageDateID = null;
+				if(marriageDate != null){
+					//create date
+					final Map<String, Object> flefHistoricDate = new HashMap<>();
+					flefHistoricDates.add(flefHistoricDate);
+					marriageDateID = flefHistoricDates.size();
+					flefHistoricDate.put("id", marriageDateID);
+					flefHistoricDate.put("date", marriageDate);
+				}
+
+				//add place
+				if(marriagePlace != null){
+					final String marriagePlaceName = marriagePlace.attributes.get("DESC");
+					final GedcomObject marriagePlaceMap = getFirstStartingWith(marriagePlace.children, "MAP");
+					String coordinate = null;
+					if(marriagePlaceMap != null){
+						final String lat = marriagePlaceMap.attributes.get("LATI");
+						final String lon = marriagePlaceMap.attributes.get("LONG");
+						if(lat != null && lon != null)
+							coordinate = (lat.replace("N", "").replace('S', '-') + ", "
+								+ lon.replace("E", "").replace('W', '-'));
+					}
+
+					final Map<String, Object> flefLocalizedText = new HashMap<>();
+					flefLocalizedTexts.add(flefLocalizedText);
+					final int marriagePlaceNameID = flefLocalizedTexts.size();
+					flefLocalizedText.put("id", marriagePlaceNameID);
+					flefLocalizedText.put("text", marriagePlaceName);
+					flefLocalizedText.put("locale", "it");
+					flefLocalizedText.put("type", "original");
+
+					final Map<String, Object> flefPlace = new HashMap<>();
+					flefPlaces.add(flefPlace);
+					flefPlace.put("id", marriagePlace.id);
+					flefPlace.put("identifier", marriagePlaceName);
+					flefPlace.put("name_id", marriagePlaceNameID);
+					if(coordinate != null){
+						flefPlace.put("coordinate", coordinate);
+						flefPlace.put("coordinate_type", "WGS84");
+					}
+
+
+					final GedcomObject marriagePlaceSource = getFirstStartingWith(marriagePlace.children, "SOUR");
+					if(marriagePlaceSource != null){
+System.out.println();
+
+						final String marriagePlaceSourceLocation = marriagePlaceSource.attributes.get("PAGE");
+						final String marriagePlaceSourceCredibility = marriagePlaceSource.attributes.get("QUAY");
+
+						//create source
+						final GedcomObject data = getFirstStartingWith(marriagePlaceSource.children, "DATA");
+						final String date = (data != null? data.attributes.get("DATE"): null);
+						final GedcomObject even = getFirstStartingWith(marriagePlaceSource.children, "EVEN");
+						final String evenType = (even != null? even.attributes.get("DESC"): null);
+						final String evenRole = (even != null? even.attributes.get("ROLE"): null);
+
+						//create citation
+						final Map<String, Object> flefCitation = new HashMap<>();
+						flefCitations.add(flefCitation);
+						final int citationID = flefCitations.size();
+						flefCitation.put("id", citationID);
+						flefCitation.put("source_id", marriagePlaceSource.id);
+						if(marriagePlaceSourceLocation != null)
+							flefCitation.put("location", marriagePlaceSourceLocation);
+
+						//create assertion connected to a date
+						final Map<String, Object> flefAssertionDate = new HashMap<>();
+						flefAssertions.add(flefAssertionDate);
+						flefAssertionDate.put("id", flefAssertions.size());
+						flefAssertionDate.put("citation_id", citationID);
+						flefAssertionDate.put("reference_table", "historic_date");
+						flefAssertionDate.put("reference_id", marriageDateID);
+						if(evenRole != null)
+							flefAssertionDate.put("role", evenRole);
+						if(marriagePlaceSourceCredibility != null){
+							flefAssertionDate.put("certainty", "certain");
+							flefAssertionDate.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+						}
+
+						//create assertion connected to a place
+						final Map<String, Object> flefAssertionPlace = new HashMap<>();
+						flefAssertions.add(flefAssertionPlace);
+						flefAssertionPlace.put("id", flefAssertions.size());
+						flefAssertionPlace.put("citation_id", citationID);
+						flefAssertionPlace.put("reference_table", "place");
+						flefAssertionPlace.put("reference_id", marriagePlace.id);
+						if(evenRole != null)
+							flefAssertionPlace.put("role", evenRole);
+						if(marriagePlaceSourceCredibility != null){
+							flefAssertionPlace.put("certainty", "certain");
+							flefAssertionPlace.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+						}
+					}
+				}
+
 				for(final GedcomObject note : marriageNotes){
-//					final String desc = note.attributes.get("DESC");
-//					final String time = (desc.startsWith("ore ")? desc: null);
-//					if(time != null){
-//						//TODO add to marriage date
-//						System.out.println();
-//					}
-//					else{
+					final String desc = note.attributes.get("DESC");
+					if(!desc.startsWith("ore ")){
+						//add event
+						final Map<String, Object> flefEvent = new HashMap<>();
+						flefEvents.add(flefEvent);
+						flefEvent.put("id", marriage.id);
+						flefEvent.put("event_type", "marriage");
+						flefEvent.put("description", null);
+						if(marriagePlace != null)
+							flefEvent.put("place_id", marriagePlace.id);
+						if(marriageDateID != null)
+							flefEvent.put("date_id", marriageDateID);
+						flefEvent.put("reference_table", "group");
+						flefEvent.put("reference_id", marriage.id);
+						//TODO
+
 //						//add note
-//						final GedcomObject noteSource = getFirstStartingWith(note.children, "SOUR");
+//						final Map<String, Object> flefNote = new HashMap<>();
+//						flefNotes.add(flefNote);
+//						flefNote.put("id", note.id);
+//						flefNote.put("note", desc);
+//						flefNote.put("reference_table", "event");
+//						flefNote.put("reference_id", event.id);
+
+
+						final GedcomObject noteSource = getFirstStartingWith(note.children, "SOUR");
 //						if(noteSource != null){
 //							final GedcomObject noteSourceEvent = getFirstStartingWith(noteSource.children, "EVEN");
 //							if(noteSourceEvent != null){
@@ -581,7 +720,7 @@ public class Main{
 //						}
 //						else
 //							System.out.println();
-//					}
+					}
 				}
 				for(final GedcomObject marriageSource : marriageSources){
 					if(marriagePlace != null){
@@ -591,9 +730,6 @@ public class Main{
 						final int citationID = flefCitations.size();
 						flefCitation.put("id", citationID);
 						flefCitation.put("source_id", marriageSource.id);
-						flefCitation.put("location", null);
-						flefCitation.put("extract_id", null);
-						flefCitation.put("extract_type", "transcript");
 
 						//create assertion connected to a place
 						final Map<String, Object> flefAssertion = new HashMap<>();
@@ -614,18 +750,6 @@ public class Main{
 						final int citationID = flefCitations.size();
 						flefCitation.put("id", citationID);
 						flefCitation.put("source_id", marriageSource.id);
-						flefCitation.put("location", null);
-						flefCitation.put("extract_id", null);
-						flefCitation.put("extract_type", "transcript");
-
-						//TODO
-//						final String marriageDesc = marriage.attributes.get("DESC");
-//						final String time = (marriageDesc.startsWith("ore ")? marriageDesc: null);
-						final Map<String, Object> flefHistoricDate = new HashMap<>();
-						flefHistoricDates.add(flefHistoricDate);
-						final int marriageDateID = flefHistoricDates.size();
-//						flefHistoricDate.put("id", marriageDateID);
-//						flefHistoricDate.put("date", "31 JAN 1807");
 
 						//create assertion connected to a date
 						final Map<String, Object> flefAssertion = new HashMap<>();
@@ -638,8 +762,6 @@ public class Main{
 						flefAssertion.put("certainty", null);
 						flefAssertion.put("credibility", 3);
 					}
-
-//					System.out.println();
 				}
 
 				final boolean verifiedMarriage = !marriageSources.isEmpty();
