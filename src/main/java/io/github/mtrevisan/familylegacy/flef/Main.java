@@ -85,8 +85,8 @@ public class Main{
 //		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
 //		dbManager.initialize(grammarFile);
 
-		final String gedcomFilename = "ged\\TGMZ.ged";
-		String flatGedcomFilename = "ged\\TGMZ.txt";
+		final String gedcomFilename = "ged/TGMZ.ged";
+		String flatGedcomFilename = "ged/TGMZ.txt";
 		boolean flat = false;
 
 		final List<String> lines;
@@ -104,7 +104,7 @@ public class Main{
 			IOException{
 		lines.replaceAll(s -> s.replaceAll("@@", "@"));
 
-		List<String> output = new ArrayList<>();
+		final List<String> output = new ArrayList<>();
 
 		String id = null;
 		String baseType = null;
@@ -118,7 +118,7 @@ public class Main{
 				id = line.split(" ")[1].substring(2);
 				id = id.substring(0, id.indexOf('@'));
 				baseType = line.split(" ")[2];
-				String[] lineComponents = line.split(" ", 4);
+				final String[] lineComponents = line.split(" ", 4);
 				if(lineComponents.length == 4){
 					output.add("0 " + baseType + "[" + id + "]");
 					output.add("0 " + baseType + "[" + id + "].CONT " + lineComponents[3]);
@@ -134,7 +134,7 @@ public class Main{
             		line = line.replaceAll("\\s+@[A-Z](\\d+)@", "[" + number + "]");
             	}
 					if(line.startsWith("CONC ")){
-						int prevIndex = output.size() - 1;
+						final int prevIndex = output.size() - 1;
 						line = output.get(prevIndex) + line.split(" ", 2)[1];
 						output.set(prevIndex, line);
 					}
@@ -183,7 +183,7 @@ public class Main{
 					baseType = line.split(" ")[1];
 				else if(line.startsWith(stage + " ")){
 					if(line.matches("\\d\\s+[A-Z]+\\s+@[A-Z]\\d+@")){
-						String number = line.substring(2).replaceAll("[^\\d]", "");
+						final String number = line.substring(2).replaceAll("[^\\d]", "");
 						line = line.replaceAll("\\s+@[A-Z](\\d+)@", "[" + number + "]");
 					}
 					output.set(i, "0 " + baseType + "." + line.substring(2));
@@ -199,7 +199,7 @@ public class Main{
 		output.removeIf(line -> line.contains(".ADDR.POST "));
 
 		for(int i = 0, length = output.size(); i < length; i ++){
-			String line = output.get(i);
+			final String line = output.get(i);
 			String dateLine = null;
 			String timeLine = null;
 			if(line.endsWith(".CHAN")){
@@ -218,9 +218,9 @@ public class Main{
 				output.set(i, line + " " + dateLine + (timeLine != null? " " + timeLine: ""));
 
 			if(line.contains(".ADDR.")){
-				String prevLine = output.get(i - 1);
+				final String prevLine = output.get(i - 1);
 				if(prevLine.endsWith(".ADDR")){
-					StringJoiner sj = new StringJoiner(", ");
+					final StringJoiner sj = new StringJoiner(", ");
 					int j = i;
 					while(j < output.size() && output.get(j).contains(".ADDR.")){
 						sj.add(output.get(j)
@@ -233,24 +233,24 @@ public class Main{
 			}
 
 			if(line.contains(".CONC ")){
-				String prevLine = output.get(i - 1);
+				final StringBuilder prevLine = new StringBuilder(output.get(i - 1));
 				int j = i;
 				while(j < output.size() && output.get(j).contains(".CONC ")){
-					prevLine += output.get(j).split(" ", 2)[1];
+					prevLine.append(output.get(j).split(" ", 2)[1]);
 
 					j ++;
 				}
-				output.set(i - 1, prevLine);
+				output.set(i - 1, prevLine.toString());
 			}
 		}
 
 		output.removeIf(line -> REMOVAL_TAGS.stream().anyMatch(line::contains));
 
 		for(int i = 0; i < output.size(); i ++){
-			String line = output.get(i);
+			final String line = output.get(i);
 
 			if(SUFFIXES.stream().anyMatch(line::contains)){
-				String[] components = line.split(" ", 2);
+				final String[] components = line.split(" ", 2);
 				output.set(i, components[0]);
 				output.add(i + 1, components[0] + ".DESC " + components[1]);
 			}
@@ -288,17 +288,18 @@ public class Main{
 		});
 		output.replaceAll(s -> {
 			if(s.matches("SOUR\\[\\d+]\\.REPO\\[\\d+]")){
-				int cutIndex = s.lastIndexOf("[");
-				String pre = s.substring(0, cutIndex);
-				String repoID = s.substring(cutIndex + 1, s.length() - 1);
+				final int cutIndex = s.lastIndexOf("[");
+				final String pre = s.substring(0, cutIndex);
+				final String repoID = s.substring(cutIndex + 1, s.length() - 1);
 				s = pre + "=REPO[" + repoID + "]";
 			}
 			return s;
 		});
 
 		if(flatGedcomFilename != null){
-			final URL resourceOutput = Main.class.getClassLoader().getResource(flatGedcomFilename);
-			Files.write(Paths.get(resourceOutput.toURI()), output);
+			final Path resourceFolder = Paths.get("src/main/resources/");
+			final Path filePath = resourceFolder.resolve(flatGedcomFilename);
+			Files.write(filePath, output);
 		}
 
 		return output;
@@ -520,7 +521,6 @@ public class Main{
 		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
 
 		for(final GedcomObject group : groups){
 			final Map<String, GedcomObject> children = group.children;
@@ -528,7 +528,7 @@ public class Main{
 			final List<GedcomObject> marriageChildrenPerson = getAllStartingWith(children, "CHIL");
 			final GedcomObject marriageChildrenCount = getFirstStartingWith(children, "NCHI");
 			if(marriageChildrenCount != null){
-				String count = marriageChildrenCount.attributes.get("DESC");
+				final String count = extractDesc(marriageChildrenCount.attributes);
 				if(count != null && Integer.parseInt(count) != marriageChildrenPerson.size()){
 					int childrenCount = Integer.parseInt(count) - marriageChildrenPerson.size();
 					if(childrenCount < 0)
@@ -546,8 +546,8 @@ public class Main{
 				String marriageDate = marriage.attributes.get("DATE");
 				final List<GedcomObject> marriageNotes = getAllStartingWith(marriageChildren, "NOTE");
 				for(final GedcomObject note : marriageNotes){
-					final String desc = note.attributes.get("DESC");
-					if(desc.startsWith("ore ")){
+					String desc = extractDesc(note.attributes);
+					if(desc != null && desc.startsWith("ore ")){
 						//add to marriage date
 						marriageDate = (marriageDate != null? marriageDate + " ": "") + desc.substring("ore ".length());
 						break;
@@ -569,7 +569,7 @@ public class Main{
 
 				//add place
 				if(marriagePlace != null){
-					final String marriagePlaceName = marriagePlace.attributes.get("DESC");
+					final String marriagePlaceName = extractDesc(marriagePlace.attributes);
 					final GedcomObject marriagePlaceMap = getFirstStartingWith(marriagePlace.children, "MAP");
 					String coordinate = null;
 					if(marriagePlaceMap != null){
@@ -584,14 +584,16 @@ public class Main{
 					flefLocalizedTexts.add(flefLocalizedText);
 					final int marriagePlaceNameID = flefLocalizedTexts.size();
 					flefLocalizedText.put("id", marriagePlaceNameID);
-					flefLocalizedText.put("text", marriagePlaceName);
+					if(marriagePlaceName != null)
+						flefLocalizedText.put("text", marriagePlaceName);
 					flefLocalizedText.put("locale", "it");
 					flefLocalizedText.put("type", "original");
 
 					final Map<String, Object> flefPlace = new HashMap<>();
 					flefPlaces.add(flefPlace);
 					flefPlace.put("id", marriagePlace.id);
-					flefPlace.put("identifier", marriagePlaceName);
+					if(marriagePlaceName != null)
+						flefPlace.put("identifier", marriagePlaceName);
 					flefPlace.put("name_id", marriagePlaceNameID);
 					if(coordinate != null){
 						flefPlace.put("coordinate", coordinate);
@@ -601,8 +603,6 @@ public class Main{
 
 					final GedcomObject marriagePlaceSource = getFirstStartingWith(marriagePlace.children, "SOUR");
 					if(marriagePlaceSource != null){
-System.out.println();
-
 						final String marriagePlaceSourceLocation = marriagePlaceSource.attributes.get("PAGE");
 						final String marriagePlaceSourceCredibility = marriagePlaceSource.attributes.get("QUAY");
 
@@ -610,7 +610,7 @@ System.out.println();
 						final GedcomObject data = getFirstStartingWith(marriagePlaceSource.children, "DATA");
 						final String date = (data != null? data.attributes.get("DATE"): null);
 						final GedcomObject even = getFirstStartingWith(marriagePlaceSource.children, "EVEN");
-						final String evenType = (even != null? even.attributes.get("DESC"): null);
+						final String evenType = (even != null? extractDesc(even.attributes): null);
 						final String evenRole = (even != null? even.attributes.get("ROLE"): null);
 
 						//create citation
@@ -623,17 +623,19 @@ System.out.println();
 							flefCitation.put("location", marriagePlaceSourceLocation);
 
 						//create assertion connected to a date
-						final Map<String, Object> flefAssertionDate = new HashMap<>();
-						flefAssertions.add(flefAssertionDate);
-						flefAssertionDate.put("id", flefAssertions.size());
-						flefAssertionDate.put("citation_id", citationID);
-						flefAssertionDate.put("reference_table", "historic_date");
-						flefAssertionDate.put("reference_id", marriageDateID);
-						if(evenRole != null)
-							flefAssertionDate.put("role", evenRole);
-						if(marriagePlaceSourceCredibility != null){
-							flefAssertionDate.put("certainty", "certain");
-							flefAssertionDate.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+						if(marriageDateID != null){
+							final Map<String, Object> flefAssertionDate = new HashMap<>();
+							flefAssertions.add(flefAssertionDate);
+							flefAssertionDate.put("id", flefAssertions.size());
+							flefAssertionDate.put("citation_id", citationID);
+							flefAssertionDate.put("reference_table", "historic_date");
+							flefAssertionDate.put("reference_id", marriageDateID);
+							if(evenRole != null)
+								flefAssertionDate.put("role", evenRole);
+							if(marriagePlaceSourceCredibility != null){
+								flefAssertionDate.put("certainty", "certain");
+								flefAssertionDate.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+							}
 						}
 
 						//create assertion connected to a place
@@ -653,76 +655,35 @@ System.out.println();
 				}
 
 				for(final GedcomObject note : marriageNotes){
-					final String desc = note.attributes.get("DESC");
-					if(!desc.startsWith("ore ")){
+					final String desc = extractDesc(note.attributes);
+					if(desc != null && !desc.startsWith("ore ")){
 						//add event
 						final Map<String, Object> flefEvent = new HashMap<>();
 						flefEvents.add(flefEvent);
-						flefEvent.put("id", marriage.id);
+						final int eventID = flefEvents.size();
+						flefEvent.put("id", eventID);
 						flefEvent.put("event_type", "marriage");
-						flefEvent.put("description", null);
 						if(marriagePlace != null)
 							flefEvent.put("place_id", marriagePlace.id);
 						if(marriageDateID != null)
 							flefEvent.put("date_id", marriageDateID);
 						flefEvent.put("reference_table", "group");
 						flefEvent.put("reference_id", marriage.id);
-						//TODO
 
-//						//add note
-//						final Map<String, Object> flefNote = new HashMap<>();
-//						flefNotes.add(flefNote);
-//						flefNote.put("id", note.id);
-//						flefNote.put("note", desc);
-//						flefNote.put("reference_table", "event");
-//						flefNote.put("reference_id", event.id);
-
-
-						final GedcomObject noteSource = getFirstStartingWith(note.children, "SOUR");
-//						if(noteSource != null){
-//							final GedcomObject noteSourceEvent = getFirstStartingWith(noteSource.children, "EVEN");
-//							if(noteSourceEvent != null){
-//								final String noteSourceEventDesc = noteSourceEvent.attributes.get("DESC");
-//								if(noteSourceEventDesc == null){
-//									System.out.println();
-//								}
-//								else if(noteSourceEventDesc.equals("MARR")){
-//									final Map<String, Object> flefNote = new HashMap<>();
-//									flefNotes.add(flefNote);
-//									flefNote.put("id", note.id);
-//									flefNote.put("note", desc);
-//									flefNote.put("reference_table", "source");
-//									flefNote.put("reference_id", noteSource.id);
-//								}
-//								else
-//									System.out.println();
-//							}
-//							else{
-//								final Map<String, Object> flefNote = new HashMap<>();
-//								flefNotes.add(flefNote);
-//								flefNote.put("id", note.id);
-//								flefNote.put("note", desc);
-//								flefNote.put("reference_table", "source");
-//								flefNote.put("reference_id", noteSource.id);
-//							}
-//						}
-//						else if(!marriageSources.isEmpty()){
-//							if(marriageSources.size() == 1){
-//								final Map<String, Object> flefNote = new HashMap<>();
-//								flefNotes.add(flefNote);
-//								flefNote.put("id", note.id);
-//								flefNote.put("note", desc);
-//								flefNote.put("reference_table", "source");
-//								flefNote.put("reference_id", marriageSources.getFirst().id);
-//							}
-//							else
-//								System.out.println();
-//						}
-//						else
-//							System.out.println();
+						//add note
+						final Map<String, Object> flefNote = new HashMap<>();
+						flefNotes.add(flefNote);
+						flefNote.put("id", note.id);
+						flefNote.put("note", desc);
+						flefNote.put("reference_table", "event");
+						flefNote.put("reference_id", eventID);
 					}
 				}
+
 				for(final GedcomObject marriageSource : marriageSources){
+					final GedcomObject marriageSourceEven = getFirstStartingWith(marriageSource.children, "EVEN");
+					final String evenRole = (marriageSourceEven != null? marriageSourceEven.attributes.get("ROLE"): null);
+
 					if(marriagePlace != null){
 						//create citation
 						final Map<String, Object> flefCitation = new HashMap<>();
@@ -738,8 +699,9 @@ System.out.println();
 						flefAssertion.put("citation_id", citationID);
 						flefAssertion.put("reference_table", "historic_place");
 						flefAssertion.put("reference_id", marriagePlace.id);
-						flefAssertion.put("role", null);
-						flefAssertion.put("certainty", null);
+						if(evenRole != null)
+							flefAssertion.put("role", evenRole);
+						flefAssertion.put("certainty", "certain");
 						flefAssertion.put("credibility", 3);
 					}
 
@@ -758,8 +720,9 @@ System.out.println();
 						flefAssertion.put("citation_id", citationID);
 						flefAssertion.put("reference_table", "historic_date");
 						flefAssertion.put("reference_id", marriageDateID);
-						flefAssertion.put("role", null);
-						flefAssertion.put("certainty", null);
+						if(evenRole != null)
+							flefAssertion.put("role", evenRole);
+						flefAssertion.put("certainty", "certain");
 						flefAssertion.put("credibility", 3);
 					}
 				}
@@ -804,6 +767,12 @@ System.out.println();
 		}
 	}
 
+	private static String extractDesc(final Map<String, String> attributes){
+		final String desc = attributes.get("DESC");
+		final String cont = attributes.get("CONT");
+		return (desc != null? desc + (cont != null? "\\r\\n" + cont: ""): null);
+	}
+
 	private static void transferRepositories(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> repositories){
 		final List<Map<String, Object>> flefRepositories = output.computeIfAbsent("repository", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
@@ -815,15 +784,16 @@ System.out.println();
 
 			final String addr = attributes.get("ADDR");
 			final GedcomObject name = getFirstStartingWith(children, "NAME");
-			final String repositoryName = name.attributes.get("DESC");
+			final String repositoryName = (name != null? extractDesc(name.attributes): null);
 			final GedcomObject plac = getFirstStartingWith(children, "PLAC");
 			if(addr != null || plac != null){
-				final String address = (addr != null? addr: plac.attributes.get("DESC"));
+				final String address = (addr != null? addr: extractDesc(plac.attributes));
 
 				final Map<String, Object> flefLocalizedText = new HashMap<>();
 				flefLocalizedTexts.add(flefLocalizedText);
 				flefLocalizedText.put("id", name.id);
-				flefLocalizedText.put("text", repositoryName);
+				if(repositoryName != null)
+					flefLocalizedText.put("text", repositoryName);
 				flefLocalizedText.put("locale", "it");
 				flefLocalizedText.put("type", "original");
 
@@ -936,7 +906,7 @@ System.out.println();
 				for(final GedcomObject note : notes){
 					final Map<String, String> noteAttributes = note.attributes;
 
-					final String text = noteAttributes.get("DESC");
+					final String text = extractDesc(noteAttributes);
 					final Map<String, Object> flefNote = new HashMap<>();
 					flefNotes.add(flefNote);
 					flefNote.put("id", note.id);
@@ -947,7 +917,7 @@ System.out.println();
 
 			final GedcomObject citation = getFirstStartingWith(children, "TEXT");
 			if(citation != null){
-				final String flefLocation = (notes.size() == 1? notes.getFirst().attributes.get("DESC"): "TODO see notes");
+				final String flefLocation = (notes.size() == 1? extractDesc(notes.getFirst().attributes): "TODO see notes");
 				final Map<String, Object> flefCitation = new HashMap<>();
 				flefCitations.add(flefCitation);
 				flefCitation.put("id", citation.id);
@@ -956,10 +926,7 @@ System.out.println();
 				flefCitation.put("extract_id", citation.id);
 				flefCitation.put("extract_type", "transcript");
 
-				String flefText = citation.attributes.get("DESC");
-				String body = citation.attributes.get("CONT");
-				if(body != null)
-					flefText += "\\r\\n" + body;
+				final String flefText = extractDesc(citation.attributes);
 				final Map<String, Object> flefLocalizedText = new HashMap<>();
 				flefLocalizedTexts.add(flefLocalizedText);
 				flefLocalizedText.put("id", citation.id);
