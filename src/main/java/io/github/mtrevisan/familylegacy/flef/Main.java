@@ -421,6 +421,7 @@ public class Main{
 		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 
 		final Map<String, Object> flefLocalizedText = new HashMap<>();
 		flefLocalizedTexts.add(flefLocalizedText);
@@ -454,7 +455,7 @@ public class Main{
 		flefHistoricDate = new HashMap<>();
 		flefHistoricDates.add(flefHistoricDate);
 		final int dateEndID = flefHistoricDates.size();
-		flefHistoricDate.put("id", dateStartID);
+		flefHistoricDate.put("id", dateEndID);
 		flefHistoricDate.put("date", "19 FEB 1811");
 		flefHistoricDate.put("calendar_id", 1);
 
@@ -509,6 +510,56 @@ public class Main{
 		flefCulturalNorm.put("date_end_id", dateEndID);
 		flefCulturalNorm.put("certainty", "certain");
 		flefCulturalNorm.put("credibility", 3);
+
+		flefHistoricDates.add(flefHistoricDate);
+		final int concilioDateStartID = flefHistoricDates.size();
+		flefHistoricDate.put("id", concilioDateStartID);
+		flefHistoricDate.put("date", "11 NOV 1215");
+		flefHistoricDate.put("calendar_id", 2);
+
+		flefHistoricDates.add(flefHistoricDate);
+		final int codiceDirittoCanonicoStartID = flefHistoricDates.size();
+		flefHistoricDate.put("id", codiceDirittoCanonicoStartID);
+		flefHistoricDate.put("date", "1917");
+		flefHistoricDate.put("calendar_id", 1);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 6);
+		flefCulturalNorm.put("identifier", "impedimento di diritto ecclesiastico");
+		flefCulturalNorm.put("description", "il Concilio Lateranense IV nel 1215 ridusse l’impedimento al quarto grado della linea collaterale");
+		flefCulturalNorm.put("date_start_id", concilioDateStartID);
+		flefCulturalNorm.put("date_end_id", codiceDirittoCanonicoStartID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		flefCulturalNorm = new HashMap<>();
+		flefCulturalNorms.add(flefCulturalNorm);
+		flefCulturalNorm.put("id", 7);
+		flefCulturalNorm.put("identifier", "impedimento di diritto ecclesiastico");
+		flefCulturalNorm.put("description", "can. 1076 - In linea retta di consanguineità legittima o naturale è sempre nullo il Matrimonio. In linea collaterale fino al terzo, moltiplicandosi l’impedimento con lo stipite. Nel dubbio di consanguineità in linea retta o del primo collaterale non si permetterà il Matrimonio.\\r\\ncan. 1077 - L’affinità in linea retta irrita il Matrimonio in tutti i gradi; nella collaterale fino al secondo compreso. Si moltiplica con la consanguineità da cui procede, con la ripetizione successiva del Matrimonio con un consanguineo del defunto.");
+		flefCulturalNorm.put("date_start_id", codiceDirittoCanonicoStartID);
+		flefCulturalNorm.put("certainty", "certain");
+		flefCulturalNorm.put("credibility", 3);
+
+		//https://www.voxcanonica.com/2022/12/05/limpedimento-di-affinita-can-1092/
+		//https://dadun.unav.edu/bitstream/10171/6811/1/85-08.Pellegrino.pdf
+		//https://www.studiolegalecotini.it/matrimonio-canonico-impedimenti.htm
+		//È vietato, pertanto, il matrimonio tra gli ascendenti e i discendenti in linea retta, sia legittimi che naturali (es.: tra padre e figlia, tra madre e figlio, tra nonno e nipote, ecc.); mentre in linea collaterale è vietato solo fino al quarto grado incluso (es.: 1° tra fratello e sorella, 2° tra zio e nipote, 3° tra zio e pronipote, 3° tra primi cugini).
+		// il grado di consanguineità va computato qui in rapporto all'unico principio da cui entrambi derivano. Su questo però la computazione della legge ecclesiastica differisce da quella civile: poiché quella civile somma i gradi di discendenza dal ceppo comune di entrambe le parti; quella ecclesiastica invece conta quelli di una parte soltanto, cioè di quella in cui si riscontrano più numerosi gradi. Perciò secondo il computo della legge civile fratello e sorella, o due fratelli, sono consanguinei in secondo grado. Invece secondo il computo ecclesiastico due fratelli sono consanguinei in primo grado: perché nessuno dei due dista dalla radice comune più di un grado. Invece il figlio di un fratello dista dal fratello di suo padre in secondo grado: perché tanti sono i gradi che li dividono dalla radice comune. Perciò secondo il computo ecclesiastico quanti sono i gradi che separano una persona da un ascendente comune, tanta è la distanza che la separa da qualsiasi discendente, e mai può essere minore; poiché "la causa è sempre superiore all'effetto". Sebbene, quindi, gli altri che discendono da un capostipite comune siano consanguinei di una data persona in forza di codesto capostipite, non possono essere vicini a chi ne discende in altro modo, più di quanto codesto discendente è vicino al capostipite stesso. Talora invece la distanza maggiore nella parentela può essere da parte degli altri; i quali forse distano dal capostipite comune più dell'interessato; ma la consanguineità va sempre computata dalla maggiore distanza.
+		/*Can. 108 - §1. La consanguineità si computa per linee e per gradi.
+		§2. Nella linea retta tanti sono i gradi quante le generazioni, ossia quante le persone, tolto il capostipite.
+		§3. Nella linea obliqua tanti sono i gradi quante le persone in tutte e due le linee insieme, tolto il capostipite.*/
+		//Metodo per calcolare i gradi di parentela: in linea retta si cominciano a contare le generazioni dal soggetto del quale si vuole conoscere il grado di parentela fino al capostipite, escludendo quest ultimo. In linea collaterale si risale da uno dei parenti fino allo stipite comune e da questo si discende all’altro parente, senza tener conto dello stipite
+		final Map<String, Object> flefNote = new HashMap<>();
+		flefNotes.add(flefNote);
+		flefNote.put("id", 20_000);
+		flefNote.put("note", "Codice di Diritto Canonico 1917\\r\\nhttps://www.ecclesiadei.it/wp-content/uploads/2021/01/Codice-Diritto-Canonico-1917.pdf\\r\\npag. 102");
+		flefNote.put("reference_table", "cultural_norm");
+		flefNote.put("reference_id", 7);
+
+		//età matrimonio
+		//http://www.appuntigiurisprudenza.it/diritto-ecclesiastico/gli-impedimenti-al-matrimonio-canonico-nello-specifico.html
 	}
 
 	private static void transferGroups(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> groups){
@@ -521,6 +572,7 @@ public class Main{
 		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefCulturalNormJunctions = output.computeIfAbsent("cultural_norm_junction", k -> new ArrayList<>());
 
 		for(final GedcomObject group : groups){
 			final Map<String, GedcomObject> children = group.children;
@@ -677,6 +729,26 @@ public class Main{
 						flefNote.put("note", desc);
 						flefNote.put("reference_table", "event");
 						flefNote.put("reference_id", eventID);
+						if(desc.equals("dispensati dall'impedimento dirimente di consanguineità in 3° grado eguale linea collaterale")){
+							Map<String, Object> flefCulturalNormJunction = new HashMap<>();
+							flefCulturalNormJunctions.add(flefCulturalNormJunction);
+							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
+							flefCulturalNormJunction.put("cultural_norm_id", 7);
+							flefCulturalNormJunction.put("reference_table", "note");
+							flefCulturalNormJunction.put("reference_id", note.id);
+							flefCulturalNormJunction.put("certainty", "certain");
+							flefCulturalNormJunction.put("credibility", 3);
+						}
+						else if(desc.contains("dispensa")){
+							Map<String, Object> flefCulturalNormJunction = new HashMap<>();
+							flefCulturalNormJunctions.add(flefCulturalNormJunction);
+							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
+							flefCulturalNormJunction.put("cultural_norm_id", 6);
+							flefCulturalNormJunction.put("reference_table", "note");
+							flefCulturalNormJunction.put("reference_id", note.id);
+							flefCulturalNormJunction.put("certainty", "certain");
+							flefCulturalNormJunction.put("credibility", 3);
+						}
 					}
 				}
 
@@ -850,6 +922,22 @@ public class Main{
 			final Map<String, GedcomObject> children = source.children;
 			final Map<String, String> attributes = source.attributes;
 
+			String sourceLocation = null;
+			final List<GedcomObject> sourceNotes = getAllStartingWith(children, "NOTE");
+			for(final GedcomObject sourceNote : sourceNotes){
+				final String desc = sourceNote.attributes.get("DESC");
+				if(desc != null && desc.contains("busta"))
+					sourceLocation = desc;
+				else{
+					final Map<String, Object> flefNote = new HashMap<>();
+					flefNotes.add(flefNote);
+					flefNote.put("id", sourceNote.id);
+					flefNote.put("note", desc);
+					flefNote.put("reference_table", "source");
+					flefNote.put("reference_id", source.id);
+				}
+			}
+
 			final Integer repoID = extractID(attributes.get("REPO"));
 			final String auth = attributes.get("AUTH");
 			final String titl = attributes.get("TITL");
@@ -857,16 +945,11 @@ public class Main{
 			flefSources.add(flefSource);
 			flefSource.put("id", source.id);
 			flefSource.put("identifier", titl);
-			//FIXME fix null
-			flefSource.put("source_type", null);
 			flefSource.put("author", auth);
-			//FIXME fix null
-			flefSource.put("place_id", null);
-			//FIXME fix null
-			flefSource.put("date_id", null);
+			flefSource.put("date_id", "TODO see media");
 			flefSource.put("repository_id", repoID);
-			//FIXME fix null
-			flefSource.put("location", null);
+			if(sourceLocation != null)
+				flefSource.put("location", sourceLocation);
 
 			final List<GedcomObject> medias = getAllStartingWith(children, "OBJE");
 			for(final GedcomObject media : medias){
@@ -937,9 +1020,13 @@ public class Main{
 		}
 	}
 
-	//TODO assertions, place, historic_place, localized_text_junction, media_junction, person, person_name, event
 	private static void transferPersons(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> persons){
-		final List<Map<String, Object>> flefSources = output.computeIfAbsent("person", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefPersons = output.computeIfAbsent("person", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefPersonNames = output.computeIfAbsent("person_name", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefLocalizedTextJunctions = output.computeIfAbsent("localized_text_junction", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefMedias = output.computeIfAbsent("media", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefMediaJunctions = output.computeIfAbsent("media_junction", k -> new ArrayList<>());
 
 		for(final GedcomObject person : persons){
 			final Map<String, GedcomObject> children = person.children;
