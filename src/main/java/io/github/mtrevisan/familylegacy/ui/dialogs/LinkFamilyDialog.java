@@ -127,6 +127,7 @@ public class LinkFamilyDialog extends JDialog{
 		loadData();
 	}
 
+
 	public final void setSelectionListener(final SelectionListenerInterface listener){
 		okButton.addActionListener(evt -> {
 			if(listener != null){

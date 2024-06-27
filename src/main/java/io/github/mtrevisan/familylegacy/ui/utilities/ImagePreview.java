@@ -54,6 +54,7 @@ public class ImagePreview extends JComponent implements PropertyChangeListener{
 		fileChooser.addPropertyChangeListener(this);
 	}
 
+
 	public void loadImage() throws IOException{
 		if(file == null)
 			thumbnail = null;

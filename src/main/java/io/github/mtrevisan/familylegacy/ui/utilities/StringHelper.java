@@ -32,6 +32,7 @@ public final class StringHelper{
 
 	private StringHelper(){}
 
+
 	public static String composeTextFilter(String text){
 		try{
 			Pattern.compile(text);

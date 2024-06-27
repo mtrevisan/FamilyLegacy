@@ -113,6 +113,7 @@ public class TreePanel extends JPanel{
 		loadData();
 	}
 
+
 	public void setFamilyListener(final FamilyListenerInterface familyListener){
 		partner1Partners1Panel.setFamilyListener(familyListener);
 		partner1Partners2Panel.setFamilyListener(familyListener);

@@ -32,6 +32,6 @@ import javax.swing.JPanel;
 
 public interface SelectionListenerInterface{
 
-	void onItemSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference);
+	void onItemSelected(GedcomNode node, SelectedNodeType type, JPanel panelReference);
 
 }

@@ -118,6 +118,7 @@ public class HistoricEventRecordDialog extends JDialog{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		typeLabel.setLabelFor(typeComboBox);
 		AutoCompleteDecorator.decorate(typeComboBox);

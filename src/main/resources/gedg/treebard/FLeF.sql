@@ -10,7 +10,7 @@ CREATE TABLE "ASSERTION"
 (
  "ID"            numeric PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,	-- The citation from which this assertion is derived.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "repository", "person", "group", "media", "person name")
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name")
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
@@ -48,12 +48,11 @@ CREATE TABLE "SOURCE"
 );
 
 -- A representation of where a source or set of sources is located
--- May be formal, like a library, or informal, like the owner of a family book.
 CREATE TABLE REPOSITORY
 (
  "ID"       numeric PRIMARY KEY,
  IDENTIFIER text NOT NULL UNIQUE,	-- Repository identifier (must be unique, ex. "familysearch.org", or "University College London").
- "TYPE"     text,							-- Repository type (ex. "public library", "college library", "national library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "library", "government agency", "funeral home", "private library", "prison library", "trunk in the attic").
+ "TYPE"     text,							-- Repository type (ex. "public library", "college library", "national library", "prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "government agency", "funeral home").
  PERSON_ID  numeric,						-- An xref ID of the person, if present in the tree and is the repository of a source.
  PLACE_ID   numeric,						-- The place this repository is.
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ),
@@ -220,9 +219,9 @@ CREATE TABLE GROUP_JUNCTION
 -- Event
 
 /*
-1. Assertion can be made about "historic place", "cultural norm", "historic date", "calendar", "repository", "person", "group", "media", "person name".
+1. Assertion can be made about "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name".
 2. A conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated.
-3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (an "historic place") at a certain time (an "historic date") to someone (a "person" or a "group") or something (a "place", a "repository", or a "cultural norm", a "calendar", a "media", a "person name").
+3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (an "historic place") at a certain time (an "historic date") to someone (a "person" or a "group") or something (a "place", or a "cultural norm", a "calendar", a "media", a "person name").
 */
 CREATE TABLE EVENT
 (
@@ -231,7 +230,7 @@ CREATE TABLE EVENT
  DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        numeric,				-- The place this event happened.
  DATE_ID         numeric,				-- The date this event has happened.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "repository", "cultural norm", "calendar", "media", "person name").
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" )
@@ -282,9 +281,9 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 CREATE TABLE RESTRICTION
 (
  "ID"            numeric PRIMARY KEY,
+ RESTRICTION     text NOT NULL,		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported).
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "date", "historic date", "event", "place", "historic place", "note", "person name", "person", "group", "media").
- REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- RESTRICTION     text NOT NULL		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported).
+ REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
 
 CREATE TABLE MODIFICATION

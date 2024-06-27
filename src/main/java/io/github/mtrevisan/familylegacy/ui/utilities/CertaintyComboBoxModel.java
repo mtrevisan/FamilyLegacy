@@ -37,9 +37,12 @@ public class CertaintyComboBoxModel extends DefaultComboBoxModel<String>{
 
 	private static final String[] ITEMS = {
 		StringUtils.EMPTY,
-		"Challenged",
-		"Disproven",
-		"Proven"};
+		"impossible",
+		"unlikely",
+		"possible",
+		"almost certain",
+		"certain"
+	};
 
 
 	public CertaintyComboBoxModel(){

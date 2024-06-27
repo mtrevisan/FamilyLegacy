@@ -29,6 +29,7 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.KeyStroke;
@@ -65,6 +66,7 @@ public final class GUIHelper{
 
 
 	private GUIHelper(){}
+
 
 	public static void executeOnEventDispatchThread(final Runnable runnable){
 		if(SwingUtilities.isEventDispatchThread())
@@ -132,6 +134,17 @@ public final class GUIHelper{
 		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
+	public static void addUndoCapability(final JComboBox<?> component){
+		final Document doc = component.getDocument();
+		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
+		final InputMap textInputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
+		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
+		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
+		final ActionMap textActionMap = component.getActionMap();
+		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
+		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
+	}
+
 	private static class UndoAction extends AbstractAction{
 		@Serial
 		private static final long serialVersionUID = -3974682914632160277L;
@@ -171,8 +184,8 @@ public final class GUIHelper{
 				if(UNDO_MANAGER.canRedo())
 					UNDO_MANAGER.redo();
 			}
-			catch(final CannotUndoException e){
-				e.printStackTrace();
+			catch(final CannotUndoException cue){
+				cue.printStackTrace();
 			}
 		}
 
@@ -190,7 +203,7 @@ public final class GUIHelper{
 		}
 	}
 
-	public static void addBorderIfDataPresent(final JButton button, final boolean dataPresent){
+	public static void addBorder(final JButton button, final boolean dataPresent){
 		final Insets insets = button.getInsets();
 		button.setBorder(dataPresent
 			? BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLUE),

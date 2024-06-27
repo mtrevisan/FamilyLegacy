@@ -18,9 +18,11 @@ public class ZeroException extends Exception{
 		return new ZeroException(JavaHelper.textFormat(message, parameters));
 	}
 
+
 	private ZeroException(final String message){
 		super(message);
 	}
+
 
 	@Serial
 	@SuppressWarnings("unused")

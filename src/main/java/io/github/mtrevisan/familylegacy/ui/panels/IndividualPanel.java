@@ -164,6 +164,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		loadData();
 	}
 
+
 	final void setIndividualListener(final IndividualListenerInterface listener){
 		if(listener != null){
 			addMouseListener(new MouseAdapter(){

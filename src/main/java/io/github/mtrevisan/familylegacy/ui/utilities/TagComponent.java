@@ -117,6 +117,7 @@ class TagComponent extends JComponent{
 		add(closePanel, BorderLayout.EAST);
 	}
 
+
 	@Override
 	protected void paintComponent(final Graphics g){
 		super.paintComponent(g);

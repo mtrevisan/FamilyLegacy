@@ -61,6 +61,7 @@ public class TableTransferHandle extends TransferHandler{
 		this.nodesSetter = nodesSetter;
 	}
 
+
 	@Override
 	public int getSourceActions(final JComponent component){
 		return TransferHandler.COPY_OR_MOVE;

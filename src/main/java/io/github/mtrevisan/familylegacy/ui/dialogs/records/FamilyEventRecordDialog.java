@@ -109,6 +109,7 @@ public class FamilyEventRecordDialog extends JDialog{
 		loadData();
 	}
 
+
 	private void initComponents(){
 		individualLabel.setFont(FONT_PRIMARY);
 		individualLabel.setLabelFor(individualName);

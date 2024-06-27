@@ -180,6 +180,7 @@ public class GroupDialog extends JDialog{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		initCitationsComponents();
 
@@ -254,7 +255,7 @@ public class GroupDialog extends JDialog{
 		final ActionListener addCitationNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(citationNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(citationNoteButton, !notes.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -297,7 +298,7 @@ public class GroupDialog extends JDialog{
 		final ActionListener addRecordSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
+				GUIHelper.addBorder(sourceButton, !sources.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -311,7 +312,7 @@ public class GroupDialog extends JDialog{
 		final ActionListener addRecordEventAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> events = store.traverseAsList(record, RECORD_EVENT_ARRAY);
-				GUIHelper.addBorderIfDataPresent(eventButton, !events.isEmpty());
+				GUIHelper.addBorder(eventButton, !events.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -325,7 +326,7 @@ public class GroupDialog extends JDialog{
 		final ActionListener addRecordNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(recordNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(recordNoteButton, !notes.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -467,7 +468,7 @@ public class GroupDialog extends JDialog{
 		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
 			.getValue();
 		roleField.setText(role);
-		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
+		GUIHelper.addBorder(citationNoteButton, !citationNotes.isEmpty());
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
@@ -484,11 +485,11 @@ public class GroupDialog extends JDialog{
 		GUIHelper.setEnabled(recordPanel, true);
 		nameField.setText(name);
 		typeField.setText(type);
-		GUIHelper.addBorderIfDataPresent(individualButton, !individuals.isEmpty());
-		GUIHelper.addBorderIfDataPresent(familyButton, !families.isEmpty());
-		GUIHelper.addBorderIfDataPresent(eventButton, !recordEvents.isEmpty());
-		GUIHelper.addBorderIfDataPresent(recordNoteButton, !recordNotes.isEmpty());
-		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
+		GUIHelper.addBorder(individualButton, !individuals.isEmpty());
+		GUIHelper.addBorder(familyButton, !families.isEmpty());
+		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty());
+		GUIHelper.addBorder(recordNoteButton, !recordNotes.isEmpty());
+		GUIHelper.addBorder(sourceButton, !recordSources.isEmpty());
 
 
 		deleteButton.setEnabled(true);

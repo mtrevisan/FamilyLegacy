@@ -42,6 +42,7 @@ public class PopupMouseAdapter extends MouseAdapter{
 		this.component = component;
 	}
 
+
 	@Override
 	public void mouseClicked(final MouseEvent event){
 		processMouseEvent(event);

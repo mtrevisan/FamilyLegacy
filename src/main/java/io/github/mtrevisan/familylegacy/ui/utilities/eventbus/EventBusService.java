@@ -57,6 +57,7 @@ public final class EventBusService{
 
 	private EventBusService(){}
 
+
 	public static void subscribe(final Object subscriber){
 		EVENT_BUS.subscribe(subscriber);
 

@@ -40,6 +40,7 @@ public final class TableHelper{
 
 	private TableHelper(){}
 
+
 	public static TableColumn setColumnWidth(final JTable table, final int columnIndex, final int min, final int preferred){
 		return setColumnWidth(table, columnIndex, min, preferred, Short.MAX_VALUE);
 	}

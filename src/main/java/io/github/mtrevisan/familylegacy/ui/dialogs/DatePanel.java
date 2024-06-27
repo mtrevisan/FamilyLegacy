@@ -75,6 +75,7 @@ public class DatePanel extends JPanel{
 		add(dateCredibilityComboBox);
 	}
 
+
 	public final void loadData(final String date, final String calendarXRef, final String dateOriginalText, final int dateCredibilityIndex){
 		dateField.setText(date);
 		this.calendarXRef = calendarXRef;

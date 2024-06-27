@@ -73,6 +73,7 @@ public class TagPanel extends JPanel{
 		addTag(tags);
 	}
 
+
 	public void setTagsChanged(final BiConsumer<TagChangeType, Iterable<String>> tagsChanged){
 		synchronized(getTreeLock()){
 			this.tagsChanged = tagsChanged;

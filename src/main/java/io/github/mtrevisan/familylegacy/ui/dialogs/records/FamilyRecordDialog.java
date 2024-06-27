@@ -124,6 +124,7 @@ public class FamilyRecordDialog extends JDialog{
 		loadData();
 	}
 
+
 	private void initComponents(){
 		setTitle("Family record");
 

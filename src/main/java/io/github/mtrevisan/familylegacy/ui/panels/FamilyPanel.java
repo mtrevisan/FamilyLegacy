@@ -159,6 +159,7 @@ public class FamilyPanel extends JPanel{
 		loadData();
 	}
 
+
 	final void setFamilyListener(final FamilyListenerInterface familyListener){
 		if(familyListener != null){
 			marriagePanel.addMouseListener(new MouseAdapter(){

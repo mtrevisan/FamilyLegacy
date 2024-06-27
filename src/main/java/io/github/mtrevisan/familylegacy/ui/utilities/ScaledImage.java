@@ -104,6 +104,7 @@ public class ScaledImage extends JLabel{
 			initComponents();
 	}
 
+
 	private void initComponents(){
 		final ImageMouseListener listener = new ImageMouseListener();
 		addMouseListener(listener);
@@ -210,8 +211,8 @@ public class ScaledImage extends JLabel{
 						viewportWidth, viewportHeight,
 						null);
 				}
-				catch(final ZeroException e){
-					e.printStackTrace();
+				catch(final ZeroException ze){
+					ze.printStackTrace();
 				}
 			}
 			else

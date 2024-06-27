@@ -30,24 +30,13 @@ import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 
 public interface FamilyListenerInterface{
 
-	void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family);
+	void onFamilyEdit(FamilyPanel boxPanel, GedcomNode family);
 
-	void onFamilyLink(final FamilyPanel boxPanel);
+	void onFamilyLink(FamilyPanel boxPanel);
 
-	void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family);
+	void onFamilyUnlink(FamilyPanel boxPanel, GedcomNode family);
 
-	void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family);
-
-	/**
-	 * Iterate through parents.
-	 *
-	 * @param familyPanel	The current family panel from which to iterate through parents.
-	 * @param thisParent	The current parent (that remain the same).
-	 * @param otherCurrentParent	The parent that has to change.
-	 * @param currentFamily	Current family `thisParent` is in.
-	 */
-	void onFamilyPreviousPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-		final GedcomNode currentFamily);
+	void onFamilyRemove(FamilyPanel boxPanel, GedcomNode family);
 
 	/**
 	 * Iterate through parents.
@@ -57,7 +46,16 @@ public interface FamilyListenerInterface{
 	 * @param otherCurrentParent	The parent that has to change.
 	 * @param currentFamily	Current family `thisParent` is in.
 	 */
-	void onFamilyNextPartner(final FamilyPanel familyPanel, final GedcomNode thisParent, final GedcomNode otherCurrentParent,
-		final GedcomNode currentFamily);
+	void onFamilyPreviousPartner(FamilyPanel familyPanel, GedcomNode thisParent, GedcomNode otherCurrentParent, GedcomNode currentFamily);
+
+	/**
+	 * Iterate through parents.
+	 *
+	 * @param familyPanel	The current family panel from which to iterate through parents.
+	 * @param thisParent	The current parent (that remain the same).
+	 * @param otherCurrentParent	The parent that has to change.
+	 * @param currentFamily	Current family `thisParent` is in.
+	 */
+	void onFamilyNextPartner(FamilyPanel familyPanel, GedcomNode thisParent, GedcomNode otherCurrentParent, GedcomNode currentFamily);
 
 }

@@ -85,6 +85,7 @@ public final class ChildrenPanel extends JPanel{
 		loadData(family);
 	}
 
+
 	public void setIndividualListener(final IndividualListenerInterface individualListener){
 		this.individualListener = individualListener;
 	}

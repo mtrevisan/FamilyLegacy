@@ -47,6 +47,7 @@ public final class FileHelper{
 
 	private FileHelper(){}
 
+
 	public static boolean openFile(final File file){
 		return executeDesktopCommand(Desktop.Action.OPEN, file);
 	}
@@ -98,14 +99,17 @@ public final class FileHelper{
 
 	public static boolean testURL(final String url){
 		try{
-			HttpURLConnection connection = (HttpURLConnection)new URL(url.contains(URL_PROTOCOL_SEPARATOR)? url: URL_PROTOCOL_HTTP + url)
+			HttpURLConnection connection = (HttpURLConnection)new URI(url.contains(URL_PROTOCOL_SEPARATOR)? url: URL_PROTOCOL_HTTP + url)
+				.toURL()
 				.openConnection();
 			connection.setRequestMethod("HEAD");
 			int responseCode = connection.getResponseCode();
 
 			if((responseCode != HttpURLConnection.HTTP_OK)){
 				//try with a GET, as some legacy server would not handle a HEAD
-				connection = (HttpURLConnection)new URL(url).openConnection();
+				connection = (HttpURLConnection)new URI(url)
+					.toURL()
+					.openConnection();
 				connection.setRequestMethod("GET");
 				responseCode = connection.getResponseCode();
 			}

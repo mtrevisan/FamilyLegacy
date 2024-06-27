@@ -56,6 +56,7 @@ public final class ScrollableContainerHost extends JPanel implements Scrollable{
 		add(intermediatePanel, "grow");
 	}
 
+
 	@Override
 	public Dimension getPreferredScrollableViewportSize(){
 		final Dimension preferredSize = getPreferredSize();

@@ -38,18 +38,18 @@ public interface IndividualListenerInterface{
 	 * @param type	Type of the individual wrt the family it belongs.
 	 * @param individual	The individual that has to obtain focus.
 	 */
-	void onIndividualFocus(final IndividualPanel boxPanel, final SelectedNodeType type, final GedcomNode individual);
+	void onIndividualFocus(IndividualPanel boxPanel, SelectedNodeType type, GedcomNode individual);
 
-	void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual);
+	void onIndividualEdit(IndividualPanel boxPanel, GedcomNode individual);
 
-	void onIndividualLink(final IndividualPanel boxPanel, final SelectedNodeType type);
+	void onIndividualLink(IndividualPanel boxPanel, SelectedNodeType type);
 
-	void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual);
+	void onIndividualUnlink(IndividualPanel boxPanel, GedcomNode individual);
 
-	void onIndividualAdd(final IndividualPanel boxPanel);
+	void onIndividualAdd(IndividualPanel boxPanel);
 
-	void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual);
+	void onIndividualRemove(IndividualPanel boxPanel, GedcomNode individual);
 
-	void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual);
+	void onIndividualAddPreferredImage(IndividualPanel boxPanel, GedcomNode individual);
 
 }

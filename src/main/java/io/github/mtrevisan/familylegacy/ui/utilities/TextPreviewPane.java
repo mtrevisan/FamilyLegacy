@@ -260,8 +260,8 @@ public class TextPreviewPane extends JSplitPane{
 
 				style = "<style type=\"text/css\">\n" + new String(fileContent, StandardCharsets.UTF_8) + "\n</style>";
 			}
-			catch(final IOException e){
-				e.printStackTrace();
+			catch(final IOException ioe){
+				ioe.printStackTrace();
 			}
 		}
 		return style;

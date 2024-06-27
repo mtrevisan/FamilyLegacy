@@ -34,6 +34,7 @@ public final class PhoneNumberValidator{
 
 	private PhoneNumberValidator(){}
 
+
 	public static boolean isValid(final CharSequence url){
 		return PHONE_NUMBER.matcher(url).matches();
 	}

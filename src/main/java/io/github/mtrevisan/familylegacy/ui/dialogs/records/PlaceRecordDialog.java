@@ -111,7 +111,7 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JLabel subordinateLabel = new JLabel("Subordinate to:");
 	//TODO
-private final JTextField subordinateField = new JTextField();
+	private final JTextField subordinateField = new JTextField();
 	private final JButton helpButton = new JButton("Help");
 	private final JButton okButton = new JButton("Ok");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -129,6 +129,7 @@ private final JTextField subordinateField = new JTextField();
 
 		initComponents();
 	}
+
 
 	private void initComponents(){
 		setTitle("Place");

@@ -31,7 +31,7 @@ public interface TextPreviewListenerInterface{
 
 	void textChanged();
 
-	void onPreviewStateChange(final boolean visible);
+	void onPreviewStateChange(boolean visible);
 
 
 	static void centerDivider(final Component component, final boolean previewVisible){

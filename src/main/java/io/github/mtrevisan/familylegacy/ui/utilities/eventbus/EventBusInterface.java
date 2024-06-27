@@ -68,7 +68,7 @@ public interface EventBusInterface{
 	 *
 	 * @param subscriber	The object to subscribe to the event bus.
 	 */
-	void subscribe(final Object subscriber);
+	void subscribe(Object subscriber);
 
 	/**
 	 * Removes the specified object from the event bus subscription list.
@@ -76,7 +76,7 @@ public interface EventBusInterface{
 	 *
 	 * @param subscriber	The object previous subscribed to the event bus.
 	 */
-	void unsubscribe(final Object subscriber);
+	void unsubscribe(Object subscriber);
 
 	/**
 	 * Sends a message on the bus which will be propagated to the appropriate subscribers of the event type.
@@ -93,7 +93,7 @@ public interface EventBusInterface{
 	 *
 	 * @param event	The event to send out to the subscribers of the same type.
 	 */
-	void publish(final Object event);
+	void publish(Object event);
 
 	/**
 	 * Indicates whether the bus has pending events to publish.
@@ -104,7 +104,7 @@ public interface EventBusInterface{
 	 * @param event	The event to query for.
 	 * @return	If events of given type are still being delivered.
 	 */
-	boolean hasPendingEvents(final Object event);
+	boolean hasPendingEvents(Object event);
 
 	/**
 	 * Indicates whether the bus has pending events to publish.

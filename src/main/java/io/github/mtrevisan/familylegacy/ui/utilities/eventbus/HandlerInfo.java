@@ -44,6 +44,7 @@ class HandlerInfo{
 		this.vetoHandler = vetoHandler;
 	}
 
+
 	public boolean matchesEvent(final Object event){
 		return event.getClass().equals(eventClass);
 	}

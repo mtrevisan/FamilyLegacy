@@ -55,6 +55,7 @@ public class SphericalView extends Canvas implements MouseMotionListener{
 		addMouseMotionListener(this);
 	}
 
+
 	private double[][][] createRayVectors(){
 		final double halfViewportWidth = VIEWPORT_WIDTH / 2.;
 		final double halfViewportHeight = VIEWPORT_HEIGHT / 2.;

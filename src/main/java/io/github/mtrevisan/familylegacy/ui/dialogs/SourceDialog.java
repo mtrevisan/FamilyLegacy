@@ -202,6 +202,7 @@ public class SourceDialog extends JDialog{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		initCitationsComponents();
 
@@ -282,7 +283,7 @@ public class SourceDialog extends JDialog{
 		final ActionListener addCitationNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(citationNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(citationNoteButton, !notes.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -329,7 +330,7 @@ public class SourceDialog extends JDialog{
 		final ActionListener addRecordDocumentAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> documents = store.traverseAsList(record, RECORD_DOCUMENT_ARRAY);
-				GUIHelper.addBorderIfDataPresent(sourceButton, !documents.isEmpty());
+				GUIHelper.addBorder(sourceButton, !documents.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -343,7 +344,7 @@ public class SourceDialog extends JDialog{
 		final ActionListener addRecordSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(sourceButton, !sources.isEmpty());
+				GUIHelper.addBorder(sourceButton, !sources.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -357,7 +358,7 @@ public class SourceDialog extends JDialog{
 		final ActionListener addRecordNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorderIfDataPresent(recordNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(recordNoteButton, !notes.isEmpty());
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -551,7 +552,7 @@ public class SourceDialog extends JDialog{
 		final List<GedcomNode> documents = store.traverseAsList(selectedRecord, RECORD_FILE_ARRAY);
 		//only if there is one image
 		cropButton.setEnabled(documents.size() == 1);
-		GUIHelper.addBorderIfDataPresent(citationNoteButton, !citationNotes.isEmpty());
+		GUIHelper.addBorder(citationNoteButton, !citationNotes.isEmpty());
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
@@ -583,12 +584,12 @@ public class SourceDialog extends JDialog{
 		authorField.setText(author);
 		publisherField.setText(publicationFacts);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		GUIHelper.addBorderIfDataPresent(publicationPlaceButton, !publicationPlace.isEmpty());
-		GUIHelper.addBorderIfDataPresent(repositoryButton, !repositories.isEmpty());
+		GUIHelper.addBorder(publicationPlaceButton, !publicationPlace.isEmpty());
+		GUIHelper.addBorder(repositoryButton, !repositories.isEmpty());
 		mediaTypeField.setText(mediaType);
-		GUIHelper.addBorderIfDataPresent(documentButton, !recordDocuments.isEmpty());
-		GUIHelper.addBorderIfDataPresent(sourceButton, !recordSources.isEmpty());
-		GUIHelper.addBorderIfDataPresent(recordNoteButton, !recordNotes.isEmpty());
+		GUIHelper.addBorder(documentButton, !recordDocuments.isEmpty());
+		GUIHelper.addBorder(sourceButton, !recordSources.isEmpty());
+		GUIHelper.addBorder(recordNoteButton, !recordNotes.isEmpty());
 
 
 		deleteButton.setEnabled(true);

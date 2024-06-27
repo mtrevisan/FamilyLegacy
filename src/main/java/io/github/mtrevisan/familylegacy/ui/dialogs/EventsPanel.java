@@ -91,6 +91,7 @@ public class EventsPanel extends JPanel{
 		add(eventScrollPane, "grow,height 46");
 	}
 
+
 	private void filterEventBy(final EventsPanel dialog){
 		final String newEvent = eventField.getText().trim();
 		if(newEvent.equals(formerFilterEvent))

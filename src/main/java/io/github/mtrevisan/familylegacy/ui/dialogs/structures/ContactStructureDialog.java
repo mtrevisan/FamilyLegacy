@@ -141,6 +141,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		loadData();
 	}
 
+
 	private void initComponents(){
 		setTitle("Contacts");
 

@@ -47,6 +47,7 @@ public final class FontHelper{
 
 	private FontHelper(){}
 
+
 	public static Rectangle2D getStringBounds(final Font font, final String text){
 		return font.getStringBounds(text, FRC);
 	}

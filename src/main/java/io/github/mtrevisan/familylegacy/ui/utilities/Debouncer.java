@@ -48,6 +48,7 @@ public class Debouncer<T>{
 		this.interval = interval;
 	}
 
+
 	public void call(final T key){
 		final TimerTask task = new TimerTask(key);
 

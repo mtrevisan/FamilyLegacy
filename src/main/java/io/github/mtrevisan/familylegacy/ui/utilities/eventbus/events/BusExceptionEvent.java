@@ -51,6 +51,7 @@ public class BusExceptionEvent extends EventObject{
 		this.cause = cause;
 	}
 
+
 	public Object getSubscriber(){
 		return getSource();
 	}
