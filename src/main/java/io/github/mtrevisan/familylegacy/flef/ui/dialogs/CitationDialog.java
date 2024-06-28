@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2022 Mauro Trevisan
+ * Copyright (c) 2024 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -308,7 +308,7 @@ public class CitationDialog extends JDialog{
 		recordPanelBase.add(extractButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(localizedTextButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(extractTypeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(extractTypeComboBox, "grow");
+		recordPanelBase.add(extractTypeComboBox);
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
@@ -620,14 +620,16 @@ public class CitationDialog extends JDialog{
 	}
 
 	private void clearData(){
-		GUIHelper.addBorder(sourceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		GUIHelper.setDefaultBorder(sourceButton);
 		locationField.setText(null);
 		extractTypeComboBox.setSelectedItem(null);
-		GUIHelper.addBorder(extractButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(localizedTextButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(noteButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(multimediaButton, false, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.setDefaultBorder(extractButton);
+		GUIHelper.setDefaultBorder(localizedTextButton);
+
+		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(multimediaButton);
 		restrictionCheckBox.setSelected(false);
+
 		GUIHelper.setEnabled(recordTabbedPane, false);
 		deleteRecordButton.setEnabled(false);
 	}
@@ -818,7 +820,6 @@ public class CitationDialog extends JDialog{
 
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
-					System.out.println("--" + editCommand);
 					switch(editCommand.getType()){
 						case SOURCE -> {
 							//TODO

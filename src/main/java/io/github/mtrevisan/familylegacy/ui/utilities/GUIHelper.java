@@ -187,10 +187,13 @@ public final class GUIHelper{
 	public static void addBorder(final JButton button, final boolean dataPresent, final Color borderColor){
 		if(dataPresent)
 			addBorder(button, borderColor);
-		else{
-			final Border border = UIManager.getBorder("Button.border");
-			button.setBorder(border);
-		}
+		else
+			setDefaultBorder(button);
+	}
+
+	public static void setDefaultBorder(final JButton button){
+		final Border border = UIManager.getBorder("Button.border");
+		button.setBorder(border);
 	}
 
 	public static void addBorder(final JButton button, final Color borderColor){

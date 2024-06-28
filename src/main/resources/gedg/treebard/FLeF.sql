@@ -10,11 +10,11 @@ CREATE TABLE "ASSERTION"
 (
  "ID"            numeric PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,	-- The citation from which this assertion is derived.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name")
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY     numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (CITATION_ID) REFERENCES CITATION ( "ID" ) ON DELETE CASCADE
 );
 
@@ -70,7 +70,7 @@ CREATE TABLE HISTORIC_DATE
  DATE_ORIGINAL        text,				-- The date as written into a document.
  CALENDAR_ORIGINAL_ID numeric,			-- An xref ID of a calendar type for the original date.
  CERTAINTY            text,				-- A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY          numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY          text,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (CALENDAR_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL
 );
@@ -93,7 +93,7 @@ CREATE TABLE PLACE
  "TYPE"                 text,							-- The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address").
  COORDINATE             text,							-- Ex. a latitude and longitude pair, or X and Y coordinates.
  COORDINATE_TYPE        text,							-- The coordinate type (ex. "WGS84", "UTM").
- COORDINATE_CREDIBILITY numeric,						-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ COORDINATE_CREDIBILITY text,							-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  PRIMARY_PLACE_ID       numeric,						-- The (primary) place this place is the same as.
  IMAGE_ID               numeric,						-- The primary image for this place.
  IMAGE_CROP             text,							-- Top-left and bottom-right coordinates of the enclosing box inside an image.
@@ -107,7 +107,7 @@ CREATE TABLE HISTORIC_PLACE
  "ID"        numeric PRIMARY KEY,
  PLACE_ID    numeric NOT NULL,	-- The location.
  CERTAINTY   text,					-- A status code that allows passing on the users opinion of whether the location is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE CASCADE
 );
 
@@ -211,7 +211,7 @@ CREATE TABLE GROUP_JUNCTION
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY     numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" ) ON DELETE CASCADE
 );
 
@@ -258,7 +258,7 @@ CREATE TABLE CULTURAL_NORM
  DATE_START_ID numeric,			-- The date this cultural norm went into effect.
  DATE_END_ID   numeric,			-- The date this cultural norm stopped being in effect.
  CERTAINTY     text,				-- A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY   numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY   text,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_START_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
@@ -271,7 +271,7 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
  REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "event", "note", "person", "person name", "group").
  REFERENCE_ID     numeric NOT NULL,	-- The ID of the referenced record in the table.
  CERTAINTY        text,					-- A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY      numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
+ CREDIBILITY      text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (CULTURAL_NORM_ID) REFERENCES CULTURAL_NORM ( "ID" ) ON DELETE CASCADE
 );
 

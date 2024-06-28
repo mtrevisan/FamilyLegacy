@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2022 Mauro Trevisan
+ * Copyright (c) 2024 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -324,7 +324,7 @@ public class SourceDialog extends JDialog{
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(typeComboBox, "grow,wrap");
+		recordPanelBase.add(typeComboBox, "wrap");
 		recordPanelBase.add(authorLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(authorField, "grow,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,split 3");
@@ -611,6 +611,7 @@ public class SourceDialog extends JDialog{
 
 		model.removeRow(modelRowIndex);
 		getRecords(TABLE_NAME).remove(recordID);
+
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
@@ -634,13 +635,15 @@ public class SourceDialog extends JDialog{
 		identifierField.setText(null);
 		typeComboBox.setSelectedItem(null);
 		authorField.setText(null);
-		GUIHelper.addBorder(placeButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(dateButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(repositoryButton, false, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.setDefaultBorder(placeButton);
+		GUIHelper.setDefaultBorder(dateButton);
+		GUIHelper.setDefaultBorder(repositoryButton);
 		locationField.setText(null);
-		GUIHelper.addBorder(noteButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(multimediaButton, false, DATA_BUTTON_BORDER_COLOR);
+
+		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(multimediaButton);
 		restrictionCheckBox.setSelected(false);
+
 		GUIHelper.setEnabled(recordTabbedPane, false);
 		deleteRecordButton.setEnabled(false);
 	}
@@ -819,7 +822,6 @@ public class SourceDialog extends JDialog{
 
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
-					System.out.println("--" + editCommand);
 					switch(editCommand.getType()){
 						case PLACE -> {
 							//TODO

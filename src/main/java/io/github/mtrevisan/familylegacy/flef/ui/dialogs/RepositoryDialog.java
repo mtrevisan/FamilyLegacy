@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020-2022 Mauro Trevisan
+ * Copyright (c) 2024 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -297,7 +297,7 @@ public class RepositoryDialog extends JDialog{
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
+		recordPanelBase.add(typeComboBox, "wrap paragraph");
 		recordPanelBase.add(personButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(placeButton, "sizegroup btn,gapleft 30,center");
 
@@ -557,6 +557,7 @@ public class RepositoryDialog extends JDialog{
 
 		model.removeRow(modelRowIndex);
 		getRecords(TABLE_NAME).remove(recordID);
+
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
@@ -579,11 +580,13 @@ public class RepositoryDialog extends JDialog{
 	private void clearData(){
 		identifierField.setText(null);
 		typeComboBox.setSelectedItem(null);
-		GUIHelper.addBorder(personButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(placeButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(noteButton, false, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(multimediaButton, false, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.setDefaultBorder(personButton);
+		GUIHelper.setDefaultBorder(placeButton);
+
+		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(multimediaButton);
 		restrictionCheckBox.setSelected(false);
+
 		GUIHelper.setEnabled(recordTabbedPane, false);
 		deleteRecordButton.setEnabled(false);
 	}
@@ -770,7 +773,6 @@ public class RepositoryDialog extends JDialog{
 
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
-					System.out.println("--" + editCommand);
 					switch(editCommand.getType()){
 						case PERSON -> {
 							//TODO

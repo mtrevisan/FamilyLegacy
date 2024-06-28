@@ -37,10 +37,10 @@ public class CredibilityComboBoxModel extends DefaultComboBoxModel<String>{
 
 	private static final String[] ITEMS = {
 		StringUtils.EMPTY,
-		"Unreliable/estimated data",
-		"Questionable reliability of evidence",
-		"Secondary evidence, data officially recorded sometime after event",
-		"Direct and primary evidence used, or by dominance of the evidence"};
+		"unreliable/estimated data",
+		"questionable reliability of evidence",
+		"secondary evidence, data officially recorded sometime after event",
+		"direct and primary evidence used, or by dominance of the evidence"};
 
 
 	public CredibilityComboBoxModel(){
