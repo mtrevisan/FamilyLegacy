@@ -15,7 +15,7 @@ CREATE TABLE "ASSERTION"
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (CITATION_ID) REFERENCES CITATION ( "ID" )
+ FOREIGN KEY (CITATION_ID) REFERENCES CITATION ( "ID" ) ON DELETE CASCADE
 );
 
 -- Where a source makes an assertion.
@@ -27,8 +27,8 @@ CREATE TABLE CITATION
  LOCATION     text,					-- The location of the citation inside the source (ex. "page 27, number 8, row 2").
  EXTRACT_ID   numeric,				-- A verbatim copy of any description contained within the source.
  EXTRACT_TYPE text,					-- Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content).
- FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ),
- FOREIGN KEY (EXTRACT_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
+ FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (EXTRACT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
 );
 
 -- https://www.evidenceexplained.com/content/sample-quickcheck-models
@@ -36,15 +36,15 @@ CREATE TABLE "SOURCE"
 (
  "ID"          numeric PRIMARY KEY,
  IDENTIFIER    text NOT NULL UNIQUE,	-- The title of the source (must be unique, ex. "1880 US Census").
- SOURCE_TYPE   text,							-- ex. "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record".
+ "TYPE"        text,							-- ex. "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record".
  AUTHOR        text,							-- The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
  PLACE_ID      numeric,						-- The place this source was created.
  DATE_ID       numeric,						-- The date this source was created.
  REPOSITORY_ID numeric,						-- The repository from which this source is contained.
  LOCATION      text,							-- Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28').
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ),
- FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" )
+ FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" ) ON DELETE CASCADE
 );
 
 -- A representation of where a source or set of sources is located
@@ -55,8 +55,8 @@ CREATE TABLE REPOSITORY
  "TYPE"     text,							-- Repository type (ex. "public library", "college library", "national library", "prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library", "genealogy society collection", "government agency", "funeral home").
  PERSON_ID  numeric,						-- An xref ID of the person, if present in the tree and is the repository of a source.
  PLACE_ID   numeric,						-- The place this repository is.
- FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ),
- FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" )
+ FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL
 );
 
 
@@ -71,8 +71,8 @@ CREATE TABLE HISTORIC_DATE
  CALENDAR_ORIGINAL_ID numeric,			-- An xref ID of a calendar type for the original date.
  CERTAINTY            text,				-- A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY          numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (CALENDAR_ID) REFERENCES CALENDAR ( "ID" ),
- FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" )
+ FOREIGN KEY (CALENDAR_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE CALENDAR
@@ -97,9 +97,9 @@ CREATE TABLE PLACE
  PRIMARY_PLACE_ID       numeric,						-- The (primary) place this place is the same as.
  IMAGE_ID               numeric,						-- The primary image for this place.
  IMAGE_CROP             text,							-- Top-left and bottom-right coordinates of the enclosing box inside an image.
- FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ),
- FOREIGN KEY (PRIMARY_PLACE_ID) REFERENCES PLACE ( "ID" ),
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" )
+ FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (PRIMARY_PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE HISTORIC_PLACE
@@ -108,7 +108,7 @@ CREATE TABLE HISTORIC_PLACE
  PLACE_ID    numeric NOT NULL,	-- The location.
  CERTAINTY   text,					-- A status code that allows passing on the users opinion of whether the location is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" )
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -131,7 +131,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
  REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternative sort name").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
+ FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE NOTE
@@ -153,7 +153,7 @@ CREATE TABLE MEDIA
  "TYPE"           text,							-- (ex. "photo, "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom")
  IMAGE_PROJECTION text,							-- The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image).
  DATE_ID          numeric,						-- The date this media was first recorded.
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" )
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE MEDIA_JUNCTION
@@ -163,7 +163,7 @@ CREATE TABLE MEDIA_JUNCTION
  IMAGE_CROP      text,					-- Top-left and bottom-right coordinates of the enclosing box inside an image.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" )
+ FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -174,20 +174,20 @@ CREATE TABLE PERSON
  "ID"       numeric PRIMARY KEY,
  IMAGE_ID   numeric,	-- The primary image for this person.
  IMAGE_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an image.
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" )
+ FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 -- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
 CREATE TABLE PERSON_NAME
 (
- "ID"                      numeric PRIMARY KEY,
- PERSON_ID                 numeric NOT NULL,
- NAME_ID                   numeric,				-- A verbatim copy of the name written in the original language.
- "TYPE"                    text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
+ "ID"                     numeric PRIMARY KEY,
+ PERSON_ID                numeric NOT NULL,
+ NAME_ID                  numeric,				-- A verbatim copy of the name written in the original language.
+ "TYPE"                   text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
  NAME_ALTERNATIVE_SORT_ID numeric,
- FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ),
- FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ),
- FOREIGN KEY (ALTERNATIVE_SORT_ORDER_ID) REFERENCES LOCALIZED_TEXT ( "ID" )
+ FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (NAME_ALTERNATIVE_SORT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
 );
 
 
@@ -200,7 +200,7 @@ CREATE TABLE "GROUP"
  "TYPE"     text,		-- The type of the group (ex. "family", "neighborhood", "fraternity", "ladies club", "literary society").
  IMAGE_ID   numeric,	-- The primary image for this group.
  IMAGE_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an image.
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" )
+ FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE GROUP_JUNCTION
@@ -212,7 +212,7 @@ CREATE TABLE GROUP_JUNCTION
  ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" )
+ FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -232,8 +232,8 @@ CREATE TABLE EVENT
  DATE_ID         numeric,				-- The date this event has happened.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" )
+ FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 
 
@@ -259,9 +259,9 @@ CREATE TABLE CULTURAL_NORM
  DATE_END_ID   numeric,			-- The date this cultural norm stopped being in effect.
  CERTAINTY     text,				-- A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY   numeric,			-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ),
- FOREIGN KEY (DATE_START_ID) REFERENCES HISTORIC_DATE ( "ID" ),
- FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" )
+ FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (DATE_START_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE CULTURAL_NORM_JUNCTION
@@ -272,7 +272,7 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
  REFERENCE_ID     numeric NOT NULL,	-- The ID of the referenced record in the table.
  CERTAINTY        text,					-- A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY      numeric,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence (0 = unreliable/estimated data, 1 = questionable reliability of evidence, 2 = secondary evidence, data officially recorded sometime after assertion, 3 = direct and primary evidence used, or by dominance of the evidence).
- FOREIGN KEY (CULTURAL_NORM_ID) REFERENCES CULTURAL_NORM ( "ID" )
+ FOREIGN KEY (CULTURAL_NORM_ID) REFERENCES CULTURAL_NORM ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -281,7 +281,7 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 CREATE TABLE RESTRICTION
 (
  "ID"            numeric PRIMARY KEY,
- RESTRICTION     text NOT NULL,		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported).
+ RESTRICTION     text NOT NULL,		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "public" (can be freely distributed or exported).
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "date", "historic date", "event", "place", "historic place", "note", "person name", "person", "group", "media").
  REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );

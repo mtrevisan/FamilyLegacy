@@ -32,9 +32,11 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -48,9 +50,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serial;
 import java.util.Arrays;
 import java.util.Deque;
@@ -63,6 +62,10 @@ public final class GUIHelper{
 	private static final UndoManager UNDO_MANAGER = new UndoManager();
 	private static final String ACTION_MAP_KEY_UNDO = "undo";
 	private static final String ACTION_MAP_KEY_REDO = "redo";
+
+	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
+	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
 
 	private GUIHelper(){}
@@ -97,6 +100,11 @@ public final class GUIHelper{
 	}
 
 
+	public static String readTextTrimmed(final JTextField field){
+		final String text = field.getText();
+		return (text != null? text.trim(): null);
+	}
+
 	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onTextChange){
 		if(label != null)
 			label.setLabelFor(field);
@@ -126,23 +134,22 @@ public final class GUIHelper{
 	public static void addUndoCapability(final JTextComponent component){
 		final Document doc = component.getDocument();
 		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
-		final InputMap textInputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
-		final ActionMap textActionMap = component.getActionMap();
-		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
-		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
+
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
+
+		final ActionMap actionMap = component.getActionMap();
+		actionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
+		actionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
 	}
 
-	public static void addUndoCapability(final JComboBox<?> component){
-		final Document doc = component.getDocument();
-		doc.addUndoableEditListener(event -> UNDO_MANAGER.addEdit(event.getEdit()));
-		final InputMap textInputMap = component.getInputMap(JComponent.WHEN_FOCUSED);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_UNDO);
-		textInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), ACTION_MAP_KEY_REDO);
-		final ActionMap textActionMap = component.getActionMap();
-		textActionMap.put(ACTION_MAP_KEY_UNDO, new UndoAction());
-		textActionMap.put(ACTION_MAP_KEY_REDO, new RedoAction());
+	public static void addUndoCapability(final JComboBox<?> comboBox){
+		if(!comboBox.isEditable())
+			throw new IllegalArgumentException("JComboBox must be editable to add undo capability");
+
+		final JTextField textField = (JTextField)comboBox.getEditor().getEditorComponent();
+		addUndoCapability(textField);
 	}
 
 	private static class UndoAction extends AbstractAction{
@@ -158,19 +165,6 @@ public final class GUIHelper{
 			catch(final CannotUndoException e){
 				e.printStackTrace();
 			}
-		}
-
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
 		}
 	}
 
@@ -188,27 +182,51 @@ public final class GUIHelper{
 				cue.printStackTrace();
 			}
 		}
+	}
 
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
-		}
-
-		@SuppressWarnings("unused")
-		@Serial
-		private void readObject(final ObjectInputStream is) throws NotSerializableException{
-			throw new NotSerializableException(getClass().getName());
+	public static void addBorder(final JButton button, final boolean dataPresent, final Color borderColor){
+		if(dataPresent)
+			addBorder(button, borderColor);
+		else{
+			final Border border = UIManager.getBorder("Button.border");
+			button.setBorder(border);
 		}
 	}
 
-	public static void addBorder(final JButton button, final boolean dataPresent){
+	public static void addBorder(final JButton button, final Color borderColor){
 		final Insets insets = button.getInsets();
-		button.setBorder(dataPresent
-			? BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLUE),
-				BorderFactory.createEmptyBorder(insets.top - 1, insets.left - 1, insets.bottom - 1, insets.right - 1))
-			: UIManager.getBorder("Button.border"));
+		final Border outsideBorder = BorderFactory.createLineBorder(borderColor);
+		final Border insideBorder = BorderFactory.createEmptyBorder(insets.top - 1, insets.left - 1,
+			insets.bottom - 1, insets.right - 1);
+		final Border border = BorderFactory.createCompoundBorder(outsideBorder, insideBorder);
+		button.setBorder(border);
+	}
+
+	public static void addBorder(final JTextComponent component, final Color backgroundColor){
+		final Document doc = component.getDocument();
+		doc.addDocumentListener(new DocumentListener(){
+			@Override
+			public void insertUpdate(final DocumentEvent de){
+				updateBackground();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent de){
+				updateBackground();
+			}
+
+			@Override
+			public void changedUpdate(final DocumentEvent de){
+				updateBackground();
+			}
+
+			private void updateBackground(){
+				if(component.getText().trim().isEmpty())
+					component.setBackground(backgroundColor);
+				else
+					component.setBackground(Color.WHITE);
+			}
+		});
 	}
 
 }

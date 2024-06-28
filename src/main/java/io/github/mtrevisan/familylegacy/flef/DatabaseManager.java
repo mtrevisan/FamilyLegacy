@@ -3,10 +3,8 @@ package io.github.mtrevisan.familylegacy.flef;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericColumn;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericRecord;
 import io.github.mtrevisan.familylegacy.flef.sql.GenericTable;
-//import org.h2.tools.RunScript;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -14,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
@@ -23,7 +22,8 @@ import java.util.regex.Pattern;
 public class DatabaseManager{
 
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+(\"?[^\\s\\r\\n(]+\"?)[^;]*?;");
-	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(([^\\s]+)\\s+[^\\s]+\\s+)?(FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)),?");
+	//https://stackoverflow.com/questions/6720050/foreign-key-constraints-when-to-use-on-update-and-on-delete
+	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(([^\\s]+)\\s+[^\\s]+\\s+)?(FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(?:DELETE|UPDATE)\\s+[^,]+)?),?");
 	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?FOREIGN\\s+KEY.*?;");
 
 
@@ -44,8 +44,8 @@ public class DatabaseManager{
 			final String sql = Files.readString(Paths.get(sqlFile));
 
 			//separate table creation and foreign key constraints
-			final List<String> tableCreations = new ArrayList<>(0);
-			final List<String> foreignKeyConstraints = new ArrayList<>(0);
+			final Collection<String> tableCreations = new ArrayList<>(0);
+			final Collection<String> foreignKeyConstraints = new ArrayList<>(0);
 
 			final Matcher tableMatcher = CREATE_TABLE_PATTERN.matcher(sql);
 			while(tableMatcher.find()){
@@ -54,7 +54,7 @@ public class DatabaseManager{
 
 				//remove inline foreign keys and add them to the foreignKeyConstraints list
 				final Matcher foreignKeyMatcher = FOREIGN_KEY_PATTERN.matcher(createTableStatement);
-				final List<String> currentForeignKeyConstraints = new ArrayList<>(0);
+				final Collection<String> currentForeignKeyConstraints = new ArrayList<>(0);
 				while(foreignKeyMatcher.find()){
 					String foreignKey = foreignKeyMatcher.group(3);
 
@@ -130,7 +130,7 @@ public class DatabaseManager{
 
 		try(
 				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-				PreparedStatement pstmt = connection.prepareStatement(sql);
+				final PreparedStatement pstmt = connection.prepareStatement(sql);
 				){
 			pstmt.executeUpdate();
 		}

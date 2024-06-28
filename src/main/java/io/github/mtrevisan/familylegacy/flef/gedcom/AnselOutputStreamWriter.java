@@ -98,7 +98,7 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Conversion table for UNICODE to Ansel.
 	 */
-	private int convert(final int unicode){
+	private static int convert(final int unicode){
 		final String u = String.format(AnselInputStreamReader.ANSEL_FORMATTER, unicode);
 		final String chr = (String)ANSEL_REVERSED.get(u);
 		return (chr != null? Integer.parseInt(chr, 16): AnselInputStreamReader.UNICODE_REPLACEMENT_CHARACTER);

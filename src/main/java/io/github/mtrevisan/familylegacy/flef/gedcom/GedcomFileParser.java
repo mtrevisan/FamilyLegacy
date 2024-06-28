@@ -343,7 +343,7 @@ public final class GedcomFileParser{
 	}
 
 	/** Bucket children of nodes by tag. */
-	private Map<String, List<String>> bucketByTag(final GedcomNode node){
+	private static Map<String, List<String>> bucketByTag(final GedcomNode node){
 		final Map<String, List<String>> childrenValueBucket = new HashMap<>(node.getChildren().size());
 		for(final GedcomNode gedcomNode : node.getChildren())
 			//don't count custom tags
@@ -353,7 +353,7 @@ public final class GedcomFileParser{
 		return childrenValueBucket;
 	}
 
-	private void checkConstraints(final String tag, final Integer count, final GedcomGrammarLine grammarLine)
+	private static void checkConstraints(final String tag, final Integer count, final GedcomGrammarLine grammarLine)
 			throws GedcomDataException{
 		final int min = grammarLine.getMin();
 		if(count < min)

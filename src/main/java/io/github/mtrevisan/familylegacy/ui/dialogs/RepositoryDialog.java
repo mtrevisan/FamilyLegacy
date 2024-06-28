@@ -265,7 +265,7 @@ public class RepositoryDialog extends JDialog{
 		final ActionListener addCitationNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorder(citationNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(citationNoteButton, !notes.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -295,7 +295,7 @@ public class RepositoryDialog extends JDialog{
 		final ActionListener addRecordDocumentAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> documents = store.traverseAsList(record, RECORD_DOCUMENT_ARRAY);
-				GUIHelper.addBorder(sourceButton, !documents.isEmpty());
+				GUIHelper.addBorder(sourceButton, !documents.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -309,7 +309,7 @@ public class RepositoryDialog extends JDialog{
 		final ActionListener addRecordSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorder(sourceButton, !sources.isEmpty());
+				GUIHelper.addBorder(sourceButton, !sources.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -323,7 +323,7 @@ public class RepositoryDialog extends JDialog{
 		final ActionListener addRecordNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorder(recordNoteButton, !notes.isEmpty());
+				GUIHelper.addBorder(recordNoteButton, !notes.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -491,7 +491,7 @@ public class RepositoryDialog extends JDialog{
 		final String credibility = store.traverse(selectedCitation, RECORD_CREDIBILITY)
 			.getValue();
 		locationField.setText(location);
-		GUIHelper.addBorder(citationNoteButton, !citationNotes.isEmpty());
+		GUIHelper.addBorder(citationNoteButton, !citationNotes.isEmpty(), Color.BLUE);
 		credibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 
@@ -523,12 +523,12 @@ public class RepositoryDialog extends JDialog{
 		authorField.setText(author);
 		publisherField.setText(publicationFacts);
 		datePanel.loadData(date, calendarXRef, dateOriginalText, dateCredibilityIndex);
-		GUIHelper.addBorder(publicationPlaceButton, !publicationPlace.isEmpty());
-		GUIHelper.addBorder(repositoryButton, !repositories.isEmpty());
+		GUIHelper.addBorder(publicationPlaceButton, !publicationPlace.isEmpty(), Color.BLUE);
+		GUIHelper.addBorder(repositoryButton, !repositories.isEmpty(), Color.BLUE);
 		mediaTypeField.setText(mediaType);
-		GUIHelper.addBorder(documentButton, !recordDocuments.isEmpty());
-		GUIHelper.addBorder(sourceButton, !recordSources.isEmpty());
-		GUIHelper.addBorder(recordNoteButton, !recordNotes.isEmpty());
+		GUIHelper.addBorder(documentButton, !recordDocuments.isEmpty(), Color.BLUE);
+		GUIHelper.addBorder(sourceButton, !recordSources.isEmpty(), Color.BLUE);
+		GUIHelper.addBorder(recordNoteButton, !recordNotes.isEmpty(), Color.BLUE);
 
 
 		deleteButton.setEnabled(true);

@@ -300,7 +300,7 @@ public class CulturalNormDialog extends JDialog{
 		final ActionListener addNoteAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> notes = store.traverseAsList(record, RECORD_NOTE_ARRAY);
-				GUIHelper.addBorder(noteButton, !notes.isEmpty());
+				GUIHelper.addBorder(noteButton, !notes.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -315,7 +315,7 @@ public class CulturalNormDialog extends JDialog{
 		final ActionListener addSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorder(sourceButton, !sources.isEmpty());
+				GUIHelper.addBorder(sourceButton, !sources.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -432,7 +432,7 @@ public class CulturalNormDialog extends JDialog{
 
 		GUIHelper.setEnabled(placePanel, true);
 		final GedcomNode place = store.traverse(selectedRecord, RECORD_PLACE);
-		GUIHelper.addBorder(placeButton, !place.isEmpty());
+		GUIHelper.addBorder(placeButton, !place.isEmpty(), Color.BLUE);
 		final String certainty = store.traverse(place, RECORD_CERTAINTY)
 			.getValue();
 		placeCertaintyComboBox.setSelectedIndex(certainty != null? Integer.parseInt(certainty) + 1: 0);
@@ -441,11 +441,11 @@ public class CulturalNormDialog extends JDialog{
 		placeCredibilityComboBox.setSelectedIndex(credibility != null? Integer.parseInt(credibility) + 1: 0);
 
 		final List<GedcomNode> notes = store.traverseAsList(selectedRecord, RECORD_NOTE_ARRAY);
-		GUIHelper.addBorder(noteButton, !notes.isEmpty());
+		GUIHelper.addBorder(noteButton, !notes.isEmpty(), Color.BLUE);
 		noteButton.setEnabled(true);
 
 		final List<GedcomNode> sources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
-		GUIHelper.addBorder(sourceButton, !sources.isEmpty());
+		GUIHelper.addBorder(sourceButton, !sources.isEmpty(), Color.BLUE);
 		sourceButton.setEnabled(true);
 
 

@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.Map;
 
 
-public class JavaHelper{
+public final class JavaHelper{
 
 	private JavaHelper(){}
 

@@ -109,7 +109,7 @@ class GedcomGrammarBlock{
 	/**
 	 * Process a sub block.
 	 */
-	private boolean parseSubBlock(final List<String> subBlock, final GedcomGrammarLine parentGrammarLine)
+	private static boolean parseSubBlock(final List<String> subBlock, final GedcomGrammarLine parentGrammarLine)
 			throws GedcomGrammarException{
 		final GedcomGrammarBlock grammarSubBlock = new GedcomGrammarBlock();
 		if(!grammarSubBlock.parse(subBlock))

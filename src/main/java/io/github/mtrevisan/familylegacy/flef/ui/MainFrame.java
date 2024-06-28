@@ -24,27 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
-import io.github.mtrevisan.familylegacy.gedcom.Flef;
-import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
-import io.github.mtrevisan.familylegacy.gedcom.Store;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import io.github.mtrevisan.familylegacy.ui.dialogs.GroupDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.LinkFamilyDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.LinkIndividualDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.SourceDialog;
-import io.github.mtrevisan.familylegacy.ui.dialogs.records.FamilyRecordDialog;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.SelectionListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.panels.TreePanel;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -52,11 +40,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
-import javax.swing.WindowConstants;
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;

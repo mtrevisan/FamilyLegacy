@@ -39,7 +39,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 
-public abstract class GedcomNode{
+public abstract class GedcomNode implements Cloneable{
 
 	static final String NEW_LINE = "\\n";
 
@@ -290,7 +290,7 @@ public abstract class GedcomNode{
 		return getChildrenWithTag(Collections.singletonList(this), tag);
 	}
 
-	private List<GedcomNode> getChildrenWithTag(final List<GedcomNode> root, final String tag){
+	private static List<GedcomNode> getChildrenWithTag(final List<GedcomNode> root, final String tag){
 		final List<GedcomNode> taggedChildren;
 		if(!root.isEmpty()){
 			taggedChildren = new ArrayList<>(0);
@@ -367,7 +367,8 @@ public abstract class GedcomNode{
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
-	public GedcomNode clone(){
+	@Override
+	public final GedcomNode clone(){
 		final GedcomNode copy = createNewNodeWithTag(tag)
 			.withLevel(level)
 			.withID(id)

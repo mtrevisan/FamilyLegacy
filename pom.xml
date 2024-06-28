@@ -71,7 +71,7 @@
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-<!--		<h2.version>2.2.224</h2.version>-->
+		<h2.version>2.2.224</h2.version>
 
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
@@ -328,11 +328,11 @@
 			<version>${apache.commons-validator.version}</version>
 		</dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.h2database</groupId>-->
-<!--			<artifactId>h2</artifactId>-->
-<!--			<version>${h2.version}</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.miglayout</groupId>

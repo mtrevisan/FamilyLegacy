@@ -259,7 +259,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		final ActionListener addTranslationAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> translations = store.traverseAsList(record, RECORD_TRANSLATION_ARRAY);
-				GUIHelper.addBorder(translationButton, !translations.isEmpty());
+				GUIHelper.addBorder(translationButton, !translations.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -274,7 +274,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		final ActionListener addSourceAction = evt -> {
 			final Consumer<Object> onAccept = ignored -> {
 				final List<GedcomNode> sources = store.traverseAsList(record, RECORD_SOURCE_ARRAY);
-				GUIHelper.addBorder(sourceButton, !sources.isEmpty());
+				GUIHelper.addBorder(sourceButton, !sources.isEmpty(), Color.BLUE);
 
 				//put focus on the ok button
 				okButton.grabFocus();
@@ -422,11 +422,11 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 		restrictionCheckBox.setEnabled(true);
 
 		final List<GedcomNode> translations = store.traverseAsList(selectedRecord, RECORD_TRANSLATION_ARRAY);
-		GUIHelper.addBorder(translationButton, !translations.isEmpty());
+		GUIHelper.addBorder(translationButton, !translations.isEmpty(), Color.BLUE);
 		translationButton.setEnabled(true);
 
 		final List<GedcomNode> sources = store.traverseAsList(selectedRecord, RECORD_SOURCE_ARRAY);
-		GUIHelper.addBorder(sourceButton, !sources.isEmpty());
+		GUIHelper.addBorder(sourceButton, !sources.isEmpty(), Color.BLUE);
 		sourceButton.setEnabled(true);
 
 

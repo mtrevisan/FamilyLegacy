@@ -64,7 +64,7 @@ public class TableTransferHandle extends TransferHandler{
 
 	@Override
 	public int getSourceActions(final JComponent component){
-		return TransferHandler.COPY_OR_MOVE;
+		return COPY_OR_MOVE;
 	}
 
 	@Override

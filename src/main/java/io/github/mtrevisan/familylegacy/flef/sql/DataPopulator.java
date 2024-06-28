@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -24,9 +25,6 @@ class DataPopulator{
 	private static final char ESCAPE = '\\';
 	private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("^([A-Z_]+)$");
 	private static final Pattern HEADER_PATTERN = Pattern.compile("\\|?([^|]+)\\|?");
-
-
-	DataPopulator(){}
 
 
 	void populate(final Map<String, GenericTable> tables, final String filePath) throws IOException{
@@ -65,7 +63,7 @@ class DataPopulator{
 						final Set<String> columnNames = currentTable.getColumns().stream()
 							.map(GenericColumn::getName)
 							.collect(Collectors.toSet());
-						final Set<String> readColumnNames = new HashSet<>(currentTableHeaders);
+						final Collection<String> readColumnNames = new HashSet<>(currentTableHeaders);
 						if(!readColumnNames.containsAll(columnNames) && !columnNames.containsAll(readColumnNames))
 							throw new IllegalArgumentException("Number of columns mismatched, expected " + currentTable.getColumns()
 								+ ", found " + currentTableHeaders);
