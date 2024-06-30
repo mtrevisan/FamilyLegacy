@@ -95,7 +95,7 @@ public class GenericColumn{
 			+ "name='" + name + '\''
 			+ ", type='" + type + '\''
 			+ ", size='" + size + '\''
-			+ ", nullable=" + isNullable
+			+ (!isNullable? ", nullable=" + isNullable: "")
 			+ (primaryKeyOrder != null? ", primaryKeyOrder='" + primaryKeyOrder + '\'': "")
 			+ (foreignKeyTable != null && foreignKeyColumn != null? ", foreignKeyTable='" + foreignKeyTable + '.' + foreignKeyColumn + '\'': "")
 			+ '}';

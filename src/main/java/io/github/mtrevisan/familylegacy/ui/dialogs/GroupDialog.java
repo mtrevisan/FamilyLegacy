@@ -420,7 +420,8 @@ public class GroupDialog extends JDialog{
 
 	private void filterTableBy(final GroupDialog panel){
 		final String name = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(name, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_NAME);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(name, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_NAME);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();

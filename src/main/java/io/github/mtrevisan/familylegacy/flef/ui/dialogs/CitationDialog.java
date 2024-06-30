@@ -313,7 +313,7 @@ public class CitationDialog extends JDialog{
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
 		recordPanelOther.add(multimediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelOther.add(restrictionCheckBox, "wrap");
+		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		GUIHelper.setEnabled(recordTabbedPane, false);

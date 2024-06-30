@@ -388,7 +388,8 @@ public class CulturalNormDialog extends JDialog{
 
 	private void filterTableBy(final CulturalNormDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_TITLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();

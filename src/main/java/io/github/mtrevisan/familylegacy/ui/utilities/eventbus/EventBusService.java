@@ -61,13 +61,15 @@ public final class EventBusService{
 	public static void subscribe(final Object subscriber){
 		EVENT_BUS.subscribe(subscriber);
 
-		LOGGER.debug("Subscribed: '{}', called from {}", subscriber.getClass().getSimpleName(), LoggerHelper.extractCallerClasses()[1].getSimpleName());
+		LOGGER.debug("Subscribed: '{}', called from {}", subscriber.getClass().getSimpleName(),
+			LoggerHelper.extractCallerClasses()[1].getSimpleName());
 	}
 
 	public static void unsubscribe(final Object subscriber){
 		EVENT_BUS.unsubscribe(subscriber);
 
-		LOGGER.debug("Unsubscribed: '{}', called from {}", subscriber.getClass().getSimpleName(), LoggerHelper.extractCallerClasses()[1].getSimpleName());
+		LOGGER.debug("Unsubscribed: '{}', called from {}", subscriber.getClass().getSimpleName(),
+			LoggerHelper.extractCallerClasses()[1].getSimpleName());
 	}
 
 	public static void publish(final Object event){

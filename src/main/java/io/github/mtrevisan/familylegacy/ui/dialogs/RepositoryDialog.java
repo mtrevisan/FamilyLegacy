@@ -443,7 +443,8 @@ public class RepositoryDialog extends JDialog{
 
 	private void filterTableBy(final RepositoryDialog panel){
 		final String title = filterField.getText();
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_NAME);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_NAME);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();

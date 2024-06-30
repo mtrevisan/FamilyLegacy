@@ -205,7 +205,7 @@ public final class GUIHelper{
 		button.setBorder(border);
 	}
 
-	public static void addBorder(final JTextComponent component, final Color backgroundColor){
+	public static void addBackground(final JTextComponent component, final Color backgroundColor){
 		final Document doc = component.getDocument();
 		doc.addDocumentListener(new DocumentListener(){
 			@Override

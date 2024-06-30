@@ -73,6 +73,10 @@
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
 		<h2.version>2.2.224</h2.version>
 
+		<!-- Topological sorting -->
+		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
+		<org.jgrapht.version>1.5.2</org.jgrapht.version>
+
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
 		<miglayout-swing.version>11.3</miglayout-swing.version>
@@ -93,6 +97,8 @@
 <!--		<fasterxml.jackson-databind.version>2.17.1</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
 <!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
+		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
+		<googlecode.json-simple.version>1.1.1</googlecode.json-simple.version>
 
 		<!-- TwelveMonkeys ImageIO -->
 		<!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-core -->
@@ -335,6 +341,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.jgrapht</groupId>
+			<artifactId>jgrapht-core</artifactId>
+			<version>${org.jgrapht.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
 			<version>${miglayout-swing.version}</version>
@@ -392,6 +404,17 @@
 <!--			<groupId>org.glassfish</groupId>-->
 <!--			<artifactId>javax.json</artifactId>-->
 <!--			<version>1.1.4</version>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>com.googlecode.json-simple</groupId>-->
+<!--			<artifactId>json-simple</artifactId>-->
+<!--			<version>${googlecode.json-simple.version}</version>-->
+<!--			<exclusions>-->
+<!--				<exclusion>-->
+<!--					<artifactId>junit</artifactId>-->
+<!--					<groupId>junit</groupId>-->
+<!--				</exclusion>-->
+<!--			</exclusions>-->
 <!--		</dependency>-->
 
 		<!-- Logger -->

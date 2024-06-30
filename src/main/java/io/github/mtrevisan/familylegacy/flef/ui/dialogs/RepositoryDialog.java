@@ -246,7 +246,7 @@ public class RepositoryDialog extends JDialog{
 	private void initRecordComponents(){
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBorder(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		typeLabel.setLabelFor(typeComboBox);
 		typeComboBox.setEditable(true);
@@ -304,7 +304,7 @@ public class RepositoryDialog extends JDialog{
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
 		recordPanelOther.add(multimediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelOther.add(restrictionCheckBox, "wrap");
+		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		GUIHelper.setEnabled(recordTabbedPane, false);
@@ -579,6 +579,7 @@ public class RepositoryDialog extends JDialog{
 
 	private void clearData(){
 		identifierField.setText(null);
+		GUIHelper.addBackground(identifierField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(personButton);
 		GUIHelper.setDefaultBorder(placeButton);
@@ -596,7 +597,7 @@ public class RepositoryDialog extends JDialog{
 			//read record panel:
 			final String identifier = GUIHelper.readTextTrimmed(identifierField);
 			//enforce non-nullity on `identifier`
-			if(identifier.isEmpty()){
+			if(identifier == null || identifier.isEmpty()){
 				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 					JOptionPane.ERROR_MESSAGE);
 				identifierField.requestFocusInWindow();

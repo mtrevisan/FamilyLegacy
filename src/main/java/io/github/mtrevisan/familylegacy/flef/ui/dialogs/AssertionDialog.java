@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
@@ -75,7 +78,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.io.Serial;
+import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -118,6 +123,8 @@ public class AssertionDialog extends JDialog{
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon ICON_CITATION = ResourceHelper.getImage("/images/citation.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	private static final ImageIcon ICON_REFERENCE = ResourceHelper.getImage("/images/reference.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_MULTIMEDIA = ResourceHelper.getImage("/images/multimedia.png",
@@ -145,7 +152,7 @@ public class AssertionDialog extends JDialog{
 	//record components:
 	private final JTabbedPane recordTabbedPane = new JTabbedPane();
 	private final JButton citationButton = new JButton("Citation", ICON_CITATION);
-	//TODO reference
+	private final JButton referenceButton = new JButton("Reference", ICON_REFERENCE);
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JLabel certaintyLabel = new JLabel("Certainty:");
@@ -258,7 +265,9 @@ public class AssertionDialog extends JDialog{
 		citationButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, getSelectedRecord())));
 		GUIHelper.addBorder(citationButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		//TODO reference
+		referenceButton.setToolTipText("Reference");
+		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		roleLabel.setLabelFor(roleField);
 		GUIHelper.addUndoCapability(roleField);
@@ -311,12 +320,12 @@ public class AssertionDialog extends JDialog{
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(citationButton, "sizegroup btn,center,wrap paragraph");
-		//TODO reference
+		recordPanelBase.add(citationButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(referenceButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(roleLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(roleField, "grow,wrap paragraph");
 		recordPanelBase.add(certaintyLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(certaintyComboBox, "wrap paragraph");
+		recordPanelBase.add(certaintyComboBox, "wrap related");
 		recordPanelBase.add(credibilityLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(credibilityComboBox);
 
@@ -324,7 +333,7 @@ public class AssertionDialog extends JDialog{
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 4");
 		recordPanelOther.add(multimediaButton, "sizegroup btn,gapleft 30,center");
 		recordPanelOther.add(culturalNormButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelOther.add(restrictionCheckBox, "wrap");
+		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		GUIHelper.setEnabled(recordTabbedPane, false);
@@ -360,7 +369,7 @@ public class AssertionDialog extends JDialog{
 	}
 
 	private void loadData(){
-		TreeMap<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterCitationID != null)
 			records = records.entrySet().stream()
 				.filter(entry -> entry.getValue().get("citation_id").equals(filterCitationID))
@@ -430,12 +439,12 @@ public class AssertionDialog extends JDialog{
 		return (Integer)record.get("citation_id");
 	}
 
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
 	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
 		return (Integer)record.get("localized_text_id");
+	}
+
+	private static String extractRecordReferenceTable(final Map<String, Object> record){
+		return (String)record.get("reference_table");
 	}
 
 	private static Integer extractRecordReferenceID(final Map<String, Object> record){
@@ -448,7 +457,8 @@ public class AssertionDialog extends JDialog{
 
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_REFERENCE_TABLE);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -494,6 +504,7 @@ public class AssertionDialog extends JDialog{
 	//fill record panel
 	private void fillData(){
 		final Integer sourceID = extractRecordCitationID(selectedRecord);
+		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
@@ -505,7 +516,7 @@ public class AssertionDialog extends JDialog{
 		GUIHelper.setEnabled(recordTabbedPane, true);
 
 		GUIHelper.addBorder(citationButton, (sourceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		//TODO reference
+		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		roleField.setText(location);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
@@ -636,7 +647,7 @@ public class AssertionDialog extends JDialog{
 
 	private void clearData(){
 		GUIHelper.setDefaultBorder(citationButton);
-		//TODO reference
+		GUIHelper.setDefaultBorder(referenceButton);
 		roleField.setText(null);
 		certaintyComboBox.setSelectedItem(null);
 		credibilityComboBox.setSelectedItem(null);
@@ -669,8 +680,7 @@ public class AssertionDialog extends JDialog{
 			if(referenceTable == null || referenceID == null){
 				JOptionPane.showMessageDialog(getParent(), "Reference field is required", "Error",
 					JOptionPane.ERROR_MESSAGE);
-				//TODO
-//				reference.requestFocusInWindow();
+				referenceButton.requestFocusInWindow();
 
 				return false;
 			}
@@ -722,7 +732,6 @@ public class AssertionDialog extends JDialog{
 
 	private void saveData(){
 		//read record panel:
-		//TODO reference
 		final String role = GUIHelper.readTextTrimmed(roleField);
 		final String certainty = (String)certaintyComboBox.getSelectedItem();
 		final String credibility = (String)credibilityComboBox.getSelectedItem();
@@ -799,6 +808,13 @@ public class AssertionDialog extends JDialog{
 		citation.put("extract_type", "transcript");
 		citations.put((Integer)citation.get("id"), citation);
 
+		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
+		store.put("source", sources);
+		final Map<String, Object> source = new HashMap<>();
+		source.put("id", 1);
+		source.put("identifier", "source");
+		sources.put((Integer)source.get("id"), source);
+
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put(TABLE_NAME_LOCALIZED_TEXT, localizedTexts);
 		final Map<String, Object> localized_text1 = new HashMap<>();
@@ -852,6 +868,13 @@ public class AssertionDialog extends JDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+		final TreeMap<Integer, Map<String, Object>> multimedias = new TreeMap<>();
+		store.put("media", multimedias);
+		final Map<String, Object> multimedia1 = new HashMap<>();
+		multimedia1.put("id", 1);
+		multimedia1.put("identifier", "custom media");
+		multimedias.put((Integer)multimedia1.get("id"), multimedia1);
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
@@ -867,10 +890,7 @@ public class AssertionDialog extends JDialog{
 						case SOURCE -> {
 							//TODO
 						}
-						case EXTRACT -> {
-							//TODO
-						}
-						case LOCALIZED_TEXT -> {
+						case REFERENCE -> {
 							//TODO
 						}
 						case NOTE -> {
@@ -900,14 +920,31 @@ public class AssertionDialog extends JDialog{
 //							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
+						case CULTURAL_NORM -> {
+							//TODO
+						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
 
+			final DependencyInjector injector = new DependencyInjector();
+			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
+			try{
+				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
+				dbManager.initialize(grammarFile);
+
+				dbManager.insertDatabase(store);
+			}
+			catch(final SQLException | IOException e){
+				throw new RuntimeException(e);
+			}
+			injector.register(DatabaseManagerInterface.class, dbManager);
+
 			final Integer filterCitationID = null;
 			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, null, parent);
-			if(!dialog.loadData(AssertionDialog.extractRecordID(citation)))
+			injector.injectDependencies(dialog);
+			if(!dialog.loadData(AssertionDialog.extractRecordID(assertion)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
