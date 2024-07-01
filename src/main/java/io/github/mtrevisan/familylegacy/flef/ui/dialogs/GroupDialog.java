@@ -78,15 +78,12 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 
 public class GroupDialog extends JDialog{
@@ -124,6 +121,8 @@ public class GroupDialog extends JDialog{
 
 	private static final String TABLE_NAME = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_PERSON_NAME = "person_name";
+	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
@@ -395,6 +394,26 @@ public class GroupDialog extends JDialog{
 		return (Integer)record.get("reference_id");
 	}
 
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private static Integer extractRecordPersonID(final Map<String, Object> record){
+		return (Integer)record.get("person_id");
+	}
+
+	private static String extractRecordName(final Map<String, Object> record){
+		return (String)record.get("name");
+	}
+
+	private static Integer extractRecordNameID(final Map<String, Object> record){
+		return (Integer)record.get("name_id");
+	}
+
+	private static String extractRecordText(final Map<String, Object> record){
+		return (String)record.get("text");
+	}
+
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
@@ -466,26 +485,30 @@ public class GroupDialog extends JDialog{
 	private String extractIdentifier(final int selectedRecordID){
 		//TODO
 		final TreeMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords("person_name");
+		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
+		final TreeMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map.Entry<Integer, Map<String, Object>> entry : storeGroupJunction.entrySet()){
 			final Map<String, Object> groupElement = entry.getValue();
-			if(groupElement.get("group_id").equals(selectedRecordID)){
+			final StringJoiner subIdentifier = new StringJoiner(", ");
+			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
 				final String referenceTable = extractRecordReferenceTable(groupElement);
 				final Integer referenceID = extractRecordReferenceID(groupElement);
 				if("person".equals(referenceTable)){
 					for(final Map<String, Object> storePersonName : storePersonNames.values())
-						if(storePersonName.get("person_id").equals(referenceID)){
+						if(extractRecordPersonID(storePersonName).equals(referenceID)){
 							//TODO extract name
-							final Map<String, Object> groupReferencedPerson = storePersonNames.get(referenceID);
-							identifier.add((String)groupReferencedPerson.get("name"));
+							final Integer extractRecordNameID = extractRecordNameID(storePersonName);
+							final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
+							final String name = extractRecordText(localizedText);
+							subIdentifier.add(name != null? name: "?");
 						}
 				}
 				else{
 					//TODO
 				}
-				final Map<String, Object> groupReferencedElement = getRecords(referenceTable).get(referenceID);
-				identifier.add((String)groupReferencedElement.get("name"));
+
+				identifier.add(subIdentifier.toString());
 			}
 		}
 		return identifier.toString();
@@ -720,7 +743,7 @@ public class GroupDialog extends JDialog{
 		persons.put((Integer)person2.get("id"), person2);
 
 		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
-		store.put("person_name", personNames);
+		store.put(TABLE_NAME_PERSON_NAME, personNames);
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
@@ -733,6 +756,11 @@ public class GroupDialog extends JDialog{
 		personName2.put("name_id", 2);
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
+		final Map<String, Object> personName3 = new HashMap<>();
+		personName3.put("id", 3);
+		personName3.put("person_id", 2);
+		personName3.put("name_id", 3);
+		personNames.put((Integer)personName3.get("id"), personName3);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
@@ -746,6 +774,11 @@ public class GroupDialog extends JDialog{
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
 		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
+		final Map<String, Object> localizedText3 = new HashMap<>();
+		localizedText3.put("id", 3);
+		localizedText3.put("text", "other name");
+		localizedText3.put("locale", "en");
+		localizedTexts.put((Integer)localizedText3.get("id"), localizedText3);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
