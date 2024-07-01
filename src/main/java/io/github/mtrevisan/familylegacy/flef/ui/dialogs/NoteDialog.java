@@ -727,7 +727,7 @@ public class NoteDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final NoteDialog dialog = new NoteDialog(store, null, parent);
-			dialog.setTitle("Places");
+			dialog.setTitle("Notes");
 			if(!dialog.loadData(NoteDialog.extractRecordID(note1)))
 				dialog.showNewRecord();
 

@@ -789,7 +789,7 @@ public class PersonNameDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final PersonNameDialog dialog = new PersonNameDialog(store, null, parent);
-			dialog.setTitle("Persons");
+			dialog.setTitle("Person names");
 			if(!dialog.loadData(PersonNameDialog.extractRecordID(personName1)))
 				dialog.showNewRecord();
 

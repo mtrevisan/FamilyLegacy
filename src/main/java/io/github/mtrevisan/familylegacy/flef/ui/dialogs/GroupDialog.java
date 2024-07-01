@@ -76,8 +76,10 @@ import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.SortedMap;
@@ -103,9 +105,11 @@ public class GroupDialog extends JDialog{
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_CATEGORY = 65;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
+	private static final int TABLE_INDEX_RECORD_CATEGORY = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int ICON_WIDTH_DEFAULT = 20;
@@ -120,6 +124,7 @@ public class GroupDialog extends JDialog{
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
 	private static final String TABLE_NAME = "group";
+	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
@@ -197,8 +202,10 @@ public class GroupDialog extends JDialog{
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_CATEGORY, 0, TABLE_PREFERRED_WIDTH_RECORD_CATEGORY);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_CATEGORY, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		recordTable.getSelectionModel()
@@ -335,9 +342,12 @@ public class GroupDialog extends JDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractIdentifier(extractRecordID(record.getValue()));
+			final String categoryIdentifier = extractIdentifier(extractRecordID(record.getValue()));
+			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf(':'));
+			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf(':') + 1);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(category, row, TABLE_INDEX_RECORD_CATEGORY);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
@@ -417,7 +427,7 @@ public class GroupDialog extends JDialog{
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_IDENTIFIER);
+			TABLE_INDEX_RECORD_CATEGORY, TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -483,10 +493,11 @@ public class GroupDialog extends JDialog{
 	}
 
 	private String extractIdentifier(final int selectedRecordID){
-		//TODO
 		final TreeMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
 		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
+		final TreeMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME_GROUP);
 		final TreeMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map.Entry<Integer, Map<String, Object>> entry : storeGroupJunction.entrySet()){
 			final Map<String, Object> groupElement = entry.getValue();
@@ -494,34 +505,41 @@ public class GroupDialog extends JDialog{
 			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
 				final String referenceTable = extractRecordReferenceTable(groupElement);
 				final Integer referenceID = extractRecordReferenceID(groupElement);
-				if("person".equals(referenceTable)){
-					for(final Map<String, Object> storePersonName : storePersonNames.values())
-						if(extractRecordPersonID(storePersonName).equals(referenceID)){
-							//TODO extract name
-							final Integer extractRecordNameID = extractRecordNameID(storePersonName);
-							final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
-							final String name = extractRecordText(localizedText);
-							subIdentifier.add(name != null? name: "?");
-						}
-				}
-				else{
-					//TODO
-				}
+				final List<Map<String, Object>> personNamesInGroup;
+				if("person".equals(referenceTable))
+					personNamesInGroup = extractPersonNamesInGroup(storePersonNames, referenceID);
+				else if("group".equals(referenceTable)){
+					identifierCategory = "groups";
 
+					//extract the names of all the persons of all the groups
+					personNamesInGroup = new ArrayList<>();
+					for(final Map<String, Object> storeGroup : storeGroups.values())
+						if(referenceID.equals(extractRecordID(storeGroup)))
+							personNamesInGroup.addAll(extractPersonNamesInGroup(storePersonNames, referenceID));
+				}
+				else
+					throw new IllegalArgumentException("Cannot exist a group of " + referenceTable);
+
+				for(final Map<String, Object> storePersonName : personNamesInGroup){
+					final Integer extractRecordNameID = extractRecordNameID(storePersonName);
+					final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
+					final String name = extractRecordText(localizedText);
+					subIdentifier.add(name != null? name: "?");
+				}
 				identifier.add(subIdentifier.toString());
 			}
 		}
-		return identifier.toString();
+		return identifierCategory + ":" + identifier;
+	}
 
-		//		final Map<String, Object> storePersonNames = getRecords(TABLE_NAME).get(selectedRecordID);
-//		final Integer mainRecordID = extractRecordNameID(storePersonNames);
-//		final Integer alternateRecordID = extractRecordAlternateSortNameID(storePersonNames);
-//		final SortedMap<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT);
-//		final Map<String, Object> mainRecord = storeRecords.get(mainRecordID);
-//		final Map<String, Object> alternateRecord = storeRecords.get(alternateRecordID);
-//		final String mainRecordText = extractRecordText(mainRecord);
-//		final String alternateRecordText = extractRecordText(alternateRecord);
-//		return mainRecordText + (alternateRecordText != null? " (" + alternateRecordText + ")": StringUtils.EMPTY);
+	/** Extract the names of all the persons in this group. */
+	private static List<Map<String, Object>> extractPersonNamesInGroup(final TreeMap<Integer, Map<String, Object>> storePersonNames,
+			final Integer groupID){
+		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
+		for(final Map<String, Object> storePersonName : storePersonNames.values())
+			if(groupID.equals(extractRecordPersonID(storePersonName)))
+				personNamesInGroup.add(storePersonName);
+		return personNamesInGroup;
 	}
 
 	private static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
@@ -675,7 +693,7 @@ public class GroupDialog extends JDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Name"}, 0);
+			super(new String[]{"ID", "Category", "Identifier"}, 0);
 		}
 
 		@Override
@@ -730,7 +748,7 @@ public class GroupDialog extends JDialog{
 		groupJunction3.put("id", 3);
 		groupJunction3.put("group_id", 2);
 		groupJunction3.put("reference_table", "group");
-		groupJunction3.put("reference_id", 1);
+		groupJunction3.put("reference_id", 2);
 		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
 
 		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
@@ -841,7 +859,7 @@ public class GroupDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final GroupDialog dialog = new GroupDialog(store, null, parent);
-			dialog.setTitle("Persons");
+			dialog.setTitle("Groups");
 			if(!dialog.loadData(GroupDialog.extractRecordID(group1)))
 				dialog.showNewRecord();
 
