@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -86,14 +84,15 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
-public class HistoricDateDialog extends JDialog{
+public class MediaDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 3434407293578383806L;
+	private static final long serialVersionUID = -800755271311929604L;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(HistoricDateDialog.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDialog.class);
 
 	private static final String ACTION_MAP_KEY_INSERT = "insert";
 	private static final String ACTION_MAP_KEY_DELETE = "delete";
@@ -108,21 +107,27 @@ public class HistoricDateDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_DATE = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int ICON_WIDTH_DEFAULT = 20;
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
+	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	private static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	private static final ImageIcon ICON_MULTIMEDIA = ResourceHelper.getImage("/images/multimedia.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
-	private static final String TABLE_NAME = "historic_date";
+	private static final String TABLE_NAME = "media";
 	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
+	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
 	private static final String TABLE_NAME_MODIFICATION = "modification";
 
@@ -136,37 +141,41 @@ public class HistoricDateDialog extends JDialog{
 	private final JButton deleteRecordButton = new JButton("Delete");
 	//record components:
 	private final JTabbedPane recordTabbedPane = new JTabbedPane();
-	private final JLabel dateLabel = new JLabel("Date:");
-	private final JTextField dateField = new JTextField();
-	private final JButton calendarButton = new JButton("Calendar", ICON_CALENDAR);
-	private final JLabel dateOriginalLabel = new JLabel("Date original:");
-	private final JTextField dateOriginalField = new JTextField();
-	private final JButton calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
-	private final JLabel certaintyLabel = new JLabel("Certainty:");
-	private final JComboBox<String> certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-	private final JLabel credibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+	private final JLabel identifierLabel = new JLabel("Identifier:");
+	private final JTextField identifierField = new JTextField();
+	private final JLabel titleLabel = new JLabel("Title:");
+	private final JTextField titleField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"photo", "audio", "video", "home movie", "newsreel",
+		"microfilm", "microfiche", "cd-rom"});
+	private final JLabel photoProjectionLabel = new JLabel("Photo projection:");
+	private final JComboBox<String> photoProjectionComboBox = new JComboBox<>(new String[]{"rectangular", "spherical UV",
+		"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
+	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
 
 	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private final Debouncer<HistoricDateDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
+	private final Debouncer<MediaDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
 	private int previousIndex = -1;
 	private volatile boolean ignoreSelectionEvents;
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+	private final Integer filterRepositoryID;
 	private Map<String, Object> selectedRecord;
 	private long selectedRecordHash;
 
 	private final Consumer<Object> onCloseGracefully;
 
 
-	public HistoricDateDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(parent, true);
+	public MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterRepositoryID,
+			final Consumer<Object> onCloseGracefully, final Frame parent){
+		super(parent, "Medias" + (filterRepositoryID != null? " for repository ID " + filterRepositoryID: StringUtils.EMPTY),
+			true);
 
 		this.store = store;
+		this.filterRepositoryID = filterRepositoryID;
 		this.onCloseGracefully = onCloseGracefully;
 
 		initComponents();
@@ -188,7 +197,7 @@ public class HistoricDateDialog extends JDialog{
 		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(HistoricDateDialog.this);
+				filterDebouncer.call(MediaDialog.this);
 			}
 		});
 
@@ -203,7 +212,7 @@ public class HistoricDateDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
-		sorter.setComparator(TABLE_INDEX_RECORD_DATE, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		recordTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
@@ -216,7 +225,7 @@ public class HistoricDateDialog extends JDialog{
 		final ActionMap recordTableActionMap = recordTable.getActionMap();
 		recordTableActionMap.put(ACTION_MAP_KEY_INSERT, new AbstractAction(){
 			@Serial
-			private static final long serialVersionUID = 4756192611546789475L;
+			private static final long serialVersionUID = 3629371140575524713L;
 
 			@Override
 			public void actionPerformed(final ActionEvent evt){
@@ -225,7 +234,7 @@ public class HistoricDateDialog extends JDialog{
 		});
 		recordTableActionMap.put(ACTION_MAP_KEY_DELETE, new AbstractAction(){
 			@Serial
-			private static final long serialVersionUID = 539688138118530761L;
+			private static final long serialVersionUID = -119317393571977750L;
 
 			@Override
 			public void actionPerformed(final ActionEvent evt){
@@ -244,29 +253,24 @@ public class HistoricDateDialog extends JDialog{
 	}
 
 	private void initRecordComponents(){
-		dateLabel.setLabelFor(dateField);
-		GUIHelper.addUndoCapability(dateField);
-		GUIHelper.addBackground(dateField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		identifierLabel.setLabelFor(identifierField);
+		GUIHelper.addUndoCapability(identifierField);
+		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		calendarButton.setToolTipText("Calendar");
-		calendarButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
+		titleLabel.setLabelFor(titleField);
+		GUIHelper.addUndoCapability(titleField);
 
-		dateOriginalLabel.setLabelFor(dateOriginalField);
-		GUIHelper.addUndoCapability(dateOriginalField);
-		GUIHelper.addUndoCapability(dateOriginalField);
+		typeLabel.setLabelFor(typeComboBox);
+		typeComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(typeComboBox);
+		AutoCompleteDecorator.decorate(typeComboBox);
 
-		calendarOriginalButton.setToolTipText("Calendar original");
-		calendarOriginalButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
+		photoProjectionLabel.setLabelFor(photoProjectionComboBox);
+		photoProjectionComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(photoProjectionComboBox);
 
-		certaintyLabel.setLabelFor(certaintyComboBox);
-		certaintyComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(certaintyComboBox);
-		AutoCompleteDecorator.decorate(certaintyComboBox);
-
-		credibilityLabel.setLabelFor(credibilityComboBox);
-		credibilityComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(credibilityComboBox);
-		AutoCompleteDecorator.decorate(credibilityComboBox);
+		dateButton.setToolTipText("Date");
+		dateButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
 
 
 		noteButton.setToolTipText("Notes");
@@ -300,16 +304,15 @@ public class HistoricDateDialog extends JDialog{
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(dateLabel, "align label,sizegroup label,split 3");
-		recordPanelBase.add(dateField, "growx");
-		recordPanelBase.add(calendarButton, "sizegroup btn,gapleft 30,wrap related");
-		recordPanelBase.add(dateOriginalLabel, "align label,sizegroup label,split 3");
-		recordPanelBase.add(dateOriginalField, "growx");
-		recordPanelBase.add(calendarOriginalButton, "sizegroup btn,gapleft 30,wrap paragraph");
-		recordPanelBase.add(certaintyLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(certaintyComboBox, "wrap related");
-		recordPanelBase.add(credibilityLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(credibilityComboBox);
+		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(identifierField, "grow,wrap related");
+		recordPanelBase.add(titleLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(titleField, "grow,wrap related");
+		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeComboBox, "wrap");
+		recordPanelBase.add(photoProjectionLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(photoProjectionComboBox, "grow,wrap paragraph");
+		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,wrap paragraph");
@@ -349,19 +352,21 @@ public class HistoricDateDialog extends JDialog{
 	}
 
 	private void loadData(){
-		final SortedMap<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		TreeMap<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		if(filterRepositoryID != null)
+			records = records.entrySet().stream()
+				.filter(entry -> entry.getValue().get("repository_id").equals(filterRepositoryID))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String date = extractRecordDate(record.getValue());
-			final String dateOriginal = extractRecordDateOriginal(record.getValue());
+			final String identifier = extractRecordIdentifier(record.getValue());
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
-				TABLE_INDEX_RECORD_DATE);
+			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
 		}
@@ -397,28 +402,24 @@ public class HistoricDateDialog extends JDialog{
 		return (int)record.get("id");
 	}
 
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+	private static String extractRecordIdentifier(final Map<String, Object> record){
+		return (String)record.get("identifier");
 	}
 
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
+	private static String extractRecordTitle(final Map<String, Object> record){
+		return (String)record.get("title");
 	}
 
-	private static String extractRecordDateOriginal(final Map<String, Object> record){
-		return (String)record.get("date_original");
+	private static String extractRecordType(final Map<String, Object> record){
+		return (String)record.get("type");
 	}
 
-	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
+	private static String extractRecordPhotoProjection(final Map<String, Object> record){
+		return (String)record.get("photo_projection");
 	}
 
-	private static String extractRecordCertainty(final Map<String, Object> record){
-		return (String)record.get("certainty");
-	}
-
-	private static String extractRecordCredibility(final Map<String, Object> record){
-		return (String)record.get("credibility");
+	private static Integer extractRecordDateID(final Map<String, Object> record){
+		return (Integer)record.get("date_id");
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
@@ -432,7 +433,7 @@ public class HistoricDateDialog extends JDialog{
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_DATE);
+			TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -477,22 +478,19 @@ public class HistoricDateDialog extends JDialog{
 
 	//fill record panel
 	private void fillData(){
-		final String date = extractRecordDate(selectedRecord);
-		final Integer calendarID = extractRecordCalendarID(selectedRecord);
-		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
-		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
-		final String certainty = extractRecordCertainty(selectedRecord);
-		final String credibility = extractRecordCredibility(selectedRecord);
+		final String identifier = extractRecordIdentifier(selectedRecord);
+		final String title = extractRecordTitle(selectedRecord);
+		final String type = extractRecordType(selectedRecord);
+		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
+		final Integer dateID = extractRecordDateID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = extractReferences(TABLE_NAME_ASSERTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		dateField.setText(date);
-		GUIHelper.addBorder(calendarButton, calendarID != null, DATA_BUTTON_BORDER_COLOR);
-		dateOriginalField.setText(dateOriginal);
-		GUIHelper.addBorder(calendarOriginalButton, calendarOriginalID != null, DATA_BUTTON_BORDER_COLOR);
-		certaintyComboBox.setSelectedItem(certainty);
-		credibilityComboBox.setSelectedItem(credibility);
+		identifierField.setText(identifier);
+		titleField.setText(title);
+		typeComboBox.setSelectedItem(type);
+		photoProjectionComboBox.setSelectedItem(photoProjection);
+		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
@@ -584,6 +582,10 @@ public class HistoricDateDialog extends JDialog{
 		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
 			storeNotes.remove(noteID);
+		final Map<Integer, Map<String, Object>> storeMultimediaJunction = getRecords(TABLE_NAME_MEDIA_JUNCTION);
+		final SortedMap<Integer, Map<String, Object>> recordMultimediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		for(final Integer multimediaJunctionID : recordMultimediaJunction.keySet())
+			storeMultimediaJunction.remove(multimediaJunctionID);
 		final Map<Integer, Map<String, Object>> storeRestriction = getRecords(TABLE_NAME_RESTRICTION);
 		final SortedMap<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 		for(final Integer restrictionID : recordRestriction.keySet())
@@ -596,12 +598,12 @@ public class HistoricDateDialog extends JDialog{
 	}
 
 	private void clearData(){
-		dateField.setText(null);
-		GUIHelper.addBackground(dateField, Color.WHITE);
-		GUIHelper.setDefaultBorder(calendarButton);
-		dateOriginalField.setText(null);
-		certaintyComboBox.setSelectedItem(null);
-		credibilityComboBox.setSelectedItem(null);
+		identifierField.setText(null);
+		titleField.setText(null);
+		GUIHelper.addBackground(identifierField, Color.WHITE);
+		typeComboBox.setSelectedItem(null);
+		photoProjectionComboBox.setSelectedItem(null);
+		GUIHelper.setDefaultBorder(dateButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		restrictionCheckBox.setSelected(false);
@@ -613,12 +615,12 @@ public class HistoricDateDialog extends JDialog{
 	private boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
-			final String date = GUIHelper.readTextTrimmed(dateField);
+			final String identifier = GUIHelper.readTextTrimmed(identifierField);
 			//enforce non-nullity on `identifier`
-			if(date == null || date.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Date field is required", "Error",
+			if(identifier == null || identifier.isEmpty()){
+				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 					JOptionPane.ERROR_MESSAGE);
-				dateField.requestFocusInWindow();
+				identifierField.requestFocusInWindow();
 
 				return false;
 			}
@@ -670,39 +672,39 @@ public class HistoricDateDialog extends JDialog{
 
 	private void saveData(){
 		//read record panel:
-		final String date = GUIHelper.readTextTrimmed(dateField);
-		final String dateOriginal = GUIHelper.readTextTrimmed(dateOriginalField);
-		final String certainty = (String)certaintyComboBox.getSelectedItem();
-		final String credibility = (String)credibilityComboBox.getSelectedItem();
+		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		final String title = GUIHelper.readTextTrimmed(titleField);
+		final String type = (String)typeComboBox.getSelectedItem();
+		final String photoProjection = (String)photoProjectionComboBox.getSelectedItem();
 
 		//update table
-		if(!Objects.equals(date, extractRecordDate(selectedRecord))){
+		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-					model.setValueAt(date, modelRowIndex, TABLE_INDEX_RECORD_DATE);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
 					break;
 				}
 		}
 
-		selectedRecord.put("date", date);
-		selectedRecord.put("date_original", dateOriginal);
-		selectedRecord.put("certainty", certainty);
-		selectedRecord.put("credibility", credibility);
+		selectedRecord.put("identifier", identifier);
+		selectedRecord.put("title", title);
+		selectedRecord.put("type", type);
+		selectedRecord.put("photo_projection", photoProjection);
 	}
 
 
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = -1366589790847427762L;
+		private static final long serialVersionUID = -35701794732758533L;
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Date"}, 0);
+			super(new String[]{"ID", "Identifier"}, 0);
 		}
 
 		@Override
@@ -726,17 +728,16 @@ public class HistoricDateDialog extends JDialog{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
-		store.put(TABLE_NAME, historicDates);
-		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("id", 1);
-		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
-		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("calendar_original_id", 1);
-		historicDate1.put("certainty", "certain");
-		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
+		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
+		store.put(TABLE_NAME, medias);
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("id", 1);
+		media1.put("identifier", "media 1");
+		media1.put("title", "title 1");
+		media1.put("type", "photo");
+		media1.put("photo_projection", "rectangular");
+		media1.put("date_id", 1);
+		medias.put((Integer)media1.get("id"), media1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -774,17 +775,17 @@ public class HistoricDateDialog extends JDialog{
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case CALENDAR -> {
+						case DATE -> {
 							//TODO
 						}
 						case NOTE -> {
 							//TODO
 //							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode historicDate = editCommand.getContainer();
-//							dialog.setTitle(historicDate.getID() != null
-//								? "Note " + historicDate.getID()
+//							final GedcomNode media = editCommand.getContainer();
+//							dialog.setTitle(media.getID() != null
+//								? "Note " + media.getID()
 //								: "New note for " + container.getID());
-//							dialog.loadData(historicDate, editCommand.getOnCloseGracefully());
+//							dialog.loadData(media, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
 //							dialog.setLocationRelativeTo(parent);
@@ -795,9 +796,9 @@ public class HistoricDateDialog extends JDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final HistoricDateDialog dialog = new HistoricDateDialog(store, null, parent);
-			dialog.setTitle("Historic dates");
-			if(!dialog.loadData(HistoricDateDialog.extractRecordID(historicDate1)))
+			final Integer filterRepositoryID = null;
+			final MediaDialog dialog = new MediaDialog(store, filterRepositoryID, null, parent);
+			if(!dialog.loadData(MediaDialog.extractRecordID(media1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -806,7 +807,7 @@ public class HistoricDateDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(481, 440);
+			dialog.setSize(351, 460);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

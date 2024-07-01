@@ -42,7 +42,7 @@ CREATE TABLE "SOURCE"
  DATE_ID       numeric,						-- The date this source was created.
  REPOSITORY_ID numeric,						-- The repository from which this source is contained.
  LOCATION      text,							-- Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28').
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" ) ON DELETE CASCADE
 );
@@ -92,23 +92,14 @@ CREATE TABLE PLACE
  NAME_ID                numeric NOT NULL,			-- A verbatim copy of the name written in the original language.
  "TYPE"                 text,							-- The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address").
  COORDINATE             text,							-- Ex. a latitude and longitude pair, or X and Y coordinates.
- COORDINATE_TYPE        text,							-- The coordinate type (ex. "WGS84", "UTM").
+ COORDINATE_SYSTEM      text,							-- The coordinate system (ex. "WGS84", "UTM").
  COORDINATE_CREDIBILITY text,							-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  PRIMARY_PLACE_ID       numeric,						-- The (primary) place this place is the same as.
- IMAGE_ID               numeric,						-- The primary image for this place.
- IMAGE_CROP             text,							-- Top-left and bottom-right coordinates of the enclosing box inside an image.
+ PHOTO_ID               numeric,						-- The primary photo for this place.
+ PHOTO_CROP             text,							-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
  FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE,
  FOREIGN KEY (PRIMARY_PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
-);
-
-CREATE TABLE HISTORIC_PLACE
-(
- "ID"        numeric PRIMARY KEY,
- PLACE_ID    numeric NOT NULL,	-- The location.
- CERTAINTY   text,					-- A status code that allows passing on the users opinion of whether the location is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
- CREDIBILITY text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 
@@ -117,7 +108,7 @@ CREATE TABLE HISTORIC_PLACE
 CREATE TABLE LOCALIZED_TEXT
 (
  "ID"               numeric PRIMARY KEY,
- TEXT               text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ "TEXT"             text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  LOCALE             text,				-- The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47).
  "TYPE"             text,				-- Can be "original", "transliteration", or "translation".
  TRANSCRIPTION      text,				-- Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul").
@@ -128,7 +119,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternative sort name").
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate sort name").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
@@ -150,8 +141,8 @@ CREATE TABLE MEDIA
  "ID"             numeric PRIMARY KEY,
  IDENTIFIER       text NOT NULL UNIQUE,	-- An identifier for the media (must be unique, ex. a complete local or remote file reference (following RFC 1736 specifications) to the auxiliary data).
  TITLE            text,							-- The name of the media.
- "TYPE"           text,							-- (ex. "photo, "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom")
- IMAGE_PROJECTION text,							-- The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image).
+ "TYPE"           text,							-- (ex. "photo", "audio", "video", "home movie", "newsreel", "microfilm", "microfiche", "cd-rom")
+ PHOTO_PROJECTION text,							-- The projection/mapping/coordinate system of an photo. Known values include "spherical UV", "cylindrical equirectangular horizontal"/"cylindrical equirectangular vertical" (equirectangular photo).
  DATE_ID          numeric,						-- The date this media was first recorded.
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
@@ -160,7 +151,7 @@ CREATE TABLE MEDIA_JUNCTION
 (
  "ID"            numeric PRIMARY KEY,
  MEDIA_ID        numeric NOT NULL,
- IMAGE_CROP      text,					-- Top-left and bottom-right coordinates of the enclosing box inside an image.
+ PHOTO_CROP      text,					-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE
@@ -169,25 +160,26 @@ CREATE TABLE MEDIA_JUNCTION
 
 -- Person
 
+-- Name can be attached through a person name.
 CREATE TABLE PERSON
 (
  "ID"       numeric PRIMARY KEY,
- IMAGE_ID   numeric,	-- The primary image for this person.
- IMAGE_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an image.
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
+ PHOTO_ID   numeric,	-- The primary photo for this person.
+ PHOTO_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
+ FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 -- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
 CREATE TABLE PERSON_NAME
 (
- "ID"                     numeric PRIMARY KEY,
- PERSON_ID                numeric NOT NULL,
- NAME_ID                  numeric,				-- A verbatim copy of the name written in the original language.
- "TYPE"                   text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
- NAME_ALTERNATIVE_SORT_ID numeric,
+ "ID"                   numeric PRIMARY KEY,
+ PERSON_ID              numeric NOT NULL,
+ NAME_ID                numeric,				-- A verbatim copy of the name written in the original language.
+ "TYPE"                 text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
+ ALTERNATE_SORT_NAME_ID numeric,
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE CASCADE,
  FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (NAME_ALTERNATIVE_SORT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
+ FOREIGN KEY (ALTERNATE_SORT_NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
 );
 
 
@@ -198,9 +190,9 @@ CREATE TABLE "GROUP"
 (
  "ID"       numeric PRIMARY KEY,
  "TYPE"     text,		-- The type of the group (ex. "family", "neighborhood", "fraternity", "ladies club", "literary society").
- IMAGE_ID   numeric,	-- The primary image for this group.
- IMAGE_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an image.
- FOREIGN KEY (IMAGE_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
+ PHOTO_ID   numeric,	-- The primary photo for this group.
+ PHOTO_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
+ FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
 CREATE TABLE GROUP_JUNCTION
@@ -232,7 +224,7 @@ CREATE TABLE EVENT
  DATE_ID         numeric,				-- The date this event has happened.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 
@@ -259,7 +251,7 @@ CREATE TABLE CULTURAL_NORM
  DATE_END_ID   numeric,			-- The date this cultural norm stopped being in effect.
  CERTAINTY     text,				-- A status code that allows passing on the users opinion of whether the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY   text,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (PLACE_ID) REFERENCES HISTORIC_PLACE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_START_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );

@@ -87,7 +87,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -133,8 +132,6 @@ public class AssertionDialog extends JDialog{
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
 	private static final String TABLE_NAME = "assertion";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
@@ -160,7 +157,7 @@ public class AssertionDialog extends JDialog{
 	private final JLabel credibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton multimediaButton = new JButton("Multimedia", ICON_MULTIMEDIA);
 	private final JButton culturalNormButton = new JButton("Cultural norm", ICON_CULTURAL_NORM);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
@@ -203,6 +200,7 @@ public class AssertionDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(AssertionDialog.this);
@@ -419,10 +417,6 @@ public class AssertionDialog extends JDialog{
 		return (int)record.get("id");
 	}
 
-	private static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
-	}
-
 	private static String extractRecordLocation(final Map<String, Object> record){
 		return (String)record.get("location");
 	}
@@ -439,20 +433,12 @@ public class AssertionDialog extends JDialog{
 		return (Integer)record.get("citation_id");
 	}
 
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
-
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
 		return (String)record.get("reference_table");
 	}
 
 	private static Integer extractRecordReferenceID(final Map<String, Object> record){
 		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordReferenceType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
 	}
 
 	private void filterTableBy(final JDialog panel){
@@ -513,8 +499,6 @@ public class AssertionDialog extends JDialog{
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
 		GUIHelper.addBorder(citationButton, (sourceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		roleField.setText(location);
@@ -525,6 +509,8 @@ public class AssertionDialog extends JDialog{
 		GUIHelper.addBorder(multimediaButton, !recordMultimediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**
@@ -539,17 +525,6 @@ public class AssertionDialog extends JDialog{
 		final int selectedRecordID = extractRecordID(selectedRecord);
 		for(final Map<String, Object> storeRecord : storeRecords.values())
 			if(TABLE_NAME.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
-		return matchedRecords;
-	}
-
-	private TreeMap<Integer, Map<String, Object>> extractLocalizedTextJunctionReferences(){
-		final SortedMap<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(Objects.equals("extract", extractRecordReferenceType(storeRecord))
-					&& TABLE_NAME.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
 				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
 		return matchedRecords;
 	}
@@ -617,14 +592,6 @@ public class AssertionDialog extends JDialog{
 
 		model.removeRow(modelRowIndex);
 		getRecords(TABLE_NAME).remove(recordID);
-
-		final Map<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
-		final TreeMap<Integer, Map<String, Object>> storeLocalizedTextJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-		final SortedMap<Integer, Map<String, Object>> recordLocalizedTextJunctions = extractLocalizedTextJunctionReferences();
-		for(final Integer recordLocalizedTextJunctionID : recordLocalizedTextJunctions.keySet()){
-			final Map<String, Object> recordLocalizedTextJunction = storeLocalizedTextJunctions.remove(recordLocalizedTextJunctionID);
-			storeLocalizedTexts.remove(extractRecordLocalizedTextID(recordLocalizedTextJunction));
-		}
 
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
@@ -816,7 +783,7 @@ public class AssertionDialog extends JDialog{
 		sources.put((Integer)source.get("id"), source);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put(TABLE_NAME_LOCALIZED_TEXT, localizedTexts);
+		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localized_text1 = new HashMap<>();
 		localized_text1.put("id", 1);
 		localized_text1.put("text", "text 1");
@@ -825,24 +792,6 @@ public class AssertionDialog extends JDialog{
 		localized_text1.put("transcription", "IPA");
 		localized_text1.put("transcription_type", "romanized");
 		localizedTexts.put((Integer)localized_text1.get("id"), localized_text1);
-		final Map<String, Object> localized_text2 = new HashMap<>();
-		localized_text2.put("id", 2);
-		localized_text2.put("text", "text 2");
-		localized_text2.put("locale", "en");
-		localized_text2.put("type", "original");
-		localized_text2.put("transcription", "kana");
-		localized_text2.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localized_text2.get("id"), localized_text2);
-
-		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, localizedTextJunctions);
-		final Map<String, Object> localized_text_junction = new HashMap<>();
-		localized_text_junction.put("id", 1);
-		localized_text_junction.put("localized_text_id", 2);
-		localized_text_junction.put("reference_type", "extract");
-		localized_text_junction.put("reference_table", "assertion");
-		localized_text_junction.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localized_text_junction.get("id"), localized_text_junction);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -868,12 +817,12 @@ public class AssertionDialog extends JDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
-		final TreeMap<Integer, Map<String, Object>> multimedias = new TreeMap<>();
-		store.put("media", multimedias);
-		final Map<String, Object> multimedia1 = new HashMap<>();
-		multimedia1.put("id", 1);
-		multimedia1.put("identifier", "custom media");
-		multimedias.put((Integer)multimedia1.get("id"), multimedia1);
+		final TreeMap<Integer, Map<String, Object>> multimedia = new TreeMap<>();
+		store.put("media", multimedia);
+		final Map<String, Object> mm1 = new HashMap<>();
+		mm1.put("id", 1);
+		mm1.put("identifier", "custom media");
+		multimedia.put((Integer)mm1.get("id"), mm1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();

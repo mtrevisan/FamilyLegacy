@@ -147,7 +147,7 @@ public class RepositoryDialog extends JDialog{
 	private final JButton personButton = new JButton("Reference person", ICON_PERSON);
 	private final JButton placeButton = new JButton("Place", ICON_PLACE);
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton multimediaButton = new JButton("Multimedia", ICON_MULTIMEDIA);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
@@ -186,6 +186,7 @@ public class RepositoryDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(RepositoryDialog.this);
@@ -466,8 +467,6 @@ public class RepositoryDialog extends JDialog{
 		final Map<Integer, Map<String, Object>> recordMultimediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
 		GUIHelper.addBorder(personButton, personID != null, DATA_BUTTON_BORDER_COLOR);
@@ -476,6 +475,8 @@ public class RepositoryDialog extends JDialog{
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(multimediaButton, !recordMultimediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**
@@ -741,7 +742,7 @@ public class RepositoryDialog extends JDialog{
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
-		media1.put("image_projection", "rectangular");
+		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
 		medias.put((Integer)media1.get("id"), media1);
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
@@ -749,7 +750,7 @@ public class RepositoryDialog extends JDialog{
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("id", 1);
 		mediaJunction1.put("media_id", 1);
-		mediaJunction1.put("image_crop", "0 0 10 20");
+		mediaJunction1.put("photo_crop", "0 0 10 20");
 		mediaJunction1.put("reference_table", TABLE_NAME);
 		mediaJunction1.put("reference_id", 1);
 		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);

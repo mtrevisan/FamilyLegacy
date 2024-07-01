@@ -116,7 +116,7 @@ public class SourceDialog extends JDialog{
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png",
+	private static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
@@ -157,12 +157,12 @@ public class SourceDialog extends JDialog{
 	private final JLabel authorLabel = new JLabel("Author:");
 	private final JTextField authorField = new JTextField();
 	private final JButton placeButton = new JButton("Place", ICON_PLACE);
-	private final JButton dateButton = new JButton("Date", ICON_DATE);
+	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
 	private final JButton repositoryButton = new JButton("Repository", ICON_REPOSITORY);
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton multimediaButton = new JButton("Multimedia", ICON_MULTIMEDIA);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
@@ -204,6 +204,7 @@ public class SourceDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(SourceDialog.this);
@@ -517,8 +518,6 @@ public class SourceDialog extends JDialog{
 		final Map<Integer, Map<String, Object>> recordMultimediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
 		authorField.setText(author);
@@ -530,6 +529,8 @@ public class SourceDialog extends JDialog{
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(multimediaButton, !recordMultimediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**

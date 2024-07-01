@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +45,7 @@ import javax.swing.DropMode;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -106,22 +106,29 @@ public class PlaceDialog extends JDialog{
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	private static final int TABLE_INDEX_RECORD_ID = 0;
-	private static final int TABLE_INDEX_RECORD_DATE = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int ICON_WIDTH_DEFAULT = 20;
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
+	private static final ImageIcon ICON_TEXT = ResourceHelper.getImage("/images/text.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	private static final ImageIcon ICON_MULTIMEDIA = ResourceHelper.getImage("/images/multimedia.png",
+	private static final ImageIcon ICON_LOCALIZED_TEXT = ResourceHelper.getImage("/images/translation.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	private static final ImageIcon ICON_PHOTO = ResourceHelper.getImage("/images/photo.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
 	private static final String TABLE_NAME = "place";
 	private static final String TABLE_NAME_NOTE = "note";
+	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
+	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
+	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
 	private static final String TABLE_NAME_MODIFICATION = "modification";
 
@@ -137,19 +144,25 @@ public class PlaceDialog extends JDialog{
 	private final JTabbedPane recordTabbedPane = new JTabbedPane();
 	private final JLabel identifierLabel = new JLabel("Identifier:");
 	private final JTextField identifierField = new JTextField();
-	private final JButton nameButton = new JButton("Name", ICON_CALENDAR);
+	private final JButton nameButton = new JButton("Name", ICON_TEXT);
+	private final JButton localizedNamesButton = new JButton("Localized names", ICON_LOCALIZED_TEXT);
 	private final JLabel typeLabel = new JLabel("Type:");
-	private final JTextField typeField = new JTextField();
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"nation", "province", "state", "county", "city", "township",
+		"parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
 	private final JLabel coordinateLabel = new JLabel("Coordinate:");
 	private final JTextField coordinateField = new JTextField();
-	private final JLabel coordinateTypeLabel = new JLabel("Coordinate type:");
-	private final JTextField coordinateTypeField = new JTextField();
+	private final JLabel coordinateSystemLabel = new JLabel("Coordinate system:");
+	private final JComboBox<String> coordinateSystemComboBox = new JComboBox<>(new String[]{"WGS84", "UTM"});
 	private final JLabel coordinateCredibilityLabel = new JLabel("Coordinate credibility:");
 	private final JComboBox<String> coordinateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-	private final JButton primaryPlaceButton = new JButton("Primary place", ICON_CALENDAR);
-	private final JButton imageButton = new JButton("Image", ICON_CALENDAR);
+	private final JButton primaryPlaceButton = new JButton("Primary place", ICON_PLACE);
+	private final JButton photoButton = new JButton("Photo", ICON_PHOTO);
+	private final JLabel photoCropLabel = new JLabel("Photo crop:");
+	private final JTextField photoCropField = new JTextField();
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton photosButton = new JButton("Photos", ICON_PHOTO);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private final Debouncer<PlaceDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
@@ -186,6 +199,7 @@ public class PlaceDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(PlaceDialog.this);
@@ -203,7 +217,7 @@ public class PlaceDialog extends JDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
-		sorter.setComparator(TABLE_INDEX_RECORD_DATE, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 		recordTable.setRowSorter(sorter);
 		recordTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
@@ -248,24 +262,33 @@ public class PlaceDialog extends JDialog{
 		GUIHelper.addUndoCapability(identifierField);
 		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		nameButton.setToolTipText("Calendar");
-		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
+		nameButton.setToolTipText("Name");
+		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
 
-		typeLabel.setLabelFor(typeField);
-		GUIHelper.addUndoCapability(typeField);
+		localizedNamesButton.setToolTipText("Localized names");
+		localizedNamesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PLACE_NAME, getSelectedRecord())));
 
-		primaryPlaceButton.setToolTipText("Calendar original");
-		primaryPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
+		typeLabel.setLabelFor(typeComboBox);
+		typeComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(typeComboBox);
 
-		certaintyLabel.setLabelFor(certaintyComboBox);
-		certaintyComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(certaintyComboBox);
-		AutoCompleteDecorator.decorate(certaintyComboBox);
+		coordinateLabel.setLabelFor(coordinateField);
+		GUIHelper.addUndoCapability(coordinateField);
+		coordinateSystemLabel.setLabelFor(coordinateSystemComboBox);
+		coordinateSystemComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(coordinateSystemComboBox);
 
-		credibilityLabel.setLabelFor(credibilityComboBox);
-		credibilityComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(credibilityComboBox);
-		AutoCompleteDecorator.decorate(credibilityComboBox);
+		coordinateCredibilityLabel.setLabelFor(coordinateCredibilityComboBox);
+		coordinateCredibilityComboBox.setEditable(true);
+
+		primaryPlaceButton.setToolTipText("Primary place");
+		primaryPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+
+		photoButton.setToolTipText("Photo");
+		photoButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.IMAGE, getSelectedRecord())));
+
+		photoCropLabel.setLabelFor(photoCropField);
+		GUIHelper.addUndoCapability(photoCropField);
 
 
 		noteButton.setToolTipText("Notes");
@@ -299,19 +322,26 @@ public class PlaceDialog extends JDialog{
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 3");
-		recordPanelBase.add(identifierField, "growx");
-		recordPanelBase.add(nameButton, "sizegroup btn,gapleft 30,wrap related");
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 3");
-		recordPanelBase.add(typeField, "growx");
-		recordPanelBase.add(primaryPlaceButton, "sizegroup btn,gapleft 30,wrap paragraph");
-		recordPanelBase.add(certaintyLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(certaintyComboBox, "wrap related");
-		recordPanelBase.add(credibilityLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(credibilityComboBox);
+		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(identifierField, "growx,wrap paragraph");
+		recordPanelBase.add(nameButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(localizedNamesButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
+		recordPanelBase.add(coordinateLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(coordinateField, "growx,wrap related");
+		recordPanelBase.add(coordinateSystemLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(coordinateSystemComboBox, "growx,wrap paragraph");
+		recordPanelBase.add(coordinateCredibilityLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(coordinateCredibilityComboBox, "wrap paragraph");
+		recordPanelBase.add(primaryPlaceButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(photoButton, "sizegroup btn,center,wrap related");
+		recordPanelBase.add(photoCropLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(photoCropField, "growx");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2,wrap paragraph");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelOther.add(photosButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
@@ -355,12 +385,10 @@ public class PlaceDialog extends JDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String date = extractRecordDate(record.getValue());
-			final String dateOriginal = extractRecordDateOriginal(record.getValue());
+			final String identifier = extractRecordIdentifier(record.getValue());
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
-				TABLE_INDEX_RECORD_DATE);
+			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
 		}
@@ -396,28 +424,40 @@ public class PlaceDialog extends JDialog{
 		return (int)record.get("id");
 	}
 
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+	private static String extractRecordIdentifier(final Map<String, Object> record){
+		return (String)record.get("identifier");
 	}
 
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
+	private static Integer extractRecordNameID(final Map<String, Object> record){
+		return (Integer)record.get("name_id");
 	}
 
-	private static String extractRecordDateOriginal(final Map<String, Object> record){
-		return (String)record.get("date_original");
+	private static String extractRecordType(final Map<String, Object> record){
+		return (String)record.get("type");
 	}
 
-	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
+	private static String extractRecordCoordinate(final Map<String, Object> record){
+		return (String)record.get("coordinate");
 	}
 
-	private static String extractRecordCertainty(final Map<String, Object> record){
-		return (String)record.get("certainty");
+	private static String extractRecordCoordinateSystem(final Map<String, Object> record){
+		return (String)record.get("coordinate_system");
 	}
 
-	private static String extractRecordCredibility(final Map<String, Object> record){
-		return (String)record.get("credibility");
+	private static String extractRecordCoordinateCredibility(final Map<String, Object> record){
+		return (String)record.get("coordinate_credibility");
+	}
+
+	private static Integer extractRecordPrimaryPlaceID(final Map<String, Object> record){
+		return (Integer)record.get("primary_place_id");
+	}
+
+	private static Integer extractRecordPhotoID(final Map<String, Object> record){
+		return (Integer)record.get("photo_id");
+	}
+
+	private static String extractRecordPhotoCrop(final Map<String, Object> record){
+		return (String)record.get("photo_crop");
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
@@ -428,10 +468,18 @@ public class PlaceDialog extends JDialog{
 		return (Integer)record.get("reference_id");
 	}
 
+	private static String extractRecordReferenceType(final Map<String, Object> record){
+		return (String)record.get("reference_type");
+	}
+
+	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
+		return (Integer)record.get("localized_text_id");
+	}
+
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_DATE);
+			TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -476,26 +524,36 @@ public class PlaceDialog extends JDialog{
 
 	//fill record panel
 	private void fillData(){
-		final String date = extractRecordDate(selectedRecord);
-		final Integer calendarID = extractRecordCalendarID(selectedRecord);
-		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
-		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
-		final String certainty = extractRecordCertainty(selectedRecord);
-		final String credibility = extractRecordCredibility(selectedRecord);
+		final String identifier = extractRecordIdentifier(selectedRecord);
+		final Integer nameID = extractRecordNameID(selectedRecord);
+		final String type = extractRecordType(selectedRecord);
+		final String coordinate = extractRecordCoordinate(selectedRecord);
+		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
+		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
+		final Integer primaryPlaceID = extractRecordPrimaryPlaceID(selectedRecord);
+		final Integer imageID = extractRecordPhotoID(selectedRecord);
+		final String imageCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
+		final Map<Integer, Map<String, Object>> recordLocalizedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordMultimedia = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
-		identifierField.setText(date);
-		GUIHelper.addBorder(nameButton, calendarID != null, DATA_BUTTON_BORDER_COLOR);
-		typeField.setText(dateOriginal);
-		GUIHelper.addBorder(primaryPlaceButton, calendarOriginalID != null, DATA_BUTTON_BORDER_COLOR);
-		certaintyComboBox.setSelectedItem(certainty);
-		credibilityComboBox.setSelectedItem(credibility);
+		identifierField.setText(identifier);
+		GUIHelper.addBorder(nameButton, nameID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(localizedNamesButton, !recordLocalizedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		typeComboBox.setSelectedItem(type);
+		coordinateField.setText(coordinate);
+		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
+		coordinateCredibilityComboBox.setSelectedItem(coordinateCredibility);
+		GUIHelper.addBorder(primaryPlaceButton, primaryPlaceID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photoButton, imageID != null, DATA_BUTTON_BORDER_COLOR);
+		photoCropField.setText(imageCrop);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photosButton, !recordMultimedia.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**
@@ -510,6 +568,18 @@ public class PlaceDialog extends JDialog{
 		final int selectedRecordID = extractRecordID(selectedRecord);
 		for(final Map<String, Object> storeRecord : storeRecords.values())
 			if(TABLE_NAME.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
+				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
+		return matchedRecords;
+	}
+
+
+	private TreeMap<Integer, Map<String, Object>> extractLocalizedTextJunctionReferences(){
+		final SortedMap<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
+		final int selectedRecordID = extractRecordID(selectedRecord);
+		for(final Map<String, Object> storeRecord : storeRecords.values())
+			if(Objects.equals("name", extractRecordReferenceType(storeRecord))
+				&& TABLE_NAME.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
 				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
 		return matchedRecords;
 	}
@@ -578,6 +648,14 @@ public class PlaceDialog extends JDialog{
 		model.removeRow(modelRowIndex);
 		getRecords(TABLE_NAME).remove(recordID);
 
+		final Map<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final TreeMap<Integer, Map<String, Object>> storeLocalizedTextJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+		final SortedMap<Integer, Map<String, Object>> recordLocalizedTextJunctions = extractLocalizedTextJunctionReferences();
+		for(final Integer recordLocalizedTextJunctionID : recordLocalizedTextJunctions.keySet()){
+			final Map<String, Object> recordLocalizedTextJunction = storeLocalizedTextJunctions.remove(recordLocalizedTextJunctionID);
+			storeLocalizedTexts.remove(extractRecordLocalizedTextID(recordLocalizedTextJunction));
+		}
+
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
@@ -597,11 +675,17 @@ public class PlaceDialog extends JDialog{
 		identifierField.setText(null);
 		GUIHelper.addBackground(identifierField, Color.WHITE);
 		GUIHelper.setDefaultBorder(nameButton);
-		typeField.setText(null);
-		certaintyComboBox.setSelectedItem(null);
-		credibilityComboBox.setSelectedItem(null);
+		GUIHelper.setDefaultBorder(localizedNamesButton);
+		typeComboBox.setSelectedItem(null);
+		coordinateField.setText(null);
+		coordinateSystemComboBox.setSelectedItem(null);
+		coordinateCredibilityComboBox.setSelectedItem(null);
+		GUIHelper.setDefaultBorder(primaryPlaceButton);
+		GUIHelper.setDefaultBorder(photoButton);
+		photoCropField.setText(null);
 
 		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(photosButton);
 		restrictionCheckBox.setSelected(false);
 
 		GUIHelper.setEnabled(recordTabbedPane, false);
@@ -668,28 +752,30 @@ public class PlaceDialog extends JDialog{
 
 	private void saveData(){
 		//read record panel:
-		final String date = GUIHelper.readTextTrimmed(identifierField);
-		final String dateOriginal = GUIHelper.readTextTrimmed(typeField);
-		final String certainty = (String)certaintyComboBox.getSelectedItem();
-		final String credibility = (String)credibilityComboBox.getSelectedItem();
+		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		final String type = (String)typeComboBox.getSelectedItem();
+		final String coordinate = GUIHelper.readTextTrimmed(coordinateField);
+		final String coordinateSystem = (String)coordinateSystemComboBox.getSelectedItem();
+		final String coordinateCredibility = (String)coordinateCredibilityComboBox.getSelectedItem();
 
 		//update table
-		if(!Objects.equals(date, extractRecordDate(selectedRecord))){
+		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-					model.setValueAt(date, modelRowIndex, TABLE_INDEX_RECORD_DATE);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
 					break;
 				}
 		}
 
-		selectedRecord.put("date", date);
-		selectedRecord.put("date_original", dateOriginal);
-		selectedRecord.put("certainty", certainty);
-		selectedRecord.put("credibility", credibility);
+		selectedRecord.put("identifier", identifier);
+		selectedRecord.put("type", type);
+		selectedRecord.put("coordinate", coordinate);
+		selectedRecord.put("coordinate_system", coordinateSystem);
+		selectedRecord.put("coordinate_credibility", coordinateCredibility);
 	}
 
 
@@ -728,12 +814,15 @@ public class PlaceDialog extends JDialog{
 		store.put(TABLE_NAME, places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
-		place1.put("date", "27 FEB 1976");
-		place1.put("calendar_id", 1);
-		place1.put("date_original", "FEB 27, 1976");
-		place1.put("calendar_original_id", 1);
-		place1.put("certainty", "certain");
-		place1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		place1.put("identifier", "place");
+		place1.put("name_id", 1);
+		place1.put("type", "province");
+		place1.put("coordinate", "45.65, 12.19");
+		place1.put("coordinate_system", "WGS84");
+		place1.put("coordinate_credibility", "certain");
+		place1.put("primary_place_id", 1);
+		place1.put("photo_id", 1);
+		place1.put("photo_crop", "0 0 10 20");
 		places.put((Integer)place1.get("id"), place1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
@@ -772,7 +861,16 @@ public class PlaceDialog extends JDialog{
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case CALENDAR -> {
+						case NAME -> {
+							//TODO
+						}
+						case LOCALIZED_PLACE_NAME -> {
+							//TODO
+						}
+						case PLACE -> {
+							//TODO
+						}
+						case IMAGE -> {
 							//TODO
 						}
 						case NOTE -> {
@@ -804,7 +902,7 @@ public class PlaceDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(481, 440);
+			dialog.setSize(522, 647);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

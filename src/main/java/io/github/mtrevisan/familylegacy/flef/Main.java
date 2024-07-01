@@ -419,7 +419,6 @@ public class Main{
 	private static void transferCulturalNorm(final Map<String, List<Map<String, Object>>> output){
 		final List<Map<String, Object>> flefCulturalNorms = output.computeIfAbsent("cultural_norm", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefHistoricPlaces = output.computeIfAbsent("historic_place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
@@ -438,14 +437,6 @@ public class Main{
 		flefPlace.put("identifier", "Regno Lombardo-Veneto");
 		flefPlace.put("name_id", 10_000);
 		flefPlace.put("type", "reign");
-
-		Map<String, Object> flefHistoricPlace = new HashMap<>();
-		flefHistoricPlaces.add(flefHistoricPlace);
-		final int historicPlaceID = flefHistoricPlaces.size();
-		flefHistoricPlace.put("id", historicPlaceID);
-		flefHistoricPlace.put("place_id", placeID);
-		flefHistoricPlace.put("certainty", "certain");
-		flefHistoricPlace.put("credibility", 3);
 
 		Map<String, Object> flefHistoricDate = new HashMap<>();
 		flefHistoricDates.add(flefHistoricDate);
@@ -473,7 +464,7 @@ public class Main{
 		flefCulturalNorm.put("id", 2);
 		flefCulturalNorm.put("identifier", "napoleonic code age of majority in men");
 		flefCulturalNorm.put("description", "23 anni minore, 29 anni maggiore");
-		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("place_id", placeID);
 		flefCulturalNorm.put("date_start_id", dateStartID);
 		flefCulturalNorm.put("date_end_id", dateEndID);
 		flefCulturalNorm.put("certainty", "certain");
@@ -484,7 +475,7 @@ public class Main{
 		flefCulturalNorm.put("id", 3);
 		flefCulturalNorm.put("identifier", "napoleonic code respectful act for men");
 		flefCulturalNorm.put("description", "fino ai 30");
-		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("place_id", placeID);
 		flefCulturalNorm.put("date_start_id", dateStartID);
 		flefCulturalNorm.put("date_end_id", dateEndID);
 		flefCulturalNorm.put("certainty", "certain");
@@ -495,7 +486,7 @@ public class Main{
 		flefCulturalNorm.put("id", 4);
 		flefCulturalNorm.put("identifier", "napoleonic code age of majority in women");
 		flefCulturalNorm.put("description", "22 anni minore");
-		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("place_id", placeID);
 		flefCulturalNorm.put("date_start_id", dateStartID);
 		flefCulturalNorm.put("date_end_id", dateEndID);
 		flefCulturalNorm.put("certainty", "certain");
@@ -506,7 +497,7 @@ public class Main{
 		flefCulturalNorm.put("id", 5);
 		flefCulturalNorm.put("identifier", "napoleonic code respectful act for women");
 		flefCulturalNorm.put("description", "fino ai 25");
-		flefCulturalNorm.put("place_id", historicPlaceID);
+		flefCulturalNorm.put("place_id", placeID);
 		flefCulturalNorm.put("date_start_id", dateStartID);
 		flefCulturalNorm.put("date_end_id", dateEndID);
 		flefCulturalNorm.put("certainty", "certain");
@@ -650,7 +641,7 @@ public class Main{
 					flefPlace.put("name_id", marriagePlaceNameID);
 					if(coordinate != null){
 						flefPlace.put("coordinate", coordinate);
-						flefPlace.put("coordinate_type", "WGS84");
+						flefPlace.put("coordinate_system", "WGS84");
 					}
 
 
@@ -770,7 +761,7 @@ public class Main{
 						flefAssertions.add(flefAssertion);
 						flefAssertion.put("id", flefAssertions.size());
 						flefAssertion.put("citation_id", citationID);
-						flefAssertion.put("reference_table", "historic_place");
+						flefAssertion.put("reference_table", "place");
 						flefAssertion.put("reference_id", marriagePlace.id);
 						if(evenRole != null)
 							flefAssertion.put("role", evenRole);

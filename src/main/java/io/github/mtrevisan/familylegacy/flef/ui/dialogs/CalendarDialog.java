@@ -128,7 +128,7 @@ public class CalendarDialog extends JDialog{
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JTextField typeField = new JTextField();
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 
 	private final Debouncer<CalendarDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
@@ -165,6 +165,7 @@ public class CalendarDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(CalendarDialog.this);
@@ -239,7 +240,7 @@ public class CalendarDialog extends JDialog{
 		recordPanelBase.add(typeField, "growx");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
+		recordPanelOther.add(noteButton, "sizegroup btn,center");
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 		GUIHelper.setEnabled(recordTabbedPane, false);
@@ -384,11 +385,11 @@ public class CalendarDialog extends JDialog{
 		final String type = extractRecordType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
 		typeField.setText(type);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**

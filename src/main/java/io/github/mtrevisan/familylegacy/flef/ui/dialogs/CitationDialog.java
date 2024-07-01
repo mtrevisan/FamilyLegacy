@@ -145,11 +145,11 @@ public class CitationDialog extends JDialog{
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JButton extractButton = new JButton("Extract", ICON_NOTE);
-	private final JButton localizedTextButton = new JButton("Localized extracts", ICON_LOCALIZED_TEXT);
+	private final JButton localizedExtractButton = new JButton("Localized extracts", ICON_LOCALIZED_TEXT);
 	private final JLabel extractTypeLabel = new JLabel("Type:");
 	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(new String[]{"transcript", "extract", "abstract"});
 
-	private final JButton noteButton = new JButton("Note", ICON_NOTE);
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton multimediaButton = new JButton("Multimedia", ICON_MULTIMEDIA);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
@@ -191,6 +191,7 @@ public class CitationDialog extends JDialog{
 
 	private void initStoreComponents(){
 		filterLabel.setLabelFor(filterField);
+		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(CitationDialog.this);
@@ -259,8 +260,8 @@ public class CitationDialog extends JDialog{
 		extractButton.setToolTipText("Extract");
 		extractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EXTRACT, getSelectedRecord())));
 
-		localizedTextButton.setToolTipText("Localized text");
-		localizedTextButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_TEXT, getSelectedRecord())));
+		localizedExtractButton.setToolTipText("Localized text");
+		localizedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT, getSelectedRecord())));
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 		extractTypeComboBox.setEditable(true);
@@ -306,7 +307,7 @@ public class CitationDialog extends JDialog{
 		recordPanelBase.add(locationLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(locationField, "grow,wrap paragraph");
 		recordPanelBase.add(extractButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(localizedTextButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(localizedExtractButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(extractTypeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(extractTypeComboBox);
 
@@ -415,12 +416,12 @@ public class CitationDialog extends JDialog{
 		return (String)record.get("extract_type");
 	}
 
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
 	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
 		return (Integer)record.get("localized_text_id");
+	}
+
+	private static String extractRecordReferenceTable(final Map<String, Object> record){
+		return (String)record.get("reference_table");
 	}
 
 	private static Integer extractRecordReferenceID(final Map<String, Object> record){
@@ -488,17 +489,17 @@ public class CitationDialog extends JDialog{
 		final Map<Integer, Map<String, Object>> recordMultimediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
-
 		GUIHelper.addBorder(sourceButton, (sourceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		locationField.setText(location);
 		GUIHelper.addBorder(extractButton, extractID != null, DATA_BUTTON_BORDER_COLOR);
 		extractTypeComboBox.setSelectedItem(extractType);
-		GUIHelper.addBorder(localizedTextButton, !recordLocalizedTextJunctions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(localizedExtractButton, !recordLocalizedTextJunctions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(multimediaButton, !recordMultimediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
 	/**
@@ -624,7 +625,7 @@ public class CitationDialog extends JDialog{
 		locationField.setText(null);
 		extractTypeComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(extractButton);
-		GUIHelper.setDefaultBorder(localizedTextButton);
+		GUIHelper.setDefaultBorder(localizedExtractButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(multimediaButton);
@@ -827,7 +828,7 @@ public class CitationDialog extends JDialog{
 						case EXTRACT -> {
 							//TODO
 						}
-						case LOCALIZED_TEXT -> {
+						case LOCALIZED_EXTRACT -> {
 							//TODO
 						}
 						case NOTE -> {
