@@ -51,8 +51,10 @@ import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -67,7 +69,10 @@ public class GroupDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "group";
+	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_PERSON_NAME = "person_name";
+	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
@@ -234,41 +239,53 @@ public class GroupDialog extends CommonDialog{
 
 
 	private String extractIdentifier(final int selectedRecordID){
-		//TODO
 		final TreeMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords("person_name");
+		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
+		final TreeMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME_GROUP);
+		final TreeMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map.Entry<Integer, Map<String, Object>> entry : storeGroupJunction.entrySet()){
 			final Map<String, Object> groupElement = entry.getValue();
-			if(groupElement.get("group_id").equals(selectedRecordID)){
+			final StringJoiner subIdentifier = new StringJoiner(", ");
+			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
 				final String referenceTable = extractRecordReferenceTable(groupElement);
 				final Integer referenceID = extractRecordReferenceID(groupElement);
-				if("person".equals(referenceTable)){
-					for(final Map<String, Object> storePersonName : storePersonNames.values())
-						if(storePersonName.get("person_id").equals(referenceID)){
-							//TODO extract name
-							final Map<String, Object> groupReferencedPerson = storePersonNames.get(referenceID);
-							identifier.add((String)groupReferencedPerson.get("name"));
-						}
+				final List<Map<String, Object>> personNamesInGroup;
+				if("person".equals(referenceTable))
+					personNamesInGroup = extractPersonNamesInGroup(storePersonNames, referenceID);
+				else if("group".equals(referenceTable)){
+					identifierCategory = "groups";
+
+					//extract the names of all the persons of all the groups
+					personNamesInGroup = new ArrayList<>();
+					for(final Map<String, Object> storeGroup : storeGroups.values())
+						if(referenceID.equals(extractRecordID(storeGroup)))
+							personNamesInGroup.addAll(extractPersonNamesInGroup(storePersonNames, referenceID));
 				}
-				else{
-					//TODO
+				else
+					throw new IllegalArgumentException("Cannot exist a group of " + referenceTable);
+
+				for(final Map<String, Object> storePersonName : personNamesInGroup){
+					final Integer extractRecordNameID = extractRecordNameID(storePersonName);
+					final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
+					final String name = extractRecordText(localizedText);
+					subIdentifier.add(name != null? name: "?");
 				}
-				final Map<String, Object> groupReferencedElement = getRecords(referenceTable).get(referenceID);
-				identifier.add((String)groupReferencedElement.get("name"));
+				identifier.add(subIdentifier.toString());
 			}
 		}
-		return identifier.toString();
+		return identifierCategory + ":" + identifier;
+	}
 
-//		final Map<String, Object> storePersonNames = getRecords(TABLE_NAME).get(selectedRecordID);
-//		final Integer mainRecordID = extractRecordNameID(storePersonNames);
-//		final Integer alternateRecordID = extractRecordAlternateSortNameID(storePersonNames);
-//		final Map<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT);
-//		final Map<String, Object> mainRecord = storeRecords.get(mainRecordID);
-//		final Map<String, Object> alternateRecord = storeRecords.get(alternateRecordID);
-//		final String mainRecordText = extractRecordText(mainRecord);
-//		final String alternateRecordText = extractRecordText(alternateRecord);
-//		return mainRecordText + (alternateRecordText != null? " (" + alternateRecordText + ")": StringUtils.EMPTY);
+	/** Extract the names of all the persons in this group. */
+	private static List<Map<String, Object>> extractPersonNamesInGroup(final TreeMap<Integer, Map<String, Object>> storePersonNames,
+		final Integer groupID){
+		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
+		for(final Map<String, Object> storePersonName : storePersonNames.values())
+			if(groupID.equals(extractRecordPersonID(storePersonName)))
+				personNamesInGroup.add(storePersonName);
+		return personNamesInGroup;
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -281,6 +298,22 @@ public class GroupDialog extends CommonDialog{
 
 	private static String extractRecordPhotoCrop(final Map<String, Object> record){
 		return (String)record.get("photo_crop");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private static Integer extractRecordPersonID(final Map<String, Object> record){
+		return (Integer)record.get("person_id");
+	}
+
+	private static String extractRecordText(final Map<String, Object> record){
+		return (String)record.get("text");
+	}
+
+	private static Integer extractRecordNameID(final Map<String, Object> record){
+		return (Integer)record.get("name_id");
 	}
 
 
