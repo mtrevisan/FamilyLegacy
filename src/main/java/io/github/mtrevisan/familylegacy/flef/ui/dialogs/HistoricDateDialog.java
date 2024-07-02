@@ -25,10 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
@@ -37,213 +35,106 @@ import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptio
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
-import javax.swing.DropMode;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
-import javax.swing.RowSorter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 import java.awt.Frame;
-import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.io.Serial;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class HistoricDateDialog extends JDialog{
+public class HistoricDateDialog extends CommonDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3434407293578383806L;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(HistoricDateDialog.class);
-
-	private static final String ACTION_MAP_KEY_INSERT = "insert";
-	private static final String ACTION_MAP_KEY_DELETE = "delete";
-
-	/** [ms] */
-	private static final int DEBOUNCE_TIME = 400;
-
-	private static final Color MANDATORY_FIELD_BACKGROUND_COLOR = Color.PINK;
-	private static final Color DATA_BUTTON_BORDER_COLOR = Color.BLUE;
-
-	private static final Color GRID_COLOR = new Color(230, 230, 230);
-	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
-
-	private static final int TABLE_INDEX_RECORD_ID = 0;
 	private static final int TABLE_INDEX_RECORD_DATE = 1;
-	private static final int TABLE_ROWS_SHOWN = 5;
-
-	private static final int ICON_WIDTH_DEFAULT = 20;
-	private static final int ICON_HEIGHT_DEFAULT = 20;
-
-	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
 	private static final String TABLE_NAME = "historic_date";
 	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
-	private static final String TABLE_NAME_MODIFICATION = "modification";
 
 
-	//store components:
-	private final JLabel filterLabel = new JLabel("Filter:");
-	private final JTextField filterField = new JTextField();
-	private final JTable recordTable = new JTable(new RecordTableModel());
-	private final JScrollPane tableScrollPane = new JScrollPane(recordTable);
-	private final JButton newRecordButton = new JButton("New");
-	private final JButton deleteRecordButton = new JButton("Delete");
-	//record components:
-	private final JTabbedPane recordTabbedPane = new JTabbedPane();
-	private final JLabel dateLabel = new JLabel("Date:");
-	private final JTextField dateField = new JTextField();
-	private final JButton calendarButton = new JButton("Calendar", ICON_CALENDAR);
-	private final JLabel dateOriginalLabel = new JLabel("Date original:");
-	private final JTextField dateOriginalField = new JTextField();
-	private final JButton calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
-	private final JLabel certaintyLabel = new JLabel("Certainty:");
-	private final JComboBox<String> certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-	private final JLabel credibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+	private JLabel dateLabel;
+	private JTextField dateField;
+	private JButton calendarButton;
+	private JLabel dateOriginalLabel;
+	private JTextField dateOriginalField;
+	private JButton calendarOriginalButton;
+	private JLabel certaintyLabel;
+	private JComboBox<String> certaintyComboBox;
+	private JLabel credibilityLabel;
+	private JComboBox<String> credibilityComboBox;
 
-	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
-	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-
-	private final Debouncer<HistoricDateDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
-
-	private int previousIndex = -1;
-	private volatile boolean ignoreSelectionEvents;
-
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	private Map<String, Object> selectedRecord;
-	private long selectedRecordHash;
-
-	private final Consumer<Object> onCloseGracefully;
+	private JButton noteButton;
+	private JCheckBox restrictionCheckBox;
 
 
 	public HistoricDateDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
 			final Frame parent){
-		super(parent, true);
+		super(store, onCloseGracefully, parent);
 
-		this.store = store;
-		this.onCloseGracefully = onCloseGracefully;
-
-		initComponents();
-
-		loadData();
+		setTitle("Historic dates");
 	}
 
 
-	private void initComponents(){
-		initStoreComponents();
-
-		initRecordComponents();
-
-		initLayout();
+	@Override
+	protected String getTableName(){
+		return TABLE_NAME;
 	}
 
-	private void initStoreComponents(){
-		filterLabel.setLabelFor(filterField);
-		GUIHelper.addUndoCapability(filterField);
-		filterField.addKeyListener(new KeyAdapter(){
-			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(HistoricDateDialog.this);
-			}
-		});
+	@Override
+	protected DefaultTableModel getDefaultTableModel(){
+		return new RecordTableModel();
+	}
 
-		recordTable.setAutoCreateRowSorter(true);
-		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		recordTable.setGridColor(GRID_COLOR);
-		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		recordTable.setDragEnabled(true);
-		recordTable.setDropMode(DropMode.INSERT_ROWS);
-		recordTable.getTableHeader()
-			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+	@Override
+	protected void initStoreComponents(){
+		super.initStoreComponents();
+
+
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_RECORD_DATE, Comparator.naturalOrder());
-		recordTable.setRowSorter(sorter);
-		recordTable.getSelectionModel()
-			.addListSelectionListener(evt -> {
-				if(!ignoreSelectionEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
-					selectAction();
-			});
-		final InputMap recordTableInputMap = recordTable.getInputMap(JComponent.WHEN_FOCUSED);
-		recordTableInputMap.put(GUIHelper.INSERT_STROKE, ACTION_MAP_KEY_INSERT);
-		recordTableInputMap.put(GUIHelper.DELETE_STROKE, ACTION_MAP_KEY_DELETE);
-		final ActionMap recordTableActionMap = recordTable.getActionMap();
-		recordTableActionMap.put(ACTION_MAP_KEY_INSERT, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 4756192611546789475L;
-
-			@Override
-			public void actionPerformed(final ActionEvent evt){
-				newAction();
-			}
-		});
-		recordTableActionMap.put(ACTION_MAP_KEY_DELETE, new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 539688138118530761L;
-
-			@Override
-			public void actionPerformed(final ActionEvent evt){
-				deleteAction();
-			}
-		});
-		final Dimension viewSize = new Dimension();
-		viewSize.width = recordTable.getColumnModel()
-			.getTotalColumnWidth();
-		viewSize.height = TABLE_ROWS_SHOWN * recordTable.getRowHeight();
-		recordTable.setPreferredScrollableViewportSize(viewSize);
-
-		newRecordButton.addActionListener(evt -> newAction());
-		deleteRecordButton.setEnabled(false);
-		deleteRecordButton.addActionListener(evt -> deleteAction());
 	}
 
-	private void initRecordComponents(){
+	@Override
+	protected void initRecordComponents(){
+		dateLabel = new JLabel("Date:");
+		dateField = new JTextField();
+		calendarButton = new JButton("Calendar", ICON_CALENDAR);
+		dateOriginalLabel = new JLabel("Date original:");
+		dateOriginalField = new JTextField();
+		calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
+		certaintyLabel = new JLabel("Certainty:");
+		certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+		credibilityLabel = new JLabel("Credibility:");
+		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+
+		noteButton = new JButton("Notes", ICON_NOTE);
+		restrictionCheckBox = new JCheckBox("Confidential");
+
+
 		dateLabel.setLabelFor(dateField);
 		GUIHelper.addUndoCapability(dateField);
 		GUIHelper.addBackground(dateField, MANDATORY_FIELD_BACKGROUND_COLOR);
@@ -275,30 +166,8 @@ public class HistoricDateDialog extends JDialog{
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
-	private void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(TABLE_NAME_RESTRICTION));
-
-		if(evt.getStateChange() == ItemEvent.SELECTED){
-			if(recordRestriction != null)
-				recordRestriction.put("restriction", "confidential");
-			else{
-				final TreeMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
-				//create a new record
-				final Map<String, Object> newRestriction = new HashMap<>();
-				final int newRestrictionID = extractNextRecordID(storeRestrictions);
-				newRestriction.put("id", newRestrictionID);
-				newRestriction.put("restriction", "confidential");
-				newRestriction.put("reference_table", TABLE_NAME);
-				newRestriction.put("reference_id", extractRecordID(selectedRecord));
-				storeRestrictions.put(newRestrictionID, newRestriction);
-			}
-		}
-		else if(recordRestriction != null)
-			recordRestriction.put("restriction", "public");
-	}
-
-	//http://www.migcalendar.com/miglayout/cheatsheet.html
-	private void initLayout(){
+	@Override
+	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(dateLabel, "align label,sizegroup label,split 3");
 		recordPanelBase.add(dateField, "growx");
@@ -315,41 +184,13 @@ public class HistoricDateDialog extends JDialog{
 		recordPanelOther.add(noteButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
-		GUIHelper.setEnabled(recordTabbedPane, false);
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap paragraph");
-		add(tableScrollPane, "grow,wrap related");
-		add(newRecordButton, "sizegroup btn,tag add,split 2,align right");
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph");
-		add(recordTabbedPane, "grow");
 	}
 
-	private void closeAction(final ActionEvent evt){
-		if(closeAction())
-			setVisible(false);
-	}
-
-	private boolean closeAction(){
-		if(validateData()){
-			okAction();
-
-			if(onCloseGracefully != null)
-				onCloseGracefully.accept(this);
-
-			return true;
-		}
-		return false;
-	}
-
-	private void loadData(){
-		final SortedMap<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+	@Override
+	protected void loadData(){
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -367,116 +208,19 @@ public class HistoricDateDialog extends JDialog{
 		}
 	}
 
-	private boolean loadData(final int recordID){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		if(records.containsKey(recordID)){
-			final TableModel model = recordTable.getModel();
-			for(int row = 0, length = model.getRowCount(); row < length; row ++){
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-					recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-					return true;
-				}
-			}
-		}
-
-		LOGGER.info(TABLE_NAME + " ID {} does not exists", recordID);
-
-		return false;
-	}
-
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
-	private static int extractNextRecordID(final TreeMap<Integer, Map<String, Object>> records){
-		return (records.isEmpty()? 1: records.lastKey() + 1);
-	}
-
-	private static int extractRecordID(final Map<String, Object> record){
-		return (int)record.get("id");
-	}
-
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
-	}
-
-	private static String extractRecordDateOriginal(final Map<String, Object> record){
-		return (String)record.get("date_original");
-	}
-
-	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
-	}
-
-	private static String extractRecordCertainty(final Map<String, Object> record){
-		return (String)record.get("certainty");
-	}
-
-	private static String extractRecordCredibility(final Map<String, Object> record){
-		return (String)record.get("credibility");
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private void filterTableBy(final JDialog panel){
+	@Override
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_DATE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			recordTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
 		sorter.setRowFilter(filter);
 	}
 
-
-	private void selectAction(){
-		if(!validateData()){
-			final ListSelectionModel selectionModel = recordTable.getSelectionModel();
-			ignoreSelectionEvents = true;
-			if(previousIndex != -1)
-				selectionModel.setSelectionInterval(previousIndex, previousIndex);
-			else
-				selectionModel.clearSelection();
-			ignoreSelectionEvents = false;
-
-			return;
-		}
-		else
-			previousIndex = recordTable.getSelectedRow();
-
-		okAction();
-
-		selectedRecord = getSelectedRecord();
-		if(selectedRecord == null)
-			return;
-
-		selectedRecordHash = selectedRecord.hashCode();
-
-
-		fillData();
-
-
-		deleteRecordButton.setEnabled(true);
-	}
-
-	//fill record panel
-	private void fillData(){
+	@Override
+	protected void fillData(){
 		final String date = extractRecordDate(selectedRecord);
 		final Integer calendarID = extractRecordCalendarID(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
@@ -496,106 +240,10 @@ public class HistoricDateDialog extends JDialog{
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
-
-		GUIHelper.setEnabled(recordTabbedPane, true);
 	}
 
-	/**
-	 * Extracts the references from a given table based on the selectedRecord.
-	 *
-	 * @param fromTable	The table name to extract the references to this table from.
-	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
-	 */
-	private TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
-		final SortedMap<Integer, Map<String, Object>> storeRecords = getRecords(fromTable);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(TABLE_NAME.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
-		return matchedRecords;
-	}
-
-	private static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
-		return (store.isEmpty()? null: store.firstEntry().getValue());
-	}
-
-	private Map<String, Object> getSelectedRecord(){
-		final int viewRowIndex = recordTable.getSelectedRow();
-		if(viewRowIndex == -1)
-			//no row selected
-			return null;
-
-		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-		final TableModel model = recordTable.getModel();
-		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
-
-		return getRecords(TABLE_NAME).get(recordID);
-	}
-
-	public final void showNewRecord(){
-		newAction();
-	}
-
-	private void newAction(){
-		//create a new record
-		final Map<String, Object> newTable = new HashMap<>();
-		final TreeMap<Integer, Map<String, Object>> storeTables = getRecords(TABLE_NAME);
-		final int newTableID = extractNextRecordID(storeTables);
-		newTable.put("id", newTableID);
-		storeTables.put(newTableID, newTable);
-
-		//reset filter
-		filterField.setText(null);
-
-		//add to table
-		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-		final int oldSize = model.getRowCount();
-		model.setRowCount(oldSize + 1);
-		model.setValueAt(newTableID, oldSize, TABLE_INDEX_RECORD_ID);
-		//resort rows
-		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
-
-		//select the newly created record
-		final int newRowIndex = recordTable.convertRowIndexToView(oldSize);
-		recordTable.setRowSelectionInterval(newRowIndex, newRowIndex);
-		//make selected row visible
-		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
-	}
-
-	private void deleteAction(){
-		final int viewRowIndex = recordTable.getSelectedRow();
-		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
-		if(viewRowIndex == -1)
-			//no row selected
-			return;
-
-
-		clearData();
-
-
-		model.removeRow(modelRowIndex);
-		getRecords(TABLE_NAME).remove(recordID);
-
-		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
-		final SortedMap<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		for(final Integer noteID : recordNotes.keySet())
-			storeNotes.remove(noteID);
-		final Map<Integer, Map<String, Object>> storeRestriction = getRecords(TABLE_NAME_RESTRICTION);
-		final SortedMap<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		for(final Integer restrictionID : recordRestriction.keySet())
-			storeRestriction.remove(restrictionID);
-		//TODO check referential integrity
-		//FIXME use a database?
-
-		//clear previously selected row
-		selectedRecord = null;
-	}
-
-	private void clearData(){
+	@Override
+	protected void clearData(){
 		dateField.setText(null);
 		GUIHelper.addBackground(dateField, Color.WHITE);
 		GUIHelper.setDefaultBorder(calendarButton);
@@ -605,12 +253,10 @@ public class HistoricDateDialog extends JDialog{
 
 		GUIHelper.setDefaultBorder(noteButton);
 		restrictionCheckBox.setSelected(false);
-
-		GUIHelper.setEnabled(recordTabbedPane, false);
-		deleteRecordButton.setEnabled(false);
 	}
 
-	private boolean validateData(){
+	@Override
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String date = GUIHelper.readTextTrimmed(dateField);
@@ -626,49 +272,8 @@ public class HistoricDateDialog extends JDialog{
 		return true;
 	}
 
-	private void okAction(){
-		if(selectedRecord == null)
-			return;
-
-		saveData();
-
-		if(selectedRecord.hashCode() != selectedRecordHash){
-			final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
-			final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
-			if(recordModification.isEmpty()){
-				//create a new record
-				final TreeMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
-				final Map<String, Object> newModification = new HashMap<>();
-				final int newModificationID = extractNextRecordID(storeModifications);
-				newModification.put("id", newModificationID);
-				newModification.put("reference_table", TABLE_NAME);
-				newModification.put("reference_id", extractRecordID(selectedRecord));
-				newModification.put("creation_date", now);
-				storeModifications.put(newModificationID, newModification);
-			}
-			else{
-				//TODO ask for a modification note
-//				//show note record dialog
-//				final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-//				changeNoteDialog.setTitle("Change note for " + TABLE_NAME + " " + extractRecordID(selectedRecord));
-//				changeNoteDialog.loadData(selectedRecord, dialog -> {
-//					selectedRecord = selectedRecord;
-//					selectedRecordHash = selectedRecord.hashCode();
-//				});
-//
-//				changeNoteDialog.setSize(450, 209);
-//				changeNoteDialog.setLocationRelativeTo(this);
-//				changeNoteDialog.setVisible(true);
-
-
-				//update the record with `update_date`
-				recordModification.get(recordModification.firstKey())
-					.put("update_date", now);
-			}
-		}
-	}
-
-	private void saveData(){
+	@Override
+	protected void saveData(){
 		//read record panel:
 		final String date = GUIHelper.readTextTrimmed(dateField);
 		final String dateOriginal = GUIHelper.readTextTrimmed(dateOriginalField);
@@ -692,6 +297,23 @@ public class HistoricDateDialog extends JDialog{
 		selectedRecord.put("date_original", dateOriginal);
 		selectedRecord.put("certainty", certainty);
 		selectedRecord.put("credibility", credibility);
+	}
+
+
+	private static String extractRecordDate(final Map<String, Object> record){
+		return (String)record.get("date");
+	}
+
+	private static Integer extractRecordCalendarID(final Map<String, Object> record){
+		return (Integer)record.get("calendar_id");
+	}
+
+	private static String extractRecordDateOriginal(final Map<String, Object> record){
+		return (String)record.get("date_original");
+	}
+
+	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
+		return (Integer)record.get("calendar_original_id");
 	}
 
 
@@ -796,7 +418,6 @@ public class HistoricDateDialog extends JDialog{
 			EventBusService.subscribe(listener);
 
 			final HistoricDateDialog dialog = new HistoricDateDialog(store, null, parent);
-			dialog.setTitle("Historic dates");
 			if(!dialog.loadData(HistoricDateDialog.extractRecordID(historicDate1)))
 				dialog.showNewRecord();
 

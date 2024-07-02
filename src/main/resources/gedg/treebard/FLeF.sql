@@ -108,7 +108,7 @@ CREATE TABLE PLACE
 CREATE TABLE LOCALIZED_TEXT
 (
  "ID"               numeric PRIMARY KEY,
- "TEXT"             text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ "TEXT"             text NOT NULL,	-- Text
  LOCALE             text,				-- The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47).
  "TYPE"             text,				-- Can be "original", "transliteration", or "translation".
  TRANSCRIPTION      text,				-- Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul").
@@ -129,6 +129,7 @@ CREATE TABLE NOTE
 (
  "ID"            numeric PRIMARY KEY,
  NOTE            text NOT NULL,		-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ LOCALE          text,					-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "person name", "person", "group", "research status", "media").
  REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
@@ -218,7 +219,7 @@ CREATE TABLE GROUP_JUNCTION
 CREATE TABLE EVENT
 (
  "ID"            numeric PRIMARY KEY,
- EVENT_TYPE      text NOT NULL,		-- (ex. "historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award")
+ "TYPE"          text NOT NULL,		-- (ex. "historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award")
  DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        numeric,				-- The place this event happened.
  DATE_ID         numeric,				-- The date this event has happened.
@@ -244,8 +245,8 @@ https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://elearn
 CREATE TABLE CULTURAL_NORM
 (
  "ID"          numeric PRIMARY KEY,
- IDENTIFIER    text,				-- A (short) identifier of the rule.
- DESCRIPTION   text NOT NULL,	-- The description of the rule.
+ IDENTIFIER    text NOT NULL,	-- An identifier of the rule.
+ DESCRIPTION   text,				-- The description of the rule.
  PLACE_ID      numeric,			-- The place this rule applies.
  DATE_START_ID numeric,			-- The date this cultural norm went into effect.
  DATE_END_ID   numeric,			-- The date this cultural norm stopped being in effect.
@@ -260,7 +261,7 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 (
  "ID"             numeric PRIMARY KEY,
  CULTURAL_NORM_ID numeric NOT NULL,
- REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "event", "note", "person", "person name", "group").
+ REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "note", "person", "person name", "group").
  REFERENCE_ID     numeric NOT NULL,	-- The ID of the referenced record in the table.
  CERTAINTY        text,					-- A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY      text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
@@ -292,8 +293,9 @@ CREATE TABLE RESEARCH_STATUS
  "ID"            numeric PRIMARY KEY,
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to.
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- DESCRIPTION     text NOT NULL,		-- The description of the research status.
- STATUS          text,					-- Research status (ex. "active": currently being searched, "ended": all the information has been found).
+ IDENTIFIER      text NOT NULL,		-- An identifier.
+ DESCRIPTION     text,					-- The description of the research status.
+ STATUS          text,					-- Research status (ex. "open": recorded but not started yet, "active": currently being searched, "ended": all the information has been found).
  PRIORITY        numeric
 );
 

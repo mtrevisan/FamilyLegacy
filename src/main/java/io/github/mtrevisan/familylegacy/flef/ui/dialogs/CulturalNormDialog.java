@@ -24,9 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
+import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
@@ -52,7 +59,9 @@ import javax.swing.table.TableRowSorter;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
+import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,36 +70,38 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class RepositoryDialog extends CommonDialog{
+public class CulturalNormDialog extends CommonDialog implements TextPreviewListenerInterface{
 
 	@Serial
-	private static final long serialVersionUID = 6136508398081805353L;
+	private static final long serialVersionUID = -3961030253095528462L;
 
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
-	private static final String TABLE_NAME = "repository";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
+	private static final String TABLE_NAME = "cultural_norm";
 
 
 	private JLabel identifierLabel;
 	private JTextField identifierField;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JButton personButton;
+	private JLabel descriptionLabel;
+	private TextPreviewPane descriptionTextArea;
 	private JButton placeButton;
+	private JButton dateStartButton;
+	private JButton dateEndButton;
+	private JLabel certaintyLabel;
+	private JComboBox<String> certaintyComboBox;
+	private JLabel credibilityLabel;
+	private JComboBox<String> credibilityComboBox;
 
 	private JButton noteButton;
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
 
 
-	public RepositoryDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
+	public CulturalNormDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
 			final Frame parent){
 		super(store, onCloseGracefully, parent);
 
-		setTitle("Repositories");
+		setTitle("Cultural norms");
 	}
 
 
@@ -117,12 +128,19 @@ public class RepositoryDialog extends CommonDialog{
 	protected void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{"public library", "college library", "national library",
-			"prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library",
-			"religious library", "genealogy society collection", "government agency", "funeral home"});
-		personButton = new JButton("Reference person", ICON_PERSON);
+
+		descriptionLabel = new JLabel("Description:");
+		descriptionTextArea = TextPreviewPane.createWithoutPreview(this);
+		descriptionTextArea.setTextViewFont(identifierField.getFont());
+
 		placeButton = new JButton("Place", ICON_PLACE);
+		dateStartButton = new JButton("Date start", ICON_CALENDAR);
+		dateEndButton = new JButton("Date end", ICON_CALENDAR);
+
+		certaintyLabel = new JLabel("Certainty:");
+		certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+		credibilityLabel = new JLabel("Credibility:");
+		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 		noteButton = new JButton("Notes", ICON_NOTE);
 		mediaButton = new JButton("Media", ICON_MEDIA);
@@ -133,16 +151,26 @@ public class RepositoryDialog extends CommonDialog{
 		GUIHelper.addUndoCapability(identifierField);
 		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
-
-		personButton.setToolTipText("Reference person");
-		personButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PERSON, getSelectedRecord())));
+		descriptionLabel.setLabelFor(descriptionTextArea);
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+
+		dateStartButton.setToolTipText("Start date");
+		dateStartButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+
+		dateEndButton.setToolTipText("End date");
+		dateEndButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+
+		certaintyLabel.setLabelFor(certaintyComboBox);
+		certaintyComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(certaintyComboBox);
+		AutoCompleteDecorator.decorate(certaintyComboBox);
+
+		credibilityLabel.setLabelFor(credibilityComboBox);
+		credibilityComboBox.setEditable(true);
+		GUIHelper.addUndoCapability(credibilityComboBox);
+		AutoCompleteDecorator.decorate(credibilityComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -158,14 +186,19 @@ public class RepositoryDialog extends CommonDialog{
 	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap related");
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(typeComboBox, "wrap paragraph");
-		recordPanelBase.add(personButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(placeButton, "sizegroup btn,gapleft 30,center");
+		recordPanelBase.add(identifierField, "growx,wrap paragraph");
+		recordPanelBase.add(descriptionLabel, "align label,top,sizegroup label,split 2");
+		recordPanelBase.add(descriptionTextArea, "grow,wrap paragraph");
+		recordPanelBase.add(placeButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(dateStartButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(dateEndButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(certaintyLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(certaintyComboBox, "wrap related");
+		recordPanelBase.add(credibilityLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(credibilityComboBox);
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
@@ -205,17 +238,23 @@ public class RepositoryDialog extends CommonDialog{
 	@Override
 	protected void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
-		final String type = extractRecordType(selectedRecord);
-		final Integer personID = extractRecordPersonID(selectedRecord);
+		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
+		final Integer dateStartID = extractRecordDateStartID(selectedRecord);
+		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
+		final String certainty = extractRecordCertainty(selectedRecord);
+		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		identifierField.setText(identifier);
-		typeComboBox.setSelectedItem(type);
-		GUIHelper.addBorder(personButton, personID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
+		descriptionTextArea.setText("Cultural norm " + extractRecordID(selectedRecord), description, null);
+		GUIHelper.addBorder(placeButton, (placeID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		GUIHelper.addBorder(dateStartButton, (dateStartID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		GUIHelper.addBorder(dateEndButton, (dateEndID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		certaintyComboBox.setSelectedItem(certainty);
+		credibilityComboBox.setSelectedItem(credibility);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -226,9 +265,12 @@ public class RepositoryDialog extends CommonDialog{
 	protected void clearData(){
 		identifierField.setText(null);
 		GUIHelper.addBackground(identifierField, Color.WHITE);
-		typeComboBox.setSelectedItem(null);
-		GUIHelper.setDefaultBorder(personButton);
+		descriptionTextArea.clear();
 		GUIHelper.setDefaultBorder(placeButton);
+		GUIHelper.setDefaultBorder(dateStartButton);
+		GUIHelper.setDefaultBorder(dateEndButton);
+		certaintyComboBox.setSelectedItem(null);
+		credibilityComboBox.setSelectedItem(null);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
@@ -239,8 +281,8 @@ public class RepositoryDialog extends CommonDialog{
 	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
-			final String identifier = GUIHelper.readTextTrimmed(identifierField);
-			//enforce non-nullity on `identifier`
+			final String identifier = extractRecordIdentifier(selectedRecord);
+			//enforce non-nullity on `type`
 			if(identifier == null || identifier.isEmpty()){
 				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 					JOptionPane.ERROR_MESSAGE);
@@ -255,8 +297,10 @@ public class RepositoryDialog extends CommonDialog{
 	@Override
 	protected void saveData(){
 		//read record panel:
-		final String identifier = GUIHelper.readTextTrimmed(identifierField);
-		final String type = (String)typeComboBox.getSelectedItem();
+		final String identifier = identifierField.getText();
+		final String description = descriptionTextArea.getText();
+		final String certainty = (String)certaintyComboBox.getSelectedItem();
+		final String credibility = (String)credibilityComboBox.getSelectedItem();
 
 		//update table
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
@@ -272,7 +316,9 @@ public class RepositoryDialog extends CommonDialog{
 		}
 
 		selectedRecord.put("identifier", identifier);
-		selectedRecord.put("type", type);
+		selectedRecord.put("description", description);
+		selectedRecord.put("certainty", certainty);
+		selectedRecord.put("credibility", credibility);
 	}
 
 
@@ -280,23 +326,27 @@ public class RepositoryDialog extends CommonDialog{
 		return (String)record.get("identifier");
 	}
 
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
+	private static String extractRecordDescription(final Map<String, Object> record){
+		return (String)record.get("description");
 	}
 
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
 	}
 
+	private static Integer extractRecordDateStartID(final Map<String, Object> record){
+		return (Integer)record.get("date_start_id");
+	}
+
+	private static Integer extractRecordDateEndID(final Map<String, Object> record){
+		return (Integer)record.get("date_end_id");
+	}
+
 
 	private static class RecordTableModel extends DefaultTableModel{
 
 		@Serial
-		private static final long serialVersionUID = -4111367121357066276L;
+		private static final long serialVersionUID = 5902002320122325722L;
 
 
 		RecordTableModel(){
@@ -315,6 +365,17 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 
+	@Override
+	public void textChanged(){
+		//TODO
+	}
+
+	@Override
+	public void onPreviewStateChange(boolean visible){
+		//TODO
+	}
+
+
 	public static void main(final String[] args){
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -324,20 +385,40 @@ public class RepositoryDialog extends CommonDialog{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
-		store.put(TABLE_NAME, repositories);
-		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
-		repository1.put("identifier", "repo 1");
-		repository1.put("type", "public library");
-		repository1.put("person_id", 2);
-		repository1.put("place_id", 3);
-		repositories.put((Integer)repository1.get("id"), repository1);
-		final Map<String, Object> repository2 = new HashMap<>();
-		repository2.put("id", 2);
-		repository2.put("identifier", "repo 2");
-		repository2.put("type", "college library");
-		repositories.put((Integer)repository2.get("id"), repository2);
+		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
+		store.put(TABLE_NAME, culturalNorms);
+		final Map<String, Object> culturalNorm = new HashMap<>();
+		culturalNorm.put("id", 1);
+		culturalNorm.put("identifier", "rule 1 id");
+		culturalNorm.put("description", "rule 1");
+		culturalNorm.put("place_id", 1);
+		culturalNorm.put("date_start_id", 1);
+		culturalNorm.put("date_end_id", 1);
+		culturalNorm.put("certainty", "certain");
+		culturalNorm.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		culturalNorms.put((Integer)culturalNorm.get("id"), culturalNorm);
+
+		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
+		store.put("place", places);
+		final Map<String, Object> place1 = new HashMap<>();
+		place1.put("id", 1);
+		place1.put("identifier", "place 1");
+		place1.put("name_id", 1);
+		places.put((Integer)place1.get("id"), place1);
+
+		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
+		store.put("localized_text", localizedTexts);
+		final Map<String, Object> localizedText1 = new HashMap<>();
+		localizedText1.put("id", 1);
+		localizedText1.put("text", "place 1 name");
+		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+
+		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
+		store.put("historic_date", dates);
+		final Map<String, Object> date1 = new HashMap<>();
+		date1.put("id", 1);
+		date1.put("date", "18 OCT 2000");
+		dates.put((Integer)date1.get("id"), date1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -354,26 +435,6 @@ public class RepositoryDialog extends CommonDialog{
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
-		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
-		media1.put("identifier", "media 1");
-		media1.put("title", "title 1");
-		media1.put("type", "photo");
-		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
-		medias.put((Integer)media1.get("id"), media1);
-		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
-		store.put(TABLE_NAME_MEDIA_JUNCTION, mediaJunctions);
-		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("id", 1);
-		mediaJunction1.put("media_id", 1);
-		mediaJunction1.put("photo_crop", "0 0 10 20");
-		mediaJunction1.put("reference_table", TABLE_NAME);
-		mediaJunction1.put("reference_id", 1);
-		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
-
 		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
 		store.put(TABLE_NAME_RESTRICTION, restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
@@ -382,6 +443,13 @@ public class RepositoryDialog extends CommonDialog{
 		restriction1.put("reference_table", TABLE_NAME);
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
+
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
+		final Map<String, Object> m1 = new HashMap<>();
+		m1.put("id", 1);
+		m1.put("identifier", "custom media");
+		media.put((Integer)m1.get("id"), m1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -395,31 +463,20 @@ public class RepositoryDialog extends CommonDialog{
 				@EventHandler
 				public static void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case PERSON -> {
-							//TODO
-						}
 						case PLACE -> {
 							//TODO
-//							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
-//							final GedcomNode repository = editCommand.getContainer();
-//							dialog.setTitle(repository.getID() != null
-//								? "Place for repository " + repository.getID()
-//								: "Place for new repository");
-//							if(!dialog.loadData(repository, editCommand.getOnCloseGracefully()))
-//								dialog.showNewRecord();
-//
-//							dialog.setSize(550, 450);
-//							dialog.setLocationRelativeTo(parent);
-//							dialog.setVisible(true);
+						}
+						case DATE -> {
+							//TODO
 						}
 						case NOTE -> {
 							//TODO
 //							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode repository = editCommand.getContainer();
-//							dialog.setTitle(repository.getID() != null
-//								? "Note " + repository.getID()
+//							final GedcomNode assertion = editCommand.getContainer();
+//							dialog.setTitle(assertion.getID() != null
+//								? "Note " + assertion.getID()
 //								: "New note for " + container.getID());
-//							dialog.loadData(repository, editCommand.getOnCloseGracefully());
+//							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
 //							dialog.setLocationRelativeTo(parent);
@@ -444,8 +501,22 @@ public class RepositoryDialog extends CommonDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final RepositoryDialog dialog = new RepositoryDialog(store, null, parent);
-			if(!dialog.loadData(RepositoryDialog.extractRecordID(repository1)))
+			final DependencyInjector injector = new DependencyInjector();
+			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
+			try{
+				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
+				dbManager.initialize(grammarFile);
+
+				dbManager.insertDatabase(store);
+			}
+			catch(final SQLException | IOException e){
+				throw new RuntimeException(e);
+			}
+			injector.register(DatabaseManagerInterface.class, dbManager);
+
+			final CulturalNormDialog dialog = new CulturalNormDialog(store, null, parent);
+			injector.injectDependencies(dialog);
+			if(!dialog.loadData(CulturalNormDialog.extractRecordID(culturalNorm)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -454,7 +525,7 @@ public class RepositoryDialog extends CommonDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(400, 408);
+			dialog.setSize(474, 705);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

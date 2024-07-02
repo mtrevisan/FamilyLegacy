@@ -139,7 +139,7 @@ public class SourceDialog extends JDialog{
 	private static final int TABLE_ROWS_SHOWN = 4;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon ICON_CROP = ResourceHelper.getImage("/images/crop.png", 20, 20);
+	private static final ImageIcon ICON_CROP = ResourceHelper.getImage("/images/photo_crop.png", 20, 20);
 	private static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png", 20, 20);
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 	private static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png", 20, 20);

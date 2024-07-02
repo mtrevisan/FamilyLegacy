@@ -45,7 +45,7 @@ public class DatePanel extends JPanel{
 	private static final long serialVersionUID = -8468501231004246071L;
 
 	//https://thenounproject.com/term/weekly-calendar/541199/
-	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/date.png", 20, 20);
+	private static final ImageIcon ICON_DATE = ResourceHelper.getImage("/images/calendar.png", 20, 20);
 
 
 	private final JTextField dateField = new JTextField();
