@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2020-2024 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -52,6 +52,7 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -66,6 +67,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.prefs.Preferences;
 
@@ -145,7 +147,23 @@ public class TextPreviewPane extends JSplitPane{
 	private TextPreviewListenerInterface listener;
 
 
+	public static TextPreviewPane createWithoutPreview(){
+
+		final TextPreviewPane pane = new TextPreviewPane();
+
+		pane.textView.setTabSize(3);
+		pane.textView.setRows(10);
+
+		final JScrollPane textScroll = new JScrollPane(pane.textView);
+		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		pane.setLeftComponent(textScroll);
+
+		return pane;
+	}
+
 	public static TextPreviewPane createWithoutPreview(final TextPreviewListenerInterface listener){
+		Objects.requireNonNull(listener);
+
 		final TextPreviewPane pane = new TextPreviewPane();
 
 		pane.listener = listener;
@@ -162,9 +180,19 @@ public class TextPreviewPane extends JSplitPane{
 		return pane;
 	}
 
+	public static TextPreviewPane createWithPreview(){
+		final TextPreviewPane pane = createWithoutPreview();
+		addPreview(pane);
+		return pane;
+	}
+
 	public static TextPreviewPane createWithPreview(final TextPreviewListenerInterface listener){
 		final TextPreviewPane pane = createWithoutPreview(listener);
+		addPreview(pane);
+		return pane;
+	}
 
+	private static void addPreview(TextPreviewPane pane){
 		pane.textView.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyReleased(final KeyEvent event){
@@ -198,13 +226,28 @@ public class TextPreviewPane extends JSplitPane{
 		pane.setContinuousLayout(true);
 		pane.setDividerLocation(1.);
 		pane.setDividerSize(0);
-
-		return pane;
 	}
 
 
 	private TextPreviewPane(){
 		super(JSplitPane.HORIZONTAL_SPLIT);
+	}
+
+
+	public Font getTextViewFont(){
+		return textView.getFont();
+	}
+
+	public void setTextViewFont(final Font f){
+		textView.setFont(f);
+	}
+
+	public Font getTextPreviewFont(){
+		return previewView.getFont();
+	}
+
+	public void setTextPreviewFont(final Font f){
+		previewView.setFont(f);
 	}
 
 	/**
@@ -214,6 +257,9 @@ public class TextPreviewPane extends JSplitPane{
 	 * @return	HTML string.
 	 */
 	private String renderHtml(final String markdown){
+		if(markdown == null || markdown.isEmpty())
+			return HTML_START + HTML_END;
+
 		final Node document = MARKDOWN_PARSER.parse(markdown);
 		final String renderedDocument = HTML_RENDERER.render(document);
 		return  HTML_START + renderedDocument + HTML_END;
@@ -309,7 +355,11 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 
-	public void setText(final String title, String text, final String languageTag){
+	public void clear(){
+		setText(null);
+	}
+
+	public void setText(final String title, final String text, final String languageTag){
 		if(listener != null){
 			removeAllActionListeners(htmlExportStandardItem);
 			htmlExportStandardItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_STANDARD_CSS));
@@ -318,9 +368,10 @@ public class TextPreviewPane extends JSplitPane{
 			htmlExportGithubItem.addActionListener(event -> exportHtml(title, languageTag, FILE_HTML_GITHUB_CSS));
 		}
 
-		if(text == null)
-			text = StringUtils.EMPTY;
+		setText(text);
+	}
 
+	private void setText(final String text){
 		//store original text to change the ok button state
 		textView.setText(text);
 		//scroll to top
@@ -340,7 +391,8 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 	public String getText(){
-		return textView.getText();
+		return textView.getText()
+			.trim();
 	}
 
 }

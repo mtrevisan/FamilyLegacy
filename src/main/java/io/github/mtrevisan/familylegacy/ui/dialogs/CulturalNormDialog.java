@@ -577,7 +577,8 @@ public class CulturalNormDialog extends JDialog{
 
 		final Flef store = new Flef();
 //		final Store load = store.load("/gedg/treebard/FLeF.gedg", "src/main/resources/ged/small.flef.ged");
-		final Store load = store.load("/gedg/treebard/FLeF.gedg", "src/main/resources/ged/small.newflef.ged");
+//		final Store load = store.load("/gedg/treebard/FLeF.gedg", "src/main/resources/ged/small.newflef.ged");
+		final Store load = store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged");
 		load.transform();
 		final GedcomNode container = store.getIndividuals()
 			.get(0);
