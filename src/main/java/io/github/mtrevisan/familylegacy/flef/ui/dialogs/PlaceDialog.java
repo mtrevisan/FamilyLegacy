@@ -38,12 +38,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -62,7 +62,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class PlaceDialog extends CommonDialog{
+public class PlaceDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
@@ -70,16 +70,12 @@ public class PlaceDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "place";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel identifierLabel;
 	private JTextField identifierField;
 	private JButton nameButton;
-	private JButton localizedNamesButton;
+	private JButton transcribedNameButton;
 	private JLabel typeLabel;
 	private JComboBox<String> typeComboBox;
 	private JLabel coordinateLabel;
@@ -106,17 +102,17 @@ public class PlaceDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -125,11 +121,11 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		nameButton = new JButton("Name", ICON_TEXT);
-		localizedNamesButton = new JButton("Localized names", ICON_TRANSLATION);
+		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{"nation", "province", "state", "county", "city", "township",
 			"parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
@@ -150,13 +146,13 @@ public class PlaceDialog extends CommonDialog{
 
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		nameButton.setToolTipText("Name");
 		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
 
-		localizedNamesButton.setToolTipText("Localized names");
-		localizedNamesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PLACE_NAME, getSelectedRecord())));
+		transcribedNameButton.setToolTipText("Transcribed names");
+		transcribedNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PLACE_NAME, getSelectedRecord())));
 
 		typeLabel.setLabelFor(typeComboBox);
 		typeComboBox.setEditable(true);
@@ -193,12 +189,12 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
 		recordPanelBase.add(nameButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(localizedNamesButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
 		recordPanelBase.add(coordinateLabel, "align label,sizegroup label,split 2");
@@ -221,7 +217,7 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -239,7 +235,7 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -250,7 +246,7 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final Integer nameID = extractRecordNameID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -261,13 +257,13 @@ public class PlaceDialog extends CommonDialog{
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordLocalizedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordMedia = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractLocalizedTextJunction("name");
+		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		identifierField.setText(identifier);
 		GUIHelper.addBorder(nameButton, nameID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(localizedNamesButton, !recordLocalizedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 		coordinateField.setText(coordinate);
 		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
@@ -277,16 +273,16 @@ public class PlaceDialog extends CommonDialog{
 		photoCropButton.setEnabled(photoCrop != null && !photoCrop.isEmpty());
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(photosButton, !recordMedia.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photosButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		identifierField.setText(null);
-		GUIHelper.addBackground(identifierField, Color.WHITE);
+		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		GUIHelper.setDefaultBorder(nameButton);
-		GUIHelper.setDefaultBorder(localizedNamesButton);
+		GUIHelper.setDefaultBorder(transcribedNameButton);
 		typeComboBox.setSelectedItem(null);
 		coordinateField.setText(null);
 		coordinateSystemComboBox.setSelectedItem(null);
@@ -300,7 +296,7 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String date = GUIHelper.readTextTrimmed(identifierField);
@@ -317,7 +313,7 @@ public class PlaceDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
 		final String type = (String)typeComboBox.getSelectedItem();
@@ -506,7 +502,7 @@ public class PlaceDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final PlaceDialog dialog = new PlaceDialog(store, null, parent);
-			if(!dialog.loadData(PlaceDialog.extractRecordID(place1)))
+			if(!dialog.loadData(extractRecordID(place1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

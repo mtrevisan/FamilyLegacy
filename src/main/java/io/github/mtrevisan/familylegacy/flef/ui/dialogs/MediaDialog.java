@@ -37,12 +37,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -62,7 +62,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class MediaDialog extends CommonDialog{
+public class MediaDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -800755271311929604L;
@@ -70,8 +70,6 @@ public class MediaDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "media";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel identifierLabel = new JLabel("Identifier:");
@@ -103,17 +101,17 @@ public class MediaDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -122,7 +120,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		titleLabel = new JLabel("Title:");
@@ -141,7 +139,7 @@ public class MediaDialog extends CommonDialog{
 
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		titleLabel.setLabelFor(titleField);
 		GUIHelper.addUndoCapability(titleField);
@@ -167,7 +165,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
@@ -188,7 +186,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterRepositoryID != null)
 			records = records.entrySet().stream()
@@ -210,7 +208,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -221,7 +219,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -241,10 +239,10 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		identifierField.setText(null);
 		titleField.setText(null);
-		GUIHelper.addBackground(identifierField, Color.WHITE);
+		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
 		photoProjectionComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(dateButton);
@@ -254,7 +252,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = GUIHelper.readTextTrimmed(identifierField);
@@ -271,7 +269,7 @@ public class MediaDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
 		final String title = GUIHelper.readTextTrimmed(titleField);
@@ -424,7 +422,7 @@ public class MediaDialog extends CommonDialog{
 
 			final Integer filterRepositoryID = null;
 			final MediaDialog dialog = new MediaDialog(store, filterRepositoryID, null, parent);
-			if(!dialog.loadData(MediaDialog.extractRecordID(media1)))
+			if(!dialog.loadData(extractRecordID(media1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

@@ -58,7 +58,7 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Write one UNICODE character.
 	 */
-	public void write(final int chr) throws IOException{
+	public final void write(final int chr) throws IOException{
 		if(chr < 128)
 			output.write(chr);
 		else{
@@ -75,7 +75,7 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Write part of an array of UNICODE characters.
 	 */
-	public void write(final char[] buffer, final int offset, final int length) throws IOException{
+	public final void write(final char[] buffer, final int offset, final int length) throws IOException{
 		for(int i = offset; i < offset + length; i ++)
 			write(buffer[i]);
 	}
@@ -83,7 +83,7 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Write a string of UNICODE characters.
 	 */
-	public void write(final String s) throws IOException{
+	public final void write(final String s) throws IOException{
 		for(int i = 0; i < s.length(); i ++)
 			write(s.charAt(i));
 	}
@@ -91,7 +91,7 @@ class AnselOutputStreamWriter extends OutputStreamWriter{
 	/*
 	 * Determine the character code in use.
 	 */
-	public String getEncoding(){
+	public final String getEncoding(){
 		return AnselInputStreamReader.CHARACTER_ENCODING;
 	}
 

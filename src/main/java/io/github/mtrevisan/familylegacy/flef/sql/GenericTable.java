@@ -61,15 +61,15 @@ public class GenericTable{
 	}
 
 
-	public String getName(){
+	public final String getName(){
 		return name;
 	}
 
-	public List<GenericColumn> getColumns(){
+	public final List<GenericColumn> getColumns(){
 		return columns;
 	}
 
-	GenericColumn findColumn(final String name){
+	final GenericColumn findColumn(final String name){
 		for(int i = 0, length = columns.size(); i < length; i ++){
 			final GenericColumn column = columns.get(i);
 			if(column.getName().equalsIgnoreCase(name))
@@ -78,17 +78,17 @@ public class GenericTable{
 		return null;
 	}
 
-	void addColumn(final GenericColumn column){
+	final void addColumn(final GenericColumn column){
 		columnIndex.put(column.getName(), columnIndex.size());
 
 		columns.add(column);
 	}
 
-	Map<GenericKey, GenericRecord> getRecords(){
+	final Map<GenericKey, GenericRecord> getRecords(){
 		return records;
 	}
 
-	void addRecord(final GenericRecord record){
+	final void addRecord(final GenericRecord record){
 		final GenericKey primaryKeyValue = extractKey(record);
 
 		records.put(primaryKeyValue, record);
@@ -102,36 +102,36 @@ public class GenericTable{
 		return new GenericKey(primaryKeyValue);
 	}
 
-	Set<String> getPrimaryKeys(){
+	final Set<String> getPrimaryKeys(){
 		return primaryKeys;
 	}
 
-	void addPrimaryKeyColumn(final String column){
+	final void addPrimaryKeyColumn(final String column){
 		primaryKeys.add(column);
 	}
 
-	Set<String[]> getUniques(){
+	final Set<String[]> getUniques(){
 		return uniques;
 	}
 
-	void addUniques(final String[] columns){
+	final void addUniques(final String[] columns){
 		uniques.add(columns);
 	}
 
-	Set<ForeignKey> getForeignKeys(){
+	final Set<ForeignKey> getForeignKeys(){
 		return foreignKeys;
 	}
 
-	void addForeignKey(final ForeignKey foreignKey){
+	final void addForeignKey(final ForeignKey foreignKey){
 		foreignKeys.add(foreignKey);
 	}
 
 
-	boolean hasRecord(final GenericKey key){
+	final boolean hasRecord(final GenericKey key){
 		return records.containsKey(key);
 	}
 
-	boolean hasRecord(final String[] reference, final GenericKey key){
+	final boolean hasRecord(final String[] reference, final GenericKey key){
 		//if reference is the primary key of this table
 		if(primaryKeys.containsAll(List.of(reference)))
 			return hasRecord(key);
@@ -139,12 +139,12 @@ public class GenericTable{
 		return (findRecord(reference, key) != null);
 	}
 
-	GenericRecord findRecord(final GenericKey key){
+	final GenericRecord findRecord(final GenericKey key){
 		return records.get(key);
 	}
 
 	//iterate over records searching for the one that has in the columns defined by `reference` the values inside `key`
-	GenericRecord findRecord(final String[] reference, final GenericKey key){
+	final GenericRecord findRecord(final String[] reference, final GenericKey key){
 		for(final GenericRecord record : records.values()){
 			boolean found = true;
 			for(int i = 0; i < reference.length; i ++){
@@ -161,14 +161,14 @@ public class GenericTable{
 		return null;
 	}
 
-	Object getValueForColumn(final GenericRecord record, final String columnName){
+	final Object getValueForColumn(final GenericRecord record, final String columnName){
 		final Integer index = columnIndex.get(columnName);
 		return (index != null? record.getFields()[index]: NO_KEY);
 	}
 
 
 	@Override
-	public String toString(){
+	public final String toString(){
 		return "Table{"
 			+ "name='" + name + '\''
 			+ (!columns.isEmpty()? ", columns=" + columns: "")

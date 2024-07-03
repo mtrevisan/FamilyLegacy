@@ -52,6 +52,7 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -233,6 +234,14 @@ public class TextPreviewPane extends JSplitPane{
 		super(JSplitPane.HORIZONTAL_SPLIT);
 	}
 
+
+	public Color getTextViewackgroundColor(){
+		return textView.getBackground();
+	}
+
+	public void setTextViewBackgroundColor(final Color c){
+		GUIHelper.setBackgroundColor(textView, c);
+	}
 
 	public Font getTextViewFont(){
 		return textView.getFont();

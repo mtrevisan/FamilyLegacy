@@ -37,12 +37,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -61,7 +61,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class RepositoryDialog extends CommonDialog{
+public class RepositoryDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6136508398081805353L;
@@ -69,9 +69,6 @@ public class RepositoryDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "repository";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel identifierLabel;
@@ -95,17 +92,17 @@ public class RepositoryDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -114,7 +111,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -131,7 +128,7 @@ public class RepositoryDialog extends CommonDialog{
 
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		typeLabel.setLabelFor(typeComboBox);
 		typeComboBox.setEditable(true);
@@ -155,7 +152,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
@@ -174,7 +171,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -192,7 +189,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -203,7 +200,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
@@ -223,9 +220,9 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		identifierField.setText(null);
-		GUIHelper.addBackground(identifierField, Color.WHITE);
+		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(personButton);
 		GUIHelper.setDefaultBorder(placeButton);
@@ -236,7 +233,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = GUIHelper.readTextTrimmed(identifierField);
@@ -253,7 +250,7 @@ public class RepositoryDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
 		final String type = (String)typeComboBox.getSelectedItem();
@@ -445,7 +442,7 @@ public class RepositoryDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final RepositoryDialog dialog = new RepositoryDialog(store, null, parent);
-			if(!dialog.loadData(RepositoryDialog.extractRecordID(repository1)))
+			if(!dialog.loadData(extractRecordID(repository1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

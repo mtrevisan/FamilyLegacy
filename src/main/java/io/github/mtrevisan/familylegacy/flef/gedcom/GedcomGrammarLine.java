@@ -118,7 +118,8 @@ class GedcomGrammarLine{
 			else if(components[i].contains("@") && RegexHelper.matches(components[i], MULTIPLE_X_REFS)){
 				//Multiple XREF ([@<XREF>@|@<XREF>@|<NULL>...])
 				//At least one @ has to be present
-				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, StringUtils.EMPTY), '|');
+				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_X_REFS_REPLACE, StringUtils.EMPTY),
+					'|');
 				Collections.addAll(sl.xrefNames, values);
 			}
 			else if(RegexHelper.matches(components[i], MIN_MAX_PATTERN)){
@@ -137,7 +138,8 @@ class GedcomGrammarLine{
 				sl.valueNames.add(RegexHelper.removeAll(components[i], VALUE_REPLACE));
 			else if(RegexHelper.matches(components[i], MULTIPLE_VALUES)){
 				//Multiple VALUE ([<ABC>|<DEF>|<GHI>...])
-				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY), '|');
+				final String[] values = StringHelper.split(RegexHelper.replaceAll(components[i], MULTIPLE_VALUES_REPLACE, StringUtils.EMPTY),
+					'|');
 				Collections.addAll(sl.valueNames, values);
 			}
 			else if(RegexHelper.matches(components[i], TAG_PATTERN)){
@@ -181,39 +183,39 @@ class GedcomGrammarLine{
 	/**
 	 * @return	Child block of this grammar line.
 	 */
-	public GedcomGrammarBlock getChildBlock(){
+	public final GedcomGrammarBlock getChildBlock(){
 		return childBlock;
 	}
 
 	/**
 	 * Sets a child block for this gedcom grammar line.
 	 */
-	public void setChildBlock(final GedcomGrammarBlock childBlock){
+	public final void setChildBlock(final GedcomGrammarBlock childBlock){
 		this.childBlock = childBlock;
 	}
 
-	public String getOriginalDefinitionLine(){
+	public final String getOriginalDefinitionLine(){
 		return originalDefinitionLine;
 	}
 
 	/**
 	 * @return	Minimum number of lines which are required in one block.
 	 */
-	public int getMin(){
+	public final int getMin(){
 		return min;
 	}
 
 	/**
 	 * @return	Maximum number of lines which are allowed in one block.
 	 */
-	public int getMax(){
+	public final int getMax(){
 		return max;
 	}
 
 	/**
 	 * @return	Whether this is a mandatory line (with a minimum number of lines {@code >= 1}).
 	 */
-	public boolean isMandatory(){
+	public final boolean isMandatory(){
 		return (min >= 1);
 	}
 
@@ -222,7 +224,7 @@ class GedcomGrammarLine{
 	 * (the return value is != {@code NULL}), it means that this line is
 	 * a structure line.
 	 */
-	public String getStructureName(){
+	public final String getStructureName(){
 		return structureName;
 	}
 
@@ -231,77 +233,77 @@ class GedcomGrammarLine{
 	 * this is a structure line) or a list of the possible tag names (if it
 	 * is a tag line). This ID can be used to identify the grammar line.
 	 */
-	public String getID(){
+	public final String getID(){
 		return (structureName != null? structureName: GedcomFormatter.makeOrList(getTagNames()).toString());
 	}
 
 	/**
 	 * @return	All the possible tag names.
 	 */
-	public Set<String> getTagNames(){
+	public final Set<String> getTagNames(){
 		return (!tagNamesBeforeXRef.isEmpty()? tagNamesBeforeXRef: tagNamesAfterXRef);
 	}
 
 	/**
 	 * @return	Set of all the external reference names on this line.
 	 */
-	public Set<String> getXRefNames(){
+	public final Set<String> getXRefNames(){
 		return xrefNames;
 	}
 
 	/**
 	 * @return	Set of all the value names in this line.
 	 */
-	public Set<String> getValueNames(){
+	public final Set<String> getValueNames(){
 		return valueNames;
 	}
 
 	/**
 	 * Returns all values which are possible for this line.
 	 */
-	public Set<String> getValuePossibilities(){
+	public final Set<String> getValuePossibilities(){
 		return valuePossibilities;
 	}
 
 	/**
 	 * @return	Whether this line has at least one tag name.
 	 */
-	public boolean hasTags(){
+	public final boolean hasTags(){
 		return !getTagNames().isEmpty();
 	}
 
 	/**
 	 * @return	Whether the tag appears before the {@code xref} value on this line.
 	 */
-	public boolean hasTagBeforeXRef(){
+	public final boolean hasTagBeforeXRef(){
 		return !tagNamesBeforeXRef.isEmpty();
 	}
 
 	/**
 	 * @return	Whether the tag appears after the {@code xref} value on this line.
 	 */
-	public boolean hasTagAfterXRef(){
+	public final boolean hasTagAfterXRef(){
 		return !tagNamesAfterXRef.isEmpty();
 	}
 
 	/**
 	 * @return	Whether this line has any xref names.
 	 */
-	public boolean hasXRefNames(){
+	public final boolean hasXRefNames(){
 		return !xrefNames.isEmpty();
 	}
 
 	/**
 	 * @return	Whether this line has any value names.
 	 */
-	public boolean hasValueNames(){
+	public final boolean hasValueNames(){
 		return (!valueNames.isEmpty() || !valuePossibilities.isEmpty());
 	}
 
 	/**
 	 * @return	Whether this line has more than one tag name possibilities.
 	 */
-	public boolean hasMultipleTagNames(){
+	public final boolean hasMultipleTagNames(){
 		return (getTagNames().size() > 1);
 	}
 
@@ -310,7 +312,7 @@ class GedcomGrammarLine{
 	 * tag names. If this line has a structure name, it is a structure line and
 	 * does not have any value/xref fields.
 	 */
-	public boolean hasStructureName(){
+	public final boolean hasStructureName(){
 		return (structureName != null);
 	}
 
@@ -318,14 +320,14 @@ class GedcomGrammarLine{
 	 * @return	Whether this line has sub-lines (with higher levels than this line) and therefore has a child block which contains
 	 * 	all the sub-lines.
 	 */
-	public boolean hasChildBlock(){
+	public final boolean hasChildBlock(){
 		return (childBlock != null);
 	}
 
 	/**
 	 * @return	Whether the given tag name is a possible tag name for this line.
 	 */
-	public boolean hasTag(final String tag){
+	public final boolean hasTag(final String tag){
 		return getTagNames().contains(tag);
 	}
 

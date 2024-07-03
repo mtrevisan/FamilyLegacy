@@ -42,12 +42,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -67,7 +67,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class AssertionDialog extends CommonDialog{
+public class AssertionDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -28220354680747790L;
@@ -106,17 +106,17 @@ public class AssertionDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -125,7 +125,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		citationButton = new JButton("Citation", ICON_CITATION);
 		referenceButton = new JButton("Reference", ICON_REFERENCE);
 		roleLabel = new JLabel("Role:");
@@ -170,13 +170,14 @@ public class AssertionDialog extends CommonDialog{
 		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		culturalNormButton.setToolTipText("Cultural norm");
-		culturalNormButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, getSelectedRecord())));
+		culturalNormButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM,
+			getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(citationButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(referenceButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
@@ -198,7 +199,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterCitationID != null)
 			records = records.entrySet().stream()
@@ -221,7 +222,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_REFERENCE_TABLE);
@@ -232,7 +233,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final Integer sourceID = extractRecordCitationID(selectedRecord);
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
@@ -256,7 +257,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		GUIHelper.setDefaultBorder(citationButton);
 		GUIHelper.setDefaultBorder(referenceButton);
 		roleField.setText(null);
@@ -270,7 +271,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final Integer citationID = extractRecordCitationID(selectedRecord);
@@ -298,7 +299,7 @@ public class AssertionDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String role = GUIHelper.readTextTrimmed(roleField);
 		final String certainty = (String)certaintyComboBox.getSelectedItem();
@@ -503,7 +504,7 @@ public class AssertionDialog extends CommonDialog{
 			final Integer filterCitationID = null;
 			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, null, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(AssertionDialog.extractRecordID(assertion)))
+			if(!dialog.loadData(extractRecordID(assertion)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

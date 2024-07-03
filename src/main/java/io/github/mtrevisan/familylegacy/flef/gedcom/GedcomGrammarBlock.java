@@ -58,7 +58,7 @@ class GedcomGrammarBlock{
 	/**
 	 * Parses the given block with all the lines.
 	 */
-	boolean parse(final List<String> block) throws GedcomGrammarException{
+	final boolean parse(final List<String> block) throws GedcomGrammarException{
 		/* Example:
 		 * n TAG something
 		 *   +1 TAG something
@@ -146,28 +146,28 @@ class GedcomGrammarBlock{
 	/**
 	 * Returns the line from this block which has the given tag or structure name.
 	 */
-	public GedcomGrammarLine getGrammarLine(final String tagOrStructureName){
+	public final GedcomGrammarLine getGrammarLine(final String tagOrStructureName){
 		return idToLineLinks.get(tagOrStructureName);
 	}
 
 	/**
 	 * Returns a list of all the grammar lines which are in this grammar block.
 	 */
-	public List<GedcomGrammarLine> getGrammarLines(){
+	public final List<GedcomGrammarLine> getGrammarLines(){
 		return grammarLines;
 	}
 
 	/**
 	 * Returns the line ID's (tag or structure names) of all the lines in this grammar block.
 	 */
-	public List<String> getAllLineIDs(){
+	public final List<String> getAllLineIDs(){
 		return new ArrayList<>(idToLineLinks.keySet());
 	}
 
 	/**
 	 * Returns a list of all the mandatory lines in this block.
 	 */
-	public List<GedcomGrammarLine> getMandatoryLines(){
+	public final List<GedcomGrammarLine> getMandatoryLines(){
 		/** A sublist of the {@link #grammarLines} which only contains the mandatory lines. */
 		final List<GedcomGrammarLine> mandatoryLines = new ArrayList<>(grammarLines);
 		for(final GedcomGrammarLine line : grammarLines)
@@ -179,14 +179,14 @@ class GedcomGrammarBlock{
 	/**
 	 * Returns {@code true} if this block has one or more child lines.
 	 */
-	public boolean hasChildLines(){
+	public final boolean hasChildLines(){
 		return !grammarLines.isEmpty();
 	}
 
 	/**
 	 * Returns {@code true} if this block has one or more mandatory lines.
 	 */
-	public boolean hasMandatoryLines(){
+	public final boolean hasMandatoryLines(){
 		for(final GedcomGrammarLine line : grammarLines)
 			if(line.getMin() > 0)
 				return true;
@@ -196,19 +196,19 @@ class GedcomGrammarBlock{
 	/**
 	 * Returns {@code true} if this block has a line with the given line ID (tag or structure name).
 	 */
-	public boolean hasGrammarLine(final String lineId){
+	public final boolean hasGrammarLine(final String lineId){
 		return idToLineLinks.containsKey(lineId);
 	}
 
 	/**
 	 * @return	Position of the given grammar line in the block.
 	 */
-	public int getPosition(final GedcomGrammarLine grammarLine){
+	public final int getPosition(final GedcomGrammarLine grammarLine){
 		return grammarLines.indexOf(grammarLine);
 	}
 
 	@Override
-	public String toString(){
+	public final String toString(){
 		return idToLineLinks.keySet().toString();
 	}
 

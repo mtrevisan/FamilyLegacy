@@ -43,61 +43,63 @@ public class GenericColumn{
 	}
 
 
-	public String getName(){
+	public final String getName(){
 		return name;
 	}
 
-	String getType(){
+	final String getType(){
 		return type;
 	}
 
-	Integer getSize(){
+	final Integer getSize(){
 		return size;
 	}
 
-	boolean isNullable(){
+	final boolean isNullable(){
 		return isNullable;
 	}
 
-	void setNotNullable(){
+	final void setNotNullable(){
 		isNullable = false;
 	}
 
-	boolean isPrimaryKey(){
+	final boolean isPrimaryKey(){
 		return (primaryKeyOrder != null);
 	}
 
-	String getPrimaryKeyOrder(){
+	final String getPrimaryKeyOrder(){
 		return primaryKeyOrder;
 	}
 
-	void setPrimaryKeyOrder(final String primaryKeyOrder){
+	final void setPrimaryKeyOrder(final String primaryKeyOrder){
 		this.primaryKeyOrder = primaryKeyOrder;
 	}
 
-	String getForeignKeyTable(){
+	final String getForeignKeyTable(){
 		return foreignKeyTable;
 	}
 
-	String getForeignKeyColumn(){
+	final String getForeignKeyColumn(){
 		return foreignKeyColumn;
 	}
 
-	void setForeignKey(final String foreignKeyTable, final String foreignKeyColumn){
+	final void setForeignKey(final String foreignKeyTable, final String foreignKeyColumn){
 		this.foreignKeyTable = foreignKeyTable;
 		this.foreignKeyColumn = foreignKeyColumn;
 	}
 
 
 	@Override
-	public String toString(){
+	public final String toString(){
 		return "Column{"
 			+ "name='" + name + '\''
 			+ ", type='" + type + '\''
 			+ ", size='" + size + '\''
 			+ (!isNullable? ", nullable=" + isNullable: "")
 			+ (primaryKeyOrder != null? ", primaryKeyOrder='" + primaryKeyOrder + '\'': "")
-			+ (foreignKeyTable != null && foreignKeyColumn != null? ", foreignKeyTable='" + foreignKeyTable + '.' + foreignKeyColumn + '\'': "")
+			+ (foreignKeyTable != null && foreignKeyColumn != null
+				? ", foreignKeyTable='" + foreignKeyTable + '.' + foreignKeyColumn + '\''
+				: "")
 			+ '}';
 	}
 

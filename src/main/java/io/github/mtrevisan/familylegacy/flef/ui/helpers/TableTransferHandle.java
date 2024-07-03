@@ -63,22 +63,22 @@ public class TableTransferHandle extends TransferHandler{
 
 
 	@Override
-	public int getSourceActions(final JComponent component){
+	public final int getSourceActions(final JComponent component){
 		return COPY_OR_MOVE;
 	}
 
 	@Override
-	protected Transferable createTransferable(final JComponent component){
+	protected final Transferable createTransferable(final JComponent component){
 		return new StringSelection(Integer.toString(table.getSelectedRow()));
 	}
 
 	@Override
-	public boolean canImport(final TransferSupport support){
+	public final boolean canImport(final TransferSupport support){
 		return (support.isDrop() && support.isDataFlavorSupported(DataFlavor.stringFlavor));
 	}
 
 	@Override
-	public boolean importData(final TransferSupport support){
+	public final boolean importData(final TransferSupport support){
 		if(!support.isDrop() || !canImport(support))
 			return false;
 

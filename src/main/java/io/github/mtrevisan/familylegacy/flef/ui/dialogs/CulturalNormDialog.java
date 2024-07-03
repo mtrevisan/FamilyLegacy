@@ -44,12 +44,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -70,7 +70,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class CulturalNormDialog extends CommonDialog implements TextPreviewListenerInterface{
+public class CulturalNormDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -3961030253095528462L;
@@ -106,17 +106,17 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -125,7 +125,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 
@@ -149,7 +149,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		descriptionLabel.setLabelFor(descriptionTextArea);
 
@@ -183,7 +183,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
@@ -207,7 +207,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -225,7 +225,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -236,7 +236,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
@@ -250,9 +250,9 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 
 		identifierField.setText(identifier);
 		descriptionTextArea.setText("Cultural norm " + extractRecordID(selectedRecord), description, null);
-		GUIHelper.addBorder(placeButton, (placeID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		GUIHelper.addBorder(dateStartButton, (dateStartID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		GUIHelper.addBorder(dateEndButton, (dateEndID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(dateStartButton, dateStartID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(dateEndButton, dateEndID != null, DATA_BUTTON_BORDER_COLOR);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
@@ -262,9 +262,9 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		identifierField.setText(null);
-		GUIHelper.addBackground(identifierField, Color.WHITE);
+		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		descriptionTextArea.clear();
 		GUIHelper.setDefaultBorder(placeButton);
 		GUIHelper.setDefaultBorder(dateStartButton);
@@ -278,7 +278,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = extractRecordIdentifier(selectedRecord);
@@ -295,7 +295,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String identifier = identifierField.getText();
 		final String description = descriptionTextArea.getText();
@@ -371,7 +371,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 	}
 
 	@Override
-	public void onPreviewStateChange(boolean visible){
+	public void onPreviewStateChange(final boolean visible){
 		//TODO
 	}
 
@@ -516,7 +516,7 @@ public class CulturalNormDialog extends CommonDialog implements TextPreviewListe
 
 			final CulturalNormDialog dialog = new CulturalNormDialog(store, null, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(CulturalNormDialog.extractRecordID(culturalNorm)))
+			if(!dialog.loadData(extractRecordID(culturalNorm)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

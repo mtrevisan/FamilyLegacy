@@ -37,6 +37,7 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -61,7 +62,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class CitationDialog extends CommonDialog{
+public class CitationDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -7601387139021862486L;
@@ -70,10 +71,6 @@ public class CitationDialog extends CommonDialog{
 
 	private static final String TABLE_NAME = "citation";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JTabbedPane recordTabbedPane;
@@ -81,7 +78,7 @@ public class CitationDialog extends CommonDialog{
 	private JLabel locationLabel;
 	private JTextField locationField;
 	private JButton extractButton;
-	private JButton localizedExtractButton;
+	private JButton transcribedExtractButton;
 	private JLabel extractTypeLabel;
 	private JComboBox<String> extractTypeComboBox;
 
@@ -103,17 +100,17 @@ public class CitationDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -122,13 +119,13 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		recordTabbedPane = new JTabbedPane();
 		sourceButton = new JButton("Source", ICON_SOURCE);
 		locationLabel = new JLabel("Location:");
 		locationField = new JTextField();
 		extractButton = new JButton("Extract", ICON_NOTE);
-		localizedExtractButton = new JButton("Localized extracts", ICON_TRANSLATION);
+		transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
 		extractTypeLabel = new JLabel("Type:");
 		extractTypeComboBox = new JComboBox<>(new String[]{"transcript", "extract", "abstract"});
 
@@ -147,8 +144,8 @@ public class CitationDialog extends CommonDialog{
 		extractButton.setToolTipText("Extract");
 		extractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EXTRACT, getSelectedRecord())));
 
-		localizedExtractButton.setToolTipText("Localized text");
-		localizedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT, getSelectedRecord())));
+		transcribedExtractButton.setToolTipText("Transcribed extract");
+		transcribedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT, getSelectedRecord())));
 
 		extractTypeLabel.setLabelFor(extractTypeComboBox);
 		extractTypeComboBox.setEditable(true);
@@ -166,13 +163,13 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(sourceButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(locationLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(locationField, "grow,wrap paragraph");
 		recordPanelBase.add(extractButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(localizedExtractButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(transcribedExtractButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(extractTypeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(extractTypeComboBox);
 
@@ -186,7 +183,7 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterSourceID != null)
 			records = records.entrySet().stream()
@@ -208,7 +205,7 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_LOCATION);
@@ -219,12 +216,12 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final Integer sourceID = extractRecordSourceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final Integer extractID = extractRecordExtractID(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordLocalizedTextJunctions = extractLocalizedTextJunctionReferences("extract");
+		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractLocalizedTextJunction("extract");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -233,7 +230,7 @@ public class CitationDialog extends CommonDialog{
 		locationField.setText(location);
 		GUIHelper.addBorder(extractButton, extractID != null, DATA_BUTTON_BORDER_COLOR);
 		extractTypeComboBox.setSelectedItem(extractType);
-		GUIHelper.addBorder(localizedExtractButton, !recordLocalizedTextJunctions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(transcribedExtractButton, !recordTranscribedExtracts.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -241,12 +238,12 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		GUIHelper.setDefaultBorder(sourceButton);
 		locationField.setText(null);
 		extractTypeComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(extractButton);
-		GUIHelper.setDefaultBorder(localizedExtractButton);
+		GUIHelper.setDefaultBorder(transcribedExtractButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
@@ -257,7 +254,7 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final Integer sourceID = extractRecordSourceID(selectedRecord);
@@ -274,7 +271,7 @@ public class CitationDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String location = GUIHelper.readTextTrimmed(locationField);
 		final String extractType = (String)extractTypeComboBox.getSelectedItem();
@@ -463,7 +460,7 @@ public class CitationDialog extends CommonDialog{
 
 			final Integer filterSourceID = null;
 			final CitationDialog dialog = new CitationDialog(store, filterSourceID, null, parent);
-			if(!dialog.loadData(CitationDialog.extractRecordID(citation)))
+			if(!dialog.loadData(extractRecordID(citation)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

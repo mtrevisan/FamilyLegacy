@@ -34,11 +34,11 @@ public class DependencyInjector{
 	private final Map<Class<?>, Object> dependencyMap = new HashMap<>();
 
 
-	public <T> void register(final Class<T> interfaceClass, final T implementation){
+	public final <T> void register(final Class<T> interfaceClass, final T implementation){
 		dependencyMap.put(interfaceClass, implementation);
 	}
 
-	public <T> void register(final Class<T> interfaceClass, final Class<? extends T> implementationClass){
+	public final <T> void register(final Class<T> interfaceClass, final Class<? extends T> implementationClass){
 		try{
 			final T implementation = implementationClass.getDeclaredConstructor()
 				.newInstance();
@@ -49,7 +49,7 @@ public class DependencyInjector{
 		}
 	}
 
-	public void injectDependencies(final Object target){
+	public final void injectDependencies(final Object target){
 		final Class<?> targetClass = target.getClass();
 		final Field[] fields = targetClass.getDeclaredFields();
 		for(final Field field : fields)

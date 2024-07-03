@@ -34,12 +34,12 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -58,7 +58,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class CalendarDialog extends CommonDialog{
+public class CalendarDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 9026792737072096011L;
@@ -66,7 +66,6 @@ public class CalendarDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_TYPE = 1;
 
 	private static final String TABLE_NAME = "calendar";
-	private static final String TABLE_NAME_NOTE = "note";
 
 
 	private JLabel typeLabel;
@@ -84,17 +83,17 @@ public class CalendarDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -103,14 +102,14 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeField = new JTextField();
 
 		noteButton = new JButton("Notes", ICON_NOTE);
 		typeLabel.setLabelFor(typeField);
 		GUIHelper.addUndoCapability(typeField);
-		GUIHelper.addBackground(typeField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(typeField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 
 		noteButton.setToolTipText("Notes");
@@ -118,7 +117,7 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeField, "growx");
@@ -131,7 +130,7 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -149,7 +148,7 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TYPE);
@@ -160,7 +159,7 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String type = extractRecordType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 
@@ -170,16 +169,16 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		typeField.setText(null);
-		GUIHelper.addBackground(typeField, Color.WHITE);
+		GUIHelper.setBackgroundColor(typeField, Color.WHITE);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		deleteRecordButton.setEnabled(false);
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String type = GUIHelper.readTextTrimmed(typeField);
@@ -196,7 +195,7 @@ public class CalendarDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String type = GUIHelper.readTextTrimmed(typeField);
 
@@ -314,7 +313,7 @@ public class CalendarDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final CalendarDialog dialog = new CalendarDialog(store, null, parent);
-			if(!dialog.loadData(CalendarDialog.extractRecordID(calendar3)))
+		if(!dialog.loadData(extractRecordID(calendar3)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

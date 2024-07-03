@@ -40,12 +40,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -65,7 +65,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class EventDialog extends CommonDialog{
+public class EventDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 1136825738944999745L;
@@ -97,17 +97,17 @@ public class EventDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -116,7 +116,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{"historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial",
 			"occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence",
@@ -158,11 +158,9 @@ public class EventDialog extends CommonDialog{
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
-		GUIHelper.addBorder(placeButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		dateButton.setToolTipText("Event date");
 		dateButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
-		GUIHelper.addBorder(dateButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		referenceButton.setToolTipText("Reference");
 		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
@@ -179,7 +177,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
@@ -199,7 +197,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -217,7 +215,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TYPE);
@@ -228,7 +226,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String type = extractRecordType(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
@@ -240,8 +238,8 @@ public class EventDialog extends CommonDialog{
 
 		typeComboBox.setSelectedItem(type);
 		descriptionField.setText(description);
-		GUIHelper.addBorder(placeButton, (placeID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		GUIHelper.addBorder(dateButton, (dateID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -250,7 +248,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		typeComboBox.setSelectedItem(null);
 		descriptionField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
@@ -263,7 +261,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String type = extractRecordType(selectedRecord);
@@ -291,7 +289,7 @@ public class EventDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String type = (String)typeComboBox.getSelectedItem();
 		final String description = descriptionField.getText();
@@ -495,7 +493,7 @@ public class EventDialog extends CommonDialog{
 
 			final EventDialog dialog = new EventDialog(store, null, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(EventDialog.extractRecordID(event)))
+			if(!dialog.loadData(extractRecordID(event)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

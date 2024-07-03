@@ -39,12 +39,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -63,7 +63,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class HistoricDateDialog extends CommonDialog{
+public class HistoricDateDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3434407293578383806L;
@@ -71,9 +71,7 @@ public class HistoricDateDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_DATE = 1;
 
 	private static final String TABLE_NAME = "historic_date";
-	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel dateLabel;
@@ -100,17 +98,17 @@ public class HistoricDateDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -119,7 +117,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		dateLabel = new JLabel("Date:");
 		dateField = new JTextField();
 		calendarButton = new JButton("Calendar", ICON_CALENDAR);
@@ -137,7 +135,7 @@ public class HistoricDateDialog extends CommonDialog{
 
 		dateLabel.setLabelFor(dateField);
 		GUIHelper.addUndoCapability(dateField);
-		GUIHelper.addBackground(dateField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(dateField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		calendarButton.setToolTipText("Calendar");
 		calendarButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
@@ -167,7 +165,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(dateLabel, "align label,sizegroup label,split 3");
 		recordPanelBase.add(dateField, "growx");
@@ -189,7 +187,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -209,7 +207,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_DATE);
@@ -220,7 +218,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String date = extractRecordDate(selectedRecord);
 		final Integer calendarID = extractRecordCalendarID(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
@@ -243,9 +241,9 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		dateField.setText(null);
-		GUIHelper.addBackground(dateField, Color.WHITE);
+		GUIHelper.setBackgroundColor(dateField, Color.WHITE);
 		GUIHelper.setDefaultBorder(calendarButton);
 		dateOriginalField.setText(null);
 		certaintyComboBox.setSelectedItem(null);
@@ -256,7 +254,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String date = GUIHelper.readTextTrimmed(dateField);
@@ -273,7 +271,7 @@ public class HistoricDateDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String date = GUIHelper.readTextTrimmed(dateField);
 		final String dateOriginal = GUIHelper.readTextTrimmed(dateOriginalField);
@@ -418,7 +416,7 @@ public class HistoricDateDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final HistoricDateDialog dialog = new HistoricDateDialog(store, null, parent);
-			if(!dialog.loadData(HistoricDateDialog.extractRecordID(historicDate1)))
+			if(!dialog.loadData(extractRecordID(historicDate1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

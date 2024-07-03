@@ -40,12 +40,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -69,7 +69,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class ResearchStatusDialog extends CommonDialog{
+public class ResearchStatusDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6258734190218776466L;
@@ -99,17 +99,17 @@ public class ResearchStatusDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -118,11 +118,12 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		referenceButton = new JButton("Reference", ICON_REFERENCE);
 
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionTextArea = TextPreviewPane.createWithoutPreview();
@@ -142,7 +143,7 @@ public class ResearchStatusDialog extends CommonDialog{
 
 		identifierLabel.setLabelFor(identifierField);
 		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.addBackground(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		descriptionLabel.setLabelFor(descriptionTextArea);
 
@@ -156,7 +157,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(referenceButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
@@ -172,7 +173,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -190,7 +191,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -201,7 +202,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
@@ -216,7 +217,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		GUIHelper.setDefaultBorder(referenceButton);
 		identifierField.setText(null);
 		descriptionTextArea.clear();
@@ -225,7 +226,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = extractRecordIdentifier(selectedRecord);
@@ -242,7 +243,7 @@ public class ResearchStatusDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String identifier = identifierField.getText();
 		final String description = descriptionTextArea.getText();
@@ -311,25 +312,25 @@ public class ResearchStatusDialog extends CommonDialog{
 
 	private static class PositiveIntegerFilter extends DocumentFilter{
 		@Override
-		public void insertString(final FilterBypass fb, final int offset, final String string, final AttributeSet attr)
+		public final void insertString(final FilterBypass fb, final int offset, final String string, final AttributeSet attr)
 				throws BadLocationException{
 			if(string != null && isValidInput(string))
 				super.insertString(fb, offset, string, attr);
 		}
 
 		@Override
-		public void replace(final FilterBypass fb, final int offset, final int length, final String string, final AttributeSet attr)
+		public final void replace(final FilterBypass fb, final int offset, final int length, final String string, final AttributeSet attr)
 				throws BadLocationException{
 			if(string != null && isValidInput(string))
 				super.replace(fb, offset, length, string, attr);
 		}
 
 		@Override
-		public void remove(final FilterBypass fb, final int offset, final int length) throws BadLocationException{
+		public final void remove(final FilterBypass fb, final int offset, final int length) throws BadLocationException{
 			super.remove(fb, offset, length);
 		}
 
-		private boolean isValidInput(final String string){
+		private static boolean isValidInput(final String string){
 			try{
 				return (Integer.parseInt(string) >= 0);
 			}
@@ -403,7 +404,7 @@ public class ResearchStatusDialog extends CommonDialog{
 
 			final ResearchStatusDialog dialog = new ResearchStatusDialog(store, null, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(ResearchStatusDialog.extractRecordID(researchStatus)))
+			if(!dialog.loadData(extractRecordID(researchStatus)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

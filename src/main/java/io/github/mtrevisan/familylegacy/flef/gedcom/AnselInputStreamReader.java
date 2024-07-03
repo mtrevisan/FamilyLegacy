@@ -58,7 +58,7 @@ class AnselInputStreamReader extends InputStreamReader{
 		pending = input.read();
 	}
 
-	public int read() throws IOException{
+	public final int read() throws IOException{
 		final int b = pending;
 		if(b < 0)
 			//return EOF unchanged
@@ -87,7 +87,7 @@ class AnselInputStreamReader extends InputStreamReader{
 	/**
 	 * Fill a supplied buffer with UNICODE characters.
 	 */
-	public int read(final char[] buffer, final int offset, final int length) throws IOException{
+	public final int read(final char[] buffer, final int offset, final int length) throws IOException{
 		if(pending < 0)
 			//have already hit EOF
 			return -1;
@@ -102,7 +102,7 @@ class AnselInputStreamReader extends InputStreamReader{
 		return length;
 	}
 
-	public String getEncoding(){
+	public final String getEncoding(){
 		return CHARACTER_ENCODING;
 	}
 

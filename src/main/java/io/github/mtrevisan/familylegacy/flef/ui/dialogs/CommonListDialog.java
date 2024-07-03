@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
 import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
@@ -37,7 +36,6 @@ import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DropMode;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -57,7 +55,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
-import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
@@ -66,27 +63,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-//TODO check UIHelper.addBorder( in case of non-mandatory fields
-public abstract class CommonDialog extends JDialog{
+public abstract class CommonListDialog extends CommonSingletonDialog{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CommonDialog.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CommonListDialog.class);
 
 	private static final String ACTION_MAP_KEY_INSERT = "insert";
 	private static final String ACTION_MAP_KEY_DELETE = "delete";
 
 	/** [ms] */
-	protected static final int DEBOUNCE_TIME = 400;
-
-	protected static final Color MANDATORY_FIELD_BACKGROUND_COLOR = Color.PINK;
-	protected static final Color MANDATORY_COMBOBOX_BACKGROUND_COLOR = Color.RED;
-	protected static final Color DATA_BUTTON_BORDER_COLOR = Color.BLUE;
+	private static final int DEBOUNCE_TIME = 400;
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
@@ -94,107 +84,59 @@ public abstract class CommonDialog extends JDialog{
 	protected static final int TABLE_INDEX_RECORD_ID = 0;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
-	private static final int ICON_WIDTH_DEFAULT = 20;
-	private static final int ICON_HEIGHT_DEFAULT = 20;
-
-	//https://thenounproject.com/search/?q=cut&i=3132059
-	protected static final ImageIcon ICON_ASSERTION = ResourceHelper.getImage("/images/assertion.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CITATION = ResourceHelper.getImage("/images/citation.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CULTURAL_NORM = ResourceHelper.getImage("/images/cultural_norm.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_EVENT = ResourceHelper.getImage("/images/event.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_GROUP = ResourceHelper.getImage("/images/group.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_MEDIA = ResourceHelper.getImage("/images/media.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PERSON = ResourceHelper.getImage("/images/person.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PHOTO = ResourceHelper.getImage("/images/photo.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PHOTO_CROP = ResourceHelper.getImage("/images/photo_crop.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_REFERENCE = ResourceHelper.getImage("/images/reference.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_RESTRICTION = ResourceHelper.getImage("/images/restriction.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_TEXT = ResourceHelper.getImage("/images/text.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImage("/images/translation.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-
-	protected static final String TABLE_NAME_NOTE = "note";
-	protected static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	protected static final String TABLE_NAME_RESTRICTION = "restriction";
 	private static final String TABLE_NAME_MODIFICATION = "modification";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 
 
 	//store components:
-	protected final JLabel filterLabel = new JLabel("Filter:");
-	protected final JTextField filterField = new JTextField();
-	protected final JTable recordTable = new JTable(getDefaultTableModel());
-	protected final JScrollPane tableScrollPane = new JScrollPane(recordTable);
-	protected final JButton newRecordButton = new JButton("New");
-	protected final JButton deleteRecordButton = new JButton("Delete");
+	private JLabel filterLabel;
+	protected JTextField filterField;
+	protected JTable recordTable;
+	private JScrollPane tableScrollPane;
+	private JButton newRecordButton;
+	protected JButton deleteRecordButton;
 	//record components:
-	private final JTabbedPane recordTabbedPane = new JTabbedPane();
+	private JTabbedPane recordTabbedPane;
 
-	private final Debouncer<CommonDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
+	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
 	private int previousIndex = -1;
 	private volatile boolean ignoreSelectionEvents;
 
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	protected Map<String, Object> selectedRecord;
 	private long selectedRecordHash;
 
-	private final Consumer<Object> onCloseGracefully;
 
-
-	protected CommonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
+	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
 			final Frame parent){
-		super(parent, true);
-
-		this.store = store;
-		this.onCloseGracefully = onCloseGracefully;
-
-		initComponents();
-
-		loadData();
+		super(store, onCloseGracefully, parent);
 	}
 
-
-	protected abstract String getTableName();
 
 	protected abstract DefaultTableModel getDefaultTableModel();
 
-	private void initComponents(){
+	@Override
+	protected final void initComponents(){
 		initStoreComponents();
 
-		initRecordComponents();
-
-		initLayout();
+		super.initComponents();
 	}
 
 	protected void initStoreComponents(){
+		//store components:
+		filterLabel = new JLabel("Filter:");
+		filterField = new JTextField();
+		recordTable = new JTable(getDefaultTableModel());
+		tableScrollPane = new JScrollPane(recordTable);
+		newRecordButton = new JButton("New");
+		deleteRecordButton = new JButton("Delete");
+		//record components:
+		recordTabbedPane = new JTabbedPane();
+
+
 		filterLabel.setLabelFor(filterField);
 		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
 			public void keyReleased(final KeyEvent evt){
-				filterDebouncer.call(CommonDialog.this);
+				filterDebouncer.call(CommonListDialog.this);
 			}
 		});
 
@@ -248,32 +190,8 @@ public abstract class CommonDialog extends JDialog{
 		deleteRecordButton.addActionListener(evt -> deleteAction());
 	}
 
-	protected abstract void initRecordComponents();
-
-	protected void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(TABLE_NAME_RESTRICTION));
-
-		if(evt.getStateChange() == ItemEvent.SELECTED){
-			if(recordRestriction != null)
-				recordRestriction.put("restriction", "confidential");
-			else{
-				final TreeMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
-				//create a new record
-				final Map<String, Object> newRestriction = new HashMap<>();
-				final int newRestrictionID = extractNextRecordID(storeRestrictions);
-				newRestriction.put("id", newRestrictionID);
-				newRestriction.put("restriction", "confidential");
-				newRestriction.put("reference_table", getTableName());
-				newRestriction.put("reference_id", extractRecordID(selectedRecord));
-				storeRestrictions.put(newRestrictionID, newRestriction);
-			}
-		}
-		else if(recordRestriction != null)
-			recordRestriction.put("restriction", "public");
-	}
-
-	//http://www.migcalendar.com/miglayout/cheatsheet.html
-	private void initLayout(){
+	@Override
+	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
 		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
@@ -290,28 +208,7 @@ public abstract class CommonDialog extends JDialog{
 		add(recordTabbedPane, "grow");
 	}
 
-	protected abstract void initRecordLayout(final JTabbedPane recordTabbedPane);
-
-	private void closeAction(final ActionEvent evt){
-		if(closeAction())
-			setVisible(false);
-	}
-
-	protected boolean closeAction(){
-		if(validateData()){
-			okAction();
-
-			if(onCloseGracefully != null)
-				onCloseGracefully.accept(this);
-
-			return true;
-		}
-		return false;
-	}
-
-	protected abstract void loadData();
-
-	protected boolean loadData(final int recordID){
+	protected final boolean loadData(final int recordID){
 		final String tableName = getTableName();
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
 		if(records.containsKey(recordID)){
@@ -330,22 +227,11 @@ public abstract class CommonDialog extends JDialog{
 		return false;
 	}
 
-	protected TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
-	protected static int extractNextRecordID(final TreeMap<Integer, Map<String, Object>> records){
-		return (records.isEmpty()? 1: records.lastKey() + 1);
-	}
-
-	protected static int extractRecordID(final Map<String, Object> record){
-		return (int)record.get("id");
-	}
-
 	protected abstract void filterTableBy(final JDialog panel);
 
 
-	private void selectAction(){
+	@Override
+	protected final void selectAction(){
 		if(!validateData()){
 			final ListSelectionModel selectionModel = recordTable.getSelectionModel();
 			ignoreSelectionEvents = true;
@@ -354,85 +240,29 @@ public abstract class CommonDialog extends JDialog{
 			else
 				selectionModel.clearSelection();
 			ignoreSelectionEvents = false;
-
-			return;
 		}
-		else
+		else{
 			previousIndex = recordTable.getSelectedRow();
 
-		okAction();
+			okAction();
 
-		selectedRecord = getSelectedRecord();
-		if(selectedRecord == null)
-			return;
+			selectedRecord = getSelectedRecord();
+			if(selectedRecord == null)
+				return;
 
-		selectedRecordHash = selectedRecord.hashCode();
+			selectedRecordHash = selectedRecord.hashCode();
 
 
-		fillData();
+			fillData();
 
-		GUIHelper.setEnabled(recordTabbedPane, true);
+			GUIHelper.setEnabled(recordTabbedPane, true);
 
-		deleteRecordButton.setEnabled(true);
+			deleteRecordButton.setEnabled(true);
+		}
 	}
 
-	//fill record panel
-	protected abstract void fillData();
-
-	/**
-	 * Extracts the references from a given table based on the selectedRecord.
-	 *
-	 * @param fromTable	The table name to extract the references to this table from.
-	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
-	 */
-	protected TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
-		final Map<Integer, Map<String, Object>> storeRecords = getRecords(fromTable);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		final String tableName = getTableName();
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(tableName.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
-		return matchedRecords;
-	}
-
-	protected static String extractRecordCertainty(final Map<String, Object> record){
-		return (String)record.get("certainty");
-	}
-
-	protected static String extractRecordCredibility(final Map<String, Object> record){
-		return (String)record.get("credibility");
-	}
-
-	protected static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	protected static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	protected TreeMap<Integer, Map<String, Object>> extractLocalizedTextJunctionReferences(final String referenceType){
-		final Map<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		final String tableName = getTableName();
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(Objects.equals(referenceType, extractRecordReferenceType(storeRecord))
-				&& tableName.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
-		return matchedRecords;
-	}
-
-	private static String extractRecordReferenceType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
-	}
-
-	protected static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
-		return (store.isEmpty()? null: store.firstEntry().getValue());
-	}
-
-	protected Map<String, Object> getSelectedRecord(){
+	@Override
+	protected final Map<String, Object> getSelectedRecord(){
 		final int viewRowIndex = recordTable.getSelectedRow();
 		if(viewRowIndex == -1)
 			//no row selected
@@ -514,11 +344,8 @@ public abstract class CommonDialog extends JDialog{
 		selectedRecord = null;
 	}
 
-	protected abstract void clearData();
-
-	protected abstract boolean validateData();
-
-	private void okAction(){
+	@Override
+	protected final void okAction(){
 		if(selectedRecord == null)
 			return;
 
@@ -559,7 +386,5 @@ public abstract class CommonDialog extends JDialog{
 			}
 		}
 	}
-
-	protected abstract void saveData();
 
 }

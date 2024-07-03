@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public final class JavaHelper{
 	private static <K, V> byte[] serializeToByteArray(final Map<K, V> original) throws IOException{
 		try(
 				final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-				final ObjectOutputStream out = new ObjectOutputStream(bos)){
+				final ObjectOutput out = new ObjectOutputStream(bos)){
 			out.writeObject(original);
 			return bos.toByteArray();
 		}

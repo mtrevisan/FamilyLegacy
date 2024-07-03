@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2019-2020 Mauro Trevisan
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -9,10 +9,10 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -35,7 +35,7 @@ import java.util.EventObject;
  * A VetoEvent is sent out of the event bus when a veto has been made by the subscriber.
  * The subscriber will have indicated a veto by throwing a {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions.VetoException}
  * in the {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler} annotated method.
- *
+ * <p>
  * @see <a href="https://github.com/taftster/simpleeventbus">Simple Event Bus</a>
  */
 public class VetoEvent extends EventObject{

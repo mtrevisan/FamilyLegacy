@@ -37,12 +37,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
@@ -61,21 +61,22 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class GroupDialog extends CommonDialog{
+public class GroupDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -2953401801022572404L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_CATEGORY = 65;
+
+	private static final int TABLE_INDEX_RECORD_CATEGORY = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "group";
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel typeLabel;
@@ -97,26 +98,28 @@ public class GroupDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_CATEGORY, 0, TABLE_PREFERRED_WIDTH_RECORD_CATEGORY);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
+		sorter.setComparator(TABLE_INDEX_RECORD_CATEGORY, Comparator.naturalOrder());
 		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{"family", "neighborhood", "fraternity", "ladies club",
 			"literary society"});
@@ -151,7 +154,7 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
@@ -168,7 +171,7 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -176,9 +179,12 @@ public class GroupDialog extends CommonDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractIdentifier(extractRecordID(record.getValue()));
+			final String categoryIdentifier = extractIdentifier(extractRecordID(record.getValue()));
+			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf(':'));
+			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf(':') + 1);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(category, row, TABLE_INDEX_RECORD_CATEGORY);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
@@ -186,10 +192,10 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_IDENTIFIER);
+			TABLE_INDEX_RECORD_CATEGORY, TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -197,7 +203,7 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String type = extractRecordType(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
@@ -215,7 +221,7 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		typeComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(photoButton);
 
@@ -225,12 +231,12 @@ public class GroupDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		return true;
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String type = (String)typeComboBox.getSelectedItem();
 
@@ -266,7 +272,9 @@ public class GroupDialog extends CommonDialog{
 				else
 					throw new IllegalArgumentException("Cannot exist a group of " + referenceTable);
 
-				for(final Map<String, Object> storePersonName : personNamesInGroup){
+				for(int i = 0, length = personNamesInGroup.size(); i < length; i ++){
+					final Map<String, Object> storePersonName = personNamesInGroup.get(i);
+
 					final Integer extractRecordNameID = extractRecordNameID(storePersonName);
 					final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
 					final String name = extractRecordText(localizedText);
@@ -280,10 +288,10 @@ public class GroupDialog extends CommonDialog{
 
 	/** Extract the names of all the persons in this group. */
 	private static List<Map<String, Object>> extractPersonNamesInGroup(final TreeMap<Integer, Map<String, Object>> storePersonNames,
-		final Integer groupID){
+			final Integer personID){
 		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
 		for(final Map<String, Object> storePersonName : storePersonNames.values())
-			if(groupID.equals(extractRecordPersonID(storePersonName)))
+			if(personID.equals(extractRecordPersonID(storePersonName)))
 				personNamesInGroup.add(storePersonName);
 		return personNamesInGroup;
 	}
@@ -324,7 +332,7 @@ public class GroupDialog extends CommonDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Name"}, 0);
+			super(new String[]{"ID", "Category", "Identifier"}, 0);
 		}
 
 		@Override
@@ -379,7 +387,7 @@ public class GroupDialog extends CommonDialog{
 		groupJunction3.put("id", 3);
 		groupJunction3.put("group_id", 2);
 		groupJunction3.put("reference_table", "group");
-		groupJunction3.put("reference_id", 1);
+		groupJunction3.put("reference_id", 2);
 		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
 
 		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
@@ -405,6 +413,12 @@ public class GroupDialog extends CommonDialog{
 		personName2.put("name_id", 2);
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
+		final Map<String, Object> personName3 = new HashMap<>();
+		personName3.put("id", 3);
+		personName3.put("person_id", 2);
+		personName3.put("name_id", 3);
+		personName3.put("type", "other name");
+		personNames.put((Integer)personName3.get("id"), personName3);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
@@ -418,6 +432,11 @@ public class GroupDialog extends CommonDialog{
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
 		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
+		final Map<String, Object> localizedText3 = new HashMap<>();
+		localizedText3.put("id", 3);
+		localizedText3.put("text", "other name");
+		localizedText3.put("locale", "en");
+		localizedTexts.put((Integer)localizedText3.get("id"), localizedText3);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -490,7 +509,7 @@ public class GroupDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final GroupDialog dialog = new GroupDialog(store, null, parent);
-			if(!dialog.loadData(GroupDialog.extractRecordID(group1)))
+			if(!dialog.loadData(extractRecordID(group1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

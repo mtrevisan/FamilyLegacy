@@ -119,7 +119,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate sort name").
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate name").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
@@ -170,7 +170,7 @@ CREATE TABLE PERSON
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
--- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
+-- Transcriptions and transliterations of the name can be attached through a localized text (with type "name", or "alternate name").
 CREATE TABLE PERSON_NAME
 (
  "ID"                   numeric PRIMARY KEY,
@@ -282,10 +282,10 @@ CREATE TABLE RESTRICTION
 CREATE TABLE MODIFICATION
 (
  "ID"            numeric PRIMARY KEY,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to.
- REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- CREATION_DATE   date NOT NULL,		-- The creation date of a record.
- UPDATE_DATE     date					-- The changing date of a record.
+ REFERENCE_TABLE text NOT NULL,			-- The table name this record is attached to.
+ REFERENCE_ID    numeric NOT NULL,		-- The ID of the referenced record in the table.
+ CREATION_DATE   timestamp NOT NULL,	-- The creation date of a record.
+ UPDATE_DATE     timestamp					-- The changing date of a record.
 );
 
 CREATE TABLE RESEARCH_STATUS
@@ -317,11 +317,14 @@ CREATE TABLE CONTACT_JUNCTION
 
 CREATE TABLE PROJECT
 (
-   "ID"             numeric PRIMARY KEY,
-   PROTOCOL_NAME    text NOT NULL,	-- "Family LEgacy Format"
-   PROTOCOL_VERSION text NOT NULL,	-- "0.0.10"
-   COPYRIGHT        text,				-- A copyright statement.
-   NOTE             text
+ "ID"             numeric PRIMARY KEY,
+ PROTOCOL_NAME    text NOT NULL,			-- "Family LEgacy Format"
+ PROTOCOL_VERSION text NOT NULL,			-- "0.0.10"
+ COPYRIGHT        text,						-- A copyright statement.
+ NOTE             text,
+ LOCALE           text,						-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
+ CREATION_DATE    timestamp NOT NULL,	-- The creation date of the project.
+ UPDATE_DATE      timestamp				-- The changing date of the project.
 );
 
 

@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 
@@ -58,7 +59,7 @@ public abstract class GedcomNode implements Cloneable{
 
 	protected GedcomNode(){}
 
-	public boolean isEmpty(){
+	public final boolean isEmpty(){
 		return (tag == null || id == null && xref == null && value == null && (children == null || children.isEmpty()));
 	}
 
@@ -70,7 +71,7 @@ public abstract class GedcomNode implements Cloneable{
 		this.level = level;
 	}
 
-	public GedcomNode withLevel(final int level){
+	public final GedcomNode withLevel(final int level){
 		if(level < 0)
 			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + level);
 
@@ -79,7 +80,7 @@ public abstract class GedcomNode implements Cloneable{
 		return this;
 	}
 
-	public GedcomNode withLevel(final String level){
+	public final GedcomNode withLevel(final String level){
 		final int newLevel = (level.length() == 1 && level.charAt(0) == 'n'? 0: Integer.parseInt(level));
 		if(newLevel < 0)
 			throw new IllegalArgumentException("Level must be greater than or equal to zero, was " + newLevel);
@@ -90,47 +91,47 @@ public abstract class GedcomNode implements Cloneable{
 	}
 
 
-	public int getLevel(){
+	public final int getLevel(){
 		return level;
 	}
 
-	public String getID(){
+	public final String getID(){
 		return id;
 	}
 
-	public GedcomNode withID(final String id){
+	public final GedcomNode withID(final String id){
 		if(id != null && !id.isEmpty())
 			this.id = id;
 		return this;
 	}
 
 
-	public boolean isCustomTag(){
+	public final boolean isCustomTag(){
 		return (tag != null && tag.charAt(0) == '_');
 	}
 
-	public String getTag(){
+	public final String getTag(){
 		return tag;
 	}
 
-	public GedcomNode withTag(final String tag){
+	public final GedcomNode withTag(final String tag){
 		if(tag != null && !tag.isEmpty())
 			this.tag = tag.toUpperCase(Locale.ROOT);
 		return this;
 	}
 
 
-	public String getXRef(){
+	public final String getXRef(){
 		return xref;
 	}
 
-	public GedcomNode withXRef(final String xref){
+	public final GedcomNode withXRef(final String xref){
 		if(xref != null && !xref.isEmpty())
 			this.xref = xref;
 		return this;
 	}
 
-	public GedcomNode clearXRef(){
+	public final GedcomNode clearXRef(){
 		xref = null;
 		return this;
 	}
@@ -139,7 +140,7 @@ public abstract class GedcomNode implements Cloneable{
 	/**
 	 * Returns the value associated with this node.
 	 */
-	public String getRawValue(){
+	public final String getRawValue(){
 		return StringUtils.replace(value, "@", "@@");
 	}
 
@@ -149,14 +150,14 @@ public abstract class GedcomNode implements Cloneable{
 	 */
 	public abstract String getValue();
 
-	public String getValueOrDefault(final String defaultValue){
+	public final String getValueOrDefault(final String defaultValue){
 		final String v = getValue();
 		return (v != null? v: defaultValue);
 	}
 
 	public abstract GedcomNode withValue(final String value);
 
-	protected void addValue(final String childTag, final String subValue){
+	protected final void addValue(final String childTag, final String subValue){
 		if(value == null)
 			value = subValue;
 		else{
@@ -167,21 +168,21 @@ public abstract class GedcomNode implements Cloneable{
 	}
 
 
-	public boolean hasChildren(){
+	public final boolean hasChildren(){
 		return (children != null && !children.isEmpty());
 	}
 
-	public List<GedcomNode> getChildren(){
+	public final List<GedcomNode> getChildren(){
 		return (children != null? children: Collections.emptyList());
 	}
 
-	public GedcomNode addChildReference(final String tag, final String xref){
+	public final GedcomNode addChildReference(final String tag, final String xref){
 		addChild(createNewNodeWithTag(tag)
 			.withXRef(xref));
 		return this;
 	}
 
-	public GedcomNode addChildValue(final String tag, final String value){
+	public final GedcomNode addChildValue(final String tag, final String value){
 		if(StringUtils.isNotBlank(value))
 			addChild(createNewNodeWithTag(tag)
 				.withValue(value));
@@ -189,7 +190,7 @@ public abstract class GedcomNode implements Cloneable{
 	}
 
 	/** Replaces first occurrence of the given tag with the given value. */
-	public GedcomNode replaceChildValue(final String tag, final String value){
+	public final GedcomNode replaceChildValue(final String tag, final String value){
 		if(StringUtils.isBlank(value))
 			removeChildrenWithTag(tag);
 		else if(children != null){
@@ -213,14 +214,14 @@ public abstract class GedcomNode implements Cloneable{
 
 	protected abstract GedcomNode createNewNodeWithTag(final String tag);
 
-	public GedcomNode addChild(final int index, final GedcomNode child){
+	public final GedcomNode addChild(final int index, final GedcomNode child){
 		if(child.isEmpty())
 			return this;
 
 		return addChildInner(index, child);
 	}
 
-	public GedcomNode addClosingChild(final String tag){
+	public final GedcomNode addClosingChild(final String tag){
 		return addChildInner((children != null? children.size(): 0), createNewNodeWithTag(tag));
 	}
 
@@ -255,17 +256,17 @@ public abstract class GedcomNode implements Cloneable{
 		return this;
 	}
 
-	public GedcomNode addChild(final GedcomNode child){
+	public final GedcomNode addChild(final GedcomNode child){
 		final int index = (children != null? children.size(): 0);
 		return addChild(index, child);
 	}
 
-	public GedcomNode forceAddChild(final GedcomNode child){
+	public final GedcomNode forceAddChild(final GedcomNode child){
 		final int index = (children != null? children.size(): 0);
 		return addChildInner(index, child);
 	}
 
-	public GedcomNode addChildren(final Iterable<GedcomNode> children){
+	public final GedcomNode addChildren(final Iterable<GedcomNode> children){
 		if(children != null)
 			for(final GedcomNode child : children)
 				addChild(child);
@@ -277,7 +278,7 @@ public abstract class GedcomNode implements Cloneable{
 	 *
 	 * @param tag	Tag used to retrieve the corresponding children. It can be composed with a dot to denote sub-children.
 	 */
-	public List<GedcomNode> getChildrenWithTag(final String tag){
+	public final List<GedcomNode> getChildrenWithTag(final String tag){
 		if(StringUtils.contains(tag, '.')){
 			List<GedcomNode> subChildren = new ArrayList<>(1);
 			subChildren.add(this);
@@ -308,7 +309,7 @@ public abstract class GedcomNode implements Cloneable{
 		return taggedChildren;
 	}
 
-	public List<GedcomNode> getChildrenWithTag(final String... tags){
+	public final List<GedcomNode> getChildrenWithTag(final String... tags){
 		final List<GedcomNode> taggedChildren;
 		if(children != null){
 			taggedChildren = new ArrayList<>(0);
@@ -321,12 +322,12 @@ public abstract class GedcomNode implements Cloneable{
 		return taggedChildren;
 	}
 
-	public void removeChild(final GedcomNode node){
+	public final void removeChild(final GedcomNode node){
 		if(children != null){
 			final Iterator<GedcomNode> itr = children.iterator();
 			while(itr.hasNext()){
 				final GedcomNode currentNode = itr.next();
-				if(currentNode.getXRef() != null && currentNode.getXRef().equals(node.getID()) || currentNode.equals(node)){
+				if(currentNode.xref != null && currentNode.xref.equals(node.id) || currentNode.equals(node)){
 					itr.remove();
 
 					if(children.isEmpty())
@@ -338,21 +339,21 @@ public abstract class GedcomNode implements Cloneable{
 		}
 	}
 
-	public GedcomNode removeChildrenWithTag(final String tag){
+	public final GedcomNode removeChildrenWithTag(final String tag){
 		if(children != null)
 			children.removeIf(gedcomNode -> tag.equals(gedcomNode.tag));
 
 		return this;
 	}
 
-	public GedcomNode removeChildrenWithTag(final String... tags){
+	public final GedcomNode removeChildrenWithTag(final String... tags){
 		if(children != null)
 			children.removeIf(gedcomNode -> ArrayUtils.contains(tags, gedcomNode.tag));
 
 		return this;
 	}
 
-	public void clearAll(){
+	public final void clearAll(){
 		xref = null;
 		value = null;
 
@@ -381,7 +382,7 @@ public abstract class GedcomNode implements Cloneable{
 		return copy;
 	}
 
-	public void replaceWith(final GedcomNode node){
+	public final void replaceWith(final GedcomNode node){
 		clearAll();
 
 		withTag(node.tag);
@@ -405,17 +406,17 @@ public abstract class GedcomNode implements Cloneable{
 	}
 
 
-	public boolean isCustom(){
+	public final boolean isCustom(){
 		return custom;
 	}
 
-	public void setCustom(){
+	public final void setCustom(){
 		custom = true;
 	}
 
 
 	@Override
-	public boolean equals(final Object obj){
+	public final boolean equals(final Object obj){
 		if(this == obj)
 			return true;
 		if(obj == null || getClass() != obj.getClass())
@@ -423,14 +424,14 @@ public abstract class GedcomNode implements Cloneable{
 
 		final GedcomNode rhs = (GedcomNode)obj;
 		return (/*id.equals(rhs.id)
-			&&*/ (tag == null && rhs.tag == null || tag != null && tag.equals(rhs.tag))
-			&& (xref == null && rhs.xref == null || xref != null && xref.equals(rhs.xref))
-			&& (value == null && rhs.value == null || value != null && value.equals(rhs.value))
-			&& (children == null && rhs.children == null || children != null && children.equals(rhs.children)));
+			&&*/ Objects.equals(tag, rhs.tag)
+			&& Objects.equals(xref, rhs.xref)
+			&& Objects.equals(value, rhs.value)
+			&& Objects.equals(children, rhs.children));
 	}
 
 	@Override
-	public int hashCode(){
+	public final int hashCode(){
 		int result = 0/*id.hashCode()*/;
 		if(tag != null)
 			result = 31 * result + tag.hashCode();
@@ -444,7 +445,7 @@ public abstract class GedcomNode implements Cloneable{
 	}
 
 	@Override
-	public String toString(){
+	public final String toString(){
 		final StringBuilder builder = new StringBuilder();
 		if(id != null)
 			builder.append("id: ").append(id);

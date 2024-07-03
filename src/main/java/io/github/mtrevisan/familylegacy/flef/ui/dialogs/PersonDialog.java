@@ -35,11 +35,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
@@ -55,7 +55,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class PersonDialog extends CommonDialog{
+public class PersonDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6043866696384851757L;
@@ -64,10 +64,7 @@ public class PersonDialog extends CommonDialog{
 
 	private static final String TABLE_NAME = "person";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JButton namesButton;
@@ -88,17 +85,17 @@ public class PersonDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -107,7 +104,7 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		namesButton = new JButton("Names", ICON_TEXT);
 		photoButton = new JButton("Photo", ICON_PHOTO);
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
@@ -135,7 +132,7 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(namesButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(photoButton, "sizegroup btn,center,wrap paragraph");
@@ -151,7 +148,7 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -169,7 +166,7 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -180,12 +177,12 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNames = extractPersonNameReferences();
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMedia = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		GUIHelper.addBorder(namesButton, !recordNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -193,12 +190,12 @@ public class PersonDialog extends CommonDialog{
 		photoCropButton.setEnabled(photoCrop != null && !photoCrop.isEmpty());
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(photosButton, !recordMedia.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photosButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		GUIHelper.setDefaultBorder(namesButton);
 		GUIHelper.setDefaultBorder(photoButton);
 
@@ -208,7 +205,7 @@ public class PersonDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		return true;
 	}
 
@@ -395,7 +392,7 @@ public class PersonDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final PersonDialog dialog = new PersonDialog(store, null, parent);
-			if(!dialog.loadData(PersonDialog.extractRecordID(person1)))
+			if(!dialog.loadData(extractRecordID(person1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

@@ -38,15 +38,16 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 
-public class Main{
+public final class Main{
 
 	private static final String JDBC_URL = "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1";
 	private static final String USER = "sa";
@@ -58,12 +59,23 @@ public class Main{
 	private static final List<String> SUFFIXES = Arrays.asList(".NAME ", ".EDUC ", ".EVEN ", ".OCCU ", ".SEX ", ".PLAC ", ".NOTE ", ".SSN ",
 		".DSCR ", ".RELI ", ".PROP ", ".NCHI ", ".TEXT ");
 
-	private static final Set<String> SUFFIXES_Y = new HashSet<>(Arrays.asList("BIRT Y", "CHR Y", "DEAT Y", "BURI Y", "CREM Y", "ADOP Y",
-		"BAPM Y", "BARM Y", "BASM Y", "BLES Y", "CHRA Y", "CONF Y", "FCOM Y", "ORDN Y", "NATU Y", "EMIG Y", "IMMI Y", "CENS Y", "PROB Y",
-		"WILL Y", "GRAD Y", "RETI Y", "ANUL Y", "DIV Y", "DIVF Y", "ENGA Y", "MARB Y", "MARC Y", "MARR Y", "MARL Y", "MARS Y", "RESI Y"));
+	private static final Collection<String> SUFFIXES_Y = new HashSet<>(Arrays.asList("BIRT Y", "CHR Y", "DEAT Y", "BURI Y", "CREM Y",
+		"ADOP Y", "BAPM Y", "BARM Y", "BASM Y", "BLES Y", "CHRA Y", "CONF Y", "FCOM Y", "ORDN Y", "NATU Y", "EMIG Y", "IMMI Y", "CENS Y",
+		"PROB Y", "WILL Y", "GRAD Y", "RETI Y", "ANUL Y", "DIV Y", "DIVF Y", "ENGA Y", "MARB Y", "MARC Y", "MARR Y", "MARL Y", "MARS Y",
+		"RESI Y"));
 
 	private static final String[] IDENTIFIERS = {"SEX", "MARR", "MARL", "MARB", "MARS", "BIRT", "DEAT", "CREM", "BURI", "RETI", "RESI",
 		"RELI", "ENGA", "DSCR", "SSN", "EMIG", "IMMI", "ADOP", "PROP", "NATU", "CENS", "GRAD", "ORDN", "NCHI", "WILL", "DIV"};
+	private static final Pattern PATTERN = Pattern.compile("@@");
+	private static final Pattern REGEX = Pattern.compile(".*\\[\\d+]$");
+	private static final Pattern REGEXP = Pattern.compile("SOUR\\[\\d+]\\.REPO\\[\\d+]");
+	private static final Pattern PATTERN1 = Pattern.compile("\\s+@[A-Z](\\d+)@");
+	private static final Pattern PATTERN2 = Pattern.compile("[^\\d]");
+	private static final Pattern PATTERN3 = Pattern.compile("\\d\\s+[A-Z]+\\s+@[A-Z]\\d+@");
+	private static final Pattern PATTERN4 = Pattern.compile("[A-Z]+\\s+@[A-Z]\\d+@");
+
+	private Main(){
+	}
 
 	private static class GedcomObject{
 		String type;
@@ -86,8 +98,8 @@ public class Main{
 //		dbManager.initialize(grammarFile);
 
 		final String gedcomFilename = "ged/TGMZ.ged";
-		String flatGedcomFilename = "ged/TGMZ.txt";
-		boolean flat = false;
+		final String flatGedcomFilename = "ged/TGMZ.txt";
+		final boolean flat = false;
 
 		final List<String> lines;
 		if(flat){
@@ -102,7 +114,7 @@ public class Main{
 
 	private static List<String> flatGedcom(final List<String> lines, final String flatGedcomFilename) throws URISyntaxException,
 			IOException{
-		lines.replaceAll(s -> s.replaceAll("@@", "@"));
+		lines.replaceAll(s -> PATTERN.matcher(s).replaceAll("@"));
 
 		final List<String> output = new ArrayList<>();
 
@@ -129,9 +141,9 @@ public class Main{
 			else if(!"HEAD".equals(baseType)){
 				if(line.startsWith("1 ")){
 					line = line.substring(2);
-					if(line.matches("[A-Z]+\\s+@[A-Z]\\d+@")){
-            		String number = line.replaceAll("[^\\d]", "");
-            		line = line.replaceAll("\\s+@[A-Z](\\d+)@", "[" + number + "]");
+					if(PATTERN4.matcher(line).matches()){
+            		final String number = PATTERN2.matcher(line).replaceAll("");
+            		line = PATTERN1.matcher(line).replaceAll("[" + number + "]");
             	}
 					if(line.startsWith("CONC ")){
 						final int prevIndex = output.size() - 1;
@@ -182,9 +194,9 @@ public class Main{
 				if(line.startsWith("0 "))
 					baseType = line.split(" ")[1];
 				else if(line.startsWith(stage + " ")){
-					if(line.matches("\\d\\s+[A-Z]+\\s+@[A-Z]\\d+@")){
-						final String number = line.substring(2).replaceAll("[^\\d]", "");
-						line = line.replaceAll("\\s+@[A-Z](\\d+)@", "[" + number + "]");
+					if(PATTERN3.matcher(line).matches()){
+						final String number = PATTERN2.matcher(line.substring(2)).replaceAll("");
+						line = PATTERN1.matcher(line).replaceAll("[" + number + "]");
 					}
 					output.set(i, "0 " + baseType + "." + line.substring(2));
 				}
@@ -288,7 +300,7 @@ public class Main{
 		});
 		output.replaceAll(s -> {
 			String replaced = s;
-			if(s.matches("SOUR\\[\\d+]\\.REPO\\[\\d+]")){
+			if(REGEXP.matcher(s).matches()){
 				final int cutIndex = s.lastIndexOf('[');
 				final String pre = s.substring(0, cutIndex);
 				final String repoID = s.substring(cutIndex + 1, s.length() - 1);
@@ -327,15 +339,15 @@ public class Main{
 		return id;
 	}
 
-	private static GedcomObject extractor(final List<String> lines){
+	private static GedcomObject extractor(final Iterable<String> lines){
 		final GedcomObject root = new GedcomObject();
-		Map<String, GedcomObject> context = new HashMap<>();
+		final Map<String, GedcomObject> context = new HashMap<>();
 		context.put("", root);
 
 		for(String line : lines){
 			line = line.trim();
 
-			if(!line.contains("=") && line.matches(".*\\[\\d+]$")){
+			if(!line.contains("=") && REGEX.matcher(line).matches()){
 				final int lastDotIndex = line.lastIndexOf('.');
 				final String parentKey = (lastDotIndex == - 1? "": line.substring(0, lastDotIndex));
 				final String key = line.substring(lastDotIndex + 1);
@@ -365,7 +377,7 @@ public class Main{
 		return root;
 	}
 
-	private static Map<String, List<Map<String, Object>>> transfer(final GedcomObject root, final List<String> lines){
+	private static Map<String, List<Map<String, Object>>> transfer(final GedcomObject root, final Iterable<String> lines){
 		final Map<String, List<GedcomObject>> map = createFirstLevelMap(root);
 		final List<GedcomObject> groups = map.get("FAM");
 		final List<GedcomObject> repositories = map.get("REPO");
@@ -430,7 +442,7 @@ public class Main{
 		flefLocalizedText.put("locale", "it");
 		flefLocalizedText.put("type", "original");
 
-		Map<String, Object> flefPlace = new HashMap<>();
+		final Map<String, Object> flefPlace = new HashMap<>();
 		flefPlaces.add(flefPlace);
 		final int placeID = flefPlaces.size();
 		flefPlace.put("id", placeID);
@@ -554,7 +566,7 @@ public class Main{
 		//http://www.appuntigiurisprudenza.it/diritto-ecclesiastico/gli-impedimenti-al-matrimonio-canonico-nello-specifico.html
 	}
 
-	private static void transferGroups(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> groups){
+	private static void transferGroups(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> groups){
 		final List<Map<String, Object>> flefGroups = output.computeIfAbsent("group", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefGroupJunctions = output.computeIfAbsent("group_junction", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
@@ -574,7 +586,7 @@ public class Main{
 			if(marriageChildrenCount != null){
 				final String count = extractDesc(marriageChildrenCount.attributes);
 				if(count != null && Integer.parseInt(count) != marriageChildrenPerson.size()){
-					int childrenCount = Integer.parseInt(count) - marriageChildrenPerson.size();
+					final int childrenCount = Integer.parseInt(count) - marriageChildrenPerson.size();
 					if(childrenCount < 0)
 						throw new IllegalArgumentException("Cannot have a negative count children");
 					else
@@ -590,7 +602,7 @@ public class Main{
 				String marriageDate = marriage.attributes.get("DATE");
 				final List<GedcomObject> marriageNotes = getAllStartingWith(marriageChildren, "NOTE");
 				for(final GedcomObject note : marriageNotes){
-					String desc = extractDesc(note.attributes);
+					final String desc = extractDesc(note.attributes);
 					if(desc != null && desc.startsWith("ore ")){
 						//add to marriage date
 						marriageDate = (marriageDate != null? marriageDate + " ": "") + desc.substring("ore ".length());
@@ -721,8 +733,8 @@ public class Main{
 						flefNote.put("note", desc);
 						flefNote.put("reference_table", "event");
 						flefNote.put("reference_id", eventID);
-						if(desc.equals("dispensati dall'impedimento dirimente di consanguineità in 3° grado eguale linea collaterale")){
-							Map<String, Object> flefCulturalNormJunction = new HashMap<>();
+						if("dispensati dall'impedimento dirimente di consanguineità in 3° grado eguale linea collaterale".equals(desc)){
+							final Map<String, Object> flefCulturalNormJunction = new HashMap<>();
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
 							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
 							flefCulturalNormJunction.put("cultural_norm_id", 7);
@@ -732,7 +744,7 @@ public class Main{
 							flefCulturalNormJunction.put("credibility", 3);
 						}
 						else if(desc.contains("dispensa")){
-							Map<String, Object> flefCulturalNormJunction = new HashMap<>();
+							final Map<String, Object> flefCulturalNormJunction = new HashMap<>();
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
 							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
 							flefCulturalNormJunction.put("cultural_norm_id", 6);
@@ -837,7 +849,7 @@ public class Main{
 		return (desc != null? desc + (cont != null? "\\r\\n" + cont: ""): null);
 	}
 
-	private static void transferRepositories(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> repositories){
+	private static void transferRepositories(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> repositories){
 		final List<Map<String, Object>> flefRepositories = output.computeIfAbsent("repository", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
@@ -877,13 +889,13 @@ public class Main{
 		}
 	}
 
-	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> notes,
-		final List<String> lines){
+	private static void transferNotes(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> notes,
+			final Iterable<String> lines){
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 
 		for(final GedcomObject note : notes){
 			final String noteID = ".NOTE[" + note.id + "]";
-			final List<Integer> personIDs = new ArrayList<>();
+			final Collection<Integer> personIDs = new ArrayList<>();
 			for(final String line : lines)
 				if(line.contains(noteID))
 					personIDs.add(extractID(line));
@@ -902,7 +914,7 @@ public class Main{
 		}
 	}
 
-	private static void transferSources(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> sources){
+	private static void transferSources(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> sources){
 		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
@@ -1012,7 +1024,7 @@ public class Main{
 		}
 	}
 
-	private static void transferPersons(final Map<String, List<Map<String, Object>>> output, final List<GedcomObject> persons){
+	private static void transferPersons(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> persons){
 		final List<Map<String, Object>> flefPersons = output.computeIfAbsent("person", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPersonNames = output.computeIfAbsent("person_name", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());

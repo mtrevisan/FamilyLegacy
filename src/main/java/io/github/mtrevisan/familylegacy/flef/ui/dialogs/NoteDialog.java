@@ -37,18 +37,19 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -60,7 +61,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class NoteDialog extends CommonDialog implements TextPreviewListenerInterface{
+public class NoteDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 3280504923967901715L;
@@ -68,7 +69,6 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	private static final int TABLE_INDEX_RECORD_NOTE = 1;
 
 	private static final String TABLE_NAME = "note";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JLabel noteLabel;
@@ -89,17 +89,17 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -108,7 +108,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		noteLabel = new JLabel("Note:");
 		noteTextArea = TextPreviewPane.createWithPreview(this);
 		noteTextArea.setTextViewFont(noteLabel.getFont());
@@ -120,8 +120,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 
 
 		noteLabel.setLabelFor(noteTextArea);
-		//TODO manage mandatoriness
-//		GUIHelper.addBackground(noteTextArea, MANDATORY_FIELD_BACKGROUND_COLOR);
+		noteTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		localeLabel.setLabelFor(localeField);
 		GUIHelper.addUndoCapability(localeField);
@@ -134,9 +133,9 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(noteLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(noteLabel, "align label,top,sizegroup label,split 2");
 		recordPanelBase.add(noteTextArea, "grow,wrap paragraph");
 		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(localeField, "grow,wrap paragraph");
@@ -150,7 +149,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -168,7 +167,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_NOTE);
@@ -179,7 +178,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
@@ -193,10 +192,9 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		noteTextArea.clear();
-		//TODO manage mandatoriness
-//		GUIHelper.addBackground(noteField, Color.WHITE);
+		noteTextArea.setTextViewBackgroundColor(Color.WHITE);
 		localeField.setText(null);
 		GUIHelper.setDefaultBorder(referenceButton);
 
@@ -204,7 +202,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String note = noteTextArea.getText();
@@ -232,7 +230,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String note = noteTextArea.getText();
 		final String locale = localeField.getText();
@@ -268,7 +266,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 	public void textChanged(){}
 
 	@Override
-	public void onPreviewStateChange(final boolean visible){
+	public final void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
@@ -349,7 +347,7 @@ public class NoteDialog extends CommonDialog implements TextPreviewListenerInter
 			EventBusService.subscribe(listener);
 
 			final NoteDialog dialog = new NoteDialog(store, null, parent);
-			if(!dialog.loadData(NoteDialog.extractRecordID(note1)))
+			if(!dialog.loadData(extractRecordID(note1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

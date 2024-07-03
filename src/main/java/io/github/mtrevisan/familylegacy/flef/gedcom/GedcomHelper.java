@@ -94,7 +94,7 @@ final class GedcomHelper{
 	}
 
 	private static String readCorrectedCharsetName(final InputStream is) throws IOException{
-		return readCorrectedCharsetName(new BufferedReader(new InputStreamReader(is)));
+		return readCorrectedCharsetName(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8)));
 	}
 
 	private static String readCorrectedCharsetName(final BufferedReader in) throws IOException{

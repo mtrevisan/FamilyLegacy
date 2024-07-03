@@ -34,12 +34,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -58,7 +58,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class LocalizedTextDialog extends CommonDialog{
+public class LocalizedTextDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
@@ -89,17 +89,17 @@ public class LocalizedTextDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -108,7 +108,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		textLabel = new JLabel("Text:");
 		textField = new JTextField();
 		localeLabel = new JLabel("Locale:");
@@ -125,7 +125,7 @@ public class LocalizedTextDialog extends CommonDialog{
 
 		textLabel.setLabelFor(textField);
 		GUIHelper.addUndoCapability(textField);
-		GUIHelper.addBackground(textField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.setBackgroundColor(textField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		localeLabel.setLabelFor(localeField);
 		GUIHelper.addUndoCapability(localeField);
@@ -147,7 +147,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(textLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(textField, "growx,wrap paragraph");
@@ -164,7 +164,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -182,7 +182,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TEXT);
@@ -193,7 +193,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String text = extractRecordText(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -208,9 +208,9 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		textField.setText(null);
-		GUIHelper.addBackground(textField, Color.WHITE);
+		GUIHelper.setBackgroundColor(textField, Color.WHITE);
 
 		localeField.setText(null);
 
@@ -222,7 +222,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String text = GUIHelper.readTextTrimmed(textField);
@@ -239,7 +239,7 @@ public class LocalizedTextDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String text = GUIHelper.readTextTrimmed(textField);
 		final String locale = GUIHelper.readTextTrimmed(localeField);
@@ -343,7 +343,7 @@ public class LocalizedTextDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final LocalizedTextDialog dialog = new LocalizedTextDialog(store, null, parent);
-			if(!dialog.loadData(LocalizedTextDialog.extractRecordID(text1)))
+			if(!dialog.loadData(extractRecordID(text1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

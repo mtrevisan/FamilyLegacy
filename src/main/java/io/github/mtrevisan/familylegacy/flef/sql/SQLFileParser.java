@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +75,7 @@ public final class SQLFileParser{
 
 		LOGGER.info("Parsing FLeF format...");
 
-		try(final BufferedReader reader = new BufferedReader(new FileReader(grammarFile))){
+		try(final BufferedReader reader = new BufferedReader(new FileReader(grammarFile, StandardCharsets.UTF_8))){
 			String line;
 			GenericTable currentTable = null;
 			boolean inBlockComment = false;

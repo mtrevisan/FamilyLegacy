@@ -59,6 +59,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	//https://stackoverflow.com/questions/6720050/foreign-key-constraints-when-to-use-on-update-and-on-delete
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(([^\\s]+)\\s+[^\\s]+\\s+)?(FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(?:DELETE|UPDATE)\\s+[^,);\r\n]+)?),?");
 	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?FOREIGN\\s+KEY.*?;");
+	private static final Pattern PATTERN = Pattern.compile("(,[\\s\\r\\n]+){1,}\\)");
 
 
 	private final String jdbcURL;
@@ -75,7 +76,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 
-	public void initialize(final String sqlFile) throws SQLException, IOException{
+	public final void initialize(final String sqlFile) throws SQLException, IOException{
 		try(final Connection connection = DriverManager.getConnection(jdbcURL, user, password)){
 			final String sql = Files.readString(Paths.get(sqlFile));
 
@@ -118,9 +119,9 @@ public class DatabaseManager implements DatabaseManagerInterface{
 					currentForeignKeyConstraints.add(foreignKey);
 				}
 
-				createTableStatement = createTableStatement.replaceAll("--[^\\r\\n]+[\\r\\n]+", "")
-					.replaceAll("/*.*?\\*/", "")
-					.replaceAll("(,[\\s\\r\\n]+){1,}\\)", ")");
+				createTableStatement = PATTERN.matcher(createTableStatement.replaceAll("--[^\\r\\n]+[\\r\\n]+", "")
+					.replaceAll("/*.*?\\*/", ""))
+					.replaceAll(")");
 				tableCreations.add(createTableStatement);
 				foreignKeyConstraints.addAll(currentForeignKeyConstraints);
 			}
@@ -146,36 +147,36 @@ public class DatabaseManager implements DatabaseManagerInterface{
 
 
 	@Override
-	public Map<String, Integer> extractIdentifierToIDMap(final String tableName){
+	public final Map<String, Integer> extractIdentifierToIDMap(final String tableName){
 		try{
 			return extractIdenToIDMap(tableName, "identifier");
 		}
-		catch(SQLException e){
+		catch(final SQLException e){
 			return Collections.emptyMap();
 		}
 	}
 
 	@Override
-	public Map<String, Integer> extractDateToIDMap(final String tableName){
+	public final Map<String, Integer> extractDateToIDMap(final String tableName){
 		try{
 			return extractIdenToIDMap(tableName, "date");
 		}
-		catch(SQLException e){
+		catch(final SQLException e){
 			return Collections.emptyMap();
 		}
 	}
 
 	@Override
-	public Map<String, Integer> extractTypeToIDMap(final String tableName){
+	public final Map<String, Integer> extractTypeToIDMap(final String tableName){
 		try{
 			return extractIdenToIDMap(tableName, "type");
 		}
-		catch(SQLException e){
+		catch(final SQLException e){
 			return Collections.emptyMap();
 		}
 	}
 
-	public Map<String, Integer> extractIdenToIDMap(final String tableName, final String iden) throws SQLException{
+	public final Map<String, Integer> extractIdenToIDMap(final String tableName, final String iden) throws SQLException{
 		final String sql = "SELECT " + iden + ", id FROM " + tableName;
 
 		final Map<String, Integer> identifierToIDMap = new HashMap<>();
@@ -193,7 +194,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 	@Override
-	public Map<String, Integer> extractPersonIdentifierToIDMap(final String tableName){
+	public final Map<String, Integer> extractPersonIdentifierToIDMap(final String tableName){
 		final String sql = "SELECT lt.text AS text, pn.id as id FROM PERSON_NAME pn, LOCALIZED_TEXT_JUNCTION ltj, LOCALIZED_TEXT lt" +
 			" WHERE pn.NAME_ID = ltj.REFERENCE_ID AND ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
 
@@ -209,13 +210,13 @@ public class DatabaseManager implements DatabaseManagerInterface{
 			}
 			return identifierToIDMap;
 		}
-		catch(SQLException e){
+		catch(final SQLException e){
 			return Collections.emptyMap();
 		}
 	}
 
 	@Override
-	public Map<String, Integer> extractGroupIdentifierToIDMap(final String tableName){
+	public final Map<String, Integer> extractGroupIdentifierToIDMap(final String tableName){
 		//TODO
 		final String sql = "SELECT lt.text AS text, pn.id as id FROM GROUP g, GROUP_JUNCTION gj, PERSON_NAME pn, LOCALIZED_TEXT_JUNCTION ltj, LOCALIZED_TEXT lt" +
 			" WHERE pn.NAME_ID = ltj.REFERENCE_ID AND ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
@@ -232,14 +233,14 @@ public class DatabaseManager implements DatabaseManagerInterface{
 			}
 			return identifierToIDMap;
 		}
-		catch(SQLException e){
+		catch(final SQLException e){
 			return Collections.emptyMap();
 		}
 	}
 
 
 	@Override
-	public void insertDatabase(final Map<String, TreeMap<Integer, Map<String, Object>>> database) throws SQLException{
+	public final void insertDatabase(final Map<String, TreeMap<Integer, Map<String, Object>>> database) throws SQLException{
 		final TopologicalOrderIterator<String, DefaultEdge> iterator = new TopologicalOrderIterator<>(graph);
 		while(iterator.hasNext()){
 			final String sortedTableName = iterator.next();
@@ -254,7 +255,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 	@Override
-	public void insert(final String tableName, final Map<String, Object> record) throws SQLException{
+	public final void insert(final String tableName, final Map<String, Object> record) throws SQLException{
 		final int length = record.size();
 		final StringJoiner sql = new StringJoiner(", ",
 			"INSERT INTO \"" + tableName.toUpperCase(Locale.ROOT) + "\" (",
@@ -281,7 +282,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 
 
 	@Override
-	public void update(final String tableName, final Map<String, Object> record) throws SQLException{
+	public final void update(final String tableName, final Map<String, Object> record) throws SQLException{
 		final StringJoiner sql = new StringJoiner(", ",
 			"UPDATE \"" + tableName.toUpperCase(Locale.ROOT) + "\" SET ",
 			" WHERE ID = " + record.get("id"));

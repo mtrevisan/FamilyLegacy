@@ -37,12 +37,12 @@ import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
@@ -58,7 +58,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class PersonNameDialog extends CommonDialog{
+public class PersonNameDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -3816108402093925220L;
@@ -66,15 +66,15 @@ public class PersonNameDialog extends CommonDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "person_name";
-	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private JButton personButton;
-	private JButton nameIDButton;
-	private JButton nameAlternateSortIDButton;
+	private JButton nameButton;
+	private JButton transcribedNameButton;
+	private JButton nameAlternateSortButton;
+	private JButton transcribedAlternateNameButton;
 	private JLabel typeLabel;
 	private JComboBox<String> typeComboBox;
 
@@ -92,17 +92,17 @@ public class PersonNameDialog extends CommonDialog{
 
 
 	@Override
-	protected String getTableName(){
+	protected final String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
+	protected final DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected void initStoreComponents(){
+	protected final void initStoreComponents(){
 		super.initStoreComponents();
 
 
@@ -111,10 +111,12 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected final void initRecordComponents(){
 		personButton = new JButton("Person", ICON_PERSON);
-		nameIDButton = new JButton("Name", ICON_TEXT);
-		nameAlternateSortIDButton = new JButton("Alternate (sort) name", ICON_TEXT);
+		nameButton = new JButton("Name", ICON_TEXT);
+		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
+		nameAlternateSortButton = new JButton("Alternate (sort) name", ICON_TEXT);
+		transcribedAlternateNameButton = new JButton("Transcribed alternate (sort) names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{"birth name", "also known as", "nickname", "family nickname",
 			"pseudonym", "legal", "adoptive name", "stage name", "marriage name", "call name", "official name", "anglicized name",
@@ -128,11 +130,17 @@ public class PersonNameDialog extends CommonDialog{
 		personButton.setToolTipText("Person");
 		personButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PERSON, getSelectedRecord())));
 
-		nameIDButton.setToolTipText("Name");
-		nameIDButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+		nameButton.setToolTipText("Name");
+		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
 
-		nameAlternateSortIDButton.setToolTipText("Alternate (sort) name");
-		nameAlternateSortIDButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+		transcribedNameButton.setToolTipText("Transcribed names");
+		transcribedNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PERSON_NAME, getSelectedRecord())));
+
+		nameAlternateSortButton.setToolTipText("Alternate (sort) name");
+		nameAlternateSortButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+
+		transcribedAlternateNameButton.setToolTipText("Transcribed alternate (sort) names");
+		transcribedAlternateNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PERSON_NAME, getSelectedRecord())));
 
 		typeLabel.setLabelFor(typeComboBox);
 		typeComboBox.setEditable(true);
@@ -150,11 +158,13 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void initRecordLayout(final JTabbedPane recordTabbedPane){
+	protected final void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(nameIDButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(nameAlternateSortIDButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(nameButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap related");
+		recordPanelBase.add(nameAlternateSortButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(transcribedAlternateNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "growx");
 
@@ -168,7 +178,7 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	protected final void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -186,7 +196,7 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void filterTableBy(final JDialog panel){
+	protected final void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -202,18 +212,22 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void fillData(){
+	protected final void fillData(){
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
 		final Integer nameID = extractRecordNameID(selectedRecord);
 		final Integer alternateSortNameID = extractRecordAlternateSortNameID(selectedRecord);
+		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractLocalizedTextJunction("name");
+		final Map<Integer, Map<String, Object>> recordAlternateTranscribedNames = extractLocalizedTextJunction("alternate name");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		GUIHelper.addBorder(personButton, personID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(nameIDButton, nameID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(nameAlternateSortIDButton, alternateSortNameID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(nameButton, nameID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(nameAlternateSortButton, alternateSortNameID != null, DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(transcribedAlternateNameButton, !recordAlternateTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -222,10 +236,12 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void clearData(){
+	protected final void clearData(){
 		GUIHelper.setDefaultBorder(personButton);
-		GUIHelper.setDefaultBorder(nameIDButton);
-		GUIHelper.setDefaultBorder(nameAlternateSortIDButton);
+		GUIHelper.setDefaultBorder(nameButton);
+		GUIHelper.setDefaultBorder(transcribedNameButton);
+		GUIHelper.setDefaultBorder(nameAlternateSortButton);
+		GUIHelper.setDefaultBorder(transcribedAlternateNameButton);
 		typeComboBox.setSelectedItem(null);
 
 		GUIHelper.setDefaultBorder(noteButton);
@@ -234,7 +250,7 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected final boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final Integer personID = extractRecordPersonID(selectedRecord);
@@ -251,7 +267,7 @@ public class PersonNameDialog extends CommonDialog{
 	}
 
 	@Override
-	protected void saveData(){
+	protected final void saveData(){
 		//read record panel:
 		final String type = (String)typeComboBox.getSelectedItem();
 
@@ -423,7 +439,7 @@ public class PersonNameDialog extends CommonDialog{
 			EventBusService.subscribe(listener);
 
 			final PersonNameDialog dialog = new PersonNameDialog(store, null, parent);
-			if(!dialog.loadData(PersonNameDialog.extractRecordID(personName1)))
+			if(!dialog.loadData(extractRecordID(personName1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -432,7 +448,7 @@ public class PersonNameDialog extends CommonDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(355, 433);
+			dialog.setSize(535, 466);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

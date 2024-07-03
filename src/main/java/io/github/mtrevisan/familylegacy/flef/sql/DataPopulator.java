@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,8 +52,8 @@ class DataPopulator{
 	private static final Pattern HEADER_PATTERN = Pattern.compile("\\|?([^|]+)\\|?");
 
 
-	void populate(final Map<String, GenericTable> tables, final String filePath) throws IOException{
-		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath))){
+	final void populate(final Map<String, GenericTable> tables, final String filePath) throws IOException{
+		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))){
 			GenericTable currentTable = null;
 			List<String> currentTableHeaders = new ArrayList<>(0);
 			String[] currentTableData = null;

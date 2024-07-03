@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -135,7 +136,7 @@ final class GedcomGrammar{
 		int lineCount = 0;
 		boolean processFileHeader = true;
 		boolean descriptionFound = false;
-		try(final BufferedReader br = new BufferedReader(new InputStreamReader(is))){
+		try(final BufferedReader br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))){
 			final List<String> block = new ArrayList<>(0);
 
 			String line;
