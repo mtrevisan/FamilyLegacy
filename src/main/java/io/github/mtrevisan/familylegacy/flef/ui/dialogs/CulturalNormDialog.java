@@ -364,9 +364,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 
 	@Override
-	public void textChanged(){}
-
-	@Override
 	public void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
@@ -457,7 +454,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PLACE -> {
 							//TODO
@@ -475,7 +472,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 //							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case MEDIA -> {
@@ -489,7 +485,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 //							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

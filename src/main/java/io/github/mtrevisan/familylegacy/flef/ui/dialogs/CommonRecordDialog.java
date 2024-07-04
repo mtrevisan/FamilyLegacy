@@ -45,11 +45,12 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
-public abstract class CommonSingletonDialog extends JDialog{
+public abstract class CommonRecordDialog extends JDialog{
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CommonSingletonDialog.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecordDialog.class);
 
 	protected static final Color MANDATORY_FIELD_BACKGROUND_COLOR = Color.PINK;
 	protected static final Color MANDATORY_COMBOBOX_BACKGROUND_COLOR = Color.RED;
@@ -113,7 +114,7 @@ public abstract class CommonSingletonDialog extends JDialog{
 	private Consumer<Object> onCloseGracefully;
 
 
-	protected CommonSingletonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	protected CommonRecordDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
@@ -193,6 +194,14 @@ public abstract class CommonSingletonDialog extends JDialog{
 
 	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+	}
+
+	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+			final int filterReferenceID){
+		return getRecords(tableName).entrySet().stream()
+			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> filterReferenceID == extractRecordReferenceID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
 	protected static int extractNextRecordID(final TreeMap<Integer, Map<String, Object>> records){

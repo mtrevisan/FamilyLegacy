@@ -29,8 +29,6 @@ import java.awt.Component;
 
 public interface TextPreviewListenerInterface{
 
-	void textChanged();
-
 	void onPreviewStateChange(boolean visible);
 
 

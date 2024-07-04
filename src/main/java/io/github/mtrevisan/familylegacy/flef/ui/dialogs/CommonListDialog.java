@@ -67,7 +67,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 
-public abstract class CommonListDialog extends CommonSingletonDialog{
+public abstract class CommonListDialog extends CommonRecordDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonListDialog.class);
 
@@ -281,9 +281,9 @@ public abstract class CommonListDialog extends CommonSingletonDialog{
 		//create a new record
 		final Map<String, Object> newTable = new HashMap<>();
 		final TreeMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
-		final int newTableID = extractNextRecordID(storeTables);
-		newTable.put("id", newTableID);
-		storeTables.put(newTableID, newTable);
+		final int nextRecordID = extractNextRecordID(storeTables);
+		newTable.put("id", nextRecordID);
+		storeTables.put(nextRecordID, newTable);
 
 		//reset filter
 		filterField.setText(null);
@@ -293,7 +293,7 @@ public abstract class CommonListDialog extends CommonSingletonDialog{
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		final int oldSize = model.getRowCount();
 		model.setRowCount(oldSize + 1);
-		model.setValueAt(newTableID, oldSize, TABLE_INDEX_RECORD_ID);
+		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_RECORD_ID);
 		//resort rows
 		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
 
@@ -374,7 +374,6 @@ public abstract class CommonListDialog extends CommonSingletonDialog{
 //				});
 //
 //				changeNoteDialog.setSize(450, 209);
-//				changeNoteDialog.setLocationRelativeTo(this);
 //				changeNoteDialog.setVisible(true);
 
 

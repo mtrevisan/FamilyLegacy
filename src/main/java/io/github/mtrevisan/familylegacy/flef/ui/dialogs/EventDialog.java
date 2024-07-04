@@ -436,7 +436,7 @@ public final class EventDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PLACE -> {
 							//TODO
@@ -457,7 +457,6 @@ public final class EventDialog extends CommonListDialog{
 //							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case MEDIA -> {
@@ -471,7 +470,6 @@ public final class EventDialog extends CommonListDialog{
 //							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

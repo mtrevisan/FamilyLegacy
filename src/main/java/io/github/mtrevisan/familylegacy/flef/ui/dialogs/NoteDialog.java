@@ -79,8 +79,24 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	private JCheckBox restrictionCheckBox;
 
+	private String filterReferenceTable;
+	private int filterReferenceID;
 
-	public NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+
+	public static NoteDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new NoteDialog(store, parent);
+	}
+
+	public static NoteDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final String referenceTable, final int filterReferenceID, final Frame parent){
+		final NoteDialog dialog = new NoteDialog(store, parent);
+		//TODO too late, initRecordComponents was already called
+		dialog.filterReferenceTable = referenceTable;
+		dialog.filterReferenceID = filterReferenceID;
+		return dialog;
+	}
+
+	private NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -129,9 +145,13 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
-		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
-		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		if(filterReferenceTable == null){
+			referenceButton.setToolTipText("Reference");
+			referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		}
+		else
+			referenceButton.setEnabled(false);
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -154,7 +174,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void loadData(){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
+			? getRecords(TABLE_NAME)
+			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -190,7 +212,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		noteTextArea.setText("Note " + extractRecordID(selectedRecord), note, locale);
 		localeField.setText(locale);
-		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		if(filterReferenceTable == null)
+			GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
@@ -200,14 +223,15 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		noteTextArea.clear();
 		noteTextArea.setTextViewBackgroundColor(Color.WHITE);
 		localeField.setText(null);
-		GUIHelper.setDefaultBorder(referenceButton);
+		if(filterReferenceTable == null)
+			GUIHelper.setDefaultBorder(referenceButton);
 
 		restrictionCheckBox.setSelected(false);
 	}
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
+		if(selectedRecord != null && filterReferenceTable == null){
 			//read record panel:
 			final String note = noteTextArea.getText();
 			//enforce non-nullity on `identifier`
@@ -265,9 +289,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return (String)record.get("locale");
 	}
 
-
-	@Override
-	public void textChanged(){}
 
 	@Override
 	public void onPreviewStateChange(final boolean visible){
@@ -340,7 +361,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case REFERENCE -> {
 							//TODO
@@ -350,7 +371,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteDialog dialog = new NoteDialog(store, parent);
+			final NoteDialog dialog = create(store, parent);
 			if(!dialog.loadData(extractRecordID(note1)))
 				dialog.showNewRecord();
 

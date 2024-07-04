@@ -298,7 +298,7 @@ public final class CalendarDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case NOTE -> {
 							//TODO
@@ -310,7 +310,6 @@ public final class CalendarDialog extends CommonListDialog{
 //							dialog.loadData(calendar, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

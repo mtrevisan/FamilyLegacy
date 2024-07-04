@@ -210,7 +210,7 @@ public final class SourceDialog extends CommonListDialog{
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterRepositoryID != null)
 			records = records.entrySet().stream()
-				.filter(entry -> extractRecordRepositoryID(entry.getValue()).equals(filterRepositoryID))
+				.filter(entry -> filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -442,7 +442,7 @@ public final class SourceDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PLACE -> {
 							//TODO
@@ -455,7 +455,6 @@ public final class SourceDialog extends CommonListDialog{
 //								dialog.showNewRecord();
 //
 //							dialog.setSize(550, 450);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case DATE -> {
@@ -474,7 +473,6 @@ public final class SourceDialog extends CommonListDialog{
 //							dialog.loadData(source, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case MEDIA -> {
@@ -488,7 +486,6 @@ public final class SourceDialog extends CommonListDialog{
 //							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

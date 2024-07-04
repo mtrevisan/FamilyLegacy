@@ -172,7 +172,7 @@ public class TextPreviewPane extends JSplitPane{
 		pane.textView.setTabSize(3);
 		pane.textView.setRows(10);
 
-		GUIHelper.bindLabelTextChangeUndo(null, pane.textView, evt -> listener.textChanged());
+		GUIHelper.addUndoCapability(pane.textView);
 
 		final JScrollPane textScroll = new JScrollPane(pane.textView);
 		textScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);

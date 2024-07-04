@@ -150,7 +150,7 @@ public final class CropDialog extends JDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){}
+				public void refresh(final EditEvent editCommand){}
 			};
 			EventBusService.subscribe(listener);
 

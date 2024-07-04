@@ -228,7 +228,7 @@ public final class MediaDialog extends CommonListDialog{
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterRepositoryID != null)
 			records = records.entrySet().stream()
-				.filter(entry -> extractRecordRepositoryID(entry.getValue()).equals(filterRepositoryID))
+				.filter(entry -> filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -435,7 +435,7 @@ public final class MediaDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case DATE -> {
 							//TODO
@@ -450,7 +450,6 @@ public final class MediaDialog extends CommonListDialog{
 //							dialog.loadData(media, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

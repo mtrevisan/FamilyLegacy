@@ -413,7 +413,7 @@ public final class PersonNameDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case NAME -> {
 							//TODO
@@ -431,7 +431,6 @@ public final class PersonNameDialog extends CommonListDialog{
 //							dialog.loadData(place, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

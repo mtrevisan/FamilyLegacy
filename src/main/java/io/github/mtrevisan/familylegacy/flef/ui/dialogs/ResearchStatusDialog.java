@@ -378,7 +378,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case REFERENCE -> {
 							//TODO

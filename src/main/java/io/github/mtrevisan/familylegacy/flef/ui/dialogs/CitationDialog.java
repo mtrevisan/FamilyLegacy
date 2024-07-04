@@ -446,7 +446,7 @@ public final class CitationDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case SOURCE -> {
 							//TODO
@@ -467,7 +467,6 @@ public final class CitationDialog extends CommonListDialog{
 //							dialog.loadData(citation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case MEDIA -> {
@@ -481,7 +480,6 @@ public final class CitationDialog extends CommonListDialog{
 //							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

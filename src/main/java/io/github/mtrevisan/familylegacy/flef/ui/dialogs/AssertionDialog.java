@@ -380,6 +380,10 @@ public final class AssertionDialog extends CommonListDialog{
 		return (Integer)record.get("source_id");
 	}
 
+	private static int extractNoteRecordAssertionID(final Map<String, Object> noteRecord){
+		return (TABLE_NAME.equals(noteRecord.get("reference_table"))? (int)noteRecord.get("reference_id"): -1);
+	}
+
 
 	private static class RecordTableModel extends DefaultTableModel{
 
@@ -484,58 +488,6 @@ public final class AssertionDialog extends CommonListDialog{
 		media.put((Integer)m1.get("id"), m1);
 
 		EventQueue.invokeLater(() -> {
-			final JFrame parent = new JFrame();
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-
-				@EventHandler
-				public static void refresh(final EditEvent editCommand){
-					switch(editCommand.getType()){
-						case SOURCE -> {
-							//TODO
-						}
-						case REFERENCE -> {
-							//TODO
-						}
-						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode assertion = editCommand.getContainer();
-//							dialog.setTitle(assertion.getID() != null
-//								? "Note " + assertion.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
-//							dialog.setVisible(true);
-						}
-						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
-//							dialog.setVisible(true);
-						}
-						case CULTURAL_NORM -> {
-							//TODO
-						}
-					}
-				}
-			};
-			EventBusService.subscribe(listener);
-
 			final DependencyInjector injector = new DependencyInjector();
 			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
 			try{
@@ -550,10 +502,59 @@ public final class AssertionDialog extends CommonListDialog{
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 			final Integer filterCitationID = null;
+			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, parent);
 			injector.injectDependencies(dialog);
 			if(!dialog.loadData(extractRecordID(assertion)))
 				dialog.showNewRecord();
+
+			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					switch(editCommand.getType()){
+						case SOURCE -> {
+							//TODO
+						}
+						case REFERENCE -> {
+							//TODO
+						}
+						case NOTE -> {
+							final int assertionID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, "assertion", assertionID,
+								parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 534);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
+						}
+						case MEDIA -> {
+							//TODO
+//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
+//							final GedcomNode noteTranslation = editCommand.getContainer();
+//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
+//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
+//								: "New translation"
+//							);
+//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
+//
+//							dialog.setSize(450, 209);
+//							dialog.setVisible(true);
+						}
+						case CULTURAL_NORM -> {
+							//TODO
+						}
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

@@ -390,7 +390,7 @@ public final class RepositoryDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PERSON -> {
 							//TODO
@@ -406,7 +406,6 @@ public final class RepositoryDialog extends CommonListDialog{
 //								dialog.showNewRecord();
 //
 //							dialog.setSize(550, 450);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case NOTE -> {
@@ -419,7 +418,6 @@ public final class RepositoryDialog extends CommonListDialog{
 //							dialog.loadData(repository, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(500, 513);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 						case MEDIA -> {
@@ -433,7 +431,6 @@ public final class RepositoryDialog extends CommonListDialog{
 //							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
 //
 //							dialog.setSize(450, 209);
-//							dialog.setLocationRelativeTo(parent);
 //							dialog.setVisible(true);
 						}
 					}

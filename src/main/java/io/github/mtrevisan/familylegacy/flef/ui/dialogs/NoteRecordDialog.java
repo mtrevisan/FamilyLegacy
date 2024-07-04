@@ -24,63 +24,51 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
-import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
-import java.sql.SQLException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public final class ProjectDialog extends CommonRecordDialog implements TextPreviewListenerInterface{
+public final class NoteRecordDialog extends CommonRecordDialog implements TextPreviewListenerInterface{
 
 	@Serial
-	private static final long serialVersionUID = -3776676890876630508L;
+	private static final long serialVersionUID = -8696687603069555837L;
 
-	private static final String TABLE_NAME = "project";
-
-	private static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
-	private static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
+	private static final String TABLE_NAME = "note";
 
 
-	private JLabel copyrightLabel;
-	private JTextField copyrightField;
 	private JLabel noteLabel;
 	private TextPreviewPane noteTextArea;
 	private JLabel localeLabel;
 	private JTextField localeField;
 
+	private JCheckBox restrictionCheckBox;
 
-	public ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+
+	public NoteRecordDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public ProjectDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public NoteRecordDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -93,89 +81,112 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	protected void initRecordComponents(){
-		setTitle("Project");
-
-		copyrightLabel = new JLabel("Copyright:");
-		copyrightField = new JTextField();
+		setTitle("Note");
 
 		noteLabel = new JLabel("Note:");
 		noteTextArea = TextPreviewPane.createWithPreview(this);
-		noteTextArea.setTextViewFont(copyrightField.getFont());
-
+		noteTextArea.setTextViewFont(noteLabel.getFont());
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 
+		restrictionCheckBox = new JCheckBox("Confidential");
 
-		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, evt -> saveData());
 
 		GUIHelper.bindLabelTextChange(noteLabel, noteTextArea, evt -> saveData());
+		noteTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
+
+		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel.add(copyrightLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(copyrightField, "growx,wrap paragraph");
 		recordPanel.add(noteLabel, "align label,top,sizegroup label,split 2");
 		recordPanel.add(noteTextArea, "grow,wrap related");
 		recordPanel.add(localeLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(localeField, "grow");
+		recordPanel.add(localeField, "grow,wrap paragraph");
+		recordPanel.add(restrictionCheckBox);
+	}
+
+
+	public void showNewRecord(){
+		//create a new record
+		final Map<String, Object> newTable = new HashMap<>();
+		final TreeMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
+		final int nextRecordID = extractNextRecordID(storeTables);
+		newTable.put("id", nextRecordID);
+		storeTables.put(nextRecordID, newTable);
+
+		loadData(nextRecordID);
+	}
+
+	public boolean loadData(final int recordID){
+		selectedRecord = getRecords(TABLE_NAME)
+			.get(recordID);
+
+		if(selectedRecord != null){
+			fillData();
+
+			return true;
+		}
+		return false;
 	}
 
 	@Override
-	protected void loadData(){
-		selectedRecord = getRecords(TABLE_NAME)
-			.computeIfAbsent(1, k -> new HashMap<>());
-
-		fillData();
-	}
+	protected void loadData(){}
 
 	@Override
 	protected void fillData(){
-		final String copyright = extractRecordCopyright(selectedRecord);
+		final int noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
+		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		copyrightField.setText(copyright);
+		setTitle("Note " + noteID);
 		noteTextArea.setText("Note " + extractRecordID(selectedRecord), note, locale);
 		localeField.setText(locale);
+
+		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
 
 	@Override
 	protected void clearData(){
-		copyrightField.setText(null);
 		noteTextArea.clear();
+		noteTextArea.setTextViewBackgroundColor(Color.WHITE);
 		localeField.setText(null);
+
+		restrictionCheckBox.setSelected(false);
 	}
 
 	@Override
 	protected boolean validateData(){
+		if(selectedRecord != null){
+			//read record panel:
+			final String note = noteTextArea.getText();
+			//enforce non-nullity on `identifier`
+			if(note == null || note.isEmpty()){
+				JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
+					JOptionPane.ERROR_MESSAGE);
+				noteTextArea.requestFocusInWindow();
+
+				return false;
+			}
+		}
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		//read record panel:
-		final String copyright = copyrightField.getText();
 		final String note = noteTextArea.getText();
 		final String locale = localeField.getText();
-		final String updateDate = extractUpdateDate(selectedRecord);
 
-		selectedRecord.put("protocol_name", PROTOCOL_NAME_DEFAULT);
-		selectedRecord.put("protocol_version", PROTOCOL_VERSION_DEFAULT);
-		selectedRecord.put("copyright", copyright);
 		selectedRecord.put("note", note);
-		selectedRecord.put("locale", locale);
-		selectedRecord.put((updateDate == null? "creation_date": "update_date"), now);
+		selectedRecord.put("localeField", locale);
 	}
 
-
-	private static String extractRecordCopyright(final Map<String, Object> record){
-		return (String)record.get("copyright");
-	}
 
 	private static String extractRecordNote(final Map<String, Object> record){
 		return (String)record.get("note");
@@ -183,10 +194,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	private static String extractRecordLocale(final Map<String, Object> record){
 		return (String)record.get("locale");
-	}
-
-	private static String extractUpdateDate(final Map<String, Object> record){
-		return (String)record.get("update_date");
 	}
 
 
@@ -205,49 +212,36 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> projects = new TreeMap<>();
-		store.put(TABLE_NAME, projects);
-		final Map<String, Object> project = new HashMap<>();
-		project.put("id", 1);
-		project.put("protocol_name", PROTOCOL_NAME_DEFAULT);
-		project.put("protocol_version", PROTOCOL_VERSION_DEFAULT);
-		project.put("copyright", "(c) 2024");
-		project.put("note", "some notes");
-		project.put("locale", "en-US");
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
-		project.put("creation_date", now);
-		project.put("update_date", now);
-		projects.put((Integer)project.get("id"), project);
+		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
+		store.put(TABLE_NAME, notes);
+		final Map<String, Object> note1 = new HashMap<>();
+		note1.put("id", 1);
+		note1.put("note", "a note");
+		note1.put("reference_table", "person");
+		note1.put("reference_id", 1);
+		notes.put((Integer)note1.get("id"), note1);
+		final Map<String, Object> note2 = new HashMap<>();
+		note2.put("id", 2);
+		note2.put("note", "note 2");
+		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_id", 2);
+		notes.put((Integer)note2.get("id"), note2);
+
+		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
+		store.put(TABLE_NAME_RESTRICTION, restrictions);
+		final Map<String, Object> restriction1 = new HashMap<>();
+		restriction1.put("id", 1);
+		restriction1.put("restriction", "confidential");
+		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_id", 1);
+		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
 
-				@EventHandler
-				public void refresh(final EditEvent editCommand){}
-			};
-			EventBusService.subscribe(listener);
-
-			final DependencyInjector injector = new DependencyInjector();
-			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
-			try{
-				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
-				dbManager.initialize(grammarFile);
-
-				dbManager.insertDatabase(store);
-			}
-			catch(final SQLException | IOException e){
-				throw new RuntimeException(e);
-			}
-			injector.register(DatabaseManagerInterface.class, dbManager);
-
-			final ProjectDialog dialog = new ProjectDialog(store, parent);
-			injector.injectDependencies(dialog);
+			final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
+			if(!dialog.loadData(extractRecordID(note1)))
+				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
@@ -255,7 +249,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 282);
+			dialog.setSize(420, 285);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
