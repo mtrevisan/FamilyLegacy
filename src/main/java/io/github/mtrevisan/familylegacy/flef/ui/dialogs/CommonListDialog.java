@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -65,7 +65,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 
 
 public abstract class CommonListDialog extends CommonSingletonDialog{
@@ -105,9 +104,8 @@ public abstract class CommonListDialog extends CommonSingletonDialog{
 	private long selectedRecordHash;
 
 
-	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
+	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 

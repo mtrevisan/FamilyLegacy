@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2020-2022 Mauro Trevisan
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -9,10 +9,10 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -22,7 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers;
+
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -49,6 +51,7 @@ import java.awt.Container;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.Arrays;
@@ -105,29 +108,92 @@ public final class GUIHelper{
 		return (text != null? text.trim(): null);
 	}
 
-	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onTextChange){
+	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Consumer<DocumentEvent> onEdit){
+		if(label != null)
+			label.setLabelFor(field);
+
+		if(onEdit != null)
+			field.addDocumentListener(new DocumentListener(){
+				@Override
+				public void changedUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+
+				@Override
+				public void insertUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+			});
+	}
+
+	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onEdit){
 		if(label != null)
 			label.setLabelFor(field);
 
 		addUndoCapability(field);
 
-		if(onTextChange != null)
+		if(onEdit != null)
 			field.getDocument().addDocumentListener(new DocumentListener(){
 				@Override
 				public void changedUpdate(final DocumentEvent evt){
-					onTextChange.accept(evt);
+					onEdit.accept(evt);
 				}
 
 				@Override
 				public void removeUpdate(final DocumentEvent evt){
-					onTextChange.accept(evt);
+					onEdit.accept(evt);
 				}
 
 				@Override
 				public void insertUpdate(final DocumentEvent evt){
-					onTextChange.accept(evt);
+					onEdit.accept(evt);
 				}
 			});
+	}
+
+	public static void bindLabelEditableSelectionAutoCompleteChangeUndo(final JLabel label, final JComboBox<?> comboBox,
+		final Consumer<DocumentEvent> onEdit, final Consumer<ActionEvent> onSelection){
+		if(label != null)
+			label.setLabelFor(comboBox);
+
+		comboBox.setEditable(true);
+
+		addUndoCapability(comboBox);
+
+		AutoCompleteDecorator.decorate(comboBox);
+
+		if(onSelection != null){
+			final JTextField editor = (JTextField)comboBox.getEditor().getEditorComponent();
+			editor.getDocument().addDocumentListener(new DocumentListener(){
+				@Override
+				public void changedUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+
+				@Override
+				public void insertUpdate(final DocumentEvent evt){
+					onEdit.accept(evt);
+				}
+			});
+
+			comboBox.addActionListener(new ActionListener(){
+				@Override
+				public void actionPerformed(final ActionEvent evt){
+					if(comboBox.getSelectedItem() != null)
+						onSelection.accept(evt);
+				}
+			});
+		}
 	}
 
 

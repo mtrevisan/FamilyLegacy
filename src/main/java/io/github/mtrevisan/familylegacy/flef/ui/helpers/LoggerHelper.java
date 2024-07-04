@@ -22,18 +22,36 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface EventHandler{
+public final class LoggerHelper{
 
-	boolean canVeto() default false;
+	private LoggerHelper(){}
+
+
+	/**
+	 * Extracts the two direct callers of this method.
+	 *
+	 * @return	An array with the two most direct callers of this method.
+	 */
+	public static Class<?>[] extractCallerClasses(){
+		final StackWalker walker = StackWalker.getInstance();
+		final List<String> classNames = walker.walk(frames -> frames.skip(1)
+			.limit(2)
+			.map(StackWalker.StackFrame::getClassName)
+			.collect(Collectors.toList()));
+
+		final Class<?>[] classes = new Class[classNames.size()];
+		try{
+			for(int i = 0; i < classNames.size(); i ++)
+				classes[i] = Class.forName(classNames.get(i));
+		}
+		catch(final ClassNotFoundException ignored){}
+		return classes;
+	}
 
 }

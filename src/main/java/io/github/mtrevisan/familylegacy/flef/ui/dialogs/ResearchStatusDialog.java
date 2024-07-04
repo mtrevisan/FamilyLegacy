@@ -28,15 +28,14 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -69,7 +68,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class ResearchStatusDialog extends CommonListDialog{
+public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6258734190218776466L;
@@ -90,26 +89,31 @@ public class ResearchStatusDialog extends CommonListDialog{
 	private JTextField priorityField;
 
 
-	public ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Research statuses");
+	public ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public ResearchStatusDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Research statuses");
+
 		super.initStoreComponents();
 
 
@@ -118,7 +122,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		referenceButton = new JButton("Reference", ICON_REFERENCE);
 
 		identifierLabel = new JLabel("Identifier:");
@@ -141,23 +145,18 @@ public class ResearchStatusDialog extends CommonListDialog{
 		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
 		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		identifierLabel.setLabelFor(identifierField);
-		GUIHelper.addUndoCapability(identifierField);
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		descriptionLabel.setLabelFor(descriptionTextArea);
+		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextArea, evt -> saveData());
 
-		statusLabel.setLabelFor(statusComboBox);
-		statusComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(statusComboBox);
-		AutoCompleteDecorator.decorate(statusComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(statusLabel, statusComboBox, evt -> saveData(), evt -> saveData());
 
-		priorityLabel.setLabelFor(priorityField);
-		GUIHelper.addUndoCapability(priorityField);
+		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, evt -> saveData());
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(referenceButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
@@ -173,7 +172,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -191,7 +190,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -202,7 +201,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
@@ -217,7 +216,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		GUIHelper.setDefaultBorder(referenceButton);
 		identifierField.setText(null);
 		descriptionTextArea.clear();
@@ -226,7 +225,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = extractRecordIdentifier(selectedRecord);
@@ -243,7 +242,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String identifier = identifierField.getText();
 		final String description = descriptionTextArea.getText();
@@ -402,7 +401,7 @@ public class ResearchStatusDialog extends CommonListDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final ResearchStatusDialog dialog = new ResearchStatusDialog(store, null, parent);
+			final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
 			injector.injectDependencies(dialog);
 			if(!dialog.loadData(extractRecordID(researchStatus)))
 				dialog.showNewRecord();

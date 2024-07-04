@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 

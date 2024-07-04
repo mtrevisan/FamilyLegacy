@@ -28,16 +28,15 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.CertaintyComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -67,7 +66,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class AssertionDialog extends CommonListDialog{
+public final class AssertionDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -28220354680747790L;
@@ -75,6 +74,8 @@ public class AssertionDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_REFERENCE_TABLE = 1;
 
 	private static final String TABLE_NAME = "assertion";
+	private static final String TABLE_NAME_CITATION = "citation";
+	private static final String TABLE_NAME_SOURCE = "source";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
@@ -96,27 +97,33 @@ public class AssertionDialog extends CommonListDialog{
 
 
 	public AssertionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterCitationID,
-			final Consumer<Object> onCloseGracefully, final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Assertions" + (filterCitationID != null? " for citation " + filterCitationID: StringUtils.EMPTY));
+			final Frame parent){
+		super(store, parent);
 
 		this.filterCitationID = filterCitationID;
 	}
 
 
+	public AssertionDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Assertions" + (filterCitationID != null? " for citation " + filterCitationID: StringUtils.EMPTY));
+
 		super.initStoreComponents();
 
 
@@ -125,7 +132,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		citationButton = new JButton("Citation", ICON_CITATION);
 		referenceButton = new JButton("Reference", ICON_REFERENCE);
 		roleLabel = new JLabel("Role:");
@@ -149,18 +156,12 @@ public class AssertionDialog extends CommonListDialog{
 		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
 		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		roleLabel.setLabelFor(roleField);
-		GUIHelper.addUndoCapability(roleField);
+		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, evt -> saveData());
 
-		certaintyLabel.setLabelFor(certaintyComboBox);
-		certaintyComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(certaintyComboBox);
-		AutoCompleteDecorator.decorate(certaintyComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
 
-		credibilityLabel.setLabelFor(credibilityComboBox);
-		credibilityComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(credibilityComboBox);
-		AutoCompleteDecorator.decorate(credibilityComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(credibilityLabel, credibilityComboBox, evt -> saveData(),
+			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
@@ -177,7 +178,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(citationButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(referenceButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
@@ -199,7 +200,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterCitationID != null)
 			records = records.entrySet().stream()
@@ -211,18 +212,24 @@ public class AssertionDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String referenceTable = extractRecordReferenceTable(record.getValue());
+			final Map<String, Object> assertion = record.getValue();
+
+			final String sourceIdentifier = extractRecordSourceIdentifier(assertion);
+			final String location = extractRecordLocation(assertion);
+			final String referenceTable = extractRecordReferenceTable(assertion);
+			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+					+ (location != null? (sourceIdentifier != null? " at ": StringUtils.EMPTY) + location: StringUtils.EMPTY)
+					+ (location != null || sourceIdentifier != null? " for ": StringUtils.EMPTY) + referenceTable;
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			//TODO find a suitable identifier
-			model.setValueAt(referenceTable, row, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_REFERENCE_TABLE);
 
 			row ++;
 		}
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_REFERENCE_TABLE);
@@ -233,7 +240,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final Integer sourceID = extractRecordCitationID(selectedRecord);
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
@@ -257,7 +264,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		GUIHelper.setDefaultBorder(citationButton);
 		GUIHelper.setDefaultBorder(referenceButton);
 		roleField.setText(null);
@@ -271,7 +278,7 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final Integer citationID = extractRecordCitationID(selectedRecord);
@@ -299,24 +306,30 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String role = GUIHelper.readTextTrimmed(roleField);
 		final String certainty = (String)certaintyComboBox.getSelectedItem();
 		final String credibility = (String)credibilityComboBox.getSelectedItem();
 
-		//TODO update table
-//		if(!Objects.equals(referenceTable, extractRecordLocation(selectedRecord))){
-//			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-//			final Integer recordID = extractRecordID(selectedRecord);
-//			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-//				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-//					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-//					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-//					model.setValueAt(referenceTable, modelRowIndex, TABLE_INDEX_RECORD_REFERENCE_TABLE);
-//					break;
-//				}
-//		}
+		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final Integer recordID = extractRecordID(selectedRecord);
+		for(int row = 0, length = model.getRowCount(); row < length; row ++)
+			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
+				final Map<String, Object> updatedAssertionRecord = getRecords(TABLE_NAME).get(recordID);
+				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
+				final String location = extractRecordLocation(updatedAssertionRecord);
+				final String referenceTable = extractRecordReferenceTable(updatedAssertionRecord);
+				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+					+ (location != null? (sourceIdentifier != null? " at ": StringUtils.EMPTY) + location: StringUtils.EMPTY)
+					+ (location != null || sourceIdentifier != null? " for ": StringUtils.EMPTY) + referenceTable;
+
+				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+				break;
+			}
 
 		selectedRecord.put("role", role);
 		selectedRecord.put("certainty", certainty);
@@ -324,12 +337,47 @@ public class AssertionDialog extends CommonListDialog{
 	}
 
 
-	private static String extractRecordLocation(final Map<String, Object> record){
-		return (String)record.get("location");
+	private String extractRecordLocation(final Map<String, Object> assertionRecord){
+		final Integer citationID = extractRecordCitationID(assertionRecord);
+		if(citationID == null)
+			return null;
+
+		final Map<Integer, Map<String, Object>> citations = getRecords(TABLE_NAME_CITATION);
+		final Map<String, Object> citation = citations.get(citationID);
+		if(citation == null)
+			return null;
+
+		return (String)citation.get("location");
 	}
 
 	private static Integer extractRecordCitationID(final Map<String, Object> record){
 		return (Integer)record.get("citation_id");
+	}
+
+	private String extractRecordSourceIdentifier(final Map<String, Object> assertionRecord){
+		final Integer citationID = extractRecordCitationID(assertionRecord);
+		if(citationID == null)
+			return null;
+
+		final Map<Integer, Map<String, Object>> citations = getRecords(TABLE_NAME_CITATION);
+		final Map<String, Object> citation = citations.get(citationID);
+		if(citation == null)
+			return null;
+
+		final Integer sourceID = extractRecordSourceID(citation);
+		if(sourceID == null)
+			return null;
+
+		final Map<Integer, Map<String, Object>> sources = getRecords(TABLE_NAME_SOURCE);
+		final Map<String, Object> source = sources.get(sourceID);
+		if(source == null)
+			return null;
+
+		return (String)source.get("identifier");
+	}
+
+	private static Integer extractRecordSourceID(final Map<String, Object> record){
+		return (Integer)record.get("source_id");
 	}
 
 
@@ -340,7 +388,7 @@ public class AssertionDialog extends CommonListDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Location"}, 0);
+			super(new String[]{"ID", "Identifier"}, 0);
 		}
 
 		@Override
@@ -502,7 +550,7 @@ public class AssertionDialog extends CommonListDialog{
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 			final Integer filterCitationID = null;
-			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, null, parent);
+			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, parent);
 			injector.injectDependencies(dialog);
 			if(!dialog.loadData(extractRecordID(assertion)))
 				dialog.showNewRecord();

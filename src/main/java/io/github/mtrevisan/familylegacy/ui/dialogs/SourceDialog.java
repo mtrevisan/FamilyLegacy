@@ -31,14 +31,14 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.records.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.Debouncer;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -749,8 +749,9 @@ public class SourceDialog extends JDialog{
 									: null);
 								dialog.loadData(new File(store.getBasePath(), imagePath), editCommand.getOnCloseGracefully());
 								if(coordinates != null){
-									dialog.setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
-									dialog.setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
+									//FIXME
+//									dialog.setCropStartPoint(Integer.parseInt(coordinates[0]), Integer.parseInt(coordinates[1]));
+//									dialog.setCropEndPoint(Integer.parseInt(coordinates[2]), Integer.parseInt(coordinates[3]));
 								}
 
 								dialog.setSize(500, 480);

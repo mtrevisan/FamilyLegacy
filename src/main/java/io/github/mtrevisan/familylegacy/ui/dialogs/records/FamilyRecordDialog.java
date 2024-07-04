@@ -35,8 +35,8 @@ import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.FamilyPanel;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -91,11 +91,11 @@ public class FamilyRecordDialog extends JDialog{
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 
 	private final JLabel partner1Label = new JLabel("Partner 1:");
-	private final ScaledImage partner1Image = new ScaledImage(null);
+	private final ScaledImage partner1Image = new ScaledImage();
 	private final JLabel partner1Name = new JLabel(StringUtils.EMPTY);
 	private final JButton partner1NoteButton = new JButton(StringUtils.EMPTY);
 	private final JLabel partner2Label = new JLabel("Partner 2:");
-	private final ScaledImage partner2Image = new ScaledImage(null);
+	private final ScaledImage partner2Image = new ScaledImage();
 	private final JLabel partner2Name = new JLabel(StringUtils.EMPTY);
 	private final JButton partner2NoteButton = new JButton(StringUtils.EMPTY);
 	private final JLabel childrenLabel = new JLabel("Children:");
@@ -325,7 +325,7 @@ public class FamilyRecordDialog extends JDialog{
 				preferredImage = store.getSource(partnerPreferredImageXRef);
 				final String partnerPreferredImagePath = store.traverse(preferredImage, "FILE")
 					.getValue();
-				partnerImage.setImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
+				partnerImage.setRectangularImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
 				partnerImage.setMinimumSize(new Dimension(PARTNER_IMAGE_MINIMUM_WIDTH, PARTNER_IMAGE_MINIMUM_HEIGHT));
 				partnerImage.setEnabled(true);
 
@@ -350,7 +350,7 @@ public class FamilyRecordDialog extends JDialog{
 		}
 		else{
 			partnerImage.setEnabled(false);
-			partnerImage.setImage(null);
+			partnerImage.setRectangularImage(null);
 			partnerName.setText(null);
 			partnerName.setEnabled(false);
 			partnerNotes.setEnabled(false);

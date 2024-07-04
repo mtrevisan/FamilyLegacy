@@ -22,11 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus;
 
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.VetoEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions.VetoException;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.VetoEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.exceptions.VetoException;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;

@@ -25,13 +25,13 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewListenerInterface;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -61,7 +61,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class NoteDialog extends CommonListDialog implements TextPreviewListenerInterface{
+public final class NoteDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 3280504923967901715L;
@@ -80,26 +80,31 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	private JCheckBox restrictionCheckBox;
 
 
-	public NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Notes");
+	public NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public NoteDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Notes");
+
 		super.initStoreComponents();
 
 
@@ -108,7 +113,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		noteLabel = new JLabel("Note:");
 		noteTextArea = TextPreviewPane.createWithPreview(this);
 		noteTextArea.setTextViewFont(noteLabel.getFont());
@@ -119,11 +124,10 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		noteLabel.setLabelFor(noteTextArea);
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextArea, evt -> saveData());
 		noteTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		localeLabel.setLabelFor(localeField);
-		GUIHelper.addUndoCapability(localeField);
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
 		referenceButton.setToolTipText("Reference");
 		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
@@ -133,10 +137,10 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(noteLabel, "align label,top,sizegroup label,split 2");
-		recordPanelBase.add(noteTextArea, "grow,wrap paragraph");
+		recordPanelBase.add(noteTextArea, "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(localeField, "grow,wrap paragraph");
 		recordPanelBase.add(referenceButton, "sizegroup btn,center");
@@ -149,7 +153,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -167,7 +171,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_NOTE);
@@ -178,7 +182,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
@@ -192,7 +196,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		noteTextArea.clear();
 		noteTextArea.setTextViewBackgroundColor(Color.WHITE);
 		localeField.setText(null);
@@ -202,7 +206,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String note = noteTextArea.getText();
@@ -230,7 +234,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String note = noteTextArea.getText();
 		final String locale = localeField.getText();
@@ -266,7 +270,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 	public void textChanged(){}
 
 	@Override
-	public final void onPreviewStateChange(final boolean visible){
+	public void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
@@ -346,7 +350,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteDialog dialog = new NoteDialog(store, null, parent);
+			final NoteDialog dialog = new NoteDialog(store, parent);
 			if(!dialog.loadData(extractRecordID(note1)))
 				dialog.showNewRecord();
 
@@ -356,7 +360,7 @@ public class NoteDialog extends CommonListDialog implements TextPreviewListenerI
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 547);
+			dialog.setSize(420, 534);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

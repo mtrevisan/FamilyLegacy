@@ -25,11 +25,11 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +55,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class PersonDialog extends CommonListDialog{
+public final class PersonDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6043866696384851757L;
@@ -76,26 +76,31 @@ public class PersonDialog extends CommonListDialog{
 	private JCheckBox restrictionCheckBox;
 
 
-	public PersonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Persons");
+	public PersonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public PersonDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Persons");
+
 		super.initStoreComponents();
 
 
@@ -104,7 +109,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		namesButton = new JButton("Names", ICON_TEXT);
 		photoButton = new JButton("Photo", ICON_PHOTO);
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
@@ -132,7 +137,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(namesButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(photoButton, "sizegroup btn,center,wrap paragraph");
@@ -148,7 +153,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -166,7 +171,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -177,7 +182,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNames = extractPersonNameReferences();
@@ -195,7 +200,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		GUIHelper.setDefaultBorder(namesButton);
 		GUIHelper.setDefaultBorder(photoButton);
 
@@ -205,7 +210,7 @@ public class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		return true;
 	}
 
@@ -391,7 +396,7 @@ public class PersonDialog extends CommonListDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final PersonDialog dialog = new PersonDialog(store, null, parent);
+			final PersonDialog dialog = new PersonDialog(store, parent);
 			if(!dialog.loadData(extractRecordID(person1)))
 				dialog.showNewRecord();
 

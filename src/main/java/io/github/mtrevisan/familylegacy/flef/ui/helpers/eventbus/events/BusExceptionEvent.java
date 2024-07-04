@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events;
 
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -32,20 +32,32 @@ import java.util.EventObject;
 
 
 /**
- * A VetoEvent is sent out of the event bus when a veto has been made by the subscriber.
- * The subscriber will have indicated a veto by throwing a {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions.VetoException}
- * in the {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler} annotated method.
- * <p>
+ * For any exceptions that occur on the bus during handler execution, this event will be published.
+ *
  * @see <a href="https://github.com/taftster/simpleeventbus">Simple Event Bus</a>
  */
-public class VetoEvent extends EventObject{
+public class BusExceptionEvent extends EventObject{
 
 	@Serial
-	private static final long serialVersionUID = -6990813610487588182L;
+	private static final long serialVersionUID = -6138624437653011774L;
 
 
-	public VetoEvent(final Object event){
-		super(event);
+	private final Throwable cause;
+
+
+	public BusExceptionEvent(final Object subscriber, final Throwable cause){
+		super(subscriber);
+
+		this.cause = cause;
+	}
+
+
+	public Object getSubscriber(){
+		return getSource();
+	}
+
+	public Throwable getCause(){
+		return cause;
 	}
 
 

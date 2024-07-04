@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransfo
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;

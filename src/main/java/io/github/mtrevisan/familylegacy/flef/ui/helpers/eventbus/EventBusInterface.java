@@ -22,7 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus;
+
+
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.VetoEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.exceptions.VetoException;
 
 
 /**
@@ -46,9 +50,9 @@ package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
  * <p>
  * A published event has the potential to be vetoed and thus not propagated to other non-vetoing subscribers. This
  * is accomplished by setting the {@link EventHandler#canVeto()} property to true and throwing a
- * {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions.VetoException}
+ * {@link VetoException}
  * when the method is called from the EventBus. The event bus will note the veto and not relay the message to the
- * subscribers, but will instead send a {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.VetoEvent}
+ * subscribers, but will instead send a {@link VetoEvent}
  * out on the bus indicating that the published event has been vetoed.
  *
  * @see <a href="https://github.com/taftster/simpleeventbus">Simple Event Bus</a>
@@ -85,7 +89,7 @@ public interface EventBusInterface{
 	 * <p>
 	 * Events can be vetoed, indicating that the event should not propagate to the subscribers that don't
 	 * have a veto. The subscriber can veto by setting the {@link EventHandler#canVeto()} return to {@code true}
-	 * and by throwing a {@link io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions.VetoException}.
+	 * and by throwing a {@link VetoException}.
 	 * <p>
 	 * There is no specification given as to how the messages will be delivered, in terms of synchronous or
 	 * asynchronous. The only requirement is that all the event handlers that can issue vetos be called before
@@ -117,4 +121,3 @@ public interface EventBusInterface{
 	boolean hasPendingEvents();
 
 }
-

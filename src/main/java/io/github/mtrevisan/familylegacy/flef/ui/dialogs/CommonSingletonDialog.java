@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -59,6 +59,8 @@ public abstract class CommonSingletonDialog extends JDialog{
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
+	protected static final ImageIcon ICON_OPEN_DOCUMENT = ResourceHelper.getImage("/images/openDocument.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	protected static final ImageIcon ICON_ASSERTION = ResourceHelper.getImage("/images/assertion.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	protected static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
@@ -108,21 +110,23 @@ public abstract class CommonSingletonDialog extends JDialog{
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	protected Map<String, Object> selectedRecord;
 
-	private final Consumer<Object> onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 
 
-	protected CommonSingletonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
+	protected CommonSingletonDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(parent, true);
 
 		this.store = store;
-		this.onCloseGracefully = onCloseGracefully;
 
 		initComponents();
 
 		loadData();
 	}
 
+
+	protected void setOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		this.onCloseGracefully = onCloseGracefully;
+	}
 
 	protected abstract String getTableName();
 

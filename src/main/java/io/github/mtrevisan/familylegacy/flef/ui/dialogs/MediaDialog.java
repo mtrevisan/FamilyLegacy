@@ -25,20 +25,22 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ImagePreview;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.apache.tika.Tika;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -52,6 +54,8 @@ import javax.swing.table.TableRowSorter;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -62,7 +66,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class MediaDialog extends CommonListDialog{
+public final class MediaDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -800755271311929604L;
@@ -72,46 +76,60 @@ public class MediaDialog extends CommonListDialog{
 	private static final String TABLE_NAME = "media";
 
 
-	private JLabel identifierLabel = new JLabel("Identifier:");
-	private JTextField identifierField = new JTextField();
-	private JLabel titleLabel = new JLabel("Title:");
-	private JTextField titleField = new JTextField();
-	private JLabel typeLabel = new JLabel("Type:");
-	private JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"photo", "audio", "video", "home movie", "newsreel",
-		"microfilm", "microfiche", "cd-rom"});
-	private JLabel photoProjectionLabel = new JLabel("Photo projection:");
-	private JComboBox<String> photoProjectionComboBox = new JComboBox<>(new String[]{"rectangular", "spherical UV",
-		"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
-	private JButton dateButton = new JButton("Date", ICON_CALENDAR);
+	private JLabel fileLabel;
+	private JTextField fileField;
+	private JButton fileButton;
+	private JFileChooser fileChooser;
+	private JLabel titleLabel;
+	private JTextField titleField;
+	private JLabel typeLabel;
+	private JComboBox<String> typeComboBox;
+	private JLabel photoProjectionLabel;
+	private JComboBox<String> photoProjectionComboBox;
+	private JButton dateButton;
 
-	private JButton noteButton = new JButton("Notes", ICON_NOTE);
-	private JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
+	private JButton noteButton;
+	private JCheckBox restrictionCheckBox;
 
 	private final Integer filterRepositoryID;
+	private String basePath;
+
+	private final Tika tika = new Tika();
 
 
-	public MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterRepositoryID,
-			final Consumer<Object> onCloseGracefully, final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Medias" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+	public MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterRepositoryID, final Frame parent){
+		super(store, parent);
 
 		this.filterRepositoryID = filterRepositoryID;
 	}
 
 
+	public MediaDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public MediaDialog withBasePath(final String basePath){
+		this.basePath = basePath;
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Medias" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+
 		super.initStoreComponents();
 
 
@@ -120,9 +138,11 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
-		identifierLabel = new JLabel("Identifier:");
-		identifierField = new JTextField();
+	protected void initRecordComponents(){
+		fileLabel = new JLabel("Identifier:");
+		fileField = new JTextField();
+		fileButton = new JButton(ICON_OPEN_DOCUMENT);
+		fileChooser = new JFileChooser();
 		titleLabel = new JLabel("Title:");
 		titleField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -137,22 +157,35 @@ public class MediaDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		identifierLabel.setLabelFor(identifierField);
-		GUIHelper.addUndoCapability(identifierField);
-		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, evt -> saveData());
+		GUIHelper.setBackgroundColor(fileField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		titleLabel.setLabelFor(titleField);
-		GUIHelper.addUndoCapability(titleField);
+		fileButton.addActionListener(evt -> {
+			final int returnValue = fileChooser.showDialog(this, "Choose file");
+			if(returnValue == JFileChooser.APPROVE_OPTION){
+				final File selectedFile = fileChooser.getSelectedFile();
+				final String path = selectedFile.getPath();
+				fileField.setText(stripBasePath(path));
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+				try{
+					final String mimeType = tika.detect(selectedFile);
+					if(mimeType != null && mimeType.startsWith("image/")){
+						//TODO infer projection type (see CylindricalProjectionTypeDetector and ImageProjectionTypeDetector)
+//						final String projection = "...";
+//						photoProjectionComboBox.setSelectedItem(projection);
+					}
+				}
+				catch(final IOException ignored){}
+			}
+		});
+		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
 
-		photoProjectionLabel.setLabelFor(photoProjectionComboBox);
-		photoProjectionComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(photoProjectionComboBox);
-		AutoCompleteDecorator.decorate(photoProjectionComboBox);
+		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> saveData());
+
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(photoProjectionLabel, photoProjectionComboBox, evt -> saveData(),
+			evt -> saveData());
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
@@ -164,11 +197,16 @@ public class MediaDialog extends CommonListDialog{
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
+	private String stripBasePath(final String absolutePath){
+		return StringUtils.removeStart(absolutePath, basePath);
+	}
+
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap related");
+		recordPanelBase.add(fileLabel, "align label,sizegroup label,split 3");
+		recordPanelBase.add(fileField, "grow");
+		recordPanelBase.add(fileButton, "wrap paragraph");
 		recordPanelBase.add(titleLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(titleField, "grow,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
@@ -186,7 +224,7 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterRepositoryID != null)
 			records = records.entrySet().stream()
@@ -208,7 +246,7 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -219,7 +257,7 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -228,7 +266,7 @@ public class MediaDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		identifierField.setText(identifier);
+		fileField.setText(identifier);
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
@@ -239,10 +277,10 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
-		identifierField.setText(null);
+	protected void clearData(){
+		fileField.setText(null);
 		titleField.setText(null);
-		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
+		GUIHelper.setBackgroundColor(fileField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
 		photoProjectionComboBox.setSelectedItem(null);
 		GUIHelper.setDefaultBorder(dateButton);
@@ -252,15 +290,15 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
-			final String identifier = GUIHelper.readTextTrimmed(identifierField);
+			final String identifier = GUIHelper.readTextTrimmed(fileField);
 			//enforce non-nullity on `identifier`
 			if(identifier == null || identifier.isEmpty()){
 				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 					JOptionPane.ERROR_MESSAGE);
-				identifierField.requestFocusInWindow();
+				fileField.requestFocusInWindow();
 
 				return false;
 			}
@@ -269,9 +307,9 @@ public class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
-		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		final String identifier = GUIHelper.readTextTrimmed(fileField);
 		final String title = GUIHelper.readTextTrimmed(titleField);
 		final String type = (String)typeComboBox.getSelectedItem();
 		final String photoProjection = (String)photoProjectionComboBox.getSelectedItem();
@@ -421,7 +459,8 @@ public class MediaDialog extends CommonListDialog{
 			EventBusService.subscribe(listener);
 
 			final Integer filterRepositoryID = null;
-			final MediaDialog dialog = new MediaDialog(store, filterRepositoryID, null, parent);
+			final MediaDialog dialog = new MediaDialog(store, filterRepositoryID, parent)
+				.withBasePath("\\Documents\\");
 			if(!dialog.loadData(extractRecordID(media1)))
 				dialog.showNewRecord();
 

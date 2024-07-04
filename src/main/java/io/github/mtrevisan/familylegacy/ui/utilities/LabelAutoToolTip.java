@@ -37,9 +37,8 @@ import java.io.Serial;
  * <pre>{@code
  *    @Override
  * 	public void propertyChange(final PropertyChangeEvent evt){
- * 		if("text".equals(evt.getPropertyName())){
+ * 		if("text".equals(evt.getPropertyName()))
  * 			label.manageTooltip();
- * 		}
  * 	}
  * }</pre>
  * and the field must set

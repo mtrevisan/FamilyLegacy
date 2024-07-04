@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
-import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CropListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -79,7 +79,8 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		imageHolder = new ScaledImage(this);
+		imageHolder = new ScaledImage()
+			.withListener(this);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
@@ -90,7 +91,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 	public final void loadData(final File file, final Consumer<Object> onCloseGracefully) throws IOException{
 		this.onCloseGracefully = onCloseGracefully;
 
-		imageHolder.setImage(ResourceHelper.readImage(file));
+		imageHolder.setRectangularImage(ResourceHelper.readImage(file));
 
 		repaint();
 	}
@@ -104,16 +105,8 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		return imageHolder.getCropStartPoint();
 	}
 
-	public final void setCropStartPoint(final int x, final int y){
-		imageHolder.setCropStartPoint(x, y);
-	}
-
 	public final Point getCropEndPoint(){
 		return imageHolder.getCropEndPoint();
-	}
-
-	public final void setCropEndPoint(final int x, final int y){
-		imageHolder.setCropEndPoint(x, y);
 	}
 
 

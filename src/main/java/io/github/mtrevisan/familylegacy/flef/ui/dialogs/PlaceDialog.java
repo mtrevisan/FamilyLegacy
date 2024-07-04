@@ -25,15 +25,14 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.CredibilityComboBoxModel;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -62,7 +61,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class PlaceDialog extends CommonListDialog{
+public final class PlaceDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
@@ -93,26 +92,31 @@ public class PlaceDialog extends CommonListDialog{
 	private JCheckBox restrictionCheckBox;
 
 
-	public PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Places");
+	public PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public PlaceDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Places");
+
 		super.initStoreComponents();
 
 
@@ -121,7 +125,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		nameButton = new JButton("Name", ICON_TEXT);
@@ -144,32 +148,24 @@ public class PlaceDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		identifierLabel.setLabelFor(identifierField);
-		GUIHelper.addUndoCapability(identifierField);
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		nameButton.setToolTipText("Name");
 		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
 
 		transcribedNameButton.setToolTipText("Transcribed names");
-		transcribedNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PLACE_NAME, getSelectedRecord())));
+		transcribedNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PLACE_NAME,
+			getSelectedRecord())));
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		coordinateLabel.setLabelFor(coordinateField);
-		GUIHelper.addUndoCapability(coordinateField);
-		coordinateSystemLabel.setLabelFor(coordinateSystemComboBox);
-		coordinateSystemComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(coordinateSystemComboBox);
-		AutoCompleteDecorator.decorate(coordinateSystemComboBox);
+		GUIHelper.bindLabelTextChangeUndo(coordinateLabel, coordinateField, evt -> saveData());
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(coordinateSystemLabel, coordinateSystemComboBox, evt -> saveData(),
+			evt -> saveData());
 
-		coordinateCredibilityLabel.setLabelFor(coordinateCredibilityComboBox);
-		coordinateCredibilityComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(coordinateCredibilityComboBox);
-		AutoCompleteDecorator.decorate(coordinateCredibilityComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(coordinateCredibilityLabel, coordinateCredibilityComboBox,
+			evt -> saveData(), evt -> saveData());
 
 		primaryPlaceButton.setToolTipText("Primary place");
 		primaryPlaceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
@@ -189,7 +185,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
@@ -217,7 +213,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -235,7 +231,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -246,7 +242,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final Integer nameID = extractRecordNameID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -278,7 +274,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		identifierField.setText(null);
 		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		GUIHelper.setDefaultBorder(nameButton);
@@ -296,7 +292,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String date = GUIHelper.readTextTrimmed(identifierField);
@@ -313,7 +309,7 @@ public class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
 		final String type = (String)typeComboBox.getSelectedItem();
@@ -501,7 +497,7 @@ public class PlaceDialog extends CommonListDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final PlaceDialog dialog = new PlaceDialog(store, null, parent);
+			final PlaceDialog dialog = new PlaceDialog(store, parent);
 			if(!dialog.loadData(extractRecordID(place1)))
 				dialog.showNewRecord();
 

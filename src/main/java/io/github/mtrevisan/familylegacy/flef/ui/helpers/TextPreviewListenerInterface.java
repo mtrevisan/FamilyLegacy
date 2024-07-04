@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2020 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,36 +22,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-
-public final class LoggerHelper{
-
-	private LoggerHelper(){}
+import java.awt.Component;
 
 
-	/**
-	 * Extracts the two direct callers of this method.
-	 *
-	 * @return	An array with the two most direct callers of this method.
-	 */
-	public static Class<?>[] extractCallerClasses(){
-		final StackWalker walker = StackWalker.getInstance();
-		final List<String> classNames = walker.walk(frames -> frames.skip(1)
-			.limit(2)
-			.map(StackWalker.StackFrame::getClassName)
-			.collect(Collectors.toList()));
+public interface TextPreviewListenerInterface{
 
-		final Class<?>[] classes = new Class[classNames.size()];
-		try{
-			for(int i = 0; i < classNames.size(); i ++)
-				classes[i] = Class.forName(classNames.get(i));
-		}
-		catch(final ClassNotFoundException ignored){}
-		return classes;
+	void textChanged();
+
+	void onPreviewStateChange(boolean visible);
+
+
+	static void centerDivider(final Component component, final boolean previewVisible){
+		final int width = component.getWidth();
+		final int height = component.getHeight();
+		component.setSize((previewVisible? width * 2: width / 2), height);
 	}
 
 }

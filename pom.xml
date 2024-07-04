@@ -68,6 +68,12 @@
 		<apache.commons-lang3.version>3.14.0</apache.commons-lang3.version>
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.9.0</apache.commons-validator.version>
+		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
+		<apache.tika-core.version>2.9.2</apache.tika-core.version>
+
+		<!-- Image processing -->
+		<!-- https://mvnrepository.com/artifact/org.opencv/opencv -->
+		<opencv.version>4.10.0</opencv.version>
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
@@ -333,7 +339,20 @@
 			<artifactId>commons-validator</artifactId>
 			<version>${apache.commons-validator.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-core</artifactId>
+			<version>${apache.tika-core.version}</version>
+		</dependency>
 
+		<!-- Image processing -->
+		<dependency>
+			<groupId>org.opencv</groupId>
+			<artifactId>opencv</artifactId>
+			<version>${opencv.version}</version>
+		</dependency>
+
+		<!-- Database -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
@@ -346,6 +365,7 @@
 			<version>${org.jgrapht.version}</version>
 		</dependency>
 
+		<!-- Layout -->
 		<dependency>
 			<groupId>com.miglayout</groupId>
 			<artifactId>miglayout-swing</artifactId>
@@ -363,6 +383,7 @@
 			<version>${vladsch.flexmark.version}</version>
 		</dependency>
 
+		<!-- Image processing -->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-core</artifactId>

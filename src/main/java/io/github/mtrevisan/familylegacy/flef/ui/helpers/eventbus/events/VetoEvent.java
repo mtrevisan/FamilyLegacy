@@ -22,29 +22,34 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus.exceptions;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events;
 
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.exceptions.VetoException;
 
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serial;
+import java.util.EventObject;
 
 
 /**
- * Thrown by subscribers in their {@link EventHandler} annotated methods to indicate that a "veto" of the event has occurred.
- * In order for a veto to be allowed, the subscriber must set the {@link EventHandler#canVeto()} property to {@code true},
- * indicating that the subscriber wishes to veto events of the specified type.
+ * A VetoEvent is sent out of the event bus when a veto has been made by the subscriber.
+ * The subscriber will have indicated a veto by throwing a {@link VetoException}
+ * in the {@link EventHandler} annotated method.
  * <p>
- * The VetoException is simply a marker class that extends {@link RuntimeException} to indicate the veto.
- *
  * @see <a href="https://github.com/taftster/simpleeventbus">Simple Event Bus</a>
  */
-public class VetoException extends RuntimeException{
+public class VetoEvent extends EventObject{
 
 	@Serial
-	private static final long serialVersionUID = -9216228586704212839L;
+	private static final long serialVersionUID = -6990813610487588182L;
+
+
+	public VetoEvent(final Object event){
+		super(event);
+	}
 
 
 	@SuppressWarnings("unused")

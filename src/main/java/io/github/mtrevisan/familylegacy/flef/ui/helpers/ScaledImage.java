@@ -22,20 +22,22 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities;
-
-import io.github.mtrevisan.familylegacy.ui.interfaces.CropListenerInterface;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -59,16 +61,18 @@ public class ScaledImage extends JLabel{
 	private static final double INV_PI = 1. / Math.PI;
 	private static final double INV_2PI = 1. / (2. * Math.PI);
 
+	private final int RESIZE_EDGE_THRESHOLD = 5;
 
-	private final CropListenerInterface listener;
+
 	private Image image;
 	private int imageWidth;
 	private int imageHeight;
 	private int viewportWidth;
 	private int viewportHeight;
+	private CropListenerInterface listener;
 
 	//spherical (UV mapped) image data:
-	private int[] imageBuffer;
+	private int[] curvedImageBuffer;
 	private BufferedImage viewportImage;
 	private int[] viewportImageBuffer;
 	private final double[] asinTable = new double[REQUIRED_SIZE];
@@ -88,28 +92,43 @@ public class ScaledImage extends JLabel{
 	private int windowStartPointY;
 	private int windowEndPointX;
 	private int windowEndPointY;
-	private boolean cropDefinition;
+	private volatile boolean cropDefinition;
 	private int cropStartPointX = -1;
 	private int cropStartPointY;
 	private int cropEndPointX;
 	private int cropEndPointY;
 	private int dragStartPointX;
 	private int dragStartPointY;
+	private volatile char resizingCropEdge;
 
 
-	public ScaledImage(final CropListenerInterface listener){
-		this.listener = listener;
-
-		if(listener != null)
-			initComponents();
+	public ScaledImage(){
+		initComponents();
 	}
 
+
+	public ScaledImage withListener(final CropListenerInterface listener){
+		this.listener = listener;
+
+		return this;
+	}
 
 	private void initComponents(){
 		final ImageMouseListener listener = new ImageMouseListener();
 		addMouseListener(listener);
 		addMouseMotionListener(listener);
 		addMouseWheelListener(listener);
+
+
+		//add a component listener to handle resize events
+		addComponentListener(new ComponentAdapter(){
+			@Override
+			public void componentResized(final ComponentEvent evt){
+				zoomToFitAndCenter();
+
+				repaint();
+			}
+		});
 	}
 
 	/**
@@ -125,20 +144,22 @@ public class ScaledImage extends JLabel{
 				bufferedImage.getGraphics().drawImage(img, 0, 0, null);
 				img = bufferedImage;
 			}
-			setImage((BufferedImage)img);
+			setRectangularImage((BufferedImage)img);
 		}
 	}
 
-	public final void setImage(final BufferedImage image){
+	public final void setRectangularImage(final BufferedImage image){
 		this.image = image;
 		if(image != null){
 			imageWidth = image.getWidth();
 			imageHeight = image.getHeight();
 
-			imageBuffer = null;
+			curvedImageBuffer = null;
 			cylindrical = false;
 			cylindricalHorizontal = false;
 			initialized = false;
+
+			repaint();
 		}
 	}
 
@@ -150,11 +171,13 @@ public class ScaledImage extends JLabel{
 
 			this.image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
 			this.image.getGraphics().drawImage(image, 0, 0, null);
-			imageBuffer = ((DataBufferInt)((BufferedImage)this.image).getRaster().getDataBuffer()).getData();
+			curvedImageBuffer = ((DataBufferInt)((BufferedImage)this.image).getRaster().getDataBuffer()).getData();
 
 			cylindrical = false;
 			cylindricalHorizontal = false;
 			initialized = false;
+
+			repaint();
 		}
 	}
 
@@ -176,7 +199,7 @@ public class ScaledImage extends JLabel{
 	 * @return	Whether the images have a spherical or cylindrical mapping.
 	 */
 	private boolean isCurved(){
-		return (imageBuffer != null);
+		return (curvedImageBuffer != null);
 	}
 
 	@Override
@@ -197,7 +220,7 @@ public class ScaledImage extends JLabel{
 					viewportImageBuffer = ((DataBufferInt)viewportImage.getRaster().getDataBuffer()).getData();
 
 					rayVectors = createRayVectors();
-					precalculateAsinAtan2();
+					precalculateAsinAndAtan2Tables();
 				}
 
 				initialized = true;
@@ -253,7 +276,7 @@ public class ScaledImage extends JLabel{
 				final double v = 0.5 - asinTable[iY] * INV_PI;
 				final int tx = (int)(imageWidth * u);
 				final int ty = (int)(imageHeight * (1. - v));
-				final int color = imageBuffer[ty * imageWidth + tx];
+				final int color = curvedImageBuffer[ty * imageWidth + tx];
 				viewportImageBuffer[y * viewportWidth + x] = color;
 			}
 	}
@@ -286,6 +309,27 @@ public class ScaledImage extends JLabel{
 		transformation.setTranslation(centerX, centerY);
 	}
 
+	private void setCropCursor(){
+		if(!cropDefinition && cropStartPointX >= 0){
+			final Point mousePoint = getMousePosition();
+			if(mousePoint != null){
+				//calculate bounds of the crop rectangle
+				final int x1 = getWestCoordinate();
+				final int y1 = getNorthCoordinate();
+				final int x2 = getEastCoordinate();
+				final int y2 = getSouthCoordinate();
+
+				//check if mouse is near any edge of the crop rectangle
+				if(Math.abs(mousePoint.x - x1) <= RESIZE_EDGE_THRESHOLD || Math.abs(mousePoint.x - x2) <= RESIZE_EDGE_THRESHOLD)
+					setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+				else if(Math.abs(mousePoint.y - y1) <= RESIZE_EDGE_THRESHOLD || Math.abs(mousePoint.y - y2) <= RESIZE_EDGE_THRESHOLD)
+					setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+				else
+					setCursor(Cursor.getDefaultCursor());
+			}
+		}
+	}
+
 	private double[][][] createRayVectors(){
 		final double halfViewportWidth = viewportWidth / 2.;
 		final double halfViewportHeight = viewportHeight / 2.;
@@ -307,7 +351,7 @@ public class ScaledImage extends JLabel{
 		return rayVectors;
 	}
 
-	private void precalculateAsinAtan2(){
+	private void precalculateAsinAndAtan2Tables(){
 		for(int i = 0; i < 2 * ACCURACY_FACTOR; i ++){
 			asinTable[i] = StrictMath.asin((i - ACCURACY_FACTOR) * 1 / ACCURACY_FACTOR);
 			for(int j = 0; j < 2 * ACCURACY_FACTOR; j ++){
@@ -319,14 +363,38 @@ public class ScaledImage extends JLabel{
 	}
 
 	private void drawCropRectangle(final Graphics2D g){
-		final int x1 = transformation.transformX(Math.min(cropStartPointX, cropEndPointX));
-		final int y1 = transformation.transformY(Math.min(cropStartPointY, cropEndPointY));
-		final int x2 = transformation.transformX(Math.max(cropStartPointX, cropEndPointX));
-		final int y2 = transformation.transformY(Math.max(cropStartPointY, cropEndPointY));
+		final int x1 = getWestCoordinate();
+		final int y1 = getNorthCoordinate();
+		final int x2 = getEastCoordinate();
+		final int y2 = getSouthCoordinate();
 		final int width = Math.abs(x2 - x1);
 		final int height = Math.abs(y2 - y1);
 
 		g.drawRect(x1, y1, width, height);
+	}
+
+	private int getWestCoordinate(){
+		return transformation.transformX(Math.min(cropStartPointX, cropEndPointX));
+	}
+
+	private int getEastCoordinate(){
+		return transformation.transformX(Math.max(cropStartPointX, cropEndPointX));
+	}
+
+	private int getSouthCoordinate(){
+		return transformation.transformY(Math.max(cropStartPointY, cropEndPointY));
+	}
+
+	private int getNorthCoordinate(){
+		return transformation.transformY(Math.min(cropStartPointY, cropEndPointY));
+	}
+
+	private int getInverseX(final int x){
+		return transformation.transformInverseX(x);
+	}
+
+	private int getInverseY(final int y){
+		return transformation.transformInverseY(y);
 	}
 
 	public final void resetWindow(){
@@ -346,27 +414,38 @@ public class ScaledImage extends JLabel{
 	public final Point getCropStartPoint(){
 		final int x = Math.min(cropStartPointX, cropEndPointX);
 		final int y = Math.min(cropStartPointY, cropEndPointY);
-		return new Point(x, y);
-	}
-
-	public final void setCropStartPoint(final int x, final int y){
-		cropStartPointX = x;
-		cropStartPointY = y;
+		return (x < 0 || y < 0? null: new Point(x, y));
 	}
 
 	public final Point getCropEndPoint(){
 		final int x = Math.max(cropStartPointX, cropEndPointX);
 		final int y = Math.max(cropStartPointY, cropEndPointY);
-		return new Point(x, y);
+		return (x < 0 || y < 0? null: new Point(x, y));
 	}
 
-	public final void setCropEndPoint(final int x, final int y){
-		cropEndPointX = x;
-		cropEndPointY = y;
+	public Rectangle getCropRectangle(){
+		final Point start = getCropStartPoint();
+		final Point end = getCropEndPoint();
+		return (start != null && end != null
+			? new Rectangle(start.x, start.y, end.x - start.x, end.y - start.y)
+			: null);
+	}
+
+	public void setCropRectangle(final Rectangle crop){
+		cropStartPointX = crop.x;
+		cropStartPointY = crop.y;
+		cropEndPointX = crop.x + crop.width;
+		cropEndPointY = crop.y + crop.height;
 	}
 
 
 	private class ImageMouseListener extends MouseAdapter{
+
+		@Override
+		public void mouseMoved(final MouseEvent evt){
+			if(!cropDefinition && cropStartPointX >= 0)
+				setCropCursor();
+		}
 
 		@Override
 		public final void mousePressed(final MouseEvent evt){
@@ -377,14 +456,34 @@ public class ScaledImage extends JLabel{
 				repaint();
 			}
 			else if(SwingUtilities.isLeftMouseButton(evt)){
-				if(evt.isControlDown()){
+				if(isNearCropBorder(evt)){
+					//calculate bounds of the crop rectangle
+					final int x1 = getWestCoordinate();
+					final int y1 = getNorthCoordinate();
+					final int x2 = getEastCoordinate();
+					final int y2 = getSouthCoordinate();
+
+					//check if mouse is near any edge of the crop rectangle
+					final Point mousePoint = evt.getPoint();
+					if(Math.abs(mousePoint.y - y1) <= RESIZE_EDGE_THRESHOLD)
+						resizingCropEdge = 'N';
+					else if(Math.abs(mousePoint.y - y2) <= RESIZE_EDGE_THRESHOLD)
+						resizingCropEdge = 'S';
+					else if(Math.abs(mousePoint.x - x2) <= RESIZE_EDGE_THRESHOLD)
+						resizingCropEdge = 'E';
+					else if(Math.abs(mousePoint.x - x1) <= RESIZE_EDGE_THRESHOLD)
+						resizingCropEdge = 'W';
+					else
+						resizingCropEdge = 0;
+				}
+				else if(evt.isControlDown()){
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
 				else{
 					//crop start point:
-					final int x = transformation.transformInverseX(evt.getX());
-					final int y = transformation.transformInverseY(evt.getY());
+					final int x = getInverseX(evt.getX());
+					final int y = getInverseY(evt.getY());
 					final boolean insideX = (x >= 0 && x <= imageWidth);
 					final boolean insideY = (y >= 0 && y <= imageHeight);
 					if(insideX && insideY){
@@ -397,21 +496,64 @@ public class ScaledImage extends JLabel{
 			}
 		}
 
+		private boolean isNearCropBorder(final MouseEvent evt){
+			//calculate bounds of the crop rectangle
+			final int x1 = getWestCoordinate();
+			final int y1 = getNorthCoordinate();
+			final int x2 = getEastCoordinate();
+			final int y2 = getSouthCoordinate();
+
+			//check if mouse is near any edge of the crop rectangle
+			final Point mousePoint = evt.getPoint();
+			return (Math.abs(mousePoint.x - x1) <= RESIZE_EDGE_THRESHOLD
+				|| Math.abs(mousePoint.x - x2) <= RESIZE_EDGE_THRESHOLD
+				|| Math.abs(mousePoint.y - y1) <= RESIZE_EDGE_THRESHOLD
+				|| Math.abs(mousePoint.y - y2) <= RESIZE_EDGE_THRESHOLD);
+		}
+
 		@Override
 		public final void mouseReleased(final MouseEvent evt){
-			if(cropDefinition && evt.getClickCount() == 1){
+			if(resizingCropEdge != 0)
+				resizingCropEdge = 0;
+			else if(cropDefinition && evt.getClickCount() == 1){
 				cropDefinition = false;
 
 				//warn listener a selection is made
 				if(listener != null)
 					listener.cropSelected();
+
+				repaint();
 			}
 		}
 
 		@Override
 		public final void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
-				if(evt.isControlDown()){
+				if(resizingCropEdge == 'N'){
+					final int y = getInverseY(evt.getY());
+					final boolean insideY = (y >= 0 && y <= imageHeight);
+					if(insideY)
+						cropStartPointY = y;
+				}
+				else if(resizingCropEdge == 'S'){
+					final int y = getInverseY(evt.getY());
+					final boolean insideY = (y >= 0 && y <= imageHeight);
+					if(insideY)
+						cropEndPointY = y;
+				}
+				else if(resizingCropEdge == 'E'){
+					final int x = getInverseX(evt.getX());
+					final boolean insideX = (x >= 0 && x <= imageWidth);
+					if(insideX)
+						cropEndPointX = x;
+				}
+				else if(resizingCropEdge == 'W'){
+					final int x = getInverseX(evt.getX());
+					final boolean insideX = (x >= 0 && x <= imageWidth);
+					if(insideX)
+						cropStartPointX = x;
+				}
+				else if(evt.isControlDown()){
 					//pan:
 					transformation.addTranslation(evt.getX() - dragStartPointX, evt.getY() - dragStartPointY);
 
@@ -420,8 +562,8 @@ public class ScaledImage extends JLabel{
 				}
 				else if(cropDefinition && cropStartPointX >= 0){
 					//crop end point:
-					final int x = transformation.transformInverseX(evt.getX());
-					final int y = transformation.transformInverseY(evt.getY());
+					final int x = getInverseX(evt.getX());
+					final int y = getInverseY(evt.getY());
 					cropEndPointX = Math.max(Math.min(x, imageWidth), 0);
 					cropEndPointY = Math.max(Math.min(y, imageHeight), 0);
 				}

@@ -22,9 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus;
 
-import io.github.mtrevisan.familylegacy.ui.utilities.LoggerHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.LoggerHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -96,7 +96,7 @@ CREATE TABLE PLACE
  COORDINATE_CREDIBILITY text,							-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  PRIMARY_PLACE_ID       numeric,						-- The (primary) place this place is the same as.
  PHOTO_ID               numeric,						-- The primary photo for this place.
- PHOTO_CROP             text,							-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
+ PHOTO_CROP             text,							-- Top-left coordinate and width-height length of the enclosing box inside an photo.
  FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE,
  FOREIGN KEY (PRIMARY_PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
@@ -119,9 +119,9 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate name").
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate name").
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
 );
 
@@ -152,9 +152,9 @@ CREATE TABLE MEDIA_JUNCTION
 (
  "ID"            numeric PRIMARY KEY,
  MEDIA_ID        numeric NOT NULL,
- PHOTO_CROP      text,					-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
+ PHOTO_CROP      text,					-- Top-left coordinate and width-height length of the enclosing box inside an photo.
  FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE
 );
 
@@ -166,7 +166,7 @@ CREATE TABLE PERSON
 (
  "ID"       numeric PRIMARY KEY,
  PHOTO_ID   numeric,	-- The primary photo for this person.
- PHOTO_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
+ PHOTO_CROP text,		-- Top-left coordinate and width-height length of the enclosing box inside an photo.
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
@@ -192,7 +192,7 @@ CREATE TABLE "GROUP"
  "ID"       numeric PRIMARY KEY,
  "TYPE"     text,		-- The type of the group (ex. "family", "neighborhood", "fraternity", "ladies club", "literary society").
  PHOTO_ID   numeric,	-- The primary photo for this group.
- PHOTO_CROP text,		-- Top-left and bottom-right coordinates of the enclosing box inside an photo.
+ PHOTO_CROP text,		-- Top-left coordinate and width-height length of the enclosing box inside an photo.
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
@@ -321,7 +321,7 @@ CREATE TABLE PROJECT
  PROTOCOL_NAME    text NOT NULL,			-- "Family LEgacy Format"
  PROTOCOL_VERSION text NOT NULL,			-- "0.0.10"
  COPYRIGHT        text,						-- A copyright statement.
- NOTE             text,
+ NOTE             text,						-- Text following markdown language.
  LOCALE           text,						-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
  CREATION_DATE    timestamp NOT NULL,	-- The creation date of the project.
  UPDATE_DATE      timestamp				-- The changing date of the project.

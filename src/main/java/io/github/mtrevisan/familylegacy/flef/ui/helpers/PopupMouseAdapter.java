@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019-2020 Mauro Trevisan
+ * Copyright (c) 2020 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -22,43 +22,49 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.ui.utilities.eventbus;
+package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-
-
-/** Used to hold the subscriber details */
-class HandlerInfo{
-
-	private final Class<?> eventClass;
-	private final Method method;
-	private final WeakReference<?> subscriber;
-	private final boolean vetoHandler;
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 
-	HandlerInfo(final Class<?> eventClass, final Method method, final Object subscriber, final boolean vetoHandler){
-		this.eventClass = eventClass;
-		this.method = method;
-		this.subscriber = new WeakReference<>(subscriber);
-		this.vetoHandler = vetoHandler;
+public class PopupMouseAdapter extends MouseAdapter{
+
+	private final JPopupMenu popupMenu;
+	private final JComponent component;
+
+
+	public PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
+		this.popupMenu = popupMenu;
+		this.component = component;
 	}
 
 
-	public boolean matchesEvent(final Object event){
-		return event.getClass().equals(eventClass);
+	@Override
+	public void mouseClicked(final MouseEvent event){
+		processMouseEvent(event);
 	}
 
-	public Method getMethod(){
-		return method;
+	@Override
+	public void mouseReleased(final MouseEvent event){
+		processMouseEvent(event);
 	}
 
-	public Object getSubscriber(){
-		return subscriber.get();
+	private void processMouseEvent(final MouseEvent event){
+		if(event.isPopupTrigger() && hasPopupMenuVisibleItems()){
+			popupMenu.show(event.getComponent(), event.getX(), event.getY());
+			popupMenu.setInvoker(component);
+		}
 	}
 
-	public boolean isVetoHandler(){
-		return vetoHandler;
+	private boolean hasPopupMenuVisibleItems(){
+		for(final Component component : popupMenu.getComponents())
+			if(component.isVisible())
+				return true;
+		return false;
 	}
 
 }

@@ -25,14 +25,13 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -56,20 +55,20 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class CitationDialog extends CommonListDialog{
+public final class CitationDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -7601387139021862486L;
 
-	private static final int TABLE_INDEX_RECORD_LOCATION = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "citation";
+	private static final String TABLE_NAME_SOURCE = "source";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 
 
@@ -90,36 +89,42 @@ public class CitationDialog extends CommonListDialog{
 
 
 	public CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterSourceID,
-			final Consumer<Object> onCloseGracefully, final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Citations" + (filterSourceID != null? " for source " + filterSourceID: StringUtils.EMPTY));
+			final Frame parent){
+		super(store, parent);
 
 		this.filterSourceID = filterSourceID;
 	}
 
 
+	public CitationDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Citations" + (filterSourceID != null? " for source " + filterSourceID: StringUtils.EMPTY));
+
 		super.initStoreComponents();
 
 
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_LOCATION, Comparator.naturalOrder());
+		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		recordTabbedPane = new JTabbedPane();
 		sourceButton = new JButton("Source", ICON_SOURCE);
 		locationLabel = new JLabel("Location:");
@@ -138,19 +143,17 @@ public class CitationDialog extends CommonListDialog{
 		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, getSelectedRecord())));
 		GUIHelper.addBorder(sourceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		locationLabel.setLabelFor(locationField);
-		GUIHelper.addUndoCapability(locationField);
+		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
 
 		extractButton.setToolTipText("Extract");
 		extractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EXTRACT, getSelectedRecord())));
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
-		transcribedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT, getSelectedRecord())));
+		transcribedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT,
+			getSelectedRecord())));
 
-		extractTypeLabel.setLabelFor(extractTypeComboBox);
-		extractTypeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(extractTypeComboBox);
-		AutoCompleteDecorator.decorate(extractTypeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(extractTypeLabel, extractTypeComboBox, evt -> saveData(),
+			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
@@ -163,7 +166,7 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(sourceButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(locationLabel, "align label,sizegroup label,split 2");
@@ -183,7 +186,7 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterSourceID != null)
 			records = records.entrySet().stream()
@@ -195,20 +198,23 @@ public class CitationDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
+			final String sourceIdentifier = extractRecordSourceIdentifier(record.getValue());
 			final String location = extractRecordLocation(record.getValue());
+			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
+				+ (location != null? location: StringUtils.EMPTY);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(location, row, TABLE_INDEX_RECORD_LOCATION);
+			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
 		}
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_LOCATION);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -216,7 +222,7 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final Integer sourceID = extractRecordSourceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final Integer extractID = extractRecordExtractID(selectedRecord);
@@ -238,7 +244,7 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		GUIHelper.setDefaultBorder(sourceButton);
 		locationField.setText(null);
 		extractTypeComboBox.setSelectedItem(null);
@@ -254,7 +260,7 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final Integer sourceID = extractRecordSourceID(selectedRecord);
@@ -271,23 +277,28 @@ public class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String location = GUIHelper.readTextTrimmed(locationField);
 		final String extractType = (String)extractTypeComboBox.getSelectedItem();
 
 		//update table
-		if(!Objects.equals(location, extractRecordLocation(selectedRecord))){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-			final Integer recordID = extractRecordID(selectedRecord);
-			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-					model.setValueAt(location, modelRowIndex, TABLE_INDEX_RECORD_LOCATION);
-					break;
-				}
-		}
+		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final Integer recordID = extractRecordID(selectedRecord);
+		for(int row = 0, length = model.getRowCount(); row < length; row ++)
+			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
+				final Map<String, Object> updatedCitationRecord = getRecords(TABLE_NAME).get(recordID);
+				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
+				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
+					+ (location != null? location: StringUtils.EMPTY);
+
+				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+				break;
+			}
 
 		selectedRecord.put("location", location);
 		selectedRecord.put("extract_type", extractType);
@@ -296,6 +307,19 @@ public class CitationDialog extends CommonListDialog{
 
 	private static Integer extractRecordSourceID(final Map<String, Object> record){
 		return (Integer)record.get("source_id");
+	}
+
+	private String extractRecordSourceIdentifier(final Map<String, Object> citationRecord){
+		final Integer sourceID = extractRecordSourceID(citationRecord);
+		if(sourceID == null)
+			return null;
+
+		final Map<Integer, Map<String, Object>> sources = getRecords(TABLE_NAME_SOURCE);
+		final Map<String, Object> source = sources.get(sourceID);
+		if(source == null)
+			return null;
+
+		return (String)source.get("identifier");
 	}
 
 	private static String extractRecordLocation(final Map<String, Object> record){
@@ -318,7 +342,7 @@ public class CitationDialog extends CommonListDialog{
 
 
 		RecordTableModel(){
-			super(new String[]{"ID", "Location"}, 0);
+			super(new String[]{"ID", "Identifier"}, 0);
 		}
 
 		@Override
@@ -351,6 +375,13 @@ public class CitationDialog extends CommonListDialog{
 		citation.put("extract_id", 1);
 		citation.put("extract_type", "transcript");
 		citations.put((Integer)citation.get("id"), citation);
+
+		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
+		store.put(TABLE_NAME_SOURCE, sources);
+		final Map<String, Object> source = new HashMap<>();
+		source.put("id", 1);
+		source.put("identifier", "source 1");
+		sources.put((Integer)source.get("id"), source);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put(TABLE_NAME_LOCALIZED_TEXT, localizedTexts);
@@ -459,8 +490,8 @@ public class CitationDialog extends CommonListDialog{
 			EventBusService.subscribe(listener);
 
 			final Integer filterSourceID = null;
-			final CitationDialog dialog = new CitationDialog(store, filterSourceID, null, parent);
-			if(!dialog.loadData(extractRecordID(citation)))
+			final CitationDialog dialog = new CitationDialog(store, filterSourceID, parent);
+			if(!dialog.loadData(extractRecordID(source)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

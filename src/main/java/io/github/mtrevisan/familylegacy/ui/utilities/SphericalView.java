@@ -1,5 +1,8 @@
 package io.github.mtrevisan.familylegacy.ui.utilities;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.Quaternion;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ZeroException;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;

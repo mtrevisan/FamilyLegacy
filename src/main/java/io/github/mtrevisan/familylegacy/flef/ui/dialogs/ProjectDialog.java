@@ -28,11 +28,12 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TextPreviewPane;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -55,7 +56,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class ProjectDialog extends CommonSingletonDialog{
+public final class ProjectDialog extends CommonSingletonDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -3776676890876630508L;
@@ -74,54 +75,57 @@ public class ProjectDialog extends CommonSingletonDialog{
 	private JTextField localeField;
 
 
-	public ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Project");
+	public ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public ProjectDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
+		setTitle("Project");
+
 		copyrightLabel = new JLabel("Copyright:");
 		copyrightField = new JTextField();
 
 		noteLabel = new JLabel("Note:");
-		noteTextArea = TextPreviewPane.createWithoutPreview();
+		noteTextArea = TextPreviewPane.createWithPreview(this);
 		noteTextArea.setTextViewFont(copyrightField.getFont());
 
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 
 
-		copyrightLabel.setLabelFor(copyrightField);
-		GUIHelper.addUndoCapability(copyrightField);
+		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, evt -> saveData());
 
-		noteLabel.setLabelFor(noteTextArea);
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextArea, evt -> saveData());
 
-		localeLabel.setLabelFor(localeField);
-		GUIHelper.addUndoCapability(localeField);
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordPanel){
+	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel.add(copyrightLabel, "align label,sizegroup label,split 2");
 		recordPanel.add(copyrightField, "growx,wrap paragraph");
 		recordPanel.add(noteLabel, "align label,top,sizegroup label,split 2");
-		recordPanel.add(noteTextArea, "grow,wrap paragraph");
+		recordPanel.add(noteTextArea, "grow,wrap related");
 		recordPanel.add(localeLabel, "align label,sizegroup label,split 2");
 		recordPanel.add(localeField, "grow");
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<String, Object> record = getRecords(TABLE_NAME)
 			.get(1);
 
@@ -134,7 +138,7 @@ public class ProjectDialog extends CommonSingletonDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String copyright = extractRecordCopyright(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
@@ -145,19 +149,19 @@ public class ProjectDialog extends CommonSingletonDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		copyrightField.setText(null);
 		noteTextArea.clear();
 		localeField.setText(null);
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		return true;
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		//read record panel:
 		final String copyright = copyrightField.getText();
@@ -188,6 +192,15 @@ public class ProjectDialog extends CommonSingletonDialog{
 
 	private static String extractUpdateDate(final Map<String, Object> record){
 		return (String)record.get("update_date");
+	}
+
+
+	@Override
+	public void textChanged(){}
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 
@@ -241,7 +254,7 @@ public class ProjectDialog extends CommonSingletonDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final ProjectDialog dialog = new ProjectDialog(store, null, parent);
+			final ProjectDialog dialog = new ProjectDialog(store, parent);
 			injector.injectDependencies(dialog);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -250,7 +263,7 @@ public class ProjectDialog extends CommonSingletonDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 295);
+			dialog.setSize(420, 282);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

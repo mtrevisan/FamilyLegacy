@@ -34,8 +34,8 @@ import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.ui.panels.IndividualPanel;
-import io.github.mtrevisan.familylegacy.ui.utilities.ScaledImage;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public class GroupEventRecordDialog extends JDialog{
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 
 	private final JLabel individualLabel = new JLabel("Indivisdual:");
-	private final ScaledImage individualImage = new ScaledImage(null);
+	private final ScaledImage individualImage = new ScaledImage();
 	private final JLabel individualName = new JLabel(StringUtils.EMPTY);
 	private final JButton individualNoteButton = new JButton(StringUtils.EMPTY);
 	private final JButton eventButton = new JButton("Events");
@@ -221,7 +221,7 @@ public class GroupEventRecordDialog extends JDialog{
 				preferredImage = store.getSource(partnerPreferredImageXRef);
 				final String partnerPreferredImagePath = store.traverse(preferredImage, "FILE")
 					.getValue();
-				partnerImage.setImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
+				partnerImage.setRectangularImage(ResourceHelper.readImage(new File(store.getBasePath(), partnerPreferredImagePath)));
 				partnerImage.setMinimumSize(new Dimension(PARTNER_IMAGE_MINIMUM_WIDTH, PARTNER_IMAGE_MINIMUM_HEIGHT));
 				partnerImage.setEnabled(true);
 
@@ -246,7 +246,7 @@ public class GroupEventRecordDialog extends JDialog{
 		}
 		else{
 			partnerImage.setEnabled(false);
-			partnerImage.setImage(null);
+			partnerImage.setRectangularImage(null);
 			partnerName.setText(null);
 			partnerName.setEnabled(false);
 			partnerNotes.setEnabled(false);

@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -58,7 +57,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class LocalizedTextDialog extends CommonListDialog{
+public final class LocalizedTextDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
@@ -80,26 +79,31 @@ public class LocalizedTextDialog extends CommonListDialog{
 	private JComboBox<String> transcriptionTypeComboBox;
 
 
-	public LocalizedTextDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Localized texts");
+	public LocalizedTextDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Localized texts");
+
 		super.initStoreComponents();
 
 
@@ -108,7 +112,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		textLabel = new JLabel("Text:");
 		textField = new JTextField();
 		localeLabel = new JLabel("Locale:");
@@ -123,31 +127,22 @@ public class LocalizedTextDialog extends CommonListDialog{
 			"francized", "gairaigized", "latinized"});
 
 
-		textLabel.setLabelFor(textField);
-		GUIHelper.addUndoCapability(textField);
+		GUIHelper.bindLabelTextChangeUndo(textLabel, textField, evt -> saveData());
 		GUIHelper.setBackgroundColor(textField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		localeLabel.setLabelFor(localeField);
-		GUIHelper.addUndoCapability(localeField);
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		transcriptionLabel.setLabelFor(transcriptionComboBox);
-		transcriptionComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(transcriptionComboBox);
-		AutoCompleteDecorator.decorate(transcriptionComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(transcriptionLabel, transcriptionComboBox, evt -> saveData(),
+			evt -> saveData());
 
-		transcriptionTypeLabel.setLabelFor(transcriptionTypeComboBox);
-		transcriptionTypeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(transcriptionTypeComboBox);
-		AutoCompleteDecorator.decorate(transcriptionTypeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData(),
+			evt -> saveData());
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(textLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(textField, "growx,wrap paragraph");
@@ -164,7 +159,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -182,7 +177,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TEXT);
@@ -193,7 +188,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String text = extractRecordText(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -208,7 +203,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		textField.setText(null);
 		GUIHelper.setBackgroundColor(textField, Color.WHITE);
 
@@ -222,7 +217,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String text = GUIHelper.readTextTrimmed(textField);
@@ -239,7 +234,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String text = GUIHelper.readTextTrimmed(textField);
 		final String locale = GUIHelper.readTextTrimmed(localeField);
@@ -342,7 +337,7 @@ public class LocalizedTextDialog extends CommonListDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final LocalizedTextDialog dialog = new LocalizedTextDialog(store, null, parent);
+			final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
 			if(!dialog.loadData(extractRecordID(text1)))
 				dialog.showNewRecord();
 

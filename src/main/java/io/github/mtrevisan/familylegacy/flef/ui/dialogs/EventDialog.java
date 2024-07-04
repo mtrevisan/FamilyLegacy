@@ -28,14 +28,13 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -65,7 +64,8 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public class EventDialog extends CommonListDialog{
+//TODO manage historic events not linked to anything
+public final class EventDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = 1136825738944999745L;
@@ -88,26 +88,31 @@ public class EventDialog extends CommonListDialog{
 	private JCheckBox restrictionCheckBox;
 
 
-	public EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Consumer<Object> onCloseGracefully,
-			final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Events");
+	public EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
+	public EventDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Events");
+
 		super.initStoreComponents();
 
 
@@ -116,7 +121,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{"historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial",
 			"occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence",
@@ -148,13 +153,9 @@ public class EventDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		descriptionLabel.setLabelFor(descriptionField);
-		GUIHelper.addUndoCapability(descriptionField);
+		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> saveData());
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
@@ -177,7 +178,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
@@ -197,7 +198,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -215,7 +216,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TYPE);
@@ -226,7 +227,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String type = extractRecordType(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
@@ -248,7 +249,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		typeComboBox.setSelectedItem(null);
 		descriptionField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
@@ -261,7 +262,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String type = extractRecordType(selectedRecord);
@@ -289,7 +290,7 @@ public class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String type = (String)typeComboBox.getSelectedItem();
 		final String description = descriptionField.getText();
@@ -491,7 +492,7 @@ public class EventDialog extends CommonListDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final EventDialog dialog = new EventDialog(store, null, parent);
+			final EventDialog dialog = new EventDialog(store, parent);
 			injector.injectDependencies(dialog);
 			if(!dialog.loadData(extractRecordID(event)))
 				dialog.showNewRecord();

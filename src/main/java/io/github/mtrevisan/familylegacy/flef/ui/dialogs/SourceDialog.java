@@ -25,14 +25,13 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.ui.utilities.GUIHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.TableHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.ui.utilities.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -62,7 +61,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public class SourceDialog extends CommonListDialog{
+public final class SourceDialog extends CommonListDialog{
 
 	@Serial
 	private static final long serialVersionUID = -8850730067231141478L;
@@ -92,27 +91,33 @@ public class SourceDialog extends CommonListDialog{
 
 
 	public SourceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterRepositoryID,
-			final Consumer<Object> onCloseGracefully, final Frame parent){
-		super(store, onCloseGracefully, parent);
-
-		setTitle("Sources" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+			final Frame parent){
+		super(store, parent);
 
 		this.filterRepositoryID = filterRepositoryID;
 	}
 
 
+	public SourceDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
 	@Override
-	protected final String getTableName(){
+	protected String getTableName(){
 		return TABLE_NAME;
 	}
 
 	@Override
-	protected final DefaultTableModel getDefaultTableModel(){
+	protected DefaultTableModel getDefaultTableModel(){
 		return new RecordTableModel();
 	}
 
 	@Override
-	protected final void initStoreComponents(){
+	protected void initStoreComponents(){
+		setTitle("Sources" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+
 		super.initStoreComponents();
 
 
@@ -121,7 +126,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordComponents(){
+	protected void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -148,17 +153,12 @@ public class SourceDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		identifierLabel.setLabelFor(identifierField);
-		GUIHelper.addUndoCapability(identifierField);
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		typeLabel.setLabelFor(typeComboBox);
-		typeComboBox.setEditable(true);
-		GUIHelper.addUndoCapability(typeComboBox);
-		AutoCompleteDecorator.decorate(typeComboBox);
+		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		authorLabel.setLabelFor(authorField);
-		GUIHelper.addUndoCapability(authorField);
+		GUIHelper.bindLabelTextChangeUndo(authorLabel, authorField, evt -> saveData());
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
@@ -169,8 +169,7 @@ public class SourceDialog extends CommonListDialog{
 		repositoryButton.setToolTipText("Repository");
 		repositoryButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REPOSITORY, getSelectedRecord())));
 
-		locationLabel.setLabelFor(locationField);
-		GUIHelper.addUndoCapability(locationField);
+		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
@@ -183,7 +182,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void initRecordLayout(final JComponent recordTabbedPane){
+	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
@@ -207,7 +206,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void loadData(){
+	protected void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterRepositoryID != null)
 			records = records.entrySet().stream()
@@ -229,7 +228,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void filterTableBy(final JDialog panel){
+	protected void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.readTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
@@ -240,7 +239,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void fillData(){
+	protected void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String author = extractRecordAuthor(selectedRecord);
@@ -266,7 +265,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void clearData(){
+	protected void clearData(){
 		identifierField.setText(null);
 		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
@@ -282,7 +281,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final boolean validateData(){
+	protected boolean validateData(){
 		if(selectedRecord != null){
 			//read record panel:
 			final String identifier = GUIHelper.readTextTrimmed(identifierField);
@@ -299,7 +298,7 @@ public class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected final void saveData(){
+	protected void saveData(){
 		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
 		final String type = (String)typeComboBox.getSelectedItem();
@@ -498,7 +497,7 @@ public class SourceDialog extends CommonListDialog{
 			EventBusService.subscribe(listener);
 
 			final Integer filterRepositoryID = null;
-			final SourceDialog dialog = new SourceDialog(store, filterRepositoryID, null, parent);
+			final SourceDialog dialog = new SourceDialog(store, filterRepositoryID, parent);
 			if(!dialog.loadData(extractRecordID(source1)))
 				dialog.showNewRecord();
 
