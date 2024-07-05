@@ -142,15 +142,15 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 
 		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
 		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextArea, evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(statusLabel, statusComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, evt -> saveData(), evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, evt -> saveData());
 	}
@@ -172,7 +172,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -226,17 +226,13 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String identifier = extractRecordIdentifier(selectedRecord);
-			//enforce non-nullity on `type`
-			if(identifier == null || identifier.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				identifierField.requestFocusInWindow();
+		final String identifier = extractRecordIdentifier(selectedRecord);
+		if(!validData(identifierField)){
+			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			identifierField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -381,7 +377,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case REFERENCE -> {
-							//TODO
+							//TODO single reference
 						}
 					}
 				}
@@ -403,7 +399,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 			final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(extractRecordID(researchStatus)))
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(researchStatus)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

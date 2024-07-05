@@ -57,10 +57,12 @@ import java.awt.Frame;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -91,16 +93,31 @@ public final class MediaDialog extends CommonListDialog{
 	private JButton noteButton;
 	private JCheckBox restrictionCheckBox;
 
-	private final Integer filterRepositoryID;
+	private JButton referenceButton;
+	private JButton photoCropButton;
+
+	private String filterReferenceTable;
+	private int filterReferenceID;
 	private String basePath;
 
 	private final Tika tika = new Tika();
 
 
-	public MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterRepositoryID, final Frame parent){
-		super(store, parent);
+	public static MediaDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new MediaDialog(store, parent);
+	}
 
-		this.filterRepositoryID = filterRepositoryID;
+	public static MediaDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final String referenceTable, final int filterReferenceID, final Frame parent){
+		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.filterReferenceTable = referenceTable;
+		dialog.filterReferenceID = filterReferenceID;
+		return dialog;
+	}
+
+
+	private MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
 	}
 
 
@@ -128,7 +145,8 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Medias" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+		setTitle("Medias"
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -156,8 +174,16 @@ public final class MediaDialog extends CommonListDialog{
 		noteButton = new JButton("Notes", ICON_NOTE);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		referenceButton = new JButton("Reference", ICON_REFERENCE);
+		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
-		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, evt -> {
+			final String identifier = GUIHelper.readTextTrimmed(fileField);
+			final String photoCrop = extractRecordPhotoCrop(selectedRecord);
+			enablePhotoCropButton(identifier, photoCrop);
+
+			saveData();
+		});
 		GUIHelper.setBackgroundColor(fileField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		fileButton.addActionListener(evt -> {
@@ -182,19 +208,33 @@ public final class MediaDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(photoProjectionLabel, photoProjectionComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(photoProjectionLabel, photoProjectionComboBox, evt -> saveData(),
 			evt -> saveData());
 
 		dateButton.setToolTipText("Date");
-		dateButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+		dateButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
+
+
+		if(filterReferenceTable == null){
+			referenceButton.setToolTipText("Reference");
+			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
+				.withOnCloseGracefully(container -> {
+					//TODO save data
+				})));
+			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		}
+
+		photoCropButton.setToolTipText("Define a crop");
+		photoCropButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
+		photoCropButton.setEnabled(false);
 	}
 
 	private String stripBasePath(final String absolutePath){
@@ -203,6 +243,8 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
+		referenceButton.setVisible(filterReferenceTable == null);
+
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(fileLabel, "align label,sizegroup label,split 3");
 		recordPanelBase.add(fileField, "grow");
@@ -219,17 +261,26 @@ public final class MediaDialog extends CommonListDialog{
 		recordPanelOther.add(noteButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
+		recordPanelLink.add(photoCropButton, "sizegroup btn,center");
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
-	protected void loadData(){
-		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		if(filterRepositoryID != null)
-			records = records.entrySet().stream()
-				.filter(entry -> filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	public void loadData(){
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		if(filterReferenceTable != null){
+			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable, filterReferenceID)
+				.values().stream()
+				.map(CommonRecordDialog::extractRecordID)
+				.collect(Collectors.toSet());
+			records.entrySet()
+				.removeIf(entry -> !filteredMedias.contains(entry.getKey()));
+		}
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -274,6 +325,30 @@ public final class MediaDialog extends CommonListDialog{
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		if(filterReferenceTable == null){
+			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
+				MediaDialog::extractRecordMediaID, extractRecordID(selectedRecord));
+			if(recordMediaJunction.size() > 1)
+				throw new IllegalArgumentException("Data integrity error");
+
+			final Map<String, Object> record = recordMediaJunction.values().stream()
+				.findFirst()
+				.orElse(Collections.emptyMap());
+			final String photoCrop = extractRecordPhotoCrop(record);
+
+			GUIHelper.addBorder(referenceButton, (!recordMediaJunction.isEmpty()? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+			enablePhotoCropButton(identifier, photoCrop);
+		}
+	}
+
+	private void enablePhotoCropButton(final String fileURI, final String photoCrop){
+		photoCropButton.setEnabled(true);
+		final String mimeType = tika.detect(fileURI);
+		if(mimeType == null || !mimeType.startsWith("image/"))
+			photoCropButton.setEnabled(false);
+		else
+			GUIHelper.addBorder(photoCropButton, photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 	}
 
 	@Override
@@ -287,21 +362,20 @@ public final class MediaDialog extends CommonListDialog{
 
 		GUIHelper.setDefaultBorder(noteButton);
 		restrictionCheckBox.setSelected(false);
+
+		if(filterReferenceTable == null)
+			GUIHelper.setDefaultBorder(referenceButton);
 	}
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String identifier = GUIHelper.readTextTrimmed(fileField);
-			//enforce non-nullity on `identifier`
-			if(identifier == null || identifier.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				fileField.requestFocusInWindow();
+		final String identifier = GUIHelper.readTextTrimmed(fileField);
+		if(filterReferenceTable == null && !validData(identifier)){
+			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			fileField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -325,6 +399,10 @@ public final class MediaDialog extends CommonListDialog{
 					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
 					break;
 				}
+		}
+
+		if(filterReferenceTable != null){
+			//TODO upsert junction
 		}
 
 		selectedRecord.put("identifier", identifier);
@@ -354,8 +432,12 @@ public final class MediaDialog extends CommonListDialog{
 		return (Integer)record.get("date_id");
 	}
 
-	private static Integer extractRecordRepositoryID(final Map<String, Object> record){
-		return (Integer)record.get("repository_id");
+	private static Integer extractRecordMediaID(final Map<String, Object> record){
+		return (Integer)record.get("media_id");
+	}
+
+	private static String extractRecordPhotoCrop(final Map<String, Object> record){
+		return (String)record.get("photo_crop");
 	}
 
 
@@ -401,6 +483,16 @@ public final class MediaDialog extends CommonListDialog{
 		media1.put("date_id", 1);
 		medias.put((Integer)media1.get("id"), media1);
 
+		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_MEDIA_JUNCTION, mediaJunctions);
+		final Map<String, Object> mediaJunction1 = new HashMap<>();
+		mediaJunction1.put("id", 1);
+		mediaJunction1.put("media_id", 1);
+		mediaJunction1.put("reference_table", "media");
+		mediaJunction1.put("reference_id", 1);
+		mediaJunction1.put("photo_crop", "0 0 10 50");
+		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
+
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
 		final Map<String, Object> note1 = new HashMap<>();
@@ -427,6 +519,12 @@ public final class MediaDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final MediaDialog dialog = create(store, parent).withBasePath("\\Documents\\");
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(mediaJunction1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -438,30 +536,29 @@ public final class MediaDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case DATE -> {
-							//TODO
+							//TODO single media
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode media = editCommand.getContainer();
-//							dialog.setTitle(media.getID() != null
-//								? "Note " + media.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(media, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int mediaID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, mediaID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
+						}
+						case REFERENCE -> {
+							//TODO single media
+						}
+						case PHOTO_CROP -> {
+							//TODO single media
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final Integer filterRepositoryID = null;
-			final MediaDialog dialog = new MediaDialog(store, filterRepositoryID, parent)
-				.withBasePath("\\Documents\\");
-			if(!dialog.loadData(extractRecordID(media1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

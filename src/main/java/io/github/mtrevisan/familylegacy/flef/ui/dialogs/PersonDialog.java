@@ -51,8 +51,11 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public final class PersonDialog extends CommonListDialog{
@@ -120,18 +123,18 @@ public final class PersonDialog extends CommonListDialog{
 
 
 		namesButton.setToolTipText("Names");
-		namesButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+		namesButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NAME, getSelectedRecord())));
 
 		photoButton.setToolTipText("Photo");
-		photoButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PHOTO, getSelectedRecord())));
+		photoButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO, getSelectedRecord())));
 
 		photoCropButton.setToolTipText("Define a crop");
-		photoCropButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
+		photoCropButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -140,7 +143,7 @@ public final class PersonDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(namesButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(photoButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -153,7 +156,7 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -161,7 +164,7 @@ public final class PersonDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractRecordIdentifier(record.getValue());
+			final String identifier = extractIdentifier(extractRecordID(record.getValue()));
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
@@ -185,14 +188,14 @@ public final class PersonDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNames = extractPersonNameReferences();
+		final Map<Integer, Map<String, Object>> recordNames = extractReferences(TABLE_NAME_PERSON_NAME);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		GUIHelper.addBorder(namesButton, !recordNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(photoButton, photoID != null, DATA_BUTTON_BORDER_COLOR);
-		photoCropButton.setEnabled(photoCrop != null && !photoCrop.isEmpty());
+		GUIHelper.addBorder(photoCropButton, photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(photosButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -220,8 +223,23 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
+	private String extractIdentifier(final int selectedRecordID){
+		final Set<Integer> filteredLocalizedTexts = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME,
+				selectedRecordID)
+			.values().stream()
+			.filter(record -> "name".equals(extractRecordReferenceType(record)))
+			.map(PersonDialog::extractRecordLocalizedTextID)
+			.collect(Collectors.toSet());
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		records.entrySet()
+			.removeIf(entry -> !filteredLocalizedTexts.contains(entry.getKey()));
+
+		final StringJoiner identifier = new StringJoiner(" / ");
+		for(final Map<String, Object> localizedTextElement : records.values()){
+			final String text = extractRecordText(localizedTextElement);
+			identifier.add(text);
+		}
+		return identifier.toString();
 	}
 
 	private static Integer extractRecordPhotoID(final Map<String, Object> record){
@@ -232,18 +250,12 @@ public final class PersonDialog extends CommonListDialog{
 		return (String)record.get("photo_crop");
 	}
 
-	private TreeMap<Integer, Map<String, Object>> extractPersonNameReferences(){
-		final Map<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_PERSON_NAME);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(extractRecordReferencePersonID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
-		return matchedRecords;
+	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
+		return (Integer)record.get("localized_text_id");
 	}
 
-	private static Integer extractRecordReferencePersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
+	private static String extractRecordText(final Map<String, Object> record){
+		return (String)record.get("text");
 	}
 
 
@@ -293,14 +305,14 @@ public final class PersonDialog extends CommonListDialog{
 		personName1.put("person_id", 1);
 		personName1.put("name_id", 1);
 		personName1.put("type", "birth name");
-		personName1.put("name_alternative_sort_id", 11);
+		personName1.put("alternate_sort_name_id", 11);
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
 		personName2.put("name_id", 2);
 		personName2.put("type", "death name");
-		personName2.put("name_alternative_sort_id", 12);
+		personName2.put("alternate_sort_name_id", 12);
 		personNames.put((Integer)personName2.get("id"), personName2);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
@@ -325,6 +337,37 @@ public final class PersonDialog extends CommonListDialog{
 		localizedText12.put("text", "alternative fake name");
 		localizedText12.put("locale", "en");
 		localizedTexts.put((Integer)localizedText12.get("id"), localizedText12);
+
+		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, localizedTextJunctions);
+		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
+		localizedTextJunction1.put("id", 1);
+		localizedTextJunction1.put("localized_text_id", 1);
+		localizedTextJunction1.put("reference_type", "name");
+		localizedTextJunction1.put("reference_table", "person_name");
+		localizedTextJunction1.put("reference_id", 1);
+		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
+		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
+		localizedTextJunction2.put("id", 2);
+		localizedTextJunction2.put("localized_text_id", 2);
+		localizedTextJunction2.put("reference_type", "name");
+		localizedTextJunction2.put("reference_table", "person_name");
+		localizedTextJunction2.put("reference_id", 1);
+		localizedTextJunctions.put((Integer)localizedTextJunction2.get("id"), localizedTextJunction2);
+		final Map<String, Object> localizedTextJunction3 = new HashMap<>();
+		localizedTextJunction3.put("id", 11);
+		localizedTextJunction3.put("localized_text_id", 11);
+		localizedTextJunction3.put("reference_type", "name");
+		localizedTextJunction3.put("reference_table", "person_name");
+		localizedTextJunction3.put("reference_id", 1);
+		localizedTextJunctions.put((Integer)localizedTextJunction3.get("id"), localizedTextJunction3);
+		final Map<String, Object> localizedTextJunction4 = new HashMap<>();
+		localizedTextJunction4.put("id", 12);
+		localizedTextJunction4.put("localized_text_id", 12);
+		localizedTextJunction4.put("reference_type", "name");
+		localizedTextJunction4.put("reference_table", "person_name");
+		localizedTextJunction4.put("reference_id", 1);
+		localizedTextJunctions.put((Integer)localizedTextJunction4.get("id"), localizedTextJunction4);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -352,6 +395,12 @@ public final class PersonDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final PersonDialog dialog = new PersonDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(person1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -363,13 +412,21 @@ public final class PersonDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case NAME -> {
-							//TODO
+							final int personID = extractRecordID(editCommand.getContainer());
+							final PersonNameDialog personNameDialog = PersonNameDialog.createWithReferenceTable(store, personID, parent)
+								.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							personNameDialog.initComponents();
+							personNameDialog.loadData();
+
+							personNameDialog.setSize(535, 466);
+							personNameDialog.setLocationRelativeTo(null);
+							personNameDialog.setVisible(true);
 						}
 						case PHOTO -> {
-							//TODO
+							//TODO single photo
 						}
 						case PHOTO_CROP -> {
-							//TODO
+							//TODO single photo crop
 //							final Point cropStartPoint = ((CropDialog)cropDialog).getCropStartPoint();
 //							final Point cropEndPoint = ((CropDialog)cropDialog).getCropEndPoint();
 //							final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -379,25 +436,20 @@ public final class PersonDialog extends CommonListDialog{
 //							sj.add(Integer.toString(cropEndPoint.y));
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode place = editCommand.getContainer();
-//							dialog.setTitle(place.getID() != null
-//								? "Note " + place.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(place, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int personID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, personID, parent)
+								.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final PersonDialog dialog = new PersonDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(person1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

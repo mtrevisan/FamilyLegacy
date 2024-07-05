@@ -125,7 +125,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		selectedRecord = getRecords(TABLE_NAME)
 			.computeIfAbsent(1, k -> new HashMap<>());
 
@@ -248,6 +248,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 			final ProjectDialog dialog = new ProjectDialog(store, parent);
 			injector.injectDependencies(dialog);
+			dialog.initComponents();
+			dialog.loadData();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

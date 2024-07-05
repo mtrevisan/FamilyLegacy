@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.gedcom;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.FamilyTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.HeaderTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.IndividualTransformation;
@@ -33,7 +34,6 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransfo
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformer;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;

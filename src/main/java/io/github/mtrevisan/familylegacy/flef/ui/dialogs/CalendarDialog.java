@@ -119,7 +119,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public final class CalendarDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -185,17 +185,13 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String type = GUIHelper.readTextTrimmed(typeField);
-			//enforce non-nullity on `identifier`
-			if(type == null || type.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				typeField.requestFocusInWindow();
+		final String type = GUIHelper.readTextTrimmed(typeField);
+		if(!validData(type)){
+			JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			typeField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -290,6 +286,12 @@ public final class CalendarDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final CalendarDialog dialog = new CalendarDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(calendar3)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -301,25 +303,20 @@ public final class CalendarDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode calendar = editCommand.getContainer();
-//							dialog.setTitle(calendar.getID() != null
-//								? "Note " + calendar.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(calendar, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int calendarID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, calendarID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final CalendarDialog dialog = new CalendarDialog(store, parent);
-		if(!dialog.loadData(extractRecordID(calendar3)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

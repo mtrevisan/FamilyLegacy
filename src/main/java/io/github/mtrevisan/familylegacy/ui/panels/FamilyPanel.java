@@ -24,6 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -37,9 +40,6 @@ import io.github.mtrevisan.familylegacy.ui.enums.BoxPanelType;
 import io.github.mtrevisan.familylegacy.ui.enums.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.ui.interfaces.FamilyListenerInterface;
 import io.github.mtrevisan.familylegacy.ui.interfaces.IndividualListenerInterface;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;

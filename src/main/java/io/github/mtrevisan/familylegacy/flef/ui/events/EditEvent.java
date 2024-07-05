@@ -32,35 +32,55 @@ import java.util.function.Consumer;
 public class EditEvent{
 
 	public enum EditType{
-		PERSON,
-//		GROUP,
-		NOTE,
-		SOURCE, EXTRACT, LOCALIZED_EXTRACT,
-		REFERENCE,
-		NAME, LOCALIZED_PLACE_NAME, LOCALIZED_PERSON_NAME, MEDIA, PHOTO, PHOTO_CROP,
-//		EVENT,
-		PLACE,
-		DATE, CALENDAR,
-		REPOSITORY,
 //		ASSERTION,
+		CITATION, EXTRACT, LOCALIZED_EXTRACT,
+		SOURCE,
+		REPOSITORY,
+
+		DATE,
+		CALENDAR,
+
+		PLACE, LOCALIZED_PLACE_NAME,
+
+		NOTE,
+
+		MEDIA, PHOTO, PHOTO_CROP,
+
+		PERSON,
+		NAME, LOCALIZED_PERSON_NAME, LOCALIZED_PERSON_NAME_ALTERNATE,
+
+//		GROUP,
+
+//		EVENT,
+
+		CULTURAL_NORM,
+
 //		CONTACT,
-		CULTURAL_NORM
+
+		REFERENCE
 	}
 
 
 	private final EditType type;
 	private final Map<String, Object> container;
-	private final Consumer<Object> onCloseGracefully;
+	private Consumer<Object> onCloseGracefully;
 
 
-	public EditEvent(final EditType type, final Map<String, Object> container){
-		this(type, container, null);
+	public static EditEvent create(final EditType type, final Map<String, Object> container){
+		return new EditEvent(type, container);
 	}
 
-	public EditEvent(final EditType type, final Map<String, Object> container, final Consumer<Object> onCloseGracefully){
+
+	private EditEvent(final EditType type, final Map<String, Object> container){
 		this.type = type;
 		this.container = container;
+	}
+
+
+	public EditEvent withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
+
+		return this;
 	}
 
 	public final EditType getType(){

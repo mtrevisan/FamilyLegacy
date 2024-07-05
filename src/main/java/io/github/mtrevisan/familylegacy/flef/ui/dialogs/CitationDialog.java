@@ -85,19 +85,22 @@ public final class CitationDialog extends CommonListDialog{
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
 
-	private final Integer filterSourceID;
+	private Integer filterSourceID;
 
 
-	public CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterSourceID,
-			final Frame parent){
+	public CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		this.filterSourceID = filterSourceID;
 	}
 
 
 	public CitationDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public CitationDialog withFilterOnSourceID(final int filterSourceID){
+		this.filterSourceID = filterSourceID;
 
 		return this;
 	}
@@ -140,27 +143,27 @@ public final class CitationDialog extends CommonListDialog{
 
 
 		sourceButton.setToolTipText("Source");
-		sourceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, getSelectedRecord())));
+		sourceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.SOURCE, getSelectedRecord())));
 		GUIHelper.addBorder(sourceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
 
 		extractButton.setToolTipText("Extract");
-		extractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.EXTRACT, getSelectedRecord())));
+		extractButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.EXTRACT, getSelectedRecord())));
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
-		transcribedExtractButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_EXTRACT,
+		transcribedExtractButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT,
 			getSelectedRecord())));
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(extractTypeLabel, extractTypeComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, evt -> saveData(),
 			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -186,7 +189,7 @@ public final class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterSourceID != null)
 			records = records.entrySet().stream()
@@ -227,7 +230,8 @@ public final class CitationDialog extends CommonListDialog{
 		final String location = extractRecordLocation(selectedRecord);
 		final Integer extractID = extractRecordExtractID(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractLocalizedTextJunction("extract");
+		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			CommonRecordDialog::extractRecordReferenceType, "extract");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -261,17 +265,13 @@ public final class CitationDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final Integer sourceID = extractRecordSourceID(selectedRecord);
-			//enforce non-nullity on `sourceID`
-			if(sourceID == null){
-				JOptionPane.showMessageDialog(getParent(), "Source field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				sourceButton.requestFocusInWindow();
+		final Integer sourceID = extractRecordSourceID(selectedRecord);
+		if(!validData(sourceID)){
+			JOptionPane.showMessageDialog(getParent(), "Source field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			sourceButton.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -404,13 +404,13 @@ public final class CitationDialog extends CommonListDialog{
 
 		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
 		store.put(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, localizedTextJunctions);
-		final Map<String, Object> localized_text_junction = new HashMap<>();
-		localized_text_junction.put("id", 1);
-		localized_text_junction.put("localized_text_id", 2);
-		localized_text_junction.put("reference_type", "extract");
-		localized_text_junction.put("reference_table", "citation");
-		localized_text_junction.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localized_text_junction.get("id"), localized_text_junction);
+		final Map<String, Object> localizedTextJunction = new HashMap<>();
+		localizedTextJunction.put("id", 1);
+		localizedTextJunction.put("localized_text_id", 2);
+		localizedTextJunction.put("reference_type", "extract");
+		localizedTextJunction.put("reference_table", "citation");
+		localizedTextJunction.put("reference_id", 1);
+		localizedTextJunctions.put((Integer)localizedTextJunction.get("id"), localizedTextJunction);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -438,6 +438,13 @@ public final class CitationDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final CitationDialog dialog = new CitationDialog(store, parent);
+//			dialog.withFilterOnSourceID(filterSourceID);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(source)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -449,48 +456,50 @@ public final class CitationDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case SOURCE -> {
-							//TODO
+							//TODO single citation
 						}
 						case EXTRACT -> {
-							//TODO
+							//TODO single extract
 						}
 						case LOCALIZED_EXTRACT -> {
-							//TODO
+							final int citationID = extractRecordID(editCommand.getContainer());
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createWithReferenceTable(store, TABLE_NAME, citationID,
+								"extract", parent);
+							localizedTextDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							localizedTextDialog.initComponents();
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.setSize(420, 492);
+							localizedTextDialog.setLocationRelativeTo(dialog);
+							localizedTextDialog.setVisible(true);
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode citation = editCommand.getContainer();
-//							dialog.setTitle(citation.getID() != null
-//								? "Note " + citation.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(citation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int citationID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, citationID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setVisible(true);
+							final int citationID = extractRecordID(editCommand.getContainer());
+							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, citationID, parent)
+								.withBasePath("\\Documents\\");
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(351, 460);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final Integer filterSourceID = null;
-			final CitationDialog dialog = new CitationDialog(store, filterSourceID, parent);
-			if(!dialog.loadData(extractRecordID(source)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

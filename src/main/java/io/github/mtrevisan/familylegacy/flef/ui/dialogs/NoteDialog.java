@@ -90,7 +90,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	public static NoteDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
 			final String referenceTable, final int filterReferenceID, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
-		//TODO too late, initRecordComponents was already called
 		dialog.filterReferenceTable = referenceTable;
 		dialog.filterReferenceID = filterReferenceID;
 		return dialog;
@@ -119,7 +118,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Notes");
+		setTitle("Notes"
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -147,33 +147,39 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		if(filterReferenceTable == null){
 			referenceButton.setToolTipText("Reference");
-			referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
+				.withOnCloseGracefully(container -> {
+					//TODO save data
+				})));
 			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 		}
-		else
-			referenceButton.setEnabled(false);
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
+		referenceButton.setVisible(filterReferenceTable == null);
+
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(noteLabel, "align label,top,sizegroup label,split 2");
 		recordPanelBase.add(noteTextArea, "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(localeField, "grow,wrap paragraph");
-		recordPanelBase.add(referenceButton, "sizegroup btn,center");
+		recordPanelBase.add(localeField, "grow");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
@@ -214,6 +220,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		localeField.setText(locale);
 		if(filterReferenceTable == null)
 			GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		else
+			recordTabbedPane.setEnabledAt(recordTabbedPane.indexOfTab("link"), false);
 
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
@@ -231,29 +239,25 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null && filterReferenceTable == null){
-			//read record panel:
-			final String note = noteTextArea.getText();
-			//enforce non-nullity on `identifier`
-			if(note == null || note.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				noteTextArea.requestFocusInWindow();
+		final String note = noteTextArea.getText();
+		if(filterReferenceTable == null && !validData(note)){
+			JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			noteTextArea.requestFocusInWindow();
 
-				return false;
-			}
-
-			final String referenceTable = extractRecordReferenceTable(selectedRecord);
-			final Integer referenceID = extractRecordReferenceID(selectedRecord);
-			//enforce non-nullity on `reference`
-			if(referenceTable == null || referenceID == null){
-				JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				referenceButton.requestFocusInWindow();
-
-				return false;
-			}
+			return false;
 		}
+
+		final String referenceTable = extractRecordReferenceTable(selectedRecord);
+		final Integer referenceID = extractRecordReferenceID(selectedRecord);
+		if(filterReferenceTable == null && (!validData(referenceTable) || !validData(referenceID))){
+			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			referenceButton.requestFocusInWindow();
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -276,8 +280,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 				}
 		}
 
+		if(filterReferenceTable != null){
+			//TODO upsert junction
+		}
+
 		selectedRecord.put("note", note);
-		selectedRecord.put("localeField", locale);
+		selectedRecord.put("locale", locale);
 	}
 
 
@@ -364,7 +372,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case REFERENCE -> {
-							//TODO
+							//TODO single note
 						}
 					}
 				}
@@ -372,7 +380,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			EventBusService.subscribe(listener);
 
 			final NoteDialog dialog = create(store, parent);
-			if(!dialog.loadData(extractRecordID(note1)))
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(note1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -381,7 +391,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 534);
+			dialog.setSize(420, 487);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

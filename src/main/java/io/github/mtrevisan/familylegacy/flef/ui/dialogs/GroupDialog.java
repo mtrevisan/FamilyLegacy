@@ -135,21 +135,21 @@ public final class GroupDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
 		photoButton.setToolTipText("Photo");
-		photoButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PHOTO, getSelectedRecord())));
+		photoButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO, getSelectedRecord())));
 
 		photoCropButton.setToolTipText("Define a crop");
-		photoCropButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
+		photoCropButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		culturalNormButton.setToolTipText("Cultural norm");
-		culturalNormButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, getSelectedRecord())));
+		culturalNormButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CULTURAL_NORM, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -172,7 +172,7 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -214,7 +214,7 @@ public final class GroupDialog extends CommonListDialog{
 
 		typeComboBox.setSelectedItem(type);
 		GUIHelper.addBorder(photoButton, photoID != null, DATA_BUTTON_BORDER_COLOR);
-		photoCropButton.setEnabled(photoCrop != null && !photoCrop.isEmpty());
+		GUIHelper.addBorder(photoCropButton, photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -252,9 +252,8 @@ public final class GroupDialog extends CommonListDialog{
 		final TreeMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
-		for(final Map.Entry<Integer, Map<String, Object>> entry : storeGroupJunction.entrySet()){
-			final Map<String, Object> groupElement = entry.getValue();
-			final StringJoiner subIdentifier = new StringJoiner(", ");
+		for(final Map<String, Object> groupElement : storeGroupJunction.values()){
+			final StringJoiner subIdentifier = new StringJoiner(" / ");
 			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
 				final String referenceTable = extractRecordReferenceTable(groupElement);
 				final Integer referenceID = extractRecordReferenceID(groupElement);
@@ -465,6 +464,12 @@ public final class GroupDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final GroupDialog dialog = new GroupDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(group1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -475,11 +480,8 @@ public final class GroupDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case NAME -> {
-							//TODO
-						}
 						case PHOTO -> {
-							//TODO
+							//TODO single cultural norm
 						}
 						case PHOTO_CROP -> {
 							//TODO
@@ -492,25 +494,20 @@ public final class GroupDialog extends CommonListDialog{
 //							sj.add(Integer.toString(cropEndPoint.y));
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode place = editCommand.getContainer();
-//							dialog.setTitle(place.getID() != null
-//								? "Note " + place.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(place, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int groupID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, groupID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final GroupDialog dialog = new GroupDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(group1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

@@ -24,14 +24,18 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -49,15 +53,18 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
-public final class LocalizedTextDialog extends CommonListDialog{
+public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
@@ -68,7 +75,7 @@ public final class LocalizedTextDialog extends CommonListDialog{
 
 
 	private JLabel textLabel;
-	private JTextField textField;
+	private TextPreviewPane textTextArea;
 	private JLabel localeLabel;
 	private JTextField localeField;
 	private JLabel typeLabel;
@@ -78,8 +85,30 @@ public final class LocalizedTextDialog extends CommonListDialog{
 	private JLabel transcriptionTypeLabel;
 	private JComboBox<String> transcriptionTypeComboBox;
 
+	private JButton referenceButton;
+	private JLabel referenceTypeLabel;
+	private JComboBox<String> referenceTypeComboBox;
 
-	public LocalizedTextDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	private String filterReferenceTable;
+	private int filterReferenceID;
+	private String referenceType;
+
+
+	public static LocalizedTextDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new LocalizedTextDialog(store, parent);
+	}
+
+	public static LocalizedTextDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+		final String referenceTable, final int filterReferenceID, final String referenceType, final Frame parent){
+		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.filterReferenceTable = referenceTable;
+		dialog.filterReferenceID = filterReferenceID;
+		dialog.referenceType = referenceType;
+		return dialog;
+	}
+
+
+	private LocalizedTextDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -102,7 +131,8 @@ public final class LocalizedTextDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Localized texts");
+		setTitle("Localized texts"
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -114,7 +144,8 @@ public final class LocalizedTextDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		textLabel = new JLabel("Text:");
-		textField = new JTextField();
+		textTextArea = TextPreviewPane.createWithPreview(this);
+		textTextArea.setTextViewFont(textLabel.getFont());
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -126,41 +157,75 @@ public final class LocalizedTextDialog extends CommonListDialog{
 		transcriptionTypeComboBox = new JComboBox<>(new String[]{"romanized", "anglicized", "cyrillized",
 			"francized", "gairaigized", "latinized"});
 
+		referenceButton = new JButton("Reference", ICON_REFERENCE);
+		referenceTypeLabel = new JLabel("Reference type:");
+		referenceTypeComboBox = new JComboBox<>(new String[]{"extract", "name", "alternate name"});
 
-		GUIHelper.bindLabelTextChangeUndo(textLabel, textField, evt -> saveData());
-		GUIHelper.setBackgroundColor(textField, MANDATORY_FIELD_BACKGROUND_COLOR);
+
+		GUIHelper.bindLabelTextChange(textLabel, textTextArea, evt -> saveData());
+		textTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(transcriptionLabel, transcriptionComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, evt -> saveData(),
 			evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData(),
 			evt -> saveData());
+
+
+		if(filterReferenceTable == null){
+			referenceButton.setToolTipText("Reference");
+			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
+				.withOnCloseGracefully(container -> {
+					//TODO save data
+				})));
+			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+
+			GUIHelper.bindLabelSelectionAutoCompleteChange(referenceTypeLabel, referenceTypeComboBox, evt -> saveData());
+		}
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
+		referenceButton.setVisible(filterReferenceTable == null);
+		referenceTypeLabel.setVisible(filterReferenceTable == null);
+		referenceTypeComboBox.setVisible(filterReferenceTable == null);
+
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(textLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(textField, "growx,wrap paragraph");
+		recordPanelBase.add(textTextArea, "growx,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(localeField, "growx,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
 		recordPanelBase.add(transcriptionLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(transcriptionComboBox, "growx,wrap paragraph");
+		recordPanelBase.add(transcriptionComboBox, "growx,wrap related");
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(transcriptionTypeComboBox, "growx");
 
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
+		recordPanelLink.add(referenceTypeLabel, "align label,sizegroup label,split 2,hidemode 3");
+		recordPanelLink.add(referenceTypeComboBox, "growx,hidemode 3");
+
 		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		if(filterReferenceTable != null){
+			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
+				.values().stream()
+				.map(CommonRecordDialog::extractRecordID)
+				.collect(Collectors.toSet());
+			records.entrySet()
+				.removeIf(entry -> !filteredMedias.contains(entry.getKey()));
+		}
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -195,17 +260,36 @@ public final class LocalizedTextDialog extends CommonListDialog{
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
-		textField.setText(text);
+		textTextArea.setText("Extract " + extractRecordID(selectedRecord), text, locale);
 		localeField.setText(locale);
 		typeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
+
+		if(filterReferenceTable == null){
+			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+				LocalizedTextDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
+			if(recordMediaJunction.size() > 1)
+				throw new IllegalArgumentException("Data integrity error");
+
+			final Map<String, Object> record = recordMediaJunction.values().stream()
+				.findFirst()
+				.orElse(Collections.emptyMap());
+			final String referenceType = extractRecordReferenceType(record);
+
+			GUIHelper.addBorder(referenceButton, (!recordMediaJunction.isEmpty()? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+			referenceTypeComboBox.setSelectedItem(referenceType);
+		}
+		else{
+			referenceTypeComboBox.setSelectedItem(referenceType);
+			recordTabbedPane.setEnabledAt(recordTabbedPane.indexOfTab("link"), false);
+		}
 	}
 
 	@Override
 	protected void clearData(){
-		textField.setText(null);
-		GUIHelper.setBackgroundColor(textField, Color.WHITE);
+		textTextArea.clear();
+		textTextArea.setTextViewBackgroundColor(Color.WHITE);
 
 		localeField.setText(null);
 
@@ -214,21 +298,22 @@ public final class LocalizedTextDialog extends CommonListDialog{
 		transcriptionComboBox.setSelectedItem(null);
 
 		transcriptionTypeComboBox.setSelectedItem(null);
+
+		if(filterReferenceTable == null){
+			GUIHelper.setDefaultBorder(referenceButton);
+			referenceTypeComboBox.setSelectedItem(null);
+		}
 	}
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String text = GUIHelper.readTextTrimmed(textField);
-			//enforce non-nullity on `identifier`
-			if(text == null || text.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Text field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				textField.requestFocusInWindow();
+		final String text = textTextArea.getText();
+		if(!validData(text)){
+			JOptionPane.showMessageDialog(getParent(), "Text field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			textTextArea.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -236,7 +321,7 @@ public final class LocalizedTextDialog extends CommonListDialog{
 	@Override
 	protected void saveData(){
 		//read record panel:
-		final String text = GUIHelper.readTextTrimmed(textField);
+		final String text = textTextArea.getText();
 		final String locale = GUIHelper.readTextTrimmed(localeField);
 		final String type = (String)typeComboBox.getSelectedItem();
 		final String transcription = (String)transcriptionComboBox.getSelectedItem();
@@ -253,6 +338,10 @@ public final class LocalizedTextDialog extends CommonListDialog{
 					model.setValueAt(text, modelRowIndex, TABLE_INDEX_RECORD_TEXT);
 					break;
 				}
+		}
+
+		if(filterReferenceTable != null){
+			//TODO upsert junction
 		}
 
 		selectedRecord.put("text", text);
@@ -281,6 +370,16 @@ public final class LocalizedTextDialog extends CommonListDialog{
 
 	private static String extractRecordTranscriptionType(final Map<String, Object> record){
 		return (String)record.get("transcription_type");
+	}
+
+	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
+		return (Integer)record.get("localized_text_id");
+	}
+
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 
@@ -315,16 +414,26 @@ public final class LocalizedTextDialog extends CommonListDialog{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> texts = new TreeMap<>();
-		store.put(TABLE_NAME, texts);
-		final Map<String, Object> text1 = new HashMap<>();
-		text1.put("id", 1);
-		text1.put("text", "text 1");
-		text1.put("locale", "en");
-		text1.put("type", "original");
-		text1.put("transcription", "IPA");
-		text1.put("transcription_type", "romanized");
-		texts.put((Integer)text1.get("id"), text1);
+		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
+		store.put(TABLE_NAME, localizedTexts);
+		final Map<String, Object> localizedText1 = new HashMap<>();
+		localizedText1.put("id", 1);
+		localizedText1.put("text", "text 1");
+		localizedText1.put("locale", "en");
+		localizedText1.put("type", "original");
+		localizedText1.put("transcription", "IPA");
+		localizedText1.put("transcription_type", "romanized");
+		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+
+		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, localizedTextJunctions);
+		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
+		localizedTextJunction1.put("id", 1);
+		localizedTextJunction1.put("localized_text_id", 1);
+		localizedTextJunction1.put("reference_table", "localized_text");
+		localizedTextJunction1.put("reference_id", 1);
+		localizedTextJunction1.put("reference_type", "extract");
+		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -337,8 +446,10 @@ public final class LocalizedTextDialog extends CommonListDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(text1)))
+			final LocalizedTextDialog dialog = create(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(localizedText1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
@@ -347,7 +458,7 @@ public final class LocalizedTextDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 492);
+			dialog.setSize(420, 594);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -141,23 +141,23 @@ public final class HistoricDateDialog extends CommonListDialog{
 		GUIHelper.setBackgroundColor(dateField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		calendarButton.setToolTipText("Calendar");
-		calendarButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR, getSelectedRecord())));
+		calendarButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CALENDAR, getSelectedRecord())));
 
 		GUIHelper.bindLabelTextChangeUndo(dateOriginalLabel, dateOriginalField, evt -> saveData());
 		GUIHelper.addUndoCapability(dateOriginalField);
 
 		calendarOriginalButton.setToolTipText("Calendar original");
-		calendarOriginalButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CALENDAR,
+		calendarOriginalButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CALENDAR,
 			getSelectedRecord())));
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(credibilityLabel, credibilityComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData(),
 			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -185,7 +185,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -253,17 +253,13 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String date = GUIHelper.readTextTrimmed(dateField);
-			//enforce non-nullity on `identifier`
-			if(date == null || date.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Date field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				dateField.requestFocusInWindow();
+		final String date = GUIHelper.readTextTrimmed(dateField);
+		if(!validData(date)){
+			JOptionPane.showMessageDialog(getParent(), "Date field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			dateField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -382,6 +378,12 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(historicDate1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -393,28 +395,23 @@ public final class HistoricDateDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case CALENDAR -> {
-							//TODO
+							//TODO single historic date
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode historicDate = editCommand.getContainer();
-//							dialog.setTitle(historicDate.getID() != null
-//								? "Note " + historicDate.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(historicDate, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int historicDateID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, historicDateID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(historicDate1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

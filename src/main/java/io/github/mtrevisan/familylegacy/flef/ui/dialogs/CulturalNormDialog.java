@@ -61,6 +61,7 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.io.Serial;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -77,6 +78,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "cultural_norm";
+	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
 	private JLabel identifierLabel;
@@ -95,8 +97,30 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
 
+	private JButton referenceButton;
+	private JLabel linkCertaintyLabel;
+	private JComboBox<String> linkCertaintyComboBox;
+	private JLabel linkCredibilityLabel;
+	private JComboBox<String> linkCredibilityComboBox;
 
-	public CulturalNormDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	private String filterReferenceTable;
+	private int filterReferenceID;
+
+
+	public static CulturalNormDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new CulturalNormDialog(store, parent);
+	}
+
+	public static CulturalNormDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final String referenceTable, final int filterReferenceID, final Frame parent){
+		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+		dialog.filterReferenceTable = referenceTable;
+		dialog.filterReferenceID = filterReferenceID;
+		return dialog;
+	}
+
+
+	private CulturalNormDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -150,38 +174,60 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		mediaButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		referenceButton = new JButton("Reference", ICON_REFERENCE);
+		linkCertaintyLabel = new JLabel("Certainty:");
+		linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+		linkCredibilityLabel = new JLabel("Credibility:");
+		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
+
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextArea, evt -> saveData());
 
 		placeButton.setToolTipText("Place");
-		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+		placeButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
 
 		dateStartButton.setToolTipText("Start date");
-		dateStartButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+		dateStartButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
 
 		dateEndButton.setToolTipText("End date");
-		dateEndButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+		dateEndButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
-
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(credibilityLabel, credibilityComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData(),
 			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
+
+
+		if(filterReferenceTable == null){
+			referenceButton.setToolTipText("Reference");
+			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
+				.withOnCloseGracefully(container -> {
+					//TODO save data
+				})));
+			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		}
+
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, evt -> saveData(),
+			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, evt -> saveData(),
+			evt -> saveData());
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
+		referenceButton.setVisible(filterReferenceTable == null);
+
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
@@ -200,12 +246,20 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
+		recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup label,split 2");
+		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
+		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup label,split 2");
+		recordPanelLink.add(linkCredibilityComboBox);
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -243,7 +297,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
+			CulturalNormDialog::extractRecordMediaID, extractRecordID(selectedRecord));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		identifierField.setText(identifier);
@@ -257,6 +312,22 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		if(filterReferenceTable == null){
+			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
+				CulturalNormDialog::extractRecordCulturalNormID, extractRecordID(selectedRecord));
+			if(recordCulturalNormJunction.size() > 1)
+				throw new IllegalArgumentException("Data integrity error");
+
+			final Map<String, Object> record = recordCulturalNormJunction.values().stream()
+				.findFirst()
+				.orElse(Collections.emptyMap());
+
+			GUIHelper.addBorder(referenceButton, (!recordCulturalNormJunction.isEmpty()? DATA_BUTTON_BORDER_COLOR:
+				MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		}
+		linkCertaintyComboBox.setSelectedItem(certainty);
+		linkCredibilityComboBox.setSelectedItem(credibility);
 	}
 
 	@Override
@@ -273,21 +344,23 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
+
+		if(filterReferenceTable == null){
+			GUIHelper.setDefaultBorder(referenceButton);
+			certaintyComboBox.setSelectedItem(null);
+			credibilityComboBox.setSelectedItem(null);
+		}
 	}
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String identifier = extractRecordIdentifier(selectedRecord);
-			//enforce non-nullity on `type`
-			if(identifier == null || identifier.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				identifierField.requestFocusInWindow();
+		final String identifier = extractRecordIdentifier(selectedRecord);
+		if(!validData(identifier)){
+			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			identifierField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -340,6 +413,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		return (Integer)record.get("date_end_id");
 	}
 
+	private static Integer extractRecordMediaID(final Map<String, Object> record){
+		return (Integer)record.get("media_id");
+	}
+
+	private static Integer extractRecordCulturalNormID(final Map<String, Object> record){
+		return (Integer)record.get("cultural_norm_id");
+	}
+
 
 	private static class RecordTableModel extends DefaultTableModel{
 
@@ -390,6 +471,17 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		culturalNorm.put("certainty", "certain");
 		culturalNorm.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		culturalNorms.put((Integer)culturalNorm.get("id"), culturalNorm);
+
+		final TreeMap<Integer, Map<String, Object>> culturalNormJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_CULTURAL_NORM_JUNCTION, culturalNormJunctions);
+		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
+		culturalNormJunction1.put("id", 1);
+		culturalNormJunction1.put("cultural_norm_id", 1);
+		culturalNormJunction1.put("reference_table", "cultural_norm");
+		culturalNormJunction1.put("reference_id", 1);
+		culturalNormJunction1.put("certainty", "probable");
+		culturalNormJunction1.put("credibility", "probable");
+		culturalNormJunctions.put((Integer)culturalNormJunction1.get("id"), culturalNormJunction1);
 
 		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
 		store.put("place", places);
@@ -446,52 +538,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-
-				@EventHandler
-				public void refresh(final EditEvent editCommand){
-					switch(editCommand.getType()){
-						case PLACE -> {
-							//TODO
-						}
-						case DATE -> {
-							//TODO
-						}
-						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode assertion = editCommand.getContainer();
-//							dialog.setTitle(assertion.getID() != null
-//								? "Note " + assertion.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
-						}
-						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setVisible(true);
-						}
-					}
-				}
-			};
-			EventBusService.subscribe(listener);
-
 			final DependencyInjector injector = new DependencyInjector();
 			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
 			try{
@@ -505,10 +551,56 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+			final CulturalNormDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(extractRecordID(culturalNorm)))
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(culturalNorm)))
 				dialog.showNewRecord();
+
+			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					switch(editCommand.getType()){
+						case PLACE -> {
+							//TODO single cultural norm
+						}
+						case DATE -> {
+							//TODO single cultural norm
+						}
+						case NOTE -> {
+							final int culturalNormID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, culturalNormID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
+						}
+						case MEDIA -> {
+							final int culturalNormID = extractRecordID(editCommand.getContainer());
+							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, culturalNormID, parent)
+								.withBasePath("\\Documents\\");
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(351, 460);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
+						}
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

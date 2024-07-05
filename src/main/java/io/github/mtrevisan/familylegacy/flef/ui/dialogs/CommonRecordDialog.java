@@ -45,6 +45,7 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -118,10 +119,6 @@ public abstract class CommonRecordDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
-
-		initComponents();
-
-		loadData();
 	}
 
 
@@ -131,7 +128,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract String getTableName();
 
-	protected void initComponents(){
+	public void initComponents(){
 		initRecordComponents();
 
 		initLayout();
@@ -190,7 +187,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		return false;
 	}
 
-	protected abstract void loadData();
+	public abstract void loadData();
 
 	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
@@ -222,9 +219,9 @@ public abstract class CommonRecordDialog extends JDialog{
 				return;
 
 
-			fillData();
-
 			GUIHelper.setEnabled(recordPanel, true);
+
+			fillData();
 		}
 	}
 
@@ -238,13 +235,20 @@ public abstract class CommonRecordDialog extends JDialog{
 	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
 	 */
 	protected final TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
-		final Map<Integer, Map<String, Object>> storeRecords = getRecords(fromTable);
+		return extractReferences(fromTable, null, null);
+	}
+
+	protected final <T> TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
+			final Function<Map<String, Object>, T> filter, final T filterValue){
+		final Map<Integer, Map<String, Object>> records = getRecords(fromTable);
 		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
 		final int selectedRecordID = extractRecordID(selectedRecord);
 		final String tableName = getTableName();
-		for(final Map<String, Object> storeRecord : storeRecords.values())
-			if(tableName.equals(extractRecordReferenceTable(storeRecord)) && extractRecordReferenceID(storeRecord) == selectedRecordID)
-				matchedRecords.put(extractRecordID(storeRecord), storeRecord);
+		for(final Map<String, Object> record : records.values())
+			if((filter == null || Objects.equals(filterValue, filter.apply(record)))
+					&& tableName.equals(extractRecordReferenceTable(record))
+					&& extractRecordReferenceID(record) == selectedRecordID)
+				matchedRecords.put(extractRecordID(record), record);
 		return matchedRecords;
 	}
 
@@ -264,20 +268,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		return (Integer)record.get("reference_id");
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> extractLocalizedTextJunction(final String referenceType){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		final String tableName = getTableName();
-		for(final Map<String, Object> record : records.values())
-			if(Objects.equals(referenceType, extractRecordReferenceType(record))
-					&& tableName.equals(extractRecordReferenceTable(record))
-					&& extractRecordReferenceID(record) == selectedRecordID)
-				matchedRecords.put(extractRecordID(record), record);
-		return matchedRecords;
-	}
-
-	private static String extractRecordReferenceType(final Map<String, Object> record){
+	protected static String extractRecordReferenceType(final Map<String, Object> record){
 		return (String)record.get("reference_type");
 	}
 
@@ -292,6 +283,10 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract void clearData();
 
 	protected abstract boolean validateData();
+
+	protected boolean validData(final Object field){
+		return (selectedRecord == null || field instanceof String s && !s.isEmpty());
+	}
 
 	protected void okAction(){
 		if(selectedRecord == null)

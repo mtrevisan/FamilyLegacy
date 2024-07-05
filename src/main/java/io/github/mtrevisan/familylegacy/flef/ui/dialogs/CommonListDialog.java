@@ -94,7 +94,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	private JButton newRecordButton;
 	protected JButton deleteRecordButton;
 	//record components:
-	private JTabbedPane recordTabbedPane;
+	protected JTabbedPane recordTabbedPane;
 
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
@@ -112,7 +112,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	protected abstract DefaultTableModel getDefaultTableModel();
 
 	@Override
-	protected final void initComponents(){
+	public final void initComponents(){
 		initStoreComponents();
 
 		super.initComponents();
@@ -206,7 +206,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		add(recordTabbedPane, "grow");
 	}
 
-	protected final boolean loadData(final int recordID){
+	protected final boolean selectData(final int recordID){
 		final String tableName = getTableName();
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
 		if(records.containsKey(recordID)){
@@ -230,7 +230,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 
 	@Override
 	protected final void selectAction(){
-		if(!validateData()){
+		if(! validateData()){
 			final ListSelectionModel selectionModel = recordTable.getSelectionModel();
 			ignoreSelectionEvents = true;
 			if(previousIndex != -1)
@@ -251,9 +251,9 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 			selectedRecordHash = selectedRecord.hashCode();
 
 
-			fillData();
-
 			GUIHelper.setEnabled(recordTabbedPane, true);
+
+			fillData();
 
 			deleteRecordButton.setEnabled(true);
 		}

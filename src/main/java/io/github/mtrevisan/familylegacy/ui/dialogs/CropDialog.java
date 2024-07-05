@@ -24,12 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.CropListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomParseException;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.CropListenerInterface;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 

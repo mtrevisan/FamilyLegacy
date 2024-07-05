@@ -153,26 +153,26 @@ public final class EventDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> saveData());
 
 		placeButton.setToolTipText("Event place");
-		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+		placeButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
 
 		dateButton.setToolTipText("Event date");
-		dateButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.DATE, getSelectedRecord())));
+		dateButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
 
 		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
 		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -198,7 +198,7 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -263,29 +263,25 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String type = extractRecordType(selectedRecord);
-			//enforce non-nullity on `type`
-			if(type == null || type.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				typeComboBox.requestFocusInWindow();
+		final String type = extractRecordType(selectedRecord);
+		if(!validData(type)){
+			JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			typeComboBox.requestFocusInWindow();
 
-				return false;
-			}
-
-			final String referenceTable = extractRecordReferenceTable(selectedRecord);
-			final Integer referenceID = extractRecordReferenceID(selectedRecord);
-			//enforce non-nullity on `reference`
-			if(referenceTable == null || referenceID == null){
-				JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				referenceButton.requestFocusInWindow();
-
-				return false;
-			}
+			return false;
 		}
+
+		final String referenceTable = extractRecordReferenceTable(selectedRecord);
+		final Integer referenceID = extractRecordReferenceID(selectedRecord);
+		if(!validData(referenceTable) || !validData(referenceID)){
+			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			referenceButton.requestFocusInWindow();
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -428,55 +424,6 @@ public final class EventDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-
-				@EventHandler
-				public void refresh(final EditEvent editCommand){
-					switch(editCommand.getType()){
-						case PLACE -> {
-							//TODO
-						}
-						case DATE -> {
-							//TODO
-						}
-						case REFERENCE -> {
-							//TODO
-						}
-						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode assertion = editCommand.getContainer();
-//							dialog.setTitle(assertion.getID() != null
-//								? "Note " + assertion.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(assertion, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
-						}
-						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setVisible(true);
-						}
-					}
-				}
-			};
-			EventBusService.subscribe(listener);
-
 			final DependencyInjector injector = new DependencyInjector();
 			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
 			try{
@@ -492,8 +439,57 @@ public final class EventDialog extends CommonListDialog{
 
 			final EventDialog dialog = new EventDialog(store, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(extractRecordID(event)))
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(event)))
 				dialog.showNewRecord();
+
+			final Object listener = new Object(){
+				@EventHandler
+				public void error(final BusExceptionEvent exceptionEvent){
+					final Throwable cause = exceptionEvent.getCause();
+					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					switch(editCommand.getType()){
+						case PLACE -> {
+							//TODO single cultural norm
+						}
+						case DATE -> {
+							//TODO single cultural norm
+						}
+						case REFERENCE -> {
+							//TODO single cultural norm
+						}
+						case NOTE -> {
+							final int eventID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, eventID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
+						}
+						case MEDIA -> {
+							final int eventID = extractRecordID(editCommand.getContainer());
+							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, eventID, parent)
+								.withBasePath("\\Documents\\");
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(351, 460);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
+						}
+					}
+				}
+			};
+			EventBusService.subscribe(listener);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

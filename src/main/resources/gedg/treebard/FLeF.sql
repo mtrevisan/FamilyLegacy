@@ -28,7 +28,7 @@ CREATE TABLE CITATION
  EXTRACT_ID   numeric,				-- A verbatim copy of any description contained within the source.
  EXTRACT_TYPE text,					-- Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content).
  FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ) ON DELETE CASCADE,
- FOREIGN KEY (EXTRACT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
+ FOREIGN KEY (EXTRACT_ID) REFERENCES NOTE ( "ID" ) ON DELETE SET NULL
 );
 
 -- https://www.evidenceexplained.com/content/sample-quickcheck-models

@@ -135,7 +135,7 @@ public final class NoteRecordDialog extends CommonRecordDialog implements TextPr
 	}
 
 	@Override
-	protected void loadData(){}
+	public void loadData(){}
 
 	@Override
 	protected void fillData(){
@@ -162,17 +162,13 @@ public final class NoteRecordDialog extends CommonRecordDialog implements TextPr
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String note = noteTextArea.getText();
-			//enforce non-nullity on `identifier`
-			if(note == null || note.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				noteTextArea.requestFocusInWindow();
+		final String note = noteTextArea.getText();
+		if(!validData(note)){
+			JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			noteTextArea.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -184,7 +180,7 @@ public final class NoteRecordDialog extends CommonRecordDialog implements TextPr
 		final String locale = localeField.getText();
 
 		selectedRecord.put("note", note);
-		selectedRecord.put("localeField", locale);
+		selectedRecord.put("locale", locale);
 	}
 
 
@@ -240,6 +236,8 @@ public final class NoteRecordDialog extends CommonRecordDialog implements TextPr
 			final JFrame parent = new JFrame();
 
 			final NoteRecordDialog dialog = new NoteRecordDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
 			if(!dialog.loadData(extractRecordID(note1)))
 				dialog.showNewRecord();
 

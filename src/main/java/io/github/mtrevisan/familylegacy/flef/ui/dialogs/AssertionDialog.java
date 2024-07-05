@@ -149,29 +149,29 @@ public final class AssertionDialog extends CommonListDialog{
 
 
 		citationButton.setToolTipText("Source");
-		citationButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.SOURCE, getSelectedRecord())));
+		citationButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CITATION, getSelectedRecord())));
 		GUIHelper.addBorder(citationButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.REFERENCE, getSelectedRecord())));
+		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
 		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(credibilityLabel, credibilityComboBox, evt -> saveData(),
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData(),
 			evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		culturalNormButton.setToolTipText("Cultural norm");
-		culturalNormButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM,
+		culturalNormButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CULTURAL_NORM,
 			getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
@@ -200,7 +200,7 @@ public final class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(filterCitationID != null)
 			records = records.entrySet().stream()
@@ -241,7 +241,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final Integer sourceID = extractRecordCitationID(selectedRecord);
+		final Integer citationID = extractRecordCitationID(selectedRecord);
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
@@ -251,7 +251,7 @@ public final class AssertionDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.addBorder(citationButton, (sourceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
+		GUIHelper.addBorder(citationButton, (citationID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		roleField.setText(location);
 		certaintyComboBox.setSelectedItem(certainty);
@@ -279,29 +279,25 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final Integer citationID = extractRecordCitationID(selectedRecord);
-			//enforce non-nullity on `citationID`
-			if(citationID == null){
-				JOptionPane.showMessageDialog(getParent(), "Citation field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				citationButton.requestFocusInWindow();
+		final Integer citationID = extractRecordCitationID(selectedRecord);
+		if(!validData(citationID)){
+			JOptionPane.showMessageDialog(getParent(), "Citation field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			citationButton.requestFocusInWindow();
 
-				return false;
-			}
-
-			final String referenceTable = extractRecordReferenceTable(selectedRecord);
-			final Integer referenceID = extractRecordReferenceID(selectedRecord);
-			//enforce non-nullity on `reference`
-			if(referenceTable == null || referenceID == null){
-				JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				referenceButton.requestFocusInWindow();
-
-				return false;
-			}
+			return false;
 		}
+
+		final String referenceTable = extractRecordReferenceTable(selectedRecord);
+		final Integer referenceID = extractRecordReferenceID(selectedRecord);
+		if(!validData(referenceTable) || !validData(referenceID)){
+			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			referenceButton.requestFocusInWindow();
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -373,15 +369,15 @@ public final class AssertionDialog extends CommonListDialog{
 		if(source == null)
 			return null;
 
-		return (String)source.get("identifier");
+		return extractRecordIdentifier(source);
+	}
+
+	private static String extractRecordIdentifier(final Map<String, Object> record){
+		return (String)record.get("identifier");
 	}
 
 	private static Integer extractRecordSourceID(final Map<String, Object> record){
 		return (Integer)record.get("source_id");
-	}
-
-	private static int extractNoteRecordAssertionID(final Map<String, Object> noteRecord){
-		return (TABLE_NAME.equals(noteRecord.get("reference_table"))? (int)noteRecord.get("reference_id"): -1);
 	}
 
 
@@ -429,7 +425,7 @@ public final class AssertionDialog extends CommonListDialog{
 		assertions.put((Integer)assertion.get("id"), assertion);
 
 		final TreeMap<Integer, Map<String, Object>> citations = new TreeMap<>();
-		store.put("citation", citations);
+		store.put(TABLE_NAME_CITATION, citations);
 		final Map<String, Object> citation = new HashMap<>();
 		citation.put("id", 1);
 		citation.put("source_id", 1);
@@ -439,11 +435,32 @@ public final class AssertionDialog extends CommonListDialog{
 		citations.put((Integer)citation.get("id"), citation);
 
 		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
-		store.put("source", sources);
+		store.put(TABLE_NAME_SOURCE, sources);
 		final Map<String, Object> source = new HashMap<>();
 		source.put("id", 1);
 		source.put("identifier", "source");
 		sources.put((Integer)source.get("id"), source);
+
+		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
+		store.put("media", medias);
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("id", 1);
+		media1.put("identifier", "media 1");
+		media1.put("title", "title 1");
+		media1.put("type", "photo");
+		media1.put("photo_projection", "rectangular");
+		media1.put("date_id", 1);
+		medias.put((Integer)media1.get("id"), media1);
+
+		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_MEDIA_JUNCTION, mediaJunctions);
+		final Map<String, Object> mediaJunction1 = new HashMap<>();
+		mediaJunction1.put("id", 1);
+		mediaJunction1.put("media_id", 1);
+		mediaJunction1.put("reference_table", "assertion");
+		mediaJunction1.put("reference_id", 1);
+		mediaJunction1.put("photo_crop", "0 0 10 50");
+		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
@@ -487,6 +504,27 @@ public final class AssertionDialog extends CommonListDialog{
 		m1.put("identifier", "custom media");
 		media.put((Integer)m1.get("id"), m1);
 
+		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
+		store.put("cultural_norm", culturalNorms);
+		final Map<String, Object> culturalNorm = new HashMap<>();
+		culturalNorm.put("id", 1);
+		culturalNorm.put("identifier", "rule 1 id");
+		culturalNorm.put("description", "rule 1");
+		culturalNorm.put("certainty", "certain");
+		culturalNorm.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		culturalNorms.put((Integer)culturalNorm.get("id"), culturalNorm);
+
+		final TreeMap<Integer, Map<String, Object>> culturalNormJunctions = new TreeMap<>();
+		store.put(TABLE_NAME_CULTURAL_NORM_JUNCTION, culturalNormJunctions);
+		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
+		culturalNormJunction1.put("id", 1);
+		culturalNormJunction1.put("cultural_norm_id", 1);
+		culturalNormJunction1.put("reference_table", "assertion");
+		culturalNormJunction1.put("reference_id", 1);
+		culturalNormJunction1.put("certainty", "probable");
+		culturalNormJunction1.put("credibility", "probable");
+		culturalNormJunctions.put((Integer)culturalNormJunction1.get("id"), culturalNormJunction1);
+
 		EventQueue.invokeLater(() -> {
 			final DependencyInjector injector = new DependencyInjector();
 			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
@@ -505,7 +543,9 @@ public final class AssertionDialog extends CommonListDialog{
 			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, parent);
 			injector.injectDependencies(dialog);
-			if(!dialog.loadData(extractRecordID(assertion)))
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(assertion)))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){
@@ -518,38 +558,52 @@ public final class AssertionDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case SOURCE -> {
-							//TODO
+						case CITATION -> {
+							//TODO single assertion
+//							final CitationDialog dialog = new CitationDialog(store, parent)
+//								.withFilterOnCitationID(filterCitationID);
+//							dialog.initComponents();
+//							dialog.loadData();
+//							if(!dialog.selectData(extractRecordID(source)))
+//								dialog.showNewRecord();
 						}
 						case REFERENCE -> {
-							//TODO
+							//TODO single cultural norm
 						}
 						case NOTE -> {
 							final int assertionID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, "assertion", assertionID,
-								parent);
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, assertionID, parent);
 							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 534);
+							noteDialog.setSize(420, 487);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setVisible(true);
+							final int assertionID = extractRecordID(editCommand.getContainer());
+							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, assertionID, parent)
+								.withBasePath("\\Documents\\");
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(351, 460);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
 						}
 						case CULTURAL_NORM -> {
-							//TODO
+							final int assertionID = extractRecordID(editCommand.getContainer());
+							final CulturalNormDialog mediaDialog = CulturalNormDialog.createWithReferenceTable(store, TABLE_NAME, assertionID,
+								parent);
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(474, 665);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
 						}
 					}
 				}
@@ -562,7 +616,7 @@ public final class AssertionDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(470, 457);
+			dialog.setSize(470, 446);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

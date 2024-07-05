@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public final class PersonNameDialog extends CommonListDialog{
@@ -65,6 +66,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "person_name";
+	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 
@@ -81,8 +83,22 @@ public final class PersonNameDialog extends CommonListDialog{
 	private JButton culturalNormButton;
 	private JCheckBox restrictionCheckBox;
 
+	private int filterReferenceID;
 
-	public PersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+
+	public static PersonNameDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new PersonNameDialog(store, parent);
+	}
+
+	public static PersonNameDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final int filterReferenceID, final Frame parent){
+		final PersonNameDialog dialog = new PersonNameDialog(store, parent);
+		dialog.filterReferenceID = filterReferenceID;
+		return dialog;
+	}
+
+
+	private PersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -105,7 +121,8 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Person names");
+		setTitle("Person names"
+			+ (filterReferenceID > 0? " for person ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -132,28 +149,32 @@ public final class PersonNameDialog extends CommonListDialog{
 
 
 		personButton.setToolTipText("Person");
-		personButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PERSON, getSelectedRecord())));
+		personButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PERSON, getSelectedRecord())));
 
 		nameButton.setToolTipText("Name");
-		nameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+		nameButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NAME, getSelectedRecord())));
 
 		transcribedNameButton.setToolTipText("Transcribed names");
-		transcribedNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PERSON_NAME, getSelectedRecord())));
+		transcribedNameButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME,
+			getSelectedRecord())));
 
 		nameAlternateSortButton.setToolTipText("Alternate (sort) name");
-		nameAlternateSortButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NAME, getSelectedRecord())));
+		nameAlternateSortButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NAME,
+			getSelectedRecord())));
 
 		transcribedAlternateNameButton.setToolTipText("Transcribed alternate (sort) names");
-		transcribedAlternateNameButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.LOCALIZED_PERSON_NAME, getSelectedRecord())));
+		transcribedAlternateNameButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME_ALTERNATE, getSelectedRecord())));
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		culturalNormButton.setToolTipText("Cultural norm");
-		culturalNormButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, getSelectedRecord())));
+		culturalNormButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CULTURAL_NORM,
+			getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -179,8 +200,10 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void loadData(){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+	public void loadData(){
+		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
+			? getRecords(TABLE_NAME)
+			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -194,6 +217,12 @@ public final class PersonNameDialog extends CommonListDialog{
 
 			row ++;
 		}
+	}
+
+	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+		return getRecords(TABLE_NAME).entrySet().stream()
+			.filter(entry -> filterReferenceID == extractRecordPersonID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
 	@Override
@@ -218,8 +247,10 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Integer personID = extractRecordPersonID(selectedRecord);
 		final Integer nameID = extractRecordNameID(selectedRecord);
 		final Integer alternateSortNameID = extractRecordAlternateSortNameID(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractLocalizedTextJunction("name");
-		final Map<Integer, Map<String, Object>> recordAlternateTranscribedNames = extractLocalizedTextJunction("alternate name");
+		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			CommonRecordDialog::extractRecordReferenceType, "name");
+		final Map<Integer, Map<String, Object>> recordAlternateTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			CommonRecordDialog::extractRecordReferenceType, "alternate name");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -252,17 +283,13 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final Integer personID = extractRecordPersonID(selectedRecord);
-			//enforce non-nullity on `personID`
-			if(personID == null){
-				JOptionPane.showMessageDialog(getParent(), "Person field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				personButton.requestFocusInWindow();
+		final Integer personID = extractRecordPersonID(selectedRecord);
+		if(!validData(personID)){
+			JOptionPane.showMessageDialog(getParent(), "Person field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			personButton.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
@@ -278,13 +305,11 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	private String extractIdentifier(final int selectedRecordID){
 		final Map<String, Object> storePersonNames = getRecords(TABLE_NAME).get(selectedRecordID);
-		final Integer mainRecordID = extractRecordNameID(storePersonNames);
-		final Integer alternateRecordID = extractRecordAlternateSortNameID(storePersonNames);
+		final Integer mainNameID = extractRecordNameID(storePersonNames);
+		final Integer alternateNameID = extractRecordAlternateSortNameID(storePersonNames);
 		final Map<Integer, Map<String, Object>> storeRecords = getRecords(TABLE_NAME_LOCALIZED_TEXT);
-		final Map<String, Object> mainRecord = storeRecords.get(mainRecordID);
-		final Map<String, Object> alternateRecord = storeRecords.get(alternateRecordID);
-		final String mainRecordText = extractRecordText(mainRecord);
-		final String alternateRecordText = extractRecordText(alternateRecord);
+		final String mainRecordText = extractRecordText(storeRecords.get(mainNameID));
+		final String alternateRecordText = extractRecordText(storeRecords.get(alternateNameID));
 		return mainRecordText + (alternateRecordText != null? " (" + alternateRecordText + ")": StringUtils.EMPTY);
 	}
 
@@ -405,6 +430,12 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final PersonNameDialog dialog = create(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(personName1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -416,31 +447,47 @@ public final class PersonNameDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case NAME -> {
-							//TODO
+							//TODO single name
 						}
-						case PHOTO -> {
-							//TODO
+						case LOCALIZED_PERSON_NAME -> {
+							final int personNameID = extractRecordID(editCommand.getContainer());
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createWithReferenceTable(store, TABLE_NAME,
+								personNameID, "name", parent);
+							localizedTextDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							localizedTextDialog.initComponents();
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.setSize(420, 492);
+							localizedTextDialog.setLocationRelativeTo(dialog);
+							localizedTextDialog.setVisible(true);
+						}
+						case LOCALIZED_PERSON_NAME_ALTERNATE -> {
+							final int personNameID = extractRecordID(editCommand.getContainer());
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createWithReferenceTable(store, TABLE_NAME,
+								personNameID, "alternate name", parent);
+							localizedTextDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							localizedTextDialog.initComponents();
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.setSize(420, 492);
+							localizedTextDialog.setLocationRelativeTo(dialog);
+							localizedTextDialog.setVisible(true);
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode place = editCommand.getContainer();
-//							dialog.setTitle(place.getID() != null
-//								? "Note " + place.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(place, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int personNameID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, personNameID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final PersonNameDialog dialog = new PersonNameDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(personName1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

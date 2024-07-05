@@ -51,7 +51,6 @@ import java.awt.Container;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.Arrays;
@@ -156,8 +155,22 @@ public final class GUIHelper{
 			});
 	}
 
-	public static void bindLabelEditableSelectionAutoCompleteChangeUndo(final JLabel label, final JComboBox<?> comboBox,
-		final Consumer<DocumentEvent> onEdit, final Consumer<ActionEvent> onSelection){
+	public static void bindLabelSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox,
+			final Consumer<ActionEvent> onSelection){
+		if(label != null)
+			label.setLabelFor(comboBox);
+
+		AutoCompleteDecorator.decorate(comboBox);
+
+		if(onSelection != null)
+			comboBox.addActionListener(evt -> {
+				if(comboBox.getSelectedItem() != null)
+					onSelection.accept(evt);
+			});
+	}
+
+	public static void bindLabelUndoSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox,
+			final Consumer<DocumentEvent> onEdit, final Consumer<ActionEvent> onSelection){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
@@ -167,7 +180,7 @@ public final class GUIHelper{
 
 		AutoCompleteDecorator.decorate(comboBox);
 
-		if(onSelection != null){
+		if(onEdit != null){
 			final JTextField editor = (JTextField)comboBox.getEditor().getEditorComponent();
 			editor.getDocument().addDocumentListener(new DocumentListener(){
 				@Override
@@ -185,15 +198,13 @@ public final class GUIHelper{
 					onEdit.accept(evt);
 				}
 			});
-
-			comboBox.addActionListener(new ActionListener(){
-				@Override
-				public void actionPerformed(final ActionEvent evt){
-					if(comboBox.getSelectedItem() != null)
-						onSelection.accept(evt);
-				}
-			});
 		}
+
+		if(onSelection != null)
+			comboBox.addActionListener(evt -> {
+				if(comboBox.getSelectedItem() != null)
+					onSelection.accept(evt);
+			});
 	}
 
 

@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public final class RepositoryDialog extends CommonListDialog{
@@ -68,6 +69,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "repository";
+	private static final String TABLE_NAME_SOURCE = "source";
 
 
 	private JLabel identifierLabel;
@@ -80,6 +82,8 @@ public final class RepositoryDialog extends CommonListDialog{
 	private JButton noteButton;
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
+
+	private JButton sourceButton;
 
 
 	public RepositoryDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -129,26 +133,31 @@ public final class RepositoryDialog extends CommonListDialog{
 		mediaButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		sourceButton = new JButton("Sources", ICON_SOURCE);
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
+
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
 		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelEditableSelectionAutoCompleteChangeUndo(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
 
 		personButton.setToolTipText("Reference person");
-		personButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PERSON, getSelectedRecord())));
+		personButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PERSON, getSelectedRecord())));
 
 		placeButton.setToolTipText("Place");
-		placeButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.PLACE, getSelectedRecord())));
+		placeButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(new EditEvent(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
+
+		sourceButton.setToolTipText("Sources");
+		sourceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.SOURCE, getSelectedRecord())));
 	}
 
 	@Override
@@ -166,12 +175,16 @@ public final class RepositoryDialog extends CommonListDialog{
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelChildren.add(sourceButton, "sizegroup btn,center");
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("children", recordPanelChildren);
 	}
 
 	@Override
-	protected void loadData(){
+	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
@@ -201,6 +214,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		final int repositoryID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
@@ -208,6 +222,9 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final Map<Integer, Map<String, Object>> recordSources = getRecords(TABLE_NAME_SOURCE).entrySet().stream()
+			.filter(entry -> repositoryID == extractRecordRepositoryID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
@@ -217,6 +234,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.addBorder(sourceButton, !recordSources.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 	}
 
 	@Override
@@ -230,29 +249,30 @@ public final class RepositoryDialog extends CommonListDialog{
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
+
+		GUIHelper.setDefaultBorder(sourceButton);
 	}
 
 	@Override
 	protected boolean validateData(){
-		if(selectedRecord != null){
-			//read record panel:
-			final String identifier = GUIHelper.readTextTrimmed(identifierField);
-			//enforce non-nullity on `identifier`
-			if(identifier == null || identifier.isEmpty()){
-				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
-					JOptionPane.ERROR_MESSAGE);
-				identifierField.requestFocusInWindow();
+		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		if(!validData(identifier)){
+			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			identifierField.requestFocusInWindow();
 
-				return false;
-			}
+			return false;
 		}
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
-		//read record panel:
 		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		if(!validData(identifier))
+			return;
+
+		//read record panel:
 		final String type = (String)typeComboBox.getSelectedItem();
 
 		//update table
@@ -287,6 +307,10 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
+	}
+
+	private static Integer extractRecordRepositoryID(final Map<String, Object> record){
+		return (Integer)record.get("repository_id");
 	}
 
 
@@ -335,6 +359,11 @@ public final class RepositoryDialog extends CommonListDialog{
 		repository2.put("identifier", "repo 2");
 		repository2.put("type", "college library");
 		repositories.put((Integer)repository2.get("id"), repository2);
+		final Map<String, Object> repository3 = new HashMap<>();
+		repository3.put("id", 3);
+		repository3.put("identifier", "repo 3");
+		repository3.put("type", "private library");
+		repositories.put((Integer)repository3.get("id"), repository3);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -380,8 +409,37 @@ public final class RepositoryDialog extends CommonListDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
+		store.put("source", sources);
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("id", 1);
+		source1.put("identifier", "source 1");
+		source1.put("type", "marriage certificate");
+		source1.put("author", "author 1 APA-style");
+		source1.put("place_id", 3);
+		source1.put("date_id", 1);
+		source1.put("repository_id", 1);
+		source1.put("location", "location 1");
+		sources.put((Integer)source1.get("id"), source1);
+		final Map<String, Object> source2 = new HashMap<>();
+		source2.put("id", 2);
+		source2.put("identifier", "source 2");
+		source2.put("type", "newspaper");
+		source2.put("author", "author 2 APA-style");
+		source2.put("place_id", 3);
+		source2.put("date_id", 2);
+		source2.put("repository_id", 2);
+		source2.put("location", "location 2");
+		sources.put((Integer)source2.get("id"), source2);
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(repository1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -393,10 +451,10 @@ public final class RepositoryDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
 						case PERSON -> {
-							//TODO
+							//TODO single person
 						}
 						case PLACE -> {
-							//TODO
+							//TODO single place
 //							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
 //							final GedcomNode repository = editCommand.getContainer();
 //							dialog.setTitle(repository.getID() != null
@@ -409,38 +467,42 @@ public final class RepositoryDialog extends CommonListDialog{
 //							dialog.setVisible(true);
 						}
 						case NOTE -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNote(store, parent);
-//							final GedcomNode repository = editCommand.getContainer();
-//							dialog.setTitle(repository.getID() != null
-//								? "Note " + repository.getID()
-//								: "New note for " + container.getID());
-//							dialog.loadData(repository, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(500, 513);
-//							dialog.setVisible(true);
+							final int repositoryID = extractRecordID(editCommand.getContainer());
+							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, repositoryID, parent);
+							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							noteDialog.initComponents();
+							noteDialog.loadData();
+
+							noteDialog.setSize(420, 487);
+							noteDialog.setLocationRelativeTo(dialog);
+							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							//TODO
-//							final NoteDialog dialog = NoteDialog.createNoteTranslation(store, parent);
-//							final GedcomNode noteTranslation = editCommand.getContainer();
-//							dialog.setTitle(StringUtils.isNotBlank(noteTranslation.getValue())
-//								? "Translation for language " + store.traverse(noteTranslation, "LOCALE").getValue()
-//								: "New translation"
-//							);
-//							dialog.loadData(noteTranslation, editCommand.getOnCloseGracefully());
-//
-//							dialog.setSize(450, 209);
-//							dialog.setVisible(true);
+							final int repositoryID = extractRecordID(editCommand.getContainer());
+							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, repositoryID, parent)
+								.withBasePath("\\Documents\\");
+							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(351, 460);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
+						}
+						case SOURCE -> {
+							final int repositoryID = extractRecordID(editCommand.getContainer());
+							final SourceDialog dialog = SourceDialog.createWithRepository(store, repositoryID, parent);
+							dialog.initComponents();
+							dialog.loadData();
+
+							dialog.setSize(440, 436);
+							dialog.setLocationRelativeTo(null);
+							dialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
-
-			final RepositoryDialog dialog = new RepositoryDialog(store, parent);
-			if(!dialog.loadData(extractRecordID(repository1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
