@@ -99,8 +99,8 @@ public class BasicEventBus implements EventBusInterface{
 	 * a custom ThreadFactory such that the threads returned will be daemon threads (and thus not block
 	 * the application from shutting down).
 	 */
-	public BasicEventBus(){
-		this(false);
+	public static BasicEventBus create(){
+		return new BasicEventBus(false);
 	}
 
 	/**
@@ -108,13 +108,16 @@ public class BasicEventBus implements EventBusInterface{
 	 * {@link Executors#newCachedThreadPool()} implementation. The configured ExecutorService will have
 	 * a custom ThreadFactory such that the threads returned will be daemon threads (and thus not block
 	 * the application from shutting down).
-	 *
-	 * @param waitForHandlers	Should the event bus wait for the regular handlers to finish processing the event messages before
-	 * 	continuing to the next event.
 	 */
-	public BasicEventBus(final boolean waitForHandlers){
+	public static BasicEventBus createWaitForHandlers(){
+		return new BasicEventBus(true);
+	}
+
+
+	private BasicEventBus(final boolean waitForHandlers){
 		this(Executors.newCachedThreadPool(new MyThreadFactory()), waitForHandlers);
 	}
+
 
 	private static final class MyThreadFactory implements ThreadFactory{
 		private final ThreadFactory delegate = Executors.defaultThreadFactory();
@@ -236,8 +239,6 @@ public class BasicEventBus implements EventBusInterface{
 			queue.put(event);
 		}
 		catch(final InterruptedException ie){
-			ie.printStackTrace();
-
 			throw new Error("Error using event bus", ie);
 		}
 	}
@@ -259,7 +260,7 @@ public class BasicEventBus implements EventBusInterface{
 	 * @return	Returns true if the event bus has pending events to publish.
 	 */
 	public final boolean hasPendingEvents(){
-		return !queue.isEmpty();
+		return (!queue.isEmpty() && !eventQueueThread.isAlive());
 	}
 
 
@@ -273,8 +274,6 @@ public class BasicEventBus implements EventBusInterface{
 					notifySubscribers(queue.take());
 			}
 			catch(final InterruptedException ie){
-				ie.printStackTrace();
-
 				throw new Error("Error using event bus", ie);
 			}
 		}
@@ -293,7 +292,7 @@ public class BasicEventBus implements EventBusInterface{
 		}
 
 		private void subdivideHandlers(final Object evt, final Collection<HandlerInfoCallable> vetoHandlers,
-												 final Collection<HandlerInfoCallable> regularHandlers){
+				final Collection<HandlerInfoCallable> regularHandlers){
 			for(final HandlerInfo info : handlers){
 				if(!info.matchesEvent(evt))
 					continue;
@@ -371,8 +370,6 @@ public class BasicEventBus implements EventBusInterface{
 				}
 			}
 			catch(final InterruptedException ie){
-				ie.printStackTrace();
-
 				throw new Error("Error using event bus", ie);
 			}
 		}

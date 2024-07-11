@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
@@ -48,10 +49,13 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-public final class CropDialog extends JDialog{
+public final class PhotoCropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
@@ -62,17 +66,27 @@ public final class CropDialog extends JDialog{
 
 	private ScaledImage imageHolder;
 
-	private Consumer<Object> onCloseGracefully;
+	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+	private Map<String, Object> selectedRecord;
+
+	private Consumer<Map<String, Object>> onCloseGracefully;
 
 
-	public CropDialog(final Frame parent){
+	public static PhotoCropDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new PhotoCropDialog(store, parent);
+	}
+
+
+	private PhotoCropDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(parent, true);
+
+		this.store = store;
 
 		initComponents();
 	}
 
 
-	public CropDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public PhotoCropDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 
 		return this;
@@ -113,23 +127,47 @@ public final class CropDialog extends JDialog{
 
 	private boolean closeAction(){
 		if(onCloseGracefully != null)
-			onCloseGracefully.accept(this);
+			onCloseGracefully.accept(selectedRecord);
 
 		return true;
+	}
+
+	public void loadData(final int photoID, final String photoCrop) throws IOException{
+		selectedRecord = store.get("media")
+			.get(photoID);
+		if(selectedRecord != null){
+			final String filePath = extractRecordIdentifier(selectedRecord);
+
+			loadData(filePath);
+
+			if(photoCrop != null){
+				//draw crop box
+				final String[] crop = photoCrop.split(StringUtils.SPACE);
+				final Rectangle rect = new Rectangle(Integer.parseInt(crop[0]), Integer.parseInt(crop[1]),
+					Integer.parseInt(crop[2]), Integer.parseInt(crop[3]));
+				imageHolder.setCrop(rect);
+			}
+		}
+	}
+
+	public void loadData(final String filename) throws IOException{
+		final File file = FileHelper.loadFile(filename);
+		if(file == null || !file.exists())
+			throw new IOException("File does not exists");
+
+		loadData(file);
 	}
 
 	public void loadData(final File file) throws IOException{
 		imageHolder.setRectangularImage(ResourceHelper.readImage(file));
 	}
 
-	public void loadData(final File file, final Rectangle crop) throws IOException{
-		loadData(file);
-
-		imageHolder.setCropRectangle(crop);
+	private static String extractRecordIdentifier(final Map<String, Object> record){
+		return (String)record.get("identifier");
 	}
 
-	public Rectangle getCropRectangle(){
-		return imageHolder.getCropRectangle();
+	public Rectangle getCrop(){
+		return imageHolder.getCrop();
 	}
 
 
@@ -139,6 +177,18 @@ public final class CropDialog extends JDialog{
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
 		catch(final Exception ignored){}
+
+		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
+
+		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
+		store.put("media", medias);
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("id", 1);
+		media1.put("identifier", "media 1");
+		media1.put("title", "title 1");
+		media1.put("type", "photo");
+		media1.put("photo_projection", "rectangular");
+		medias.put((Integer)media1.get("id"), media1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -154,11 +204,9 @@ public final class CropDialog extends JDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final CropDialog dialog = new CropDialog(parent)
-				.withOnCloseGracefully(d -> System.out.println("crop: " + ((CropDialog)d).getCropRectangle()));
-			final File file = new File("\\resources\\images\\addPhoto.boy.jpg");
+			final PhotoCropDialog dialog = create(store, parent);
 			try{
-				dialog.loadData(file);
+				dialog.loadData("/images/addPhoto.boy.jpg");
 			}
 			catch(final IOException e){
 				e.printStackTrace();
@@ -167,6 +215,7 @@ public final class CropDialog extends JDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});

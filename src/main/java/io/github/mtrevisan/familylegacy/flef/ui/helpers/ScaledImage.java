@@ -423,7 +423,7 @@ public class ScaledImage extends JLabel{
 		return (x < 0 || y < 0? null: new Point(x, y));
 	}
 
-	public Rectangle getCropRectangle(){
+	public Rectangle getCrop(){
 		final Point start = getCropStartPoint();
 		final Point end = getCropEndPoint();
 		return (start != null && end != null
@@ -431,7 +431,7 @@ public class ScaledImage extends JLabel{
 			: null);
 	}
 
-	public void setCropRectangle(final Rectangle crop){
+	public void setCrop(final Rectangle crop){
 		cropStartPointX = crop.x;
 		cropStartPointY = crop.y;
 		cropEndPointX = crop.x + crop.width;

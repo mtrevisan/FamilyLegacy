@@ -10,8 +10,8 @@ CREATE TABLE "ASSERTION"
 (
  "ID"            numeric PRIMARY KEY,
  CITATION_ID     numeric NOT NULL,	-- The citation from which this assertion is derived.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name").
- REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
+ REFERENCE_TABLE text,					-- The table name this record is attached to (ex. "place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name").
+ REFERENCE_ID    numeric,				-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "emproyer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "pallbreare", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
@@ -19,32 +19,32 @@ CREATE TABLE "ASSERTION"
 );
 
 -- Where a source makes an assertion.
--- Transcriptions and transliterations can be attached through a localized text (with type "extract").
+-- Transcriptions and transliterations of the extract can be attached through a localized text (with type "extract").
 CREATE TABLE CITATION
 (
- "ID"         numeric PRIMARY KEY,
- SOURCE_ID    numeric NOT NULL,	-- The source from which this citation is extracted.
- LOCATION     text,					-- The location of the citation inside the source (ex. "page 27, number 8, row 2").
- EXTRACT_ID   numeric,				-- A verbatim copy of any description contained within the source.
- EXTRACT_TYPE text,					-- Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content).
- FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ) ON DELETE CASCADE,
- FOREIGN KEY (EXTRACT_ID) REFERENCES NOTE ( "ID" ) ON DELETE SET NULL
+ "ID"           numeric PRIMARY KEY,
+ SOURCE_ID      numeric NOT NULL,	-- The source from which this citation is extracted.
+ LOCATION       text,					-- The location of the citation inside the source (ex. "page 27, number 8, row 2").
+ "EXTRACT"      text NOT NULL,		-- A verbatim copy of any description contained within the source. Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ EXTRACT_LOCALE text,					-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
+ EXTRACT_TYPE   text,					-- Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content).
+ FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ) ON DELETE CASCADE
 );
 
 -- https://www.evidenceexplained.com/content/sample-quickcheck-models
 CREATE TABLE "SOURCE"
 (
  "ID"          numeric PRIMARY KEY,
+ REPOSITORY_ID numeric NOT NULL UNIQUE,	-- The repository from which this source is contained.
  IDENTIFIER    text NOT NULL UNIQUE,	-- The title of the source (must be unique, ex. "1880 US Census").
  "TYPE"        text,							-- ex. "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record".
- AUTHOR        text,							-- The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
- PLACE_ID      numeric,						-- The place this source was created.
- DATE_ID       numeric,						-- The date this source was created.
- REPOSITORY_ID numeric,						-- The repository from which this source is contained.
- LOCATION      text,							-- Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28').
+ AUTHOR        text,								-- The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
+ PLACE_ID      numeric,							-- The place this source was created.
+ DATE_ID       numeric,							-- The date this source was created.
+ LOCATION      text,								-- Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28').
+ FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" ) ON DELETE CASCADE,
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (REPOSITORY_ID) REFERENCES REPOSITORY ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 
 -- A representation of where a source or set of sources is located
@@ -85,20 +85,19 @@ CREATE TABLE CALENDAR
 -- Place
 
 -- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
+-- Additional media can be attached.
 CREATE TABLE PLACE
 (
  "ID"                   numeric PRIMARY KEY,
  IDENTIFIER             text NOT NULL UNIQUE,	-- An identifier for the place (must be unique).
- NAME_ID                numeric NOT NULL,			-- A verbatim copy of the name written in the original language.
+ NAME                   text NOT NULL,				-- A verbatim copy of the name written in the original language.
+ NAME_LOCALE            text,							-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
  "TYPE"                 text,							-- The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address").
  COORDINATE             text,							-- Ex. a latitude and longitude pair, or X and Y coordinates.
  COORDINATE_SYSTEM      text,							-- The coordinate system (ex. "WGS84", "UTM").
  COORDINATE_CREDIBILITY text,							-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- PRIMARY_PLACE_ID       numeric,						-- The (primary) place this place is the same as.
  PHOTO_ID               numeric,						-- The primary photo for this place.
  PHOTO_CROP             text,							-- Top-left coordinate and width-height length of the enclosing box inside an photo.
- FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE,
- FOREIGN KEY (PRIMARY_PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
@@ -121,7 +120,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
  LOCALIZED_TEXT_ID numeric NOT NULL,
  REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
- REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name", "alternate name").
+ REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name").
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
 );
 
@@ -130,7 +129,7 @@ CREATE TABLE NOTE
  "ID"            numeric PRIMARY KEY,
  NOTE            text NOT NULL,		-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  LOCALE          text,					-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "historic place", "place", "person name", "person", "group", "research status", "media").
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "place", "person name", "person", "group", "research status", "media").
  REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
 
@@ -152,7 +151,7 @@ CREATE TABLE MEDIA_JUNCTION
 (
  "ID"            numeric PRIMARY KEY,
  MEDIA_ID        numeric NOT NULL,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person name", "person", "group", "media", "research status").
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person", "person name", "group", "research status").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  PHOTO_CROP      text,					-- Top-left coordinate and width-height length of the enclosing box inside an photo.
  FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE
@@ -170,17 +169,16 @@ CREATE TABLE PERSON
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
--- Transcriptions and transliterations of the name can be attached through a localized text (with type "name", or "alternate name").
+-- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
 CREATE TABLE PERSON_NAME
 (
  "ID"                   numeric PRIMARY KEY,
  PERSON_ID              numeric NOT NULL,
- NAME_ID                numeric,				-- A verbatim copy of the name written in the original language.
+ PRIMARY_NAME           text,					-- A verbatim copy of the (primary, that is the proper name) name written in the original language.
+ SECONDARY_NAME         text,					-- A verbatim copy of the (seconday, that is everything that is not a proper name, like a surname) name written in the original language.
+ NAME_LOCALE            text,					-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
  "TYPE"                 text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
- ALTERNATE_SORT_NAME_ID numeric,
- FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE CASCADE,
- FOREIGN KEY (NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (ALTERNATE_SORT_NAME_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE SET NULL
+ FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -200,7 +198,7 @@ CREATE TABLE GROUP_JUNCTION
 (
  "ID"            numeric PRIMARY KEY,
  GROUP_ID        numeric NOT NULL,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group").
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
@@ -212,9 +210,9 @@ CREATE TABLE GROUP_JUNCTION
 -- Event
 
 /*
-1. Assertion can be made about "historic place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name".
+1. Assertion can be made about "place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name".
 2. A conclusion is an assertion that is substantiated, different from a bare assertion that is not substantiated.
-3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (an "historic place") at a certain time (an "historic date") to someone (a "person" or a "group") or something (a "place", or a "cultural norm", a "calendar", a "media", a "person name").
+3. An event is a collection of conclusions/bare assertions about something (a description) happened somewhere (an "place") at a certain time (an "historic date") to someone (a "person" or a "group") or something (a "place", or a "cultural norm", a "calendar", a "media", a "person name").
 */
 CREATE TABLE EVENT
 (
@@ -261,7 +259,7 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 (
  "ID"             numeric PRIMARY KEY,
  CULTURAL_NORM_ID numeric NOT NULL,
- REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "note", "person", "person name", "group").
+ REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "note", "person name", "group").
  REFERENCE_ID     numeric NOT NULL,	-- The ID of the referenced record in the table.
  CERTAINTY        text,					-- A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY      text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
@@ -275,7 +273,7 @@ CREATE TABLE RESTRICTION
 (
  "ID"            numeric PRIMARY KEY,
  RESTRICTION     text NOT NULL,		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "public" (can be freely distributed or exported).
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "date", "historic date", "event", "place", "historic place", "note", "person name", "person", "group", "media").
+ REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "historic date", "event", "place", "note", "person name", "person", "group", "media").
  REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -49,16 +50,19 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.Rectangle;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public final class PlaceDialog extends CommonListDialog{
@@ -69,11 +73,17 @@ public final class PlaceDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "place";
+	private static final String TABLE_NAME_ASSERTION = "assertion";
+	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_GROUP = "group";
 
 
 	private JLabel identifierLabel;
 	private JTextField identifierField;
-	private JButton nameButton;
+	private JLabel nameLabel;
+	private JTextField nameField;
+	private JLabel nameLocaleLabel;
+	private JTextField nameLocaleField;
 	private JButton transcribedNameButton;
 	private JLabel typeLabel;
 	private JComboBox<String> typeComboBox;
@@ -83,21 +93,37 @@ public final class PlaceDialog extends CommonListDialog{
 	private JComboBox<String> coordinateSystemComboBox;
 	private JLabel coordinateCredibilityLabel;
 	private JComboBox<String> coordinateCredibilityComboBox;
-	private JButton primaryPlaceButton;
 	private JButton photoButton;
 	private JButton photoCropButton;
 
 	private JButton noteButton;
-	private JButton photosButton;
+	private JButton mediaButton;
+	private JButton assertionButton;
+	private JButton eventButton;
+	private JButton groupButton;
 	private JCheckBox restrictionCheckBox;
 
+	private Integer filterPlaceID;
 
-	public PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+
+	public static PlaceDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new PlaceDialog(store, parent);
+	}
+
+	public static PlaceDialog createWithPlace(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final Integer filterPlaceID, final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(store, parent);
+		dialog.filterPlaceID = filterPlaceID;
+		return dialog;
+	}
+
+
+	private PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public PlaceDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public PlaceDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -115,7 +141,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Places");
+		setTitle(filterPlaceID != null? "Place ID " + filterPlaceID: "Places");
 
 		super.initStoreComponents();
 
@@ -128,58 +154,80 @@ public final class PlaceDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
-		nameButton = new JButton("Name", ICON_TEXT);
+		nameLabel = new JLabel("Name:");
+		nameField = new JTextField();
+		nameLocaleLabel = new JLabel("Locale:");
+		nameLocaleField = new JTextField();
 		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{"nation", "province", "state", "county", "city", "township",
-			"parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
+		typeComboBox = new JComboBox<>(new String[]{null, "nation", "province", "state", "county", "city", "township", "parish", "island",
+			"archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
 		coordinateLabel = new JLabel("Coordinate:");
 		coordinateField = new JTextField();
 		coordinateSystemLabel = new JLabel("Coordinate system:");
 		coordinateSystemComboBox = new JComboBox<>(new String[]{"WGS84", "UTM"});
 		coordinateCredibilityLabel = new JLabel("Coordinate credibility:");
 		coordinateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-		primaryPlaceButton = new JButton("Primary place", ICON_PLACE);
 		photoButton = new JButton("Photo", ICON_PHOTO);
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		photosButton = new JButton("Photos", ICON_PHOTO);
+		mediaButton = new JButton("Medias", ICON_MEDIA);
+		assertionButton = new JButton("Assertions", ICON_ASSERTION);
+		eventButton = new JButton("Events", ICON_EVENT);
+		groupButton = new JButton("Groups", ICON_GROUP);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
-		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		addMandatoryField(identifierField);
 
-		nameButton.setToolTipText("Name");
-		nameButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NAME, getSelectedRecord())));
+		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, null);
+		addMandatoryField(nameField);
+		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, evt -> saveData());
 
 		transcribedNameButton.setToolTipText("Transcribed names");
-		transcribedNameButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME,
-			getSelectedRecord())));
+		transcribedNameButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(coordinateLabel, coordinateField, evt -> saveData());
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateSystemLabel, coordinateSystemComboBox, evt -> saveData(),
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateSystemLabel, coordinateSystemComboBox, evt -> saveData());
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateCredibilityLabel, coordinateCredibilityComboBox,
-			evt -> saveData(), evt -> saveData());
-
-		primaryPlaceButton.setToolTipText("Primary place");
-		primaryPlaceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
+			evt -> saveData());
 
 		photoButton.setToolTipText("Photo");
-		photoButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO, getSelectedRecord())));
+		//TODO add photo to selectedRecord
+		photoButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, getSelectedRecord())));
 
 		photoCropButton.setToolTipText("Define a crop");
-		photoCropButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PHOTO_CROP, getSelectedRecord())));
+		photoCropButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, getSelectedRecord())));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+
+		mediaButton.setToolTipText("Medias");
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+
+		assertionButton.setToolTipText("Assertions");
+		assertionButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+
+		eventButton.setToolTipText("Events");
+		eventButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+
+		groupButton.setToolTipText("Groups");
+		groupButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -187,25 +235,30 @@ public final class PlaceDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
-		recordPanelBase.add(nameButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(nameLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(nameField, "growx,wrap related");
+		recordPanelBase.add(nameLocaleLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(nameLocaleField, "grow,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
-		recordPanelBase.add(coordinateLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(coordinateField, "growx,wrap related");
-		recordPanelBase.add(coordinateSystemLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(coordinateSystemComboBox, "growx,wrap paragraph");
-		recordPanelBase.add(coordinateCredibilityLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(typeComboBox, "wrap paragraph");
+		recordPanelBase.add(coordinateLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(coordinateField, "sizegroup gnss,wrap related");
+		recordPanelBase.add(coordinateSystemLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(coordinateSystemComboBox, "sizegroup gnss,wrap paragraph");
+		recordPanelBase.add(coordinateCredibilityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(coordinateCredibilityComboBox, "wrap paragraph");
-		recordPanelBase.add(primaryPlaceButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(photoButton, "sizegroup btn,center,wrap related");
+		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelOther.add(photosButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
+		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelOther.add(assertionButton, "sizegroup btn,center,split 2");
+		recordPanelOther.add(eventButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelOther.add(groupButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.add("base", recordPanelBase);
@@ -213,26 +266,39 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected Map<String, Object> getSelectedRecord(){
+		if(filterPlaceID != null)
+			return getRecords(TABLE_NAME).get(filterPlaceID);
+		else
+			return super.getSelectedRecord();
+	}
+
+	@Override
 	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		if(filterPlaceID != null)
+			selectAction();
+		else{
+			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			model.setRowCount(records.size());
+			int row = 0;
+			for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
+				final Integer key = record.getKey();
+				final Map<String, Object> container = record.getValue();
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-		model.setRowCount(records.size());
-		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final String identifier = extractRecordIdentifier(record.getValue());
+				final String identifier = extractRecordIdentifier(container);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+				model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+				model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
-			row ++;
+				row ++;
+			}
 		}
 	}
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
 
@@ -243,60 +309,75 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		final int placeID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
-		final Integer nameID = extractRecordNameID(selectedRecord);
+		final String name = extractRecordName(selectedRecord);
+		final String nameLocale = extractRecordNameLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String coordinate = extractRecordCoordinate(selectedRecord);
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
-		final Integer primaryPlaceID = extractRecordPrimaryPlaceID(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 			CommonRecordDialog::extractRecordReferenceType, "name");
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+			.filter(entry -> Objects.equals(placeID, extractRecordPlaceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME_GROUP);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		identifierField.setText(identifier);
-		GUIHelper.addBorder(nameButton, nameID != null, DATA_BUTTON_BORDER_COLOR);
+		nameField.setText(name);
+		nameLocaleField.setText(nameLocale);
 		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 		coordinateField.setText(coordinate);
 		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
 		coordinateCredibilityComboBox.setSelectedItem(coordinateCredibility);
-		GUIHelper.addBorder(primaryPlaceButton, primaryPlaceID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(photoButton, photoID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(photoCropButton, photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		photoCropButton.setEnabled(photoID != null);
+		GUIHelper.addBorder(photoCropButton, photoID != null && photoCrop != null && !photoCrop.isEmpty(),
+			DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(photosButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(groupButton, !recordGroups.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
 
 	@Override
 	protected void clearData(){
 		identifierField.setText(null);
-		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
-		GUIHelper.setDefaultBorder(nameButton);
+		nameField.setText(null);
+		nameLocaleField.setText(null);
 		GUIHelper.setDefaultBorder(transcribedNameButton);
 		typeComboBox.setSelectedItem(null);
 		coordinateField.setText(null);
 		coordinateSystemComboBox.setSelectedItem(null);
 		coordinateCredibilityComboBox.setSelectedItem(null);
-		GUIHelper.setDefaultBorder(primaryPlaceButton);
 		GUIHelper.setDefaultBorder(photoButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
-		GUIHelper.setDefaultBorder(photosButton);
+		GUIHelper.setDefaultBorder(mediaButton);
+		GUIHelper.setDefaultBorder(assertionButton);
+		GUIHelper.setDefaultBorder(eventButton);
+		GUIHelper.setDefaultBorder(groupButton);
 		restrictionCheckBox.setSelected(false);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String date = GUIHelper.readTextTrimmed(identifierField);
-		if(!validData(date)){
-			JOptionPane.showMessageDialog(getParent(), "Date field is required", "Error",
+		final String identifier = GUIHelper.getTextTrimmed(identifierField);
+		if(!validData(identifier)){
+			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
 			identifierField.requestFocusInWindow();
 
@@ -306,15 +387,18 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String identifier = GUIHelper.readTextTrimmed(identifierField);
-		final String type = (String)typeComboBox.getSelectedItem();
-		final String coordinate = GUIHelper.readTextTrimmed(coordinateField);
-		final String coordinateSystem = (String)coordinateSystemComboBox.getSelectedItem();
-		final String coordinateCredibility = (String)coordinateCredibilityComboBox.getSelectedItem();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
+		//read record panel:
+		final String identifier = GUIHelper.getTextTrimmed(identifierField);
+		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final String coordinate = GUIHelper.getTextTrimmed(coordinateField);
+		final String coordinateSystem = GUIHelper.getTextTrimmed(coordinateSystemComboBox);
+		final String coordinateCredibility = GUIHelper.getTextTrimmed(coordinateCredibilityComboBox);
+
+		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -322,7 +406,9 @@ public final class PlaceDialog extends CommonListDialog{
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+
 					break;
 				}
 		}
@@ -332,6 +418,8 @@ public final class PlaceDialog extends CommonListDialog{
 		selectedRecord.put("coordinate", coordinate);
 		selectedRecord.put("coordinate_system", coordinateSystem);
 		selectedRecord.put("coordinate_credibility", coordinateCredibility);
+
+		return true;
 	}
 
 
@@ -339,8 +427,12 @@ public final class PlaceDialog extends CommonListDialog{
 		return (String)record.get("identifier");
 	}
 
-	private static Integer extractRecordNameID(final Map<String, Object> record){
-		return (Integer)record.get("name_id");
+	private static String extractRecordName(final Map<String, Object> record){
+		return (String)record.get("name");
+	}
+
+	private static String extractRecordNameLocale(final Map<String, Object> record){
+		return (String)record.get("name_locale");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -359,16 +451,16 @@ public final class PlaceDialog extends CommonListDialog{
 		return (String)record.get("coordinate_credibility");
 	}
 
-	private static Integer extractRecordPrimaryPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("primary_place_id");
-	}
-
 	private static Integer extractRecordPhotoID(final Map<String, Object> record){
 		return (Integer)record.get("photo_id");
 	}
 
 	private static String extractRecordPhotoCrop(final Map<String, Object> record){
 		return (String)record.get("photo_crop");
+	}
+
+	private static Integer extractRecordPlaceID(final Map<String, Object> record){
+		return (Integer)record.get("place_id");
 	}
 
 
@@ -408,15 +500,26 @@ public final class PlaceDialog extends CommonListDialog{
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place");
-		place1.put("name_id", 1);
+		place1.put("name", "name of the place");
+		place1.put("name_locale", "en-US");
 		place1.put("type", "province");
-		place1.put("coordinate", "45.65, 12.19");
+//		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		place1.put("primary_place_id", 1);
 		place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
 		places.put((Integer)place1.get("id"), place1);
+
+		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
+		store.put("media", medias);
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("id", 1);
+		media1.put("identifier", "/images/addPhoto.boy.jpg");
+		media1.put("title", "title 1");
+		media1.put("type", "photo");
+		media1.put("photo_projection", "rectangular");
+		media1.put("date_id", 1);
+		medias.put((Integer)media1.get("id"), media1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -444,10 +547,15 @@ public final class PlaceDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final PlaceDialog dialog = new PlaceDialog(store, parent);
+			final Integer filterPlaceID = null;
+			final PlaceDialog dialog;
+			if(filterPlaceID == null)
+				dialog = create(store, parent);
+			else
+				dialog = createWithPlace(store, filterPlaceID, parent);
 			dialog.initComponents();
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(place1)))
+			if(filterPlaceID == null && !dialog.selectData(extractRecordID(place1)))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){
@@ -459,48 +567,131 @@ public final class PlaceDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int placeID = extractRecordID(container);
+					final Integer photoID = extractRecordPhotoID(container);
 					switch(editCommand.getType()){
-						case NAME -> {
-							//TODO single name
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+								.withReference(TABLE_NAME, placeID);
+							assertionDialog.initComponents();
+							assertionDialog.loadData();
+
+							assertionDialog.setSize(488, 386);
+							assertionDialog.setLocationRelativeTo(dialog);
+							assertionDialog.setVisible(true);
 						}
 						case LOCALIZED_PLACE_NAME -> {
-							final int placeID = extractRecordID(editCommand.getContainer());
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createWithReferenceTable(store, TABLE_NAME, placeID,
-								"name", parent);
-							localizedTextDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
+								.withReference(TABLE_NAME, placeID, "name")
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", placeID);
+									}
+								});
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 492);
+							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
-						case PLACE -> {
-							//TODO single place
-						}
 						case PHOTO -> {
-							//TODO single photo
+							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, placeID);
+							photoDialog.initComponents();
+							photoDialog.loadData();
+							if(photoID != null){
+								//add photo manually because is not retrievable through a junction
+								photoDialog.addData(container);
+								photoDialog.selectData(photoID);
+							}
+							else
+								photoDialog.showNewRecord();
+
+							photoDialog.setSize(420, 510);
+							photoDialog.setLocationRelativeTo(dialog);
+							photoDialog.setVisible(true);
 						}
 						case PHOTO_CROP -> {
-							//TODO single photo crop
-//							final Point cropStartPoint = ((CropDialog)cropDialog).getCropStartPoint();
-//							final Point cropEndPoint = ((CropDialog)cropDialog).getCropEndPoint();
-//							final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-//							sj.add(Integer.toString(cropStartPoint.x));
-//							sj.add(Integer.toString(cropStartPoint.y));
-//							sj.add(Integer.toString(cropEndPoint.x));
-//							sj.add(Integer.toString(cropEndPoint.y));
+							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
+							photoCropDialog.withOnCloseGracefully(record -> {
+								final Rectangle crop = photoCropDialog.getCrop();
+								if(crop != null){
+									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+									sj.add(Integer.toString(crop.x))
+										.add(Integer.toString(crop.y))
+										.add(Integer.toString(crop.width))
+										.add(Integer.toString(crop.height));
+									container.put("photo_crop", sj);
+								}
+							});
+							try{
+								if(photoID != null){
+									final String photoCrop = extractRecordPhotoCrop(container);
+									photoCropDialog.loadData(photoID, photoCrop);
+								}
+
+								photoCropDialog.setSize(420, 295);
+								photoCropDialog.setLocationRelativeTo(dialog);
+								photoCropDialog.setVisible(true);
+							}
+							catch(final IOException ignored){}
 						}
 						case NOTE -> {
-							final int placeID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, placeID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, placeID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", placeID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
+						}
+						case MEDIA -> {
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, placeID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", placeID);
+									}
+								});
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(420, 497);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
+						}
+						case EVENT -> {
+							final EventDialog eventDialog = EventDialog.create(store, parent)
+								.withReference(TABLE_NAME, placeID);
+							eventDialog.initComponents();
+							eventDialog.loadData();
+
+							eventDialog.setSize(309, 409);
+							eventDialog.setLocationRelativeTo(null);
+							eventDialog.setVisible(true);
+						}
+						case GROUP -> {
+							final GroupDialog groupDialog = GroupDialog.create(store, parent)
+								.withReference(TABLE_NAME, placeID);
+							groupDialog.initComponents();
+							groupDialog.loadData();
+
+							groupDialog.setSize(468, 469);
+							groupDialog.setLocationRelativeTo(null);
+							groupDialog.setVisible(true);
 						}
 					}
 				}
@@ -510,10 +701,11 @@ public final class PlaceDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(522, 647);
+			dialog.setSize(522, 618);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

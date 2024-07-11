@@ -85,7 +85,7 @@
 
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
-		<miglayout-swing.version>11.3</miglayout-swing.version>
+		<miglayout-swing.version>11.4</miglayout-swing.version>
 		<!-- SwingX -->
 		<!-- https://mvnrepository.com/artifact/org.swinglabs.swingx/swingx-core -->
 		<swinglabs.swingx.version>1.6.5-1</swinglabs.swingx.version>
@@ -96,11 +96,9 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.17.1</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>2.17.2</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>2.9.0</jayway.json-path.version>-->
-		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.17.1</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
 <!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->

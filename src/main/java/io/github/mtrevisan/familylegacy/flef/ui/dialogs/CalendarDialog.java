@@ -46,7 +46,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -56,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public final class CalendarDialog extends CommonListDialog{
@@ -66,20 +66,29 @@ public final class CalendarDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_TYPE = 1;
 
 	private static final String TABLE_NAME = "calendar";
+	private static final String TABLE_NAME_ASSERTION = "assertion";
+	private static final String TABLE_NAME_EVENT = "event";
 
 
 	private JLabel typeLabel;
 	private JTextField typeField;
 
 	private JButton noteButton;
+	private JButton assertionButton;
+	private JButton eventButton;
 
 
-	public CalendarDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CalendarDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new CalendarDialog(store, parent);
+	}
+
+
+	private CalendarDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public CalendarDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public CalendarDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -112,24 +121,37 @@ public final class CalendarDialog extends CommonListDialog{
 		typeField = new JTextField();
 
 		noteButton = new JButton("Notes", ICON_NOTE);
+		assertionButton = new JButton("Assertions", ICON_ASSERTION);
+		eventButton = new JButton("Events", ICON_EVENT);
 
 
 		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, evt -> saveData());
-		GUIHelper.setBackgroundColor(typeField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		addMandatoryField(typeField);
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+
+		assertionButton.setToolTipText("Assertions");
+		assertionButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+
+		eventButton.setToolTipText("Events");
+		eventButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeLabel, "align label,split 2");
 		recordPanelBase.add(typeField, "growx");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
+		recordPanelOther.add(assertionButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelOther.add(eventButton, "sizegroup btn,center");
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
@@ -144,7 +166,9 @@ public final class CalendarDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String type = extractRecordType(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String type = extractRecordType(container);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(type, row, TABLE_INDEX_RECORD_TYPE);
@@ -155,7 +179,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TYPE);
 
@@ -166,26 +190,37 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		final int calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+			.filter(entry -> calendarID == extractRecordReferenceID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+			.filter(entry -> calendarID == extractRecordCalendarID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		typeField.setText(type);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 	}
 
 	@Override
 	protected void clearData(){
 		typeField.setText(null);
-		GUIHelper.setBackgroundColor(typeField, Color.WHITE);
 
 		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(assertionButton);
+		GUIHelper.setDefaultBorder(eventButton);
+
 		deleteRecordButton.setEnabled(false);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String type = GUIHelper.readTextTrimmed(typeField);
+		final String type = GUIHelper.getTextTrimmed(typeField);
 		if(!validData(type)){
 			JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -197,11 +232,14 @@ public final class CalendarDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String type = GUIHelper.readTextTrimmed(typeField);
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
+		//read record panel:
+		final String type = GUIHelper.getTextTrimmed(typeField);
+
+		//update table:
 		if(!Objects.equals(type, extractRecordType(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -209,17 +247,25 @@ public final class CalendarDialog extends CommonListDialog{
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(type, modelRowIndex, TABLE_INDEX_RECORD_TYPE);
+
 					break;
 				}
 		}
 
 		selectedRecord.put("type", type);
+
+		return true;
 	}
 
 
 	private static String extractRecordType(final Map<String, Object> record){
 		return (String)record.get("type");
+	}
+
+	private static Integer extractRecordCalendarID(final Map<String, Object> record){
+		return (Integer)record.get("calendar_id");
 	}
 
 
@@ -286,7 +332,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final CalendarDialog dialog = new CalendarDialog(store, parent);
+			final CalendarDialog dialog = create(store, parent);
 			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(calendar3)))
@@ -301,17 +347,44 @@ public final class CalendarDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final Integer calendarID = extractRecordID(container);
 					switch(editCommand.getType()){
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+								.withReference(TABLE_NAME, calendarID);
+							assertionDialog.initComponents();
+							assertionDialog.loadData();
+
+							assertionDialog.setSize(488, 386);
+							assertionDialog.setLocationRelativeTo(dialog);
+							assertionDialog.setVisible(true);
+						}
 						case NOTE -> {
-							final int calendarID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, calendarID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, calendarID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", calendarID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
+						}
+						case EVENT -> {
+							final EventDialog eventDialog = EventDialog.create(store, parent)
+								.withReference(TABLE_NAME, calendarID);
+							eventDialog.initComponents();
+							eventDialog.loadData();
+
+							eventDialog.setSize(309, 409);
+							eventDialog.setLocationRelativeTo(null);
+							eventDialog.setVisible(true);
 						}
 					}
 				}
@@ -321,10 +394,11 @@ public final class CalendarDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(270, 341);
+			dialog.setSize(309, 377);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

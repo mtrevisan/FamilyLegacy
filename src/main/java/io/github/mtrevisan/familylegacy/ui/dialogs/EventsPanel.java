@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 
@@ -93,8 +95,8 @@ public class EventsPanel extends JPanel{
 
 
 	private void filterEventBy(final EventsPanel dialog){
-		final String newEvent = eventField.getText().trim();
-		if(newEvent.equals(formerFilterEvent))
+		final String newEvent = GUIHelper.getTextTrimmed(eventField);
+		if(Objects.equals(newEvent, formerFilterEvent))
 			return;
 
 		formerFilterEvent = newEvent;
@@ -108,7 +110,7 @@ public class EventsPanel extends JPanel{
 	}
 
 	private void eventAddButtonAction(final ActionEvent evt){
-		final String newEvent = eventField.getText().trim();
+		final String newEvent = GUIHelper.getTextTrimmed(eventField);
 		final boolean containsEvent = eventExists.test(newEvent);
 		if(!containsEvent){
 			tagPanel.addTag(newEvent);

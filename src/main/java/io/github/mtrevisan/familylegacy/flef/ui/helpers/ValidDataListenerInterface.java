@@ -24,47 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import javax.swing.JComponent;
-import javax.swing.JPopupMenu;
-import java.awt.Component;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
+public interface ValidDataListenerInterface{
 
-public class PopupMouseAdapter extends MouseAdapter{
-
-	private final JPopupMenu popupMenu;
-	private final JComponent component;
-
-
-	public PopupMouseAdapter(final JPopupMenu popupMenu, final JComponent component){
-		this.popupMenu = popupMenu;
-		this.component = component;
-	}
-
-
-	@Override
-	public void mouseClicked(final MouseEvent event){
-		processMouseEvent(event);
-	}
-
-	@Override
-	public void mouseReleased(final MouseEvent event){
-		processMouseEvent(event);
-	}
-
-	private void processMouseEvent(final MouseEvent event){
-		if(component.isEnabled() && event.isPopupTrigger() && hasPopupMenuVisibleItems()){
-			popupMenu.show(event.getComponent(), event.getX(), event.getY());
-			popupMenu.setInvoker(component);
-		}
-	}
-
-	private boolean hasPopupMenuVisibleItems(){
-		for(final Component component : popupMenu.getComponents())
-			if(component.isVisible())
-				return true;
-		return false;
-	}
+	void onValidationChange(boolean valid);
 
 }

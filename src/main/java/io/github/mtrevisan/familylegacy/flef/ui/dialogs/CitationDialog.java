@@ -24,9 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
@@ -60,7 +63,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public final class CitationDialog extends CommonListDialog{
+public final class CitationDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -7601387139021862486L;
@@ -69,14 +72,17 @@ public final class CitationDialog extends CommonListDialog{
 
 	private static final String TABLE_NAME = "citation";
 	private static final String TABLE_NAME_SOURCE = "source";
+	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 
 
 	private JTabbedPane recordTabbedPane;
-	private JButton sourceButton;
 	private JLabel locationLabel;
 	private JTextField locationField;
-	private JButton extractButton;
+	private JLabel extractLabel;
+	private TextPreviewPane extractTextPreview;
+	private JLabel extractLocaleLabel;
+	private JTextField extractLocaleField;
 	private JButton transcribedExtractButton;
 	private JLabel extractTypeLabel;
 	private JComboBox<String> extractTypeComboBox;
@@ -85,15 +91,22 @@ public final class CitationDialog extends CommonListDialog{
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
 
+	private JButton assertionButton;
+
 	private Integer filterSourceID;
 
 
-	public CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CitationDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new CitationDialog(store, parent);
+	}
+
+
+	private CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public CitationDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public CitationDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -117,7 +130,7 @@ public final class CitationDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Citations" + (filterSourceID != null? " for source " + filterSourceID: StringUtils.EMPTY));
+		setTitle("Citations" + (filterSourceID != null? " for source ID " + filterSourceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -129,54 +142,64 @@ public final class CitationDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		recordTabbedPane = new JTabbedPane();
-		sourceButton = new JButton("Source", ICON_SOURCE);
 		locationLabel = new JLabel("Location:");
 		locationField = new JTextField();
-		extractButton = new JButton("Extract", ICON_NOTE);
+		extractLabel = new JLabel("Extract:");
+		extractTextPreview = TextPreviewPane.createWithPreview(this);
+		extractTextPreview.setTextViewFont(extractLabel.getFont());
+		extractLocaleLabel = new JLabel("Locale:");
+		extractLocaleField = new JTextField();
 		transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
 		extractTypeLabel = new JLabel("Type:");
-		extractTypeComboBox = new JComboBox<>(new String[]{"transcript", "extract", "abstract"});
+		extractTypeComboBox = new JComboBox<>(new String[]{null, "transcript", "extract", "abstract"});
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
+		mediaButton = new JButton("Medias", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 
-		sourceButton.setToolTipText("Source");
-		sourceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.SOURCE, getSelectedRecord())));
-		GUIHelper.addBorder(sourceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
 
-		extractButton.setToolTipText("Extract");
-		extractButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.EXTRACT, getSelectedRecord())));
+		GUIHelper.bindLabelTextChange(extractLabel, extractTextPreview, evt -> saveData());
+		extractTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
+
+		GUIHelper.bindLabelTextChangeUndo(extractLocaleLabel, extractLocaleField, evt -> saveData());
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
-		transcribedExtractButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT,
-			getSelectedRecord())));
+		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, evt -> saveData(),
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
+
+		assertionButton.setToolTipText("Assertions");
+		assertionButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(sourceButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(locationLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(locationLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(locationField, "grow,wrap paragraph");
-		recordPanelBase.add(extractButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(extractLabel, "align label,top,sizegroup lbl,split 2");
+		recordPanelBase.add(extractTextPreview, "grow,wrap related");
+		recordPanelBase.add(extractLocaleLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(extractLocaleField, "grow,wrap related");
 		recordPanelBase.add(transcribedExtractButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelBase.add(extractTypeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(extractTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(extractTypeComboBox);
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -184,28 +207,39 @@ public final class CitationDialog extends CommonListDialog{
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelChildren.add(assertionButton, "sizegroup btn,center");
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("children", recordPanelChildren);
 	}
 
 	@Override
 	public void loadData(){
-		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterSourceID != null)
-			records = records.entrySet().stream()
-				.filter(entry -> filterSourceID.equals(extractRecordSourceID(entry.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+			records.entrySet()
+				.removeIf(entry -> !filterSourceID.equals(extractRecordSourceID(entry.getValue())));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String sourceIdentifier = extractRecordSourceIdentifier(record.getValue());
-			final String location = extractRecordLocation(record.getValue());
-			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+			final Map<String, Object> container = record.getValue();
+
+			final String sourceIdentifier = extractRecordSourceIdentifier(container);
+			final String location = extractRecordLocation(container);
+			String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 				+ (location != null? location: StringUtils.EMPTY);
+			final String extract = extractRecordExtract(container);
+			if(extract != null && !extract.isEmpty()){
+				if(!identifier.isEmpty())
+					identifier += StringUtils.SPACE;
+				identifier += "[" + extract + "]";
+			}
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
@@ -216,8 +250,9 @@ public final class CitationDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_IDENTIFIER);
+		final String title = GUIHelper.getTextTrimmed(filterField);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+			TABLE_INDEX_RECORD_IDENTIFIER);
 
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -225,34 +260,46 @@ public final class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first mandatory field
+		extractTextPreview.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
-		final Integer sourceID = extractRecordSourceID(selectedRecord);
+		final int citationID = extractRecordID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
-		final Integer extractID = extractRecordExtractID(selectedRecord);
+		final String extract = extractRecordExtract(selectedRecord);
+		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 			CommonRecordDialog::extractRecordReferenceType, "extract");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+			.filter(entry -> citationID == extractRecordReferenceID(entry.getValue()))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
-		GUIHelper.addBorder(sourceButton, (sourceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		locationField.setText(location);
-		GUIHelper.addBorder(extractButton, extractID != null, DATA_BUTTON_BORDER_COLOR);
+		extractTextPreview.setText("Note " + extractRecordID(selectedRecord), extract, extractLocale);
+		extractLocaleField.setText(extractLocale);
 		extractTypeComboBox.setSelectedItem(extractType);
 		GUIHelper.addBorder(transcribedExtractButton, !recordTranscribedExtracts.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 	}
 
 	@Override
 	protected void clearData(){
-		GUIHelper.setDefaultBorder(sourceButton);
 		locationField.setText(null);
 		extractTypeComboBox.setSelectedItem(null);
-		GUIHelper.setDefaultBorder(extractButton);
+		extractTextPreview.clear();
+		extractLocaleField.setText(null);
 		GUIHelper.setDefaultBorder(transcribedExtractButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
@@ -261,15 +308,17 @@ public final class CitationDialog extends CommonListDialog{
 
 		GUIHelper.setEnabled(recordTabbedPane, false);
 		deleteRecordButton.setEnabled(false);
+
+		GUIHelper.setDefaultBorder(assertionButton);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final Integer sourceID = extractRecordSourceID(selectedRecord);
-		if(!validData(sourceID)){
-			JOptionPane.showMessageDialog(getParent(), "Source field is required", "Error",
+		final String extract = extractTextPreview.getTextTrimmed();
+		if(!validData(extract)){
+			JOptionPane.showMessageDialog(getParent(), "Extract field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
-			sourceButton.requestFocusInWindow();
+			extractTextPreview.requestFocusInWindow();
 
 			return false;
 		}
@@ -277,12 +326,17 @@ public final class CitationDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String location = GUIHelper.readTextTrimmed(locationField);
-		final String extractType = (String)extractTypeComboBox.getSelectedItem();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
+		//read record panel:
+		final String location = GUIHelper.getTextTrimmed(locationField);
+		final String extract = extractTextPreview.getTextTrimmed();
+		final String extractLocale = GUIHelper.getTextTrimmed(extractLocaleField);
+		final String extractType = GUIHelper.getTextTrimmed(extractTypeComboBox);
+
+		//update table:
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		final Integer recordID = extractRecordID(selectedRecord);
 		for(int row = 0, length = model.getRowCount(); row < length; row ++)
@@ -292,16 +346,27 @@ public final class CitationDialog extends CommonListDialog{
 
 				final Map<String, Object> updatedCitationRecord = getRecords(TABLE_NAME).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
-				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 					+ (location != null? location: StringUtils.EMPTY);
+				if(extract != null && !extract.isEmpty()){
+					if(!identifier.isEmpty())
+						identifier += StringUtils.SPACE;
+					identifier += "[" + extract + "]";
+				}
 
 				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+
 				break;
 			}
 
 		selectedRecord.put("location", location);
-		selectedRecord.put("extract_type", extractType);
+		selectedRecord.put("extract", extract);
+		selectedRecord.put("extract_locale", extractLocale);
+		if(extractType != null && !extractType.isEmpty())
+			selectedRecord.put("extract_type", extractType);
+
+		return true;
 	}
 
 
@@ -326,12 +391,26 @@ public final class CitationDialog extends CommonListDialog{
 		return (String)record.get("location");
 	}
 
-	private static Integer extractRecordExtractID(final Map<String, Object> record){
-		return (Integer)record.get("extract_id");
+	private static String extractRecordExtract(final Map<String, Object> record){
+		return (String)record.get("extract");
+	}
+
+	private static String extractRecordExtractLocale(final Map<String, Object> record){
+		return (String)record.get("extract_locale");
 	}
 
 	private static String extractRecordExtractType(final Map<String, Object> record){
 		return (String)record.get("extract_type");
+	}
+
+	private static Integer extractRecordCitationID(final Map<String, Object> record){
+		return (Integer)record.get("citation_id");
+	}
+
+
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 
@@ -372,14 +451,28 @@ public final class CitationDialog extends CommonListDialog{
 		citation.put("id", 1);
 		citation.put("source_id", 1);
 		citation.put("location", "here");
-		citation.put("extract_id", 1);
+		citation.put("extract", "text 1");
+		citation.put("extract_locale", "en-US");
 		citation.put("extract_type", "transcript");
 		citations.put((Integer)citation.get("id"), citation);
+
+		final TreeMap<Integer, Map<String, Object>> assertions = new TreeMap<>();
+		store.put(TABLE_NAME_ASSERTION, assertions);
+		final Map<String, Object> assertion = new HashMap<>();
+		assertion.put("id", 1);
+		assertion.put("citation_id", 1);
+		assertion.put("reference_table", "table");
+		assertion.put("reference_id", 1);
+		assertion.put("role", "father");
+		assertion.put("certainty", "certain");
+		assertion.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		assertions.put((Integer)assertion.get("id"), assertion);
 
 		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
 		store.put(TABLE_NAME_SOURCE, sources);
 		final Map<String, Object> source = new HashMap<>();
 		source.put("id", 1);
+		source.put("repository_id", 1);
 		source.put("identifier", "source 1");
 		sources.put((Integer)source.get("id"), source);
 
@@ -422,7 +515,7 @@ public final class CitationDialog extends CommonListDialog{
 		notes.put((Integer)note1.get("id"), note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
-		note2.put("note", "note 1");
+		note2.put("note", "note 2");
 		note2.put("reference_table", TABLE_NAME);
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
@@ -438,7 +531,7 @@ public final class CitationDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final CitationDialog dialog = new CitationDialog(store, parent);
+			final CitationDialog dialog = create(store, parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
 			dialog.initComponents();
 			dialog.loadData();
@@ -454,47 +547,67 @@ public final class CitationDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int citationID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case SOURCE -> {
-							//TODO single citation
-						}
-						case EXTRACT -> {
-							//TODO single extract
-						}
 						case LOCALIZED_EXTRACT -> {
-							final int citationID = extractRecordID(editCommand.getContainer());
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createWithReferenceTable(store, TABLE_NAME, citationID,
-								"extract", parent);
-							localizedTextDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
+								.withReference(TABLE_NAME, citationID, "extract")
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", citationID);
+									}
+								});
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 492);
+							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
 						case NOTE -> {
-							final int citationID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, citationID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, citationID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", citationID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final int citationID = extractRecordID(editCommand.getContainer());
-							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, citationID, parent)
-								.withBasePath("\\Documents\\");
-							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, citationID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", citationID);
+									}
+								});
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(351, 460);
+							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
+						}
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+								.withReference(TABLE_NAME, citationID);
+							assertionDialog.initComponents();
+							assertionDialog.loadData();
+
+							assertionDialog.setSize(488, 386);
+							assertionDialog.setLocationRelativeTo(dialog);
+							assertionDialog.setVisible(true);
 						}
 					}
 				}
@@ -504,10 +617,11 @@ public final class CitationDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(400, 462);
+			dialog.setSize(420, 586);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

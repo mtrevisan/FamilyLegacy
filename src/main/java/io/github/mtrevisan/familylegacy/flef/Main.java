@@ -366,7 +366,7 @@ public final class Main{
 				final String[] parts = line.split("=", 2);
 				final String attributeKey = parts[0].substring(lastDotIndex + 1);
 				if(parent.attributes.containsKey(attributeKey)){
-					if(! "CONT".equals(attributeKey))
+					if(!"CONT".equals(attributeKey))
 						throw new IllegalArgumentException("error while squashing " + attributeKey + ": not managed (yet)");
 
 					parts[1] = parent.attributes.get(attributeKey) + "\r\n" + parts[1];

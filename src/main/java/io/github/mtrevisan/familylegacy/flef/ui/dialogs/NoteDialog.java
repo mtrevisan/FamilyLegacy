@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -49,7 +50,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -69,14 +69,16 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private static final int TABLE_INDEX_RECORD_NOTE = 1;
 
 	private static final String TABLE_NAME = "note";
+	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
 	private JLabel noteLabel;
-	private TextPreviewPane noteTextArea;
+	private TextPreviewPane noteTextPreview;
 	private JLabel localeLabel;
 	private JTextField localeField;
-	private JButton referenceButton;
 
+	private JButton mediaButton;
+	private JButton culturalNormButton;
 	private JCheckBox restrictionCheckBox;
 
 	private String filterReferenceTable;
@@ -87,21 +89,21 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return new NoteDialog(store, parent);
 	}
 
-	public static NoteDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-			final String referenceTable, final int filterReferenceID, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
-		dialog.filterReferenceTable = referenceTable;
-		dialog.filterReferenceID = filterReferenceID;
-		return dialog;
-	}
 
 	private NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public NoteDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public NoteDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public NoteDialog withReference(final String referenceTable, final int filterReferenceID){
+		this.filterReferenceTable = referenceTable;
+		this.filterReferenceID = filterReferenceID;
 
 		return this;
 	}
@@ -131,51 +133,47 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	@Override
 	protected void initRecordComponents(){
 		noteLabel = new JLabel("Note:");
-		noteTextArea = TextPreviewPane.createWithPreview(this);
-		noteTextArea.setTextViewFont(noteLabel.getFont());
+		noteTextPreview = TextPreviewPane.createWithPreview(this);
+		noteTextPreview.setTextViewFont(noteLabel.getFont());
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
-		referenceButton = new JButton("Reference", ICON_REFERENCE);
 
+		mediaButton = new JButton("Medias", ICON_MEDIA);
+		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextArea, evt -> saveData());
-		noteTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, evt -> saveData());
+		noteTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
-		if(filterReferenceTable == null){
-			referenceButton.setToolTipText("Reference");
-			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
-				.withOnCloseGracefully(container -> {
-					//TODO save data
-				})));
-			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
-		}
+		mediaButton.setToolTipText("Media");
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+
+		culturalNormButton.setToolTipText("Cultural norm");
+		culturalNormButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
-		referenceButton.setVisible(filterReferenceTable == null);
-
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(noteLabel, "align label,top,sizegroup label,split 2");
-		recordPanelBase.add(noteTextArea, "grow,wrap related");
-		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(noteLabel, "align label,top,sizegroup lbl,split 2");
+		recordPanelBase.add(noteTextPreview, "grow,wrap related");
+		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(localeField, "grow");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelOther.add(mediaButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelOther.add(culturalNormButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
-
-		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
@@ -189,7 +187,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractRecordNote(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String identifier = extractRecordNote(container);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_NOTE);
@@ -200,7 +200,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_NOTE);
 
@@ -213,61 +213,50 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	protected void fillData(){
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
+		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		noteTextArea.setText("Note " + extractRecordID(selectedRecord), note, locale);
+		noteTextPreview.setText("Note " + extractRecordID(selectedRecord), note, locale);
 		localeField.setText(locale);
-		if(filterReferenceTable == null)
-			GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		else
-			recordTabbedPane.setEnabledAt(recordTabbedPane.indexOfTab("link"), false);
 
+		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 	}
 
 	@Override
 	protected void clearData(){
-		noteTextArea.clear();
-		noteTextArea.setTextViewBackgroundColor(Color.WHITE);
+		noteTextPreview.clear();
 		localeField.setText(null);
-		if(filterReferenceTable == null)
-			GUIHelper.setDefaultBorder(referenceButton);
 
+		GUIHelper.setDefaultBorder(mediaButton);
+		GUIHelper.setDefaultBorder(culturalNormButton);
 		restrictionCheckBox.setSelected(false);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String note = noteTextArea.getText();
-		if(filterReferenceTable == null && !validData(note)){
+		if(filterReferenceTable == null && !validData(noteTextPreview.getTextTrimmed())){
 			JOptionPane.showMessageDialog(getParent(), "Note field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
-			noteTextArea.requestFocusInWindow();
+			noteTextPreview.requestFocusInWindow();
 
 			return false;
 		}
-
-		final String referenceTable = extractRecordReferenceTable(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
-		if(filterReferenceTable == null && (!validData(referenceTable) || !validData(referenceID))){
-			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			referenceButton.requestFocusInWindow();
-
-			return false;
-		}
-
 		return true;
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String note = noteTextArea.getText();
-		final String locale = localeField.getText();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
+		//read record panel:
+		final String note = noteTextPreview.getTextTrimmed();
+		final String locale = GUIHelper.getTextTrimmed(localeField);
+
+		//update table:
 		if(!Objects.equals(note, extractRecordNote(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -275,17 +264,17 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(note, modelRowIndex, TABLE_INDEX_RECORD_NOTE);
+
 					break;
 				}
 		}
 
-		if(filterReferenceTable != null){
-			//TODO upsert junction
-		}
-
 		selectedRecord.put("note", note);
 		selectedRecord.put("locale", locale);
+
+		return true;
 	}
 
 
@@ -361,6 +350,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final NoteDialog dialog = create(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(note1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -370,28 +365,55 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int noteID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case REFERENCE -> {
-							//TODO single note
+						case CULTURAL_NORM -> {
+							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
+								.withReference(TABLE_NAME, noteID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", noteID);
+									}
+								});
+							culturalNormDialog.initComponents();
+							culturalNormDialog.loadData();
+
+							culturalNormDialog.setSize(474, 652);
+							culturalNormDialog.setLocationRelativeTo(dialog);
+							culturalNormDialog.setVisible(true);
+						}
+						case MEDIA -> {
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, noteID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", noteID);
+									}
+								});
+							mediaDialog.initComponents();
+							mediaDialog.loadData();
+
+							mediaDialog.setSize(420, 497);
+							mediaDialog.setLocationRelativeTo(dialog);
+							mediaDialog.setVisible(true);
 						}
 					}
 				}
 			};
 			EventBusService.subscribe(listener);
 
-			final NoteDialog dialog = create(store, parent);
-			dialog.initComponents();
-			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(note1)))
-				dialog.showNewRecord();
-
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 487);
+			dialog.setSize(420, 474);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

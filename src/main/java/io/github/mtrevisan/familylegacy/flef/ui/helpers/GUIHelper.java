@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 public final class GUIHelper{
@@ -89,7 +90,7 @@ public final class GUIHelper{
 			component.setEnabled(enabled);
 	}
 
-	public static void setEnabled(final JComponent component, final boolean enabled){
+	public static void setEnabled(final Component component, final boolean enabled){
 		final Deque<Component> stack = new LinkedList<>();
 		stack.add(component);
 		while(!stack.isEmpty()){
@@ -102,9 +103,18 @@ public final class GUIHelper{
 	}
 
 
-	public static String readTextTrimmed(final JTextField field){
-		final String text = field.getText();
-		return (text != null? text.trim(): null);
+	public static String getTextTrimmed(final JTextComponent field){
+		String text = field.getText();
+		if(text != null)
+			text = text.trim();
+		return (text != null && !text.isEmpty()? text: null);
+	}
+
+	public static String getTextTrimmed(final JComboBox<String> comboBox){
+		String text = (String)comboBox.getSelectedItem();
+		if(text != null)
+			text = text.trim();
+		return (text != null && !text.isEmpty()? text: null);
 	}
 
 	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Consumer<DocumentEvent> onEdit){
@@ -170,7 +180,7 @@ public final class GUIHelper{
 	}
 
 	public static void bindLabelUndoSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox,
-			final Consumer<DocumentEvent> onEdit, final Consumer<ActionEvent> onSelection){
+			final Consumer<DocumentEvent> onEdit){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
@@ -181,6 +191,7 @@ public final class GUIHelper{
 		AutoCompleteDecorator.decorate(comboBox);
 
 		if(onEdit != null){
+			//TODO revise listener (multiple calls on selection change, for example)
 			final JTextField editor = (JTextField)comboBox.getEditor().getEditorComponent();
 			editor.getDocument().addDocumentListener(new DocumentListener(){
 				@Override
@@ -199,7 +210,13 @@ public final class GUIHelper{
 				}
 			});
 		}
+	}
 
+	public static void bindLabelSelectionChange(final JLabel label, final JComboBox<?> comboBox, final Consumer<ActionEvent> onSelection){
+		if(label != null)
+			label.setLabelFor(comboBox);
+
+		//if not editable:
 		if(onSelection != null)
 			comboBox.addActionListener(evt -> {
 				if(comboBox.getSelectedItem() != null)
@@ -282,31 +299,92 @@ public final class GUIHelper{
 		button.setBorder(border);
 	}
 
-	public static void setBackgroundColor(final JTextComponent component, final Color backgroundColor){
-		final Document doc = component.getDocument();
-		doc.addDocumentListener(new DocumentListener(){
-			@Override
-			public void insertUpdate(final DocumentEvent de){
-				updateBackground();
-			}
+	public static void setEnabled(final Supplier<Boolean> funEnabled, final JTextComponent... components){
+		for(final JTextComponent component : components){
+			final Document doc = component.getDocument();
+			doc.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent de){
+					updateEnabled(funEnabled, components);
+				}
 
-			@Override
-			public void removeUpdate(final DocumentEvent de){
-				updateBackground();
-			}
+				@Override
+				public void removeUpdate(final DocumentEvent de){
+					updateEnabled(funEnabled, components);
+				}
 
-			@Override
-			public void changedUpdate(final DocumentEvent de){
-				updateBackground();
-			}
+				@Override
+				public void changedUpdate(final DocumentEvent de){
+					updateEnabled(funEnabled, components);
+				}
+			});
+		}
 
-			private void updateBackground(){
-				if(component.getText().trim().isEmpty())
-					component.setBackground(backgroundColor);
-				else
-					component.setBackground(Color.WHITE);
+		updateEnabled(funEnabled, components);
+	}
+
+	public static void updateEnabled(final Supplier<Boolean> funEnabled, final JComponent... components){
+		final boolean enabled = funEnabled.get();
+		for(int i = 0, length = components.length; i < length; i ++)
+			components[i].setEnabled(enabled);
+	}
+
+	public static void addValidDataListener(final ValidDataListenerInterface validDataInterface, final Color mandatoryBackgroundColor,
+			final Color defaultBackgroundColor, final JTextComponent... components){
+		for(int i = 0, length = components.length; i < length; i ++){
+			JTextComponent component = components[i];
+			final Document doc = component.getDocument();
+			doc.addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent de){
+					final boolean valid = checkValidData(validDataInterface, components);
+					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent de){
+					final boolean valid = checkValidData(validDataInterface, components);
+					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent de){
+					final boolean valid = checkValidData(validDataInterface, components);
+					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+				}
+			});
+		}
+
+		final boolean valid = checkValidData(validDataInterface, components);
+		updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+	}
+
+	public static boolean checkValidData(final ValidDataListenerInterface validDataInterface, final JTextComponent... components){
+		boolean valid = false;
+		for(int i = 0, length = components.length; i < length; i ++)
+			if(getTextTrimmed(components[i]) != null){
+				valid = true;
+
+				break;
 			}
-		});
+		validDataInterface.onValidationChange(valid);
+
+		return valid;
+	}
+
+	public static void updateBackground(final boolean valid, final Color mandatoryBackgroundColor, final Color defaultBackgroundColor,
+			final JTextComponent... components){
+		final int length = components.length;
+		if(valid){
+			for(int j = 0; j < length; j ++)
+				components[j].setBackground(defaultBackgroundColor);
+		}
+		else{
+			for(int j = 0; j < length; j ++){
+				final JTextComponent component = components[j];
+				component.setBackground(component.isEnabled()? mandatoryBackgroundColor: defaultBackgroundColor);
+			}
+		}
 	}
 
 }

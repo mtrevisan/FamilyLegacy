@@ -35,6 +35,8 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -326,14 +328,14 @@ public class GifDecoder{
 			status = FILE_READ_STATUS_OK;
 			name = name.trim().toLowerCase(Locale.ROOT);
 			if(name.startsWith("file:") || name.contains(":/")){
-				final URL url = new URL(name);
+				final URL url = new URI(name).toURL();
 				in = new BufferedInputStream(url.openStream());
 			}
 			else
 				in = new BufferedInputStream(new FileInputStream(name));
 			status = read(in);
 		}
-		catch(final IOException e){
+		catch(final URISyntaxException | IOException e){
 			status = FILE_READ_STATUS_OPEN_ERROR;
 		}
 		return status;

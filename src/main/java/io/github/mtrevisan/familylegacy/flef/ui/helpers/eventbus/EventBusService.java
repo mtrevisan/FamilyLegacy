@@ -47,7 +47,7 @@ public final class EventBusService{
 	private static final Logger LOGGER = LoggerFactory.getLogger(EventBusService.class);
 
 
-	private static final EventBusInterface EVENT_BUS = new BasicEventBus(false);
+	private static final EventBusInterface EVENT_BUS = BasicEventBus.create();
 	static{
 		EVENT_BUS.start();
 

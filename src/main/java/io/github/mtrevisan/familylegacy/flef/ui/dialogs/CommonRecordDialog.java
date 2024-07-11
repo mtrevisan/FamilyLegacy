@@ -39,10 +39,13 @@ import java.awt.Color;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -53,15 +56,19 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecordDialog.class);
 
-	protected static final Color MANDATORY_FIELD_BACKGROUND_COLOR = Color.PINK;
-	protected static final Color MANDATORY_COMBOBOX_BACKGROUND_COLOR = Color.RED;
+	protected static final Color MANDATORY_BACKGROUND_COLOR = Color.PINK;
+	protected static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 	protected static final Color DATA_BUTTON_BORDER_COLOR = Color.BLUE;
 
 	private static final int ICON_WIDTH_DEFAULT = 20;
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	protected static final ImageIcon ICON_OPEN_DOCUMENT = ResourceHelper.getImage("/images/openDocument.png",
+	protected static final ImageIcon ICON_CHOOSE_DOCUMENT = ResourceHelper.getImage("/images/choose_document.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_OPEN_FOLDER = ResourceHelper.getImage("/images/open_folder.png",
+		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_OPEN_LINK = ResourceHelper.getImage("/images/open_link.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 	protected static final ImageIcon ICON_ASSERTION = ResourceHelper.getImage("/images/assertion.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
@@ -104,15 +111,19 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
 	protected static final String TABLE_NAME_RESTRICTION = "restriction";
 	protected static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
+	private static final String TABLE_NAME_MODIFICATION = "modification";
 
 
 	//record components:
-	private final JPanel recordPanel = new JPanel();
+	protected final JPanel recordPanel = new JPanel();
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	protected Map<String, Object> selectedRecord;
+	private Consumer<Map<String, Object>> onCloseGracefully;
 
-	private Consumer<Object> onCloseGracefully;
+	protected Map<String, Object> selectedRecord;
+	protected long selectedRecordHash;
+	protected Consumer<Map<String, Object>> newRecordDefault;
+	protected volatile boolean ignoreEvents;
 
 
 	protected CommonRecordDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -122,7 +133,11 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 
-	protected void setOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	protected void setNewRecordDefault(final Consumer<Map<String, Object>> newRecordDefault){
+		this.newRecordDefault = newRecordDefault;
+	}
+
+	protected void setOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
@@ -132,6 +147,8 @@ public abstract class CommonRecordDialog extends JDialog{
 		initRecordComponents();
 
 		initLayout();
+
+		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	protected abstract void initRecordComponents();
@@ -162,8 +179,6 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected void initLayout(){
 		initRecordLayout(recordPanel);
 
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(recordPanel, "grow");
 	}
@@ -180,7 +195,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			okAction();
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.accept(this);
+				onCloseGracefully.accept(selectedRecord);
 
 			return true;
 		}
@@ -196,7 +211,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final int filterReferenceID){
 		return getRecords(tableName).entrySet().stream()
-			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> filterReferenceID == extractRecordReferenceID(entry.getValue()))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
@@ -205,8 +220,8 @@ public abstract class CommonRecordDialog extends JDialog{
 		return (records.isEmpty()? 1: records.lastKey() + 1);
 	}
 
-	protected static int extractRecordID(final Map<String, Object> record){
-		return (int)record.get("id");
+	protected static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (int)record.get("id"): null);
 	}
 
 
@@ -218,10 +233,16 @@ public abstract class CommonRecordDialog extends JDialog{
 			if(selectedRecord == null)
 				return;
 
+			selectedRecordHash = selectedRecord.hashCode();
 
 			GUIHelper.setEnabled(recordPanel, true);
 
+			if(newRecordDefault != null)
+				newRecordDefault.accept(selectedRecord);
+
+			ignoreEvents = true;
 			fillData();
+			ignoreEvents = false;
 		}
 	}
 
@@ -240,15 +261,17 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected final <T> TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final Map<Integer, Map<String, Object>> records = getRecords(fromTable);
 		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
-		final int selectedRecordID = extractRecordID(selectedRecord);
-		final String tableName = getTableName();
-		for(final Map<String, Object> record : records.values())
-			if((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& tableName.equals(extractRecordReferenceTable(record))
-					&& extractRecordReferenceID(record) == selectedRecordID)
-				matchedRecords.put(extractRecordID(record), record);
+		if(selectedRecord != null){
+			final Map<Integer, Map<String, Object>> records = getRecords(fromTable);
+			final Integer selectedRecordID = extractRecordID(selectedRecord);
+			final String tableName = getTableName();
+			for(final Map<String, Object> record : records.values())
+				if((filter == null || Objects.equals(filterValue, filter.apply(record)))
+						&& tableName.equals(extractRecordReferenceTable(record))
+						&& Objects.equals(extractRecordReferenceID(record), selectedRecordID))
+					matchedRecords.put(extractRecordID(record), record);
+		}
 		return matchedRecords;
 	}
 
@@ -277,7 +300,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected Map<String, Object> getSelectedRecord(){
-		return getRecords(getTableName()).get(1);
+		final TreeMap<Integer, Map<String, Object>> records = getRecords(getTableName());
+		return records.sequencedValues().getFirst();
 	}
 
 	protected abstract void clearData();
@@ -285,16 +309,56 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract boolean validateData();
 
 	protected boolean validData(final Object field){
-		return (selectedRecord == null || field instanceof String s && !s.isEmpty());
+		return (selectedRecord == null || field instanceof Integer || field instanceof String s && !s.isEmpty());
 	}
 
 	protected void okAction(){
-		if(selectedRecord == null)
+		if(selectedRecord == null || !dataHasChanged())
 			return;
 
-		saveData();
+		if(!ignoreEvents && saveData()){
+			selectedRecordHash = selectedRecord.hashCode();
+
+			LOGGER.debug("Saved data {}", selectedRecord);
+		}
+
+		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
+		if(recordModification.isEmpty()){
+			//create a new record
+			final TreeMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
+			final Map<String, Object> newModification = new HashMap<>();
+			final int newModificationID = extractNextRecordID(storeModifications);
+			newModification.put("id", newModificationID);
+			newModification.put("reference_table", getTableName());
+			newModification.put("reference_id", extractRecordID(selectedRecord));
+			newModification.put("creation_date", now);
+			storeModifications.put(newModificationID, newModification);
+		}
+		else{
+			//TODO ask for a modification note
+//			//show note record dialog
+//			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
+//			changeNoteDialog.setTitle("Change note for " + getTableName() + " " + extractRecordID(selectedRecord));
+//			changeNoteDialog.loadData(selectedRecord, dialog -> {
+//				selectedRecord = selectedRecord;
+//				selectedRecordHash = selectedRecord.hashCode();
+//			});
+//
+//			changeNoteDialog.setSize(450, 209);
+//			changeNoteDialog.setVisible(true);
+
+
+			//update the record with `update_date`
+			recordModification.get(recordModification.firstKey())
+				.put("update_date", now);
+		}
 	}
 
-	protected abstract void saveData();
+	protected boolean dataHasChanged(){
+		return (selectedRecord != null && selectedRecord.hashCode() != selectedRecordHash);
+	}
+
+	protected abstract boolean saveData();
 
 }

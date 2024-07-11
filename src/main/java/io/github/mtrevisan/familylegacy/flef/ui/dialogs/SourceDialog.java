@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -48,7 +49,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -69,6 +69,7 @@ public final class SourceDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
 
 	private static final String TABLE_NAME = "source";
+	private static final String TABLE_NAME_CITATION = "citation";
 
 
 	private JLabel identifierLabel;
@@ -79,13 +80,14 @@ public final class SourceDialog extends CommonListDialog{
 	private JTextField authorField;
 	private JButton placeButton;
 	private JButton dateButton;
-//	private JButton repositoryButton;
 	private JLabel locationLabel;
 	private JTextField locationField;
 
 	private JButton noteButton;
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
+
+	private JButton citationButton;
 
 	private Integer filterRepositoryID;
 
@@ -94,21 +96,20 @@ public final class SourceDialog extends CommonListDialog{
 		return new SourceDialog(store, parent);
 	}
 
-	public static SourceDialog createWithRepository(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-			final Integer filterRepositoryID, final Frame parent){
-		final SourceDialog dialog = new SourceDialog(store, parent);
-		dialog.filterRepositoryID = filterRepositoryID;
-		return dialog;
-	}
-
 
 	private SourceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public SourceDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public SourceDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public SourceDialog withFilterOnRepositoryID(final int filterRepositoryID){
+		this.filterRepositoryID = filterRepositoryID;
 
 		return this;
 	}
@@ -139,70 +140,75 @@ public final class SourceDialog extends CommonListDialog{
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine",
-			"genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census",
-			"death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)",
-			"diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard",
-			"probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license",
-			"marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing",
-			"passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration",
-			"enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication",
-			"passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record",
-			"article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record"});
+		typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog",
+			"baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook",
+			"directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message",
+			"interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will",
+			"legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register",
+			"marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll",
+			"death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record",
+			"muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport",
+			"passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article",
+			"newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record"});
 		authorLabel = new JLabel("Author:");
 		authorField = new JTextField();
 		placeButton = new JButton("Place", ICON_PLACE);
 		dateButton = new JButton("Date", ICON_CALENDAR);
-//		repositoryButton = new JButton("Repository", ICON_REPOSITORY);
 		locationLabel = new JLabel("Location:");
 		locationField = new JTextField();
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
+		mediaButton = new JButton("Medias", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		citationButton = new JButton("Citations", ICON_CITATION);
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
-		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
+		addMandatoryField(identifierField);
+
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(authorLabel, authorField, evt -> saveData());
 
 		placeButton.setToolTipText("Place");
-		placeButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
+		placeButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
 
 		dateButton.setToolTipText("Date");
-		dateButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
-
-//		repositoryButton.setToolTipText("Repository");
-//		repositoryButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REPOSITORY, getSelectedRecord())));
+		dateButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
+
+		citationButton.setToolTipText("Citations");
+		citationButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.CITATION, TABLE_NAME, getSelectedRecord())));
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(identifierField, "grow,wrap related");
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap");
-		recordPanelBase.add(authorLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(authorLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(authorField, "grow,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,split 3");
-		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center");
-//		recordPanelBase.add(repositoryButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelBase.add(locationLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelBase.add(locationLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(locationField, "grow");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -210,24 +216,29 @@ public final class SourceDialog extends CommonListDialog{
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelChildren.add(citationButton, "sizegroup btn,center");
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("children", recordPanelChildren);
 	}
 
 	@Override
 	public void loadData(){
-		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterRepositoryID != null)
-			records = records.entrySet().stream()
-				.filter(entry -> filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+			records.entrySet()
+				.removeIf(entry -> !filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractRecordIdentifier(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String identifier = extractRecordIdentifier(container);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
@@ -238,7 +249,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
 
@@ -248,50 +259,60 @@ public final class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first mandatory field
+		identifierField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
+		final int sourceID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String author = extractRecordAuthor(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-//		final Integer repositoryID = extractRecordRepositoryID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final Map<Integer, Map<String, Object>> recordCitations = getRecords(TABLE_NAME_CITATION).entrySet().stream()
+			.filter(entry -> Objects.equals(sourceID, extractRecordSourceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
 		authorField.setText(author);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
-//		GUIHelper.addBorder(repositoryButton, repositoryID != null, DATA_BUTTON_BORDER_COLOR);
 		locationField.setText(location);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		GUIHelper.addBorder(citationButton, !recordCitations.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 	}
 
 	@Override
 	protected void clearData(){
 		identifierField.setText(null);
-		GUIHelper.setBackgroundColor(identifierField, Color.WHITE);
 		typeComboBox.setSelectedItem(null);
 		authorField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
 		GUIHelper.setDefaultBorder(dateButton);
-//		GUIHelper.setDefaultBorder(repositoryButton);
 		locationField.setText(null);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
+
+		GUIHelper.setDefaultBorder(citationButton);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String identifier = GUIHelper.readTextTrimmed(identifierField);
+		final String identifier = GUIHelper.getTextTrimmed(identifierField);
 		if(!validData(identifier)){
 			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -303,14 +324,17 @@ public final class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String identifier = GUIHelper.readTextTrimmed(identifierField);
-		final String type = (String)typeComboBox.getSelectedItem();
-		final String author = GUIHelper.readTextTrimmed(authorField);
-		final String location = GUIHelper.readTextTrimmed(locationField);
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
+		//read record panel:
+		final String identifier = GUIHelper.getTextTrimmed(identifierField);
+		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final String author = GUIHelper.getTextTrimmed(authorField);
+		final String location = GUIHelper.getTextTrimmed(locationField);
+
+		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -318,7 +342,9 @@ public final class SourceDialog extends CommonListDialog{
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+
 					break;
 				}
 		}
@@ -326,9 +352,11 @@ public final class SourceDialog extends CommonListDialog{
 		selectedRecord.put("identifier", identifier);
 		selectedRecord.put("type", type);
 		selectedRecord.put("author", author);
-		if(filterRepositoryID > 0)
+		if(filterRepositoryID != null)
 			selectedRecord.put("repository_id", filterRepositoryID);
 		selectedRecord.put("location", location);
+
+		return true;
 	}
 
 
@@ -358,6 +386,10 @@ public final class SourceDialog extends CommonListDialog{
 
 	private static String extractRecordLocation(final Map<String, Object> record){
 		return (String)record.get("location");
+	}
+
+	private static Integer extractRecordSourceID(final Map<String, Object> record){
+		return (Integer)record.get("source_id");
 	}
 
 
@@ -399,9 +431,8 @@ public final class SourceDialog extends CommonListDialog{
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1 APA-style");
-		source1.put("place_id", 3);
+		source1.put("place_id", 1);
 		source1.put("date_id", 1);
-		source1.put("repository_id", 1);
 		source1.put("location", "location 1");
 		sources.put((Integer)source1.get("id"), source1);
 		final Map<String, Object> source2 = new HashMap<>();
@@ -409,11 +440,41 @@ public final class SourceDialog extends CommonListDialog{
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2 APA-style");
-		source2.put("place_id", 3);
-		source2.put("date_id", 2);
-		source2.put("repository_id", 2);
 		source2.put("location", "location 2");
 		sources.put((Integer)source2.get("id"), source2);
+
+		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
+		store.put("repository", repositories);
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("id", 1);
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		repositories.put((Integer)repository1.get("id"), repository1);
+
+		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
+		store.put("historic_date", historicDates);
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("id", 1);
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("calendar_id", 1);
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("calendar_original_id", 1);
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
+
+		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
+		store.put("place", places);
+		final Map<String, Object> place1 = new HashMap<>();
+		place1.put("id", 1);
+		place1.put("identifier", "place");
+		place1.put("name", "name of the place");
+		place1.put("name_locale", "en-US");
+		place1.put("type", "province");
+		place1.put("coordinate", "45.65, 12.19");
+		place1.put("coordinate_system", "WGS84");
+		place1.put("coordinate_credibility", "certain");
+		places.put((Integer)place1.get("id"), place1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put(TABLE_NAME_NOTE, notes);
@@ -456,48 +517,76 @@ public final class SourceDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int sourceID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
-							//TODO single place
-//							final PlaceRecordDialog dialog = new PlaceRecordDialog(store, parent);
-//							final GedcomNode source = editCommand.getContainer();
-//							dialog.setTitle(source.getID() != null
-//								? "Place for source " + source.getID()
-//								: "Place for new source");
-//							if(!dialog.loadData(source, editCommand.getOnCloseGracefully()))
-//								dialog.showNewRecord();
-//
-//							dialog.setSize(550, 450);
-//							dialog.setVisible(true);
+							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
+								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
+							placeDialog.initComponents();
+							placeDialog.loadData();
+							final Integer placeID = extractRecordPlaceID(container);
+							if(placeID != null)
+								placeDialog.selectData(placeID);
+
+							placeDialog.setSize(522, 618);
+							placeDialog.setLocationRelativeTo(null);
+							placeDialog.setVisible(true);
 						}
-						case DATE -> {
-							//TODO single date
-						}
-						case REPOSITORY -> {
-							//TODO single repository
+						case HISTORIC_DATE -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							historicDateDialog.initComponents();
+							historicDateDialog.loadData();
+							final Integer dateID = extractRecordDateID(container);
+							if(dateID != null)
+								historicDateDialog.selectData(dateID);
+
+							historicDateDialog.setSize(481, 427);
+							historicDateDialog.setLocationRelativeTo(null);
+							historicDateDialog.setVisible(true);
 						}
 						case NOTE -> {
-							final int sourceID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, sourceID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, sourceID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", sourceID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final int sourceID = extractRecordID(editCommand.getContainer());
-							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, sourceID, parent)
-								.withBasePath("\\Documents\\");
-							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, sourceID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", sourceID);
+									}
+								});
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(351, 460);
+							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
+						}
+						case CITATION -> {
+							final CitationDialog citationDialog = CitationDialog.create(store, parent)
+								.withFilterOnSourceID(sourceID);
+							citationDialog.initComponents();
+							citationDialog.loadData();
+
+							citationDialog.setSize(420, 586);
+							citationDialog.setLocationRelativeTo(dialog);
+							citationDialog.setVisible(true);
 						}
 					}
 				}
@@ -507,10 +596,11 @@ public final class SourceDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(440, 436);
+			dialog.setSize(440, 462);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

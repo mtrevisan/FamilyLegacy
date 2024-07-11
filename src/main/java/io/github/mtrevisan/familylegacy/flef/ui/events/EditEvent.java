@@ -25,20 +25,19 @@
 package io.github.mtrevisan.familylegacy.flef.ui.events;
 
 import java.util.Map;
-import java.util.function.Consumer;
 
 
 /** Raised upon an editing on a node are required. */
 public class EditEvent{
 
 	public enum EditType{
-//		ASSERTION,
+		ASSERTION,
 		CITATION, EXTRACT, LOCALIZED_EXTRACT,
 		SOURCE,
 		REPOSITORY,
 
-		DATE,
-		CALENDAR,
+		HISTORIC_DATE,
+		CALENDAR, CALENDAR_ORIGINAL,
 
 		PLACE, LOCALIZED_PLACE_NAME,
 
@@ -47,11 +46,11 @@ public class EditEvent{
 		MEDIA, PHOTO, PHOTO_CROP,
 
 		PERSON,
-		NAME, LOCALIZED_PERSON_NAME, LOCALIZED_PERSON_NAME_ALTERNATE,
+		PERSON_NAME, LOCALIZED_PERSON_NAME,
 
-//		GROUP,
+		GROUP,
 
-//		EVENT,
+		EVENT,
 
 		CULTURAL_NORM,
 
@@ -62,37 +61,32 @@ public class EditEvent{
 
 
 	private final EditType type;
+	private final String identifier;
 	private final Map<String, Object> container;
-	private Consumer<Object> onCloseGracefully;
 
 
-	public static EditEvent create(final EditType type, final Map<String, Object> container){
-		return new EditEvent(type, container);
+	public static EditEvent create(final EditType type, final String identifier, final Map<String, Object> container){
+		return new EditEvent(type, identifier, container);
 	}
 
 
-	private EditEvent(final EditType type, final Map<String, Object> container){
+	private EditEvent(final EditType type, final String identifier, final Map<String, Object> container){
 		this.type = type;
+		this.identifier = identifier;
 		this.container = container;
 	}
 
-
-	public EditEvent withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
-		this.onCloseGracefully = onCloseGracefully;
-
-		return this;
-	}
 
 	public final EditType getType(){
 		return type;
 	}
 
-	public final Map<String, Object> getContainer(){
-		return container;
+	public final String getIdentifier(){
+		return identifier;
 	}
 
-	public final Consumer<Object> getOnCloseGracefully(){
-		return onCloseGracefully;
+	public final Map<String, Object> getContainer(){
+		return container;
 	}
 
 	@Override

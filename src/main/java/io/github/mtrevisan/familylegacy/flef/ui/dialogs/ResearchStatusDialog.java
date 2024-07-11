@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExcep
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
+import javax.naming.OperationNotSupportedException;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -78,11 +78,10 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	private static final String TABLE_NAME = "research_status";
 
 
-	private JButton referenceButton;
 	private JLabel identifierLabel;
 	private JTextField identifierField;
 	private JLabel descriptionLabel;
-	private TextPreviewPane descriptionTextArea;
+	private TextPreviewPane descriptionTextPreview;
 	private JLabel statusLabel;
 	private JComboBox<String> statusComboBox;
 	private JLabel priorityLabel;
@@ -94,7 +93,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 
-	public ResearchStatusDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public ResearchStatusDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -123,15 +122,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		referenceButton = new JButton("Reference", ICON_REFERENCE);
-
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
-		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
 
 		descriptionLabel = new JLabel("Description:");
-		descriptionTextArea = TextPreviewPane.createWithoutPreview();
-		descriptionTextArea.setTextViewFont(identifierField.getFont());
+		descriptionTextPreview = TextPreviewPane.createWithoutPreview();
+		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 
 		statusLabel = new JLabel("Type:");
 		statusComboBox = new JComboBox<>(new String[]{"open", "active", "ended"});
@@ -141,16 +137,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		((AbstractDocument)priorityField.getDocument()).setDocumentFilter(new PositiveIntegerFilter());
 
 
-		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
-		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
-
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
-		GUIHelper.setBackgroundColor(identifierField, MANDATORY_FIELD_BACKGROUND_COLOR);
+		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextArea, evt -> saveData());
+		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, evt -> saveData());
 	}
@@ -158,14 +150,13 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(referenceButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(identifierLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(identifierField, "growx,wrap paragraph");
-		recordPanelBase.add(descriptionLabel, "align label,top,sizegroup label,split 2");
-		recordPanelBase.add(descriptionTextArea, "grow,wrap paragraph");
-		recordPanelBase.add(statusLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(descriptionLabel, "align label,top,sizegroup lbl,split 2");
+		recordPanelBase.add(descriptionTextPreview, "grow,wrap paragraph");
+		recordPanelBase.add(statusLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(statusComboBox, "grow,wrap paragraph");
-		recordPanelBase.add(priorityLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(priorityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(priorityField, "grow");
 
 		recordTabbedPane.add("base", recordPanelBase);
@@ -180,7 +171,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractRecordIdentifier(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String identifier = extractRecordIdentifier(container);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
@@ -191,7 +184,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_IDENTIFIER);
 
@@ -208,46 +201,50 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		final String status = extractRecordStatus(selectedRecord);
 		final Integer priority = extractRecordPriority(selectedRecord);
 
-		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 		identifierField.setText(identifier);
-		descriptionTextArea.setText("Research status " + extractRecordID(selectedRecord), description, null);
+		descriptionTextPreview.setText("Research status " + extractRecordID(selectedRecord), description, null);
 		statusComboBox.setSelectedItem(status);
 		priorityField.setText(String.valueOf(priority));
 	}
 
 	@Override
 	protected void clearData(){
-		GUIHelper.setDefaultBorder(referenceButton);
 		identifierField.setText(null);
-		descriptionTextArea.clear();
+		descriptionTextPreview.clear();
 		statusComboBox.setSelectedItem(null);
 		priorityField.setText(null);
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String identifier = extractRecordIdentifier(selectedRecord);
-		if(!validData(identifierField)){
-			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			identifierField.requestFocusInWindow();
+		if(selectedRecord != null){
+			final String identifier = extractRecordIdentifier(selectedRecord);
+			if(!validData(identifier)){
+				JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
+					JOptionPane.ERROR_MESSAGE);
+				identifierField.requestFocusInWindow();
 
-			return false;
+				return false;
+			}
 		}
 		return true;
 	}
 
 	@Override
-	protected void saveData(){
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
+
 		//read record panel:
-		final String identifier = identifierField.getText();
-		final String description = descriptionTextArea.getText();
-		final String status = (String)statusComboBox.getSelectedItem();
-		final Integer priority = (priorityField.getText() != null && !priorityField.getText().isEmpty()
-			? Integer.valueOf(priorityField.getText())
+		final String identifier = GUIHelper.getTextTrimmed(identifierField);
+		final String description = descriptionTextPreview.getTextTrimmed();
+		final String status = GUIHelper.getTextTrimmed(statusComboBox);
+		final String priorityAsString = GUIHelper.getTextTrimmed(priorityField);
+		final Integer priority = (priorityAsString != null
+			? Integer.valueOf(priorityAsString)
 			: null);
 
-		//update table
+		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -255,7 +252,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+
 					break;
 				}
 		}
@@ -264,6 +263,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		selectedRecord.put("description", description);
 		selectedRecord.put("status", status);
 		selectedRecord.put("priority", priority);
+
+		return true;
 	}
 
 
@@ -374,9 +375,10 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public void refresh(final EditEvent editCommand){
+				public void refresh(final EditEvent editCommand) throws OperationNotSupportedException{
 					switch(editCommand.getType()){
 						case REFERENCE -> {
+							throw new OperationNotSupportedException();
 							//TODO single reference
 						}
 					}
@@ -407,10 +409,11 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 627);
+			dialog.setSize(420, 567);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

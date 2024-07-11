@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ import javax.swing.RowSorter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -58,16 +60,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.Set;
 import java.util.TreeMap;
 
 
-public abstract class CommonListDialog extends CommonRecordDialog{
+public abstract class CommonListDialog extends CommonRecordDialog implements ValidDataListenerInterface{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonListDialog.class);
 
@@ -83,8 +84,6 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	protected static final int TABLE_INDEX_RECORD_ID = 0;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
-	private static final String TABLE_NAME_MODIFICATION = "modification";
-
 
 	//store components:
 	private JLabel filterLabel;
@@ -92,6 +91,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	protected JTable recordTable;
 	private JScrollPane tableScrollPane;
 	private JButton newRecordButton;
+	private JButton unselectRecordButton;
 	protected JButton deleteRecordButton;
 	//record components:
 	protected JTabbedPane recordTabbedPane;
@@ -99,9 +99,9 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
 	private int previousIndex = -1;
-	private volatile boolean ignoreSelectionEvents;
+	private final Set<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
-	private long selectedRecordHash;
+	protected volatile boolean showRecordOnly;
 
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -116,6 +116,9 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		initStoreComponents();
 
 		super.initComponents();
+
+		for(final JTextComponent[] mandatoryFields : mandatoryFields)
+			GUIHelper.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR, mandatoryFields);
 	}
 
 	protected void initStoreComponents(){
@@ -125,6 +128,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		recordTable = new JTable(getDefaultTableModel());
 		tableScrollPane = new JScrollPane(recordTable);
 		newRecordButton = new JButton("New");
+		unselectRecordButton = new JButton("Unselect");
 		deleteRecordButton = new JButton("Delete");
 		//record components:
 		recordTabbedPane = new JTabbedPane();
@@ -152,7 +156,7 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		recordTable.setRowSorter(sorter);
 		recordTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
-				if(!ignoreSelectionEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
+				if(!ignoreEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
 					selectAction();
 			});
 		final InputMap recordTableInputMap = recordTable.getInputMap(JComponent.WHEN_FOCUSED);
@@ -184,6 +188,8 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		recordTable.setPreferredScrollableViewportSize(viewSize);
 
 		newRecordButton.addActionListener(evt -> newAction());
+		unselectRecordButton.setEnabled(false);
+		unselectRecordButton.addActionListener(evt -> unselectAction());
 		deleteRecordButton.setEnabled(false);
 		deleteRecordButton.addActionListener(evt -> deleteAction());
 	}
@@ -192,18 +198,33 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
-		recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
-		GUIHelper.setEnabled(recordTabbedPane, false);
+		if(!showRecordOnly){
+			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+			GUIHelper.setEnabled(recordTabbedPane, false);
+		}
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap paragraph");
-		add(tableScrollPane, "grow,wrap related");
-		add(newRecordButton, "sizegroup btn,tag add,split 2,align right");
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph");
+		add(filterLabel, "align label,split 2,hidemode 3");
+		add(filterField, "grow,wrap related,hidemode 3");
+		add(tableScrollPane, "grow,wrap related,hidemode 3");
+		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
+		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3");
+		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph,hidemode 3");
 		add(recordTabbedPane, "grow");
+
+		if(showRecordOnly){
+			filterLabel.setVisible(false);
+			filterField.setVisible(false);
+			tableScrollPane.setVisible(false);
+			newRecordButton.setVisible(false);
+			unselectRecordButton.setVisible(false);
+			deleteRecordButton.setVisible(false);
+		}
+	}
+
+	protected void addMandatoryField(final JTextComponent... fields){
+		mandatoryFields.add(fields);
 	}
 
 	protected final boolean selectData(final int recordID){
@@ -211,13 +232,12 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
 		if(records.containsKey(recordID)){
 			final TableModel model = recordTable.getModel();
-			for(int row = 0, length = model.getRowCount(); row < length; row ++){
+			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
 					return true;
 				}
-			}
 		}
 
 		LOGGER.info("{} id {} does not exists", tableName, recordID);
@@ -230,14 +250,14 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 
 	@Override
 	protected final void selectAction(){
-		if(! validateData()){
+		if(!validateData()){
 			final ListSelectionModel selectionModel = recordTable.getSelectionModel();
-			ignoreSelectionEvents = true;
+			ignoreEvents = true;
 			if(previousIndex != -1)
 				selectionModel.setSelectionInterval(previousIndex, previousIndex);
 			else
 				selectionModel.clearSelection();
-			ignoreSelectionEvents = false;
+			ignoreEvents = false;
 		}
 		else{
 			previousIndex = recordTable.getSelectedRow();
@@ -250,23 +270,38 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 
 			selectedRecordHash = selectedRecord.hashCode();
 
-
 			GUIHelper.setEnabled(recordTabbedPane, true);
 
+			if(newRecordDefault != null)
+				newRecordDefault.accept(selectedRecord);
+
+			ignoreEvents = true;
 			fillData();
+			ignoreEvents = false;
+
+			//enable unselect button only if the record is not new
+			final int viewRowIndex = recordTable.getSelectedRow();
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
+			final TableModel model = recordTable.getModel();
+			final String recordIdentifier = (String)model.getValueAt(modelRowIndex, 1);
+			unselectRecordButton.setEnabled(recordIdentifier != null && !recordIdentifier.isEmpty());
 
 			deleteRecordButton.setEnabled(true);
 		}
+
+		GUIHelper.executeOnEventDispatchThread(this::requestFocusAfterSelect);
 	}
 
 	@Override
-	protected final Map<String, Object> getSelectedRecord(){
+	protected Map<String, Object> getSelectedRecord(){
 		final int viewRowIndex = recordTable.getSelectedRow();
 		if(viewRowIndex == -1)
 			//no row selected
 			return null;
 
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 		final TableModel model = recordTable.getModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
 
@@ -278,6 +313,13 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 	}
 
 	private void newAction(){
+		newRecordButton.setEnabled(false);
+
+		if(selectedRecord != null && !validateData())
+			return;
+
+		ignoreEvents = true;
+
 		//create a new record
 		final Map<String, Object> newTable = new HashMap<>();
 		final TreeMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
@@ -289,40 +331,80 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 		filterField.setText(null);
 
 		//add to table
-		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		final int oldSize = model.getRowCount();
 		model.setRowCount(oldSize + 1);
 		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_RECORD_ID);
 		//resort rows
+		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
 		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
+
+		ignoreEvents = false;
 
 		//select the newly created record
 		final int newRowIndex = recordTable.convertRowIndexToView(oldSize);
 		recordTable.setRowSelectionInterval(newRowIndex, newRowIndex);
 		//make selected row visible
 		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
+
+		setMandatoryFieldsBackgroundColor(MANDATORY_BACKGROUND_COLOR);
+	}
+
+	private void setMandatoryFieldsBackgroundColor(Color color){
+		for(final JTextComponent[] mandatoryFields : mandatoryFields)
+			for(int j = 0, length = mandatoryFields.length; j < length; j ++)
+				mandatoryFields[j].setBackground(color);
+	}
+
+	protected void requestFocusAfterSelect(){}
+
+	private void unselectAction(){
+		if(selectedRecord == null)
+			//no row selected
+			return;
+
+		//clear previously selected row
+		selectedRecord = null;
+
+		ignoreEvents = true;
+		clearData();
+		ignoreEvents = false;
+
+		GUIHelper.setEnabled(recordTabbedPane, false);
+		unselectRecordButton.setEnabled(false);
+		deleteRecordButton.setEnabled(false);
+
+		//clear selection from table
+		recordTable.clearSelection();
 	}
 
 	private void deleteAction(){
 		final int viewRowIndex = recordTable.getSelectedRow();
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
 		if(viewRowIndex == -1)
 			//no row selected
 			return;
 
+		//clear previously selected row
+		selectedRecord = null;
 
+		ignoreEvents = true;
 		clearData();
+		ignoreEvents = false;
 
 		GUIHelper.setEnabled(recordTabbedPane, false);
+		newRecordButton.setEnabled(true);
+		unselectRecordButton.setEnabled(false);
 		deleteRecordButton.setEnabled(false);
+		setMandatoryFieldsBackgroundColor(Color.WHITE);
 
-
+		//remove row from table
 		model.removeRow(modelRowIndex);
+		//remove data from records
 		getRecords(getTableName()).remove(recordID);
-
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
@@ -337,51 +419,12 @@ public abstract class CommonListDialog extends CommonRecordDialog{
 			storeRestriction.remove(restrictionID);
 		//TODO check referential integrity
 		//FIXME use a database?
-
-		//clear previously selected row
-		selectedRecord = null;
 	}
 
 	@Override
-	protected final void okAction(){
-		if(selectedRecord == null)
-			return;
-
-		saveData();
-
-		if(selectedRecord.hashCode() != selectedRecordHash){
-			final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
-			final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
-			if(recordModification.isEmpty()){
-				//create a new record
-				final TreeMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
-				final Map<String, Object> newModification = new HashMap<>();
-				final int newModificationID = extractNextRecordID(storeModifications);
-				newModification.put("id", newModificationID);
-				newModification.put("reference_table", getTableName());
-				newModification.put("reference_id", extractRecordID(selectedRecord));
-				newModification.put("creation_date", now);
-				storeModifications.put(newModificationID, newModification);
-			}
-			else{
-				//TODO ask for a modification note
-//				//show note record dialog
-//				final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-//				changeNoteDialog.setTitle("Change note for " + getTableName() + " " + extractRecordID(selectedRecord));
-//				changeNoteDialog.loadData(selectedRecord, dialog -> {
-//					selectedRecord = selectedRecord;
-//					selectedRecordHash = selectedRecord.hashCode();
-//				});
-//
-//				changeNoteDialog.setSize(450, 209);
-//				changeNoteDialog.setVisible(true);
-
-
-				//update the record with `update_date`
-				recordModification.get(recordModification.firstKey())
-					.put("update_date", now);
-			}
-		}
+	public void onValidationChange(final boolean valid){
+		newRecordButton.setEnabled(selectedRecord == null || valid);
+		unselectRecordButton.setEnabled(selectedRecord != null);
 	}
 
 }

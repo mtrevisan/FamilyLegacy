@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -81,20 +82,34 @@ public final class EventDialog extends CommonListDialog{
 	private JTextField descriptionField;
 	private JButton placeButton;
 	private JButton dateButton;
-	private JButton referenceButton;
 
 	private JButton noteButton;
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
 
+	private String filterReferenceTable;
+	private int filterReferenceID;
 
-	public EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+
+	public static EventDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new EventDialog(store, parent);
+	}
+
+
+	private EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public EventDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public EventDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public EventDialog withReference(final String referenceTable, final int filterReferenceID){
+		this.filterReferenceTable = referenceTable;
+		this.filterReferenceID = filterReferenceID;
 
 		return this;
 	}
@@ -111,7 +126,8 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Events");
+		setTitle("Events"
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -123,56 +139,57 @@ public final class EventDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{"historic fact", "birth", "marriage", "death", "coroner report", "cremation", "burial",
-			"occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home", "residence",
-			"autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build",
+		typeComboBox = new JComboBox<>(new String[]{null, "historic fact", "birth", "marriage", "death", "coroner report", "cremation",
+			"burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home",
+			"residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build",
 			"complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education",
 			"able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status",
 			"political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use",
 			"alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism",
-			"excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will",
-			"deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment",
-			"land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank",
-			"military award", "military promotion", "military service", "military release", "military discharge", "military resignation",
-			"military retirement", "prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann",
-			"missing in action", "adoption", "reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership",
-			"natural disaster", "blessing", "anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration",
-			"marriage contract", "reunion", "scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary",
-			"patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description",
-			"number of marriages", "property", "imaginary", "marriage settlement", "specialty", "award"});
+			"excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed",
+			"escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant",
+			"name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award",
+			"military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement",
+			"prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption",
+			"reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing",
+			"anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion",
+			"scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted",
+			"internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary",
+			"marriage settlement", "specialty", "award"});
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionField = new JTextField();
 
 		placeButton = new JButton("Place", ICON_PLACE);
 		dateButton = new JButton("Date", ICON_CALENDAR);
-		referenceButton = new JButton("Reference", ICON_REFERENCE);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
+		mediaButton = new JButton("Medias", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> saveData());
 
 		placeButton.setToolTipText("Event place");
-		placeButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.PLACE, getSelectedRecord())));
+		//TODO add place to selectedRecord
+		placeButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
 
 		dateButton.setToolTipText("Event date");
-		dateButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.DATE, getSelectedRecord())));
-
-		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
-		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		//TODO add date to selectedRecord
+		dateButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -180,13 +197,12 @@ public final class EventDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
-		recordPanelBase.add(descriptionLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(descriptionLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(descriptionField, "growx,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelBase.add(referenceButton, "sizegroup btn,center");
+		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
@@ -199,14 +215,18 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
+			? getRecords(TABLE_NAME)
+			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String type = extractRecordType(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String type = extractRecordType(container);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(type, row, TABLE_INDEX_RECORD_TYPE);
@@ -217,7 +237,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TYPE);
 
@@ -232,7 +252,7 @@ public final class EventDialog extends CommonListDialog{
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
+//		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -241,7 +261,6 @@ public final class EventDialog extends CommonListDialog{
 		descriptionField.setText(description);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -254,7 +273,6 @@ public final class EventDialog extends CommonListDialog{
 		descriptionField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
 		GUIHelper.setDefaultBorder(dateButton);
-		GUIHelper.setDefaultBorder(referenceButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
@@ -263,8 +281,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		final String type = extractRecordType(selectedRecord);
-		if(!validData(type)){
+		if(filterReferenceTable == null && !validData(GUIHelper.getTextTrimmed(typeComboBox))){
 			JOptionPane.showMessageDialog(getParent(), "Type field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
 			typeComboBox.requestFocusInWindow();
@@ -272,40 +289,49 @@ public final class EventDialog extends CommonListDialog{
 			return false;
 		}
 
-		final String referenceTable = extractRecordReferenceTable(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
-		if(!validData(referenceTable) || !validData(referenceID)){
-			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			referenceButton.requestFocusInWindow();
-
-			return false;
-		}
+//		if(selectedRecord != null){
+//			final String referenceTable = extractRecordReferenceTable(selectedRecord);
+//			final Integer referenceID = extractRecordReferenceID(selectedRecord);
+//			if(!validData(referenceTable) || !validData(referenceID)){
+//				JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
+//					JOptionPane.ERROR_MESSAGE);
+//				referenceButton.requestFocusInWindow();
+//
+//				return false;
+//			}
+//		}
 
 		return true;
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String type = (String)typeComboBox.getSelectedItem();
-		final String description = descriptionField.getText();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
-		if(! Objects.equals(type, extractRecordType(selectedRecord))){
+		//read record panel:
+		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final String description = GUIHelper.getTextTrimmed(descriptionField);
+
+		//update table:
+		if(!Objects.equals(type, extractRecordType(selectedRecord))){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
 					model.setValueAt(type, modelRowIndex, TABLE_INDEX_RECORD_TYPE);
+
 					break;
 				}
 		}
 
 		selectedRecord.put("type", type);
 		selectedRecord.put("description", description);
+
+		return true;
 	}
 
 
@@ -374,15 +400,9 @@ public final class EventDialog extends CommonListDialog{
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
-		place1.put("name_id", 1);
+		place1.put("name", "name of the place");
+		place1.put("name_locale", "en-US");
 		places.put((Integer)place1.get("id"), place1);
-
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
-		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
-		localizedText1.put("text", "place 1 name");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
 
 		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
 		store.put("historic_date", dates);
@@ -437,7 +457,7 @@ public final class EventDialog extends CommonListDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final EventDialog dialog = new EventDialog(store, parent);
+			final EventDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.initComponents();
 			dialog.loadData();
@@ -453,36 +473,64 @@ public final class EventDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
 					switch(editCommand.getType()){
 						case PLACE -> {
-							//TODO single cultural norm
+							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
+							placeDialog.initComponents();
+							placeDialog.loadData();
+							final Integer placeID = extractRecordPlaceID(container);
+							if(placeID != null)
+								placeDialog.selectData(placeID);
+
+							placeDialog.setSize(522, 618);
+							placeDialog.setLocationRelativeTo(null);
+							placeDialog.setVisible(true);
 						}
-						case DATE -> {
-							//TODO single cultural norm
-						}
-						case REFERENCE -> {
-							//TODO single cultural norm
+						case HISTORIC_DATE -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							historicDateDialog.initComponents();
+							historicDateDialog.loadData();
+							final Integer dateID = extractRecordDateID(container);
+							if(dateID != null)
+								historicDateDialog.selectData(dateID);
+
+							historicDateDialog.setSize(481, 427);
+							historicDateDialog.setLocationRelativeTo(null);
+							historicDateDialog.setVisible(true);
 						}
 						case NOTE -> {
-							final int eventID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, eventID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final int eventID = extractRecordID(container);
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, eventID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", eventID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final int eventID = extractRecordID(editCommand.getContainer());
-							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, eventID, parent)
-								.withBasePath("\\Documents\\");
-							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final int eventID = extractRecordID(container);
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, eventID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", eventID);
+									}
+								});
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(351, 460);
+							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -494,10 +542,11 @@ public final class EventDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(303, 470);
+			dialog.setSize(309, 409);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

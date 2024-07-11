@@ -235,12 +235,13 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 
-	public Color getTextViewackgroundColor(){
+	public Color getTextViewBackgroundColor(){
 		return textView.getBackground();
 	}
 
-	public void setTextViewBackgroundColor(final Color c){
-		GUIHelper.setBackgroundColor(textView, c);
+	public void addValidDataListener(final ValidDataListenerInterface validDataInterface, final Color mandatoryBackgroundColor,
+			final Color defaultBackgroundColor){
+		GUIHelper.addValidDataListener(validDataInterface, mandatoryBackgroundColor, defaultBackgroundColor, textView);
 	}
 
 	public Font getTextViewFont(){
@@ -409,8 +410,11 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 	public String getText(){
-		return textView.getText()
-			.trim();
+		return textView.getText();
+	}
+
+	public String getTextTrimmed(){
+		return GUIHelper.getTextTrimmed(textView);
 	}
 
 }

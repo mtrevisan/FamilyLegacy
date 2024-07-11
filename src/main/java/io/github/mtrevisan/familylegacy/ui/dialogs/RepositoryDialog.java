@@ -64,6 +64,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
+import javax.swing.RowSorter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -565,6 +566,9 @@ public class RepositoryDialog extends JDialog{
 		final int oldSize = model.getRowCount();
 		model.setRowCount(oldSize + 1);
 		model.setValueAt(newRecord.getID(), oldSize, TABLE_INDEX_RECORD_ID);
+		//resort rows
+		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
+		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
 
 		//select the newly created record
 		recordTable.setRowSelectionInterval(oldSize, oldSize);

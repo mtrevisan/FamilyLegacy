@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -35,7 +34,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExcep
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -49,16 +47,15 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -74,8 +71,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private static final String TABLE_NAME = "localized_text";
 
 
-	private JLabel textLabel;
-	private TextPreviewPane textTextArea;
+	private JLabel primaryTextLabel;
+	private TextPreviewPane textTextPreview;
+	private JTextField primaryTextField;
+	private JLabel secondaryTextLabel;
+	private JTextField secondaryTextField;
 	private JLabel localeLabel;
 	private JTextField localeField;
 	private JLabel typeLabel;
@@ -85,25 +85,28 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private JLabel transcriptionTypeLabel;
 	private JComboBox<String> transcriptionTypeComboBox;
 
-	private JButton referenceButton;
-	private JLabel referenceTypeLabel;
-	private JComboBox<String> referenceTypeComboBox;
-
 	private String filterReferenceTable;
 	private int filterReferenceID;
-	private String referenceType;
+	private String filterReferenceType;
+
+	private boolean simplePrimaryText;
+	private boolean withSecondaryInput;
 
 
-	public static LocalizedTextDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static LocalizedTextDialog createComplexText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		return new LocalizedTextDialog(store, parent);
 	}
 
-	public static LocalizedTextDialog createWithReferenceTable(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-		final String referenceTable, final int filterReferenceID, final String referenceType, final Frame parent){
+	public static LocalizedTextDialog createSimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
-		dialog.filterReferenceTable = referenceTable;
-		dialog.filterReferenceID = filterReferenceID;
-		dialog.referenceType = referenceType;
+		dialog.simplePrimaryText = true;
+		return dialog;
+	}
+
+	public static LocalizedTextDialog createSimpleTextWithSecondary(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.simplePrimaryText = true;
+		dialog.withSecondaryInput = true;
 		return dialog;
 	}
 
@@ -113,8 +116,31 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	}
 
 
-	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
+			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
+			final int localizedTextID = extractRecordID(selectedRecord);
+			final Map<String, Object> mediaJunction = new HashMap<>();
+			mediaJunction.put("id", mediaJunctionID);
+			mediaJunction.put("localized_text_id", localizedTextID);
+			mediaJunction.put("reference_table", filterReferenceTable);
+			mediaJunction.put("reference_id", filterReferenceID);
+			mediaJunction.put("reference_type", filterReferenceType);
+			mediaJunctions.put(mediaJunctionID, mediaJunction);
+		};
+		if(onCloseGracefully != null)
+			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
+
+		super.setOnCloseGracefully(innerOnCloseGracefully);
+
+		return this;
+	}
+
+	public LocalizedTextDialog withReference(final String referenceTable, final int filterReferenceID, final String filterReferenceType){
+		this.filterReferenceTable = referenceTable;
+		this.filterReferenceID = filterReferenceID;
+		this.filterReferenceType = filterReferenceType;
 
 		return this;
 	}
@@ -143,84 +169,70 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void initRecordComponents(){
-		textLabel = new JLabel("Text:");
-		textTextArea = TextPreviewPane.createWithPreview(this);
-		textTextArea.setTextViewFont(textLabel.getFont());
+		primaryTextLabel = new JLabel(withSecondaryInput? "(Primary) Name:": "Text:");
+		textTextPreview = TextPreviewPane.createWithPreview(this);
+		textTextPreview.setTextViewFont(primaryTextLabel.getFont());
+		primaryTextField = new JTextField();
+		secondaryTextLabel = new JLabel("(Secondary) Name:");
+		secondaryTextField = new JTextField();
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{"original", "transliteration", "translation"});
+		typeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
 		transcriptionLabel = new JLabel("Transcription:");
-		transcriptionComboBox = new JComboBox<>(new String[]{"IPA", "Wade-Giles", "hanyu pinyin",
-			"wāpuro rōmaji", "kana", "hangul"});
+		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul"});
 		transcriptionTypeLabel = new JLabel("Transcription type:");
-		transcriptionTypeComboBox = new JComboBox<>(new String[]{"romanized", "anglicized", "cyrillized",
-			"francized", "gairaigized", "latinized"});
-
-		referenceButton = new JButton("Reference", ICON_REFERENCE);
-		referenceTypeLabel = new JLabel("Reference type:");
-		referenceTypeComboBox = new JComboBox<>(new String[]{"extract", "name", "alternate name"});
+		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized", "gairaigized",
+			"latinized"});
 
 
-		GUIHelper.bindLabelTextChange(textLabel, textTextArea, evt -> saveData());
-		textTextArea.setTextViewBackgroundColor(MANDATORY_COMBOBOX_BACKGROUND_COLOR);
+		if(simplePrimaryText){
+			GUIHelper.bindLabelTextChangeUndo(primaryTextLabel, primaryTextField, evt -> saveData());
+			GUIHelper.bindLabelTextChangeUndo(secondaryTextLabel, secondaryTextField, evt -> saveData());
+			addMandatoryField(primaryTextField, secondaryTextField);
+		}
+		else{
+			GUIHelper.bindLabelTextChange(primaryTextLabel, textTextPreview, evt -> saveData());
+			textTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
+		}
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, evt -> saveData(),
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData(),
-			evt -> saveData());
-
-
-		if(filterReferenceTable == null){
-			referenceButton.setToolTipText("Reference");
-			referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())
-				.withOnCloseGracefully(container -> {
-					//TODO save data
-				})));
-			GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
-
-			GUIHelper.bindLabelSelectionAutoCompleteChange(referenceTypeLabel, referenceTypeComboBox, evt -> saveData());
-		}
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData());
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
-		referenceButton.setVisible(filterReferenceTable == null);
-		referenceTypeLabel.setVisible(filterReferenceTable == null);
-		referenceTypeComboBox.setVisible(filterReferenceTable == null);
-
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(textLabel, "align label,sizegroup label,split 2");
-		recordPanelBase.add(textTextArea, "growx,wrap related");
-		recordPanelBase.add(localeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(primaryTextLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add((simplePrimaryText? primaryTextField: textTextPreview), "growx,wrap related");
+		if(withSecondaryInput){
+			recordPanelBase.add(secondaryTextLabel, "align label,sizegroup lbl,split 2");
+			recordPanelBase.add(secondaryTextField, "growx,wrap related");
+		}
+		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(localeField, "growx,wrap paragraph");
-		recordPanelBase.add(typeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
-		recordPanelBase.add(transcriptionLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(transcriptionLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(transcriptionComboBox, "growx,wrap related");
-		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(transcriptionTypeComboBox, "growx");
 
-		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelLink.add(referenceButton, "sizegroup btn,center,wrap paragraph,hidemode 3");
-		recordPanelLink.add(referenceTypeLabel, "align label,sizegroup label,split 2,hidemode 3");
-		recordPanelLink.add(referenceTypeComboBox, "growx,hidemode 3");
-
 		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("link", recordPanelLink);
 	}
 
 	@Override
 	public void loadData(){
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterReferenceTable != null){
 			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
 				.values().stream()
+				.filter(record -> filterReferenceType.equals(extractRecordType(record)))
 				.map(CommonRecordDialog::extractRecordID)
 				.collect(Collectors.toSet());
 			records.entrySet()
@@ -232,10 +244,18 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractRecordText(record.getValue());
+			final Map<String, Object> container = record.getValue();
+
+			final String primaryName = (withSecondaryInput? extractRecordPrimaryName(container): extractRecordText(container));
+			final String secondaryName = extractRecordSecondaryName(container);
+			final StringJoiner identifier = new StringJoiner(", ");
+			if(primaryName != null)
+				identifier.add(primaryName);
+			if(secondaryName != null)
+				identifier.add(secondaryName);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_TEXT);
+			model.setValueAt(identifier.toString(), row, TABLE_INDEX_RECORD_TEXT);
 
 			row ++;
 		}
@@ -243,7 +263,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_TEXT);
 
@@ -255,12 +275,21 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	@Override
 	protected void fillData(){
 		final String text = extractRecordText(selectedRecord);
+		final String primaryName = extractRecordPrimaryName(selectedRecord);
+		final String secondaryName = extractRecordSecondaryName(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
-		textTextArea.setText("Extract " + extractRecordID(selectedRecord), text, locale);
+		if(withSecondaryInput){
+			primaryTextField.setText(primaryName);
+			secondaryTextField.setText(secondaryName);
+		}
+		else if(simplePrimaryText)
+			primaryTextField.setText(text);
+		else
+			textTextPreview.setText("Extract " + extractRecordID(selectedRecord), text, locale);
 		localeField.setText(locale);
 		typeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
@@ -271,25 +300,18 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				LocalizedTextDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
-
-			final Map<String, Object> record = recordMediaJunction.values().stream()
-				.findFirst()
-				.orElse(Collections.emptyMap());
-			final String referenceType = extractRecordReferenceType(record);
-
-			GUIHelper.addBorder(referenceButton, (!recordMediaJunction.isEmpty()? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-			referenceTypeComboBox.setSelectedItem(referenceType);
-		}
-		else{
-			referenceTypeComboBox.setSelectedItem(referenceType);
-			recordTabbedPane.setEnabledAt(recordTabbedPane.indexOfTab("link"), false);
 		}
 	}
 
 	@Override
 	protected void clearData(){
-		textTextArea.clear();
-		textTextArea.setTextViewBackgroundColor(Color.WHITE);
+		if(simplePrimaryText){
+			primaryTextField.setText(null);
+			if(withSecondaryInput)
+				secondaryTextField.setText(null);
+		}
+		else
+			textTextPreview.clear();
 
 		localeField.setText(null);
 
@@ -298,20 +320,16 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		transcriptionComboBox.setSelectedItem(null);
 
 		transcriptionTypeComboBox.setSelectedItem(null);
-
-		if(filterReferenceTable == null){
-			GUIHelper.setDefaultBorder(referenceButton);
-			referenceTypeComboBox.setSelectedItem(null);
-		}
 	}
 
 	@Override
 	protected boolean validateData(){
-		final String text = textTextArea.getText();
-		if(!validData(text)){
-			JOptionPane.showMessageDialog(getParent(), "Text field is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			textTextArea.requestFocusInWindow();
+		final String primaryText = (simplePrimaryText? GUIHelper.getTextTrimmed(primaryTextField): textTextPreview.getTextTrimmed());
+		final String secondaryText = GUIHelper.getTextTrimmed(secondaryTextField);
+		if(!validData(primaryText) && !validData(secondaryText)){
+			final String message = withSecondaryInput? "(Primary or secondary) Name field is required": "Text field is required";
+			JOptionPane.showMessageDialog(getParent(), message, "Error", JOptionPane.ERROR_MESSAGE);
+			primaryTextField.requestFocusInWindow();
 
 			return false;
 		}
@@ -319,23 +337,38 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String text = textTextArea.getText();
-		final String locale = GUIHelper.readTextTrimmed(localeField);
-		final String type = (String)typeComboBox.getSelectedItem();
-		final String transcription = (String)transcriptionComboBox.getSelectedItem();
-		final String transcriptionType = (String)transcriptionTypeComboBox.getSelectedItem();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
-		//update table
-		if(!Objects.equals(text, extractRecordText(selectedRecord))){
+		//read record panel:
+		final String primaryText = (simplePrimaryText? GUIHelper.getTextTrimmed(primaryTextField): textTextPreview.getTextTrimmed());
+		final String secondaryText = GUIHelper.getTextTrimmed(secondaryTextField);
+		final String locale = GUIHelper.getTextTrimmed(localeField);
+		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final String transcription = GUIHelper.getTextTrimmed(transcriptionComboBox);
+		final String transcriptionType = GUIHelper.getTextTrimmed(transcriptionTypeComboBox);
+
+		//update table:
+		final boolean shouldUpdate = (!withSecondaryInput && !Objects.equals(primaryText, extractRecordText(selectedRecord))
+			|| withSecondaryInput && (!Objects.equals(primaryText, extractRecordPrimaryName(selectedRecord))
+				|| !Objects.equals(secondaryText, extractRecordSecondaryName(selectedRecord))));
+		if(shouldUpdate){
 			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-					model.setValueAt(text, modelRowIndex, TABLE_INDEX_RECORD_TEXT);
+
+					final StringJoiner text = new StringJoiner(", ");
+					if(primaryText != null)
+						text.add(primaryText);
+					if(secondaryText != null)
+						text.add(secondaryText);
+
+					model.setValueAt(text.toString(), modelRowIndex, TABLE_INDEX_RECORD_TEXT);
+
 					break;
 				}
 		}
@@ -344,11 +377,18 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			//TODO upsert junction
 		}
 
-		selectedRecord.put("text", text);
+		if(withSecondaryInput){
+			selectedRecord.put("primary_name", primaryText);
+			selectedRecord.put("secondary_name", secondaryText);
+		}
+		else
+			selectedRecord.put("text", primaryText);
 		selectedRecord.put("locale", locale);
 		selectedRecord.put("type", type);
 		selectedRecord.put("transcription", transcription);
 		selectedRecord.put("transcription_type", transcriptionType);
+
+		return true;
 	}
 
 
@@ -374,6 +414,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
 		return (Integer)record.get("localized_text_id");
+	}
+
+	private static String extractRecordPrimaryName(final Map<String, Object> record){
+		return (String)record.get("primary_name");
+	}
+
+	private static String extractRecordSecondaryName(final Map<String, Object> record){
+		return (String)record.get("secondary_name");
 	}
 
 
@@ -419,6 +467,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
+		localizedText1.put("primary_name", "primary name");
+		localizedText1.put("secondary_name", "secondary name");
 		localizedText1.put("locale", "en");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
@@ -446,7 +496,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			};
 			EventBusService.subscribe(listener);
 
-			final LocalizedTextDialog dialog = create(store, parent);
+//			final LocalizedTextDialog dialog = createComplexText(store, parent);
+//			final LocalizedTextDialog dialog = createSimpleText(store, parent);
+			final LocalizedTextDialog dialog = createSimpleTextWithSecondary(store, parent);
 			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))
@@ -455,10 +507,16 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 594);
+			//complex
+//			dialog.setSize(420, 581);
+			//simple
+//			dialog.setSize(420, 453);
+			//with secondary
+			dialog.setSize(420, 480);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -63,7 +64,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 
 public final class AssertionDialog extends CommonListDialog{
@@ -79,8 +79,6 @@ public final class AssertionDialog extends CommonListDialog{
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
-	private JButton citationButton;
-	private JButton referenceButton;
 	private JLabel roleLabel;
 	private JTextField roleField;
 	private JLabel certaintyLabel;
@@ -93,19 +91,29 @@ public final class AssertionDialog extends CommonListDialog{
 	private JButton culturalNormButton;
 	private JCheckBox restrictionCheckBox;
 
-	private final Integer filterCitationID;
+	private String filterReferenceTable;
+	private int filterReferenceID;
 
 
-	public AssertionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Integer filterCitationID,
-			final Frame parent){
-		super(store, parent);
-
-		this.filterCitationID = filterCitationID;
+	public static AssertionDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new AssertionDialog(store, parent);
 	}
 
 
-	public AssertionDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	private AssertionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		super(store, parent);
+	}
+
+
+	public AssertionDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
+
+		return this;
+	}
+
+	public AssertionDialog withReference(final String referenceTable, final int filterReferenceID){
+		this.filterReferenceTable = referenceTable;
+		this.filterReferenceID = filterReferenceID;
 
 		return this;
 	}
@@ -122,7 +130,8 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Assertions" + (filterCitationID != null? " for citation " + filterCitationID: StringUtils.EMPTY));
+		setTitle("Assertions"
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -133,8 +142,6 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		citationButton = new JButton("Citation", ICON_CITATION);
-		referenceButton = new JButton("Reference", ICON_REFERENCE);
 		roleLabel = new JLabel("Role:");
 		roleField = new JTextField();
 		certaintyLabel = new JLabel("Certainty:");
@@ -143,36 +150,29 @@ public final class AssertionDialog extends CommonListDialog{
 		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		culturalNormButton = new JButton("Cultural norm", ICON_CULTURAL_NORM);
+		mediaButton = new JButton("Medias", ICON_MEDIA);
+		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		citationButton.setToolTipText("Source");
-		citationButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CITATION, getSelectedRecord())));
-		GUIHelper.addBorder(citationButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
-
-		referenceButton.setToolTipText("Reference");
-		referenceButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.REFERENCE, getSelectedRecord())));
-		GUIHelper.addBorder(referenceButton, MANDATORY_COMBOBOX_BACKGROUND_COLOR);
-
 		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData(), evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData());
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData(),
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData());
 
 
 		noteButton.setToolTipText("Notes");
-		noteButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.NOTE, getSelectedRecord())));
+		noteButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
 		mediaButton.setToolTipText("Media");
-		mediaButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MEDIA, getSelectedRecord())));
+		mediaButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 
 		culturalNormButton.setToolTipText("Cultural norm");
-		culturalNormButton.addActionListener(e -> EventBusService.publish(EditEvent.create(EditEvent.EditType.CULTURAL_NORM,
-			getSelectedRecord())));
+		culturalNormButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -180,13 +180,11 @@ public final class AssertionDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(citationButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(referenceButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
-		recordPanelBase.add(roleLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(roleLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(roleField, "grow,wrap paragraph");
-		recordPanelBase.add(certaintyLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(certaintyLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(certaintyComboBox, "wrap related");
-		recordPanelBase.add(credibilityLabel, "align label,sizegroup label,split 2");
+		recordPanelBase.add(credibilityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(credibilityComboBox);
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -201,25 +199,25 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
-		Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		if(filterCitationID != null)
-			records = records.entrySet().stream()
-				.filter(entry -> filterCitationID.equals(extractRecordCitationID(entry.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
+			? getRecords(TABLE_NAME)
+			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final Map<String, Object> assertion = record.getValue();
+			final Map<String, Object> container = record.getValue();
 
-			final String sourceIdentifier = extractRecordSourceIdentifier(assertion);
-			final String location = extractRecordLocation(assertion);
-			final String referenceTable = extractRecordReferenceTable(assertion);
+			final String sourceIdentifier = extractRecordSourceIdentifier(container);
+			final String location = extractRecordLocation(container);
+			final String referenceTable = extractRecordReferenceTable(container);
 			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
-					+ (location != null? (sourceIdentifier != null? " at ": StringUtils.EMPTY) + location: StringUtils.EMPTY)
-					+ (location != null || sourceIdentifier != null? " for ": StringUtils.EMPTY) + referenceTable;
+				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
+				+ (location != null? location: StringUtils.EMPTY)
+				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
+				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_REFERENCE_TABLE);
@@ -230,7 +228,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.readTextTrimmed(filterField);
+		final String title = GUIHelper.getTextTrimmed(filterField);
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
 			TABLE_INDEX_RECORD_REFERENCE_TABLE);
 
@@ -240,10 +238,14 @@ public final class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		roleField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
-		final Integer citationID = extractRecordCitationID(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
-		final String location = extractRecordLocation(selectedRecord);
+		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
@@ -251,9 +253,7 @@ public final class AssertionDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		GUIHelper.addBorder(citationButton, (citationID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		GUIHelper.addBorder(referenceButton, (referenceID != null? DATA_BUTTON_BORDER_COLOR: MANDATORY_COMBOBOX_BACKGROUND_COLOR));
-		roleField.setText(location);
+		roleField.setText(role);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
@@ -265,8 +265,6 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void clearData(){
-		GUIHelper.setDefaultBorder(citationButton);
-		GUIHelper.setDefaultBorder(referenceButton);
 		roleField.setText(null);
 		certaintyComboBox.setSelectedItem(null);
 		credibilityComboBox.setSelectedItem(null);
@@ -279,35 +277,20 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		final Integer citationID = extractRecordCitationID(selectedRecord);
-		if(!validData(citationID)){
-			JOptionPane.showMessageDialog(getParent(), "Citation field is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			citationButton.requestFocusInWindow();
-
-			return false;
-		}
-
-		final String referenceTable = extractRecordReferenceTable(selectedRecord);
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
-		if(!validData(referenceTable) || !validData(referenceID)){
-			JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-				JOptionPane.ERROR_MESSAGE);
-			referenceButton.requestFocusInWindow();
-
-			return false;
-		}
-
 		return true;
 	}
 
 	@Override
-	protected void saveData(){
-		//read record panel:
-		final String role = GUIHelper.readTextTrimmed(roleField);
-		final String certainty = (String)certaintyComboBox.getSelectedItem();
-		final String credibility = (String)credibilityComboBox.getSelectedItem();
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
 
+		//read record panel:
+		final String role = GUIHelper.getTextTrimmed(roleField);
+		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
+		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
+
+		//update table:
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		final Integer recordID = extractRecordID(selectedRecord);
 		for(int row = 0, length = model.getRowCount(); row < length; row ++)
@@ -320,16 +303,21 @@ public final class AssertionDialog extends CommonListDialog{
 				final String location = extractRecordLocation(updatedAssertionRecord);
 				final String referenceTable = extractRecordReferenceTable(updatedAssertionRecord);
 				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
-					+ (location != null? (sourceIdentifier != null? " at ": StringUtils.EMPTY) + location: StringUtils.EMPTY)
-					+ (location != null || sourceIdentifier != null? " for ": StringUtils.EMPTY) + referenceTable;
+					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
+					+ (location != null? location: StringUtils.EMPTY)
+					+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
+					+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
 
 				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+
 				break;
 			}
 
 		selectedRecord.put("role", role);
 		selectedRecord.put("certainty", certainty);
 		selectedRecord.put("credibility", credibility);
+
+		return true;
 	}
 
 
@@ -378,6 +366,10 @@ public final class AssertionDialog extends CommonListDialog{
 
 	private static Integer extractRecordSourceID(final Map<String, Object> record){
 		return (Integer)record.get("source_id");
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
 	}
 
 
@@ -430,7 +422,8 @@ public final class AssertionDialog extends CommonListDialog{
 		citation.put("id", 1);
 		citation.put("source_id", 1);
 		citation.put("location", "here");
-		citation.put("extract_id", 1);
+		citation.put("extract", "text 1");
+		citation.put("extract_locale", "en-US");
 		citation.put("extract_type", "transcript");
 		citations.put((Integer)citation.get("id"), citation);
 
@@ -438,8 +431,17 @@ public final class AssertionDialog extends CommonListDialog{
 		store.put(TABLE_NAME_SOURCE, sources);
 		final Map<String, Object> source = new HashMap<>();
 		source.put("id", 1);
+		source.put("repository_id", 1);
 		source.put("identifier", "source");
 		sources.put((Integer)source.get("id"), source);
+
+		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
+		store.put("repository", repositories);
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("id", 1);
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		repositories.put((Integer)repository1.get("id"), repository1);
 
 		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
 		store.put("media", medias);
@@ -449,7 +451,6 @@ public final class AssertionDialog extends CommonListDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
 		medias.put((Integer)media1.get("id"), media1);
 
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
@@ -483,7 +484,7 @@ public final class AssertionDialog extends CommonListDialog{
 		notes.put((Integer)note1.get("id"), note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
-		note2.put("note", "note 1");
+		note2.put("note", "note 2");
 		note2.put("reference_table", TABLE_NAME);
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
@@ -496,13 +497,6 @@ public final class AssertionDialog extends CommonListDialog{
 		restriction1.put("reference_table", TABLE_NAME);
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
-		final Map<String, Object> m1 = new HashMap<>();
-		m1.put("id", 1);
-		m1.put("identifier", "custom media");
-		media.put((Integer)m1.get("id"), m1);
 
 		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
 		store.put("cultural_norm", culturalNorms);
@@ -539,9 +533,8 @@ public final class AssertionDialog extends CommonListDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final Integer filterCitationID = null;
 			final JFrame parent = new JFrame();
-			final AssertionDialog dialog = new AssertionDialog(store, filterCitationID, parent);
+			final AssertionDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.initComponents();
 			dialog.loadData();
@@ -557,53 +550,57 @@ public final class AssertionDialog extends CommonListDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int assertionID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case CITATION -> {
-							//TODO single assertion
-//							final CitationDialog dialog = new CitationDialog(store, parent)
-//								.withFilterOnCitationID(filterCitationID);
-//							dialog.initComponents();
-//							dialog.loadData();
-//							if(!dialog.selectData(extractRecordID(source)))
-//								dialog.showNewRecord();
-						}
-						case REFERENCE -> {
-							//TODO single cultural norm
-						}
 						case NOTE -> {
-							final int assertionID = extractRecordID(editCommand.getContainer());
-							final NoteDialog noteDialog = NoteDialog.createWithReferenceTable(store, TABLE_NAME, assertionID, parent);
-							noteDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+								.withReference(TABLE_NAME, assertionID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", assertionID);
+									}
+								});
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 487);
+							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final int assertionID = extractRecordID(editCommand.getContainer());
-							final MediaDialog mediaDialog = MediaDialog.createWithReferenceTable(store, TABLE_NAME, assertionID, parent)
-								.withBasePath("\\Documents\\");
-							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
+							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(TABLE_NAME, assertionID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", assertionID);
+									}
+								});
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(351, 460);
+							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
 						case CULTURAL_NORM -> {
-							final int assertionID = extractRecordID(editCommand.getContainer());
-							final CulturalNormDialog mediaDialog = CulturalNormDialog.createWithReferenceTable(store, TABLE_NAME, assertionID,
-								parent);
-							mediaDialog.withOnCloseGracefully(editCommand.getOnCloseGracefully());
-							mediaDialog.initComponents();
-							mediaDialog.loadData();
+							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
+								.withReference(TABLE_NAME, assertionID)
+								.withOnCloseGracefully(record -> {
+									if(record != null){
+										record.put("reference_table", TABLE_NAME);
+										record.put("reference_id", assertionID);
+									}
+								});
+							culturalNormDialog.initComponents();
+							culturalNormDialog.loadData();
 
-							mediaDialog.setSize(474, 665);
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							culturalNormDialog.setSize(474, 652);
+							culturalNormDialog.setLocationRelativeTo(dialog);
+							culturalNormDialog.setVisible(true);
 						}
 					}
 				}
@@ -613,10 +610,11 @@ public final class AssertionDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
-			dialog.setSize(470, 446);
+			dialog.setSize(488, 386);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

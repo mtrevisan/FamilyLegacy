@@ -70,7 +70,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	private JLabel copyrightLabel;
 	private JTextField copyrightField;
 	private JLabel noteLabel;
-	private TextPreviewPane noteTextArea;
+	private TextPreviewPane noteTextPreview;
 	private JLabel localeLabel;
 	private JTextField localeField;
 
@@ -80,7 +80,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 
-	public ProjectDialog withOnCloseGracefully(final Consumer<Object> onCloseGracefully){
+	public ProjectDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		super.setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -99,8 +99,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		copyrightField = new JTextField();
 
 		noteLabel = new JLabel("Note:");
-		noteTextArea = TextPreviewPane.createWithPreview(this);
-		noteTextArea.setTextViewFont(copyrightField.getFont());
+		noteTextPreview = TextPreviewPane.createWithPreview(this);
+		noteTextPreview.setTextViewFont(copyrightField.getFont());
 
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
@@ -108,7 +108,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, evt -> saveData());
 
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextArea, evt -> saveData());
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, evt -> saveData());
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
 	}
@@ -116,11 +116,11 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	@Override
 	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanel.add(copyrightLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(copyrightLabel, "align label,sizegroup lbl,split 2");
 		recordPanel.add(copyrightField, "growx,wrap paragraph");
-		recordPanel.add(noteLabel, "align label,top,sizegroup label,split 2");
-		recordPanel.add(noteTextArea, "grow,wrap related");
-		recordPanel.add(localeLabel, "align label,sizegroup label,split 2");
+		recordPanel.add(noteLabel, "align label,top,sizegroup lbl,split 2");
+		recordPanel.add(noteTextPreview, "grow,wrap related");
+		recordPanel.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanel.add(localeField, "grow");
 	}
 
@@ -129,7 +129,9 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		selectedRecord = getRecords(TABLE_NAME)
 			.computeIfAbsent(1, k -> new HashMap<>());
 
+		ignoreEvents = true;
 		fillData();
+		ignoreEvents = false;
 	}
 
 	@Override
@@ -139,14 +141,14 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String locale = extractRecordLocale(selectedRecord);
 
 		copyrightField.setText(copyright);
-		noteTextArea.setText("Note " + extractRecordID(selectedRecord), note, locale);
+		noteTextPreview.setText("Note " + extractRecordID(selectedRecord), note, locale);
 		localeField.setText(locale);
 	}
 
 	@Override
 	protected void clearData(){
 		copyrightField.setText(null);
-		noteTextArea.clear();
+		noteTextPreview.clear();
 		localeField.setText(null);
 	}
 
@@ -156,12 +158,15 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 	@Override
-	protected void saveData(){
+	protected boolean saveData(){
+		if(ignoreEvents || selectedRecord == null)
+			return false;
+
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		//read record panel:
-		final String copyright = copyrightField.getText();
-		final String note = noteTextArea.getText();
-		final String locale = localeField.getText();
+		final String copyright = GUIHelper.getTextTrimmed(copyrightField);
+		final String note = noteTextPreview.getTextTrimmed();
+		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String updateDate = extractUpdateDate(selectedRecord);
 
 		selectedRecord.put("protocol_name", PROTOCOL_NAME_DEFAULT);
@@ -170,6 +175,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		selectedRecord.put("note", note);
 		selectedRecord.put("locale", locale);
 		selectedRecord.put((updateDate == null? "creation_date": "update_date"), now);
+
+		return true;
 	}
 
 
@@ -254,6 +261,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
+					System.out.println(store);
 					System.exit(0);
 				}
 			});
