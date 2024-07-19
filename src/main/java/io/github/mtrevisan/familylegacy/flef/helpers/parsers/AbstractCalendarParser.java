@@ -22,10 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
-import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.util.regex.Matcher;
@@ -60,51 +59,6 @@ public abstract class AbstractCalendarParser{
 	private static final Pattern PATTERN_PREFIXES_BEFORE = RegexHelper.pattern("(?i)(?:" + FORMAT_BEFORE + ") ");
 	private static final Pattern PATTERN_PREFIXES_AFTER = RegexHelper.pattern("(?i)(?:" + FORMAT_AFTER + ") ");
 
-
-	public abstract CalendarType getCalendarType();
-
-	public CalendarData extractComponents(final CharSequence date){
-		String plainDate = CalendarParserBuilder.removeCalendarType(date);
-
-		final String[] rawComponents = StringUtils.splitByWholeSeparator(plainDate, StringUtils.SPACE);
-		final IntervalType intervalType = (rawComponents.length > 0? IntervalType.createFromDate(rawComponents[0]): null);
-		final Qualification fromQualification = (rawComponents.length > 1? Qualification.createFromDate(rawComponents[1]): null);
-		final String interpretedFrom = extractInterpretedFrom(plainDate);
-
-		plainDate = removeApproximations(plainDate);
-		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
-
-		final CalendarData response = new CalendarData()
-			.withCalendarType(getCalendarType())
-			.withIntervalType(intervalType)
-			.withInterpretedFrom(interpretedFrom);
-		if(isRange(plainDate)){
-			final String[] range = getDatesFromRangeOrPeriod(plainDate);
-			if(range == null)
-				return null;
-
-			final DateData fromDate = extractSingleDateComponents(range[0]);
-			response.withFromDate(fromDate)
-				.withFromQualification(fromQualification);
-			final DateData toDate = extractSingleDateComponents(range[1]);
-			Qualification toQualification = null;
-			for(int i = 2; i < rawComponents.length; i ++){
-				toQualification = Qualification.createFromDate(rawComponents[i]);
-				if(toQualification != null)
-					break;
-			}
-			response.withToDate(toDate)
-				.withToQualification(toQualification);
-		}
-		else{
-			final DateData singleDate = extractSingleDateComponents(plainDate);
-			response.withFromDate(singleDate)
-				.withFromQualification(fromQualification);
-		}
-		return response;
-	}
-
-	protected abstract DateData extractSingleDateComponents(final String singleDate);
 
 	public abstract LocalDate parse(final String date, final DatePreciseness preciseness);
 

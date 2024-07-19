@@ -142,7 +142,7 @@ public final class PhotoCropDialog extends JDialog{
 
 			if(photoCrop != null){
 				//draw crop box
-				final String[] crop = photoCrop.split(StringUtils.SPACE);
+				final String[] crop = StringUtils.split(photoCrop);
 				final Rectangle rect = new Rectangle(Integer.parseInt(crop[0]), Integer.parseInt(crop[1]),
 					Integer.parseInt(crop[2]), Integer.parseInt(crop[3]));
 				imageHolder.setCrop(rect);

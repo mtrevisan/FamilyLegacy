@@ -22,51 +22,32 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.StringJoiner;
+import java.util.Map;
 
 
-public class AgeData{
+public interface PersonListenerInterface{
 
-	private AgeType ageType;
-	private String years;
-	private String months;
-	private String days;
+	/**
+	 * Bring person to primary position.
+	 *
+	 * @param boxPanel	The box panel that originates the call.
+	 * @param type	Type of the person wrt the family it belongs.
+	 * @param person	The person that has to obtain focus.
+	 */
+	void onPersonFocus(PersonPanel boxPanel, SelectedNodeType type, Map<String, Object> person);
 
+	void onPersonEdit(PersonPanel boxPanel, Map<String, Object> person);
 
-	public AgeData withAgeType(final AgeType ageType){
-		this.ageType = ageType;
-		return this;
-	}
+	void onPersonLink(PersonPanel boxPanel, SelectedNodeType type);
 
-	public AgeData withYears(final String years){
-		this.years = years;
-		return this;
-	}
+	void onPersonUnlink(PersonPanel boxPanel, Map<String, Object> person);
 
-	public AgeData withMonths(final String months){
-		this.months = months;
-		return this;
-	}
+	void onPersonAdd(PersonPanel boxPanel);
 
-	public AgeData withDays(final String days){
-		this.days = days;
-		return this;
-	}
+	void onPersonRemove(PersonPanel boxPanel, Map<String, Object> person);
 
-	public String getAge(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(ageType.getDescription());
-		if(ageType == AgeType.EXACT || ageType == AgeType.LESS_THAN || ageType == AgeType.MORE_THAN){
-			JavaHelper.addValueIfNotNull(sj, years, "y");
-			JavaHelper.addValueIfNotNull(sj, months, "m");
-			JavaHelper.addValueIfNotNull(sj, days, "s");
-		}
-		return sj.toString();
-	}
+	void onPersonAddImage(PersonPanel boxPanel, Map<String, Object> person);
 
 }

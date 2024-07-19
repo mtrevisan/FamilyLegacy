@@ -22,51 +22,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
-
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.StringJoiner;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 
-public class AgeData{
+public final class CalendarParserBuilder{
 
-	private AgeType ageType;
-	private String years;
-	private String months;
-	private String days;
+	public static final String CALENDAR_HEBREW = "#DHEBREW";
+	public static final String CALENDAR_FRENCH_REPUBLICAN = "#DFRENCH R";
+	public static final String CALENDAR_GREGORIAN = "#DGREGORIAN";
+	public static final String CALENDAR_JULIAN = "#DJULIAN";
+
+	private CalendarParserBuilder(){}
 
 
-	public AgeData withAgeType(final AgeType ageType){
-		this.ageType = ageType;
-		return this;
-	}
-
-	public AgeData withYears(final String years){
-		this.years = years;
-		return this;
-	}
-
-	public AgeData withMonths(final String months){
-		this.months = months;
-		return this;
-	}
-
-	public AgeData withDays(final String days){
-		this.days = days;
-		return this;
-	}
-
-	public String getAge(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(ageType.getDescription());
-		if(ageType == AgeType.EXACT || ageType == AgeType.LESS_THAN || ageType == AgeType.MORE_THAN){
-			JavaHelper.addValueIfNotNull(sj, years, "y");
-			JavaHelper.addValueIfNotNull(sj, months, "m");
-			JavaHelper.addValueIfNotNull(sj, days, "s");
+	public static AbstractCalendarParser getParser(final String date){
+		AbstractCalendarParser parser = GregorianCalendarParser.getInstance();
+		if(date != null){
+			if(date.startsWith(CALENDAR_GREGORIAN) || date.startsWith(CALENDAR_JULIAN))
+				parser = GregorianCalendarParser.getInstance();
+			else if(date.startsWith(CALENDAR_FRENCH_REPUBLICAN))
+				parser = FrenchRepublicanCalendarParser.getInstance();
+			else if(date.startsWith(CALENDAR_HEBREW))
+				parser = HebrewCalendarParser.getInstance();
 		}
-		return sj.toString();
+		return parser;
 	}
 
 }

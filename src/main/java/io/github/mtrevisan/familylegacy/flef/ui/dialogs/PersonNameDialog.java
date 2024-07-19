@@ -76,10 +76,10 @@ public final class PersonNameDialog extends CommonListDialog{
 	private static final String TABLE_NAME_EVENT = "event";
 
 
-	private JLabel primaryNameLabel;
-	private JTextField primaryNameField;
-	private JLabel secondaryNameLabel;
-	private JTextField secondaryNameField;
+	private JLabel personalNameLabel;
+	private JTextField personalNameField;
+	private JLabel familyNameLabel;
+	private JTextField familyNameField;
 	private JLabel nameLocaleLabel;
 	private JTextField nameLocaleField;
 	private JButton transcribedNameButton;
@@ -142,10 +142,10 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		primaryNameLabel = new JLabel("(Primary) Name:");
-		primaryNameField = new JTextField();
-		secondaryNameLabel = new JLabel("(Secondary) Name:");
-		secondaryNameField = new JTextField();
+		personalNameLabel = new JLabel("(Personal) Name:");
+		personalNameField = new JTextField();
+		familyNameLabel = new JLabel("(Family) Name:");
+		familyNameField = new JTextField();
 		nameLocaleLabel = new JLabel("Locale:");
 		nameLocaleField = new JTextField();
 		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
@@ -162,9 +162,9 @@ public final class PersonNameDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChangeUndo(primaryNameLabel, primaryNameField, this::saveData);
-		GUIHelper.bindLabelTextChangeUndo(secondaryNameLabel, secondaryNameField, this::saveData);
-		addMandatoryField(primaryNameField, secondaryNameField);
+		GUIHelper.bindLabelTextChangeUndo(personalNameLabel, personalNameField, this::saveData);
+		GUIHelper.bindLabelTextChangeUndo(familyNameLabel, familyNameField, this::saveData);
+		addMandatoryField(personalNameField, familyNameField);
 		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
@@ -200,10 +200,10 @@ public final class PersonNameDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(primaryNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(primaryNameField, "growx,wrap related");
-		recordPanelBase.add(secondaryNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(secondaryNameField, "growx,wrap related");
+		recordPanelBase.add(personalNameLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(personalNameField, "growx,wrap related");
+		recordPanelBase.add(familyNameLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(familyNameField, "growx,wrap related");
 		recordPanelBase.add(nameLocaleLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(nameLocaleField, "grow,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
@@ -268,8 +268,8 @@ public final class PersonNameDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer personNameID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final String primaryName = extractRecordPrimaryName(selectedRecord);
-		final String secondaryName = extractRecordSecondaryName(selectedRecord);
+		final String personalName = extractRecordPersonalName(selectedRecord);
+		final String familyName = extractRecordFamilyName(selectedRecord);
 		final String nameLocale = extractRecordNameLocale(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 			CommonRecordDialog::extractRecordReferenceType, "name");
@@ -282,8 +282,8 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordEvents = extractReferences(TABLE_NAME_EVENT);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		primaryNameField.setText(primaryName);
-		secondaryNameField.setText(secondaryName);
+		personalNameField.setText(personalName);
+		familyNameField.setText(familyName);
 		nameLocaleField.setText(nameLocale);
 		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
@@ -298,8 +298,8 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void clearData(){
-		primaryNameField.setText(null);
-		secondaryNameField.setText(null);
+		personalNameField.setText(null);
+		familyNameField.setText(null);
 		nameLocaleField.setText(null);
 		GUIHelper.setDefaultBorder(transcribedNameButton);
 		typeComboBox.setSelectedItem(null);
@@ -314,12 +314,12 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		final String primaryName = GUIHelper.getTextTrimmed(primaryNameField);
-		final String secondaryName = GUIHelper.getTextTrimmed(secondaryNameField);
-		if(!validData(primaryName) && !validData(secondaryName)){
-			JOptionPane.showMessageDialog(getParent(), "(Primary or secondary) Name field is required", "Error",
+		final String personalName = GUIHelper.getTextTrimmed(personalNameField);
+		final String familyName = GUIHelper.getTextTrimmed(familyNameField);
+		if(!validData(personalName) && !validData(familyName)){
+			JOptionPane.showMessageDialog(getParent(), "(Personal or family) Name field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
-			primaryNameField.requestFocusInWindow();
+			personalNameField.requestFocusInWindow();
 
 			return false;
 		}
@@ -332,8 +332,8 @@ public final class PersonNameDialog extends CommonListDialog{
 			return false;
 
 		//read record panel:
-		final String primaryName = GUIHelper.getTextTrimmed(primaryNameField);
-		final String secondaryName = GUIHelper.getTextTrimmed(secondaryNameField);
+		final String personalName = GUIHelper.getTextTrimmed(personalNameField);
+		final String familyName = GUIHelper.getTextTrimmed(familyNameField);
 		final String nameLocale = GUIHelper.getTextTrimmed(nameLocaleField);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 
@@ -346,18 +346,18 @@ public final class PersonNameDialog extends CommonListDialog{
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 				final StringJoiner name = new StringJoiner(", ");
-				if(primaryName != null)
-					name.add(primaryName);
-				if(secondaryName != null)
-					name.add(secondaryName);
+				if(personalName != null)
+					name.add(personalName);
+				if(familyName != null)
+					name.add(familyName);
 
 				model.setValueAt(name.toString(), modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
 
 				break;
 			}
 
-		selectedRecord.put("primary_name", primaryName);
-		selectedRecord.put("secondary_name", secondaryName);
+		selectedRecord.put("personal_name", personalName);
+		selectedRecord.put("family_name", familyName);
 		selectedRecord.put("name_locale", nameLocale);
 		selectedRecord.put("type", type);
 
@@ -367,22 +367,22 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	private String extractIdentifier(final int selectedRecordID){
 		final Map<String, Object> storePersonNames = getRecords(TABLE_NAME).get(selectedRecordID);
-		final String primaryName = extractRecordPrimaryName(storePersonNames);
-		final String secondaryName = extractRecordSecondaryName(storePersonNames);
+		final String personalName = extractRecordPersonalName(storePersonNames);
+		final String familyName = extractRecordFamilyName(storePersonNames);
 		final StringJoiner name = new StringJoiner(", ");
-		if(primaryName != null)
-			name.add(primaryName);
-		if(secondaryName != null)
-			name.add(secondaryName);
+		if(personalName != null)
+			name.add(personalName);
+		if(familyName != null)
+			name.add(familyName);
 		return name.toString();
 	}
 
-	private static String extractRecordPrimaryName(final Map<String, Object> record){
-		return (String)record.get("primary_name");
+	private static String extractRecordPersonalName(final Map<String, Object> record){
+		return (String)record.get("personal_name");
 	}
 
-	private static String extractRecordSecondaryName(final Map<String, Object> record){
-		return (String)record.get("secondary_name");
+	private static String extractRecordFamilyName(final Map<String, Object> record){
+		return (String)record.get("family_name");
 	}
 
 	private static String extractRecordNameLocale(final Map<String, Object> record){
@@ -434,16 +434,16 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
-		personName1.put("primary_name", "toni");
-		personName1.put("secondary_name", "bruxatin");
+		personName1.put("personal_name", "toni");
+		personName1.put("family_name", "bruxatin");
 		personName1.put("name_locale", "vec-IT");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
-		personName2.put("primary_name", "antonio");
-		personName2.put("secondary_name", "bruciatino");
+		personName2.put("personal_name", "antonio");
+		personName2.put("family_name", "bruciatino");
 		personName2.put("name_locale", "it-IT");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);

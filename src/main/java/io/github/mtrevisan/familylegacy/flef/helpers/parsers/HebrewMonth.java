@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import org.apache.commons.lang3.StringUtils;
 

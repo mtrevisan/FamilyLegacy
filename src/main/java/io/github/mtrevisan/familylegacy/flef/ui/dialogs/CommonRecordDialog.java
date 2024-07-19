@@ -250,7 +250,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract void fillData();
 
 	/**
-	 * Extracts the references from a given table based on the selectedRecord.
+	 * Extracts the references from a given table based on the selected record.
 	 *
 	 * @param fromTable	The table name to extract the references to this table from.
 	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.

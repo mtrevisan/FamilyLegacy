@@ -36,6 +36,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -407,6 +409,7 @@ public final class Main{
 		flefProject.put("protocol_name", "Family LEgacy Format");
 		flefProject.put("protocol_version", "0.0.10");
 		flefProject.put("copyright", "(c) 2024 Mauro Trevisan");
+		flefProject.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 	}
 
 	private static void transferCalendar(final Map<String, List<Map<String, Object>>> output){
@@ -426,28 +429,31 @@ public final class Main{
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 3);
 		flefCalendar.put("type", "venetan");
+
+		flefCalendar = new HashMap<>();
+		flefCalendars.add(flefCalendar);
+		flefCalendar.put("id", 4);
+		flefCalendar.put("type", "french-republican");
+
+		flefCalendar = new HashMap<>();
+		flefCalendars.add(flefCalendar);
+		flefCalendar.put("id", 5);
+		flefCalendar.put("type", "hebrew");
 	}
 
 	private static void transferCulturalNorm(final Map<String, List<Map<String, Object>>> output){
 		final List<Map<String, Object>> flefCulturalNorms = output.computeIfAbsent("cultural_norm", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
-
-		final Map<String, Object> flefLocalizedText = new HashMap<>();
-		flefLocalizedTexts.add(flefLocalizedText);
-		flefLocalizedText.put("id", 10_000);
-		flefLocalizedText.put("text", "Regno Lombardo-Veneto");
-		flefLocalizedText.put("locale", "it");
-		flefLocalizedText.put("type", "original");
 
 		final Map<String, Object> flefPlace = new HashMap<>();
 		flefPlaces.add(flefPlace);
 		final int placeID = flefPlaces.size();
 		flefPlace.put("id", placeID);
 		flefPlace.put("identifier", "Regno Lombardo-Veneto");
-		flefPlace.put("name_id", 10_000);
+		flefPlace.put("name", "Regno Lombardo-Veneto");
+		flefPlace.put("name_locale", "it-IT");
 		flefPlace.put("type", "reign");
 
 		Map<String, Object> flefHistoricDate = new HashMap<>();
@@ -575,7 +581,6 @@ public final class Main{
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCulturalNormJunctions = output.computeIfAbsent("cultural_norm_junction", k -> new ArrayList<>());
 
 		for(final GedcomObject group : groups){
@@ -636,21 +641,12 @@ public final class Main{
 								+ lon.replace("E", "").replace('W', '-'));
 					}
 
-					final Map<String, Object> flefLocalizedText = new HashMap<>();
-					flefLocalizedTexts.add(flefLocalizedText);
-					final int marriagePlaceNameID = flefLocalizedTexts.size();
-					flefLocalizedText.put("id", marriagePlaceNameID);
-					if(marriagePlaceName != null)
-						flefLocalizedText.put("text", marriagePlaceName);
-					flefLocalizedText.put("locale", "it");
-					flefLocalizedText.put("type", "original");
-
 					final Map<String, Object> flefPlace = new HashMap<>();
 					flefPlaces.add(flefPlace);
 					flefPlace.put("id", marriagePlace.id);
 					if(marriagePlaceName != null)
 						flefPlace.put("identifier", marriagePlaceName);
-					flefPlace.put("name_id", marriagePlaceNameID);
+					flefPlace.put("name", marriagePlaceName);
 					if(coordinate != null){
 						flefPlace.put("coordinate", coordinate);
 						flefPlace.put("coordinate_system", "WGS84");
@@ -664,8 +660,10 @@ public final class Main{
 
 						//create source
 						final GedcomObject data = getFirstStartingWith(marriagePlaceSource.children, "DATA");
+						//FIXME
 						final String date = (data != null? data.attributes.get("DATE"): null);
 						final GedcomObject even = getFirstStartingWith(marriagePlaceSource.children, "EVEN");
+						//FIXME
 						final String evenType = (even != null? extractDesc(even.attributes): null);
 						final String evenRole = (even != null? even.attributes.get("ROLE"): null);
 
@@ -718,7 +716,7 @@ public final class Main{
 						flefEvents.add(flefEvent);
 						final int eventID = flefEvents.size();
 						flefEvent.put("id", eventID);
-						flefEvent.put("event_type", "marriage");
+						flefEvent.put("type", "marriage");
 						if(marriagePlace != null)
 							flefEvent.put("place_id", marriagePlace.id);
 						if(marriageDateID != null)
@@ -852,7 +850,6 @@ public final class Main{
 	private static void transferRepositories(final Map<String, List<Map<String, Object>>> output, final Iterable<GedcomObject> repositories){
 		final List<Map<String, Object>> flefRepositories = output.computeIfAbsent("repository", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefPlaces = output.computeIfAbsent("place", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
 
 		for(final GedcomObject repository : repositories){
 			final Map<String, GedcomObject> children = repository.children;
@@ -862,22 +859,15 @@ public final class Main{
 			final GedcomObject name = getFirstStartingWith(children, "NAME");
 			final String repositoryName = (name != null? extractDesc(name.attributes): null);
 			final GedcomObject plac = getFirstStartingWith(children, "PLAC");
-			if(addr != null || plac != null){
+			if(plac != null){
 				final String address = (addr != null? addr: extractDesc(plac.attributes));
-
-				final Map<String, Object> flefLocalizedText = new HashMap<>();
-				flefLocalizedTexts.add(flefLocalizedText);
-				flefLocalizedText.put("id", name.id);
-				if(repositoryName != null)
-					flefLocalizedText.put("text", repositoryName);
-				flefLocalizedText.put("locale", "it");
-				flefLocalizedText.put("type", "original");
 
 				final Map<String, Object> flefPlace = new HashMap<>();
 				flefPlaces.add(flefPlace);
 				flefPlace.put("id", plac.id);
 				flefPlace.put("identifier", address);
-				flefPlace.put("name_id", name.id);
+				if(repositoryName != null)
+					flefPlace.put("name", repositoryName);
 			}
 
 			final Map<String, Object> flefRepository = new HashMap<>();
@@ -918,8 +908,8 @@ public final class Main{
 		final List<Map<String, Object>> flefSources = output.computeIfAbsent("source", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefLocalizedTexts = output.computeIfAbsent("localized_text", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefMedias = output.computeIfAbsent("media", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefMediaJunctions = output.computeIfAbsent("media_junction", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 
 		for(final GedcomObject source : sources){
@@ -983,9 +973,16 @@ public final class Main{
 						? "video"
 						: "TODO see identifier")));
 				if(isImage)
-					flefMedia.put("image_projection", "rectangular");
+					flefMedia.put("photo_projection", "rectangular");
 				if(date != null)
 					flefMedia.put("date_id", dateID);
+
+				final Map<String, Object> flefMediaJunction = new HashMap<>();
+				flefMediaJunctions.add(flefMediaJunction);
+				flefMediaJunction.put("id", media.id);
+				flefMediaJunction.put("media_id", media.id);
+				flefMediaJunction.put("reference_table", "source");
+				flefMediaJunction.put("reference_id", source.id);
 			}
 
 			final List<GedcomObject> notes = getAllStartingWith(children, "NOTE");
@@ -1005,21 +1002,15 @@ public final class Main{
 			final GedcomObject citation = getFirstStartingWith(children, "TEXT");
 			if(citation != null){
 				final String flefLocation = (notes.size() == 1? extractDesc(notes.getFirst().attributes): "TODO see notes");
+				final String flefText = extractDesc(citation.attributes);
 				final Map<String, Object> flefCitation = new HashMap<>();
 				flefCitations.add(flefCitation);
 				flefCitation.put("id", citation.id);
 				flefCitation.put("source_id", source.id);
 				flefCitation.put("location", flefLocation);
-				flefCitation.put("extract_id", citation.id);
+				flefCitation.put("extract", flefText);
+				flefCitation.put("extract_locale", "TODO see text");
 				flefCitation.put("extract_type", "transcript");
-
-				final String flefText = extractDesc(citation.attributes);
-				final Map<String, Object> flefLocalizedText = new HashMap<>();
-				flefLocalizedTexts.add(flefLocalizedText);
-				flefLocalizedText.put("id", citation.id);
-				flefLocalizedText.put("text", flefText);
-				flefLocalizedText.put("locale", "TODO see text");
-				flefLocalizedText.put("type", "original");
 			}
 		}
 	}

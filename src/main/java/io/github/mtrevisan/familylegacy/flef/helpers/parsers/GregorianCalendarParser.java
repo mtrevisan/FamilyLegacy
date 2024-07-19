@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
@@ -44,7 +44,8 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	private static final String PATTERN_DATE_DAY = "(?:(?<" + PARAM_DAY + ">\\d{1,2}) )?";
 	private static final String PATTERN_DATE_MONTH = "(?:(?<" + PARAM_MONTH + ">[A-Z]+) )?";
 	private static final String PATTERN_DATE_YEAR = "(?:(?<" + PARAM_YEAR + ">\\d{1,4}))";
-	private static final String PATTERN_DATE_DOUBLE_YEAR = "(?:\\/(?<" + PARAM_DOUBLE_ENTRY_YEAR + ">\\d{2})?)?";
+	private static final String PATTERN_DATE_DOUBLE_YEAR = "(?:\\" + DOUBLE_ENTRY_YEAR_SEPARATOR
+		+ "(?<" + PARAM_DOUBLE_ENTRY_YEAR + ">\\d{2})?)?";
 	private static final String PATTERN_DATE_ERA = "(?: (?<" + PARAM_ERA + ">[ABCE.]+))?";
 	private static final Pattern PATTERN_DATE = RegexHelper.pattern("(?i)^" + PATTERN_DATE_DAY + PATTERN_DATE_MONTH
 		+ PATTERN_DATE_YEAR + PATTERN_DATE_DOUBLE_YEAR + PATTERN_DATE_ERA + "$");
@@ -59,37 +60,6 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		return SingletonHelper.INSTANCE;
 	}
 
-	@Override
-	public CalendarType getCalendarType(){
-		return CalendarType.GREGORIAN;
-	}
-
-	@Override
-	protected DateData extractSingleDateComponents(final String singleDate){
-		final DateData date = new DateData();
-		final String plainDate = CalendarParserBuilder.removeCalendarType(singleDate);
-		final Matcher matcher = RegexHelper.matcher(plainDate, PATTERN_DATE);
-		if(matcher.find()){
-			final String day = matcher.group(PARAM_DAY);
-			final String month = matcher.group(PARAM_MONTH);
-			final String year = matcher.group(PARAM_YEAR);
-			final String doubleEntryYear = matcher.group(PARAM_DOUBLE_ENTRY_YEAR);
-			final String era = matcher.group(PARAM_ERA);
-
-			if(day != null)
-				date.withDay(Integer.parseInt(day));
-			if(month != null)
-				date.withMonth(Integer.parseInt(month));
-			if(year != null)
-				date.withYear(Integer.parseInt(year));
-			if(doubleEntryYear != null)
-				date.withDoubleEntryYear(Integer.parseInt(doubleEntryYear));
-			if(era != null)
-				date.withEra(Era.fromDate(era));
-		}
-		return date;
-	}
-
 	/**
 	 * Parse a Gregorian/Julian/unknown date string.
 	 *
@@ -98,13 +68,11 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	 * @return	The date, if one can be derived from the string.
 	 */
 	@Override
-	public LocalDate parse(final String date, final DatePreciseness preciseness){
-		String plainDate = CalendarParserBuilder.removeCalendarType(date);
+	public LocalDate parse(String date, final DatePreciseness preciseness){
+		date = removeApproximations(date);
+		date = removeOpenEndedRangesAndPeriods(date);
 
-		plainDate = removeApproximations(plainDate);
-		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
-
-		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
+		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
 	}
 
 	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
@@ -121,20 +89,18 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 				int y = Integer.parseInt(year);
 				if(era == Era.BCE)
 					y = 1 - y;
-				final int m = (month != null? GregorianMonth.fromAbbreviation(month).ordinal() + 1: 1);
-				final int d = (day != null? Integer.parseInt(day): 1);
+				int m = (month != null? GregorianMonth.fromAbbreviation(month).ordinal() + 1: 1);
+				int d = (day != null? Integer.parseInt(day): 1);
+				if(m == 2 && d == 29){
+					m = 3;
+					d = 1;
+				}
 
-				try{
-					localDate = LocalDate.of(y, m, d);
-				}
-				catch(final DateTimeException e){
-					if(m == 2 && d == 29)
-						localDate = LocalDate.of(y, 3, 1);
-				}
+				localDate = LocalDate.of(y, m, d);
 
 				localDate = managePreciseness(day, month, localDate, preciseness);
 			}
-			catch(final NullPointerException ignored){}
+			catch(final DateTimeException | NullPointerException ignored){}
 		}
 		return localDate;
 	}

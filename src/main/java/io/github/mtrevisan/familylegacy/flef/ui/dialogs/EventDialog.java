@@ -141,7 +141,7 @@ public final class EventDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "historic fact", "birth", "marriage", "death", "coroner report", "cremation",
+		typeComboBox = new JComboBox<>(new String[]{null, "historic fact", "birth", "sex", "marriage", "death", "coroner report", "cremation",
 			"burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home",
 			"residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build",
 			"complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education",

@@ -33,7 +33,6 @@ import java.util.StringJoiner;
 public class CalendarData{
 
 	private CalendarType calendarType;
-	private boolean afterSunset;
 	private IntervalType intervalType;
 	private DateData fromDate;
 	private Qualification fromQualification;
@@ -44,11 +43,6 @@ public class CalendarData{
 
 	public CalendarData withCalendarType(final CalendarType calendarType){
 		this.calendarType = calendarType;
-		return this;
-	}
-
-	public CalendarData withAfterSunset(final boolean afterSunset){
-		this.afterSunset = afterSunset;
 		return this;
 	}
 

@@ -22,51 +22,47 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
+import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.StringJoiner;
+import java.util.regex.Pattern;
 
 
-public class AgeData{
+public enum Era{
 
-	private AgeType ageType;
-	private String years;
-	private String months;
-	private String days;
+	CE(RegexHelper.pattern("(?i) ?(?:A\\.?C\\.?|(?:^|[^B.])C\\.?E\\.?)")),
+	BCE(RegexHelper.pattern("(?i) ?B\\.?C\\.?(?:E\\.?)?"));
 
 
-	public AgeData withAgeType(final AgeType ageType){
-		this.ageType = ageType;
-		return this;
+	private final Pattern pattern;
+
+
+	public static Era fromDate(final CharSequence date){
+		if(date != null)
+			for(final Era type : values())
+				if(RegexHelper.find(date, type.pattern))
+					return type;
+		return null;
 	}
 
-	public AgeData withYears(final String years){
-		this.years = years;
-		return this;
+	Era(final Pattern pattern){
+		this.pattern = pattern;
 	}
 
-	public AgeData withMonths(final String months){
-		this.months = months;
-		return this;
+	public Pattern getPattern(){
+		return pattern;
 	}
 
-	public AgeData withDays(final String days){
-		this.days = days;
-		return this;
+	public static String replaceAll(String era){
+		era = RegexHelper.replaceAll(era, BCE.pattern, BCE.toString());
+		era = RegexHelper.clear(era, CE.pattern);
+		return era;
 	}
 
-	public String getAge(){
-		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		sj.add(ageType.getDescription());
-		if(ageType == AgeType.EXACT || ageType == AgeType.LESS_THAN || ageType == AgeType.MORE_THAN){
-			JavaHelper.addValueIfNotNull(sj, years, "y");
-			JavaHelper.addValueIfNotNull(sj, months, "m");
-			JavaHelper.addValueIfNotNull(sj, days, "s");
-		}
-		return sj.toString();
+	public static String restoreAll(final String era){
+		return era.replaceAll(CE.toString(), StringUtils.EMPTY);
 	}
 
 }

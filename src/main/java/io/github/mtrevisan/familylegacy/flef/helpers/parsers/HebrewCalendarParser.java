@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import io.github.mtrevisan.familylegacy.services.RegexHelper;
 
@@ -58,31 +58,6 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		return SingletonHelper.INSTANCE;
 	}
 
-	@Override
-	public CalendarType getCalendarType(){
-		return CalendarType.HEBREW;
-	}
-
-	@Override
-	protected DateData extractSingleDateComponents(final String singleDate){
-		final DateData date = new DateData();
-		final String plainDate = CalendarParserBuilder.removeCalendarType(singleDate);
-		final Matcher matcher = RegexHelper.matcher(plainDate, PATTERN_DATE);
-		if(matcher.find()){
-			final String day = matcher.group(PARAM_DAY);
-			final String month = matcher.group(PARAM_MONTH);
-			final String year = matcher.group(PARAM_YEAR);
-
-			if(day != null)
-				date.withDay(Integer.parseInt(day));
-			if(month != null)
-				date.withMonth(Integer.parseInt(month));
-			if(year != null)
-				date.withYear(Integer.parseInt(year));
-		}
-		return date;
-	}
-
 	/**
 	 * Convert a Hebrew date string (in proper GEDCOM format) to a (Gregorian) java.time.LocalDate.
 	 *
@@ -92,12 +67,11 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @return The Gregorian date that represents the Hebrew date supplied.
 	 */
 	@Override
-	public LocalDate parse(final String date, final DatePreciseness preciseness){
-		String plainDate = CalendarParserBuilder.removeCalendarType(date);
-		plainDate = removeApproximations(plainDate);
-		plainDate = removeOpenEndedRangesAndPeriods(plainDate);
+	public LocalDate parse(String date, final DatePreciseness preciseness){
+		date = removeApproximations(date);
+		date = removeOpenEndedRangesAndPeriods(date);
 
-		return (isRange(plainDate)? getDateFromRangeOrPeriod(plainDate, preciseness): getDate(plainDate, preciseness));
+		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
 	}
 
 	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness){

@@ -22,33 +22,31 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 
-enum HebrewMonth{
+enum FrenchRepublicanMonth{
 
-	TISHREI("Tishrei", "TSH"),
-	CHESHVAN("Cheshvan", "CSH"),
-	KISLEV("Kislev", "KSL"),
-	TEVET("Tevet", "TVT"),
-	SHEVAT("Shevai", "SHV"),
-	/** (only valid on leap years) */
-	ADAR_A("Adar A", "ADR"),
-	/** (called Adar B for leap years) */
-	ADAR("Adar B", "ADS"),
-	NISAN("Nisan", "NSN"),
-	IYAR("Iyar", "IYR"),
-	SIVAN("Sivan", "SVN"),
-	TAMMUZ("Tammuz", "TMZ"),
-	AV("Av", "AAV"),
-	ELUL("Elul", "ELL");
+	VENDEMIAIRE("Vendemiaire", "VEND"),
+	BRUMAIRE("Brumaire", "BRUM"),
+	FRIMAIRE("Frimaire", "FRIM"),
+	NIVOSE("Nivose", "NIVO"),
+	PLUVIOSE("Pluviose", "PLUV"),
+	VENTOSE("Ventose", "VENT"),
+	GERMINAL("Germinal", "GERM"),
+	FLOREAL("Floreal", "FLOR"),
+	PRAIRIAL("Prairial", "PRAI"),
+	MESSIDOR("Messidor", "MESS"),
+	THERMIDOR("Thermidor", "THER"),
+	FRUCTIDOR("Fructidor", "FRUC"),
+	/** The complementary days at the end of each year. */
+	JOUR_COMPLEMENTAIRS("Jour complementairs", "COMP");
 
 
 	private final String description;
@@ -56,22 +54,19 @@ enum HebrewMonth{
 
 
 	/**
-	 * Get an enum value from the gedcom abbreviation
+	 * Get the enumerated constant value with the supplied abbreviation.
 	 *
-	 * @param abbreviation	The GEDCOM spec abbreviation for this month
-	 * @return	the enum constant that matches the abbreviation
+	 * @param abbreviation	The gedcom-spec abbreviation for the month.
+	 * @return	The enumerated constant value with the supplied abbreviation, or null if no match is found.
 	 */
-	public static HebrewMonth fromAbbreviation(final String abbreviation){
-		HebrewMonth result = null;
-		for(final HebrewMonth month : values())
-			if(month.abbreviation.equalsIgnoreCase(abbreviation)){
-				result = month;
-				break;
-			}
-		return result;
+	public static FrenchRepublicanMonth fromAbbreviation(final String abbreviation){
+		for(final FrenchRepublicanMonth month : values())
+			if(month.abbreviation.equalsIgnoreCase(abbreviation))
+				return month;
+		return null;
 	}
 
-	HebrewMonth(final String description, final String abbreviation){
+	FrenchRepublicanMonth(final String description, final String abbreviation){
 		this.description = description;
 		this.abbreviation = abbreviation;
 	}
@@ -81,9 +76,11 @@ enum HebrewMonth{
 	}
 
 	public static String[] getDescriptionsWithEmptyValueFirst(){
-		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
-			.map(HebrewMonth::getDescription))
-			.toArray(String[]::new);
+		final FrenchRepublicanMonth[] values = values();
+		final String[] descriptions = new String[values.length];
+		for(int i = 0; i < values.length; i ++)
+			descriptions[i] = values[i].description;
+		return descriptions;
 	}
 
 	public static String replaceAll(final String month){
@@ -95,19 +92,17 @@ enum HebrewMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		final HebrewMonth[] values = values();
+		final FrenchRepublicanMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final HebrewMonth hebrewMonth : values)
-			list.add(hebrewMonth.abbreviation);
+		for(final FrenchRepublicanMonth frenchRepublicanMonth : values)
+			list.add(frenchRepublicanMonth.abbreviation);
 		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		final HebrewMonth[] values = values();
-		final List<String> list = new ArrayList<>(values.length);
-		for(final HebrewMonth hebrewMonth : values)
-			list.add(hebrewMonth.description);
-		return list.toArray(new String[0]);
+		return Arrays.stream(values())
+			.map(FrenchRepublicanMonth::getDescription)
+			.toArray(String[]::new);
 	}
 
 }

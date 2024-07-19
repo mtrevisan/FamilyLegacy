@@ -303,7 +303,7 @@ public final class PersonDialog extends CommonListDialog{
 		getRecords(TABLE_NAME_PERSON_NAME).values().stream()
 			.filter(record -> extractRecordPersonID(record) == selectedRecordID)
 			.forEach(record -> {
-				//extract translitterations
+				//extract transliterations
 				final StringJoiner subIdentifier = new StringJoiner(", ");
 				final Integer recordID = extractRecordID(record);
 				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT, TABLE_NAME_PERSON_NAME, recordID).values()
@@ -314,14 +314,14 @@ public final class PersonDialog extends CommonListDialog{
 		return identifier.toString();
 	}
 
-	private static String extractName(Map<String, Object> record){
-		final String primaryName = extractRecordPrimaryName(record);
-		final String secondaryName = extractRecordSecondaryName(record);
+	private static String extractName(final Map<String, Object> record){
+		final String personalName = extractRecordPersonalName(record);
+		final String familyName = extractRecordFamilyName(record);
 		final StringJoiner name = new StringJoiner(", ");
-		if(primaryName != null)
-			name.add(primaryName);
-		if(secondaryName != null)
-			name.add(secondaryName);
+		if(personalName != null)
+			name.add(personalName);
+		if(familyName != null)
+			name.add(familyName);
 		return name.toString();
 	}
 
@@ -337,12 +337,12 @@ public final class PersonDialog extends CommonListDialog{
 		return (Integer)record.get("person_id");
 	}
 
-	private static String extractRecordPrimaryName(final Map<String, Object> record){
-		return (String)record.get("primary_name");
+	private static String extractRecordPersonalName(final Map<String, Object> record){
+		return (String)record.get("personal_name");
 	}
 
-	private static String extractRecordSecondaryName(final Map<String, Object> record){
-		return (String)record.get("secondary_name");
+	private static String extractRecordFamilyName(final Map<String, Object> record){
+		return (String)record.get("family_name");
 	}
 
 
@@ -390,16 +390,16 @@ public final class PersonDialog extends CommonListDialog{
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
-		personName1.put("primary_name", "toni");
-		personName1.put("secondary_name", "bruxatin");
+		personName1.put("personal_name", "toni");
+		personName1.put("family_name", "bruxatin");
 		personName1.put("name_locale", "vec-IT");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
-		personName2.put("primary_name", "antonio");
-		personName2.put("secondary_name", "bruciatino");
+		personName2.put("personal_name", "antonio");
+		personName2.put("family_name", "bruciatino");
 		personName2.put("name_locale", "it-IT");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);

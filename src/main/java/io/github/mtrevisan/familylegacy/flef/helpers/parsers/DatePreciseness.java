@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -31,7 +31,7 @@ import java.util.function.BiFunction;
 
 
 /** When a range or imprecise date value is found, what is the preference for handling it? */
-enum DatePreciseness{
+public enum DatePreciseness{
 
 	/** Return the earliest reasonable value for the interpreted date or range. */
 	FAVOR_EARLIEST{

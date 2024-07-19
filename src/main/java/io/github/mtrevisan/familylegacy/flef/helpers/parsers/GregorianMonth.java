@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.gedcom.parsers.calendars;
+package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,23 +32,20 @@ import java.util.List;
 import java.util.stream.Stream;
 
 
-enum HebrewMonth{
+enum GregorianMonth{
 
-	TISHREI("Tishrei", "TSH"),
-	CHESHVAN("Cheshvan", "CSH"),
-	KISLEV("Kislev", "KSL"),
-	TEVET("Tevet", "TVT"),
-	SHEVAT("Shevai", "SHV"),
-	/** (only valid on leap years) */
-	ADAR_A("Adar A", "ADR"),
-	/** (called Adar B for leap years) */
-	ADAR("Adar B", "ADS"),
-	NISAN("Nisan", "NSN"),
-	IYAR("Iyar", "IYR"),
-	SIVAN("Sivan", "SVN"),
-	TAMMUZ("Tammuz", "TMZ"),
-	AV("Av", "AAV"),
-	ELUL("Elul", "ELL");
+	JANUARY("January", "JAN"),
+	FEBRUARY("February", "FEB"),
+	MARCH("March", "MAR"),
+	APRIL("April", "APR"),
+	MAY("May", "MAY"),
+	JUNE("June", "JUN"),
+	JULY("July", "JUL"),
+	AUGUST("August", "AUG"),
+	SEPTEMBER("September", "SEP"),
+	OCTOBER("October", "OCT"),
+	NOVEMBER("November", "NOV"),
+	DECEMBER("December", "DEC");
 
 
 	private final String description;
@@ -56,22 +53,19 @@ enum HebrewMonth{
 
 
 	/**
-	 * Get an enum value from the gedcom abbreviation
+	 * Get an enum value from the gedcom abbreviation.
 	 *
-	 * @param abbreviation	The GEDCOM spec abbreviation for this month
-	 * @return	the enum constant that matches the abbreviation
+	 * @param abbreviation	The GEDCOM spec abbreviation for this month.
+	 * @return	The enum constant that matches the abbreviation.
 	 */
-	public static HebrewMonth fromAbbreviation(final String abbreviation){
-		HebrewMonth result = null;
-		for(final HebrewMonth month : values())
-			if(month.abbreviation.equalsIgnoreCase(abbreviation)){
-				result = month;
-				break;
-			}
-		return result;
+	public static GregorianMonth fromAbbreviation(final String abbreviation){
+		for(final GregorianMonth month : values())
+			if(month.abbreviation.equalsIgnoreCase(abbreviation))
+				return month;
+		return null;
 	}
 
-	HebrewMonth(final String description, final String abbreviation){
+	GregorianMonth(final String description, final String abbreviation){
 		this.description = description;
 		this.abbreviation = abbreviation;
 	}
@@ -82,7 +76,7 @@ enum HebrewMonth{
 
 	public static String[] getDescriptionsWithEmptyValueFirst(){
 		return Stream.concat(Stream.of(StringUtils.EMPTY), Arrays.stream(values())
-			.map(HebrewMonth::getDescription))
+			.map(GregorianMonth::getDescription))
 			.toArray(String[]::new);
 	}
 
@@ -95,18 +89,18 @@ enum HebrewMonth{
 	}
 
 	private static String[] getAbbreviations(){
-		final HebrewMonth[] values = values();
+		final GregorianMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final HebrewMonth hebrewMonth : values)
-			list.add(hebrewMonth.abbreviation);
+		for(final GregorianMonth gregorianMonth : values)
+			list.add(gregorianMonth.abbreviation);
 		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
-		final HebrewMonth[] values = values();
+		final GregorianMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final HebrewMonth hebrewMonth : values)
-			list.add(hebrewMonth.description);
+		for(final GregorianMonth gregorianMonth : values)
+			list.add(gregorianMonth.description);
 		return list.toArray(new String[0]);
 	}
 
