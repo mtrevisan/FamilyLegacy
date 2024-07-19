@@ -134,11 +134,11 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	private void initComponents(){
 		setTitle("Place");
 
-		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, this::dataChanged);
 
-		GUIHelper.bindLabelTextChangeUndo(addressLabel, addressField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(addressLabel, addressField, this::dataChanged);
 
-		GUIHelper.bindLabelTextChangeUndo(addressHierarchyLabel, addressHierarchyField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(addressHierarchyLabel, addressHierarchyField, this::dataChanged);
 
 		culturalNormButton.addActionListener(evt -> EventBusService.publish(new EditEvent(EditEvent.EditType.CULTURAL_NORM, place)));
 
@@ -157,9 +157,9 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 		addressPanel.add(noteButton, "grow,wrap");
 		addressPanel.add(sourceButton, "grow");
 
-		GUIHelper.bindLabelTextChangeUndo(latitudeLabel, latitudeField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(latitudeLabel, latitudeField, this::dataChanged);
 
-		GUIHelper.bindLabelTextChangeUndo(longitudeLabel, longitudeField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(longitudeLabel, longitudeField, this::dataChanged);
 
 		certaintyLabel.setLabelFor(certaintyComboBox);
 

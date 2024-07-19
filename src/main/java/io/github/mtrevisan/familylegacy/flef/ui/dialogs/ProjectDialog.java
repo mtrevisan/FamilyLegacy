@@ -75,7 +75,12 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	private JTextField localeField;
 
 
-	public ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static ProjectDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new ProjectDialog(store, parent);
+	}
+
+
+	private ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -106,11 +111,11 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		localeField = new JTextField();
 
 
-		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, this::saveData);
 
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, evt -> saveData());
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 	}
 
 	@Override
@@ -141,7 +146,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String locale = extractRecordLocale(selectedRecord);
 
 		copyrightField.setText(copyright);
-		noteTextPreview.setText("Note " + extractRecordID(selectedRecord), note, locale);
+		noteTextPreview.setText("Project note", note, locale);
 		localeField.setText(locale);
 	}
 
@@ -253,7 +258,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final ProjectDialog dialog = new ProjectDialog(store, parent);
+			final ProjectDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.initComponents();
 			dialog.loadData();

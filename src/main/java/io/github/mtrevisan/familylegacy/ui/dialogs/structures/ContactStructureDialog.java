@@ -184,19 +184,15 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		addButton.addActionListener(evt -> addAction());
 
 		contactIDField.setEnabled(false);
-		GUIHelper.bindLabelTextChangeUndo(contactIDLabel, contactIDField, evt -> {
-			updateContactFieldMenuItems(contactIDField.getText());
-
-			dataChanged();
-		});
+		GUIHelper.bindLabelTextChangeUndo(contactIDLabel, contactIDField, this::dataChanged);
 		//manage links
 		attachOpenLinkPopUpMenu(contactIDField);
 
 		typeField.setEnabled(false);
-		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, this::dataChanged);
 
 		callerIDField.setEnabled(false);
-		GUIHelper.bindLabelTextChangeUndo(callerIDLabel, callerIDField, evt -> dataChanged());
+		GUIHelper.bindLabelTextChangeUndo(callerIDLabel, callerIDField, this::dataChanged);
 
 		noteButton.setEnabled(false);
 		noteButton.addActionListener(evt -> {
@@ -280,6 +276,8 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 	}
 
 	public void dataChanged(){
+		updateContactFieldMenuItems(contactIDField.getText());
+
 		if(!updating)
 			okButton.setEnabled(calculateDataHash() != dataHash);
 	}

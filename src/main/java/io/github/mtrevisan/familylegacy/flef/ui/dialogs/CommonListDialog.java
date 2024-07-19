@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import net.miginfocom.swing.MigLayout;
@@ -39,6 +40,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -225,6 +227,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected void addMandatoryField(final JTextComponent... fields){
 		mandatoryFields.add(fields);
+	}
+
+	protected void addMandatoryField(final JComboBox<String> comboBox){
+		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
 	}
 
 	protected final boolean selectData(final int recordID){

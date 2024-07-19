@@ -237,7 +237,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		mappingComboBox.setEnabled(false);
 
 		descriptionField.setEnabled(false);
-		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> textChanged());
+		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, this::textChanged);
 
 		extractPreviewView = TextPreviewPane.createWithPreview(this);
 		GUIHelper.setEnabled(extractPreviewView, false);

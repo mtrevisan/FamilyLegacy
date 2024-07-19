@@ -91,6 +91,9 @@ public final class MediaDialog extends CommonListDialog{
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_EVENT = "event";
 
+	private static final String MEDIA_TYPE_LINK = "link";
+	private static final String MEDIA_TYPE_PHOTO = "photo";
+
 
 	private JLabel fileLabel;
 	private JTextField fileField;
@@ -119,21 +122,17 @@ public final class MediaDialog extends CommonListDialog{
 	private String basePath;
 
 	private boolean restrictToPhoto;
+	private String mediaType = MEDIA_TYPE_LINK;
 
 
-	public static MediaDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		return new MediaDialog(store, parent);
-	}
-
-	public static MediaDialog createRecordForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = createForPhoto(store, parent);
-		dialog.showRecordOnly = true;
-		return dialog;
 	}
 
 	public static MediaDialog createForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.restrictToPhoto = true;
+		dialog.mediaType = MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
 			newRecord.put("type", "photo");
 
@@ -152,13 +151,17 @@ public final class MediaDialog extends CommonListDialog{
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_MEDIA_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			final int mediaID = extractRecordID(selectedRecord);
-			final Map<String, Object> mediaJunction = new HashMap<>();
-			mediaJunction.put("id", mediaJunctionID);
-			mediaJunction.put("media_id", mediaID);
-			mediaJunction.put("reference_table", filterReferenceTable);
-			mediaJunction.put("reference_id", filterReferenceID);
-			mediaJunctions.put(mediaJunctionID, mediaJunction);
+			if(selectedRecord != null){
+				final Integer mediaID = extractRecordID(selectedRecord);
+				final Map<String, Object> mediaJunction = new HashMap<>();
+				mediaJunction.put("id", mediaJunctionID);
+				mediaJunction.put("media_id", mediaID);
+				mediaJunction.put("reference_table", filterReferenceTable);
+				mediaJunction.put("reference_id", filterReferenceID);
+				mediaJunctions.put(mediaJunctionID, mediaJunction);
+			}
+			else
+				mediaJunctions.remove(mediaJunctionID);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -210,7 +213,7 @@ public final class MediaDialog extends CommonListDialog{
 		fileButton = new JButton(ICON_CHOOSE_DOCUMENT);
 		fileChooser = new JFileChooser();
 		openFolderButton = new JButton("Open folder", ICON_OPEN_FOLDER);
-		openLinkButton = new JButton("Open link", ICON_OPEN_LINK);
+		openLinkButton = new JButton("Open " + mediaType, ICON_OPEN_LINK);
 		titleLabel = new JLabel("Title:");
 		titleField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -228,16 +231,17 @@ public final class MediaDialog extends CommonListDialog{
 
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
-		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, evt -> {
+		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, () -> {
 			String identifier = GUIHelper.getTextTrimmed(fileField);
 			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 				identifier = basePath + identifier;
 			enablePhotoRelatedButtons(identifier);
 
-			final int mediaID = extractRecordID(selectedRecord);
+			final Integer mediaID = extractRecordID(selectedRecord);
 			photoCropButtonEnabledBorder(identifier, mediaID);
 		});
 		addMandatoryField(fileField);
+		fileField.setEditable(false);
 
 		fileButton.addActionListener(evt -> {
 			FileNameExtensionFilter filter = null;
@@ -259,7 +263,7 @@ public final class MediaDialog extends CommonListDialog{
 		openFolderButton.addActionListener(evt -> {
 			File file = null;
 			try{
-				String identifier = extractRecordIdentifier(selectedRecord);
+				String identifier = GUIHelper.getTextTrimmed(fileField);
 				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 					identifier = basePath + identifier;
 				file = FileHelper.loadFile(identifier);
@@ -267,11 +271,11 @@ public final class MediaDialog extends CommonListDialog{
 					FileHelper.browse(file);
 			}
 			catch(final IOException | InterruptedException e){
-				LOGGER.warn("Exception while opening folder {}", file.getParent(), e);
+				LOGGER.warn("Exception while opening folder {}", (file != null? file.getParent(): null), e);
 			}
 		});
 		openLinkButton.addActionListener(evt -> {
-			String identifier = extractRecordIdentifier(selectedRecord);
+			String identifier = GUIHelper.getTextTrimmed(fileField);
 			File file = null;
 			try{
 				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
@@ -281,8 +285,7 @@ public final class MediaDialog extends CommonListDialog{
 					FileHelper.openFileWithChosenEditor(file);
 			}
 			catch(final Exception e1){
-				if(file != null)
-					LOGGER.warn("Exception while opening file {}", file.getParent(), e1);
+				LOGGER.warn("Exception while opening file {}", file, e1);
 
 				try{
 					FileHelper.browseURL(identifier);
@@ -293,18 +296,17 @@ public final class MediaDialog extends CommonListDialog{
 			}
 		});
 
-		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		if(restrictToPhoto){
 			typeComboBox.setSelectedItem("photo");
 			typeComboBox.setEnabled(false);
 		}
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(photoProjectionLabel, photoProjectionComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(photoProjectionLabel, photoProjectionComboBox, this::saveData);
 
 		dateButton.setToolTipText("Date");
-		//TODO add date to selectedRecord
 		dateButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
@@ -454,7 +456,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int mediaID = extractRecordID(selectedRecord);
+		final Integer mediaID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -462,7 +464,7 @@ public final class MediaDialog extends CommonListDialog{
 		final Integer dateID = extractRecordDateID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> mediaID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(mediaID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
 			.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
@@ -487,7 +489,7 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	//NOTE working table-junction extraction
-	private void photoCropButtonEnabledBorder(String identifier, final int mediaID){
+	private void photoCropButtonEnabledBorder(String identifier, final Integer mediaID){
 		if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 			identifier = basePath + identifier;
 		final File file = FileHelper.loadFile(identifier);
@@ -495,7 +497,7 @@ public final class MediaDialog extends CommonListDialog{
 		if(isPhoto){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable,
 				filterReferenceID).entrySet().stream()
-				.filter(entry -> mediaID == extractRecordMediaID(entry.getValue()))
+				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
@@ -514,6 +516,10 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	private void enablePhotoRelatedButtons(final String fileURI){
+		openFolderButton.setEnabled(false);
+		openLinkButton.setEnabled(false);
+		photoProjectionComboBox.setEnabled(false);
+
 		if(fileURI == null)
 			return;
 
@@ -723,7 +729,7 @@ public final class MediaDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final MediaDialog dialog = create(store, parent)
+			final MediaDialog dialog = createForMedia(store, parent)
 //			final MediaDialog dialog = createRecordForPhoto(store, parent)
 				.withBasePath(FileHelper.documentsDirectory());
 			dialog.initComponents();

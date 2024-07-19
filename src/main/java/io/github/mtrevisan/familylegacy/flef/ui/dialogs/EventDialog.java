@@ -54,6 +54,8 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.io.Serial;
 import java.sql.SQLException;
@@ -168,17 +170,16 @@ public final class EventDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		addMandatoryField(typeComboBox);
 
-		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, this::saveData);
 
 		placeButton.setToolTipText("Event place");
-		//TODO add place to selectedRecord
 		placeButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
 
 		dateButton.setToolTipText("Event date");
-		//TODO add date to selectedRecord
 		dateButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
@@ -252,12 +253,16 @@ public final class EventDialog extends CommonListDialog{
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-//		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
+		final ItemEvent itemEvent = new ItemEvent(typeComboBox, ItemEvent.ITEM_STATE_CHANGED, typeComboBox.getItemAt(0),
+			ItemEvent.SELECTED);
+		for(final ItemListener listener : typeComboBox.getItemListeners())
+			listener.itemStateChanged(itemEvent);
 		typeComboBox.setSelectedItem(type);
+
 		descriptionField.setText(description);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
@@ -518,7 +523,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 						case MEDIA -> {
 							final int eventID = extractRecordID(container);
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {

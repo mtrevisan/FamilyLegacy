@@ -246,14 +246,14 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int personID = extractRecordID(selectedRecord);
+		final Integer personID = extractRecordID(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNames = extractReferences(TABLE_NAME_PERSON_NAME);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> personID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry.getValue())))
@@ -555,7 +555,7 @@ public final class PersonDialog extends CommonListDialog{
 							personNameDialog.setVisible(true);
 						}
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createRecordForPhoto(store, parent)
+							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
@@ -620,7 +620,7 @@ public final class PersonDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {

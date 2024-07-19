@@ -34,6 +34,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -51,6 +52,7 @@ import java.awt.Container;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.Arrays;
@@ -117,7 +119,7 @@ public final class GUIHelper{
 		return (text != null && !text.isEmpty()? text: null);
 	}
 
-	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Consumer<DocumentEvent> onEdit){
+	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Runnable onEdit){
 		if(label != null)
 			label.setLabelFor(field);
 
@@ -125,22 +127,22 @@ public final class GUIHelper{
 			field.addDocumentListener(new DocumentListener(){
 				@Override
 				public void changedUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 
 				@Override
 				public void removeUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 
 				@Override
 				public void insertUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 			});
 	}
 
-	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Consumer<DocumentEvent> onEdit){
+	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Runnable onEdit){
 		if(label != null)
 			label.setLabelFor(field);
 
@@ -150,17 +152,17 @@ public final class GUIHelper{
 			field.getDocument().addDocumentListener(new DocumentListener(){
 				@Override
 				public void changedUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 
 				@Override
 				public void removeUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 
 				@Override
 				public void insertUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
+					onEdit.run();
 				}
 			});
 	}
@@ -179,8 +181,7 @@ public final class GUIHelper{
 			});
 	}
 
-	public static void bindLabelUndoSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox,
-			final Consumer<DocumentEvent> onEdit){
+	public static void bindLabelUndoSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onEdit){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
@@ -190,26 +191,11 @@ public final class GUIHelper{
 
 		AutoCompleteDecorator.decorate(comboBox);
 
-		if(onEdit != null){
-			//TODO revise listener (multiple calls on selection change, for example)
-			final JTextField editor = (JTextField)comboBox.getEditor().getEditorComponent();
-			editor.getDocument().addDocumentListener(new DocumentListener(){
-				@Override
-				public void changedUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
-				}
-
-				@Override
-				public void insertUpdate(final DocumentEvent evt){
-					onEdit.accept(evt);
-				}
+		if(onEdit != null)
+			comboBox.addItemListener(evt -> {
+				if(evt.getStateChange() == ItemEvent.SELECTED)
+					onEdit.run();
 			});
-		}
 	}
 
 	public static void bindLabelSelectionChange(final JLabel label, final JComboBox<?> comboBox, final Consumer<ActionEvent> onSelection){
@@ -385,6 +371,13 @@ public final class GUIHelper{
 				component.setBackground(component.isEnabled()? mandatoryBackgroundColor: defaultBackgroundColor);
 			}
 		}
+	}
+
+
+	public static void enableTabByTitle(final JTabbedPane tabbedPane, final String title, final boolean enable){
+		final int index = tabbedPane.indexOfTab(title);
+		if(index >= 0)
+			tabbedPane.setEnabledAt(index, enable);
 	}
 
 }

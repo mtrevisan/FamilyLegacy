@@ -125,7 +125,7 @@ public final class CalendarDialog extends CommonListDialog{
 		eventButton = new JButton("Events", ICON_EVENT);
 
 
-		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, this::saveData);
 		addMandatoryField(typeField);
 
 
@@ -190,14 +190,14 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int calendarID = extractRecordID(selectedRecord);
+		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> calendarID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(calendarID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
-			.filter(entry -> calendarID == extractRecordCalendarID(entry.getValue()))
+			.filter(entry -> Objects.equals(calendarID, extractRecordCalendarID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		typeField.setText(type);

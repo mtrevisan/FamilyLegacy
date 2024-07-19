@@ -164,12 +164,12 @@ public final class SourceDialog extends CommonListDialog{
 		citationButton = new JButton("Citations", ICON_CITATION);
 
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
-		GUIHelper.bindLabelTextChangeUndo(authorLabel, authorField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(authorLabel, authorField, this::saveData);
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
@@ -179,7 +179,7 @@ public final class SourceDialog extends CommonListDialog{
 		dateButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -266,7 +266,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int sourceID = extractRecordID(selectedRecord);
+		final Integer sourceID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String author = extractRecordAuthor(selectedRecord);
@@ -562,7 +562,7 @@ public final class SourceDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, sourceID)
 								.withOnCloseGracefully(record -> {

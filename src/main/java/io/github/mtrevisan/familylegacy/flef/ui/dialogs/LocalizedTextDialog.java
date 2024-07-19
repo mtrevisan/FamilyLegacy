@@ -120,14 +120,18 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			final int localizedTextID = extractRecordID(selectedRecord);
-			final Map<String, Object> mediaJunction = new HashMap<>();
-			mediaJunction.put("id", mediaJunctionID);
-			mediaJunction.put("localized_text_id", localizedTextID);
-			mediaJunction.put("reference_table", filterReferenceTable);
-			mediaJunction.put("reference_id", filterReferenceID);
-			mediaJunction.put("reference_type", filterReferenceType);
-			mediaJunctions.put(mediaJunctionID, mediaJunction);
+			if(selectedRecord != null){
+				final Integer localizedTextID = extractRecordID(selectedRecord);
+				final Map<String, Object> mediaJunction = new HashMap<>();
+				mediaJunction.put("id", mediaJunctionID);
+				mediaJunction.put("localized_text_id", localizedTextID);
+				mediaJunction.put("reference_table", filterReferenceTable);
+				mediaJunction.put("reference_id", filterReferenceID);
+				mediaJunction.put("reference_type", filterReferenceType);
+				mediaJunctions.put(mediaJunctionID, mediaJunction);
+			}
+			else
+				mediaJunctions.remove(mediaJunctionID);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -187,22 +191,22 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 
 		if(simplePrimaryText){
-			GUIHelper.bindLabelTextChangeUndo(primaryTextLabel, primaryTextField, evt -> saveData());
-			GUIHelper.bindLabelTextChangeUndo(secondaryTextLabel, secondaryTextField, evt -> saveData());
+			GUIHelper.bindLabelTextChangeUndo(primaryTextLabel, primaryTextField, this::saveData);
+			GUIHelper.bindLabelTextChangeUndo(secondaryTextLabel, secondaryTextField, this::saveData);
 			addMandatoryField(primaryTextField, secondaryTextField);
 		}
 		else{
-			GUIHelper.bindLabelTextChange(primaryTextLabel, textTextPreview, evt -> saveData());
+			GUIHelper.bindLabelTextChange(primaryTextLabel, textTextPreview, this::saveData);
 			textTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 		}
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, this::saveData);
 	}
 
 	@Override

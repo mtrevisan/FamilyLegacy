@@ -141,12 +141,10 @@ public final class RepositoryDialog extends CommonListDialog{
 		sourcesButton = new JButton("Sources", ICON_SOURCE);
 
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField,
-			evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox,
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
 		personButton.setToolTipText("Reference person");
 		personButton.addActionListener(e -> EventBusService.publish(
@@ -234,7 +232,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int repositoryID = extractRecordID(selectedRecord);
+		final Integer repositoryID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
@@ -243,7 +241,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 		final Map<Integer, Map<String, Object>> recordSources = getRecords(TABLE_NAME_SOURCE).entrySet().stream()
-			.filter(entry -> repositoryID == extractRecordRepositoryID(entry.getValue()))
+			.filter(entry -> Objects.equals(repositoryID, extractRecordRepositoryID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		identifierField.setText(identifier);
@@ -588,7 +586,7 @@ public final class RepositoryDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, recordID)
 								.withOnCloseGracefully(record -> {

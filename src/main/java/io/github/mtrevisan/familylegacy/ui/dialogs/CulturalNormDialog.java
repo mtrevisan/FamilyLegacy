@@ -233,7 +233,7 @@ public class CulturalNormDialog extends JDialog{
 	}
 
 	private void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, evt -> {
+		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, () -> {
 			final String newTitle = titleField.getText();
 			if(StringUtils.isNotBlank(newTitle)){
 				final GedcomNode selectedRecord = getSelectedRecord();

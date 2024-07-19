@@ -144,23 +144,23 @@ public final class HistoricDateDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChangeUndo(dateLabel, dateField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(dateLabel, dateField, this::saveData);
 		addMandatoryField(dateField);
 
 		calendarButton.setToolTipText("Calendar");
 		calendarButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.CALENDAR, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelTextChangeUndo(dateOriginalLabel, dateOriginalField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(dateOriginalLabel, dateOriginalField, this::saveData);
 		GUIHelper.addUndoCapability(dateOriginalField);
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -232,7 +232,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int dateID = extractRecordID(selectedRecord);
+		final Integer dateID = extractRecordID(selectedRecord);
 		final String date = extractRecordDate(selectedRecord);
 		final Integer calendarID = extractRecordCalendarID(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
@@ -241,7 +241,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> dateID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(dateID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 

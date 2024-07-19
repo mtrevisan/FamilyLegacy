@@ -212,7 +212,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			final int filterReferenceID){
 		return getRecords(tableName).entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
-			.filter(entry -> filterReferenceID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 

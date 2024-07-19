@@ -184,22 +184,20 @@ public final class PlaceDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, null);
 		addMandatoryField(nameField);
-		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
-		GUIHelper.bindLabelTextChangeUndo(coordinateLabel, coordinateField, evt -> saveData());
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateSystemLabel, coordinateSystemComboBox, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(coordinateLabel, coordinateField, this::saveData);
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateSystemLabel, coordinateSystemComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateCredibilityLabel, coordinateCredibilityComboBox,
-			evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateCredibilityLabel, coordinateCredibilityComboBox, this::saveData);
 
 		photoButton.setToolTipText("Photo");
-		//TODO add photo to selectedRecord
 		photoButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, getSelectedRecord())));
 
@@ -309,7 +307,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int placeID = extractRecordID(selectedRecord);
+		final Integer placeID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String name = extractRecordName(selectedRecord);
 		final String nameLocale = extractRecordNameLocale(selectedRecord);
@@ -657,7 +655,7 @@ public final class PlaceDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, placeID)
 								.withOnCloseGracefully(record -> {

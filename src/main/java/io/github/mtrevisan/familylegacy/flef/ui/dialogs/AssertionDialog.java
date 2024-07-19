@@ -155,11 +155,11 @@ public final class AssertionDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -570,7 +570,7 @@ public final class AssertionDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, assertionID)
 								.withOnCloseGracefully(record -> {

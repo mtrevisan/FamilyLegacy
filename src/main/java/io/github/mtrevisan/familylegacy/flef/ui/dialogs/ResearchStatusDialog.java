@@ -88,7 +88,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	private JTextField priorityField;
 
 
-	public ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static ResearchStatusDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		return new ResearchStatusDialog(store, parent);
+	}
+
+
+	private ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
@@ -137,14 +142,14 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		((AbstractDocument)priorityField.getDocument()).setDocumentFilter(new PositiveIntegerFilter());
 
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, evt -> saveData());
+		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, this::saveData);
 
-		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, this::saveData);
 	}
 
 	@Override
@@ -399,7 +404,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
-			final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+			final ResearchStatusDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.initComponents();
 			dialog.loadData();

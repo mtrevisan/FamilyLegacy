@@ -125,16 +125,20 @@ public final class GroupDialog extends CommonListDialog{
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			final int groupID = extractRecordID(selectedRecord);
-			final Map<String, Object> mediaJunction = new HashMap<>();
-			mediaJunction.put("id", mediaJunctionID);
-			mediaJunction.put("group_id", groupID);
-			mediaJunction.put("reference_table", filterReferenceTable);
-			mediaJunction.put("reference_id", filterReferenceID);
-			mediaJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
-			mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
-			mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
-			mediaJunctions.put(mediaJunctionID, mediaJunction);
+			if(selectedRecord != null){
+				final Integer groupID = extractRecordID(selectedRecord);
+				final Map<String, Object> mediaJunction = new HashMap<>();
+				mediaJunction.put("id", mediaJunctionID);
+				mediaJunction.put("group_id", groupID);
+				mediaJunction.put("reference_table", filterReferenceTable);
+				mediaJunction.put("reference_id", filterReferenceID);
+				mediaJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
+				mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
+				mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
+				mediaJunctions.put(mediaJunctionID, mediaJunction);
+			}
+			else
+				mediaJunctions.remove(mediaJunctionID);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -198,7 +202,7 @@ public final class GroupDialog extends CommonListDialog{
 		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
@@ -237,11 +241,11 @@ public final class GroupDialog extends CommonListDialog{
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
-		GUIHelper.bindLabelTextChangeUndo(linkRoleLabel, linkRoleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(linkRoleLabel, linkRoleField, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, this::saveData);
 	}
 
 	@Override
@@ -268,6 +272,7 @@ public final class GroupDialog extends CommonListDialog{
 		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
 		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelLink.add(linkCredibilityComboBox);
+		recordPanelLink.setEnabled(filterReferenceTable != null);
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
@@ -310,7 +315,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int groupID = extractRecordID(selectedRecord);
+		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
@@ -318,7 +323,7 @@ public final class GroupDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> groupID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(groupID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry.getValue())))
@@ -345,6 +350,10 @@ public final class GroupDialog extends CommonListDialog{
 		linkRoleField.setText(role);
 		linkCertaintyComboBox.setSelectedItem(certainty);
 		linkCredibilityComboBox.setSelectedItem(credibility);
+
+
+		final String referenceTable = extractRecordReferenceTable(selectedRecord);
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", referenceTable != null);
 	}
 
 	@Override
@@ -723,7 +732,7 @@ public final class GroupDialog extends CommonListDialog{
 							culturalNormDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {

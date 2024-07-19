@@ -56,7 +56,7 @@ public class Main{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final RepositoryDialog dialog = RepositoryDialog.create(store, parent);
+//			final RepositoryDialog dialog = RepositoryDialog.create(store, parent);
 //			final HistoricDateDialog dialog = HistoricDateDialog.create(store, parent);
 //			final PlaceDialog dialog = PlaceDialog.create(store, parent);
 //			final MediaDialog dialog = MediaDialog.create(store, parent);
@@ -64,6 +64,8 @@ public class Main{
 //			final GroupDialog dialog = GroupDialog.create(store, parent);
 //			final EventDialog dialog = EventDialog.create(store, parent);
 //			final CulturalNormDialog dialog = CulturalNormDialog.create(store, parent);
+			final ResearchStatusDialog dialog = ResearchStatusDialog.create(store, parent);
+//			final ProjectDialog dialog = ProjectDialog.create(store, parent);
 			dialog.initComponents();
 			dialog.loadData();
 
@@ -85,6 +87,9 @@ public class Main{
 //							final RepositoryDialog repositoryDialog = RepositoryDialog.create(store, parent);
 //							repositoryDialog.initComponents();
 //							repositoryDialog.loadData();
+//							final Integer repositoryID = extractRecordRepositoryID(container);
+//							if(repositoryID != null)
+//								repositoryDialog.selectData(repositoryID);
 //
 //							repositoryDialog.setSize(400, 395);
 //							repositoryDialog.setLocationRelativeTo(null);
@@ -101,6 +106,9 @@ public class Main{
 								});
 							sourceDialog.initComponents();
 							sourceDialog.loadData();
+							final Integer sourceID = extractRecordSourceID(container);
+							if(sourceID != null)
+								sourceDialog.selectData(sourceID);
 
 							sourceDialog.setSize(440, 462);
 							sourceDialog.setLocationRelativeTo(null);
@@ -117,6 +125,9 @@ public class Main{
 								});
 							citationDialog.initComponents();
 							citationDialog.loadData();
+							final Integer citationID = extractRecordCitationID(container);
+							if(citationID != null)
+								citationDialog.selectData(citationID);
 
 							citationDialog.setSize(420, 586);
 							citationDialog.setLocationRelativeTo(dialog);
@@ -274,7 +285,7 @@ public class Main{
 
 						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, recordID)
 								.withOnCloseGracefully(record -> {
@@ -285,6 +296,9 @@ public class Main{
 								});
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
+							final Integer mediaID = extractRecordMediaID(container);
+							if(mediaID != null)
+								mediaDialog.selectData(mediaID);
 
 							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -293,19 +307,19 @@ public class Main{
 
 						//from: person, group, place
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createRecordForPhoto(store, parent)
+							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference("person", recordID)
+								.withReference(tableName, recordID)
 								.withOnCloseGracefully(record -> {
-									final Integer newPhotoID = extractRecordID(record);
-									container.put("photo_id", newPhotoID);
-
-									//FIXME
-									//									((PersonDialog)dialog).photoCropButton.setEnabled(newPhotoID != null);
+									if(record != null){
+										record.put("reference_table", tableName);
+										record.put("reference_id", recordID);
+									}
 								});
 							photoDialog.initComponents();
 							photoDialog.loadData();
-							if(recordID != null){
+							final Integer photoID = extractRecordPhotoID(container);
+							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
 								photoDialog.addData(container);
 								photoDialog.selectData(recordID);
@@ -386,6 +400,9 @@ public class Main{
 								.withReference(tableName, recordID);
 							groupDialog.initComponents();
 							groupDialog.loadData();
+							final Integer groupID = extractRecordGroupID(container);
+							if(groupID != null)
+								groupDialog.selectData(groupID);
 
 							groupDialog.setSize(468, 469);
 							groupDialog.setLocationRelativeTo(null);
@@ -418,6 +435,9 @@ public class Main{
 								});
 							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
+							final Integer culturalNormID = extractRecordCulturalNormID(container);
+							if(culturalNormID != null)
+								culturalNormDialog.selectData(culturalNormID);
 
 							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
@@ -430,6 +450,7 @@ public class Main{
 //						}
 
 
+						//from: ?
 //						case PROJECT -> {
 							//TODO
 //						}
@@ -445,7 +466,16 @@ public class Main{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(400, 395);
+//			dialog.setSize(400, 395);
+//			dialog.setSize(481, 427);
+//			dialog.setSize(522, 618);
+//			dialog.setSize(420, 497);
+//			dialog.setSize(355, 469);
+//			dialog.setSize(468, 469);
+//			dialog.setSize(309, 409);
+//			dialog.setSize(474, 652);
+			dialog.setSize(420, 567);
+//			dialog.setSize(420, 282);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
@@ -470,12 +500,36 @@ public class Main{
 		return (Integer)record.get("place_id");
 	}
 
+	private static Integer extractRecordSourceID(final Map<String, Object> record){
+		return (Integer)record.get("source_id");
+	}
+
+	private static Integer extractRecordCitationID(final Map<String, Object> record){
+		return (Integer)record.get("citation_id");
+	}
+
 	private static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
 	}
 
 	private static Integer extractRecordCalendarID(final Map<String, Object> record){
 		return (Integer)record.get("calendar_id");
+	}
+
+	private static Integer extractRecordMediaID(final Map<String, Object> record){
+		return (Integer)record.get("media_id");
+	}
+
+	private static Integer extractRecordPhotoID(final Map<String, Object> record){
+		return (Integer)record.get("photo_id");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private static Integer extractRecordCulturalNormID(final Map<String, Object> record){
+		return (Integer)record.get("cultural_norm_id");
 	}
 
 	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){

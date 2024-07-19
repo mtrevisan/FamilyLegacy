@@ -143,10 +143,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, evt -> saveData());
+		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
 		noteTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
@@ -385,7 +385,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							culturalNormDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, noteID)
 								.withOnCloseGracefully(record -> {

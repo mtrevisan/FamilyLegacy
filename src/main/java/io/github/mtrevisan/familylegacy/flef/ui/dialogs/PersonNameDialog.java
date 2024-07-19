@@ -55,6 +55,7 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -161,16 +162,16 @@ public final class PersonNameDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		GUIHelper.bindLabelTextChangeUndo(primaryNameLabel, primaryNameField, evt -> saveData());
-		GUIHelper.bindLabelTextChangeUndo(secondaryNameLabel, secondaryNameField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(primaryNameLabel, primaryNameField, this::saveData);
+		GUIHelper.bindLabelTextChangeUndo(secondaryNameLabel, secondaryNameField, this::saveData);
 		addMandatoryField(primaryNameField, secondaryNameField);
-		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -243,7 +244,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
 		return getRecords(TABLE_NAME).entrySet().stream()
-			.filter(entry -> filterReferenceID == extractRecordPersonID(entry.getValue()))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
@@ -265,7 +266,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final int personNameID = extractRecordID(selectedRecord);
+		final Integer personNameID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String primaryName = extractRecordPrimaryName(selectedRecord);
 		final String secondaryName = extractRecordSecondaryName(selectedRecord);
@@ -275,7 +276,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> personNameID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(personNameID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordEvents = extractReferences(TABLE_NAME_EVENT);
@@ -537,7 +538,7 @@ public final class PersonNameDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {

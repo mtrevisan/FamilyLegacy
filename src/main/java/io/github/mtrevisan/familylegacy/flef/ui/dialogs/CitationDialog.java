@@ -58,6 +58,7 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -160,18 +161,18 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 
 
-		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
 
-		GUIHelper.bindLabelTextChange(extractLabel, extractTextPreview, evt -> saveData());
+		GUIHelper.bindLabelTextChange(extractLabel, extractTextPreview, this::saveData);
 		extractTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelTextChangeUndo(extractLocaleLabel, extractLocaleField, evt -> saveData());
+		GUIHelper.bindLabelTextChangeUndo(extractLocaleLabel, extractLocaleField, this::saveData);
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -267,7 +268,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected void fillData(){
-		final int citationID = extractRecordID(selectedRecord);
+		final Integer citationID = extractRecordID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
@@ -278,7 +279,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
-			.filter(entry -> citationID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> Objects.equals(citationID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		locationField.setText(location);
@@ -583,7 +584,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, citationID)
 								.withOnCloseGracefully(record -> {

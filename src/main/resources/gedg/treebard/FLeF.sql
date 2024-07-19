@@ -292,7 +292,7 @@ CREATE TABLE RESEARCH_STATUS
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to.
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
  IDENTIFIER      text NOT NULL,		-- An identifier.
- DESCRIPTION     text,					-- The description of the research status.
+ DESCRIPTION     text,					-- The description of the research status. Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  STATUS          text,					-- Research status (ex. "open": recorded but not started yet, "active": currently being searched, "ended": all the information has been found).
  PRIORITY        numeric
 );

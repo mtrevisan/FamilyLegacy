@@ -124,15 +124,19 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			final int culturalNormID = extractRecordID(selectedRecord);
-			final Map<String, Object> mediaJunction = new HashMap<>();
-			mediaJunction.put("id", mediaJunctionID);
-			mediaJunction.put("cultural_norm_id", culturalNormID);
-			mediaJunction.put("reference_table", filterReferenceTable);
-			mediaJunction.put("reference_id", filterReferenceID);
-			mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
-			mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
-			mediaJunctions.put(mediaJunctionID, mediaJunction);
+			if(selectedRecord != null){
+				final Integer culturalNormID = extractRecordID(selectedRecord);
+				final Map<String, Object> mediaJunction = new HashMap<>();
+				mediaJunction.put("id", mediaJunctionID);
+				mediaJunction.put("cultural_norm_id", culturalNormID);
+				mediaJunction.put("reference_table", filterReferenceTable);
+				mediaJunction.put("reference_id", filterReferenceID);
+				mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
+				mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
+				mediaJunctions.put(mediaJunctionID, mediaJunction);
+			}
+			else
+				mediaJunctions.remove(mediaJunctionID);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -200,28 +204,25 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, evt -> saveData());
+		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
 
 		placeButton.setToolTipText("Place");
-		//TODO add place to selectedRecord
 		placeButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
 
 		dateStartButton.setToolTipText("Start date");
-		//TODO add date to selectedRecord
 		dateStartButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
 		dateEndButton.setToolTipText("End date");
-		//TODO add date to selectedRecord
 		dateEndButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, evt -> saveData());
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -243,8 +244,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, evt -> saveData());
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, evt -> saveData());
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, this::saveData);
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, this::saveData);
 	}
 
 	@Override
@@ -653,7 +654,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.create(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, culturalNormID)
 								.withOnCloseGracefully(record -> {
