@@ -60,9 +60,22 @@ public abstract class AbstractCalendarParser{
 	private static final Pattern PATTERN_PREFIXES_AFTER = RegexHelper.pattern("(?i)(?:" + FORMAT_AFTER + ") ");
 
 
-	public abstract LocalDate parse(final String date, final DatePreciseness preciseness);
+	/**
+	 * Convert a date string to a (Gregorian) {@link java.time.LocalDate}.
+	 *
+	 * @param date	The date.
+	 * @param preciseness	Preference on how to handle imprecise dates: return the earliest day of the month, the latest, or the midpoint.
+	 * @return	The Gregorian date that represents the date supplied.
+	 */
+	public LocalDate parse(String date, final DatePreciseness preciseness){
+		date = removeApproximations(date);
+		date = removeOpenEndedRangesAndPeriods(date);
 
-	public abstract int parseMonth(final String month);
+		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
+	}
+
+	protected abstract LocalDate getDate(CharSequence date, DatePreciseness preciseness) throws IllegalArgumentException;
+
 
 	public static boolean isExact(final CharSequence date){
 		return (!isApproximation(date) && !isBefore(date) && !isAfter(date) && !isInterpreted(date) && !isRange(date));

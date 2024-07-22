@@ -78,7 +78,7 @@ CREATE TABLE HISTORIC_DATE
 CREATE TABLE CALENDAR
 (
  "ID"   numeric PRIMARY KEY,
- "TYPE" text NOT NULL	-- A calendar type (ex. "gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french republican", "coptic", "soviet eternal", "ethiopian", "mayan", "venetan").
+ "TYPE" text NOT NULL	-- A calendar type (ex. "gregorian", "julian", "french republican", "venetan", "hebrew", "muslim", "chinese", "indian", "buddhist", "coptic", "soviet eternal", "ethiopian", "mayan").
 );
 
 

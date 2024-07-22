@@ -58,23 +58,8 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		return SingletonHelper.INSTANCE;
 	}
 
-	/**
-	 * Convert a Hebrew date string (in proper GEDCOM format) to a (Gregorian) java.time.LocalDate.
-	 *
-	 * @param date	The Hebrew date in GEDCOM spec format.
-	 * @param preciseness	Preference on how to handle imprecise dates - return the earliest day of the month, the latest,
-	 * 	or the midpoint.
-	 * @return The Gregorian date that represents the Hebrew date supplied.
-	 */
 	@Override
-	public LocalDate parse(String date, final DatePreciseness preciseness){
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
-
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
-	}
-
-	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness){
+	protected LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){
@@ -125,7 +110,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * This function converts a Hebrew date into the Gregorian date.
 	 *
 	 * @param year	The hebrew year.
-	 * @param month	The hebrew month abbreviation in GEDCOM format.
+	 * @param month	The hebrew month abbreviation.
 	 * @param day	The day within the month.
 	 * @return	The date in Gregorian form.
 	 */
@@ -323,12 +308,6 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 */
 	private int yearInLeapCycle(final int year){
 		return year % 19;
-	}
-
-	@Override
-	public int parseMonth(final String month){
-		final HebrewMonth m = HebrewMonth.fromAbbreviation(month);
-		return (m != null? m.ordinal(): -1);
 	}
 
 }

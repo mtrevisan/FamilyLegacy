@@ -56,10 +56,10 @@ enum HebrewMonth{
 
 
 	/**
-	 * Get an enum value from the gedcom abbreviation
+	 * Get an enum value from the month abbreviation.
 	 *
-	 * @param abbreviation	The GEDCOM spec abbreviation for this month
-	 * @return	the enum constant that matches the abbreviation
+	 * @param abbreviation	The abbreviation for this month.
+	 * @return	The enum constant that matches the abbreviation.
 	 */
 	public static HebrewMonth fromAbbreviation(final String abbreviation){
 		HebrewMonth result = null;

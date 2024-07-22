@@ -410,7 +410,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		//remove row from table
 		model.removeRow(modelRowIndex);
 		//remove data from records
-		getRecords(getTableName()).remove(recordID);
+		getRecords(getTableName())
+			.remove(recordID);
 		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())

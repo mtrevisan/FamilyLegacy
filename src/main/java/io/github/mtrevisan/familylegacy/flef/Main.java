@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef;
 
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 
@@ -418,27 +419,27 @@ public final class Main{
 		Map<String, Object> flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 1);
-		flefCalendar.put("type", "gregorian");
+		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_GREGORIAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 2);
-		flefCalendar.put("type", "julian");
+		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_JULIAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 3);
-		flefCalendar.put("type", "venetan");
+		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_VENETAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 4);
-		flefCalendar.put("type", "french-republican");
+		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
 		flefCalendar.put("id", 5);
-		flefCalendar.put("type", "hebrew");
+		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_HEBREW);
 	}
 
 	private static void transferCulturalNorm(final Map<String, List<Map<String, Object>>> output){

@@ -56,7 +56,7 @@ enum FrenchRepublicanMonth{
 	/**
 	 * Get the enumerated constant value with the supplied abbreviation.
 	 *
-	 * @param abbreviation	The gedcom-spec abbreviation for the month.
+	 * @param abbreviation	The abbreviation for the month.
 	 * @return	The enumerated constant value with the supplied abbreviation, or null if no match is found.
 	 */
 	public static FrenchRepublicanMonth fromAbbreviation(final String abbreviation){

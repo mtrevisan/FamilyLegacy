@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -65,14 +67,16 @@ import java.awt.font.TextAttribute;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serial;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 
 public class PersonPanel extends JPanel implements PropertyChangeListener{
@@ -126,8 +130,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private final BoxPanelType boxType;
 
-	private Map<String, Object> childReference;
-
 
 	public static PersonPanel create(final SelectedNodeType type, final Map<String, Object> person,
 			final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
@@ -148,7 +150,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
 		setPreferredSize(imageLabel, 48., IMAGE_ASPECT_RATIO, shrinkFactor);
 
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
@@ -176,7 +178,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			});
 
 
-			if(boxType == BoxPanelType.SECONDARY){
+			if(!isPrimaryBox()){
 				personalNameLabel.addMouseListener(new MouseAdapter(){
 					@Override
 					public void mouseClicked(final MouseEvent evt){
@@ -195,8 +197,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 			attachPopUpMenu(listener);
 
-			//TODO
-//			refresh(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
+			refresh(ActionCommand.ACTION_COMMAND_PERSON_COUNT);
 
 
 			imageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -275,7 +276,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		if(PROPERTY_NAME_TEXT_CHANGE.equals(evt.getPropertyName())){
 			personalNameLabel.manageToolTip();
 			familyNameLabel.manageToolTip();
-			infoLabel.manageToolTip();
 		}
 	}
 
@@ -293,22 +293,22 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private void loadData(){
-		final Dimension size = (boxType == BoxPanelType.PRIMARY? new Dimension(260, 90):
+		final Dimension size = (isPrimaryBox()? new Dimension(260, 90):
 			new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
-		setMaximumSize(boxType == BoxPanelType.PRIMARY? new Dimension(420, size.height):
+		setMaximumSize(isPrimaryBox()? new Dimension(420, size.height):
 			new Dimension(240, size.height));
 
-		Font font = (boxType == BoxPanelType.PRIMARY? FONT_PRIMARY: FONT_SECONDARY);
+		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
-		if(boxType == BoxPanelType.SECONDARY){
+		if(!isPrimaryBox()){
 			//add underline to mark this person as eligible for primary position
 			@SuppressWarnings("unchecked")
 			final Map<TextAttribute, Object> attributes = (Map<TextAttribute, Object>)font.getAttributes();
 			attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_LOW_ONE_PIXEL);
 			font = font.deriveFont(attributes);
 		}
-		final Cursor cursor = Cursor.getPredefinedCursor(boxType == BoxPanelType.PRIMARY? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR);
+		final Cursor cursor = Cursor.getPredefinedCursor(isPrimaryBox()? Cursor.DEFAULT_CURSOR: Cursor.HAND_CURSOR);
 		personalNameLabel.setFont(font);
 		personalNameLabel.setCursor(cursor);
 		familyNameLabel.setFont(font);
@@ -328,12 +328,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 
 		final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-		final StringJoiner toolTipSJ = new StringJoiner(StringUtils.SPACE);
-		extractBirthDeathAge(sj, toolTipSJ);
+		final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
+		extractBirthDeathPlaceAge(sj, toolTipSJ);
 		infoLabel.setText(sj.toString());
 		infoLabel.setToolTipText(toolTipSJ.toString());
 
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
 		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
 		final ImageIcon icon = ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize());
 		imageLabel.setIcon(icon);
@@ -343,24 +343,28 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		infoLabel.setVisible(!person.isEmpty());
 		imageLabel.setVisible(!person.isEmpty());
 
-		//TODO
-//		refresh(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
+		refresh(ActionCommand.ACTION_COMMAND_PERSON_COUNT);
+	}
+
+	private boolean isPrimaryBox(){
+		return (boxType == BoxPanelType.PRIMARY);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	@SuppressWarnings("NumberEquality")
 	public final void refresh(final Integer actionCommand){
-		//TODO
-//		if(actionCommand != Flef.ACTION_COMMAND_INDIVIDUAL_COUNT)
-//			return;
-//
-//		linkPersonItem.setEnabled(person.isEmpty() && store.hasIndividuals());
-//		editPersonItem.setEnabled(!person.isEmpty());
-//		final boolean isChildOfFamily = !store.traverseAsList(person, "FAMILY_CHILD[]").isEmpty();
-//		unlinkPersonItem.setEnabled(!person.isEmpty() && isChildOfFamily);
-//		addPersonItem.setEnabled(person.isEmpty() && store.hasIndividuals());
-//		removePersonItem.setEnabled(!person.isEmpty());
+		if(actionCommand != ActionCommand.ACTION_COMMAND_PERSON_COUNT)
+			return;
+
+		final boolean hasPersons = !getRecords("person").isEmpty();
+		final boolean isRecordEmpty = person.isEmpty();
+		linkPersonItem.setEnabled(isRecordEmpty && hasPersons);
+		editPersonItem.setEnabled(!isRecordEmpty);
+		final int personID = extractRecordID(person);
+		unlinkPersonItem.setEnabled(!isRecordEmpty && isChildOfFamily(personID));
+		addPersonItem.setEnabled(isRecordEmpty && hasPersons);
+		removePersonItem.setEnabled(!isRecordEmpty);
 	}
 
 	private String extractIdentifier(final int selectedRecordID){
@@ -384,6 +388,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
+	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+		final int filterReferenceID){
+		return getRecords(tableName).entrySet().stream()
+			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	}
+
 	protected static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (int)record.get("id"): null);
 	}
@@ -400,127 +412,126 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (String)record.get("family_name");
 	}
 
-	private void extractBirthDeathAge(final StringJoiner sj, final StringJoiner toolTipSJ){
+	private void extractBirthDeathPlaceAge(final StringJoiner sj, final StringJoiner toolTipSJ){
 		if(!person.isEmpty()){
 			final int personID = extractRecordID(person);
-			final List<Map<String, Object>> earliestBirth = extractEarliestBirth(personID);
-			final List<Map<String, Object>> latestDeath = extractLatestDeath(personID);
-//			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
-//			final String birthPlace = extractEarliestBirthPlace(earliestBirth, store);
-//			final String deathDate = extractLatestDeathDate(latestDeath, store);
-//			final String deathPlace = extractLatestDeathPlace(latestDeath, store);
+			final Map<String, Object> birthRecord = extractEarliestBirth(personID);
+			final Map<String, Object> deathRecord = extractLatestDeath(personID);
+
 			String age = null;
-//			if(birthDate != null && deathDate != null){
-//				//TODO
-//				final boolean isAgeApproximated = (AbstractCalendarParser.isApproximation(birthDate)
-//					|| AbstractCalendarParser.isRange(birthDate)
-//					|| AbstractCalendarParser.isApproximation(deathDate)
-//					|| AbstractCalendarParser.isRange(deathDate));
-//				final boolean isAgeLessThan = (AbstractCalendarParser.isExact(birthDate) && AbstractCalendarParser.isBefore(deathDate)
-//					|| AbstractCalendarParser.isAfter(birthDate) && AbstractCalendarParser.isExact(deathDate)
-//					|| AbstractCalendarParser.isRange(birthDate)
-//					|| AbstractCalendarParser.isRange(deathDate));
-//				age = StringUtils.EMPTY;
-//				if(isAgeLessThan)
-//					age = "<";
-//				else if(isAgeApproximated)
-//					age = "~";
-//				final LocalDate birth = DateParser.parse(birthDate);
-//				final LocalDate death = DateParser.parse(deathDate);
-//				age += Period.between(birth, death).getYears();
-//			}
-//
-//			sj.add(birthDate != null? DateParser.extractYear(birthDate): NO_DATA);
-//			sj.add("–");
-//			sj.add(deathDate != null? DateParser.extractYear(deathDate): NO_DATA);
-//			if(age != null)
-//				sj.add("(" + age + ")");
-//
-//			if(birthPlace != null || deathPlace != null){
-//				toolTipSJ.add("<html>");
-//				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
-//				if(birthPlace != null)
-//					toolTipSJ.add("<br>" + birthPlace);
-//				toolTipSJ.add("<br>-<br>");
-//				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
-//				if(deathPlace != null)
-//					toolTipSJ.add("<br>" + deathPlace);
-//				toolTipSJ.add("</html>");
-//			}
-//			else{
-//				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
-//				toolTipSJ.add("–");
-//				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
-//			}
+			final String birthDateValue = (String)birthRecord.get("dateValue");
+			final String deathDateValue = (String)deathRecord.get("dateValue");
+			final LocalDate birthDate = (LocalDate)birthRecord.get("date");
+			final LocalDate deathDate = (LocalDate)deathRecord.get("date");
+			if(birthDateValue != null && deathDateValue != null){
+				final boolean isAgeApproximated = (AbstractCalendarParser.isApproximation(birthDateValue)
+					|| AbstractCalendarParser.isRange(birthDateValue)
+					|| AbstractCalendarParser.isApproximation(deathDateValue)
+					|| AbstractCalendarParser.isRange(deathDateValue));
+				final boolean isAgeLessThan = (AbstractCalendarParser.isExact(birthDateValue) && AbstractCalendarParser.isBefore(deathDateValue)
+					|| AbstractCalendarParser.isAfter(birthDateValue) && AbstractCalendarParser.isExact(deathDateValue)
+					|| AbstractCalendarParser.isRange(birthDateValue)
+					|| AbstractCalendarParser.isRange(deathDateValue));
+				age = StringUtils.EMPTY;
+				if(isAgeLessThan)
+					age = "<";
+				else if(isAgeApproximated)
+					age = "~";
+				age += Period.between(birthDate, deathDate)
+					.getYears();
+			}
+
+			sj.add(birthDate != null? Integer.toString(birthDate.getYear()): NO_DATA);
+			sj.add("–");
+			sj.add(deathDate != null? Integer.toString(deathDate.getYear()): NO_DATA);
+			if(age != null)
+				sj.add("(" + age + (isPrimaryBox()? " y/o": StringUtils.EMPTY) + ")");
+
+			final String birthPlace = (String)birthRecord.get("placeName");
+			final String deathPlace = (String)deathRecord.get("placeName");
+			if(birthPlace != null || deathPlace != null){
+				toolTipSJ.add("<html>");
+				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
+				if(birthPlace != null)
+					toolTipSJ.add("<br>" + birthPlace);
+				toolTipSJ.add("<br>-<br>");
+				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
+				if(deathPlace != null)
+					toolTipSJ.add("<br>" + deathPlace);
+				toolTipSJ.add("</html>");
+			}
+			else{
+				toolTipSJ.add(birthDate != null? DateParser.formatDate(birthDate): NO_DATA);
+				toolTipSJ.add("–");
+				toolTipSJ.add(deathDate != null? DateParser.formatDate(deathDate): NO_DATA);
+			}
 		}
 	}
 
-	private List<Map<String, Object>> extractEarliestBirth(final int personID){
+	private Map<String, Object> extractEarliestBirth(final int personID){
+		String earliestBirthValue = null;
+		LocalDate earliestBirthDate = null;
+		String earliestBirthPlaceName = null;
 		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords("historic_date");
 		final TreeMap<Integer, Map<String, Object>> calendars = getRecords("calendar");
+		final TreeMap<Integer, Map<String, Object>> places = getRecords("place");
 		final List<Map<String, Object>> birthEvents = extractReferences("event", personID, "birth");
 		for(int i = 0, length = birthEvents.size(); i < length; i ++){
-			final Map<String, Object> birthEvent = birthEvents.get(i);
+			final Map<String, Object> event = birthEvents.get(i);
 
-			final int dateID = extractRecordDateID(birthEvent);
-			final Map<String, Object> dateRecord = historicDates.get(dateID);
-			final String date = extractRecordDate(dateRecord);
+			final Integer dateID = extractRecordDateID(event);
+			final Integer placeID = extractRecordPlaceID(event);
+			final Map<String, Object> dateRecord = (dateID != null? historicDates.get(dateID): null);
+			final Map<String, Object> placeRecord = (placeID != null? places.get(placeID): null);
+			final String dateValue = extractRecordDate(dateRecord);
 			final Integer calendarID = extractRecordCalendarID(dateRecord);
-			final String calendarType = extractRecordType(calendars.get(calendarID));
+			final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
+			final LocalDate date = DateParser.parse(dateValue, calendarType);
 
-			//TODO
+			if(date != null && (earliestBirthDate == null || date.isBefore(earliestBirthDate))){
+				earliestBirthValue = dateValue;
+				earliestBirthDate = date;
+				earliestBirthPlaceName = (placeRecord != null? (String)placeRecord.get("name"): null);
+			}
 		}
-		//TODO
-//		int birthYear = Integer.MAX_VALUE;
-//		Map<String, Object> birth = store.createEmptyNode();
-//		final List<Map<String, Object>> birthEvents = extractTaggedEvents(person, "BIRTH", store);
-//		for(final Map<String, Object> node : birthEvents){
-//			final String dateValue = store.traverse(node, "DATE").getValue();
-//			final LocalDate date = DateParser.parse(dateValue);
-//			if(date != null){
-//				final int y = date.getYear();
-//				if(y < birthYear){
-//					birthYear = y;
-//					birth = node;
-//				}
-//			}
-//		}
-//		return birth;
-		return birthEvents;
+		final Map<String, Object> result = new HashMap<>(3);
+		result.put("dateValue", earliestBirthValue);
+		result.put("date", earliestBirthDate);
+		result.put("placeName", earliestBirthPlaceName);
+		return result;
 	}
 
-	private List<Map<String, Object>> extractLatestDeath(final int personID){
+	private Map<String, Object> extractLatestDeath(final int personID){
+		LocalDate latestDeathDate = null;
+		String latestDeathValue = null;
+		String latestDeathPlaceName = null;
 		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords("historic_date");
 		final TreeMap<Integer, Map<String, Object>> calendars = getRecords("calendar");
+		final TreeMap<Integer, Map<String, Object>> places = getRecords("place");
 		final List<Map<String, Object>> deathEvents = extractReferences("event", personID, "death");
 		for(int i = 0, length = deathEvents.size(); i < length; i ++){
-			final Map<String, Object> deathEvent = deathEvents.get(i);
+			final Map<String, Object> event = deathEvents.get(i);
 
-			final int dateID = extractRecordDateID(deathEvent);
-			final Map<String, Object> dateRecord = historicDates.get(dateID);
-			final String date = extractRecordDate(dateRecord);
+			final Integer dateID = extractRecordDateID(event);
+			final Integer placeID = extractRecordPlaceID(event);
+			final Map<String, Object> dateRecord = (dateID != null? historicDates.get(dateID): null);
+			final Map<String, Object> placeRecord = (placeID != null? places.get(placeID): null);
+			final String dateValue = extractRecordDate(dateRecord);
 			final Integer calendarID = extractRecordCalendarID(dateRecord);
-			final String calendarType = extractRecordType(calendars.get(calendarID));
+			final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
+			final LocalDate date = DateParser.parse(dateValue, calendarType);
 
-			//TODO
+			if(date != null && (latestDeathDate == null || date.isAfter(latestDeathDate))){
+				latestDeathValue = dateValue;
+				latestDeathDate = date;
+				latestDeathPlaceName = (placeRecord != null? (String)placeRecord.get("name"): null);
+			}
 		}
-		//TODO
-//		int deathYear = Integer.MIN_VALUE;
-//		Map<String, Object> death = store.createEmptyNode();
-//		final List<Map<String, Object>> deathEvents = extractTaggedEvents(person, "DEATH", store);
-//		for(final Map<String, Object> node : deathEvents){
-//			final String dateValue = store.traverse(node, "DATE").getValue();
-//			final LocalDate date = DateParser.parse(dateValue);
-//			if(date != null){
-//				final int y = date.getYear();
-//				if(y > deathYear){
-//					deathYear = y;
-//					death = node;
-//				}
-//			}
-//		}
-//		return death;
-		return deathEvents;
+		final Map<String, Object> result = new HashMap<>(3);
+		result.put("dateValue", latestDeathValue);
+		result.put("date", latestDeathDate);
+		result.put("placeName", latestDeathPlaceName);
+		return result;
 	}
 
 	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
@@ -547,7 +558,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+		return (record != null? (String)record.get("date"): null);
 	}
 
 	private static Integer extractRecordDateID(final Map<String, Object> record){
@@ -555,141 +566,22 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
+		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
-	public static String extractBirthYear(final Map<String, Object> person, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-		//		String year = null;
-		//		if(!person.isEmpty()){
-		//			final Map<String, Object> earliestBirth = extractEarliestBirth(person, store);
-		//			final String birthDate = extractEarliestBirthDate(earliestBirth, store);
-		//			if(birthDate != null)
-		//				year = DateParser.extractYear(birthDate);
-		//		}
-		//		return year;
-		return "*";
+	private static Integer extractRecordPlaceID(final Map<String, Object> record){
+		return (Integer)record.get("place_id");
 	}
 
-//	public String extractBirthPlace(final int personID){
-//		final List<Map<String, Object>> earliestBirth = extractEarliestBirth(personID);
-//		return (!earliestBirth.isEmpty()? extractEarliestBirthPlace(earliestBirth, store): null);
-//	}
-
-	public static String extractDeathYear(final Map<String, Object> person, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		String year = null;
-//		if(!person.isEmpty()){
-//			final Map<String, Object> latestDeath = extractLatestDeath(person, store);
-//			final String deathDate = extractLatestDeathDate(latestDeath, store);
-//			if(deathDate != null)
-//				year = DateParser.extractYear(deathDate);
-//		}
-//		return year;
-		return "*";
-	}
-
-//	public String extractDeathPlace(final int personID, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-//		final List<Map<String, Object>> latestDeath = extractLatestDeath(personID);
-//		return (!latestDeath.isEmpty()? extractLatestDeathPlace(latestDeath, store): null);
-//	}
-
-	private static String extractEarliestBirthDate(final Map<String, Object> earliestBirth,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		String birthDate = null;
-//		if(!earliestBirth.isEmpty()){
-//			final String dateValue = store.traverse(earliestBirth, "DATE").getValue();
-//			final LocalDate date = DateParser.parse(dateValue);
-//			if(date != null)
-//				birthDate = dateValue;
-//		}
-//		return birthDate;
-		return "*";
-	}
-
-	private static String extractEarliestBirthPlace(final Map<String, Object> earliestBirth,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		String birthPlace = null;
-//		if(!earliestBirth.isEmpty()){
-//			final Map<String, Object> place = store.getPlace(store.traverse(earliestBirth, "PLACE").getXRef());
-//			if(place != null)
-//				birthPlace = extractPlace(place, store);
-//		}
-//		return birthPlace;
-		return "*";
-	}
-
-	private static String extractLatestDeathDate(final Map<String, Object> latestDeath,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		String deathDate = null;
-//		if(!latestDeath.isEmpty()){
-//			final String dateValue = store.traverse(latestDeath, "DATE").getValue();
-//			final LocalDate date = DateParser.parse(dateValue);
-//			if(date != null)
-//				deathDate = dateValue;
-//		}
-//		return deathDate;
-		return "*";
-	}
-
-	private static String extractLatestDeathPlace(final Map<String, Object> latestDeath,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		String deathPlace = null;
-//		if(!latestDeath.isEmpty()){
-//			final Map<String, Object> place = store.getPlace(store.traverse(latestDeath, "PLACE").getXRef());
-//			if(place != null)
-//				deathPlace = extractPlace(place, store);
-//		}
-//		return deathPlace;
-		return "*";
-	}
-
-	private static String extractPlace(final Map<String, Object> place, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		final Map<String, Object> addressEarliest = extractEarliestAddress(place, store);
-//		return addressEarliest.getValue();
-		return "*";
-	}
-
-	private static Map<String, Object> extractEarliestAddress(final Map<String, Object> place,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		final List<Map<String, Object>> addresses = store.traverseAsList(place, "ADDRESS[]");
-//		return (!addresses.isEmpty()? addresses.get(0): store.traverse(place, "NAME"));
-		return Collections.emptyMap();
-	}
-
-	private static List<Map<String, Object>> extractTaggedEvents(final Map<String, Object> node, final String eventType,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		//TODO
-//		final List<Map<String, Object>> events = store.traverseAsList(node, "EVENT[]");
-//		final List<Map<String, Object>> birthEvents = new ArrayList<>(events.size());
-//		for(Map<String, Object> event : events){
-//			event = store.getEvent(event.getXRef());
-//			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
-//				birthEvents.add(event);
-//		}
-//		return birthEvents;
-		return Collections.emptyList();
+	private boolean isChildOfFamily(final int personID){
+		return getFilteredRecords("group_junction", "person", personID).values().stream()
+			.anyMatch(entry -> Objects.equals("child", extractRecordType(entry)));
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
 
-
-	public final Map<String, Object> getChildReference(){
-		return childReference;
-	}
-
-	/** Set the direct child of the family to be linked. */
-	final void setChildReference(final Map<String, Object> childReference){
-		this.childReference = childReference;
-	}
 
 	final Point getPersonPaintingEnterPoint(){
 		return new Point(getX() + getWidth() / 2, getY());
@@ -703,8 +595,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
+		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
 		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
 		store.put("person", persons);
@@ -739,6 +631,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		event1.put("id", 1);
 		event1.put("type", "birth");
 		event1.put("date_id", 1);
+		event1.put("place_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 1);
 		events.put((Integer)event1.get("id"), event1);
@@ -747,6 +640,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		event2.put("type", "death");
 		event2.put("person_id", 1);
 		event2.put("date_id", 2);
+		event2.put("place_id", 2);
 		event2.put("reference_table", "person");
 		event2.put("reference_id", 1);
 		events.put((Integer)event2.get("id"), event2);
@@ -761,6 +655,19 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		date2.put("id", 2);
 		date2.put("date", "31 JAN 2010");
 		dates.put((Integer)date2.get("id"), date2);
+
+		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
+		store.put("place", places);
+		final Map<String, Object> place1 = new HashMap<>();
+		place1.put("id", 1);
+		place1.put("identifier", "place 1");
+		place1.put("name", "qua");
+		places.put((Integer)place1.get("id"), place1);
+		final Map<String, Object> place2 = new HashMap<>();
+		place2.put("id", 2);
+		place2.put("identifier", "place 2");
+		place2.put("name", "là");
+		places.put((Integer)place2.get("id"), place2);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
@@ -795,7 +702,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
-		final PersonListenerInterface listener = new PersonListenerInterface(){
+		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
 			public void onPersonEdit(final PersonPanel boxPanel, final Map<String, Object> person){
 				System.out.println("onEditPerson " + person.get("id"));
@@ -836,7 +743,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			final PersonPanel panel = create(SelectedNodeType.PARTNER1, person1, store, boxType);
 			panel.initComponents();
 			panel.loadData();
-			panel.setPersonListener(listener);
+			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);
 

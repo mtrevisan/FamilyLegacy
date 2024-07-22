@@ -60,22 +60,8 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		return SingletonHelper.INSTANCE;
 	}
 
-	/**
-	 * Parse a Gregorian/Julian/unknown date string.
-	 *
-	 * @param date	The date string to parse.
-	 * @param preciseness	The preference for handling an imprecise date.
-	 * @return	The date, if one can be derived from the string.
-	 */
 	@Override
-	public LocalDate parse(String date, final DatePreciseness preciseness){
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
-
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
-	}
-
-	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
+	protected LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){
@@ -140,12 +126,6 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		return (localDate != null && day == null?
 			(month != null? preciseness.applyToMonth(localDate): preciseness.applyToYear(localDate)):
 			localDate);
-	}
-
-	@Override
-	public int parseMonth(final String month){
-		final GregorianMonth m = GregorianMonth.fromAbbreviation(month);
-		return (m != null? m.ordinal(): -1);
 	}
 
 }

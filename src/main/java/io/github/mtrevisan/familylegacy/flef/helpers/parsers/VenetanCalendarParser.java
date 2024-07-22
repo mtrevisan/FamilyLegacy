@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Mauro Trevisan
+ * Copyright (c) 2024 Mauro Trevisan
  * <p>
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -24,30 +24,29 @@
  */
 package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
-
-public final class CalendarParserBuilder{
-
-	public static final String CALENDAR_GREGORIAN = "gregorian";
-	public static final String CALENDAR_JULIAN = "julian";
-	public static final String CALENDAR_VENETAN = "venetan";
-	public static final String CALENDAR_FRENCH_REPUBLICAN = "french-republican";
-	public static final String CALENDAR_HEBREW = "hebrew";
+import java.time.LocalDate;
 
 
-	private CalendarParserBuilder(){}
+class VenetanCalendarParser extends GregorianCalendarParser{
+
+	private static class SingletonHelper{
+		private static final AbstractCalendarParser INSTANCE = new VenetanCalendarParser();
+	}
 
 
-	public static AbstractCalendarParser getParser(final String calendarType){
-		AbstractCalendarParser parser = GregorianCalendarParser.getInstance();
-		if(calendarType != null){
-			if(calendarType.equals(CALENDAR_VENETAN))
-				parser = VenetanCalendarParser.getInstance();
-			else if(calendarType.equals(CALENDAR_FRENCH_REPUBLICAN))
-				parser = FrenchRepublicanCalendarParser.getInstance();
-			else if(calendarType.equals(CALENDAR_HEBREW))
-				parser = HebrewCalendarParser.getInstance();
-		}
-		return parser;
+	public static AbstractCalendarParser getInstance(){
+		return SingletonHelper.INSTANCE;
+	}
+
+	@Override
+	protected LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
+		LocalDate localDate = super.getDate(date, preciseness);
+
+		final int year = localDate.getYear();
+		final int month = localDate.getMonthValue();
+		if(month <= 2 && year >= 1583 && year <= 1797)
+			localDate = localDate.plusYears(1);
+		return localDate;
 	}
 
 }

@@ -58,23 +58,8 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 		return SingletonHelper.INSTANCE;
 	}
 
-	/**
-	 * Convert a French Republican date string (in proper GEDCOM format) to a (Gregorian) java.time.LocalDate.
-	 *
-	 * @param date	The French Republican date in GEDCOM format.
-	 * @param preciseness	Preference on how to handle imprecise dates: return the earliest day of the month, the latest,
-	 * 	or the midpoint.
-	 * @return	The Gregorian date that represents the French Republican date supplied.
-	 */
 	@Override
-	public LocalDate parse(String date, final DatePreciseness preciseness){
-		date = removeApproximations(date);
-		date = removeOpenEndedRangesAndPeriods(date);
-
-		return (isRange(date)? getDateFromRangeOrPeriod(date, preciseness): getDate(date, preciseness));
-	}
-
-	private LocalDate getDate(final CharSequence date, final DatePreciseness preciseness){
+	protected LocalDate getDate(final CharSequence date, final DatePreciseness preciseness) throws IllegalArgumentException{
 		LocalDate localDate = null;
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_DATE);
 		if(matcher.find()){
@@ -137,7 +122,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	 * This function converts a French Republican date into the Gregorian date.
 	 *
 	 * @param year	The French Republican year (french year 1 corresponds to Gregorian year 1792).
-	 * @param month	The French Republican month abbreviation in GEDCOM format.
+	 * @param month	The French Republican month abbreviation.
 	 * @param day	The day within the month.
 	 * @return	The date in Gregorian form.
 	 */
@@ -180,12 +165,6 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	private boolean isLeapYear(final int year){
 		return (year == 3 || year == 7 || year == 11 || year == 15
 			|| year >= 20 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
-	}
-
-	@Override
-	public int parseMonth(final String month){
-		final FrenchRepublicanMonth m = FrenchRepublicanMonth.fromAbbreviation(month);
-		return (m != null? m.ordinal(): -1);
 	}
 
 }

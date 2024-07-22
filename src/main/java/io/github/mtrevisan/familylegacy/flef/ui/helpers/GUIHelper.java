@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -52,6 +54,7 @@ import java.awt.Container;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
@@ -186,6 +189,20 @@ public final class GUIHelper{
 			label.setLabelFor(comboBox);
 
 		comboBox.setEditable(true);
+		final ActionListener addTypeAction = event -> {
+			//add new item to list of available items
+			final int index = comboBox.getSelectedIndex();
+			if(index < 0 && "comboBoxEdited".equals(event.getActionCommand())){
+				@SuppressWarnings("unchecked")
+				final DefaultComboBoxModel<String> model = (DefaultComboBoxModel<String>)comboBox.getModel();
+				final String newType = (String)model.getSelectedItem();
+				if(StringUtils.isNotBlank(newType)){
+					model.addElement(newType);
+					comboBox.setSelectedItem(newType);
+				}
+			}
+		};
+		comboBox.addActionListener(addTypeAction);
 
 		addUndoCapability(comboBox);
 

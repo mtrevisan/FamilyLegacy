@@ -53,9 +53,9 @@ enum GregorianMonth{
 
 
 	/**
-	 * Get an enum value from the gedcom abbreviation.
+	 * Get an enum value from the month abbreviation.
 	 *
-	 * @param abbreviation	The GEDCOM spec abbreviation for this month.
+	 * @param abbreviation	The abbreviation for this month.
 	 * @return	The enum constant that matches the abbreviation.
 	 */
 	public static GregorianMonth fromAbbreviation(final String abbreviation){
