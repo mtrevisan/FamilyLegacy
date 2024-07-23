@@ -265,8 +265,6 @@ public class TreePanel extends JPanel{
 				grandparentsExitingConnection(p2p, 0, graphics2D);
 			if(!partner1.isEmpty()){
 				final Point hfp1 = homeGroupPanel.getGroupPaintingPartner1EnterPoint();
-				//FIXME "+2"... WTF?? (see 'FIXME "-2"... WTF??')
-				hfp1.setLocation(hfp1.x, hfp1.y + 2);
 				//home union partner1 entering connection
 				parentEnteringConnection(hfp1, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 				//line between partner1's partners and partner1
@@ -274,8 +272,6 @@ public class TreePanel extends JPanel{
 			}
 			if(!partner2.isEmpty()){
 				final Point hfp2 = homeGroupPanel.getGroupPaintingPartner2EnterPoint();
-				//FIXME "+2"... WTF?? (see 'FIXME "-2"... WTF??')
-				hfp2.setLocation(hfp2.x, hfp2.y + 2);
 				//home union partner2 entering connection
 				parentEnteringConnection(hfp2, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
 				//line between partner2's partners and partner2

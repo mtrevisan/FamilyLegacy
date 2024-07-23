@@ -134,19 +134,21 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final JMenuItem addPersonItem = new JMenuItem("Add Person…", 'A');
 	private final JMenuItem removePersonItem = new JMenuItem("Remove Person", 'R');
 
-	private SelectedNodeType type;
+	private final SelectedNodeType type;
 	private Map<String, Object> person;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private final BoxPanelType boxType;
 
 
-	static PersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
-		return new PersonPanel(store, boxType);
+	static PersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType,
+			final SelectedNodeType type){
+		return new PersonPanel(store, boxType, type);
 	}
 
 
-	private PersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-			final BoxPanelType boxType){
+	private PersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType,
+			final SelectedNodeType type){
+		this.type = type;
 		this.person = Collections.emptyMap();
 		this.store = store;
 		this.boxType = boxType;
@@ -293,8 +295,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 
-	void loadData(final Map<String, Object> person, final SelectedNodeType type){
-		this.type = type;
+	void loadData(final Map<String, Object> person){
 		this.person = person;
 
 		loadData();
@@ -754,9 +755,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final PersonPanel panel = create(store, boxType);
+			final PersonPanel panel = create(store, boxType, SelectedNodeType.PARTNER1);
 			panel.initComponents();
-			panel.loadData(person1, SelectedNodeType.PARTNER1);
+			panel.loadData(person1);
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

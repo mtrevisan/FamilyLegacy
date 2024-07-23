@@ -145,9 +145,9 @@ public class GroupPanel extends JPanel{
 
 
 	void initComponents(){
-		partner1Panel = PersonPanel.create(store, boxType);
+		partner1Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER1);
 		EventBusService.subscribe(partner1Panel);
-		partner2Panel = PersonPanel.create(store, boxType);
+		partner2Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER2);
 		EventBusService.subscribe(partner2Panel);
 
 		unionPanel.setBackground(Color.WHITE);
@@ -282,8 +282,8 @@ public class GroupPanel extends JPanel{
 	}
 
 	private void loadData(){
-		partner1Panel.loadData(partner1, SelectedNodeType.PARTNER1);
-		partner2Panel.loadData(partner2, SelectedNodeType.PARTNER2);
+		partner1Panel.loadData(partner1);
+		partner2Panel.loadData(partner2);
 
 		if(boxType == BoxPanelType.PRIMARY){
 			updatePreviousNextPartnerIcons(group, partner2, partner1PreviousLabel, partner1NextLabel);
@@ -401,15 +401,13 @@ public class GroupPanel extends JPanel{
 	final Point getGroupPaintingPartner1EnterPoint(){
 		final Point p = partner1Panel.getPersonPaintingEnterPoint();
 		final Point origin = getLocation();
-		//FIXME "-2"... WTF?? (see 'FIXME "+2"... WTF??')
-		return new Point(origin.x + p.x, origin.y + p.y - 2);
+		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	final Point getGroupPaintingPartner2EnterPoint(){
 		final Point p = partner2Panel.getPersonPaintingEnterPoint();
 		final Point origin = getLocation();
-		//FIXME "-2"... WTF?? (see 'FIXME "+2"... WTF??')
-		return new Point(origin.x + p.x, origin.y + p.y - 2);
+		return new Point(origin.x + p.x, origin.y + p.y - 1);
 	}
 
 	final Point getGroupPaintingExitPoint(){

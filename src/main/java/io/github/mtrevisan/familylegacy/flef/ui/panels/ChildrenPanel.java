@@ -140,8 +140,8 @@ public class ChildrenPanel extends JPanel{
 					.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
 					.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 					.anyMatch(entry -> Objects.equals(childID, extractRecordReferenceID(entry)));
-				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY);
-				childBox.loadData(child, SelectedNodeType.CHILD);
+				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY, SelectedNodeType.CHILD);
+				childBox.loadData(child);
 				EventBusService.subscribe(childBox);
 
 				final JPanel box = new JPanel();
