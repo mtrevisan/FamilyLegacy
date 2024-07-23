@@ -131,7 +131,7 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Place");
 
 		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, this::dataChanged);

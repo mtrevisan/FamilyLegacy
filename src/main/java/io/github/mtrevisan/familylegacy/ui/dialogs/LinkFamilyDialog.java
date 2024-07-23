@@ -143,7 +143,7 @@ public class LinkFamilyDialog extends JDialog{
 		this.panelReference = panelReference;
 	}
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Link family");
 
 		familiesTable.setAutoCreateRowSorter(true);

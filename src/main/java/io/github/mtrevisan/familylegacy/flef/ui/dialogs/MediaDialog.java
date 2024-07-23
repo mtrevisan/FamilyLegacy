@@ -502,7 +502,8 @@ public final class MediaDialog extends CommonListDialog{
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			final Map<String, Object> mediaJunction = recordMediaJunction.values().stream()
+			final Map<String, Object> mediaJunction = recordMediaJunction
+				.values().stream()
 				.findFirst().orElse(null);
 			final String photoCrop = extractRecordPhotoCrop(mediaJunction);
 

@@ -142,7 +142,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Contacts");
 
 		filterLabel.setLabelFor(filterField);

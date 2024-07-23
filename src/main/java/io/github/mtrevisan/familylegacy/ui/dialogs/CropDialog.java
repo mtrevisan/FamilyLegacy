@@ -67,7 +67,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Define crop");
 
 		okButton.setEnabled(false);

@@ -160,7 +160,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Documents");
 
 		filterLabel.setLabelFor(filterField);

@@ -104,7 +104,7 @@ public final class CalendarRecordDialog extends JDialog{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		typeLabel.setLabelFor(typeComboBox);
 		//read all calendar types and add the custom ones to the model
 		final DefaultComboBoxModel<String> calendarModel = (DefaultComboBoxModel<String>)typeComboBox.getModel();

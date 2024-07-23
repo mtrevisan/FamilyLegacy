@@ -192,7 +192,7 @@ public class RepositoryDialog extends JDialog{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		initCitationsComponents();
 
 		initRecordComponents();

@@ -143,7 +143,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract String getTableName();
 
-	public void initComponents(){
+	void initComponents(){
 		initRecordComponents();
 
 		initLayout();

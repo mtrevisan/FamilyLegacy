@@ -210,7 +210,7 @@ public class FamilyPanel extends JPanel{
 		partner2Panel.setIndividualListener(individualListener);
 	}
 
-	private void initComponents(){
+	void initComponents(){
 		setOpaque(false);
 
 		partner1Panel = new IndividualPanel(SelectedNodeType.PARTNER1, partner1, store, boxType);

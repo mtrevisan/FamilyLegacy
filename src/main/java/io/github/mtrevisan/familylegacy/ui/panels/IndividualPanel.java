@@ -209,7 +209,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 		}
 	}
 
-	private void initComponents(){
+	void initComponents(){
 		setOpaque(false);
 
 		familyNameLabel.setVerticalAlignment(SwingConstants.TOP);

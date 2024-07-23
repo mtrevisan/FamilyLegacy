@@ -1,0 +1,381 @@
+/**
+ * Copyright (c) 2020-2022 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.flef.ui.panels;
+
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Point;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.Serial;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+
+public class ChildrenPanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = -1250057284416778781L;
+
+	private static final double UNION_HEIGHT = 12.;
+	private static final double UNION_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension UNION_SIZE = new Dimension((int)(UNION_HEIGHT / UNION_ASPECT_RATIO), (int)UNION_HEIGHT);
+
+	private static final ImageIcon ICON_UNION = ResourceHelper.getImage("/images/union.png", UNION_SIZE);
+
+	private static final int CHILD_SEPARATION = 15;
+	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_ARROW_SEPARATION;
+
+	private static final String TABLE_NAME_PERSON = "person";
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_EVENT = "event";
+
+
+	private PersonPanel[] childBoxes;
+	private boolean[] adoptions;
+	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+
+
+	static ChildrenPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new ChildrenPanel(store);
+	}
+
+
+	private ChildrenPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		this.store = store;
+	}
+
+
+	void initComponents(){
+		setOpaque(false);
+	}
+
+
+	public void setPersonListener(final PersonListenerInterface personListener){
+		for(int i = 0, length = (childBoxes != null? childBoxes.length: 0); i < length; i ++)
+			childBoxes[i].setPersonListener(personListener);
+	}
+
+
+	public void loadData(final Map<String, Object> union){
+		//extract the children from the union
+		final Integer unionID = extractRecordID(union);
+		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+		final List<Map<String, Object>> children = getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
+			.map(entry -> persons.get(extractRecordReferenceID(entry)))
+			.toList();
+
+		//for each child, scan its events and collect all that have type "adoption"
+		final Set<Integer> adoptionEvents = getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
+			.map(ChildrenPanel::extractRecordReferenceID)
+			.collect(Collectors.toSet());
+		final int childrenCount = children.size();
+		adoptions = new boolean[childrenCount];
+		for(int i = 0; i < adoptions.length; i ++)
+			adoptions[i] = adoptionEvents.contains(extractRecordID(children.get(i)));
+
+		//clear panel
+		removeAll();
+
+		if(childrenCount > 0){
+			setLayout(new MigLayout("insets 0", "[]0[]"));
+
+			int i = 0;
+			childBoxes = new PersonPanel[childrenCount];
+			final Iterator<Map<String, Object>> itr = children.iterator();
+			while(itr.hasNext()){
+				final Map<String, Object> child = itr.next();
+
+				final Integer childID = extractRecordID(child);
+				final boolean hasChildUnion = getRecords(TABLE_NAME_GROUP_JUNCTION)
+					.values().stream()
+					.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+					.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+					.anyMatch(entry -> Objects.equals(childID, extractRecordReferenceID(entry)));
+				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY);
+				childBox.loadData(child, SelectedNodeType.CHILD);
+				EventBusService.subscribe(childBox);
+
+				final JPanel box = new JPanel();
+				box.setOpaque(false);
+				box.setLayout(new MigLayout("flowy,insets 0", "[]",
+					"[]" + GroupPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
+				final JLabel unionLabel = new JLabel();
+				unionLabel.setMinimumSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
+				if(hasChildUnion)
+					unionLabel.setIcon(ICON_UNION);
+				box.add(unionLabel, "alignx right");
+				box.add(childBox);
+
+				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
+				childBoxes[i ++] = childBox;
+			}
+		}
+		else
+			setLayout(new MigLayout("insets 0", "[]",
+				"[" + PersonPanel.SECONDARY_MAX_HEIGHT + "]"));
+	}
+
+	boolean isChildAdopted(final int index){
+		return adoptions[index];
+	}
+
+	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+	}
+
+	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+			final Integer filterReferenceID){
+		return getRecords(tableName).entrySet().stream()
+			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	}
+
+	private static String extractRecordReferenceTable(final Map<String, Object> record){
+		return (String)record.get("reference_table");
+	}
+
+	private static Integer extractRecordReferenceID(final Map<String, Object> record){
+		return (Integer)record.get("reference_id");
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
+	}
+
+	private static String extractRecordType(final Map<String, Object> record){
+		return (String)record.get("type");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	protected static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("id"): null);
+	}
+
+
+	Point[] getChildrenPaintingEnterPoints(){
+		final Component[] components = getComponents();
+		final Point[] enterPoints = new Point[components.length];
+		for(int i = 0; i < components.length; i ++){
+			final Component component = components[i];
+
+			enterPoints[i] = new Point(component.getX() + component.getWidth() / 2, component.getY() + UNION_ARROW_HEIGHT);
+		}
+		return enterPoints;
+	}
+
+
+	public static void main(final String[] args){
+		try{
+			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
+			UIManager.setLookAndFeel(lookAndFeelName);
+		}
+		catch(final Exception ignored){}
+
+
+		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
+
+		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
+		store.put("person", persons);
+		final Map<String, Object> person1 = new HashMap<>();
+		person1.put("id", 1);
+		persons.put((Integer)person1.get("id"), person1);
+		final Map<String, Object> person2 = new HashMap<>();
+		person2.put("id", 2);
+		persons.put((Integer)person2.get("id"), person2);
+		final Map<String, Object> person3 = new HashMap<>();
+		person3.put("id", 3);
+		persons.put((Integer)person3.get("id"), person3);
+		final Map<String, Object> person4 = new HashMap<>();
+		person4.put("id", 4);
+		persons.put((Integer)person4.get("id"), person4);
+		final Map<String, Object> person5 = new HashMap<>();
+		person5.put("id", 5);
+		persons.put((Integer)person5.get("id"), person5);
+
+		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
+		store.put("group", groups);
+		final Map<String, Object> group1 = new HashMap<>();
+		group1.put("id", 1);
+		group1.put("type", "family");
+		groups.put((Integer)group1.get("id"), group1);
+		final Map<String, Object> group2 = new HashMap<>();
+		group2.put("id", 2);
+		group2.put("type", "family");
+		groups.put((Integer)group2.get("id"), group2);
+
+		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
+		store.put("group_junction", groupJunctions);
+		final Map<String, Object> groupJunction11 = new HashMap<>();
+		groupJunction11.put("id", 1);
+		groupJunction11.put("group_id", 1);
+		groupJunction11.put("reference_table", "person");
+		groupJunction11.put("reference_id", 1);
+		groupJunction11.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction11.get("id"), groupJunction11);
+		final Map<String, Object> groupJunction2 = new HashMap<>();
+		groupJunction2.put("id", 2);
+		groupJunction2.put("group_id", 1);
+		groupJunction2.put("reference_table", "person");
+		groupJunction2.put("reference_id", 2);
+		groupJunction2.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction2.get("id"), groupJunction2);
+		final Map<String, Object> groupJunction13 = new HashMap<>();
+		groupJunction13.put("id", 3);
+		groupJunction13.put("group_id", 2);
+		groupJunction13.put("reference_table", "person");
+		groupJunction13.put("reference_id", 1);
+		groupJunction13.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction13.get("id"), groupJunction13);
+		final Map<String, Object> groupJunction3 = new HashMap<>();
+		groupJunction3.put("id", 4);
+		groupJunction3.put("group_id", 2);
+		groupJunction3.put("reference_table", "person");
+		groupJunction3.put("reference_id", 3);
+		groupJunction3.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
+		final Map<String, Object> groupJunction4 = new HashMap<>();
+		groupJunction4.put("id", 5);
+		groupJunction4.put("group_id", 1);
+		groupJunction4.put("reference_table", "person");
+		groupJunction4.put("reference_id", 4);
+		groupJunction4.put("role", "child");
+		groupJunctions.put((Integer)groupJunction4.get("id"), groupJunction4);
+		final Map<String, Object> groupJunction5 = new HashMap<>();
+		groupJunction5.put("id", 6);
+		groupJunction5.put("group_id", 1);
+		groupJunction5.put("reference_table", "person");
+		groupJunction5.put("reference_id", 5);
+		groupJunction5.put("role", "child");
+		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
+		final Map<String, Object> groupJunction6 = new HashMap<>();
+		groupJunction6.put("id", 7);
+		groupJunction6.put("group_id", 2);
+		groupJunction6.put("reference_table", "person");
+		groupJunction6.put("reference_id", 4);
+		groupJunction6.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
+
+		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
+		store.put("event", events);
+		final Map<String, Object> event1 = new HashMap<>();
+		event1.put("id", 1);
+		event1.put("type", "adoption");
+		event1.put("reference_table", "person");
+		event1.put("reference_id", 5);
+		events.put((Integer)event1.get("id"), event1);
+
+		final PersonListenerInterface personListener = new PersonListenerInterface(){
+			@Override
+			public void onPersonEdit(final PersonPanel boxPanel, final Map<String, Object> person){
+				System.out.println("onEditPerson " + person.get("id"));
+			}
+
+			@Override
+			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type, final Map<String, Object> person){
+				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
+			}
+
+			@Override
+			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
+				System.out.println("onLinkPerson " + type);
+			}
+
+			@Override
+			public void onPersonUnlink(final PersonPanel boxPanel, final Map<String, Object> person){
+				System.out.println("onUnlinkPerson " + person.get("id"));
+			}
+
+			@Override
+			public void onPersonAdd(final PersonPanel boxPanel){
+				System.out.println("onAddPerson");
+			}
+
+			@Override
+			public void onPersonRemove(final PersonPanel boxPanel, final Map<String, Object> person){
+				System.out.println("onRemovePerson " + person.get("id"));
+			}
+
+			@Override
+			public void onPersonAddImage(final PersonPanel boxPanel, final Map<String, Object> person){
+				System.out.println("onAddPreferredImage " + person.get("id"));
+			}
+		};
+
+		EventQueue.invokeLater(() -> {
+			final ChildrenPanel panel = create(store);
+			panel.initComponents();
+			panel.loadData(group1);
+			panel.setPersonListener(personListener);
+
+			EventBusService.subscribe(panel);
+
+			final JFrame frame = new JFrame();
+			frame.getContentPane().setLayout(new BorderLayout());
+			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			frame.addWindowListener(new WindowAdapter(){
+				@Override
+				public void windowClosing(final WindowEvent e){
+					System.exit(0);
+				}
+			});
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
+	}
+
+}

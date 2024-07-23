@@ -70,6 +70,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,6 +116,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
 
+	private static final String TABLE_NAME_PERSON = "person";
+	private static final String TABLE_NAME_PERSON_NAME = "person_name";
+	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
+	private static final String TABLE_NAME_CALENDAR = "calendar";
+	private static final String TABLE_NAME_PLACE = "place";
+	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+
 	private final LabelAutoToolTip personalNameLabel = new LabelAutoToolTip();
 	private final LabelAutoToolTip familyNameLabel = new LabelAutoToolTip();
 	private final LabelAutoToolTip infoLabel = new LabelAutoToolTip();
@@ -125,28 +134,26 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final JMenuItem addPersonItem = new JMenuItem("Add Person…", 'A');
 	private final JMenuItem removePersonItem = new JMenuItem("Remove Person", 'R');
 
-	private final SelectedNodeType type;
+	private SelectedNodeType type;
 	private Map<String, Object> person;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private final BoxPanelType boxType;
 
 
-	public static PersonPanel create(final SelectedNodeType type, final Map<String, Object> person,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
-		return new PersonPanel(type, person, store, boxType);
+	static PersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
+		return new PersonPanel(store, boxType);
 	}
 
 
-	private PersonPanel(final SelectedNodeType type, final Map<String, Object> person,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
-		this.type = type;
-		this.person = person;
+	private PersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final BoxPanelType boxType){
+		this.person = Collections.emptyMap();
 		this.store = store;
 		this.boxType = boxType;
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
@@ -159,6 +166,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		add(imageLabel, "cell 1 0 1 3,aligny top");
 		add(familyNameLabel, "cell 0 1,top,width ::100%-" + shrink + ",hidemode 3");
 		add(infoLabel, "cell 0 2");
+
+		setOpaque(false);
 	}
 
 	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio, final double shrinkFactor){
@@ -283,13 +292,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (person.isEmpty()? BACKGROUND_COLOR_NO_PERSON: BACKGROUND_COLOR_PERSON);
 	}
 
-	public final void loadData(final Map<String, Object> person){
+
+	void loadData(final Map<String, Object> person, final SelectedNodeType type){
+		this.type = type;
 		this.person = person;
 
 		loadData();
-
-		//TODO
-//		repaint();
 	}
 
 	private void loadData(){
@@ -357,20 +365,21 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_PERSON_COUNT)
 			return;
 
-		final boolean hasPersons = !getRecords("person").isEmpty();
+		final boolean hasPersons = !getRecords(TABLE_NAME_PERSON).isEmpty();
 		final boolean isRecordEmpty = person.isEmpty();
 		linkPersonItem.setEnabled(isRecordEmpty && hasPersons);
 		editPersonItem.setEnabled(!isRecordEmpty);
-		final int personID = extractRecordID(person);
+		final Integer personID = extractRecordID(person);
 		unlinkPersonItem.setEnabled(!isRecordEmpty && isChildOfFamily(personID));
 		addPersonItem.setEnabled(isRecordEmpty && hasPersons);
 		removePersonItem.setEnabled(!isRecordEmpty);
 	}
 
-	private String extractIdentifier(final int selectedRecordID){
+	private String extractIdentifier(final Integer selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		getRecords("person_name").values().stream()
-			.filter(record -> extractRecordPersonID(record) == selectedRecordID)
+		getRecords(TABLE_NAME_PERSON_NAME)
+			.values().stream()
+			.filter(record -> Objects.equals(selectedRecordID, extractRecordPersonID(record)))
 			.forEach(record -> identifier.add(extractName(record)));
 		return identifier.toString();
 	}
@@ -389,7 +398,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
-		final int filterReferenceID){
+		final Integer filterReferenceID){
 		return getRecords(tableName).entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
@@ -397,7 +406,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	protected static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (int)record.get("id"): null);
+		return (record != null? (Integer)record.get("id"): null);
 	}
 
 	private static Integer extractRecordPersonID(final Map<String, Object> record){
@@ -472,10 +481,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		String earliestBirthValue = null;
 		LocalDate earliestBirthDate = null;
 		String earliestBirthPlaceName = null;
-		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords("historic_date");
-		final TreeMap<Integer, Map<String, Object>> calendars = getRecords("calendar");
-		final TreeMap<Integer, Map<String, Object>> places = getRecords("place");
-		final List<Map<String, Object>> birthEvents = extractReferences("event", personID, "birth");
+		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final TreeMap<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final List<Map<String, Object>> birthEvents = extractReferences(TABLE_NAME_EVENT, personID, "birth");
 		for(int i = 0, length = birthEvents.size(); i < length; i ++){
 			final Map<String, Object> event = birthEvents.get(i);
 
@@ -505,10 +514,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		LocalDate latestDeathDate = null;
 		String latestDeathValue = null;
 		String latestDeathPlaceName = null;
-		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords("historic_date");
-		final TreeMap<Integer, Map<String, Object>> calendars = getRecords("calendar");
-		final TreeMap<Integer, Map<String, Object>> places = getRecords("place");
-		final List<Map<String, Object>> deathEvents = extractReferences("event", personID, "death");
+		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final TreeMap<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final List<Map<String, Object>> deathEvents = extractReferences(TABLE_NAME_EVENT, personID, "death");
 		for(int i = 0, length = deathEvents.size(); i < length; i ++){
 			final Map<String, Object> event = deathEvents.get(i);
 
@@ -538,7 +547,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>();
 		final TreeMap<Integer, Map<String, Object>> records = getRecords(fromTable);
 		for(final Map<String, Object> record : records.values())
-			if("person".equals(extractRecordReferenceTable(record))
+			if(TABLE_NAME_PERSON.equals(extractRecordReferenceTable(record))
 					&& Objects.equals(personID, extractRecordReferenceID(record))
 					&& eventType.equals(extractRecordType(record)))
 				matchedRecords.add(record);
@@ -557,6 +566,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (String)record.get("type");
 	}
 
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
+	}
+
 	private static String extractRecordDate(final Map<String, Object> record){
 		return (record != null? (String)record.get("date"): null);
 	}
@@ -573,9 +586,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (Integer)record.get("place_id");
 	}
 
-	private boolean isChildOfFamily(final int personID){
-		return getFilteredRecords("group_junction", "person", personID).values().stream()
-			.anyMatch(entry -> Objects.equals("child", extractRecordType(entry)));
+	private boolean isChildOfFamily(final Integer personID){
+		return getFilteredRecords(TABLE_NAME_GROUP_JUNCTION, TABLE_NAME_PERSON, personID)
+			.values().stream()
+			.anyMatch(entry -> Objects.equals("child", extractRecordRole(entry)));
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -740,9 +754,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final PersonPanel panel = create(SelectedNodeType.PARTNER1, person1, store, boxType);
+			final PersonPanel panel = create(store, boxType);
 			panel.initComponents();
-			panel.loadData();
+			panel.loadData(person1, SelectedNodeType.PARTNER1);
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

@@ -139,7 +139,7 @@ public class LinkIndividualDialog extends JDialog{
 		this.panelReference = panelReference;
 	}
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Link individual");
 
 		individualsTable.setAutoCreateRowSorter(true);

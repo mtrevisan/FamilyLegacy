@@ -300,14 +300,19 @@ public final class PersonDialog extends CommonListDialog{
 
 	private String extractIdentifier(final int selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		getRecords(TABLE_NAME_PERSON_NAME).values().stream()
+		final TreeMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		getRecords(TABLE_NAME_PERSON_NAME)
+			.values().stream()
 			.filter(record -> extractRecordPersonID(record) == selectedRecordID)
 			.forEach(record -> {
 				//extract transliterations
 				final StringJoiner subIdentifier = new StringJoiner(", ");
 				final Integer recordID = extractRecordID(record);
-				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT, TABLE_NAME_PERSON_NAME, recordID).values()
-					.forEach(record2 -> subIdentifier.add(extractName(record2)));
+				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME, recordID)
+					.values().stream()
+					.filter(record2 -> Objects.equals("name", extractRecordReferenceType(record2)))
+					.map(record2 -> localizedTexts.get(extractRecordLocalizedTextID(record2)))
+					.forEach(record2 -> subIdentifier.add(extractRecordText(record2)));
 
 				identifier.add(extractName(record) + (subIdentifier.length() > 0? " (" + subIdentifier + ")": StringUtils.EMPTY));
 			});
@@ -337,8 +342,16 @@ public final class PersonDialog extends CommonListDialog{
 		return (Integer)record.get("person_id");
 	}
 
+	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
+		return (Integer)record.get("localized_text_id");
+	}
+
 	private static String extractRecordPersonalName(final Map<String, Object> record){
 		return (String)record.get("personal_name");
+	}
+
+	private static String extractRecordText(final Map<String, Object> record){
+		return (String)record.get("text");
 	}
 
 	private static String extractRecordFamilyName(final Map<String, Object> record){

@@ -125,7 +125,7 @@ public class FamilyRecordDialog extends JDialog{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		setTitle("Family record");
 
 		childrenTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);

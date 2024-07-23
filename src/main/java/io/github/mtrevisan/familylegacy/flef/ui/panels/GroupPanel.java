@@ -24,11 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -60,14 +58,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Objects;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 
 //http://www.miglayout.com/whitepaper.html
@@ -102,7 +99,7 @@ public class GroupPanel extends JPanel{
 	private static final int HALF_PARTNER_SEPARATION = 6;
 	static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + UNION_PANEL_DIMENSION.width + HALF_PARTNER_SEPARATION;
 	/** Distance between navigation arrow and box. */
-	static final int NAVIGATION_ARROW_SEPARATION = 3;
+	static final int NAVIGATION_ARROW_SEPARATION = 2;
 
 	static final int NAVIGATION_ARROW_HEIGHT = ICON_PARTNER_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
 
@@ -111,6 +108,10 @@ public class GroupPanel extends JPanel{
 	static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f);
 	static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
 		new float[]{2.f}, 0.f);
+
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_PERSON = "person";
+	private static final String TABLE_NAME_GROUP = "group";
 
 
 	private PersonPanel partner1Panel;
@@ -132,60 +133,38 @@ public class GroupPanel extends JPanel{
 	private final BoxPanelType boxType;
 
 
-	private static GroupPanel create(final Map<String, Object> group, final Map<String, Object> partner1, final Map<String, Object> partner2,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
-		return new GroupPanel(group, partner1, partner2, store, boxType);
+	static GroupPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
+		return new GroupPanel(store, boxType);
 	}
 
 
-	private GroupPanel(final Map<String, Object> group, final Map<String, Object> partner1, final Map<String, Object> partner2,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
+	private GroupPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType){
 		this.store = store;
-
-		this.group = group;
-		this.partner1 = partner1;
-		this.partner2 = partner2;
 		this.boxType = boxType;
 	}
 
 
-	private void initComponents(){
-		partner1Panel = PersonPanel.create(SelectedNodeType.PARTNER1, partner1, store, boxType);
+	void initComponents(){
+		partner1Panel = PersonPanel.create(store, boxType);
 		EventBusService.subscribe(partner1Panel);
-		partner2Panel = PersonPanel.create(SelectedNodeType.PARTNER2, partner2, store, boxType);
+		partner2Panel = PersonPanel.create(store, boxType);
 		EventBusService.subscribe(partner2Panel);
+
 		unionPanel.setBackground(Color.WHITE);
-		unionPanel.setMaximumSize(UNION_PANEL_DIMENSION);
-		unionPanel.setMinimumSize(UNION_PANEL_DIMENSION);
-		unionPanel.setPreferredSize(UNION_PANEL_DIMENSION);
 
-		final Dimension minimumSize = new Dimension(ICON_PARTNER_PREVIOUS_ENABLED.getIconWidth(),
-			ICON_PARTNER_PREVIOUS_ENABLED.getIconHeight());
-		if(boxType == BoxPanelType.PRIMARY){
-			partner1PreviousLabel.setMinimumSize(minimumSize);
-			partner1NextLabel.setMinimumSize(minimumSize);
-			partner2PreviousLabel.setMinimumSize(minimumSize);
-			partner2NextLabel.setMinimumSize(minimumSize);
-		}
-
-		final Dimension partnerPanelMaximumSize = partner1Panel.getMaximumSize();
-		setMaximumSize(new Dimension(
-			partnerPanelMaximumSize.width * 2 + UNION_PANEL_DIMENSION.width,
-			partnerPanelMaximumSize.height + minimumSize.height
-		));
-
-		final int navigationArrowGap = (boxType == BoxPanelType.PRIMARY? NAVIGATION_ARROW_SEPARATION: 0);
 		setLayout(new MigLayout("insets 0",
-			"[grow]" + HALF_PARTNER_SEPARATION + "[]" + HALF_PARTNER_SEPARATION + "[grow]",
+			"[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]",
 			"[]0[]"));
-		add(partner1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + navigationArrowGap);
-		add(partner1NextLabel, "gapbottom " + navigationArrowGap);
+		add(partner1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(partner1NextLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
 		add(new JLabel());
-		add(partner2PreviousLabel, "split 2,gapbottom " + navigationArrowGap);
-		add(partner2NextLabel, "gapright 10,gapbottom " + navigationArrowGap + ",wrap");
-		add(partner1Panel, "growx 50");
+		add(partner2PreviousLabel, "split 2,gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(partner2NextLabel, "gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION + ",wrap");
+		add(partner1Panel, "growx 50,alignx center");
 		add(unionPanel, "aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
-		add(partner2Panel, "growx 50");
+		add(partner2Panel, "growx 50,alignx center");
+
+		setOpaque(false);
 	}
 
 	final void setGroupListener(final GroupListenerInterface groupListener){
@@ -278,24 +257,33 @@ public class GroupPanel extends JPanel{
 		}
 	}
 
-	public final void loadData(final Map<String, Object> group){
+
+	void loadData(final Map<String, Object> group){
 		loadData(group, Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	public final void loadData(final Map<String, Object> group, final Map<String, Object> partner1, final Map<String, Object> partner2){
-		this.partner1 = (partner1.isEmpty() && !group.isEmpty()? store.getPartner1(group): partner1);
-		this.partner2 = (partner2.isEmpty() && !group.isEmpty()? store.getPartner2(group): partner2);
+	void loadData(final Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
+		if((partner1.isEmpty() || partner2.isEmpty()) && !group.isEmpty()){
+			//extract the first two persons from the group:
+			final List<Integer> personIDs = getPersonIDsInGroup(group);
+			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+			final int size = personIDs.size();
+			if(partner1.isEmpty())
+				partner1 = persons.getOrDefault((size > 0? personIDs.get(0): null), Collections.emptyMap());
+			if(partner2.isEmpty())
+				partner2 = persons.getOrDefault((size > 1? personIDs.get(1): null), Collections.emptyMap());
+		}
+
 		this.group = group;
+		this.partner1 = partner1;
+		this.partner2 = partner2;
 
 		loadData();
-
-		//TODO
-//		repaint();
 	}
 
 	private void loadData(){
-		partner1Panel.loadData(partner1);
-		partner2Panel.loadData(partner2);
+		partner1Panel.loadData(partner1, SelectedNodeType.PARTNER1);
+		partner2Panel.loadData(partner2, SelectedNodeType.PARTNER2);
 
 		if(boxType == BoxPanelType.PRIMARY){
 			updatePreviousNextPartnerIcons(group, partner2, partner1PreviousLabel, partner1NextLabel);
@@ -315,29 +303,39 @@ public class GroupPanel extends JPanel{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP_COUNT)
 			return;
 
-		editGroupItem.setEnabled(!group.isEmpty());
-		linkGroupItem.setEnabled(group.isEmpty() && store.hasFamilies());
-		unlinkGroupItem.setEnabled(!group.isEmpty());
-		removeGroupItem.setEnabled(!group.isEmpty());
-	}
-
-	public List<Map<String, Object>> extractChildren(final Map<String, Object> group){
-		return store.traverseAsList(group, "CHILD[]");
+		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
+		final boolean isRecordEmpty = group.isEmpty();
+		editGroupItem.setEnabled(!isRecordEmpty);
+		linkGroupItem.setEnabled(isRecordEmpty && hasGroups);
+		unlinkGroupItem.setEnabled(!isRecordEmpty);
+		removeGroupItem.setEnabled(!isRecordEmpty);
 	}
 
 	private void updatePreviousNextPartnerIcons(final Map<String, Object> group, final Map<String, Object> otherPartner,
 			final JLabel partnerPreviousLabel, final JLabel partnerNextLabel){
-		//get list of unions for the `other partner`
-		final List<Map<String, Object>> otherUnions = store.traverseAsList(otherPartner, "FAMILY_PARTNER[]");
+		//list the groupIDs for the unions og the `other partner`
+		final Integer otherPartnerID = extractRecordID(otherPartner);
+		final List<Integer> otherPartnerUnionIDs = getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(otherPartnerID, extractRecordReferenceID(entry)))
+			.map(GroupPanel::extractRecordGroupID)
+			.toList();
+
 		//find current union in list
 		int currentGroupIndex = -1;
-		final int otherUnionsCount = otherUnions.size();
-		for(int i = 0; i < otherUnionsCount; i ++)
-			if(otherUnions.get(i).getXRef().equals(group.getID())){
+		final Integer groupID = extractRecordID(group);
+		final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
+		for(int i = 0; i < otherPartnerUnionsCount; i ++){
+			final Integer otherUnionID = otherPartnerUnionIDs.get(i);
+
+			if(Objects.equals(groupID, otherUnionID)){
 				currentGroupIndex = i;
 				break;
 			}
-		final boolean hasMoreFamilies = (otherUnionsCount > 1);
+		}
+		final boolean hasMoreFamilies = (otherPartnerUnionsCount > 1);
 
 		final boolean partnerPreviousEnabled = (currentGroupIndex > 0);
 		partnerPreviousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
@@ -347,7 +345,7 @@ public class GroupPanel extends JPanel{
 			icon = (partnerPreviousEnabled? ICON_PARTNER_PREVIOUS_ENABLED: ICON_PARTNER_PREVIOUS_DISABLED);
 		partnerPreviousLabel.setIcon(icon);
 
-		final boolean partnerNextEnabled = (currentGroupIndex < otherUnionsCount - 1);
+		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerUnionsCount - 1);
 		partnerNextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
 		partnerNextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		if(hasMoreFamilies)
@@ -355,98 +353,63 @@ public class GroupPanel extends JPanel{
 		partnerNextLabel.setIcon(icon);
 	}
 
-	public String extractEarliestUnionYear(final Map<String, Object> group){
-		int unionYear = 0;
-		String unionDate = null;
-		final List<Map<String, Object>> unionEvents = extractTaggedEvents(group, "MARRIAGE");
-		for(final Map<String, Object> node : unionEvents){
-			final String dateValue = store.traverse(node, "DATE").getValue();
-			final LocalDate date = DateParser.parse(dateValue);
-			if(date != null){
-				final int my = date.getYear();
-				if(unionDate == null || my < unionYear){
-					unionYear = my;
-					unionDate = DateParser.extractYear(dateValue);
-				}
-			}
-		}
-		return unionDate;
+
+	protected static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("id"): null);
 	}
 
-	public String extractEarliestUnionPlace(final Map<String, Object> group){
-		int unionYear = 0;
-		String unionPlace = null;
-		final List<Map<String, Object>> unionEvents = extractTaggedEvents(group, "MARRIAGE");
-		for(final Map<String, Object> node : unionEvents){
-			final String dateValue = store.traverse(node, "DATE").getValue();
-			final LocalDate date = DateParser.parse(dateValue);
-			if(date != null){
-				final int my = date.getYear();
-				if(unionPlace == null || my < unionYear){
-					final Map<String, Object> place = store.getPlace(store.traverse(node, "PLACE").getXRef());
-					if(place != null){
-						final String placeValue = extractPlace(place);
-						if(placeValue != null){
-							unionYear = my;
-							unionPlace = placeValue;
-						}
-					}
-				}
-			}
-		}
-		return unionPlace;
+	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
-	private List<Map<String, Object>> extractTaggedEvents(final Map<String, Object> node, final String eventType){
-		final List<Map<String, Object>> events = store.traverseAsList(node, "EVENT[]");
-		final List<Map<String, Object>> birthEvents = new ArrayList<>(events.size());
-		for(final Map<String, Object> event : events){
-			event = store.getEvent(event.getXRef());
-			if(eventType.equals(store.traverse(event, "TYPE").getValue()))
-				birthEvents.add(event);
-		}
-		return birthEvents;
+	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+			final Integer filterReferenceID){
+		return getRecords(tableName).entrySet().stream()
+			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
-	private String extractPlace(final Map<String, Object> place){
-		final Map<String, Object> addressEarliest = extractEarliestAddress(place);
-
-		//extract place as town, county, state, country, otherwise from value
-		String placeValue = place.getValue();
-		if(!addressEarliest.isEmpty()){
-			final Map<String, Object> town = store.traverse(addressEarliest, "TOWN");
-			final Map<String, Object> city = store.traverse(addressEarliest, "CITY");
-			final Map<String, Object> county = store.traverse(addressEarliest, "COUNTY");
-			final Map<String, Object> state = store.traverse(addressEarliest, "STATE");
-			final Map<String, Object> country = store.traverse(addressEarliest, "COUNTRY");
-			final StringJoiner sj = new StringJoiner(", ");
-			JavaHelper.addValueIfNotNull(sj, town);
-			JavaHelper.addValueIfNotNull(sj, city);
-			JavaHelper.addValueIfNotNull(sj, county);
-			JavaHelper.addValueIfNotNull(sj, state);
-			JavaHelper.addValueIfNotNull(sj, country);
-			if(sj.length() > 0)
-				placeValue = sj.toString();
-		}
-		return (placeValue != null || addressEarliest.isEmpty()? placeValue: addressEarliest.getValue());
+	private static String extractRecordReferenceTable(final Map<String, Object> record){
+		return (String)record.get("reference_table");
 	}
 
-	private Map<String, Object> extractEarliestAddress(final Map<String, Object> place){
-		final List<Map<String, Object>> addresses = store.traverseAsList(place, "ADDRESS[]");
-		return (!addresses.isEmpty()? addresses.get(0): Collections.emptyMap());
+	private static Integer extractRecordReferenceID(final Map<String, Object> record){
+		return (Integer)record.get("reference_id");
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private List<Integer> getPersonIDsInGroup(final Map<String, Object> group){
+		final Integer groupID = extractRecordID(group);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
+			.map(GroupPanel::extractRecordReferenceID)
+			.toList();
 	}
 
 
 	final Point getGroupPaintingPartner1EnterPoint(){
 		final Point p = partner1Panel.getPersonPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y);
+		//FIXME "-2"... WTF?? (see 'FIXME "+2"... WTF??')
+		return new Point(origin.x + p.x, origin.y + p.y - 2);
 	}
 
 	final Point getGroupPaintingPartner2EnterPoint(){
 		final Point p = partner2Panel.getPersonPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y);
+		//FIXME "-2"... WTF?? (see 'FIXME "+2"... WTF??')
+		return new Point(origin.x + p.x, origin.y + p.y - 2);
 	}
 
 	final Point getGroupPaintingExitPoint(){
@@ -478,6 +441,9 @@ public class GroupPanel extends JPanel{
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
 		persons.put((Integer)person2.get("id"), person2);
+		final Map<String, Object> person3 = new HashMap<>();
+		person3.put("id", 3);
+		persons.put((Integer)person3.get("id"), person3);
 
 		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
 		store.put("person_name", personNames);
@@ -506,10 +472,52 @@ public class GroupPanel extends JPanel{
 		personName21.put("type", "birth name");
 		personNames.put((Integer)personName21.get("id"), personName21);
 
+		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
+		store.put("group", groups);
+		final Map<String, Object> group1 = new HashMap<>();
+		group1.put("id", 1);
+		group1.put("type", "family");
+		groups.put((Integer)group1.get("id"), group1);
+		final Map<String, Object> group2 = new HashMap<>();
+		group2.put("id", 2);
+		group2.put("type", "family");
+		groups.put((Integer)group2.get("id"), group2);
+
+		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
+		store.put("group_junction", groupJunctions);
+		final Map<String, Object> groupJunction11 = new HashMap<>();
+		groupJunction11.put("id", 1);
+		groupJunction11.put("group_id", 1);
+		groupJunction11.put("reference_table", "person");
+		groupJunction11.put("reference_id", 1);
+		groupJunction11.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction11.get("id"), groupJunction11);
+		final Map<String, Object> groupJunction2 = new HashMap<>();
+		groupJunction2.put("id", 2);
+		groupJunction2.put("group_id", 1);
+		groupJunction2.put("reference_table", "person");
+		groupJunction2.put("reference_id", 2);
+		groupJunction2.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction2.get("id"), groupJunction2);
+		final Map<String, Object> groupJunction13 = new HashMap<>();
+		groupJunction13.put("id", 3);
+		groupJunction13.put("group_id", 2);
+		groupJunction13.put("reference_table", "person");
+		groupJunction13.put("reference_id", 1);
+		groupJunction13.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction13.get("id"), groupJunction13);
+		final Map<String, Object> groupJunction3 = new HashMap<>();
+		groupJunction3.put("id", 4);
+		groupJunction3.put("group_id", 2);
+		groupJunction3.put("reference_table", "person");
+		groupJunction3.put("reference_id", 3);
+		groupJunction3.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
+
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
-		final GroupListenerInterface groupListener = new GroupListenerInterface(){
+		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override
 			public void onGroupEdit(final GroupPanel boxPanel, final Map<String, Object> group){
 				System.out.println("onEditGroup " + group.get("id"));
@@ -551,13 +559,12 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonFocus(final PersonPanel boxPanel, final io.github.mtrevisan.familylegacy.flef.ui.panels.SelectedNodeType type,
-					final Map<String, Object> person){
+			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type, final Map<String, Object> person){
 				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel boxPanel, final io.github.mtrevisan.familylegacy.flef.ui.panels.SelectedNodeType type){
+			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
 				System.out.println("onLinkPerson " + type);
 			}
 
@@ -583,10 +590,10 @@ public class GroupPanel extends JPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final GroupPanel panel = create(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), store, boxType);
+			final GroupPanel panel = create(store, boxType);
 			panel.initComponents();
-			panel.loadData();
-			panel.setGroupListener(groupListener);
+			panel.loadData(group1);
+			panel.setGroupListener(unionListener);
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

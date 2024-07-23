@@ -114,7 +114,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract DefaultTableModel getDefaultTableModel();
 
 	@Override
-	public final void initComponents(){
+	final void initComponents(){
 		initStoreComponents();
 
 		super.initComponents();

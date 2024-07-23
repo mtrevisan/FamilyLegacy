@@ -110,7 +110,7 @@ public class IndividualEventRecordDialog extends JDialog{
 	}
 
 
-	private void initComponents(){
+	void initComponents(){
 		individualLabel.setFont(FONT_PRIMARY);
 		individualLabel.setLabelFor(individualName);
 		individualNoteButton.setIcon(ICON_NOTE);
