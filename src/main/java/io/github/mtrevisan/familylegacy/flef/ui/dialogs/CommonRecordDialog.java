@@ -309,7 +309,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract boolean validateData();
 
 	protected boolean validData(final Object field){
-		return (selectedRecord == null || field instanceof Integer || field instanceof String s && !s.isEmpty());
+		return (selectedRecord == null || field instanceof Integer || field instanceof final String s && !s.isEmpty());
 	}
 
 	protected void okAction(){

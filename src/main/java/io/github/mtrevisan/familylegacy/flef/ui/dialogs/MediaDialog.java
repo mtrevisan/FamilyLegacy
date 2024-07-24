@@ -64,9 +64,11 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -166,14 +168,14 @@ public final class MediaDialog extends CommonListDialog{
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
-		super.setOnCloseGracefully(innerOnCloseGracefully);
+		setOnCloseGracefully(innerOnCloseGracefully);
 
 		return this;
 	}
 
-	public MediaDialog withReference(final String referenceTable, final int filterReferenceID){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
+	public MediaDialog withReference(final String referenceTable, final int referenceID){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
 
 		return this;
 	}
@@ -332,8 +334,8 @@ public final class MediaDialog extends CommonListDialog{
 		photoCropButton.setEnabled(false);
 	}
 
-	private String[] supportedPhotoExtensions(){
-		final Set<String> supportedExtensions = new TreeSet<>();
+	private static String[] supportedPhotoExtensions(){
+		final Collection<String> supportedExtensions = new TreeSet<>();
 		final String[] formatNames = ImageIO.getReaderFormatNames();
 		for(int i = 0, formatNamesLength = formatNames.length; i < formatNamesLength; i ++){
 			final Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName(formatNames[i]);
@@ -343,7 +345,7 @@ public final class MediaDialog extends CommonListDialog{
 				final ImageReaderSpi spi = reader.getOriginatingProvider();
 				final String[] suffixes = (spi != null? spi.getFileSuffixes(): null);
 				for(int j = 0, suffixesLength = (suffixes != null? suffixes.length: 0); j < suffixesLength; j ++)
-					supportedExtensions.add(suffixes[j].toLowerCase());
+					supportedExtensions.add(suffixes[j].toLowerCase(Locale.ROOT));
 			}
 		}
 		return supportedExtensions.toArray(String[]::new);
@@ -428,7 +430,7 @@ public final class MediaDialog extends CommonListDialog{
 			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID))
 				return;
 
-		final Map<Integer, Map<String, Object>> records = getRecords(getTableName());
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		if(records.containsKey(recordID)){
 			final int oldSize = model.getRowCount();
 			final Integer photoID = extractRecordPhotoID(record);

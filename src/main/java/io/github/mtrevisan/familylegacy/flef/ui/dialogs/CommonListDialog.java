@@ -62,11 +62,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 
@@ -101,7 +101,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
 	private int previousIndex = -1;
-	private final Set<JTextComponent[]> mandatoryFields = new HashSet<>(0);
+	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
 	protected volatile boolean showRecordOnly;
 
@@ -229,7 +229,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		mandatoryFields.add(fields);
 	}
 
-	protected void addMandatoryField(final JComboBox<String> comboBox){
+	protected static void addMandatoryField(final JComboBox<String> comboBox){
 		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
 	}
 
@@ -356,7 +356,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		setMandatoryFieldsBackgroundColor(MANDATORY_BACKGROUND_COLOR);
 	}
 
-	private void setMandatoryFieldsBackgroundColor(Color color){
+	private void setMandatoryFieldsBackgroundColor(final Color color){
 		for(final JTextComponent[] mandatoryFields : mandatoryFields)
 			for(int j = 0, length = mandatoryFields.length; j < length; j ++)
 				mandatoryFields[j].setBackground(color);

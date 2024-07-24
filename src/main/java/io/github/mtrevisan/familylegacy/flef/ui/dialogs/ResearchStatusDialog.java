@@ -99,7 +99,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 
 	public ResearchStatusDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
@@ -313,17 +313,17 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	private static class PositiveIntegerFilter extends DocumentFilter{
 		@Override
-		public final void insertString(final FilterBypass fb, final int offset, final String string, final AttributeSet attr)
+		public final void insertString(final FilterBypass fb, final int offset, final String text, final AttributeSet attr)
 				throws BadLocationException{
-			if(string != null && isValidInput(string))
-				super.insertString(fb, offset, string, attr);
+			if(text != null && isValidInput(text))
+				super.insertString(fb, offset, text, attr);
 		}
 
 		@Override
-		public final void replace(final FilterBypass fb, final int offset, final int length, final String string, final AttributeSet attr)
+		public final void replace(final FilterBypass fb, final int offset, final int length, final String text, final AttributeSet attr)
 				throws BadLocationException{
-			if(string != null && isValidInput(string))
-				super.replace(fb, offset, length, string, attr);
+			if(text != null && isValidInput(text))
+				super.replace(fb, offset, length, text, attr);
 		}
 
 		@Override
@@ -331,9 +331,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			super.remove(fb, offset, length);
 		}
 
-		private static boolean isValidInput(final String string){
+		private static boolean isValidInput(final String text){
 			try{
-				return (Integer.parseInt(string) >= 0);
+				return (Integer.parseInt(text) >= 0);
 			}
 			catch(final NumberFormatException ignored){
 				return false;
@@ -380,7 +380,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public void refresh(final EditEvent editCommand) throws OperationNotSupportedException{
+				public static void refresh(final EditEvent editCommand) throws OperationNotSupportedException{
 					switch(editCommand.getType()){
 						case REFERENCE -> {
 							throw new OperationNotSupportedException();

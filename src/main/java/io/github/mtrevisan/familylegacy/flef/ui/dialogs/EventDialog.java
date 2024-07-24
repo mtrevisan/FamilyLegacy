@@ -104,14 +104,14 @@ public final class EventDialog extends CommonListDialog{
 
 
 	public EventDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
 
-	public EventDialog withReference(final String referenceTable, final int filterReferenceID){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
+	public EventDialog withReference(final String referenceTable, final int referenceID){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
 
 		return this;
 	}

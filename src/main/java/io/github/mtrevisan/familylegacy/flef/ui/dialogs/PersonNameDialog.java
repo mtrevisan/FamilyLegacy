@@ -107,7 +107,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 
 	public PersonNameDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}

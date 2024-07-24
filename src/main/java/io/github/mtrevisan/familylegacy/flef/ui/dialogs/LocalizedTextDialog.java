@@ -136,15 +136,15 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
-		super.setOnCloseGracefully(innerOnCloseGracefully);
+		setOnCloseGracefully(innerOnCloseGracefully);
 
 		return this;
 	}
 
-	public LocalizedTextDialog withReference(final String referenceTable, final int filterReferenceID, final String filterReferenceType){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
-		this.filterReferenceType = filterReferenceType;
+	public LocalizedTextDialog withReference(final String referenceTable, final int referenceID, final String referenceType){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
+		filterReferenceType = referenceType;
 
 		return this;
 	}

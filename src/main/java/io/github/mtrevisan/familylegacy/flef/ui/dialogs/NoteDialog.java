@@ -96,14 +96,14 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 
 	public NoteDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
 
-	public NoteDialog withReference(final String referenceTable, final int filterReferenceID){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
+	public NoteDialog withReference(final String referenceTable, final int referenceID){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
 
 		return this;
 	}

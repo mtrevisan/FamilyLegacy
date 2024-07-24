@@ -43,9 +43,8 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -72,6 +71,7 @@ public class ChildrenPanel extends JPanel{
 	private static final String TABLE_NAME_EVENT = "event";
 
 
+	private Map<String, Object>[] children;
 	private PersonPanel[] childBoxes;
 	private boolean[] adoptions;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
@@ -92,23 +92,19 @@ public class ChildrenPanel extends JPanel{
 	}
 
 
+	final Map<String, Object>[] getChildren(){
+		return children;
+	}
+
 	public void setPersonListener(final PersonListenerInterface personListener){
 		for(int i = 0, length = (childBoxes != null? childBoxes.length: 0); i < length; i ++)
 			childBoxes[i].setPersonListener(personListener);
 	}
 
 
-	public void loadData(final Map<String, Object> union){
+	public void loadData(final Integer unionID){
 		//extract the children from the union
-		final Integer unionID = extractRecordID(union);
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-		final List<Map<String, Object>> children = getRecords(TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.map(entry -> persons.get(extractRecordReferenceID(entry)))
-			.toList();
+		children = extractChildren(unionID);
 
 		//for each child, scan its events and collect all that have type "adoption"
 		final Set<Integer> adoptionEvents = getRecords(TABLE_NAME_EVENT)
@@ -117,22 +113,19 @@ public class ChildrenPanel extends JPanel{
 			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
 			.map(ChildrenPanel::extractRecordReferenceID)
 			.collect(Collectors.toSet());
-		final int childrenCount = children.size();
-		adoptions = new boolean[childrenCount];
+		adoptions = new boolean[children.length];
 		for(int i = 0; i < adoptions.length; i ++)
-			adoptions[i] = adoptionEvents.contains(extractRecordID(children.get(i)));
+			adoptions[i] = adoptionEvents.contains(extractRecordID(children[i]));
 
 		//clear panel
 		removeAll();
 
-		if(childrenCount > 0){
+		if(children.length > 0){
 			setLayout(new MigLayout("insets 0", "[]0[]"));
 
-			int i = 0;
-			childBoxes = new PersonPanel[childrenCount];
-			final Iterator<Map<String, Object>> itr = children.iterator();
-			while(itr.hasNext()){
-				final Map<String, Object> child = itr.next();
+			childBoxes = new PersonPanel[children.length];
+			for(int i = 0, length = children.length; i < length; i ++){
+				final Map<String, Object> child = children[i];
 
 				final Integer childID = extractRecordID(child);
 				final boolean hasChildUnion = getRecords(TABLE_NAME_GROUP_JUNCTION)
@@ -141,6 +134,7 @@ public class ChildrenPanel extends JPanel{
 					.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 					.anyMatch(entry -> Objects.equals(childID, extractRecordReferenceID(entry)));
 				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY, SelectedNodeType.CHILD);
+				childBox.initComponents();
 				childBox.loadData(child);
 				EventBusService.subscribe(childBox);
 
@@ -155,13 +149,25 @@ public class ChildrenPanel extends JPanel{
 				box.add(unionLabel, "alignx right");
 				box.add(childBox);
 
-				add(box, (itr.hasNext()? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
-				childBoxes[i ++] = childBox;
+				add(box, (i < length - 1? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
+				childBoxes[i] = childBox;
 			}
 		}
 		else
 			setLayout(new MigLayout("insets 0", "[]",
 				"[" + PersonPanel.SECONDARY_MAX_HEIGHT + "]"));
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object>[] extractChildren(final Integer unionID){
+		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
+			.map(entry -> persons.get(extractRecordReferenceID(entry)))
+			.toArray(Map[]::new);
 	}
 
 	boolean isChildAdopted(final int index){
@@ -244,6 +250,9 @@ public class ChildrenPanel extends JPanel{
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
 		persons.put((Integer)person5.get("id"), person5);
+		final Map<String, Object> person6 = new HashMap<>();
+		person6.put("id", 6);
+		persons.put((Integer)person6.get("id"), person6);
 
 		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
 		store.put("group", groups);
@@ -302,11 +311,18 @@ public class ChildrenPanel extends JPanel{
 		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
 		final Map<String, Object> groupJunction6 = new HashMap<>();
 		groupJunction6.put("id", 7);
-		groupJunction6.put("group_id", 2);
+		groupJunction6.put("group_id", 1);
 		groupJunction6.put("reference_table", "person");
-		groupJunction6.put("reference_id", 4);
-		groupJunction6.put("role", "partner");
+		groupJunction6.put("reference_id", 6);
+		groupJunction6.put("role", "child");
 		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
+		final Map<String, Object> groupJunction7 = new HashMap<>();
+		groupJunction7.put("id", 8);
+		groupJunction7.put("group_id", 2);
+		groupJunction7.put("reference_table", "person");
+		groupJunction7.put("reference_id", 4);
+		groupJunction7.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction7.get("id"), groupJunction7);
 
 		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
 		store.put("event", events);
@@ -319,37 +335,50 @@ public class ChildrenPanel extends JPanel{
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonEdit(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonEdit(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onEditPerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type, final Map<String, Object> person){
+			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
 			}
 
 			@Override
 			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
-				System.out.println("onLinkPerson " + type);
+				final Map<String, Object> partner = boxPanel.getPartner();
+				final Map<String, Object> marriage = boxPanel.getUnion();
+				final Map<String, Object>[] children = boxPanel.getChildren();
+				System.out.println("onLinkPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
+					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
 			}
 
 			@Override
-			public void onPersonUnlink(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonUnlink(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onUnlinkPerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel boxPanel){
-				System.out.println("onAddPerson");
+			public void onPersonAdd(final PersonPanel boxPanel, final SelectedNodeType type){
+				final Map<String, Object> partner = boxPanel.getPartner();
+				final Map<String, Object> marriage = boxPanel.getUnion();
+				final Map<String, Object>[] children = boxPanel.getChildren();
+				System.out.println("onAddPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
+					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
 			}
 
 			@Override
-			public void onPersonRemove(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonRemove(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onRemovePerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonAddImage(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onAddPreferredImage " + person.get("id"));
 			}
 		};
@@ -357,7 +386,7 @@ public class ChildrenPanel extends JPanel{
 		EventQueue.invokeLater(() -> {
 			final ChildrenPanel panel = create(store);
 			panel.initComponents();
-			panel.loadData(group1);
+			panel.loadData(extractRecordID(group1));
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

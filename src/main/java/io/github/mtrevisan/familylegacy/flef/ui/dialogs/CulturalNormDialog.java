@@ -141,14 +141,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
-		super.setOnCloseGracefully(innerOnCloseGracefully);
+		setOnCloseGracefully(innerOnCloseGracefully);
 
 		return this;
 	}
 
-	public CulturalNormDialog withReference(final String referenceTable, final int filterReferenceID){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
+	public CulturalNormDialog withReference(final String referenceTable, final int referenceID){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
 
 		return this;
 	}

@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 
 public enum SelectedNodeType{
-	PARTNER1, PARTNER2,
+	PARTNER,
 	FAMILY,
 	CHILD
 }

@@ -100,7 +100,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 
 	public HistoricDateDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}

@@ -103,7 +103,7 @@ public final class SourceDialog extends CommonListDialog{
 
 
 	public SourceDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}

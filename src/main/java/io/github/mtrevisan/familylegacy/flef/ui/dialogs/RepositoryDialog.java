@@ -97,7 +97,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 
 	public RepositoryDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}

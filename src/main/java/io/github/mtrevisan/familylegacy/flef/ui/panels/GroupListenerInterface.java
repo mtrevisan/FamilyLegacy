@@ -29,34 +29,48 @@ import java.util.Map;
 
 public interface GroupListenerInterface{
 
-	void onGroupEdit(GroupPanel boxPanel, Map<String, Object> group);
+	void onGroupEdit(GroupPanel groupPanel);
 
-	void onGroupLink(GroupPanel boxPanel);
+	void onGroupLink(GroupPanel groupPanel);
 
-	void onGroupUnlink(GroupPanel boxPanel, Map<String, Object> group);
+	void onGroupUnlink(GroupPanel groupPanel);
 
-	void onGroupRemove(GroupPanel boxPanel, Map<String, Object> group);
-
-	/**
-	 * Iterate through parents.
-	 *
-	 * @param groupPanel	The current group panel from which to iterate through parents.
-	 * @param thisParent	The current parent (that remain the same).
-	 * @param otherCurrentParent	The parent that has to change.
-	 * @param currentGroup	Current group `thisParent` is in.
-	 */
-	void onGroupPreviousPartner(GroupPanel groupPanel, Map<String, Object> thisParent, Map<String, Object> otherCurrentParent,
-		Map<String, Object> currentGroup);
+	void onGroupRemove(GroupPanel groupPanel);
 
 	/**
-	 * Iterate through parents.
+	 * Iterate through parents of a person.
 	 *
-	 * @param groupPanel	The current group panel from which to iterate through parents.
-	 * @param thisParent	The current parent (that remain the same).
-	 * @param otherCurrentParent	The parent that has to change.
-	 * @param currentGroup	Current group `thisParent` is in.
+	 * @param groupPanel	The current group panel from which to iterate.
+	 * @param currentUnion	The current union (that remain the same).
+	 * @param otherUnion	The union that has to change.
 	 */
-	void onGroupNextPartner(GroupPanel groupPanel, Map<String, Object> thisParent, Map<String, Object> otherCurrentParent,
-		Map<String, Object> currentGroup);
+	void onGroupPreviousParents(GroupPanel groupPanel, Map<String, Object> currentUnion, Map<String, Object> otherUnion);
+
+	/**
+	 * Iterate through parents of a person.
+	 *
+	 * @param groupPanel	The current group panel from which to iterate.
+	 * @param currentParent	The current parent (that remain the same).
+	 * @param otherParent	The parent that has to change.
+	 */
+	void onGroupNextParents(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
+
+	/**
+	 * Iterate through unions of a person.
+	 *
+	 * @param groupPanel	The current group panel from which to iterate.
+	 * @param currentParent	The current parent (that remain the same).
+	 * @param otherParent	The parent that has to change.
+	 */
+	void onGroupPreviousUnion(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
+
+	/**
+	 * Iterate through unions of a person.
+	 *
+	 * @param groupPanel	The current group panel from which to iterate.
+	 * @param currentParent	The current parent (that remain the same).
+	 * @param otherParent	The parent that has to change.
+	 */
+	void onGroupNextUnion(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
 
 }

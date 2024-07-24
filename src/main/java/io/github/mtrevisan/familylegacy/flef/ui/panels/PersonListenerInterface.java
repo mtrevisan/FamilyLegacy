@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import java.util.Map;
-
 
 public interface PersonListenerInterface{
 
@@ -34,20 +32,19 @@ public interface PersonListenerInterface{
 	 *
 	 * @param boxPanel	The box panel that originates the call.
 	 * @param type	Type of the person wrt the family it belongs.
-	 * @param person	The person that has to obtain focus.
 	 */
-	void onPersonFocus(PersonPanel boxPanel, SelectedNodeType type, Map<String, Object> person);
+	void onPersonFocus(PersonPanel boxPanel, SelectedNodeType type);
 
-	void onPersonEdit(PersonPanel boxPanel, Map<String, Object> person);
+	void onPersonEdit(PersonPanel boxPanel);
 
 	void onPersonLink(PersonPanel boxPanel, SelectedNodeType type);
 
-	void onPersonUnlink(PersonPanel boxPanel, Map<String, Object> person);
+	void onPersonUnlink(PersonPanel boxPanel);
 
-	void onPersonAdd(PersonPanel boxPanel);
+	void onPersonAdd(PersonPanel boxPanel, SelectedNodeType type);
 
-	void onPersonRemove(PersonPanel boxPanel, Map<String, Object> person);
+	void onPersonRemove(PersonPanel boxPanel);
 
-	void onPersonAddImage(PersonPanel boxPanel, Map<String, Object> person);
+	void onPersonAddImage(PersonPanel boxPanel);
 
 }

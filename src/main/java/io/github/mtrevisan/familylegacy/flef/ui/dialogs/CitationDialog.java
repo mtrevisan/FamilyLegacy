@@ -45,7 +45,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.RowFilter;
 import javax.swing.UIManager;
@@ -59,6 +58,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -77,7 +77,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 
 
-	private JTabbedPane recordTabbedPane;
 	private JLabel locationLabel;
 	private JTextField locationField;
 	private JLabel extractLabel;
@@ -108,7 +107,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 
 	public CitationDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
@@ -142,7 +141,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected void initRecordComponents(){
-		recordTabbedPane = new JTabbedPane();
 		locationLabel = new JLabel("Location:");
 		locationField = new JTextField();
 		extractLabel = new JLabel("Extract:");
@@ -232,15 +230,13 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 			final String sourceIdentifier = extractRecordSourceIdentifier(container);
 			final String location = extractRecordLocation(container);
-			String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+			final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
+			identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-				+ (location != null? location: StringUtils.EMPTY);
+				+ (location != null? location: StringUtils.EMPTY));
 			final String extract = extractRecordExtract(container);
-			if(extract != null && !extract.isEmpty()){
-				if(!identifier.isEmpty())
-					identifier += StringUtils.SPACE;
-				identifier += "[" + extract + "]";
-			}
+			if(extract != null && !extract.isEmpty())
+				identifier.add("[" + extract + "]");
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
@@ -347,14 +343,12 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 				final Map<String, Object> updatedCitationRecord = getRecords(TABLE_NAME).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
-				String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
+				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-					+ (location != null? location: StringUtils.EMPTY);
-				if(extract != null && !extract.isEmpty()){
-					if(!identifier.isEmpty())
-						identifier += StringUtils.SPACE;
-					identifier += "[" + extract + "]";
-				}
+					+ (location != null? location: StringUtils.EMPTY));;
+				if(extract != null && !extract.isEmpty())
+					identifier.add("[" + extract + "]");
 
 				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
 

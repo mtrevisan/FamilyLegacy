@@ -58,6 +58,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -79,18 +80,28 @@ public class GroupPanel extends JPanel{
 
 	private static final Color BORDER_COLOR = Color.BLACK;
 
-	private static final double PARTNER_PREV_NEXT_WIDTH = 12.;
-	private static final double PARTNER_PREV_NEXT_ASPECT_RATIO = 3501. / 2662.;
-	private static final Dimension PARTNER_PREVIOUS_NEXT_SIZE = new Dimension((int)PARTNER_PREV_NEXT_WIDTH,
-		(int)(PARTNER_PREV_NEXT_WIDTH * PARTNER_PREV_NEXT_ASPECT_RATIO));
+	private static final double PREVIOUS_NEXT_WIDTH = 12.;
+	private static final double PREVIOUS_NEXT_ASPECT_RATIO = 3501. / 2662.;
+	private static final Dimension PREVIOUS_NEXT_SIZE = new Dimension((int)PREVIOUS_NEXT_WIDTH,
+		(int)(PREVIOUS_NEXT_WIDTH * PREVIOUS_NEXT_ASPECT_RATIO));
+
+	//https://thenounproject.com/search/?q=cut&i=3132059
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/parents_previous.png",
+		PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getImage("/images/parents_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png",
-		PARTNER_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_PARTNER_PREVIOUS_DISABLED = new ImageIcon(
-		GrayFilter.createDisabledImage(ICON_PARTNER_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARTNER_PREVIOUS_NEXT_SIZE);
-	private static final ImageIcon ICON_PARTNER_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARTNER_NEXT_ENABLED.getImage()));
+	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/union_previous.png",
+		PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(ICON_UNION_PREVIOUS_ENABLED.getImage()));
+	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getImage("/images/union_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
+		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));
 
 	/** Height of the union line from the bottom of the person panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
@@ -101,7 +112,7 @@ public class GroupPanel extends JPanel{
 	/** Distance between navigation arrow and box. */
 	static final int NAVIGATION_ARROW_SEPARATION = 2;
 
-	static final int NAVIGATION_ARROW_HEIGHT = ICON_PARTNER_PREVIOUS_ENABLED.getIconHeight() + NAVIGATION_ARROW_SEPARATION;
+	static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION);
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -116,10 +127,14 @@ public class GroupPanel extends JPanel{
 
 	private PersonPanel partner1Panel;
 	private PersonPanel partner2Panel;
-	private final JLabel partner1PreviousLabel = new JLabel();
-	private final JLabel partner1NextLabel = new JLabel();
-	private final JLabel partner2PreviousLabel = new JLabel();
-	private final JLabel partner2NextLabel = new JLabel();
+	private final JLabel partner1PreviousParentsLabel = new JLabel();
+	private final JLabel partner1NextParentsLabel = new JLabel();
+	private final JLabel partner1PreviousUnionLabel = new JLabel();
+	private final JLabel partner1NextUnionLabel = new JLabel();
+	private final JLabel partner2PreviousParentsLabel = new JLabel();
+	private final JLabel partner2NextParentsLabel = new JLabel();
+	private final JLabel partner2PreviousUnionLabel = new JLabel();
+	private final JLabel partner2NextUnionLabel = new JLabel();
 	private final JPanel unionPanel = new JPanel();
 	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
 	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
@@ -145,26 +160,99 @@ public class GroupPanel extends JPanel{
 
 
 	void initComponents(){
-		partner1Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER1);
+		partner1Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER);
+		partner1Panel.initComponents();
 		EventBusService.subscribe(partner1Panel);
-		partner2Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER2);
+		partner2Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER);
+		partner2Panel.initComponents();
 		EventBusService.subscribe(partner2Panel);
 
 		unionPanel.setBackground(Color.WHITE);
 
-		setLayout(new MigLayout("insets 0",
+		//TODO add jumps between biological parents and adoptive parents
+		setLayout(new MigLayout("insets 0,debug",
 			"[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]",
-			"[]0[]"));
-		add(partner1PreviousLabel, "split 2,alignx right,gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION);
-		add(partner1NextLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+		add(partner1PreviousUnionLabel, "split 2,right,gapright 10");
+		add(partner1NextUnionLabel);
 		add(new JLabel());
-		add(partner2PreviousLabel, "split 2,gapbottom " + NAVIGATION_ARROW_SEPARATION);
-		add(partner2NextLabel, "gapright 10,gapbottom " + NAVIGATION_ARROW_SEPARATION + ",wrap");
+		add(partner2PreviousUnionLabel, "split 2,left,gapright 10");
+		add(partner2NextUnionLabel, "wrap");
 		add(partner1Panel, "growx 50,alignx center");
 		add(unionPanel, "aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
 		add(partner2Panel, "growx 50,alignx center");
 
+/*
+//		final JPanel panel1Parents = new JPanel(new MigLayout("insets 0,fill"));
+//		panel1Parents.add(partner1PreviousParentsLabel, "split 2,center,gapright 10");
+//		panel1Parents.add(partner1NextParentsLabel);
+//		final JPanel panel2Union = new JPanel(new MigLayout("insets 0,fill"));
+//		panel2Union.add(partner1PreviousUnionLabel, "split 2,alignx right,gapright 10");
+//		panel2Union.add(partner1NextUnionLabel);
+//		final JPanel panel3Union = new JPanel(new MigLayout("insets 0,fill"));
+//		panel3Union.add(partner2PreviousUnionLabel, "split 2,alignx left,gapright 10");
+//		panel3Union.add(partner2NextUnionLabel);
+//		final JPanel panel4Parents = new JPanel(new MigLayout("insets 0,fill"));
+//		panel4Parents.add(partner2PreviousParentsLabel, "split 2,center,gapright 10");
+//		panel4Parents.add(partner2NextParentsLabel);
+
+//		final JPanel panel1ParentsUnion = new JPanel(new MigLayout("insets 0,fill", "[]", "[]" + NAVIGATION_ARROW_SEPARATION));
+//		panel1ParentsUnion.add(partner1PreviousParentsLabel, "split 4,center,gapright 10");
+//		panel1ParentsUnion.add(partner1NextParentsLabel, "center");
+//		panel1ParentsUnion.add(partner1PreviousUnionLabel, "alignx right,gapright 10");
+//		panel1ParentsUnion.add(partner1NextUnionLabel, "alignx right");
+//		final JPanel panel2UnionParents = new JPanel(new MigLayout("insets 0,fill", "[]", "[]" + NAVIGATION_ARROW_SEPARATION));
+//		panel2UnionParents.add(partner2PreviousUnionLabel, "split 4,alignx left,gapright 10");
+//		panel2UnionParents.add(partner2NextUnionLabel, "alignx left");
+//		panel2UnionParents.add(partner2PreviousParentsLabel, "center,gapright 10");
+//		panel2UnionParents.add(partner2NextParentsLabel, "center");
+
+		setLayout(new MigLayout("insets 0,debug",
+			"[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]",
+			"[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+//		add(partner1PreviousParentsLabel, "split 2,alignx right,gapright 10");
+//		add(partner1NextParentsLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
+		add(partner1PreviousUnionLabel, "split 2,right,gapright 10");
+		add(partner1NextUnionLabel);
+		add(new JLabel());
+		add(partner2PreviousUnionLabel, "split 2,left,gapright 10");
+		add(partner2NextUnionLabel, "wrap");
+//		add(partner2NextUnionLabel, "gapright 10");
+//		add(partner2PreviousParentsLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
+//		add(partner2NextParentsLabel, "gapright 10,wrap");
+		add(partner1Panel, "growx 50,alignx center");
+		add(unionPanel, "aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
+		add(partner2Panel, "growx 50,alignx center");
+
+//		setLayout(new MigLayout("insets 0", "[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]", "[]0[]"));
+//		setLayout(new MigLayout("insets 0", "[grow]", "[]0[]"));
+//		add(panel1Parents, "cell 0 0,center,growx");
+//		add(panel2Union, "cell 1 0,growx");
+//		add(panel3Union, "cell 3 0,growx");
+//		add(panel4Parents, "cell 4 0,center,growx");
+//		add(partner1Panel, "cell 0 1,span 2,growx 50,alignx center");
+//		add(unionPanel, "cell 2 1,alignx center,aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
+//		add(partner2Panel, "cell 3 1,span 2,growx 50,alignx center");
+*/
+
 		setOpaque(false);
+	}
+
+	public final Map<String, Object> getGroup(){
+		return group;
+	}
+
+	public final Map<String, Object> getPartner1(){
+		return partner1;
+	}
+
+	public final Map<String, Object> getPartner2(){
+		return partner2;
+	}
+
+	final void setChildren(final Map<String, Object>[] children){
+		partner1Panel.setChildren(children);
+		partner2Panel.setChildren(children);
 	}
 
 	final void setGroupListener(final GroupListenerInterface groupListener){
@@ -173,63 +261,95 @@ public class GroupPanel extends JPanel{
 				@Override
 				public void mouseClicked(final MouseEvent evt){
 					if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
-						groupListener.onGroupEdit(GroupPanel.this, group);
+						groupListener.onGroupEdit(GroupPanel.this);
 				}
 			});
 
 			attachPopUpMenu(unionPanel, groupListener);
 
-			refresh(ActionCommand.ACTION_COMMAND_GROUP_COUNT);
 
-			partner1PreviousLabel.addMouseListener(new MouseAdapter(){
+			partner1PreviousParentsLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1PreviousLabel.getClientProperty(KEY_ENABLED))
-						groupListener.onGroupPreviousPartner(GroupPanel.this, partner2, partner1, group);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1PreviousParentsLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupPreviousParents(GroupPanel.this, partner2, partner1);
 				}
 			});
-			partner1NextLabel.addMouseListener(new MouseAdapter(){
+			partner1NextParentsLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1NextLabel.getClientProperty(KEY_ENABLED))
-						groupListener.onGroupNextPartner(GroupPanel.this, partner2, partner1, group);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1NextParentsLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupNextParents(GroupPanel.this, partner2, partner1);
 				}
 			});
-			partner2PreviousLabel.addMouseListener(new MouseAdapter(){
+			partner1PreviousUnionLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2PreviousLabel.getClientProperty(KEY_ENABLED))
-						groupListener.onGroupPreviousPartner(GroupPanel.this, partner1, partner2, group);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1PreviousUnionLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupPreviousUnion(GroupPanel.this, partner2, partner1);
 				}
 			});
-			partner2NextLabel.addMouseListener(new MouseAdapter(){
+			partner1NextUnionLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2NextLabel.getClientProperty(KEY_ENABLED))
-						groupListener.onGroupNextPartner(GroupPanel.this, partner1, partner2, group);
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner1NextUnionLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupNextUnion(GroupPanel.this, partner2, partner1);
+				}
+			});
+			partner2PreviousParentsLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2PreviousParentsLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupPreviousParents(GroupPanel.this, partner1, partner2);
+				}
+			});
+			partner2NextParentsLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2NextParentsLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupNextParents(GroupPanel.this, partner1, partner2);
+				}
+			});
+			partner2PreviousUnionLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2PreviousUnionLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupPreviousUnion(GroupPanel.this, partner1, partner2);
+				}
+			});
+			partner2NextUnionLabel.addMouseListener(new MouseAdapter(){
+				@Override
+				public void mouseClicked(final MouseEvent evt){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)partner2NextUnionLabel.getClientProperty(KEY_ENABLED))
+						groupListener.onGroupNextUnion(GroupPanel.this, partner1, partner2);
 				}
 			});
 		}
 	}
 
 	final void setPersonListener(final PersonListenerInterface personListener){
+		partner1Panel.setPartner(partner2);
+		partner1Panel.setUnion(group);
 		partner1Panel.setPersonListener(personListener);
+
+		partner2Panel.setPartner(partner1);
+		partner2Panel.setUnion(group);
 		partner2Panel.setPersonListener(personListener);
 	}
 
 	private void attachPopUpMenu(final JComponent component, final GroupListenerInterface groupListener){
 		final JPopupMenu popupMenu = new JPopupMenu();
 
-		editGroupItem.addActionListener(e -> groupListener.onGroupEdit(this, group));
+		editGroupItem.addActionListener(e -> groupListener.onGroupEdit(this));
 		popupMenu.add(editGroupItem);
 
 		linkGroupItem.addActionListener(e -> groupListener.onGroupLink(this));
 		popupMenu.add(linkGroupItem);
 
-		unlinkGroupItem.addActionListener(e -> groupListener.onGroupUnlink(this, group));
+		unlinkGroupItem.addActionListener(e -> groupListener.onGroupUnlink(this));
 		popupMenu.add(unlinkGroupItem);
 
-		removeGroupItem.addActionListener(e -> groupListener.onGroupRemove(this, group));
+		removeGroupItem.addActionListener(e -> groupListener.onGroupRemove(this));
 		popupMenu.add(removeGroupItem);
 
 		component.addMouseListener(new PopupMouseAdapter(popupMenu, component));
@@ -263,9 +383,16 @@ public class GroupPanel extends JPanel{
 	}
 
 	void loadData(final Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
+		prepareData(group, partner1, partner2);
+
+		loadData();
+	}
+
+	private void prepareData(final Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
 		if((partner1.isEmpty() || partner2.isEmpty()) && !group.isEmpty()){
 			//extract the first two persons from the group:
-			final List<Integer> personIDs = getPersonIDsInGroup(group);
+			final Integer groupID = extractRecordID(group);
+			final List<Integer> personIDs = getPersonIDsInGroup(groupID);
 			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
 			final int size = personIDs.size();
 			if(partner1.isEmpty())
@@ -277,8 +404,6 @@ public class GroupPanel extends JPanel{
 		this.group = group;
 		this.partner1 = partner1;
 		this.partner2 = partner2;
-
-		loadData();
 	}
 
 	private void loadData(){
@@ -286,8 +411,11 @@ public class GroupPanel extends JPanel{
 		partner2Panel.loadData(partner2);
 
 		if(boxType == BoxPanelType.PRIMARY){
-			updatePreviousNextPartnerIcons(group, partner2, partner1PreviousLabel, partner1NextLabel);
-			updatePreviousNextPartnerIcons(group, partner1, partner2PreviousLabel, partner2NextLabel);
+			updatePreviousNextUnionIcons(group, partner2, partner1PreviousUnionLabel, partner1NextUnionLabel);
+			updatePreviousNextUnionIcons(group, partner1, partner2PreviousUnionLabel, partner2NextUnionLabel);
+
+			updatePreviousNextParentsIcons(group, partner2, partner1PreviousParentsLabel, partner1NextParentsLabel);
+			updatePreviousNextParentsIcons(group, partner1, partner2PreviousParentsLabel, partner2NextParentsLabel);
 		}
 
 		unionPanel.setBorder(!group.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
@@ -304,17 +432,17 @@ public class GroupPanel extends JPanel{
 			return;
 
 		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
-		final boolean isRecordEmpty = group.isEmpty();
-		editGroupItem.setEnabled(!isRecordEmpty);
-		linkGroupItem.setEnabled(isRecordEmpty && hasGroups);
-		unlinkGroupItem.setEnabled(!isRecordEmpty);
-		removeGroupItem.setEnabled(!isRecordEmpty);
+		final boolean hasData = !group.isEmpty();
+		editGroupItem.setEnabled(hasData);
+		linkGroupItem.setEnabled(!hasData && hasGroups);
+		unlinkGroupItem.setEnabled(hasData);
+		removeGroupItem.setEnabled(hasData);
 	}
 
-	private void updatePreviousNextPartnerIcons(final Map<String, Object> group, final Map<String, Object> otherPartner,
-			final JLabel partnerPreviousLabel, final JLabel partnerNextLabel){
-		//list the groupIDs for the unions og the `other partner`
-		final Integer otherPartnerID = extractRecordID(otherPartner);
+	private void updatePreviousNextUnionIcons(final Map<String, Object> group, final Map<String, Object> partner,
+			final JLabel previousLabel, final JLabel nextLabel){
+		//list the groupIDs for the unions of the `other partner`
+		final Integer otherPartnerID = extractRecordID(partner);
 		final List<Integer> otherPartnerUnionIDs = getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
@@ -335,22 +463,67 @@ public class GroupPanel extends JPanel{
 				break;
 			}
 		}
-		final boolean hasMoreFamilies = (otherPartnerUnionsCount > 1);
+		final boolean hasMoreUnions = (otherPartnerUnionsCount > 1);
 
 		final boolean partnerPreviousEnabled = (currentGroupIndex > 0);
-		partnerPreviousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
-		partnerPreviousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		previousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
+		previousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		ImageIcon icon = null;
-		if(hasMoreFamilies)
-			icon = (partnerPreviousEnabled? ICON_PARTNER_PREVIOUS_ENABLED: ICON_PARTNER_PREVIOUS_DISABLED);
-		partnerPreviousLabel.setIcon(icon);
+		if(hasMoreUnions)
+			icon = (partnerPreviousEnabled? ICON_UNION_PREVIOUS_ENABLED: ICON_UNION_PREVIOUS_DISABLED);
+		previousLabel.setIcon(icon);
 
 		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerUnionsCount - 1);
-		partnerNextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
-		partnerNextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		if(hasMoreFamilies)
-			icon = (partnerNextEnabled? ICON_PARTNER_NEXT_ENABLED: ICON_PARTNER_NEXT_DISABLED);
-		partnerNextLabel.setIcon(icon);
+		nextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
+		nextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		if(hasMoreUnions)
+			icon = (partnerNextEnabled? ICON_UNION_NEXT_ENABLED: ICON_UNION_NEXT_DISABLED);
+		nextLabel.setIcon(icon);
+	}
+
+	private void updatePreviousNextParentsIcons(final Map<String, Object> group, final Map<String, Object> partner,
+			final JLabel previousLabel, final JLabel nextLabel){
+		//list the groupIDs for the biological union and adopting unions of the `other partner`
+		//TODO
+		final Integer otherPartnerID = extractRecordID(partner);
+		final List<Integer> otherPartnerUnionIDs = getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(otherPartnerID, extractRecordReferenceID(entry)))
+			.map(GroupPanel::extractRecordGroupID)
+			.toList();
+
+		//find current union in list
+		int currentGroupIndex = -1;
+		final Integer groupID = extractRecordID(group);
+		final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
+		for(int i = 0; i < otherPartnerUnionsCount; i ++){
+			final Integer otherUnionID = otherPartnerUnionIDs.get(i);
+
+			if(Objects.equals(groupID, otherUnionID)){
+				currentGroupIndex = i;
+				break;
+			}
+		}
+		final boolean hasMoreUnions = (otherPartnerUnionsCount > 1);
+
+		final boolean partnerPreviousEnabled = (currentGroupIndex > 0);
+		previousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
+		previousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+		ImageIcon icon = null;
+//		if(hasMoreUnions)
+			//TODO add jump icons between biological parents and adoptive parents
+			icon = (partnerPreviousEnabled? ICON_PARENTS_PREVIOUS_ENABLED: ICON_PARENTS_PREVIOUS_DISABLED);
+		previousLabel.setIcon(icon);
+
+		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerUnionsCount - 1);
+		nextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
+		nextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
+//		if(hasMoreUnions)
+			//TODO add jump icons between biological parents and adoptive parents
+			icon = (partnerNextEnabled? ICON_PARENTS_NEXT_ENABLED: ICON_PARENTS_NEXT_DISABLED);
+		nextLabel.setIcon(icon);
 	}
 
 
@@ -386,8 +559,7 @@ public class GroupPanel extends JPanel{
 		return (Integer)record.get("group_id");
 	}
 
-	private List<Integer> getPersonIDsInGroup(final Map<String, Object> group){
-		final Integer groupID = extractRecordID(group);
+	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
@@ -407,7 +579,7 @@ public class GroupPanel extends JPanel{
 	final Point getGroupPaintingPartner2EnterPoint(){
 		final Point p = partner2Panel.getPersonPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + p.x, origin.y + p.y - 1);
+		return new Point(origin.x + p.x, origin.y + p.y);
 	}
 
 	final Point getGroupPaintingExitPoint(){
@@ -420,7 +592,29 @@ public class GroupPanel extends JPanel{
 		return new Point(origin.x + x, origin.y + y);
 	}
 
+	public static void main2(String[] args) {
+		JFrame frame = new JFrame("MigLayout Example");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(400, 200);
+		frame.setLayout(new MigLayout("insets 0, debug", "[grow, fill]", "[]"));
 
+		// Pannello per contenere le due etichette
+		JPanel panel = new JPanel(new MigLayout("insets 0, fill", "[grow][right]", "[]"));
+
+		JLabel centeredLabel = new JLabel("Centered Label");
+		JLabel rightAlignedLabel = new JLabel("Right Aligned Label");
+
+		// Aggiungi la label centrata nella prima colonna del pannello
+		panel.add(centeredLabel, "cell 0 0, alignx center");
+
+		// Aggiungi la label allineata a destra nella seconda colonna del pannello
+		panel.add(rightAlignedLabel, "cell 1 0, alignx right");
+
+		// Aggiungi il pannello al frame
+		frame.add(panel, "growx, aligny top");
+
+		frame.setVisible(true);
+	}
 	public static void main(final String[] args){
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -517,72 +711,106 @@ public class GroupPanel extends JPanel{
 
 		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override
-			public void onGroupEdit(final GroupPanel boxPanel, final Map<String, Object> group){
+			public void onGroupEdit(final GroupPanel groupPanel){
+				final Map<String, Object> group = groupPanel.getGroup();
 				System.out.println("onEditGroup " + group.get("id"));
 			}
 
 			@Override
-			public void onGroupLink(final GroupPanel boxPanel){
+			public void onGroupLink(final GroupPanel groupPanel){
 				System.out.println("onLinkGroup");
 			}
 
 			@Override
-			public void onGroupUnlink(final GroupPanel boxPanel, final Map<String, Object> group){
+			public void onGroupUnlink(final GroupPanel groupPanel){
+				final Map<String, Object> group = groupPanel.getGroup();
 				System.out.println("onUnlinkGroup " + group.get("id"));
 			}
 
 			@Override
-			public void onGroupRemove(final GroupPanel boxPanel, final Map<String, Object> group){
+			public void onGroupRemove(final GroupPanel groupPanel){
+				final Map<String, Object> group = groupPanel.getGroup();
 				System.out.println("onRemoveGroup " + group.get("id"));
 			}
 
 			@Override
-			public void onGroupPreviousPartner(final GroupPanel groupPanel, final Map<String, Object> thisPartner,
-					final Map<String, Object> otherCurrentPartner, final Map<String, Object> currentGroup){
-				System.out.println("onPrevPartnerGroup this: " + thisPartner.get("id") + ", other: " + otherCurrentPartner.get("id")
+			public void onGroupPreviousParents(final GroupPanel groupPanel, final Map<String, Object> currentUnion,
+					final Map<String, Object> otherUnion){
+				final Map<String, Object> currentGroup = groupPanel.getGroup();
+				System.out.println("onGroupPartnerPreviousParents this: " + currentUnion.get("id") + ", other: " + otherUnion.get("id")
 					+ ", current group: " + currentGroup.get("id"));
 			}
 
 			@Override
-			public void onGroupNextPartner(final GroupPanel groupPanel, final Map<String, Object> thisPartner,
-					final Map<String, Object> otherCurrentPartner, final Map<String, Object> currentGroup){
-				System.out.println("onNextPartnerGroup this: " + thisPartner.get("id") + ", other: " + otherCurrentPartner.get("id")
+			public void onGroupNextParents(final GroupPanel groupPanel, final Map<String, Object> currentParent,
+					final Map<String, Object> otherParent){
+				final Map<String, Object> currentGroup = groupPanel.getGroup();
+				System.out.println("onGroupPartnerNextParents this: " + currentParent.get("id") + ", other: " + otherParent.get("id")
+					+ ", current group: " + currentGroup.get("id"));
+			}
+
+			@Override
+			public void onGroupPreviousUnion(final GroupPanel groupPanel, final Map<String, Object> currentParent,
+					final Map<String, Object> otherParent){
+				final Map<String, Object> currentGroup = groupPanel.getGroup();
+				System.out.println("onGroupPartnerPreviousUnion this: " + currentParent.get("id") + ", other: " + otherParent.get("id")
+					+ ", current group: " + currentGroup.get("id"));
+			}
+
+			@Override
+			public void onGroupNextUnion(final GroupPanel groupPanel, final Map<String, Object> currentParent,
+					final Map<String, Object> otherParent){
+				final Map<String, Object> currentGroup = groupPanel.getGroup();
+				System.out.println("onGroupPartnerNextUnion this: " + currentParent.get("id") + ", other: " + otherParent.get("id")
 					+ ", current group: " + currentGroup.get("id"));
 			}
 		};
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonEdit(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonEdit(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onEditPerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type, final Map<String, Object> person){
+			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
 			}
 
 			@Override
 			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
-				System.out.println("onLinkPerson " + type);
+				final Map<String, Object> partner = boxPanel.getPartner();
+				final Map<String, Object> marriage = boxPanel.getUnion();
+				final Map<String, Object>[] children = boxPanel.getChildren();
+				System.out.println("onLinkPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
+					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
 			}
 
 			@Override
-			public void onPersonUnlink(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonUnlink(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onUnlinkPerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel boxPanel){
-				System.out.println("onAddPerson");
+			public void onPersonAdd(final PersonPanel boxPanel, final SelectedNodeType type){
+				final Map<String, Object> partner = boxPanel.getPartner();
+				final Map<String, Object> marriage = boxPanel.getUnion();
+				final Map<String, Object>[] children = boxPanel.getChildren();
+				System.out.println("onAddPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
+					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
 			}
 
 			@Override
-			public void onPersonRemove(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonRemove(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onRemovePerson " + person.get("id"));
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel boxPanel, final Map<String, Object> person){
+			public void onPersonAddImage(final PersonPanel boxPanel){
+				final Map<String, Object> person = boxPanel.getPerson();
 				System.out.println("onAddPreferredImage " + person.get("id"));
 			}
 		};

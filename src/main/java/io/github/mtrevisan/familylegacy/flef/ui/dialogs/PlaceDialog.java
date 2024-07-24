@@ -124,7 +124,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 
 	public PlaceDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}

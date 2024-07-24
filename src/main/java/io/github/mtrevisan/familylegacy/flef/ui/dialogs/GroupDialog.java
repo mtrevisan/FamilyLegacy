@@ -143,14 +143,14 @@ public final class GroupDialog extends CommonListDialog{
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
-		super.setOnCloseGracefully(innerOnCloseGracefully);
+		setOnCloseGracefully(innerOnCloseGracefully);
 
 		return this;
 	}
 
-	public GroupDialog withReference(final String referenceTable, final int filterReferenceID){
-		this.filterReferenceTable = referenceTable;
-		this.filterReferenceID = filterReferenceID;
+	public GroupDialog withReference(final String referenceTable, final int referenceID){
+		filterReferenceTable = referenceTable;
+		filterReferenceID = referenceID;
 
 		return this;
 	}

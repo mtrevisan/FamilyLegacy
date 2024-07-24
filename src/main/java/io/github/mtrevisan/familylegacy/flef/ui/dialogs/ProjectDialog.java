@@ -86,7 +86,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 
 	public ProjectDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		super.setOnCloseGracefully(onCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
