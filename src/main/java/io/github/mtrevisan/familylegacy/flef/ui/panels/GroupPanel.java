@@ -45,6 +45,7 @@ import javax.swing.WindowConstants;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -90,7 +91,8 @@ public class GroupPanel extends JPanel{
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getImage("/images/parents_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getImage("/images/parents_next.png",
+		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
 
@@ -99,7 +101,8 @@ public class GroupPanel extends JPanel{
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getImage("/images/union_next.png", PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getImage("/images/union_next.png",
+		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));
 
@@ -109,10 +112,14 @@ public class GroupPanel extends JPanel{
 	static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - UNION_PANEL_DIMENSION.height / 2;
 	private static final int HALF_PARTNER_SEPARATION = 6;
 	static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + UNION_PANEL_DIMENSION.width + HALF_PARTNER_SEPARATION;
-	/** Distance between navigation arrow and box. */
-	static final int NAVIGATION_ARROW_SEPARATION = 2;
+	/** Distance between navigation union arrow and box. */
+	static final int NAVIGATION_UNION_ARROW_SEPARATION = 2;
+	/** Distance between navigation parents arrow and box. */
+	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_UNION_ARROW_SEPARATION << 1) + 1;
 
-	static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_ARROW_SEPARATION);
+	static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_UNION_ARROW_SEPARATION);
+	private static final int UNION_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH + NAVIGATION_PARENTS_ARROW_SEPARATION
+		+ PREVIOUS_NEXT_WIDTH);
 
 	private static final String KEY_ENABLED = "enabled";
 
@@ -125,6 +132,10 @@ public class GroupPanel extends JPanel{
 	private static final String TABLE_NAME_GROUP = "group";
 
 
+	private final JLabel partner1ArrowsSpacer = new JLabel();
+	private final JLabel partner2ArrowsSpacer = new JLabel();
+	private JPanel arrowPersonPanel1;
+	private JPanel arrowPersonPanel2;
 	private PersonPanel partner1Panel;
 	private PersonPanel partner2Panel;
 	private final JLabel partner1PreviousParentsLabel = new JLabel();
@@ -169,71 +180,53 @@ public class GroupPanel extends JPanel{
 
 		unionPanel.setBackground(Color.WHITE);
 
+		partner1ArrowsSpacer.setMinimumSize(new Dimension(UNION_ARROWS_WIDTH, 0));
+		partner2ArrowsSpacer.setMinimumSize(new Dimension(UNION_ARROWS_WIDTH, 0));
+
+		final JPanel arrowPanel1 = new JPanel(new MigLayout("insets 0,debug",
+			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		arrowPanel1.add(partner1ArrowsSpacer, "hidemode 3");
+		arrowPanel1.add(partner1PreviousParentsLabel, "right,hidemode 3");
+		arrowPanel1.add(partner1NextParentsLabel, "left,hidemode 3");
+		arrowPanel1.add(partner1PreviousUnionLabel, "right,hidemode 3");
+		arrowPanel1.add(partner1NextUnionLabel, "right,hidemode 3");
+
+		arrowPersonPanel1 = new JPanel(new MigLayout("insets 0",
+			"[grow]", "[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		arrowPersonPanel1.add(arrowPanel1, "growx,wrap");
+		arrowPersonPanel1.add(partner1Panel, "growx,right");
+
+		final JPanel arrowPanel2 = new JPanel(new MigLayout("insets 0,debug",
+			"[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
+		arrowPanel2.add(partner2PreviousUnionLabel, "left,hidemode 3");
+		arrowPanel2.add(partner2NextUnionLabel, "left,hidemode 3");
+		arrowPanel2.add(partner2PreviousParentsLabel, "right,hidemode 3");
+		arrowPanel2.add(partner2NextParentsLabel, "left,hidemode 3");
+		arrowPanel2.add(partner2ArrowsSpacer, "hidemode 3");
+
+		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0",
+			"[grow]", "[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		arrowPersonPanel2.add(arrowPanel2, "growx,wrap");
+		arrowPersonPanel2.add(partner2Panel, "growx,left");
+
+		setLayout(new MigLayout("insets 0,debug",
+			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
+			"[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		add(arrowPersonPanel1, "right");
+		add(unionPanel, "bottom,gapbottom " + GROUP_EXITING_HEIGHT);
+		add(arrowPersonPanel2, "left");
+
+
 		//TODO add jumps between biological parents and adoptive parents
-		setLayout(new MigLayout("insets 0,debug",
-			"[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]",
-			"[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
-		add(partner1PreviousUnionLabel, "split 2,right,gapright 10");
-		add(partner1NextUnionLabel);
-		add(new JLabel());
-		add(partner2PreviousUnionLabel, "split 2,left,gapright 10");
-		add(partner2NextUnionLabel, "wrap");
-		add(partner1Panel, "growx 50,alignx center");
-		add(unionPanel, "aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
-		add(partner2Panel, "growx 50,alignx center");
-
-/*
-//		final JPanel panel1Parents = new JPanel(new MigLayout("insets 0,fill"));
-//		panel1Parents.add(partner1PreviousParentsLabel, "split 2,center,gapright 10");
-//		panel1Parents.add(partner1NextParentsLabel);
-//		final JPanel panel2Union = new JPanel(new MigLayout("insets 0,fill"));
-//		panel2Union.add(partner1PreviousUnionLabel, "split 2,alignx right,gapright 10");
-//		panel2Union.add(partner1NextUnionLabel);
-//		final JPanel panel3Union = new JPanel(new MigLayout("insets 0,fill"));
-//		panel3Union.add(partner2PreviousUnionLabel, "split 2,alignx left,gapright 10");
-//		panel3Union.add(partner2NextUnionLabel);
-//		final JPanel panel4Parents = new JPanel(new MigLayout("insets 0,fill"));
-//		panel4Parents.add(partner2PreviousParentsLabel, "split 2,center,gapright 10");
-//		panel4Parents.add(partner2NextParentsLabel);
-
-//		final JPanel panel1ParentsUnion = new JPanel(new MigLayout("insets 0,fill", "[]", "[]" + NAVIGATION_ARROW_SEPARATION));
-//		panel1ParentsUnion.add(partner1PreviousParentsLabel, "split 4,center,gapright 10");
-//		panel1ParentsUnion.add(partner1NextParentsLabel, "center");
-//		panel1ParentsUnion.add(partner1PreviousUnionLabel, "alignx right,gapright 10");
-//		panel1ParentsUnion.add(partner1NextUnionLabel, "alignx right");
-//		final JPanel panel2UnionParents = new JPanel(new MigLayout("insets 0,fill", "[]", "[]" + NAVIGATION_ARROW_SEPARATION));
-//		panel2UnionParents.add(partner2PreviousUnionLabel, "split 4,alignx left,gapright 10");
-//		panel2UnionParents.add(partner2NextUnionLabel, "alignx left");
-//		panel2UnionParents.add(partner2PreviousParentsLabel, "center,gapright 10");
-//		panel2UnionParents.add(partner2NextParentsLabel, "center");
-
-		setLayout(new MigLayout("insets 0,debug",
-			"[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]",
-			"[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
-//		add(partner1PreviousParentsLabel, "split 2,alignx right,gapright 10");
-//		add(partner1NextParentsLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
-		add(partner1PreviousUnionLabel, "split 2,right,gapright 10");
-		add(partner1NextUnionLabel);
-		add(new JLabel());
-		add(partner2PreviousUnionLabel, "split 2,left,gapright 10");
-		add(partner2NextUnionLabel, "wrap");
-//		add(partner2NextUnionLabel, "gapright 10");
-//		add(partner2PreviousParentsLabel, "gapbottom " + NAVIGATION_ARROW_SEPARATION);
-//		add(partner2NextParentsLabel, "gapright 10,wrap");
-		add(partner1Panel, "growx 50,alignx center");
-		add(unionPanel, "aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
-		add(partner2Panel, "growx 50,alignx center");
-
-//		setLayout(new MigLayout("insets 0", "[grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[grow]", "[]0[]"));
-//		setLayout(new MigLayout("insets 0", "[grow]", "[]0[]"));
-//		add(panel1Parents, "cell 0 0,center,growx");
-//		add(panel2Union, "cell 1 0,growx");
-//		add(panel3Union, "cell 3 0,growx");
-//		add(panel4Parents, "cell 4 0,center,growx");
-//		add(partner1Panel, "cell 0 1,span 2,growx 50,alignx center");
-//		add(unionPanel, "cell 2 1,alignx center,aligny bottom,gapbottom " + GROUP_EXITING_HEIGHT);
-//		add(partner2Panel, "cell 3 1,span 2,growx 50,alignx center");
-*/
+//		setLayout(new MigLayout("insets 0,debug",
+//			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
+//			"[]" + NAVIGATION_ARROW_SEPARATION + "[]"));
+//		add(arrowPanel1);
+//		add(new JLabel());
+//		add(arrowPanel2, "wrap");
+//		add(partner1Panel, "growx 50");
+//		add(unionPanel, "bottom,gapbottom " + GROUP_EXITING_HEIGHT);
+//		add(partner2Panel, "growx 50");
 
 		setOpaque(false);
 	}
@@ -359,7 +352,7 @@ public class GroupPanel extends JPanel{
 	protected final void paintComponent(final Graphics g){
 		super.paintComponent(g);
 
-		if(g instanceof Graphics2D && partner1Panel != null && partner2Panel != null){
+		if(g instanceof Graphics2D && arrowPersonPanel1 != null && arrowPersonPanel2 != null){
 			final Graphics2D graphics2D = (Graphics2D)g.create();
 			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
@@ -367,9 +360,9 @@ public class GroupPanel extends JPanel{
 
 			graphics2D.setStroke(CONNECTION_STROKE);
 
-			final int xFrom = partner1Panel.getX() + partner1Panel.getWidth();
-			final int xTo = partner2Panel.getX();
-			final int yFrom = partner1Panel.getY() + partner1Panel.getHeight() - GROUP_CONNECTION_HEIGHT;
+			final int xFrom = arrowPersonPanel1.getX() + arrowPersonPanel1.getWidth();
+			final int xTo = arrowPersonPanel2.getX();
+			final int yFrom = arrowPersonPanel1.getY() + arrowPersonPanel1.getHeight() - GROUP_CONNECTION_HEIGHT;
 			//horizontal line between partners
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
 
@@ -439,10 +432,10 @@ public class GroupPanel extends JPanel{
 		removeGroupItem.setEnabled(hasData);
 	}
 
-	private void updatePreviousNextUnionIcons(final Map<String, Object> group, final Map<String, Object> partner,
+	private void updatePreviousNextUnionIcons(final Map<String, Object> group, final Map<String, Object> otherPartner,
 			final JLabel previousLabel, final JLabel nextLabel){
 		//list the groupIDs for the unions of the `other partner`
-		final Integer otherPartnerID = extractRecordID(partner);
+		final Integer otherPartnerID = extractRecordID(otherPartner);
 		final List<Integer> otherPartnerUnionIDs = getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
@@ -479,18 +472,22 @@ public class GroupPanel extends JPanel{
 		if(hasMoreUnions)
 			icon = (partnerNextEnabled? ICON_UNION_NEXT_ENABLED: ICON_UNION_NEXT_DISABLED);
 		nextLabel.setIcon(icon);
+
+
+		(otherPartner == partner2? partner1ArrowsSpacer: partner2ArrowsSpacer)
+			.setVisible(hasMoreUnions);
 	}
 
 	private void updatePreviousNextParentsIcons(final Map<String, Object> group, final Map<String, Object> partner,
 			final JLabel previousLabel, final JLabel nextLabel){
 		//list the groupIDs for the biological union and adopting unions of the `other partner`
 		//TODO
-		final Integer otherPartnerID = extractRecordID(partner);
+		final Integer partnerID = extractRecordID(partner);
 		final List<Integer> otherPartnerUnionIDs = getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(otherPartnerID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
 			.map(GroupPanel::extractRecordGroupID)
 			.toList();
 
@@ -512,7 +509,7 @@ public class GroupPanel extends JPanel{
 		previousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
 		previousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		ImageIcon icon = null;
-//		if(hasMoreUnions)
+		if(hasMoreUnions)
 			//TODO add jump icons between biological parents and adoptive parents
 			icon = (partnerPreviousEnabled? ICON_PARENTS_PREVIOUS_ENABLED: ICON_PARENTS_PREVIOUS_DISABLED);
 		previousLabel.setIcon(icon);
@@ -520,7 +517,7 @@ public class GroupPanel extends JPanel{
 		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerUnionsCount - 1);
 		nextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
 		nextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-//		if(hasMoreUnions)
+		if(hasMoreUnions)
 			//TODO add jump icons between biological parents and adoptive parents
 			icon = (partnerNextEnabled? ICON_PARENTS_NEXT_ENABLED: ICON_PARENTS_NEXT_DISABLED);
 		nextLabel.setIcon(icon);
@@ -592,26 +589,32 @@ public class GroupPanel extends JPanel{
 		return new Point(origin.x + x, origin.y + y);
 	}
 
+
 	public static void main2(String[] args) {
-		JFrame frame = new JFrame("MigLayout Example");
+		JFrame frame = new JFrame("MigLayout Arrows Example");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(400, 200);
-		frame.setLayout(new MigLayout("insets 0, debug", "[grow, fill]", "[]"));
+		frame.setSize(800, 200);
 
-		// Pannello per contenere le due etichette
-		JPanel panel = new JPanel(new MigLayout("insets 0, fill", "[grow][right]", "[]"));
+		// Creazione delle etichette contenenti le frecce
+		JLabel arrow11 = new JLabel("←");
+		JLabel arrow12 = new JLabel("→");
+		JLabel arrow21 = new JLabel("←");
+		JLabel arrow22 = new JLabel("→");
 
-		JLabel centeredLabel = new JLabel("Centered Label");
-		JLabel rightAlignedLabel = new JLabel("Right Aligned Label");
+		// Creazione del pannello principale
+		JPanel panel = new JPanel();
 
-		// Aggiungi la label centrata nella prima colonna del pannello
-		panel.add(centeredLabel, "cell 0 0, alignx center");
+		JPanel arrowPanel = new JPanel(new MigLayout("insets 0",
+			"[grow]" + NAVIGATION_UNION_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		arrowPanel.add(arrow11, "right");
+		arrowPanel.add(arrow12, "left");
+		arrowPanel.add(arrow21, "right");
+		arrowPanel.add(arrow22, "right");
 
-		// Aggiungi la label allineata a destra nella seconda colonna del pannello
-		panel.add(rightAlignedLabel, "cell 1 0, alignx right");
+		frame.setLayout(new MigLayout("insets 0, debug", "[grow]", "[]10[]"));
+		frame.add(arrowPanel, "growx,wrap");
+		frame.add(panel, "growx,center");
 
-		// Aggiungi il pannello al frame
-		frame.add(panel, "growx, aligny top");
 
 		frame.setVisible(true);
 	}
@@ -821,12 +824,12 @@ public class GroupPanel extends JPanel{
 			panel.loadData(group1);
 			panel.setGroupListener(unionListener);
 			panel.setPersonListener(personListener);
-
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
-			frame.getContentPane().setLayout(new BorderLayout());
-			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			final Container contentPane = frame.getContentPane();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){
@@ -836,6 +839,7 @@ public class GroupPanel extends JPanel{
 				}
 			});
 			frame.setLocationRelativeTo(null);
+frame.setBackground(Color.BLUE);
 			frame.setVisible(true);
 		});
 	}

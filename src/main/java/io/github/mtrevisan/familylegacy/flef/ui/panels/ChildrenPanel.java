@@ -37,6 +37,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Point;
@@ -64,7 +65,7 @@ public class ChildrenPanel extends JPanel{
 	private static final ImageIcon ICON_UNION = ResourceHelper.getImage("/images/union.png", UNION_SIZE);
 
 	private static final int CHILD_SEPARATION = 15;
-	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_ARROW_SEPARATION;
+	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION;
 
 	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
@@ -141,12 +142,12 @@ public class ChildrenPanel extends JPanel{
 				final JPanel box = new JPanel();
 				box.setOpaque(false);
 				box.setLayout(new MigLayout("flowy,insets 0", "[]",
-					"[]" + GroupPanel.NAVIGATION_ARROW_SEPARATION + "[]"));
+					"[]" + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
 				final JLabel unionLabel = new JLabel();
 				unionLabel.setMinimumSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
 				if(hasChildUnion)
 					unionLabel.setIcon(ICON_UNION);
-				box.add(unionLabel, "alignx right");
+				box.add(unionLabel, "right");
 				box.add(childBox);
 
 				add(box, (i < length - 1? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
@@ -392,8 +393,9 @@ public class ChildrenPanel extends JPanel{
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
-			frame.getContentPane().setLayout(new BorderLayout());
-			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			final Container contentPane = frame.getContentPane();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){

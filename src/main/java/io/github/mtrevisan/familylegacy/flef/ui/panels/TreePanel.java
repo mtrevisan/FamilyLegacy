@@ -38,6 +38,7 @@ import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -214,7 +215,7 @@ public class TreePanel extends JPanel{
 		add(partner1PartnersPanel, "span 2,growx 50");
 		add(partner2PartnersPanel, "span 2,growx 50,wrap");
 		add(homeGroupPanel, "span 4,wrap");
-		add(childrenScrollPane, "span 4,alignx center");
+		add(childrenScrollPane, "span 4,center");
 	}
 
 	public void setUnionListener(final GroupListenerInterface groupListener){
@@ -803,8 +804,9 @@ public class TreePanel extends JPanel{
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
-			frame.getContentPane().setLayout(new BorderLayout());
-			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			final Container contentPane = frame.getContentPane();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){

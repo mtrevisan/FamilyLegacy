@@ -48,6 +48,7 @@ import javax.swing.WindowConstants;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -171,7 +172,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
 		final double shrink = PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3;
 		add(personalNameLabel, "cell 0 0,top,width ::100%-" + shrink + ",hidemode 3");
-		add(imageLabel, "cell 1 0 1 3,aligny top");
+		add(imageLabel, "cell 1 0 1 3,top");
 		add(familyNameLabel, "cell 0 1,top,width ::100%-" + shrink + ",hidemode 3");
 		add(infoLabel, "cell 0 2");
 
@@ -813,8 +814,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
-			frame.getContentPane().setLayout(new BorderLayout());
-			frame.getContentPane().add(panel, BorderLayout.NORTH);
+			final Container contentPane = frame.getContentPane();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.add(panel, BorderLayout.NORTH);
 			frame.pack();
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			frame.addWindowListener(new WindowAdapter(){
