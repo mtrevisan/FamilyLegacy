@@ -193,27 +193,16 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onGroupPreviousParents(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
-			final Map<String, Object> otherPartner){
-		final Map<String, Object> currentGroup = groupPanel.getGroup();
-		LOGGER.debug("onGroupPartnerPreviousParents this: " + currentPartner.get("id") + ", other: " + otherPartner.get("id")
-			+ ", current group: " + currentGroup.get("id"));
+	public void onGroupChangeParents(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
+		final Map<String, Object> currentUnion = groupPanel.getGroup();
+		LOGGER.debug("onGroupChangeParents person: " + person.get("id") + ", current: " + currentUnion.get("id")
+			+ ", new: " + newUnion.get("id"));
 
 		//TODO
 	}
 
 	@Override
-	public void onGroupNextParents(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
-			final Map<String, Object> otherPartner){
-		final Map<String, Object> currentGroup = groupPanel.getGroup();
-		LOGGER.debug("onGroupPartnerNextParents this: " + currentPartner.get("id") + ", other: " + otherPartner.get("id")
-			+ ", current group: " + currentGroup.get("id"));
-
-		//TODO
-	}
-
-	@Override
-	public void onGroupPreviousUnion(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
+	public void onGroupChangeUnion(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
 			final Map<String, Object> otherPartner){
 		final Map<String, Object> currentGroup = groupPanel.getGroup();
 		LOGGER.debug("onPrevPartnerGroup this: " + currentPartner.get("id") + ", other: " + otherPartner.get("id")
@@ -228,28 +217,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 //				nextFamily = store.getFamily(familyXRefs.get(familyIndex - 1).getXRef());
 //				break;
 //			}
-//
-//		//update primary family
-//		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);
-	}
-
-	@Override
-	public void onGroupNextUnion(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
-			final Map<String, Object> otherPartner){
-		final Map<String, Object> currentGroup = groupPanel.getGroup();
-		LOGGER.debug("onNextPartnerGroup this: " + currentPartner.get("id") + ", other: " + otherPartner.get("id")
-			+ ", current group: " + currentGroup.get("id"));
-
-		//TODO
-//		GedcomNode nextFamily = null;
-//		final String currentFamilyID = currentFamily.getID();
-//		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARTNER[]");
-//		for(int familyIndex = 0; familyIndex < familyXRefs.size() - 1; familyIndex ++){
-//			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
-//				nextFamily = store.getFamily(familyXRefs.get(familyIndex + 1).getXRef());
-//				break;
-//			}
-//		}
 //
 //		//update primary family
 //		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);

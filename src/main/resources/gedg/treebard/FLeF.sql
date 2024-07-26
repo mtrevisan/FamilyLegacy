@@ -200,7 +200,7 @@ CREATE TABLE GROUP_JUNCTION
  GROUP_ID        numeric NOT NULL,
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
- ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
+ ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "adoptee", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
  FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" ) ON DELETE CASCADE

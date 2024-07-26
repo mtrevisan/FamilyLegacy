@@ -108,7 +108,7 @@ public class ChildrenPanel extends JPanel{
 		children = extractChildren(unionID);
 
 		//for each child, scan its events and collect all that have type "adoption"
-		final Set<Integer> adoptionEvents = getRecords(TABLE_NAME_EVENT)
+		final Set<Integer> adoptionEventIDs = getRecords(TABLE_NAME_EVENT)
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
@@ -116,7 +116,7 @@ public class ChildrenPanel extends JPanel{
 			.collect(Collectors.toSet());
 		adoptions = new boolean[children.length];
 		for(int i = 0; i < adoptions.length; i ++)
-			adoptions[i] = adoptionEvents.contains(extractRecordID(children[i]));
+			adoptions[i] = adoptionEventIDs.contains(extractRecordID(children[i]));
 
 		//clear panel
 		removeAll();
@@ -131,9 +131,9 @@ public class ChildrenPanel extends JPanel{
 				final Integer childID = extractRecordID(child);
 				final boolean hasChildUnion = getRecords(TABLE_NAME_GROUP_JUNCTION)
 					.values().stream()
-					.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
 					.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
-					.anyMatch(entry -> Objects.equals(childID, extractRecordReferenceID(entry)));
+					.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
+					.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
 				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY, SelectedNodeType.CHILD);
 				childBox.initComponents();
 				childBox.loadData(child);
@@ -164,9 +164,9 @@ public class ChildrenPanel extends JPanel{
 		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
+			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toArray(Map[]::new);
 	}

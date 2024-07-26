@@ -41,36 +41,18 @@ public interface GroupListenerInterface{
 	 * Iterate through parents of a person.
 	 *
 	 * @param groupPanel	The current group panel from which to iterate.
-	 * @param currentUnion	The current union (that remain the same).
-	 * @param otherUnion	The union that has to change.
+	 * @param person	The current person (that remain the same).
+	 * @param newParents	The union that has to change.
 	 */
-	void onGroupPreviousParents(GroupPanel groupPanel, Map<String, Object> currentUnion, Map<String, Object> otherUnion);
-
-	/**
-	 * Iterate through parents of a person.
-	 *
-	 * @param groupPanel	The current group panel from which to iterate.
-	 * @param currentParent	The current parent (that remain the same).
-	 * @param otherParent	The parent that has to change.
-	 */
-	void onGroupNextParents(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
+	void onGroupChangeParents(GroupPanel groupPanel, Map<String, Object> person, Map<String, Object> newParents);
 
 	/**
 	 * Iterate through unions of a person.
 	 *
-	 * @param groupPanel	The current group panel from which to iterate.
-	 * @param currentParent	The current parent (that remain the same).
-	 * @param otherParent	The parent that has to change.
+	 * @param groupPanel	The current union panel from which to iterate.
+	 * @param person	The current person (that remain the same).
+	 * @param newUnion	The union that has to change to.
 	 */
-	void onGroupPreviousUnion(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
-
-	/**
-	 * Iterate through unions of a person.
-	 *
-	 * @param groupPanel	The current group panel from which to iterate.
-	 * @param currentParent	The current parent (that remain the same).
-	 * @param otherParent	The parent that has to change.
-	 */
-	void onGroupNextUnion(GroupPanel groupPanel, Map<String, Object> currentParent, Map<String, Object> otherParent);
+	void onGroupChangeUnion(GroupPanel groupPanel, Map<String, Object> person, Map<String, Object> newUnion);
 
 }

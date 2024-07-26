@@ -342,8 +342,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Dimension size = (isPrimaryBox()? new Dimension(260, 90):
 			new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
-		setMaximumSize(isPrimaryBox()? new Dimension(420, size.height):
-			new Dimension(240, size.height));
+		setMaximumSize(isPrimaryBox()? new Dimension(420, size.height): new Dimension(240, size.height));
 
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
@@ -636,7 +635,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 
-	final Point getPersonPaintingEnterPoint(){
+	final Point getPaintingEnterPoint(){
 		return new Point(getX() + getWidth() / 2, getY());
 	}
 
