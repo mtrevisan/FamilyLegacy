@@ -199,6 +199,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			+ ", new: " + newUnion.get("id"));
 
 		//TODO
+//		setPersonListener etc...
 	}
 
 	@Override
@@ -220,6 +221,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 //
 //		//update primary family
 //		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);
+//		setPersonListener
 	}
 
 

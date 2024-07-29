@@ -252,7 +252,7 @@ public final class GroupDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,split 2");
-		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
+		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
 		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
 

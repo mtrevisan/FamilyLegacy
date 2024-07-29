@@ -252,7 +252,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(identifierField, "growx,wrap paragraph");
+		recordPanelBase.add(identifierField, "grow,wrap paragraph");
 		recordPanelBase.add(descriptionLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanelBase.add(descriptionTextPreview, "grow,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,wrap paragraph");

@@ -144,7 +144,7 @@ public class ChildrenPanel extends JPanel{
 				box.setLayout(new MigLayout("flowy,insets 0", "[]",
 					"[]" + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
 				final JLabel unionLabel = new JLabel();
-				unionLabel.setMinimumSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
+				unionLabel.setPreferredSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
 				if(hasChildUnion)
 					unionLabel.setIcon(ICON_UNION);
 				box.add(unionLabel, "right");

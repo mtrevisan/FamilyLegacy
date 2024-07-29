@@ -118,7 +118,7 @@ public class GroupPanel extends JPanel{
 	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_UNION_ARROW_SEPARATION << 1) + 1;
 
 	static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_UNION_ARROW_SEPARATION);
-	private static final int UNION_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH + NAVIGATION_PARENTS_ARROW_SEPARATION
+	private static final int UNION_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH + NAVIGATION_UNION_ARROW_SEPARATION
 		+ PREVIOUS_NEXT_WIDTH);
 
 	private static final String KEY_ENABLED = "enabled";
@@ -180,8 +180,8 @@ public class GroupPanel extends JPanel{
 
 		unionPanel.setBackground(Color.WHITE);
 
-		partner1ArrowsSpacer.setMinimumSize(new Dimension(UNION_ARROWS_WIDTH, 0));
-		partner2ArrowsSpacer.setMinimumSize(new Dimension(UNION_ARROWS_WIDTH, 0));
+		partner1ArrowsSpacer.setPreferredSize(new Dimension(UNION_ARROWS_WIDTH, 0));
+		partner2ArrowsSpacer.setPreferredSize(new Dimension(UNION_ARROWS_WIDTH, 0));
 
 		final JPanel arrowPanel1 = new JPanel(new MigLayout("insets 0",
 			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
@@ -195,8 +195,8 @@ public class GroupPanel extends JPanel{
 		arrowPersonPanel1 = new JPanel(new MigLayout("insets 0",
 			"[grow]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
-		arrowPersonPanel1.add(arrowPanel1, "growx,wrap");
-		arrowPersonPanel1.add(partner1Panel, "right,growx");
+		arrowPersonPanel1.add(arrowPanel1, "wrap");
+		arrowPersonPanel1.add(partner1Panel, "right");
 		arrowPersonPanel1.setOpaque(false);
 
 		final JPanel arrowPanel2 = new JPanel(new MigLayout("insets 0",
@@ -208,18 +208,19 @@ public class GroupPanel extends JPanel{
 		arrowPanel2.add(partner2ArrowsSpacer);
 		arrowPanel2.setOpaque(false);
 
-		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0",
-			"[grow]",
+		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0,debug",
+			"[grow,fill]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
-		arrowPersonPanel2.add(arrowPanel2, "growx,wrap");
-		arrowPersonPanel2.add(partner2Panel, "left,growx");
+		arrowPersonPanel2.add(arrowPanel2, "wrap");
+		arrowPersonPanel2.add(partner2Panel, "left");
 		arrowPersonPanel2.setOpaque(false);
 
 		setLayout(new MigLayout("insets 0",
-			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]"));
-		add(arrowPersonPanel1, "right,growx,bottom");
-		add(unionPanel, "bottom,gapbottom " + GROUP_EXITING_HEIGHT);
-		add(arrowPersonPanel2, "left,growx,bottom");
+			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
+			"[bottom]"));
+		add(arrowPersonPanel1, "right,grow");
+		add(unionPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
+		add(arrowPersonPanel2, "left,grow");
 
 		setOpaque(false);
 	}
@@ -499,6 +500,21 @@ public class GroupPanel extends JPanel{
 			//horizontal line between partners
 			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
 
+
+			//for test purposes
+			final Point enterPoint1 = getPaintingPartner1EnterPoint();
+			graphics2D.setColor(Color.RED);
+			graphics2D.drawLine(enterPoint1.x - 10, enterPoint1.y - 10, enterPoint1.x + 10, enterPoint1.y + 10);
+			graphics2D.drawLine(enterPoint1.x + 10, enterPoint1.y - 10, enterPoint1.x - 10, enterPoint1.y + 10);
+			final Point enterPoint2 = getPaintingPartner2EnterPoint();
+			graphics2D.drawLine(enterPoint2.x - 10, enterPoint2.y - 10, enterPoint2.x + 10, enterPoint2.y + 10);
+			graphics2D.drawLine(enterPoint2.x + 10, enterPoint2.y - 10, enterPoint2.x - 10, enterPoint2.y + 10);
+			final Point exitPoint = getPaintingExitPoint();
+			graphics2D.drawLine(exitPoint.x - 10, exitPoint.y - 10, exitPoint.x + 10, exitPoint.y + 10);
+			graphics2D.drawLine(exitPoint.x + 10, exitPoint.y - 10, exitPoint.x - 10, exitPoint.y + 10);
+			graphics2D.setColor(Color.BLACK);
+
+
 			graphics2D.dispose();
 		}
 	}
@@ -715,18 +731,21 @@ public class GroupPanel extends JPanel{
 		final Point p1 = partner1Panel.getPaintingEnterPoint();
 		final Point p2 = partner2Panel.getPaintingEnterPoint();
 		final Point origin = getLocation();
-		return new Point(origin.x + (p1.x + HALF_PARTNER_SEPARATION) * 2 + unionPanel.getWidth() + p2.x,
+
+		return new Point(origin.x + getWidth() + (p2.x - p1.x - partner2Panel.getWidth()) / 2,
 			origin.y + p2.y);
 	}
 
 	final Point getPaintingExitPoint(){
 		//halfway between partner1 and partner2 boxes
-		final int x = (partner1Panel.getX() + partner1Panel.getWidth() + partner2Panel.getX()) / 2;
+		final Point partner1EnterPoint = getPaintingPartner1EnterPoint();
+		final Point partner2EnterPoint = getPaintingPartner2EnterPoint();
+		final int x = (partner1EnterPoint.x + partner2EnterPoint.x) / 2;
 		//the bottom point of the union panel (that is: bottom point of partner1 box minus the height of the horizontal connection line
 		//plus half the size of the union panel box)
-		final int y = partner1Panel.getY() + partner1Panel.getHeight() - GROUP_EXITING_HEIGHT;
 		final Point origin = getLocation();
-		return new Point(origin.x + x, origin.y + y);
+		final int y = origin.y + getHeight() - GROUP_EXITING_HEIGHT;
+		return new Point(x, y);
 	}
 
 

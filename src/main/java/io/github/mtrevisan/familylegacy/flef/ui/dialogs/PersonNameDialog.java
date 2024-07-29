@@ -201,14 +201,14 @@ public final class PersonNameDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personalNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(personalNameField, "growx,wrap related");
+		recordPanelBase.add(personalNameField, "grow,wrap related");
 		recordPanelBase.add(familyNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(familyNameField, "growx,wrap related");
+		recordPanelBase.add(familyNameField, "grow,wrap related");
 		recordPanelBase.add(nameLocaleLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(nameLocaleField, "grow,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(typeComboBox, "growx");
+		recordPanelBase.add(typeComboBox, "grow");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");

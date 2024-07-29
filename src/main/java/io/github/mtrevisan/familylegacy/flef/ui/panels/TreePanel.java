@@ -163,8 +163,8 @@ public class TreePanel extends JPanel{
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + GroupPanel.GROUP_SEPARATION + "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(partner1PartnersPanel, "growx 50");
-		add(partner2PartnersPanel, "growx 50,wrap");
+		add(partner1PartnersPanel, "grow");
+		add(partner2PartnersPanel, "grow,wrap");
 		add(homeGroupPanel, "span 2,wrap");
 		add(childrenScrollPane, "span 2");
 	}
@@ -217,12 +217,12 @@ public class TreePanel extends JPanel{
 				+ "[grow,center]" + GroupPanel.GROUP_SEPARATION
 				+ "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
-		add(partner1Partner1Panel, "growx 25");
-		add(partner1Partner2Panel, "growx 25");
-		add(partner2Partner1Panel, "growx 25");
-		add(partner2Partner2Panel, "growx 25,wrap");
-		add(partner1PartnersPanel, "span 2,growx 50");
-		add(partner2PartnersPanel, "span 2,growx 50,wrap");
+		add(partner1Partner1Panel, "grow");
+		add(partner1Partner2Panel, "grow");
+		add(partner2Partner1Panel, "grow");
+		add(partner2Partner2Panel, "grow,wrap");
+		add(partner1PartnersPanel, "span 2,grow");
+		add(partner2PartnersPanel, "span 2,grow,wrap");
 		add(homeGroupPanel, "span 4,wrap");
 		add(childrenScrollPane, "span 4,center");
 	}
@@ -299,16 +299,14 @@ public class TreePanel extends JPanel{
 			if(partner1Partner1Panel != null && partner1Partner1Panel.isVisible()){
 				//partner1's partner1 entering connection
 				final Point p1p1 = partner1PartnersPanel.getPaintingPartner1EnterPoint();
-				p1p1.setLocation(p1p1.x, p1p1.y - 2);
 				final Point p1g1p = parentGrandParentsExitingConnection(partner1Partner1Panel, graphics2D);
 				grandparentsEnteringConnection(p1p1, p1g1p, graphics2D);
 			}
 			if(partner1Partner2Panel != null && partner1Partner2Panel.isVisible()){
 				//partner1's partner2 entering connection
 				final Point p1p2 = partner1PartnersPanel.getPaintingPartner2EnterPoint();
-				p1p2.setLocation(p1p2.x, p1p2.y - 2);
 				final Point p1g2p = parentGrandParentsExitingConnection(partner1Partner2Panel, graphics2D);
-//				grandparentsEnteringConnection(p1p2, p1g2p, graphics2D);
+				grandparentsEnteringConnection(p1p2, p1g2p, graphics2D);
 			}
 			if(partner2Partner1Panel != null && partner2Partner1Panel.isVisible()){
 				//partner2's partner1 entering connection
@@ -382,22 +380,20 @@ public class TreePanel extends JPanel{
 	private static Point parentGrandParentsExitingConnection(final GroupPanel parentGrandparentsPanel, final Graphics2D graphics2D){
 		Point p = null;
 		if(parentGrandparentsPanel != null){
-			//parent's parent's parent exiting connection
+			//(vertical line) parents' parents' parents exiting connection
 			p = parentGrandparentsPanel.getPaintingExitPoint();
-			graphics2D.setColor(Color.RED);
-//			grandparentsExitingConnection(p, 0, graphics2D);
-			graphics2D.setColor(Color.BLACK);
+			grandparentsExitingConnection(p, 0, graphics2D);
 		}
 		return p;
 	}
 
 	private static void grandparentsEnteringConnection(final Point g, final Point pg, final Graphics2D graphics2D){
-		//parent's parent entering connection
+		//parents' parent entering connection
 		parentEnteringConnection(g, 0, graphics2D);
 
-//		if(pg != null)
-//			//line between grandparent and grandparent's parents
-//			grandparentsToParent(pg, g, 0, graphics2D);
+		if(pg != null)
+			//line between grandparent and grandparents' parents
+			grandparentsToParent(pg, g, 0, graphics2D);
 	}
 
 	private static void grandparentsExitingConnection(final Point g, final int offset, final Graphics2D graphics2D){
@@ -407,15 +403,15 @@ public class TreePanel extends JPanel{
 	}
 
 	private static void parentEnteringConnection(final Point p, final int offset, final Graphics2D graphics2D){
-		//parent entering connection
-		graphics2D.drawLine(p.x +130, p.y + GroupPanel.NAVIGATION_ARROW_HEIGHT + offset,
-			p.x, p.y - offset - GENERATION_SEPARATOR_SIZE / 2);
+		//(vertical line) parent entering connection
+		graphics2D.drawLine(p.x, p.y,
+			p.x, p.y - offset - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 	private static void grandparentsToParent(final Point g, final Point p, final int offset, final Graphics2D graphics2D){
-		//line between grandparent and parent
+		//(horizontal) line between grandparent and parent
 		graphics2D.drawLine(g.x, g.y + GroupPanel.GROUP_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-			p.x, p.y - offset - GENERATION_SEPARATOR_SIZE / 2);
+			p.x, p.y - offset - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 

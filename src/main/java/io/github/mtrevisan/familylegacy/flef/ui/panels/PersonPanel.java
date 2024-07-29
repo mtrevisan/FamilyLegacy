@@ -56,6 +56,7 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.LayoutManager;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RenderingHints;
@@ -310,6 +311,15 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 				panelWidth - 1, panelHeight - 1,
 				ARCS.width, ARCS.height);
 
+
+			//for test purposes
+//			final Point enterPoint = getPaintingEnterPoint();
+//			graphics2D.setColor(Color.RED);
+//			graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10, enterPoint.x + 10, enterPoint.y + 10);
+//			graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10, enterPoint.x - 10, enterPoint.y + 10);
+//			graphics2D.setColor(Color.BLACK);
+
+
 			graphics2D.dispose();
 		}
 	}
@@ -339,10 +349,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private void loadData(){
-		final Dimension size = (isPrimaryBox()? new Dimension(260, 90):
-			new Dimension(170, SECONDARY_MAX_HEIGHT));
+		final Dimension size = (isPrimaryBox()
+			? new Dimension(260, 90)
+			: new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
-		setMaximumSize(isPrimaryBox()? new Dimension(420, size.height): new Dimension(240, size.height));
+		setMaximumSize(isPrimaryBox()
+			? new Dimension(420, size.height)
+			: new Dimension(240, size.height));
 
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);

@@ -213,19 +213,19 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personalTextLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add((simplePrimaryText? personalTextField: textTextPreview), "growx,wrap related");
+		recordPanelBase.add((simplePrimaryText? personalTextField: textTextPreview), "grow,wrap related");
 		if(withSecondaryInput){
 			recordPanelBase.add(familyTextLabel, "align label,sizegroup lbl,split 2");
-			recordPanelBase.add(familyTextField, "growx,wrap related");
+			recordPanelBase.add(familyTextField, "grow,wrap related");
 		}
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "growx,wrap paragraph");
+		recordPanelBase.add(localeField, "grow,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(typeComboBox, "growx,wrap paragraph");
+		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
 		recordPanelBase.add(transcriptionLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(transcriptionComboBox, "growx,wrap related");
+		recordPanelBase.add(transcriptionComboBox, "grow,wrap related");
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(transcriptionTypeComboBox, "growx");
+		recordPanelBase.add(transcriptionTypeComboBox, "grow");
 
 		recordTabbedPane.add("base", recordPanelBase);
 	}
