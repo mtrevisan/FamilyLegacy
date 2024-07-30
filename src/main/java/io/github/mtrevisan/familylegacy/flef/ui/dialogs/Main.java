@@ -404,7 +404,7 @@ public class Main{
 							if(groupID != null)
 								groupDialog.selectData(groupID);
 
-							groupDialog.setSize(468, 469);
+							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}
@@ -471,7 +471,7 @@ public class Main{
 //			dialog.setSize(522, 618);
 //			dialog.setSize(420, 497);
 //			dialog.setSize(355, 469);
-//			dialog.setSize(468, 469);
+//			dialog.setSize(541, 481);
 //			dialog.setSize(309, 409);
 //			dialog.setSize(474, 652);
 			dialog.setSize(420, 567);

@@ -35,6 +35,8 @@ public interface GroupListenerInterface{
 
 	void onGroupUnlink(GroupPanel groupPanel);
 
+	void onGroupAdd(GroupPanel groupPanel);
+
 	void onGroupRemove(GroupPanel groupPanel);
 
 	/**

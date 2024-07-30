@@ -687,7 +687,7 @@ public final class PlaceDialog extends CommonListDialog{
 							groupDialog.initComponents();
 							groupDialog.loadData();
 
-							groupDialog.setSize(468, 469);
+							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}

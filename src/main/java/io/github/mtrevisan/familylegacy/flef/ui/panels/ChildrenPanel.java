@@ -102,6 +102,42 @@ public class ChildrenPanel extends JPanel{
 			childBoxes[i].setPersonListener(personListener);
 	}
 
+//	@Override
+//	protected final void paintComponent(final Graphics g){
+//		super.paintComponent(g);
+//
+//		if(g instanceof Graphics2D){
+//			final Graphics2D graphics2D = (Graphics2D)g.create();
+//			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//
+//
+//			//for test purposes
+//			final Point[] enterPoints = getPaintingEnterPoints();
+//			final Point origin = getLocation();
+//			//vertical line connecting the children
+//			graphics2D.setColor(Color.RED);
+//			for(int i = 0; i < enterPoints.length; i ++){
+//				final Point point = enterPoints[i];
+//
+//				final boolean isAdopted = isChildAdopted(i);
+//				if(isAdopted)
+//					graphics2D.setStroke(GroupPanel.CONNECTION_STROKE_ADOPTED);
+//
+//				graphics2D.drawLine(point.x - 10, point.y - 10, point.x + 10, point.y + 10);
+//				graphics2D.drawLine(point.x + 10, point.y - 10, point.x - 10, point.y + 10);
+//
+//				if(isAdopted)
+//					graphics2D.setStroke(GroupPanel.CONNECTION_STROKE);
+//			}
+//			graphics2D.setColor(Color.BLACK);
+//
+//
+//			graphics2D.dispose();
+//		}
+//	}
+
 
 	public void loadData(final Integer unionID){
 		//extract the children from the union
@@ -110,8 +146,8 @@ public class ChildrenPanel extends JPanel{
 		//for each child, scan its events and collect all that have type "adoption"
 		final Set<Integer> adoptionEventIDs = getRecords(TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(ChildrenPanel::extractRecordReferenceID)
 			.collect(Collectors.toSet());
 		adoptions = new boolean[children.length];
@@ -212,7 +248,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 
-	Point[] getChildrenPaintingEnterPoints(){
+	Point[] getPaintingEnterPoints(){
 		final Component[] components = getComponents();
 		final Point[] enterPoints = new Point[components.length];
 		for(int i = 0; i < components.length; i ++){

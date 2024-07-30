@@ -73,6 +73,7 @@ public class TreePanel extends JPanel{
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON = "person";
+	private static final String TABLE_NAME_EVENT = "event";
 
 
 	private GroupPanel partner1Partner1Panel;
@@ -115,15 +116,6 @@ public class TreePanel extends JPanel{
 
 
 	void initComponents(){
-//addMouseMotionListener(new java.awt.event.MouseMotionListener() {
-//	@Override
-//	public void mouseDragged(java.awt.event.MouseEvent e) {}
-//
-//	@Override
-//	public void mouseMoved(java.awt.event.MouseEvent e) {
-//		System.out.println("Mouse moved to: " + e.getX() + ", " + e.getY());
-//	}
-//});
 		if(generations <= 3)
 			initComponents3Generations();
 		else
@@ -311,45 +303,43 @@ public class TreePanel extends JPanel{
 			if(partner2Partner1Panel != null && partner2Partner1Panel.isVisible()){
 				//partner2's partner1 entering connection
 				final Point p2p1 = partner2PartnersPanel.getPaintingPartner1EnterPoint();
-				p2p1.setLocation(p2p1.x, p2p1.y - 2);
 				final Point p2g1p = parentGrandParentsExitingConnection(partner2Partner1Panel, graphics2D);
-//				grandparentsEnteringConnection(p2p1, p2g1p, graphics2D);
+				grandparentsEnteringConnection(p2p1, p2g1p, graphics2D);
 			}
 			if(partner2Partner2Panel != null && partner2Partner2Panel.isVisible()){
 				//partner2's partner2 entering connection
 				final Point p2p2 = partner2PartnersPanel.getPaintingPartner2EnterPoint();
-				p2p2.setLocation(p2p2.x, p2p2.y - 2);
 				final Point p2g2p = parentGrandParentsExitingConnection(partner2Partner2Panel, graphics2D);
-//				grandparentsEnteringConnection(p2p2, p2g2p, graphics2D);
+				grandparentsEnteringConnection(p2p2, p2g2p, graphics2D);
 			}
 
 			final Point p1p = partner1PartnersPanel.getPaintingExitPoint();
-//			if(!partner1.isEmpty())
+			if(!partner1.isEmpty())
 				//partner1's partners exiting connection
-//				grandparentsExitingConnection(p1p, 0, graphics2D);
+				grandparentsExitingConnection(p1p, 0, graphics2D);
 			final Point p2p = partner2PartnersPanel.getPaintingExitPoint();
-//			if(!partner2.isEmpty())
+			if(!partner2.isEmpty())
 				//partner2's partners exiting connection
-//				grandparentsExitingConnection(p2p, 0, graphics2D);
+				grandparentsExitingConnection(p2p, 0, graphics2D);
 			if(!partner1.isEmpty()){
 				final Point hfp1 = homeGroupPanel.getPaintingPartner1EnterPoint();
 				//home union partner1 entering connection
-//				parentEnteringConnection(hfp1, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				parentEnteringConnection(hfp1, graphics2D);
 				//line between partner1's partners and partner1
-//				grandparentsToParent(p1p, hfp1, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				grandparentsToParent(p1p, hfp1, graphics2D);
 			}
 			if(!partner2.isEmpty()){
 				final Point hfp2 = homeGroupPanel.getPaintingPartner2EnterPoint();
 				//home union partner2 entering connection
-//				parentEnteringConnection(hfp2, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				parentEnteringConnection(hfp2, graphics2D);
 				//line between partner2's partners and partner2
-//				grandparentsToParent(p2p, hfp2, GroupPanel.NAVIGATION_ARROW_HEIGHT, graphics2D);
+				grandparentsToParent(p2p, hfp2, graphics2D);
 			}
-			final Point[] c = childrenPanel.getChildrenPaintingEnterPoints();
+			final Point[] c = childrenPanel.getPaintingEnterPoints();
 			if(c.length > 0){
 				//home union exiting connection
 				final Point hf = homeGroupPanel.getPaintingExitPoint();
-//				grandparentsExitingConnection(hf, ChildrenPanel.UNION_ARROW_HEIGHT, graphics2D);
+				grandparentsExitingConnection(hf, ChildrenPanel.UNION_ARROW_HEIGHT, graphics2D);
 
 				final Point origin = childrenScrollPane.getLocation();
 				origin.x -= childrenScrollPane.getHorizontalScrollBar().getValue();
@@ -388,12 +378,12 @@ public class TreePanel extends JPanel{
 	}
 
 	private static void grandparentsEnteringConnection(final Point g, final Point pg, final Graphics2D graphics2D){
-		//parents' parent entering connection
-		parentEnteringConnection(g, 0, graphics2D);
+		//(vertical) parents' parent entering connection
+		parentEnteringConnection(g, graphics2D);
 
 		if(pg != null)
-			//line between grandparent and grandparents' parents
-			grandparentsToParent(pg, g, 0, graphics2D);
+			//(horizontal) line between grandparent and grandparents' parents
+			grandparentsToParent(pg, g, graphics2D);
 	}
 
 	private static void grandparentsExitingConnection(final Point g, final int offset, final Graphics2D graphics2D){
@@ -402,16 +392,16 @@ public class TreePanel extends JPanel{
 			g.x, g.y + offset + GroupPanel.GROUP_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2);
 	}
 
-	private static void parentEnteringConnection(final Point p, final int offset, final Graphics2D graphics2D){
+	private static void parentEnteringConnection(final Point p, final Graphics2D graphics2D){
 		//(vertical line) parent entering connection
 		graphics2D.drawLine(p.x, p.y,
-			p.x, p.y - offset - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
+			p.x, p.y - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
-	private static void grandparentsToParent(final Point g, final Point p, final int offset, final Graphics2D graphics2D){
+	private static void grandparentsToParent(final Point g, final Point p, final Graphics2D graphics2D){
 		//(horizontal) line between grandparent and parent
 		graphics2D.drawLine(g.x, g.y + GroupPanel.GROUP_EXITING_HEIGHT + GENERATION_SEPARATOR_SIZE / 2,
-			p.x, p.y - offset - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
+			p.x, p.y - GroupPanel.NAVIGATION_ARROW_HEIGHT - GENERATION_SEPARATOR_SIZE / 2);
 	}
 
 
@@ -420,8 +410,19 @@ public class TreePanel extends JPanel{
 	}
 
 	public void loadDataFromPerson(final Map<String, Object> partner1){
-		//TODO prefer left position (`partner1`) if male or unknown, right if female (`partner2`)
-		loadData(Collections.emptyMap(), partner1, Collections.emptyMap());
+		//prefer left position (`partner1`) if male or unknown, right if female (`partner2`)
+		Map<String, Object> p1 = partner1;
+		Map<String, Object> p2 = null;
+		final int partner1ID = extractRecordID(partner1);
+		final List<Map<String, Object>> sexEvents = extractReferences(TABLE_NAME_EVENT, partner1ID, "sex");
+		if(sexEvents.size() == 1){
+			final String sex = extractRecordDescription(sexEvents.getFirst());
+			if("female".equalsIgnoreCase(sex)){
+				p1 = null;
+				p2 = partner1;
+			}
+		}
+		loadData(Collections.emptyMap(), p1, p2);
 	}
 
 	public final void loadData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
@@ -433,11 +434,6 @@ public class TreePanel extends JPanel{
 	}
 
 	private void prepareData(Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
-		if(homeUnion.isEmpty()){
-			//TODO prefer biological family
-			homeUnion = Collections.emptyMap();
-		}
-
 		final Integer homeUnionID = extractRecordID(homeUnion);
 		final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
 		final Integer partner1ID = extractRecordID(partner1);
@@ -472,10 +468,19 @@ public class TreePanel extends JPanel{
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(TreePanel::extractRecordReferenceID)
+			.toList();
+	}
+
+	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
+		return getRecords(fromTable)
+			.values().stream()
+			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.toList();
 	}
 
@@ -506,18 +511,18 @@ public class TreePanel extends JPanel{
 			partner2Partner2Parents = extractParents(partner2Partner2, store);
 
 			partner1Partner1Panel.loadData(partner1Partner1Parents);
-//			partner1Partner1Panel.setVisible(!partner1Parents.isEmpty());
+			partner1Partner1Panel.setVisible(!partner1Parents.isEmpty());
 			partner1Partner2Panel.loadData(partner1Partner2Parents);
-//			partner1Partner2Panel.setVisible(!partner1Parents.isEmpty());
+			partner1Partner2Panel.setVisible(!partner1Parents.isEmpty());
 			partner2Partner1Panel.loadData(partner2Partner1Parents);
-//			partner2Partner1Panel.setVisible(!partner2Parents.isEmpty());
+			partner2Partner1Panel.setVisible(!partner2Parents.isEmpty());
 			partner2Partner2Panel.loadData(partner2Partner2Parents);
-//			partner2Partner2Panel.setVisible(!partner2Parents.isEmpty());
+			partner2Partner2Panel.setVisible(!partner2Parents.isEmpty());
 		}
 		partner1PartnersPanel.loadData(partner1Parents);
-//		partner1PartnersPanel.setVisible(!partner1.isEmpty());
+		partner1PartnersPanel.setVisible(!partner1.isEmpty());
 		partner2PartnersPanel.loadData(partner2Parents);
-//		partner2PartnersPanel.setVisible(!partner2.isEmpty());
+		partner2PartnersPanel.setVisible(!partner2.isEmpty());
 		homeGroupPanel.loadData(homeUnion, partner1, partner2);
 		final Integer homeUnionID = extractRecordID(homeUnion);
 		childrenPanel.loadData(homeUnionID);
@@ -537,9 +542,9 @@ public class TreePanel extends JPanel{
 	private List<Integer> getPartnerIDs(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(TreePanel::extractRecordReferenceID)
 			.toList();
 	}
@@ -549,23 +554,37 @@ public class TreePanel extends JPanel{
 		Map<String, Object> parentsGroup = Collections.emptyMap();
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
-			final List<Integer> groupIDs = store.computeIfAbsent(TABLE_NAME_GROUP_JUNCTION, k -> new TreeMap<>())
-				.values().stream()
-				.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
-				.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-				.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
-				.map(TreePanel::extractRecordGroupID)
-				.toList();
-			if(groupIDs.size() > 1)
-				LOGGER.warn("Person {} belongs to more than one union (this cannot be), select the first and hope for the best", childID);
+			//prefer biological family
+			final List<Integer> parentsIDs = getParentsID(childID, "child", store);
+			if(parentsIDs.size() > 1)
+				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
-			final Integer parentsID = (!groupIDs.isEmpty()? groupIDs.getFirst(): null);
+			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
 			if(parentsID != null){
 				final TreeMap<Integer, Map<String, Object>> groups = store.computeIfAbsent(TABLE_NAME_GROUP, k -> new TreeMap<>());
 				parentsGroup = groups.get(parentsID);
 			}
+			else{
+				//prefer first adopting family
+				final List<Integer> unionIDs = getParentsID(childID, "adoptee", store);
+				if(!unionIDs.isEmpty()){
+					final TreeMap<Integer, Map<String, Object>> groups = store.computeIfAbsent(TABLE_NAME_GROUP, k -> new TreeMap<>());
+					parentsGroup = groups.get(unionIDs.getFirst());
+				}
+			}
 		}
 		return parentsGroup;
+	}
+
+	private static List<Integer> getParentsID(final Integer personID, final String personRole,
+			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return store.computeIfAbsent(TABLE_NAME_GROUP_JUNCTION, k -> new TreeMap<>())
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
+			.map(TreePanel::extractRecordGroupID)
+			.toList();
 	}
 
 	protected static Integer extractRecordID(final Map<String, Object> record){
@@ -584,6 +603,10 @@ public class TreePanel extends JPanel{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
+	private static String extractRecordType(final Map<String, Object> record){
+		return (String)record.get("type");
+	}
+
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
 		return (String)record.get("reference_table");
 	}
@@ -598,6 +621,10 @@ public class TreePanel extends JPanel{
 
 	private static Integer extractRecordGroupID(final Map<String, Object> record){
 		return (Integer)record.get("group_id");
+	}
+
+	private static String extractRecordDescription(final Map<String, Object> record){
+		return (String)record.get("description");
 	}
 
 
@@ -710,13 +737,26 @@ public class TreePanel extends JPanel{
 
 			@Override
 			public void onGroupLink(final GroupPanel groupPanel){
-				System.out.println("onLinkGroup");
+				final Map<String, Object> partner1 = groupPanel.getPartner1();
+				final Map<String, Object> partner2 = groupPanel.getPartner2();
+				final Map<String, Object>[] children = groupPanel.getChildren();
+				System.out.println("onLinkGroup (partner 1 " + partner1.get("id") + ", partner 2 " + partner2.get("id")
+					+ ", child " + Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + ")");
 			}
 
 			@Override
 			public void onGroupUnlink(final GroupPanel groupPanel){
 				final Map<String, Object> group = groupPanel.getGroup();
 				System.out.println("onUnlinkGroup " + group.get("id"));
+			}
+
+			@Override
+			public void onGroupAdd(final GroupPanel groupPanel){
+				final Map<String, Object> partner1 = groupPanel.getPartner1();
+				final Map<String, Object> partner2 = groupPanel.getPartner2();
+				final Map<String, Object>[] children = groupPanel.getChildren();
+				System.out.println("onAddGroup (partner 1 " + partner1.get("id") + ", partner 2 " + partner2.get("id")
+					+ ", child " + Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + ")");
 			}
 
 			@Override

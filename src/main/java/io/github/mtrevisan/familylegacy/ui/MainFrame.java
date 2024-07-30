@@ -195,7 +195,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 	@Override
 	public void onFamilyEdit(final FamilyPanel boxPanel, final GedcomNode family){
-		LOGGER.debug("onEditFamily " + family.getID());
+		LOGGER.debug("onEditFamily {}", family.getID());
 
 		//TODO
 		final FamilyRecordDialog familyDialog = new FamilyRecordDialog(family, store, this);
@@ -214,14 +214,14 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 
 	@Override
 	public void onFamilyUnlink(final FamilyPanel boxPanel, final GedcomNode family){
-		LOGGER.debug("onUnlinkFamily " + family.getID());
+		LOGGER.debug("onUnlinkFamily {}", family.getID());
 
 		//TODO
 	}
 
 	@Override
 	public void onFamilyRemove(final FamilyPanel boxPanel, final GedcomNode family){
-		LOGGER.debug("onRemoveFamily " + family.getID());
+		LOGGER.debug("onRemoveFamily {}", family.getID());
 
 		//TODO
 	}
@@ -283,7 +283,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@Override
 	public void onIndividualEdit(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		LOGGER.debug("onEditIndividual " + individual.getID());
+		LOGGER.debug("onEditIndividual {}", individual.getID());
 	}
 
 	@Override
@@ -298,7 +298,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@Override
 	public void onIndividualUnlink(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		LOGGER.debug("onUnlinkIndividual " + individual.getID());
+		LOGGER.debug("onUnlinkIndividual {}", individual.getID());
 	}
 
 	@Override
@@ -310,13 +310,13 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 	@Override
 	public void onIndividualRemove(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		LOGGER.debug("onRemoveIndividual " + individual.getID());
+		LOGGER.debug("onRemoveIndividual {}", individual.getID());
 	}
 
 	@Override
 	public void onIndividualAddPreferredImage(final IndividualPanel boxPanel, final GedcomNode individual){
 		//TODO
-		LOGGER.debug("onAddPreferredImage " + individual.getID());
+		LOGGER.debug("onAddPreferredImage {}", individual.getID());
 	}
 
 

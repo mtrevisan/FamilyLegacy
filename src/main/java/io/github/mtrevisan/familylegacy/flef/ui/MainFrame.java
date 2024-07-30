@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
@@ -33,12 +35,11 @@ import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.TreePanel;
-import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
-import io.github.mtrevisan.familylegacy.gedcom.events.EditEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
@@ -56,6 +57,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
 
+	private static final String TABLE_NAME_GROUP = "group";
+
+
+	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 	private final TreePanel treePanel;
 //	private LinkFamilyDialog linkFamilyDialog;
@@ -63,6 +68,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 
 	private MainFrame(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Map<String, Object> homeGroup){
+		this.store = store;
+
 		treePanel = TreePanel.create(4, store);
 		treePanel.loadDataFromUnion(homeGroup);
 		treePanel.setUnionListener(this);
@@ -83,31 +90,47 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 
-		EventBusService.subscribe(treePanel);
+		EventBusService.subscribe(this);
+	}
+
+
+	private static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("id"): null);
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
 	}
 
 
 	@EventHandler
 	public void error(final BusExceptionEvent exceptionEvent){
-//		final Throwable cause = exceptionEvent.getCause();
-//		JOptionPane.showMessageDialog(this, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		final Throwable cause = exceptionEvent.getCause();
+		JOptionPane.showMessageDialog(this, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	public void refresh(final EditEvent editCommand){
-//		switch(editCommand.getType()){
-//			case GROUP -> {
-//				final GroupDialog dialog = new GroupDialog(store, this);
-//				final GedcomNode container = editCommand.getContainer();
-//				dialog.setTitle(container.getID() != null? "Group for " + container.getID(): "Group");
-//				if(!dialog.loadData(container, editCommand.getOnCloseGracefully()))
-//					dialog.showNewRecord();
-//
-//				dialog.setSize(905, 396);
-//				dialog.setLocationRelativeTo(this);
-//				dialog.setVisible(true);
-//			}
+		LOGGER.debug("refresh {}", editCommand);
+
+		final Map<String, Object> container = editCommand.getContainer();
+		final String tableName = editCommand.getIdentifier();
+		final int recordID = extractRecordID(container);
+		switch(editCommand.getType()){
+			case GROUP -> {
+				final GroupDialog groupDialog = GroupDialog.create(store, this);
+				groupDialog.initComponents();
+				groupDialog.loadData();
+				final Integer groupID = extractRecordID(container);
+				if(groupID != null)
+					groupDialog.selectData(groupID);
+
+				groupDialog.setSize(541, 481);
+				groupDialog.setLocationRelativeTo(null);
+				groupDialog.setVisible(true);
+			}
+//TODO
 //			case NOTE -> {
 //				final NoteDialog dialog = NoteDialog.createNote(store, this);
 //				final GedcomNode note = editCommand.getContainer();
@@ -151,14 +174,16 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 ////				dialog.setLocationRelativeTo(this);
 ////				dialog.setVisible(true);
 //			}
-//		}
+		}
 	}
 
 
 	@Override
-	public void onGroupEdit(final GroupPanel boxPanel){
-		final Map<String, Object> group = boxPanel.getGroup();
-		LOGGER.debug("onEditGroup " + group.get("id"));
+	public void onGroupEdit(final GroupPanel groupPanel){
+		final Map<String, Object> group = groupPanel.getGroup();
+		LOGGER.debug("onEditGroup {}", group.get("id"));
+
+		EventBusService.publish(EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME_GROUP, group));
 
 		//TODO
 //		final FamilyRecordDialog familyDialog = new FamilyRecordDialog(family, store, this);
@@ -168,8 +193,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onGroupLink(final GroupPanel boxPanel){
-		LOGGER.debug("onLinkGroup");
+	public void onGroupLink(final GroupPanel groupPanel){
+		final Map<String, Object> partner1 = groupPanel.getPartner1();
+		final Map<String, Object> partner2 = groupPanel.getPartner2();
+		final Map<String, Object>[] children = groupPanel.getChildren();
+		LOGGER.debug("onLinkGroup (partner 1: {}, partner 2: {}, child: {})", partner1.get("id"), partner2.get("id"),
+			Arrays.toString(Arrays.stream(children).map(MainFrame::extractRecordID).toArray(Integer[]::new)));
 
 		//TODO
 //		linkFamilyDialog.setPanelReference(boxPanel);
@@ -177,17 +206,30 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onGroupUnlink(final GroupPanel boxPanel){
-		final Map<String, Object> group = boxPanel.getGroup();
-		LOGGER.debug("onUnlinkGroup " + group.get("id"));
+	public void onGroupUnlink(final GroupPanel groupPanel){
+		final Map<String, Object> group = groupPanel.getGroup();
+		LOGGER.debug("onUnlinkGroup {}", group.get("id"));
 
 		//TODO
 	}
 
 	@Override
-	public void onGroupRemove(final GroupPanel boxPanel){
-		final Map<String, Object> group = boxPanel.getGroup();
-		LOGGER.debug("onRemoveGroup " + group.get("id"));
+	public void onGroupAdd(final GroupPanel groupPanel){
+		final Map<String, Object> partner1 = groupPanel.getPartner1();
+		final Map<String, Object> partner2 = groupPanel.getPartner2();
+		final Map<String, Object>[] children = groupPanel.getChildren();
+		LOGGER.debug("onAddGroup (partner 1: {}, partner 2: {}, child: {})", partner1.get("id"), partner2.get("id"),
+			Arrays.toString(Arrays.stream(children).map(MainFrame::extractRecordID).toArray(Integer[]::new)));
+
+		//TODO
+//		linkFamilyDialog.setPanelReference(groupPanel);
+//		linkFamilyDialog.setVisible(true);
+	}
+
+	@Override
+	public void onGroupRemove(final GroupPanel groupPanel){
+		final Map<String, Object> group = groupPanel.getGroup();
+		LOGGER.debug("onRemoveGroup {}", group.get("id"));
 
 		//TODO
 	}
@@ -195,8 +237,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onGroupChangeParents(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
 		final Map<String, Object> currentUnion = groupPanel.getGroup();
-		LOGGER.debug("onGroupChangeParents person: " + person.get("id") + ", current: " + currentUnion.get("id")
-			+ ", new: " + newUnion.get("id"));
+		LOGGER.debug("onGroupChangeParents person: {}, current: {}, new: {}", person.get("id"), currentUnion.get("id"), newUnion.get("id"));
 
 		//TODO
 //		setPersonListener etc...
@@ -206,8 +247,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	public void onGroupChangeUnion(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
 			final Map<String, Object> otherPartner){
 		final Map<String, Object> currentGroup = groupPanel.getGroup();
-		LOGGER.debug("onPrevPartnerGroup this: " + currentPartner.get("id") + ", other: " + otherPartner.get("id")
-			+ ", current group: " + currentGroup.get("id"));
+		LOGGER.debug("onPrevPartnerGroup this: {}, other: {}, current group: {}", currentPartner.get("id"), otherPartner.get("id"),
+			currentGroup.get("id"));
 
 		//TODO
 //		GedcomNode nextFamily = null;
@@ -228,7 +269,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonEdit(final PersonPanel boxPanel){
 		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onEditPerson " + person.get("id"));
+		LOGGER.debug("onEditPerson {}", person.get("id"));
 
 		//TODO
 	}
@@ -236,7 +277,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
 		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onFocusPerson " + person.get("id") + ", type is " + type);
+		LOGGER.debug("onFocusPerson {}, type is {}", person.get("id"), type);
 
 		treePanel.loadDataFromPerson(person);
 
@@ -256,8 +297,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> partner = boxPanel.getPartner();
 		final Map<String, Object> marriage = boxPanel.getUnion();
 		final Map<String, Object>[] children = boxPanel.getChildren();
-		LOGGER.debug("onLinkPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-			+ Arrays.toString(Arrays.stream(children).map(child -> child.get("id")).toArray(Object[]::new)) + "), type is " + type);
+		LOGGER.debug("onLinkPerson (partner {}, marriage {}, child {}), type is " + type, partner.get("id"), marriage.get("id"),
+			Arrays.toString(Arrays.stream(children).map(child -> child.get("id")).toArray(Object[]::new)));
 
 		//TODO
 //		linkIndividualDialog.setPanelReference(boxPanel);
@@ -268,7 +309,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonUnlink(final PersonPanel boxPanel){
 		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onUnlinkPerson " + person.get("id"));
+		LOGGER.debug("onUnlinkPerson {}", person.get("id"));
 
 		//TODO
 	}
@@ -287,7 +328,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonRemove(final PersonPanel boxPanel){
 		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onRemovePerson " + person.get("id"));
+		LOGGER.debug("onRemovePerson {}", person.get("id"));
 
 		//TODO
 	}
@@ -295,21 +336,21 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonAddImage(final PersonPanel boxPanel){
 		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onAddPreferredImage " + person.get("id"));
+		LOGGER.debug("onAddPreferredImage {}", person.get("id"));
 
 		//TODO
 	}
 
 
-	private void linkFamilyToChild(final GedcomNode child, final GedcomNode family){
+	private void linkFamilyToChild(final Map<String, Object> child, final Map<String, Object> family){
 		//TODO
 //		LOGGER.debug("Add family {} to child {}", family.getID(), child.getID());
 //
 //		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkChildToFamily(final GedcomNode child, final GedcomNode partner, final List<GedcomNode> partners,
-			final String partnerTag){
+	private void linkChildToFamily(final Map<String, Object> child, final Map<String, Object> partner,
+			final List<Map<String, Object>> partners, final String partnerTag){
 		//TODO
 //		if(partners.isEmpty())
 //			linkIndividualToNewFamily(child, partner, partnerTag);
@@ -319,16 +360,16 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 //			LOGGER.warn("Individual {} belongs to more than one family (this cannot be)", child.getID());
 	}
 
-	private void linkIndividualToNewFamily(final GedcomNode child, final GedcomNode partner, final String partnerTag){
+	private void linkIndividualToNewFamily(final Map<String, Object> child, final Map<String, Object> partner, final String partnerTag){
 		//TODO
 //		//create new family and add parent
-//		final GedcomNode family = store.create("FAMILY")
+//		final Map<String, Object> family = store.create("FAMILY")
 //			.addChildReference(partnerTag, partner.getID());
 //		store.addFamily(family);
 //		store.linkFamilyToChild(child, family);
 	}
 
-	private void linkIndividualToExistingFamily(final GedcomNode family, final GedcomNode partner, final String partnerTag){
+	private void linkIndividualToExistingFamily(final Map<String, Object> family, final Map<String, Object> partner, final String partnerTag){
 		//TODO
 //		//link to existing family as parent
 //		family.addChild(store.create(partnerTag)

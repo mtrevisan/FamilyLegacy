@@ -150,6 +150,7 @@ public class GroupPanel extends JPanel{
 	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
 	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
 	private final JMenuItem unlinkGroupItem = new JMenuItem("Unlink Group…", 'U');
+	private final JMenuItem addGroupItem = new JMenuItem("Add Group…", 'A');
 	private final JMenuItem removeGroupItem = new JMenuItem("Remove Group…", 'R');
 
 	private Map<String, Object> group;
@@ -193,7 +194,7 @@ public class GroupPanel extends JPanel{
 		arrowPanel1.setOpaque(false);
 
 		arrowPersonPanel1 = new JPanel(new MigLayout("insets 0",
-			"[grow]",
+			"[grow,fill]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
 		arrowPersonPanel1.add(arrowPanel1, "wrap");
 		arrowPersonPanel1.add(partner1Panel, "right");
@@ -208,7 +209,7 @@ public class GroupPanel extends JPanel{
 		arrowPanel2.add(partner2ArrowsSpacer);
 		arrowPanel2.setOpaque(false);
 
-		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0,debug",
+		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0",
 			"[grow,fill]",
 			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
 		arrowPersonPanel2.add(arrowPanel2, "wrap");
@@ -235,6 +236,10 @@ public class GroupPanel extends JPanel{
 
 	public final Map<String, Object> getPartner2(){
 		return partner2;
+	}
+
+	public final Map<String, Object>[] getChildren(){
+		return partner1Panel.getChildren();
 	}
 
 	final void setChildren(final Map<String, Object>[] children){
@@ -476,6 +481,9 @@ public class GroupPanel extends JPanel{
 		unlinkGroupItem.addActionListener(e -> groupListener.onGroupUnlink(this));
 		popupMenu.add(unlinkGroupItem);
 
+		addGroupItem.addActionListener(e -> groupListener.onGroupAdd(this));
+		popupMenu.add(addGroupItem);
+
 		removeGroupItem.addActionListener(e -> groupListener.onGroupRemove(this));
 		popupMenu.add(removeGroupItem);
 
@@ -502,17 +510,17 @@ public class GroupPanel extends JPanel{
 
 
 			//for test purposes
-			final Point enterPoint1 = getPaintingPartner1EnterPoint();
-			graphics2D.setColor(Color.RED);
-			graphics2D.drawLine(enterPoint1.x - 10, enterPoint1.y - 10, enterPoint1.x + 10, enterPoint1.y + 10);
-			graphics2D.drawLine(enterPoint1.x + 10, enterPoint1.y - 10, enterPoint1.x - 10, enterPoint1.y + 10);
-			final Point enterPoint2 = getPaintingPartner2EnterPoint();
-			graphics2D.drawLine(enterPoint2.x - 10, enterPoint2.y - 10, enterPoint2.x + 10, enterPoint2.y + 10);
-			graphics2D.drawLine(enterPoint2.x + 10, enterPoint2.y - 10, enterPoint2.x - 10, enterPoint2.y + 10);
-			final Point exitPoint = getPaintingExitPoint();
-			graphics2D.drawLine(exitPoint.x - 10, exitPoint.y - 10, exitPoint.x + 10, exitPoint.y + 10);
-			graphics2D.drawLine(exitPoint.x + 10, exitPoint.y - 10, exitPoint.x - 10, exitPoint.y + 10);
-			graphics2D.setColor(Color.BLACK);
+//			final Point enterPoint1 = getPaintingPartner1EnterPoint();
+//			graphics2D.setColor(Color.RED);
+//			graphics2D.drawLine(enterPoint1.x - 10, enterPoint1.y - 10, enterPoint1.x + 10, enterPoint1.y + 10);
+//			graphics2D.drawLine(enterPoint1.x + 10, enterPoint1.y - 10, enterPoint1.x - 10, enterPoint1.y + 10);
+//			final Point enterPoint2 = getPaintingPartner2EnterPoint();
+//			graphics2D.drawLine(enterPoint2.x - 10, enterPoint2.y - 10, enterPoint2.x + 10, enterPoint2.y + 10);
+//			graphics2D.drawLine(enterPoint2.x + 10, enterPoint2.y - 10, enterPoint2.x - 10, enterPoint2.y + 10);
+//			final Point exitPoint = getPaintingExitPoint();
+//			graphics2D.drawLine(exitPoint.x - 10, exitPoint.y - 10, exitPoint.x + 10, exitPoint.y + 10);
+//			graphics2D.drawLine(exitPoint.x + 10, exitPoint.y - 10, exitPoint.x - 10, exitPoint.y + 10);
+//			graphics2D.setColor(Color.BLACK);
 
 
 			graphics2D.dispose();
@@ -579,6 +587,7 @@ public class GroupPanel extends JPanel{
 		editGroupItem.setEnabled(hasData);
 		linkGroupItem.setEnabled(!hasData && hasGroups);
 		unlinkGroupItem.setEnabled(hasData);
+		addGroupItem.setEnabled(!hasData && hasGroups);
 		removeGroupItem.setEnabled(hasData);
 	}
 
@@ -692,9 +701,9 @@ public class GroupPanel extends JPanel{
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(GroupPanel::extractRecordReferenceID)
 			.toList();
 	}
@@ -731,21 +740,16 @@ public class GroupPanel extends JPanel{
 		final Point p1 = partner1Panel.getPaintingEnterPoint();
 		final Point p2 = partner2Panel.getPaintingEnterPoint();
 		final Point origin = getLocation();
-
 		return new Point(origin.x + getWidth() + (p2.x - p1.x - partner2Panel.getWidth()) / 2,
 			origin.y + p2.y);
 	}
 
 	final Point getPaintingExitPoint(){
-		//halfway between partner1 and partner2 boxes
-		final Point partner1EnterPoint = getPaintingPartner1EnterPoint();
-		final Point partner2EnterPoint = getPaintingPartner2EnterPoint();
-		final int x = (partner1EnterPoint.x + partner2EnterPoint.x) / 2;
-		//the bottom point of the union panel (that is: bottom point of partner1 box minus the height of the horizontal connection line
-		//plus half the size of the union panel box)
+		final Point p1 = partner1Panel.getPaintingEnterPoint();
+		final Point p2 = partner2Panel.getPaintingEnterPoint();
 		final Point origin = getLocation();
-		final int y = origin.y + getHeight() - GROUP_EXITING_HEIGHT;
-		return new Point(x, y);
+		return new Point(origin.x + ((p1.x + p2.x - partner2Panel.getWidth()) / 2 + getWidth()) / 2,
+			origin.y + getHeight() - GROUP_EXITING_HEIGHT);
 	}
 
 
@@ -881,6 +885,11 @@ public class GroupPanel extends JPanel{
 			public void onGroupUnlink(final GroupPanel groupPanel){
 				final Map<String, Object> group = groupPanel.getGroup();
 				System.out.println("onUnlinkGroup " + group.get("id"));
+			}
+
+			@Override
+			public void onGroupAdd(final GroupPanel groupPanel){
+				System.out.println("onAddGroup");
 			}
 
 			@Override

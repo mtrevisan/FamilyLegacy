@@ -114,7 +114,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract DefaultTableModel getDefaultTableModel();
 
 	@Override
-	final void initComponents(){
+	public final void initComponents(){
 		initStoreComponents();
 
 		super.initComponents();
@@ -233,7 +233,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
 	}
 
-	protected final boolean selectData(final int recordID){
+	public final boolean selectData(final int recordID){
 		final String tableName = getTableName();
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
 		if(records.containsKey(recordID)){

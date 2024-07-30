@@ -774,7 +774,7 @@ public final class GroupDialog extends CommonListDialog{
 							groupDialog.initComponents();
 							groupDialog.loadData();
 
-							groupDialog.setSize(468, 469);
+							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}
@@ -790,7 +790,7 @@ public final class GroupDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(468, 469);
+			dialog.setSize(541, 481);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

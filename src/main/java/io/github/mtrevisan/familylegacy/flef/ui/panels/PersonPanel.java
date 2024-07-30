@@ -56,7 +56,6 @@ import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.LayoutManager;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RenderingHints;
@@ -71,7 +70,6 @@ import java.beans.PropertyChangeListener;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -171,7 +169,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		setPreferredSize(imageLabel, 48., IMAGE_ASPECT_RATIO, shrinkFactor);
 
 		setLayout(new MigLayout("insets 7", "[grow]0[]", "[]0[]10[]"));
-		final double shrink = PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3;
+		final int shrink = (int)Math.round(PREFERRED_IMAGE_WIDTH / shrinkFactor + 7 * 3);
 		add(personalNameLabel, "cell 0 0,top,width ::100%-" + shrink + ",hidemode 3");
 		add(imageLabel, "cell 1 0 1 3,top");
 		add(familyNameLabel, "cell 0 1,top,width ::100%-" + shrink + ",hidemode 3");
@@ -353,9 +351,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			? new Dimension(260, 90)
 			: new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
-		setMaximumSize(isPrimaryBox()
-			? new Dimension(420, size.height)
-			: new Dimension(240, size.height));
 
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
@@ -595,14 +590,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
-		final List<Map<String, Object>> matchedRecords = new ArrayList<>();
-		final TreeMap<Integer, Map<String, Object>> records = getRecords(fromTable);
-		for(final Map<String, Object> record : records.values())
-			if(TABLE_NAME_PERSON.equals(extractRecordReferenceTable(record))
-					&& Objects.equals(personID, extractRecordReferenceID(record))
-					&& eventType.equals(extractRecordType(record)))
-				matchedRecords.add(record);
-		return matchedRecords;
+		return getRecords(fromTable)
+			.values().stream()
+			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.toList();
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
