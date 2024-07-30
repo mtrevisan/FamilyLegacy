@@ -433,17 +433,17 @@ public class TreePanel extends JPanel{
 		loadData();
 	}
 
-	private void prepareData(Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
+	private void prepareData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
 		final Integer homeUnionID = extractRecordID(homeUnion);
 		final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
 		final Integer partner1ID = extractRecordID(partner1);
-		if(!personIDsInUnion.contains(partner1ID)){
+		if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
 			LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner1ID, homeUnionID);
 
 			partner1 = Collections.emptyMap();
 		}
 		final Integer partner2ID = extractRecordID(partner2);
-		if(!personIDsInUnion.contains(partner2ID)){
+		if(partner2ID != null && !personIDsInUnion.contains(partner2ID)){
 			LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner2ID, homeUnionID);
 
 			partner2 = Collections.emptyMap();

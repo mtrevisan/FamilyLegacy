@@ -780,7 +780,7 @@ public class GroupPanel extends JPanel{
 		final Map<String, Object> personName11 = new HashMap<>();
 		personName11.put("id", 1);
 		personName11.put("person_id", 1);
-		personName11.put("personal_name", "toni");
+		personName11.put("personal_name", "tòni");
 		personName11.put("family_name", "bruxatin");
 		personName11.put("name_locale", "vec-IT");
 		personName11.put("type", "birth name");

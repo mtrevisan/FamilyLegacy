@@ -434,7 +434,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
-		personName1.put("personal_name", "toni");
+		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
 		personName1.put("name_locale", "vec-IT");
 		personName1.put("type", "birth name");
