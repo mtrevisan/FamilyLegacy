@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -117,7 +118,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Historic dates");
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 
@@ -240,7 +241,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(dateID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -447,7 +449,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -458,7 +459,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarID(container));
 
-							calendarDialog.setSize(309, 377);
 							calendarDialog.setLocationRelativeTo(dialog);
 							calendarDialog.setVisible(true);
 						}
@@ -469,7 +469,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
 
-							calendarDialog.setSize(309, 377);
 							calendarDialog.setLocationRelativeTo(dialog);
 							calendarDialog.setVisible(true);
 						}
@@ -485,7 +484,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -501,7 +499,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(481, 427);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

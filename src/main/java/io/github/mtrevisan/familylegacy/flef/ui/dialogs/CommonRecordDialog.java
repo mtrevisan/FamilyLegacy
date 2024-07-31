@@ -210,7 +210,8 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final int filterReferenceID){
-		return getRecords(tableName).entrySet().stream()
+		return getRecords(tableName)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -345,7 +346,6 @@ public abstract class CommonRecordDialog extends JDialog{
 //				selectedRecordHash = selectedRecord.hashCode();
 //			});
 //
-//			changeNoteDialog.setSize(450, 209);
 //			changeNoteDialog.setVisible(true);
 
 

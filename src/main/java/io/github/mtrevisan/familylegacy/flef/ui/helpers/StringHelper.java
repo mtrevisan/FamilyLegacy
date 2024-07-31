@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -41,6 +43,30 @@ public final class StringHelper{
 			text = Pattern.quote(text);
 		}
 		return "(?i)(?:" + text + ")";
+	}
+
+
+	/**
+	 * Transforms English words from singular to plural form.
+	 * <p>
+	 * Examples:
+	 * <pre>
+	 *    English.plural("word") = "words";
+	 *
+	 *    English.plural("cat", 1) = "cat";
+	 *    English.plural("cat", 2) = "cats";
+	 * </pre>
+	 * </p>
+	 * <p>
+	 * Based on <a href="http://www.csse.monash.edu.au/~damian/papers/HTML/Plurals.html">An algorithmic approach to english pluralization</a>
+	 * by Damian Conway.
+	 * </p>
+	 *
+	 * @see <a href="https://github.com/atteo/evo-inflector/blob/master/src/main/java/org/atteo/evo/inflector/English.java">English.java</a>
+	 */
+	public static String pluralize(String text){
+		text = StringUtils.replaceChars(text, '_', ' ');
+		return text + (text.endsWith("us")? "es": "s");
 	}
 
 }

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -130,7 +131,8 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Person names"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceID > 0? " for person ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -243,7 +245,8 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return getRecords(TABLE_NAME).entrySet().stream()
+		return getRecords(TABLE_NAME)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
@@ -275,7 +278,8 @@ public final class PersonNameDialog extends CommonListDialog{
 			CommonRecordDialog::extractRecordReferenceType, "name");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(personNameID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
@@ -517,7 +521,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 480);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -533,7 +536,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -550,7 +552,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -566,7 +567,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
 						}
@@ -576,7 +576,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -586,7 +585,6 @@ public final class PersonNameDialog extends CommonListDialog{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -602,7 +600,6 @@ public final class PersonNameDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(535, 469);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

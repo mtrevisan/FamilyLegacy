@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -126,7 +127,9 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Sources" + (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -276,7 +279,8 @@ public final class SourceDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordCitations = getRecords(TABLE_NAME_CITATION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordCitations = getRecords(TABLE_NAME_CITATION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(sourceID, extractRecordSourceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
@@ -529,7 +533,6 @@ public final class SourceDialog extends CommonListDialog{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setSize(522, 618);
 							placeDialog.setLocationRelativeTo(null);
 							placeDialog.setVisible(true);
 						}
@@ -541,7 +544,6 @@ public final class SourceDialog extends CommonListDialog{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setSize(481, 427);
 							historicDateDialog.setLocationRelativeTo(null);
 							historicDateDialog.setVisible(true);
 						}
@@ -557,7 +559,6 @@ public final class SourceDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -574,7 +575,6 @@ public final class SourceDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -584,7 +584,6 @@ public final class SourceDialog extends CommonListDialog{
 							citationDialog.initComponents();
 							citationDialog.loadData();
 
-							citationDialog.setSize(420, 586);
 							citationDialog.setLocationRelativeTo(dialog);
 							citationDialog.setVisible(true);
 						}
@@ -600,7 +599,6 @@ public final class SourceDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(440, 462);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

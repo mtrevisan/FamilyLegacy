@@ -94,11 +94,11 @@ public class FamilyPanel extends JPanel{
 		(int)(PARTNER_PREV_NEXT_WIDTH * PARTNER_PREV_NEXT_ASPECT_RATIO));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/previous.png",
+	private static final ImageIcon ICON_PARTNER_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/parents_previous.png",
 		PARTNER_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARTNER_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARTNER_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/next.png", PARTNER_PREVIOUS_NEXT_SIZE);
+	private static final ImageIcon ICON_PARTNER_NEXT_ENABLED = ResourceHelper.getImage("/images/parents_next.png", PARTNER_PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARTNER_NEXT_DISABLED = new ImageIcon(GrayFilter.createDisabledImage(ICON_PARTNER_NEXT_ENABLED.getImage()));
 
 	/** Height of the marriage line from the bottom of the individual panel [px]. */
@@ -328,10 +328,11 @@ public class FamilyPanel extends JPanel{
 		if(actionCommand != Flef.ACTION_COMMAND_FAMILY_COUNT)
 			return;
 
-		editFamilyItem.setEnabled(!family.isEmpty());
-		linkFamilyItem.setEnabled(family.isEmpty() && store.hasFamilies());
-		unlinkFamilyItem.setEnabled(!family.isEmpty());
-		removeFamilyItem.setEnabled(!family.isEmpty());
+		final boolean hasData = !family.isEmpty();
+		editFamilyItem.setEnabled(hasData);
+		linkFamilyItem.setEnabled(!hasData && store.hasFamilies());
+		unlinkFamilyItem.setEnabled(hasData);
+		removeFamilyItem.setEnabled(hasData);
 	}
 
 	public static List<GedcomNode> extractChildren(final GedcomNode family, final Flef store){

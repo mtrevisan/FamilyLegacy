@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -130,7 +131,8 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Assertions"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -565,7 +567,6 @@ public final class AssertionDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -582,7 +583,6 @@ public final class AssertionDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -598,7 +598,6 @@ public final class AssertionDialog extends CommonListDialog{
 							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
 						}
@@ -614,7 +613,6 @@ public final class AssertionDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(488, 386);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

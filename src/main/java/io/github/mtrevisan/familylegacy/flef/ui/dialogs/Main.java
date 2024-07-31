@@ -91,7 +91,6 @@ public class Main{
 //							if(repositoryID != null)
 //								repositoryDialog.selectData(repositoryID);
 //
-//							repositoryDialog.setSize(400, 395);
 //							repositoryDialog.setLocationRelativeTo(null);
 //							repositoryDialog.setVisible(true);
 //						}
@@ -110,7 +109,6 @@ public class Main{
 							if(sourceID != null)
 								sourceDialog.selectData(sourceID);
 
-							sourceDialog.setSize(440, 462);
 							sourceDialog.setLocationRelativeTo(null);
 							sourceDialog.setVisible(true);
 						}
@@ -129,7 +127,6 @@ public class Main{
 							if(citationID != null)
 								citationDialog.selectData(citationID);
 
-							citationDialog.setSize(420, 586);
 							citationDialog.setLocationRelativeTo(dialog);
 							citationDialog.setVisible(true);
 						}
@@ -141,7 +138,6 @@ public class Main{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -156,7 +152,6 @@ public class Main{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setSize(481, 427);
 							historicDateDialog.setLocationRelativeTo(null);
 							historicDateDialog.setVisible(true);
 						}
@@ -171,7 +166,6 @@ public class Main{
 							if(calendarID != null)
 								calendarDialog.selectData(calendarID);
 
-							calendarDialog.setSize(309, 377);
 							calendarDialog.setLocationRelativeTo(dialog);
 							calendarDialog.setVisible(true);
 						}
@@ -186,7 +180,6 @@ public class Main{
 							if(calendarID != null)
 								calendarDialog.selectData(calendarID);
 
-							calendarDialog.setSize(309, 377);
 							calendarDialog.setLocationRelativeTo(dialog);
 							calendarDialog.setVisible(true);
 						}
@@ -202,7 +195,6 @@ public class Main{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setSize(522, 618);
 							placeDialog.setLocationRelativeTo(null);
 							placeDialog.setVisible(true);
 						}
@@ -222,7 +214,6 @@ public class Main{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -241,7 +232,6 @@ public class Main{
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -259,7 +249,6 @@ public class Main{
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 480);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -277,7 +266,6 @@ public class Main{
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -300,7 +288,6 @@ public class Main{
 							if(mediaID != null)
 								mediaDialog.selectData(mediaID);
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -327,7 +314,6 @@ public class Main{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setSize(420, 292);
 							photoDialog.setLocationRelativeTo(dialog);
 							photoDialog.setVisible(true);
 						}
@@ -370,7 +356,6 @@ public class Main{
 							if(personID != null)
 								personDialog.selectData(personID);
 
-							personDialog.setSize(355, 469);
 							personDialog.setLocationRelativeTo(null);
 							personDialog.setVisible(true);
 						}
@@ -388,7 +373,6 @@ public class Main{
 							personNameDialog.initComponents();
 							personNameDialog.loadData();
 
-							personNameDialog.setSize(535, 469);
 							personNameDialog.setLocationRelativeTo(null);
 							personNameDialog.setVisible(true);
 						}
@@ -404,7 +388,6 @@ public class Main{
 							if(groupID != null)
 								groupDialog.selectData(groupID);
 
-							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}
@@ -417,7 +400,6 @@ public class Main{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -439,7 +421,6 @@ public class Main{
 							if(culturalNormID != null)
 								culturalNormDialog.selectData(culturalNormID);
 
-							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
 						}
@@ -466,16 +447,6 @@ public class Main{
 					System.exit(0);
 				}
 			});
-//			dialog.setSize(400, 395);
-//			dialog.setSize(481, 427);
-//			dialog.setSize(522, 618);
-//			dialog.setSize(420, 497);
-//			dialog.setSize(355, 469);
-//			dialog.setSize(541, 481);
-//			dialog.setSize(309, 409);
-//			dialog.setSize(474, 652);
-			dialog.setSize(420, 567);
-//			dialog.setSize(420, 282);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

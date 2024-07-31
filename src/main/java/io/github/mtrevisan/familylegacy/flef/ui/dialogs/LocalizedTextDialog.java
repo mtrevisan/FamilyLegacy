@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
@@ -161,7 +162,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Localized texts"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -515,12 +517,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 					System.exit(0);
 				}
 			});
-			//complex
-//			dialog.setSize(420, 581);
-			//simple
-//			dialog.setSize(420, 453);
 			//with secondary
-			dialog.setSize(420, 480);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

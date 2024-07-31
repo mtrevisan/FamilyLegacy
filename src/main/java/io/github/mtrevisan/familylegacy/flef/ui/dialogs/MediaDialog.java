@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ImagePreview;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -198,7 +199,8 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle((restrictToPhoto? "Photos": "Medias")
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -465,10 +467,12 @@ public final class MediaDialog extends CommonListDialog{
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(mediaID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -498,7 +502,8 @@ public final class MediaDialog extends CommonListDialog{
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable,
-				filterReferenceID).entrySet().stream()
+				filterReferenceID)
+				.entrySet().stream()
 				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 			if(recordMediaJunction.size() > 1)
@@ -760,7 +765,6 @@ public final class MediaDialog extends CommonListDialog{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setSize(481, 427);
 							historicDateDialog.setLocationRelativeTo(null);
 							historicDateDialog.setVisible(true);
 						}
@@ -776,7 +780,6 @@ public final class MediaDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -812,7 +815,6 @@ public final class MediaDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -822,7 +824,6 @@ public final class MediaDialog extends CommonListDialog{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -838,7 +839,6 @@ public final class MediaDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 497);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

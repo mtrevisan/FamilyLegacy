@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import net.miginfocom.swing.MigLayout;
@@ -103,6 +104,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private int previousIndex = -1;
 	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
+	protected volatile boolean selectRecordOnly;
 	protected volatile boolean showRecordOnly;
 
 
@@ -190,31 +192,33 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		recordTable.setPreferredScrollableViewportSize(viewSize);
 
 		newRecordButton.addActionListener(evt -> newAction());
+		newRecordButton.setVisible(!selectRecordOnly);
 		unselectRecordButton.setEnabled(false);
 		unselectRecordButton.addActionListener(evt -> unselectAction());
 		deleteRecordButton.setEnabled(false);
 		deleteRecordButton.addActionListener(evt -> deleteAction());
+		deleteRecordButton.setVisible(!selectRecordOnly);
 	}
 
 	@Override
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
-		if(!showRecordOnly){
+		if(showRecordOnly)
 			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
-
-			GUIHelper.setEnabled(recordTabbedPane, false);
-		}
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2,hidemode 3");
 		add(filterField, "grow,wrap related,hidemode 3");
 		add(tableScrollPane, "grow,wrap related,hidemode 3");
 		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
-		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3");
+		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right"
+			+ (selectRecordOnly? ",wrap paragraph": StringUtils.EMPTY) + ",hidemode 3");
 		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph,hidemode 3");
 		add(recordTabbedPane, "grow");
 
+		if(selectRecordOnly)
+			GUIHelper.setEnabled(recordTabbedPane, false);
 		if(showRecordOnly){
 			filterLabel.setVisible(false);
 			filterField.setVisible(false);
@@ -223,6 +227,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setVisible(false);
 			deleteRecordButton.setVisible(false);
 		}
+
+		pack();
 	}
 
 	protected void addMandatoryField(final JTextComponent... fields){
@@ -254,6 +260,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract void filterTableBy(final JDialog panel);
 
 
+	public void loadData(final Map<String, Object> record){
+		final Integer recordID = extractRecordID(record);
+		final String capitalizedTableName = StringUtils.capitalize(getTableName());
+		setTitle((recordID != null? capitalizedTableName + " ID " + recordID: StringHelper.pluralize(capitalizedTableName)));
+
+		selectedRecord = record;
+
+		selectActionInner();
+	}
+
 	@Override
 	protected final void selectAction(){
 		if(!validateData()){
@@ -274,16 +290,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			if(selectedRecord == null)
 				return;
 
-			selectedRecordHash = selectedRecord.hashCode();
-
-			GUIHelper.setEnabled(recordTabbedPane, true);
-
-			if(newRecordDefault != null)
-				newRecordDefault.accept(selectedRecord);
-
-			ignoreEvents = true;
-			fillData();
-			ignoreEvents = false;
+			selectActionInner();
 
 			//enable unselect button only if the record is not new
 			final int viewRowIndex = recordTable.getSelectedRow();
@@ -293,10 +300,24 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			final String recordIdentifier = (String)model.getValueAt(modelRowIndex, 1);
 			unselectRecordButton.setEnabled(recordIdentifier != null && !recordIdentifier.isEmpty());
 
-			deleteRecordButton.setEnabled(true);
+			deleteRecordButton.setEnabled(!selectRecordOnly);
 		}
 
 		GUIHelper.executeOnEventDispatchThread(this::requestFocusAfterSelect);
+	}
+
+	private void selectActionInner(){
+		selectedRecordHash = selectedRecord.hashCode();
+
+		if(!selectRecordOnly)
+			GUIHelper.setEnabled(recordTabbedPane, true);
+
+		if(newRecordDefault != null)
+			newRecordDefault.accept(selectedRecord);
+
+		ignoreEvents = true;
+		fillData();
+		ignoreEvents = false;
 	}
 
 	@Override
@@ -402,7 +423,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		ignoreEvents = false;
 
 		GUIHelper.setEnabled(recordTabbedPane, false);
-		newRecordButton.setEnabled(true);
+		newRecordButton.setEnabled(!selectRecordOnly);
 		unselectRecordButton.setEnabled(false);
 		deleteRecordButton.setEnabled(false);
 		setMandatoryFieldsBackgroundColor(Color.WHITE);
@@ -430,7 +451,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	@Override
 	public void onValidationChange(final boolean valid){
-		newRecordButton.setEnabled(selectedRecord == null || valid);
+		newRecordButton.setEnabled(!selectRecordOnly && (selectedRecord == null || valid));
 		unselectRecordButton.setEnabled(selectedRecord != null);
 	}
 

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -106,7 +107,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Calendars");
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 
@@ -193,10 +194,12 @@ public final class CalendarDialog extends CommonListDialog{
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(calendarID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(calendarID, extractRecordCalendarID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
@@ -356,7 +359,6 @@ public final class CalendarDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -372,7 +374,6 @@ public final class CalendarDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -382,7 +383,6 @@ public final class CalendarDialog extends CommonListDialog{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -398,7 +398,6 @@ public final class CalendarDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(309, 377);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

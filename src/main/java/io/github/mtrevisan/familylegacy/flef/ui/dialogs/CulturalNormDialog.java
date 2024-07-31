@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
@@ -165,7 +166,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Cultural norms");
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 
@@ -324,10 +325,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
 			CulturalNormDialog::extractRecordMediaID, extractRecordID(selectedRecord));
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordPlaceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -609,7 +612,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -621,7 +623,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setSize(522, 618);
 							placeDialog.setLocationRelativeTo(null);
 							placeDialog.setVisible(true);
 						}
@@ -633,7 +634,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setSize(481, 427);
 							historicDateDialog.setLocationRelativeTo(null);
 							historicDateDialog.setVisible(true);
 						}
@@ -649,7 +649,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -666,7 +665,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -676,7 +674,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -692,7 +689,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					System.exit(0);
 				}
 			});
-			dialog.setSize(474, 652);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -128,7 +129,8 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Events"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -488,7 +490,6 @@ public final class EventDialog extends CommonListDialog{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setSize(522, 618);
 							placeDialog.setLocationRelativeTo(null);
 							placeDialog.setVisible(true);
 						}
@@ -500,7 +501,6 @@ public final class EventDialog extends CommonListDialog{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setSize(481, 427);
 							historicDateDialog.setLocationRelativeTo(null);
 							historicDateDialog.setVisible(true);
 						}
@@ -517,7 +517,6 @@ public final class EventDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -535,7 +534,6 @@ public final class EventDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -551,7 +549,6 @@ public final class EventDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(309, 409);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

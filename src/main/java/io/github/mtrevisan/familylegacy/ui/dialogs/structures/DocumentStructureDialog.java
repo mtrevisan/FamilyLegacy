@@ -105,7 +105,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 	private static final double OPEN_DOCUMENT_HEIGHT = 24.;
 	private static final double OPEN_DOCUMENT_ASPECT_RATIO = 176. / 134.;
 	private static final Dimension OPEN_DOCUMENT_SIZE = new Dimension((int)(OPEN_DOCUMENT_HEIGHT / OPEN_DOCUMENT_ASPECT_RATIO), (int)OPEN_DOCUMENT_HEIGHT);
-	private static final ImageIcon ICON_OPEN_DOCUMENT = ResourceHelper.getImage("/images/openDocument.png", OPEN_DOCUMENT_SIZE);
+	private static final ImageIcon ICON_OPEN_DOCUMENT = ResourceHelper.getImage("/images/open_link.png", OPEN_DOCUMENT_SIZE);
 
 	private static final int TABLE_INDEX_DOCUMENT_FILE = 0;
 

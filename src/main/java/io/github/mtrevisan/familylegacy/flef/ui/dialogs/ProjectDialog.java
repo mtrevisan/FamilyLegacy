@@ -98,7 +98,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	protected void initRecordComponents(){
-		setTitle("Project");
+		setTitle(StringUtils.capitalize(getTableName()));
 
 		copyrightLabel = new JLabel("Copyright:");
 		copyrightField = new JTextField();
@@ -270,7 +270,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 282);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -141,7 +142,8 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle(filterPlaceID != null? "Place ID " + filterPlaceID: "Places");
+		final String capitalizedTableName = StringUtils.capitalize(getTableName());
+		setTitle(filterPlaceID != null? capitalizedTableName + " ID " + filterPlaceID: StringHelper.pluralize(capitalizedTableName));
 
 		super.initStoreComponents();
 
@@ -321,10 +323,12 @@ public final class PlaceDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 			CommonRecordDialog::extractRecordReferenceType, "name");
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordPlaceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME_GROUP);
@@ -575,7 +579,6 @@ public final class PlaceDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -591,7 +594,6 @@ public final class PlaceDialog extends CommonListDialog{
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -609,7 +611,6 @@ public final class PlaceDialog extends CommonListDialog{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setSize(420, 510);
 							photoDialog.setLocationRelativeTo(dialog);
 							photoDialog.setVisible(true);
 						}
@@ -650,7 +651,6 @@ public final class PlaceDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -667,7 +667,6 @@ public final class PlaceDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -677,7 +676,6 @@ public final class PlaceDialog extends CommonListDialog{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -687,7 +685,6 @@ public final class PlaceDialog extends CommonListDialog{
 							groupDialog.initComponents();
 							groupDialog.loadData();
 
-							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}
@@ -703,7 +700,6 @@ public final class PlaceDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(522, 618);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

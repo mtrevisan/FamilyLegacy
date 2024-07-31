@@ -47,6 +47,7 @@ import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -115,7 +116,7 @@ public class TreePanel extends JPanel{
 	}
 
 
-	void initComponents(){
+	public void initComponents(){
 		if(generations <= 3)
 			initComponents3Generations();
 		else
@@ -412,52 +413,59 @@ public class TreePanel extends JPanel{
 	public void loadDataFromPerson(final Map<String, Object> partner1){
 		//prefer left position (`partner1`) if male or unknown, right if female (`partner2`)
 		Map<String, Object> p1 = partner1;
-		Map<String, Object> p2 = null;
+		Map<String, Object> p2 = Collections.emptyMap();
 		final int partner1ID = extractRecordID(partner1);
 		final List<Map<String, Object>> sexEvents = extractReferences(TABLE_NAME_EVENT, partner1ID, "sex");
 		if(sexEvents.size() == 1){
 			final String sex = extractRecordDescription(sexEvents.getFirst());
 			if("female".equalsIgnoreCase(sex)){
-				p1 = null;
+				p1 = Collections.emptyMap();
 				p2 = partner1;
 			}
 		}
+
 		loadData(Collections.emptyMap(), p1, p2);
 	}
 
 	public final void loadData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
-		initComponents();
-
 		prepareData(homeUnion, partner1, partner2);
 
 		loadData();
 	}
 
-	private void prepareData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
-		final Integer homeUnionID = extractRecordID(homeUnion);
-		final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
-		final Integer partner1ID = extractRecordID(partner1);
-		if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
-			LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner1ID, homeUnionID);
-
-			partner1 = Collections.emptyMap();
-		}
-		final Integer partner2ID = extractRecordID(partner2);
-		if(partner2ID != null && !personIDsInUnion.contains(partner2ID)){
-			LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner2ID, homeUnionID);
-
-			partner2 = Collections.emptyMap();
+	private void prepareData(Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
+		if(homeUnion.isEmpty()){
+			final List<Map<String, Object>> unions = extractUnions(partner1, store);
+			//FIXME choose the last shown family, if any
+			homeUnion = (!unions.isEmpty()? unions.getFirst(): Collections.emptyMap());
 		}
 
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+		if(!homeUnion.isEmpty()){
+			final Integer homeUnionID = extractRecordID(homeUnion);
+			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
+			final Integer partner1ID = extractRecordID(partner1);
+			if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
+				LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner1ID, homeUnionID);
 
-		if((partner1.isEmpty() || partner2.isEmpty()) && !homeUnion.isEmpty()){
-			//extract the first two persons from the union:
-			final int size = personIDsInUnion.size();
-			if(partner1.isEmpty())
-				partner1 = persons.getOrDefault((size > 0? personIDsInUnion.get(0): null), Collections.emptyMap());
-			if(partner2.isEmpty())
-				partner2 = persons.getOrDefault((size > 1? personIDsInUnion.get(1): null), Collections.emptyMap());
+				partner1 = Collections.emptyMap();
+			}
+			final Integer partner2ID = extractRecordID(partner2);
+			if(partner2ID != null && !personIDsInUnion.contains(partner2ID)){
+				LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner2ID, homeUnionID);
+
+				partner2 = Collections.emptyMap();
+			}
+
+			if(partner1.isEmpty() || partner2.isEmpty()){
+				final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+
+				//extract the first two persons from the union:
+				final int size = personIDsInUnion.size();
+				if(partner1.isEmpty())
+					partner1 = (size > 0? persons.getOrDefault(personIDsInUnion.get(0), Collections.emptyMap()): Collections.emptyMap());
+				if(partner2.isEmpty())
+					partner2 = (size > 1? persons.getOrDefault(personIDsInUnion.get(1), Collections.emptyMap()): Collections.emptyMap());
+			}
 		}
 
 		this.homeUnion = homeUnion;
@@ -489,22 +497,23 @@ public class TreePanel extends JPanel{
 		partner2Parents = extractParents(partner2, store);
 		if(generations > 3){
 			final List<Integer> personIDsInGroup1 = getPartnerIDs(extractRecordID(partner1Parents));
-			final int personInGroupCount = personIDsInGroup1.size();
+			final int personInGroup1Count = personIDsInGroup1.size();
 			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-			partner1Partner1 = (personInGroupCount > 0
+			partner1Partner1 = (personInGroup1Count > 0
 				? persons.get(personIDsInGroup1.get(0))
 				: Collections.emptyMap());
-			partner1Partner2 = (personInGroupCount > 1
+			partner1Partner2 = (personInGroup1Count > 1
 				? persons.get(personIDsInGroup1.get(1))
 				: Collections.emptyMap());
 			partner1Partner1Parents = extractParents(partner1Partner1, store);
 			partner1Partner2Parents = extractParents(partner1Partner2, store);
 
 			final List<Integer> personIDsInGroup2 = getPartnerIDs(extractRecordID(partner2Parents));
-			partner2Partner1 = (personInGroupCount > 0
+			final int personInGroup2Count = personIDsInGroup2.size();
+			partner2Partner1 = (personInGroup2Count > 0
 				? persons.get(personIDsInGroup2.get(0))
 				: Collections.emptyMap());
-			partner2Partner2 = (personInGroupCount > 1
+			partner2Partner2 = (personInGroup2Count > 1
 				? persons.get(personIDsInGroup2.get(1))
 				: Collections.emptyMap());
 			partner2Partner1Parents = extractParents(partner2Partner1, store);
@@ -555,20 +564,20 @@ public class TreePanel extends JPanel{
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
 			//prefer biological family
-			final List<Integer> parentsIDs = getParentsID(childID, "child", store);
+			final List<Integer> parentsIDs = getParentsIDs(childID, "child", store);
 			if(parentsIDs.size() > 1)
 				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
 			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
 			if(parentsID != null){
-				final TreeMap<Integer, Map<String, Object>> groups = store.computeIfAbsent(TABLE_NAME_GROUP, k -> new TreeMap<>());
+				final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
 				parentsGroup = groups.get(parentsID);
 			}
 			else{
 				//prefer first adopting family
-				final List<Integer> unionIDs = getParentsID(childID, "adoptee", store);
+				final List<Integer> unionIDs = getParentsIDs(childID, "adoptee", store);
 				if(!unionIDs.isEmpty()){
-					final TreeMap<Integer, Map<String, Object>> groups = store.computeIfAbsent(TABLE_NAME_GROUP, k -> new TreeMap<>());
+					final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
 					parentsGroup = groups.get(unionIDs.getFirst());
 				}
 			}
@@ -576,9 +585,32 @@ public class TreePanel extends JPanel{
 		return parentsGroup;
 	}
 
-	private static List<Integer> getParentsID(final Integer personID, final String personRole,
+	static List<Map<String, Object>> extractUnions(final Map<String, Object> person,
 			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return store.computeIfAbsent(TABLE_NAME_GROUP_JUNCTION, k -> new TreeMap<>())
+		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
+		if(!person.isEmpty()){
+			final Integer personID = extractRecordID(person);
+			unionGroups.addAll(getGroupIDs(personID, store));
+		}
+		return unionGroups;
+	}
+
+	private static List<Map<String, Object>> getGroupIDs(final Integer personID,
+			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION, store)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(TreePanel::extractRecordGroupID)
+			.map(groups::get)
+			.toList();
+	}
+
+	private static List<Integer> getParentsIDs(final Integer personID, final String personRole,
+			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION, store)
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
@@ -591,13 +623,19 @@ public class TreePanel extends JPanel{
 		return (record != null? (Integer)record.get("id"): null);
 	}
 
+	protected static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName,
+		final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+	}
+
 	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 		final Integer filterReferenceID){
-		return getRecords(tableName).entrySet().stream()
+		return getRecords(tableName)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -736,21 +774,6 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onGroupLink(final GroupPanel groupPanel){
-				final Map<String, Object> partner1 = groupPanel.getPartner1();
-				final Map<String, Object> partner2 = groupPanel.getPartner2();
-				final Map<String, Object>[] children = groupPanel.getChildren();
-				System.out.println("onLinkGroup (partner 1 " + partner1.get("id") + ", partner 2 " + partner2.get("id")
-					+ ", child " + Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + ")");
-			}
-
-			@Override
-			public void onGroupUnlink(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
-				System.out.println("onUnlinkGroup " + group.get("id"));
-			}
-
-			@Override
 			public void onGroupAdd(final GroupPanel groupPanel){
 				final Map<String, Object> partner1 = groupPanel.getPartner1();
 				final Map<String, Object> partner2 = groupPanel.getPartner2();
@@ -766,14 +789,14 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onGroupChangeParents(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
+			public void onPersonChangeParents(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
 				final Map<String, Object> currentUnion = groupPanel.getGroup();
 				System.out.println("onGroupChangeParents person: " + person.get("id") + ", current: " + currentUnion.get("id")
 					+ ", new: " + newUnion.get("id"));
 			}
 
 			@Override
-			public void onGroupChangeUnion(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
+			public void onPersonChangeUnion(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
 				final Map<String, Object> currentUnion = groupPanel.getGroup();
 				System.out.println("onGroupChangeUnion person: " + person.get("id") + ", current: " + currentUnion.get("id")
 					+ ", new: " + newUnion.get("id"));
@@ -831,6 +854,7 @@ public class TreePanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final TreePanel panel = create(4, store);
+			panel.initComponents();
 			panel.loadDataFromUnion(group1);
 			panel.setUnionListener(unionListener);
 			panel.setPersonListener(personListener);

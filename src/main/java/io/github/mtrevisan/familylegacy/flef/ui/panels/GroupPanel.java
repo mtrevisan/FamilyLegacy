@@ -148,8 +148,6 @@ public class GroupPanel extends JPanel{
 	private final JLabel partner2NextUnionLabel = new JLabel();
 	private final JPanel unionPanel = new JPanel();
 	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
-	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
-	private final JMenuItem unlinkGroupItem = new JMenuItem("Unlink Group…", 'U');
 	private final JMenuItem addGroupItem = new JMenuItem("Add Group…", 'A');
 	private final JMenuItem removeGroupItem = new JMenuItem("Remove Group…", 'R');
 
@@ -172,10 +170,10 @@ public class GroupPanel extends JPanel{
 
 
 	void initComponents(){
-		partner1Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER);
+		partner1Panel = PersonPanel.create(boxType, SelectedNodeType.PARTNER, store);
 		partner1Panel.initComponents();
 		EventBusService.subscribe(partner1Panel);
-		partner2Panel = PersonPanel.create(store, boxType, SelectedNodeType.PARTNER);
+		partner2Panel = PersonPanel.create(boxType, SelectedNodeType.PARTNER, store);
 		partner2Panel.initComponents();
 		EventBusService.subscribe(partner2Panel);
 
@@ -281,7 +279,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner1Parents = groups.get(newGroupID);
-						groupListener.onGroupChangeParents(GroupPanel.this, partner1, newPartner1Parents);
+						groupListener.onPersonChangeParents(GroupPanel.this, partner1, newPartner1Parents);
 					}
 				}
 			});
@@ -306,7 +304,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner1Parents = groups.get(newGroupID);
-						groupListener.onGroupChangeParents(GroupPanel.this, partner1, newPartner1Parents);
+						groupListener.onPersonChangeParents(GroupPanel.this, partner1, newPartner1Parents);
 					}
 				}
 			});
@@ -330,7 +328,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner1Union = groups.get(newGroupID);
-						groupListener.onGroupChangeUnion(GroupPanel.this, partner1, newPartner1Union);
+						groupListener.onPersonChangeUnion(GroupPanel.this, partner1, newPartner1Union);
 					}
 				}
 			});
@@ -354,7 +352,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner1Union = groups.get(newGroupIndex);
-						groupListener.onGroupChangeUnion(GroupPanel.this, partner1, newPartner1Union);
+						groupListener.onPersonChangeUnion(GroupPanel.this, partner1, newPartner1Union);
 					}
 				}
 			});
@@ -379,7 +377,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner2Parents = groups.get(newGroupID);
-						groupListener.onGroupChangeParents(GroupPanel.this, partner2, newPartner2Parents);
+						groupListener.onPersonChangeParents(GroupPanel.this, partner2, newPartner2Parents);
 					}
 				}
 			});
@@ -404,7 +402,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner2Parents = groups.get(newGroupID);
-						groupListener.onGroupChangeParents(GroupPanel.this, partner2, newPartner2Parents);
+						groupListener.onPersonChangeParents(GroupPanel.this, partner2, newPartner2Parents);
 					}
 				}
 			});
@@ -428,7 +426,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner2Union = groups.get(newGroupID);
-						groupListener.onGroupChangeUnion(GroupPanel.this, partner2, newPartner2Union);
+						groupListener.onPersonChangeUnion(GroupPanel.this, partner2, newPartner2Union);
 					}
 				}
 			});
@@ -452,7 +450,7 @@ public class GroupPanel extends JPanel{
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 						final Map<String, Object> newPartner2Union = groups.get(newGroupID);
-						groupListener.onGroupChangeUnion(GroupPanel.this, partner2, newPartner2Union);
+						groupListener.onPersonChangeUnion(GroupPanel.this, partner2, newPartner2Union);
 					}
 				}
 			});
@@ -474,12 +472,6 @@ public class GroupPanel extends JPanel{
 
 		editGroupItem.addActionListener(e -> groupListener.onGroupEdit(this));
 		popupMenu.add(editGroupItem);
-
-		linkGroupItem.addActionListener(e -> groupListener.onGroupLink(this));
-		popupMenu.add(linkGroupItem);
-
-		unlinkGroupItem.addActionListener(e -> groupListener.onGroupUnlink(this));
-		popupMenu.add(unlinkGroupItem);
 
 		addGroupItem.addActionListener(e -> groupListener.onGroupAdd(this));
 		popupMenu.add(addGroupItem);
@@ -528,7 +520,7 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	void loadData(final Map<String, Object> group){
+	public void loadData(final Map<String, Object> group){
 		loadData(group, Collections.emptyMap(), Collections.emptyMap());
 	}
 
@@ -546,9 +538,9 @@ public class GroupPanel extends JPanel{
 			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
 			final int size = personIDs.size();
 			if(partner1.isEmpty())
-				partner1 = persons.getOrDefault((size > 0? personIDs.get(0): null), Collections.emptyMap());
+				partner1 = (size > 0? persons.getOrDefault(personIDs.get(0), Collections.emptyMap()): Collections.emptyMap());
 			if(partner2.isEmpty())
-				partner2 = persons.getOrDefault((size > 1? personIDs.get(1): null), Collections.emptyMap());
+				partner2 = (size > 1? persons.getOrDefault(personIDs.get(1), Collections.emptyMap()): Collections.emptyMap());
 		}
 
 		this.group = group;
@@ -572,21 +564,19 @@ public class GroupPanel extends JPanel{
 		unionPanel.setBorder(!group.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
 
-		refresh(ActionCommand.ACTION_COMMAND_GROUP_COUNT);
+		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
 	@EventHandler
 	@SuppressWarnings("NumberEquality")
 	public final void refresh(final Integer actionCommand){
-		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP_COUNT)
+		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP)
 			return;
 
 		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
 		final boolean hasData = !group.isEmpty();
 		editGroupItem.setEnabled(hasData);
-		linkGroupItem.setEnabled(!hasData && hasGroups);
-		unlinkGroupItem.setEnabled(hasData);
 		addGroupItem.setEnabled(!hasData && hasGroups);
 		removeGroupItem.setEnabled(hasData);
 	}
@@ -676,7 +666,8 @@ public class GroupPanel extends JPanel{
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final Integer filterReferenceID){
-		return getRecords(tableName).entrySet().stream()
+		return getRecords(tableName)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -877,17 +868,6 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onGroupLink(final GroupPanel groupPanel){
-				System.out.println("onLinkGroup");
-			}
-
-			@Override
-			public void onGroupUnlink(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
-				System.out.println("onUnlinkGroup " + group.get("id"));
-			}
-
-			@Override
 			public void onGroupAdd(final GroupPanel groupPanel){
 				System.out.println("onAddGroup");
 			}
@@ -899,7 +879,7 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onGroupChangeParents(final GroupPanel groupPanel, final Map<String, Object> person,
+			public void onPersonChangeParents(final GroupPanel groupPanel, final Map<String, Object> person,
 					final Map<String, Object> newUnion){
 				final Map<String, Object> currentUnion = groupPanel.getGroup();
 				System.out.println("onGroupChangeParents person: " + person.get("id") + ", current: " + currentUnion.get("id")
@@ -907,7 +887,7 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onGroupChangeUnion(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
+			public void onPersonChangeUnion(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
 				final Map<String, Object> currentUnion = groupPanel.getGroup();
 				System.out.println("onGroupChangeUnion person: " + person.get("id") + ", current: " + currentUnion.get("id")
 					+ ", new: " + newUnion.get("id"));

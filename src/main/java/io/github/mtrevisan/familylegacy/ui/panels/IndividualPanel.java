@@ -126,7 +126,7 @@ public class IndividualPanel extends JPanel implements PropertyChangeListener{
 	private static final ImageIcon ADD_PHOTO_WOMAN = ResourceHelper.getOriginalImage("/images/addPhoto.woman.jpg");
 	private static final ImageIcon ADD_PHOTO_BOY = ResourceHelper.getOriginalImage("/images/addPhoto.boy.jpg");
 	private static final ImageIcon ADD_PHOTO_GIRL = ResourceHelper.getOriginalImage("/images/addPhoto.girl.jpg");
-	private static final ImageIcon ADD_PHOTO_UNKNOWN = ResourceHelper.getOriginalImage("/images/addPhoto.unknown.jpg");
+	private static final ImageIcon ADD_PHOTO_UNKNOWN = ResourceHelper.getOriginalImage("/images/add_photo.jpg");
 
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);

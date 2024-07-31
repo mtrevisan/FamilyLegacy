@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
@@ -130,7 +131,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Citations" + (filterSourceID != null? " for source ID " + filterSourceID: StringUtils.EMPTY));
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterSourceID != null? " for source ID " + filterSourceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
 
@@ -274,7 +277,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(citationID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
@@ -303,7 +307,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
 
-		GUIHelper.setEnabled(recordTabbedPane, false);
 		deleteRecordButton.setEnabled(false);
 
 		GUIHelper.setDefaultBorder(assertionButton);
@@ -557,7 +560,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setSize(420, 453);
 							localizedTextDialog.setLocationRelativeTo(dialog);
 							localizedTextDialog.setVisible(true);
 						}
@@ -573,7 +575,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -590,7 +591,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -600,7 +600,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -616,7 +615,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 586);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

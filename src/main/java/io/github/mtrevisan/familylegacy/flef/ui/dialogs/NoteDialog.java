@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
@@ -120,7 +121,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Notes"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -380,7 +382,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
 						}
@@ -397,7 +398,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -413,7 +413,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					System.exit(0);
 				}
 			});
-			dialog.setSize(420, 474);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

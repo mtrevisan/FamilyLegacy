@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -73,7 +74,7 @@ public final class GroupDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -2953401801022572404L;
 
-	private static final int TABLE_PREFERRED_WIDTH_RECORD_CATEGORY = 65;
+	private static final int TABLE_PREFERRED_WIDTH_RECORD_CATEGORY = 70;
 
 	private static final int TABLE_INDEX_RECORD_CATEGORY = 1;
 	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
@@ -115,6 +116,18 @@ public final class GroupDialog extends CommonListDialog{
 		return new GroupDialog(store, parent);
 	}
 
+	public static GroupDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final GroupDialog dialog = new GroupDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		return dialog;
+	}
+
+	public static GroupDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final GroupDialog dialog = new GroupDialog(store, parent);
+		dialog.showRecordOnly = true;
+		return dialog;
+	}
+
 
 	private GroupDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
@@ -123,22 +136,22 @@ public final class GroupDialog extends CommonListDialog{
 
 	public GroupDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
-			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
+			final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+			final int groupJunctionID = extractNextRecordID(groupJunctions);
 			if(selectedRecord != null){
 				final Integer groupID = extractRecordID(selectedRecord);
 				final Map<String, Object> mediaJunction = new HashMap<>();
-				mediaJunction.put("id", mediaJunctionID);
+				mediaJunction.put("id", groupJunctionID);
 				mediaJunction.put("group_id", groupID);
 				mediaJunction.put("reference_table", filterReferenceTable);
 				mediaJunction.put("reference_id", filterReferenceID);
 				mediaJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
 				mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
 				mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
-				mediaJunctions.put(mediaJunctionID, mediaJunction);
+				groupJunctions.put(groupJunctionID, mediaJunction);
 			}
 			else
-				mediaJunctions.remove(mediaJunctionID);
+				groupJunctions.remove(groupJunctionID);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -167,7 +180,8 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle("Groups"
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
@@ -265,18 +279,21 @@ public final class GroupDialog extends CommonListDialog{
 		recordPanelOther.add(groupButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelLink.add(linkRoleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkRoleField, "grow,wrap paragraph");
-		recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
-		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkCredibilityComboBox);
-		recordPanelLink.setEnabled(filterReferenceTable != null);
-
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("link", recordPanelLink);
+
+		if(!showRecordOnly){
+			final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+			recordPanelLink.add(linkRoleLabel, "align label,sizegroup lbl,split 2");
+			recordPanelLink.add(linkRoleField, "grow,wrap paragraph");
+			recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
+			recordPanelLink.add(linkCertaintyComboBox, "wrap related");
+			recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
+			recordPanelLink.add(linkCredibilityComboBox);
+			recordPanelLink.setEnabled(filterReferenceTable != null);
+
+			recordTabbedPane.add("link", recordPanelLink);
+		}
 	}
 
 	@Override
@@ -322,10 +339,12 @@ public final class GroupDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(groupID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT).entrySet().stream()
+		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME);
@@ -335,9 +354,10 @@ public final class GroupDialog extends CommonListDialog{
 		final String credibility = extractRecordCredibility(selectedRecord);
 
 		typeComboBox.setSelectedItem(type);
-		GUIHelper.addBorder(photoButton, photoID != null, DATA_BUTTON_BORDER_COLOR);
-		photoCropButton.setEnabled(photoID != null);
-		GUIHelper.addBorder(photoCropButton, photoID != null && photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photoButton, !selectRecordOnly && photoID != null, DATA_BUTTON_BORDER_COLOR);
+		photoCropButton.setEnabled(!selectRecordOnly && photoID != null);
+		GUIHelper.addBorder(photoCropButton, !selectRecordOnly && (photoID != null && photoCrop != null && !photoCrop.isEmpty()),
+			DATA_BUTTON_BORDER_COLOR);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -433,7 +453,9 @@ public final class GroupDialog extends CommonListDialog{
 					final String name = extractRecordText(localizedText);
 					subIdentifier.add(name != null? name: "?");
 				}
-				identifier.add(subIdentifier.toString());
+
+				if(subIdentifier.length() > 0)
+					identifier.add(subIdentifier.toString());
 			}
 		}
 		return identifierCategory + ":" + identifier;
@@ -632,10 +654,14 @@ public final class GroupDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final GroupDialog dialog = create(store, parent);
+//			final GroupDialog dialog = createSelectOnly(store, parent);
 			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(group1)))
 				dialog.showNewRecord();
+//			final GroupDialog dialog = createRecordOnly(store, parent);
+//			dialog.initComponents();
+//			dialog.loadData(group1);
 
 			final Object listener = new Object(){
 				@EventHandler
@@ -670,7 +696,6 @@ public final class GroupDialog extends CommonListDialog{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setSize(420, 510);
 							photoDialog.setLocationRelativeTo(dialog);
 							photoDialog.setVisible(true);
 						}
@@ -711,7 +736,6 @@ public final class GroupDialog extends CommonListDialog{
 							noteDialog.initComponents();
 							noteDialog.loadData();
 
-							noteDialog.setSize(420, 474);
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
 						}
@@ -727,7 +751,6 @@ public final class GroupDialog extends CommonListDialog{
 							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setSize(474, 652);
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
 						}
@@ -744,7 +767,6 @@ public final class GroupDialog extends CommonListDialog{
 							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
-							mediaDialog.setSize(420, 497);
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
@@ -754,7 +776,6 @@ public final class GroupDialog extends CommonListDialog{
 							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
-							assertionDialog.setSize(488, 386);
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
 						}
@@ -764,7 +785,6 @@ public final class GroupDialog extends CommonListDialog{
 							eventDialog.initComponents();
 							eventDialog.loadData();
 
-							eventDialog.setSize(309, 409);
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
 						}
@@ -774,7 +794,6 @@ public final class GroupDialog extends CommonListDialog{
 							groupDialog.initComponents();
 							groupDialog.loadData();
 
-							groupDialog.setSize(541, 481);
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
 						}
@@ -790,7 +809,6 @@ public final class GroupDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setSize(541, 481);
 			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override

@@ -135,10 +135,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final JMenuItem addPersonItem = new JMenuItem("Add Person…", 'A');
 	private final JMenuItem removePersonItem = new JMenuItem("Remove Person", 'R');
 
+	private final BoxPanelType boxType;
 	private final SelectedNodeType type;
 	private Map<String, Object> person;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	private final BoxPanelType boxType;
 
 	private Map<String, Object> partner = Collections.emptyMap();
 	private Map<String, Object> union = Collections.emptyMap();
@@ -146,18 +146,18 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private Map<String, Object>[] children = (Map<String, Object>[])new Map[0];
 
 
-	static PersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType,
-			final SelectedNodeType type){
-		return new PersonPanel(store, boxType, type);
+	static PersonPanel create(final BoxPanelType boxType, final SelectedNodeType type,
+			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new PersonPanel(boxType, type, store);
 	}
 
 
-	private PersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final BoxPanelType boxType,
-			final SelectedNodeType type){
+	private PersonPanel(final BoxPanelType boxType, final SelectedNodeType type,
+			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		this.boxType = boxType;
 		this.type = type;
 		this.person = Collections.emptyMap();
 		this.store = store;
-		this.boxType = boxType;
 	}
 
 
@@ -397,7 +397,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		infoLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
 
-		refresh(ActionCommand.ACTION_COMMAND_PERSON_COUNT);
+		refresh(ActionCommand.ACTION_COMMAND_PERSON);
 	}
 
 	private boolean isPrimaryBox(){
@@ -408,15 +408,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	@EventHandler
 	@SuppressWarnings("NumberEquality")
 	public final void refresh(final Integer actionCommand){
-		if(actionCommand != ActionCommand.ACTION_COMMAND_PERSON_COUNT)
+		if(actionCommand != ActionCommand.ACTION_COMMAND_PERSON)
 			return;
 
 		final boolean hasPersons = !getRecords(TABLE_NAME_PERSON).isEmpty();
 		final boolean hasData = !person.isEmpty();
 		linkPersonItem.setEnabled(!hasData && hasPersons);
 		editPersonItem.setEnabled(hasData);
-		final Integer personID = extractRecordID(person);
-		unlinkPersonItem.setEnabled(hasData && isChildOfFamily(personID));
+		unlinkPersonItem.setEnabled(hasData);
 		addPersonItem.setEnabled(!hasData && hasPersons);
 		removePersonItem.setEnabled(hasData);
 	}
@@ -445,7 +444,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 		final Integer filterReferenceID){
-		return getRecords(tableName).entrySet().stream()
+		return getRecords(tableName)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -610,10 +610,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (String)record.get("type");
 	}
 
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
-	}
-
 	private static String extractRecordDate(final Map<String, Object> record){
 		return (record != null? (String)record.get("date"): null);
 	}
@@ -628,12 +624,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
-	}
-
-	private boolean isChildOfFamily(final Integer personID){
-		return getFilteredRecords(TABLE_NAME_GROUP_JUNCTION, TABLE_NAME_PERSON, personID)
-			.values().stream()
-			.anyMatch(entry -> Objects.equals("child", extractRecordRole(entry)));
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -811,7 +801,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final PersonPanel panel = create(store, boxType, SelectedNodeType.PARTNER);
+			final PersonPanel panel = create(boxType, SelectedNodeType.PARTNER, store);
 			panel.initComponents();
 			panel.loadData(person1);
 			panel.setPersonListener(personListener);

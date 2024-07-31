@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -45,6 +44,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -77,6 +77,8 @@ public class ChildrenPanel extends JPanel{
 	private boolean[] adoptions;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
+	private PersonListenerInterface personListener;
+
 
 	static ChildrenPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		return new ChildrenPanel(store);
@@ -98,6 +100,8 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	public void setPersonListener(final PersonListenerInterface personListener){
+		this.personListener = personListener;
+
 		for(int i = 0, length = (childBoxes != null? childBoxes.length: 0); i < length; i ++)
 			childBoxes[i].setPersonListener(personListener);
 	}
@@ -140,59 +144,83 @@ public class ChildrenPanel extends JPanel{
 
 
 	public void loadData(final Integer unionID){
+		//clear panel
+		removeAll();
+
 		//extract the children from the union
 		children = extractChildren(unionID);
 
 		//for each child, scan its events and collect all that have type "adoption"
-		final Set<Integer> adoptionEventIDs = getRecords(TABLE_NAME_EVENT)
+		final Set<Integer> adoptionEventIDs = extractAdoptionEventIDs();
+		adoptions = new boolean[children.length];
+		for(int i = 0; i < adoptions.length; i ++)
+			adoptions[i] = adoptionEventIDs.contains(extractRecordID(children[i]));
+
+		setLayout(new MigLayout("insets 0", "[]0[]"));
+		if(children.length > 0){
+			childBoxes = new PersonPanel[children.length + 1];
+			for(int i = 0, length = children.length; i < length; i ++){
+				final Map<String, Object> child = children[i];
+
+				final Integer childID = extractRecordID(child);
+				final boolean hasChildUnion = hasUnion(childID);
+				final JPanel box = createChildPanel(hasChildUnion);
+				final PersonPanel childBox = createChildPersonPanel(child);
+				box.add(childBox);
+				add(box, "gapright " + CHILD_SEPARATION);
+				childBoxes[i] = childBox;
+			}
+		}
+
+		//add empty child
+		final JPanel box = createChildPanel(false);
+		final PersonPanel childBox = createChildPersonPanel(Collections.emptyMap());
+		box.add(childBox);
+		add(box);
+		childBoxes[children.length] = childBox;
+
+		if(personListener != null)
+			setPersonListener(personListener);
+	}
+
+	private PersonPanel createChildPersonPanel(final Map<String, Object> child){
+		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, SelectedNodeType.CHILD, store);
+		childBox.initComponents();
+		childBox.loadData(child);
+
+		EventBusService.subscribe(childBox);
+
+		return childBox;
+	}
+
+	private static JPanel createChildPanel(final boolean hasChildUnion){
+		final JPanel box = new JPanel();
+		box.setOpaque(false);
+		box.setLayout(new MigLayout("flowy,insets 0", "[]",
+			"[]" + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+		final JLabel unionLabel = new JLabel();
+		unionLabel.setPreferredSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
+		if(hasChildUnion)
+			unionLabel.setIcon(ICON_UNION);
+		box.add(unionLabel, "right");
+		return box;
+	}
+
+	private Set<Integer> extractAdoptionEventIDs(){
+		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
 			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(ChildrenPanel::extractRecordReferenceID)
 			.collect(Collectors.toSet());
-		adoptions = new boolean[children.length];
-		for(int i = 0; i < adoptions.length; i ++)
-			adoptions[i] = adoptionEventIDs.contains(extractRecordID(children[i]));
+	}
 
-		//clear panel
-		removeAll();
-
-		if(children.length > 0){
-			setLayout(new MigLayout("insets 0", "[]0[]"));
-
-			childBoxes = new PersonPanel[children.length];
-			for(int i = 0, length = children.length; i < length; i ++){
-				final Map<String, Object> child = children[i];
-
-				final Integer childID = extractRecordID(child);
-				final boolean hasChildUnion = getRecords(TABLE_NAME_GROUP_JUNCTION)
-					.values().stream()
-					.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
-					.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-					.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
-				final PersonPanel childBox = PersonPanel.create(store, BoxPanelType.SECONDARY, SelectedNodeType.CHILD);
-				childBox.initComponents();
-				childBox.loadData(child);
-				EventBusService.subscribe(childBox);
-
-				final JPanel box = new JPanel();
-				box.setOpaque(false);
-				box.setLayout(new MigLayout("flowy,insets 0", "[]",
-					"[]" + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
-				final JLabel unionLabel = new JLabel();
-				unionLabel.setPreferredSize(new Dimension(ICON_UNION.getIconWidth(), ICON_UNION.getIconHeight()));
-				if(hasChildUnion)
-					unionLabel.setIcon(ICON_UNION);
-				box.add(unionLabel, "right");
-				box.add(childBox);
-
-				add(box, (i < length - 1? "gapright " + CHILD_SEPARATION: StringUtils.EMPTY));
-				childBoxes[i] = childBox;
-			}
-		}
-		else
-			setLayout(new MigLayout("insets 0", "[]",
-				"[" + PersonPanel.SECONDARY_MAX_HEIGHT + "]"));
+	private boolean hasUnion(final Integer childID){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
+			.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -208,7 +236,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	boolean isChildAdopted(final int index){
-		return adoptions[index];
+		return (index < adoptions.length && adoptions[index]);
 	}
 
 	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
@@ -217,7 +245,8 @@ public class ChildrenPanel extends JPanel{
 
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final Integer filterReferenceID){
-		return getRecords(tableName).entrySet().stream()
+		return getRecords(tableName)
+			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
