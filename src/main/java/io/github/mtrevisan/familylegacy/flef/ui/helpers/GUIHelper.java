@@ -304,7 +304,9 @@ public final class GUIHelper{
 	}
 
 	public static void setEnabled(final Supplier<Boolean> funEnabled, final JTextComponent... components){
-		for(final JTextComponent component : components){
+		for(int i = 0, length = components.length; i < length; i ++){
+			final JTextComponent component = components[i];
+
 			final Document doc = component.getDocument();
 			doc.addDocumentListener(new DocumentListener(){
 				@Override

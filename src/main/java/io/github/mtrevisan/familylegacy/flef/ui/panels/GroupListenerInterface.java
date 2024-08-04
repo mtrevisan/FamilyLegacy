@@ -33,6 +33,8 @@ public interface GroupListenerInterface{
 
 	void onGroupAdd(GroupPanel groupPanel);
 
+	void onGroupLink(GroupPanel groupPanel);
+
 	void onGroupRemove(GroupPanel groupPanel);
 
 	/**
@@ -42,15 +44,17 @@ public interface GroupListenerInterface{
 	 * @param person	The current person (that remain the same).
 	 * @param newParents	The union that has to change.
 	 */
-	void onPersonChangeParents(GroupPanel groupPanel, Map<String, Object> person, Map<String, Object> newParents);
+	void onPersonChangeParents(GroupPanel groupPanel, PersonPanel person, Map<String, Object> newParents);
 
 	/**
 	 * Iterate through unions of a person.
 	 *
 	 * @param groupPanel	The current union panel from which to iterate.
-	 * @param person	The current person (that remain the same).
+	 * @param oldPartner	The current partner (that has to change).
+	 * @param newPartner	The new partner.
 	 * @param newUnion	The union that has to change to.
 	 */
-	void onPersonChangeUnion(GroupPanel groupPanel, Map<String, Object> person, Map<String, Object> newUnion);
+	void onPersonChangeUnion(GroupPanel groupPanel, PersonPanel oldPartner, Map<String, Object> newPartner,
+		Map<String, Object> newUnion);
 
 }

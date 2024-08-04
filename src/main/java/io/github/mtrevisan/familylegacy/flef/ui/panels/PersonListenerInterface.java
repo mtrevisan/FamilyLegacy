@@ -30,21 +30,25 @@ public interface PersonListenerInterface{
 	/**
 	 * Bring person to primary position.
 	 *
-	 * @param boxPanel	The box panel that originates the call.
+	 * @param personPanel	The box panel that originates the call.
 	 * @param type	Type of the person wrt the family it belongs.
 	 */
-	void onPersonFocus(PersonPanel boxPanel, SelectedNodeType type);
+	void onPersonFocus(PersonPanel personPanel, SelectedNodeType type);
 
-	void onPersonEdit(PersonPanel boxPanel);
+	void onPersonEdit(PersonPanel personPanel);
 
-	void onPersonLink(PersonPanel boxPanel, SelectedNodeType type);
+	void onPersonAdd(PersonPanel personPanel, SelectedNodeType type);
 
-	void onPersonUnlink(PersonPanel boxPanel);
+	void onPersonLink(PersonPanel personPanel, SelectedNodeType type);
 
-	void onPersonAdd(PersonPanel boxPanel, SelectedNodeType type);
+	void onPersonRemove(PersonPanel personPanel);
 
-	void onPersonRemove(PersonPanel boxPanel);
+	void onPersonUnlinkFromParentGroup(PersonPanel personPanel);
 
-	void onPersonAddImage(PersonPanel boxPanel);
+	void onPersonAddToSiblingGroup(PersonPanel personPanel);
+
+	void onPersonUnlinkFromSiblingGroup(PersonPanel personPanel);
+
+	void onPersonAddImage(PersonPanel personPanel);
 
 }

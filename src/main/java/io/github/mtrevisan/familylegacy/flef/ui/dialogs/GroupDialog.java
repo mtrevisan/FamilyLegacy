@@ -62,6 +62,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -136,25 +137,28 @@ public final class GroupDialog extends CommonListDialog{
 
 	public GroupDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
 			final int groupJunctionID = extractNextRecordID(groupJunctions);
-			if(selectedRecord != null){
-				final Integer groupID = extractRecordID(selectedRecord);
-				final Map<String, Object> mediaJunction = new HashMap<>();
-				mediaJunction.put("id", groupJunctionID);
-				mediaJunction.put("group_id", groupID);
-				mediaJunction.put("reference_table", filterReferenceTable);
-				mediaJunction.put("reference_id", filterReferenceID);
-				mediaJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
-				mediaJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
-				mediaJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
-				groupJunctions.put(groupJunctionID, mediaJunction);
-			}
-			else
+			if(selectedRecord == null)
 				groupJunctions.remove(groupJunctionID);
+			else if(!showRecordOnly){
+				final Integer groupID = extractRecordID(selectedRecord);
+				final Map<String, Object> groupJunction = new HashMap<>();
+				groupJunction.put("id", groupJunctionID);
+				groupJunction.put("group_id", groupID);
+				groupJunction.put("reference_table", filterReferenceTable);
+				groupJunction.put("reference_id", filterReferenceID);
+				groupJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
+				groupJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
+				groupJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
+				groupJunctions.put(groupJunctionID, groupJunction);
+
+				if(onCloseGracefully != null)
+					onCloseGracefully.accept(record);
+			}
+			else if(onCloseGracefully != null)
+				onCloseGracefully.accept(record);
 		};
-		if(onCloseGracefully != null)
-			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
 		setOnCloseGracefully(innerOnCloseGracefully);
 
@@ -298,9 +302,13 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+//		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
+//			? getRecords(TABLE_NAME)
+//			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
+		final NavigableMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(TABLE_NAME)
-			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
+			? groups
+			: getGroups(groups));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());
@@ -317,6 +325,15 @@ public final class GroupDialog extends CommonListDialog{
 
 			row ++;
 		}
+	}
+
+	private Map<Integer, Map<String, Object>> getGroups(final Map<Integer, Map<String, Object>> groups){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordGroupID(entry)))
+			.map(entry -> groups.get(extractRecordReferenceID(entry)))
+			.collect(Collectors.toMap(CommonRecordDialog::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
 	}
 
 	@Override
@@ -419,10 +436,10 @@ public final class GroupDialog extends CommonListDialog{
 
 
 	private String extractIdentifier(final int selectedRecordID){
-		final TreeMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
-		final TreeMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
-		final TreeMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME);
-		final TreeMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
+		final NavigableMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
+		final NavigableMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME);
+		final NavigableMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map<String, Object> groupElement : storeGroupJunction.values()){
@@ -462,7 +479,7 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	/** Extract the names of all the persons in this group. */
-	private static List<Map<String, Object>> extractPersonNamesInGroup(final TreeMap<Integer, Map<String, Object>> storePersonNames,
+	private static List<Map<String, Object>> extractPersonNamesInGroup(final NavigableMap<Integer, Map<String, Object>> storePersonNames,
 			final Integer personID){
 		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
 		for(final Map<String, Object> storePersonName : storePersonNames.values())

@@ -54,6 +54,7 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -119,7 +120,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
 			if(selectedRecord != null){
 				final Integer localizedTextID = extractRecordID(selectedRecord);
@@ -241,8 +242,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				.filter(record -> filterReferenceType.equals(extractRecordType(record)))
 				.map(CommonRecordDialog::extractRecordID)
 				.collect(Collectors.toSet());
-			records.entrySet()
-				.removeIf(entry -> !filteredMedias.contains(entry.getKey()));
+			records.keySet()
+				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
 		}
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();

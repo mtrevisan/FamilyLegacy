@@ -261,8 +261,9 @@ public final class EventDialog extends CommonListDialog{
 
 		final ItemEvent itemEvent = new ItemEvent(typeComboBox, ItemEvent.ITEM_STATE_CHANGED, typeComboBox.getItemAt(0),
 			ItemEvent.SELECTED);
-		for(final ItemListener listener : typeComboBox.getItemListeners())
-			listener.itemStateChanged(itemEvent);
+		final ItemListener[] itemListeners = typeComboBox.getItemListeners();
+		for(int i = 0, length = itemListeners.length; i < length; i ++)
+			itemListeners[i].itemStateChanged(itemEvent);
 		typeComboBox.setSelectedItem(type);
 
 		descriptionField.setText(description);

@@ -277,7 +277,7 @@ public final class MainFrame extends JFrame implements FamilyListenerInterface, 
 		final GedcomNode family = treePanel.getPreferredFamily(individual);
 
 		//update primary family
-		treePanel.loadData(partner1, partner2, family);
+		treePanel.loadData(family, partner1, partner2);
 	}
 
 	@Override

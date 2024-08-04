@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.TreePanel;
+import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogicalTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +44,10 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 
@@ -59,6 +59,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_ASSERTION = "assertion";
+	private static final String TABLE_NAME_NOTE = "note";
+	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
+	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
+	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
@@ -133,7 +139,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onGroupEdit(final GroupPanel groupPanel){
 		final Map<String, Object> group = groupPanel.getGroup();
-		LOGGER.debug("onEditGroup {}", group.get("id"));
+		LOGGER.debug("onEditGroup {}", extractRecordID(group));
 
 		final GroupDialog groupDialog = GroupDialog.createRecordOnly(store, this);
 		groupDialog.initComponents();
@@ -145,16 +151,59 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 	@Override
 	public void onGroupAdd(final GroupPanel groupPanel){
-		final Map<String, Object> partner1 = groupPanel.getPartner1();
-		final Map<String, Object> partner2 = groupPanel.getPartner2();
-		final Map<String, Object>[] children = groupPanel.getChildren();
-		LOGGER.debug("onAddGroup (partner 1: {}, partner 2: {}, child: {})", partner1.get("id"), partner2.get("id"),
-			Arrays.toString(Arrays.stream(children).map(MainFrame::extractRecordID).toArray(Integer[]::new)));
+		final PersonPanel partner1 = groupPanel.getPartner1();
+		final PersonPanel partner2 = groupPanel.getPartner2();
+		LOGGER.debug("onAddGroup (partner 1: {}, partner 2: {})", extractRecordID(partner1.getPerson()),
+			extractRecordID(partner2.getPerson()));
 
 		final GroupDialog dialog = GroupDialog.createRecordOnly(store, this)
 			.withOnCloseGracefully(record -> {
-				if(record != null)
-					groupPanel.loadData(record);
+				if(record != null){
+					PersonPanel[] children = new PersonPanel[0];
+					final int index = treePanel.genealogicalTree.getIndexOf(groupPanel);
+					if(index == 0)
+						children = treePanel.genealogicalTree.getChildren();
+					else if(index > 0){
+						final int childIndex = GenealogicalTree.getParent(index);
+						final boolean isPartner1 = (index == GenealogicalTree.getLeftChild(childIndex));
+						final GroupPanel treeGroupPanel = treePanel.genealogicalTree.get(childIndex);
+						children = new PersonPanel[]{isPartner1? treeGroupPanel.getPartner1(): treeGroupPanel.getPartner2()};
+					}
+
+					final Integer groupID = extractRecordID(record);
+					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+					final Map<String, Object> partner1Person = partner1.getPerson();
+					if(!partner1Person.isEmpty()){
+						final Map<String, Object> groupJunction = new HashMap<>();
+						groupJunction.put("id", extractNextRecordID(groupJunctions));
+						groupJunction.put("group_id", groupID);
+						groupJunction.put("reference_table", TABLE_NAME_PERSON);
+						groupJunction.put("reference_id", extractRecordID(partner1Person));
+						groupJunction.put("role", "partner");
+						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					}
+					final Map<String, Object> partner2Person = partner2.getPerson();
+					if(!partner2Person.isEmpty()){
+						final Map<String, Object> groupJunction = new HashMap<>();
+						groupJunction.put("id", extractNextRecordID(groupJunctions));
+						groupJunction.put("group_id", groupID);
+						groupJunction.put("reference_table", TABLE_NAME_PERSON);
+						groupJunction.put("reference_id", extractRecordID(partner2Person));
+						groupJunction.put("role", "partner");
+						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					}
+					for(final PersonPanel child : children){
+						final Map<String, Object> groupJunction = new HashMap<>();
+						groupJunction.put("id", extractNextRecordID(groupJunctions));
+						groupJunction.put("group_id", groupID);
+						groupJunction.put("reference_table", TABLE_NAME_PERSON);
+						groupJunction.put("reference_id", extractRecordID(child.getPerson()));
+						groupJunction.put("role", "child");
+						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					}
+
+					treePanel.refresh();
+				}
 			});
 		dialog.initComponents();
 		dialog.showNewRecord();
@@ -163,89 +212,17 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		dialog.setVisible(true);
 	}
 
+	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
+		return (records.isEmpty()? 1: records.lastKey() + 1);
+	}
+
 	@Override
-	public void onGroupRemove(final GroupPanel groupPanel){
+	public void onGroupLink(final GroupPanel groupPanel){
+		final PersonPanel partner1 = groupPanel.getPartner1();
+		final PersonPanel partner2 = groupPanel.getPartner2();
 		final Map<String, Object> group = groupPanel.getGroup();
-		LOGGER.debug("onRemoveGroup {}", group.get("id"));
-
-		final Integer groupID = extractRecordID(group);
-		final List<Map<String, Object>> children = extractChildren(groupID);
-		if(!children.isEmpty()){
-			//TODO ask if really sure
-		}
-
-		getRecords(TABLE_NAME_GROUP)
-			.remove(groupID);
-		getRecords(TABLE_NAME_GROUP_JUNCTION)
-			.entrySet()
-			.removeIf(entry -> Objects.equals(groupID, extractRecordGroupID(entry.getValue())));
-		//TODO remove connected children
-
-		groupPanel.loadData(Collections.emptyMap());
-	}
-
-	@Override
-	public void onPersonChangeParents(final GroupPanel groupPanel, final Map<String, Object> person, final Map<String, Object> newUnion){
-		final Map<String, Object> currentUnion = groupPanel.getGroup();
-		LOGGER.debug("onPersonChangeParents person: {}, current: {}, new: {}", person.get("id"), currentUnion.get("id"), newUnion.get("id"));
-
-		//TODO
-//		setPersonListener etc...
-	}
-
-	@Override
-	public void onPersonChangeUnion(final GroupPanel groupPanel, final Map<String, Object> currentPartner,
-			final Map<String, Object> otherPartner){
-		final Map<String, Object> currentGroup = groupPanel.getGroup();
-		LOGGER.debug("onPersonChangeUnion this: {}, other: {}, current group: {}", currentPartner.get("id"), otherPartner.get("id"),
-			currentGroup.get("id"));
-
-		//TODO
-//		GedcomNode nextFamily = null;
-//		final String currentFamilyID = currentFamily.getID();
-//		final List<GedcomNode> familyXRefs = store.traverseAsList(thisParent, "FAMILY_PARTNER[]");
-//		for(int familyIndex = 1; familyIndex < familyXRefs.size(); familyIndex ++)
-//			if(familyXRefs.get(familyIndex).getXRef().equals(currentFamilyID)){
-//				nextFamily = store.getFamily(familyXRefs.get(familyIndex - 1).getXRef());
-//				break;
-//			}
-//
-//		//update primary family
-//		treePanel.loadData(store.createEmptyNode(), store.createEmptyNode(), nextFamily);
-//		setPersonListener
-	}
-
-
-	@Override
-	public void onPersonEdit(final PersonPanel boxPanel){
-		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onEditPerson {}", person.get("id"));
-
-		final PersonDialog personDialog = PersonDialog.createRecordOnly(store, this);
-		personDialog.initComponents();
-		personDialog.loadData(person);
-
-		personDialog.setLocationRelativeTo(treePanel);
-		personDialog.setVisible(true);
-
-		//TODO save
-	}
-
-	@Override
-	public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
-		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onFocusPerson {}, type is {}", person.get("id"), type);
-
-		treePanel.loadDataFromPerson(person);
-	}
-
-	@Override
-	public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
-		final Map<String, Object> partner = boxPanel.getPartner();
-		final Map<String, Object> marriage = boxPanel.getUnion();
-		final Map<String, Object>[] children = boxPanel.getChildren();
-		LOGGER.debug("onLinkPerson (partner {}, marriage {}, child {}), type is " + type, partner.get("id"), marriage.get("id"),
-			Arrays.toString(Arrays.stream(children).map(child -> child.get("id")).toArray(Object[]::new)));
+		LOGGER.debug("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
+			+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
 		dialog.initComponents();
@@ -258,108 +235,253 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onPersonUnlink(final PersonPanel boxPanel){
-		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onUnlinkPerson {}", person.get("id"));
+	public void onGroupRemove(final GroupPanel groupPanel){
+		final Map<String, Object> group = groupPanel.getGroup();
+		LOGGER.debug("onRemoveGroup {}", extractRecordID(group));
 
-		//TODO
+		final Integer groupID = extractRecordID(group);
+		//remove group
+		getRecords(TABLE_NAME_GROUP)
+			.remove(groupID);
+		//remove group associates
+		getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values()
+			.removeIf(entry -> Objects.equals(groupID, extractRecordGroupID(entry)));
+		getRecords(TABLE_NAME_ASSERTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_NOTE)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_EVENT)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_RESTRICTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
+
+		treePanel.refresh();
 	}
 
 	@Override
-	public void onPersonAdd(final PersonPanel boxPanel, final SelectedNodeType type){
-		final Map<String, Object> partner = boxPanel.getPartner();
-		final Map<String, Object> marriage = boxPanel.getUnion();
-		final Map<String, Object>[] children = boxPanel.getChildren();
-		System.out.println("onAddPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-			+ Arrays.toString(Arrays.stream(children).map(child -> child.get("id")).toArray(Object[]::new)) + "), type is " + type);
+	public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
+		final Map<String, Object> currentParents = groupPanel.getGroup();
+		LOGGER.debug("onGroupChangeParents person: " + extractRecordID(person.getPerson())
+			+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
 
-		final PersonDialog dialog = PersonDialog.createRecordOnly(store, this);
+		//TODO
+//		setPersonListener etc...
+	}
+
+	@Override
+	public void onPersonChangeUnion(final GroupPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
+			final Map<String, Object> newUnion){
+		final Map<String, Object> oldUnion = groupPanel.getGroup();
+		LOGGER.debug("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson()) + ", old union: " + extractRecordID(oldUnion)
+			+ ", new partner: " + extractRecordID(newPartner) + ", new union: " + extractRecordID(newUnion));
+
+		final PersonPanel partner1 = groupPanel.getPartner1();
+		final PersonPanel partner2 = groupPanel.getPartner2();
+		if(extractRecordID(partner1.getPerson()).equals(extractRecordID(oldPartner.getPerson())))
+			treePanel.loadData(newUnion, newPartner, partner2.getPerson());
+		else
+			treePanel.loadData(newUnion, partner1.getPerson(), newPartner);
+	}
+
+
+	@Override
+	public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onFocusPerson {}, type is {}", extractRecordID(person), type);
+
+		treePanel.loadDataFromPerson(person);
+	}
+
+	@Override
+	public void onPersonEdit(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onEditPerson {}", extractRecordID(person));
+
+		final PersonDialog personDialog = PersonDialog.createRecordOnly(store, this);
+		personDialog.initComponents();
+		personDialog.loadData(person);
+
+		personDialog.setLocationRelativeTo(treePanel);
+		personDialog.setVisible(true);
+
+		//TODO save
+	}
+
+	@Override
+	public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
+		LOGGER.debug("onLinkPerson, type is " + type);
+
+		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
+		dialog.initComponents();
+		dialog.loadData();
+
+		dialog.setLocationRelativeTo(treePanel);
+		dialog.setVisible(true);
+
+		//TODO save
+	}
+
+	@Override
+	public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
+		LOGGER.debug("onAddPerson, type is {}", type);
+
+		final PersonDialog dialog = PersonDialog.createRecordOnly(store, this)
+			.withOnCloseGracefully(record -> {
+				if(record != null){
+					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
+					final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
+					final Integer unionID = extractRecordID(treeUnionPanel.getGroup());
+					final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
+
+					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+					Map<String, Object> groupJunction = new HashMap<>();
+					groupJunction.put("id", extractNextRecordID(groupJunctions));
+					groupJunction.put("group_id", unionID);
+					groupJunction.put("reference_table", TABLE_NAME_PERSON);
+					groupJunction.put("reference_id", extractRecordID(record));
+					groupJunction.put("role", "partner");
+					groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					for(final Integer partnerID : partnerIDs){
+						groupJunction = new HashMap<>();
+						groupJunction.put("id", extractNextRecordID(groupJunctions));
+						groupJunction.put("group_id", unionID);
+						groupJunction.put("reference_table", TABLE_NAME_PERSON);
+						groupJunction.put("reference_id", partnerID);
+						groupJunction.put("role", "partner");
+						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					}
+
+					treePanel.refresh();
+				}
+			});
 		dialog.initComponents();
 		dialog.showNewRecord();
 
 		dialog.setLocationRelativeTo(treePanel);
 		dialog.setVisible(true);
+	}
+
+	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.map(MainFrame::extractRecordReferenceID)
+			.toList();
+	}
+
+	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer childID){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("child", extractRecordRole(entry)) || Objects.equals("adoptee", extractRecordRole(entry)))
+			.map(MainFrame::extractRecordGroupID)
+			.toList();
+	}
+
+	@Override
+	public void onPersonRemove(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onRemovePerson {}", extractRecordID(person));
+
+		final Integer personID = extractRecordID(person);
+		//remove person
+		getRecords(TABLE_NAME_GROUP)
+			.remove(personID);
+		//remove person associates
+		getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_ASSERTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_NOTE)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_EVENT)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+		getRecords(TABLE_NAME_RESTRICTION)
+			.values()
+			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+
+		treePanel.refresh();
+	}
+
+	@Override
+	public void onPersonUnlinkFromParentGroup(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onUnlinkPersonFromParentGroup {}", extractRecordID(person));
 
 		//TODO
 	}
 
 	@Override
-	public void onPersonRemove(final PersonPanel boxPanel){
-		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onRemovePerson {}", person.get("id"));
+	public void onPersonAddToSiblingGroup(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onAddToSiblingGroupPerson {}", extractRecordID(person));
 
 		//TODO
 	}
 
 	@Override
-	public void onPersonAddImage(final PersonPanel boxPanel){
-		final Map<String, Object> person = boxPanel.getPerson();
-		LOGGER.debug("onAddPreferredImage {}", person.get("id"));
+	public void onPersonUnlinkFromSiblingGroup(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onUnlinkPersonFromSiblingGroup {}", extractRecordID(person));
+
+		final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
+		final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
+		final Map<String, Object> union = treeUnionPanel.getGroup();
+		final Integer unionID = extractRecordID(union);
+
+		final Integer personID = extractRecordID(person);
+		//remove person from union
+		getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values()
+			.removeIf(entry -> unionID.equals(extractRecordGroupID(entry))
+				&& "partner".equals(extractRecordRole(entry))
+				&& TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+
+		//TODO verify
+		treePanel.refresh();
+	}
+
+	@Override
+	public void onPersonAddImage(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onAddPreferredImage {}", extractRecordID(person));
 
 		//TODO
 	}
-
-
-	private void linkFamilyToChild(final Map<String, Object> child, final Map<String, Object> family){
-		//TODO
-//		LOGGER.debug("Add family {} to child {}", family.getID(), child.getID());
-//
-//		store.linkFamilyToChild(child, family);
-	}
-
-	private void linkChildToFamily(final Map<String, Object> child, final Map<String, Object> partner,
-			final List<Map<String, Object>> partners, final String partnerTag){
-		//TODO
-//		if(partners.isEmpty())
-//			linkIndividualToNewFamily(child, partner, partnerTag);
-//		else if(partners.size() == 1)
-//			linkIndividualToExistingFamily(partners.get(0), partner, partnerTag);
-//		else
-//			LOGGER.warn("Individual {} belongs to more than one family (this cannot be)", child.getID());
-	}
-
-	private void linkIndividualToNewFamily(final Map<String, Object> child, final Map<String, Object> partner, final String partnerTag){
-		//TODO
-//		//create new family and add parent
-//		final Map<String, Object> family = store.create("FAMILY")
-//			.addChildReference(partnerTag, partner.getID());
-//		store.addFamily(family);
-//		store.linkFamilyToChild(child, family);
-	}
-
-	private void linkIndividualToExistingFamily(final Map<String, Object> family, final Map<String, Object> partner, final String partnerTag){
-		//TODO
-//		//link to existing family as parent
-//		family.addChild(store.create(partnerTag)
-//			.withXRef(partner.getID()));
-	}
-
-
-	//TODO
-//	@Override
-//	public void onItemSelected(final GedcomNode node, final SelectedNodeType type, final JPanel panelReference){
-//		if(type == SelectedNodeType.FAMILY){
-//			final FamilyPanel familyPanel = (FamilyPanel)panelReference;
-//			final GedcomNode child = familyPanel.getChildReference();
-//			linkFamilyToChild(child, node);
-//
-//			familyPanel.loadData(node);
-//
-//			EventBusService.publish(Flef.ACTION_COMMAND_FAMILY_COUNT);
-//		}
-//		else{
-//			final IndividualPanel individualPanel = (IndividualPanel)panelReference;
-//			final GedcomNode child = individualPanel.getChildReference();
-//			if(type == SelectedNodeType.PARTNER1)
-//				linkChildToFamily(child, node, store.getPartner1s(child), "PARTNER1");
-//			else if(type == SelectedNodeType.PARTNER2)
-//				linkChildToFamily(child, node, store.getPartner2s(child), "PARTNER2");
-//
-//			individualPanel.loadData(node);
-//
-//			EventBusService.publish(Flef.ACTION_COMMAND_INDIVIDUAL_COUNT);
-//		}
-//	}
 
 
 	public static void main(final String[] args){
@@ -400,6 +522,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		group2.put("id", 2);
 		group2.put("type", "family");
 		groups.put((Integer)group2.get("id"), group2);
+		final Map<String, Object> group3 = new HashMap<>();
+		group3.put("id", 3);
+		group3.put("type", "family");
+		groups.put((Integer)group3.get("id"), group3);
 
 		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
 		store.put("group_junction", groupJunctions);
@@ -447,7 +573,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
 		final Map<String, Object> groupJunction6 = new HashMap<>();
 		groupJunction6.put("id", 7);
-		groupJunction6.put("group_id", 2);
+		groupJunction6.put("group_id", 3);
 		groupJunction6.put("reference_table", "person");
 		groupJunction6.put("reference_id", 4);
 		groupJunction6.put("role", "partner");

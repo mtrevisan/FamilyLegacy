@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -191,7 +192,9 @@ public class BasicEventBus implements EventBusInterface{
 
 	private void subscribeAnnotatedMethods(final Object subscriber){
 		final Method[] methods = subscriber.getClass().getDeclaredMethods();
-		for(final Method method : methods){
+		for(int i = 0, length = methods.length; i < length; i ++){
+			final Method method = methods[i];
+
 			//look for the EventHandler annotation on the method, if it exists
 			//if it doesn't exist, this returns null, and go to the next method
 			final EventHandler eh = method.getAnnotation(EventHandler.class);
@@ -311,8 +314,9 @@ public class BasicEventBus implements EventBusInterface{
 
 			//submit the veto calls to the executor service
 			try{
-				for(final Future<Boolean> f : executorService.invokeAll(vetoHandlers))
-					if(f.get())
+				final List<Future<Boolean>> invokeAll = executorService.invokeAll(vetoHandlers);
+				for(int i = 0, length = invokeAll.size(); i < length; i ++)
+					if(invokeAll.get(i).get())
 						vetoCalled = true;
 			}
 			catch(final InterruptedException | ExecutionException e){

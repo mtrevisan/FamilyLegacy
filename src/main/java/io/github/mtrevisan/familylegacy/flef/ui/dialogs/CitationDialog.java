@@ -221,8 +221,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterSourceID != null)
-			records.entrySet()
-				.removeIf(entry -> !filterSourceID.equals(extractRecordSourceID(entry.getValue())));
+			records.values()
+				.removeIf(entry -> !filterSourceID.equals(extractRecordSourceID(entry)));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());

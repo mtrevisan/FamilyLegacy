@@ -40,10 +40,15 @@ public enum Era{
 
 
 	public static Era fromDate(final CharSequence date){
-		if(date != null)
-			for(final Era type : values())
+		if(date != null){
+			final Era[] values = values();
+			for(int i = 0, length = values.length; i < length; i ++){
+				final Era type = values[i];
+
 				if(RegexHelper.find(date, type.pattern))
 					return type;
+			}
+		}
 		return null;
 	}
 

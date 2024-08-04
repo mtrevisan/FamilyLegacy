@@ -405,8 +405,8 @@ public class TextPreviewPane extends JSplitPane{
 
 	private void removeAllActionListeners(final JMenuItem menuItem){
 		final ActionListener[] actionListeners = menuItem.getActionListeners();
-		for(final ActionListener actionListener : actionListeners)
-			menuItem.removeActionListener(actionListener);
+		for(int i = 0, length = actionListeners.length; i < length; i ++)
+			menuItem.removeActionListener(actionListeners[i]);
 	}
 
 	public String getText(){

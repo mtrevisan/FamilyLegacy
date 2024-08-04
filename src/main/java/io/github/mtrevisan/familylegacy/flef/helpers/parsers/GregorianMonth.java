@@ -59,9 +59,13 @@ enum GregorianMonth{
 	 * @return	The enum constant that matches the abbreviation.
 	 */
 	public static GregorianMonth fromAbbreviation(final String abbreviation){
-		for(final GregorianMonth month : values())
+		final GregorianMonth[] values = values();
+		for(int i = 0, length = values.length; i < length; i ++){
+			final GregorianMonth month = values[i];
+
 			if(month.abbreviation.equalsIgnoreCase(abbreviation))
 				return month;
+		}
 		return null;
 	}
 
@@ -91,16 +95,16 @@ enum GregorianMonth{
 	private static String[] getAbbreviations(){
 		final GregorianMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final GregorianMonth gregorianMonth : values)
-			list.add(gregorianMonth.abbreviation);
+		for(int i = 0, length = values.length; i < length; i ++)
+			list.add(values[i].abbreviation);
 		return list.toArray(new String[0]);
 	}
 
 	private static String[] getDescriptions(){
 		final GregorianMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final GregorianMonth gregorianMonth : values)
-			list.add(gregorianMonth.description);
+		for(int i = 0, length = values.length; i < length; i ++)
+			list.add(values[i].description);
 		return list.toArray(new String[0]);
 	}
 

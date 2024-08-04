@@ -60,9 +60,13 @@ enum FrenchRepublicanMonth{
 	 * @return	The enumerated constant value with the supplied abbreviation, or null if no match is found.
 	 */
 	public static FrenchRepublicanMonth fromAbbreviation(final String abbreviation){
-		for(final FrenchRepublicanMonth month : values())
+		final FrenchRepublicanMonth[] values = values();
+		for(int i = 0, length = values.length; i < length; i ++){
+			final FrenchRepublicanMonth month = values[i];
+
 			if(month.abbreviation.equalsIgnoreCase(abbreviation))
 				return month;
+		}
 		return null;
 	}
 
@@ -94,8 +98,8 @@ enum FrenchRepublicanMonth{
 	private static String[] getAbbreviations(){
 		final FrenchRepublicanMonth[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final FrenchRepublicanMonth frenchRepublicanMonth : values)
-			list.add(frenchRepublicanMonth.abbreviation);
+		for(int i = 0, length = values.length; i < length; i ++)
+			list.add(values[i].abbreviation);
 		return list.toArray(new String[0]);
 	}
 

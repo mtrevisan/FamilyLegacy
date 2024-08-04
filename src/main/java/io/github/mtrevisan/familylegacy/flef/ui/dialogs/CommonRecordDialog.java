@@ -160,15 +160,14 @@ public abstract class CommonRecordDialog extends JDialog{
 			if(recordRestriction != null)
 				recordRestriction.put("restriction", "confidential");
 			else{
-				final TreeMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
+				final NavigableMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
-				final int newRestrictionID = extractNextRecordID(storeRestrictions);
-				newRestriction.put("id", newRestrictionID);
+				newRestriction.put("id", extractNextRecordID(storeRestrictions));
 				newRestriction.put("restriction", "confidential");
 				newRestriction.put("reference_table", getTableName());
 				newRestriction.put("reference_id", extractRecordID(selectedRecord));
-				storeRestrictions.put(newRestrictionID, newRestriction);
+				storeRestrictions.put(extractRecordID(newRestriction), newRestriction);
 			}
 		}
 		else if(recordRestriction != null)
@@ -204,11 +203,11 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	public abstract void loadData();
 
-	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+	protected final NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+	protected final NavigableMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final int filterReferenceID){
 		return getRecords(tableName)
 			.entrySet().stream()
@@ -217,7 +216,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
-	protected static int extractNextRecordID(final TreeMap<Integer, Map<String, Object>> records){
+	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
 		return (records.isEmpty()? 1: records.lastKey() + 1);
 	}
 
@@ -256,22 +255,23 @@ public abstract class CommonRecordDialog extends JDialog{
 	 * @param fromTable	The table name to extract the references to this table from.
 	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
 	 */
-	protected final TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
+	protected final NavigableMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
 		return extractReferences(fromTable, null, null);
 	}
 
-	protected final <T> TreeMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
+	protected final <T> NavigableMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
 		if(selectedRecord != null){
-			final Map<Integer, Map<String, Object>> records = getRecords(fromTable);
 			final Integer selectedRecordID = extractRecordID(selectedRecord);
 			final String tableName = getTableName();
-			for(final Map<String, Object> record : records.values())
-				if((filter == null || Objects.equals(filterValue, filter.apply(record)))
-						&& tableName.equals(extractRecordReferenceTable(record))
-						&& Objects.equals(extractRecordReferenceID(record), selectedRecordID))
-					matchedRecords.put(extractRecordID(record), record);
+			final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
+			records.forEach((key, value) -> {
+				if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
+						&& tableName.equals(extractRecordReferenceTable(value))
+						&& Objects.equals(selectedRecordID, extractRecordReferenceID(value))))
+					matchedRecords.put(key, value);
+			});
 		}
 		return matchedRecords;
 	}
@@ -301,7 +301,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected Map<String, Object> getSelectedRecord(){
-		final TreeMap<Integer, Map<String, Object>> records = getRecords(getTableName());
+		final NavigableMap<Integer, Map<String, Object>> records = getRecords(getTableName());
 		return records.sequencedValues().getFirst();
 	}
 
@@ -327,14 +327,13 @@ public abstract class CommonRecordDialog extends JDialog{
 		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
-			final TreeMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
+			final NavigableMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
 			final Map<String, Object> newModification = new HashMap<>();
-			final int newModificationID = extractNextRecordID(storeModifications);
-			newModification.put("id", newModificationID);
+			newModification.put("id", extractNextRecordID(storeModifications));
 			newModification.put("reference_table", getTableName());
 			newModification.put("reference_id", extractRecordID(selectedRecord));
 			newModification.put("creation_date", now);
-			storeModifications.put(newModificationID, newModification);
+			storeModifications.put(extractRecordID(newModification), newModification);
 		}
 		else{
 			//TODO ask for a modification note

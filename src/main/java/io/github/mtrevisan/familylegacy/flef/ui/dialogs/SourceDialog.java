@@ -231,8 +231,8 @@ public final class SourceDialog extends CommonListDialog{
 	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterRepositoryID != null)
-			records.entrySet()
-				.removeIf(entry -> !filterRepositoryID.equals(extractRecordRepositoryID(entry.getValue())));
+			records.values()
+				.removeIf(entry -> !filterRepositoryID.equals(extractRecordRepositoryID(entry)));
 
 		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
 		model.setRowCount(records.size());

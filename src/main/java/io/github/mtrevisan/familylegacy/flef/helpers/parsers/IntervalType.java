@@ -67,9 +67,13 @@ public enum IntervalType{
 	}
 
 	public static IntervalType createFromDate(final CharSequence date){
-		for(final IntervalType type : values())
+		final IntervalType[] values = values();
+		for(int i = 0, length = values.length; i < length; i ++){
+			final IntervalType type = values[i];
+
 			if(type.pattern != null && RegexHelper.find(date, type.pattern))
 				return type;
+		}
 		return NO_TYPE;
 	}
 
@@ -82,8 +86,8 @@ public enum IntervalType{
 	public static String[] getDescriptions(){
 		final IntervalType[] values = values();
 		final List<String> list = new ArrayList<>(values.length);
-		for(final IntervalType intervalType : values)
-			list.add(intervalType.description);
+		for(int i = 0, length = values.length; i < length; i ++)
+			list.add(values[i].description);
 		return list.toArray(new String[0]);
 	}
 
@@ -100,16 +104,24 @@ public enum IntervalType{
 	}
 
 	public static String replaceAll(String date){
-		for(final IntervalType value : values())
+		final IntervalType[] values = values();
+		for(int i = 0, length = values.length; i < length; i ++){
+			final IntervalType value = values[i];
+
 			if(value != NO_TYPE)
 				date = RegexHelper.replaceAll(date, value.pattern, value.description);
+		}
 		return date;
 	}
 
 	public static String restoreAll(String date){
-		for(final IntervalType value : values())
+		final IntervalType[] values = values();
+		for(int i = 0, length = values.length; i < length; i ++){
+			final IntervalType value = values[i];
+
 			if(value != NO_TYPE)
 				date = StringUtils.replaceEachRepeatedly(date, new String[]{value.description}, new String[]{value.type});
+		}
 		return date;
 	}
 

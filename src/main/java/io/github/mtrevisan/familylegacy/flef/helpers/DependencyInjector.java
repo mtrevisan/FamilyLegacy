@@ -52,7 +52,9 @@ public class DependencyInjector{
 	public final void injectDependencies(final Object target){
 		final Class<?> targetClass = target.getClass();
 		final Field[] fields = targetClass.getDeclaredFields();
-		for(final Field field : fields)
+		for(int i = 0, length = fields.length; i < length; i ++){
+			final Field field = fields[i];
+
 			if(field.isAnnotationPresent(Inject.class)){
 				final Class<?> dependencyClass = field.getType();
 				final Object dependency = dependencyMap.get(dependencyClass);
@@ -67,6 +69,7 @@ public class DependencyInjector{
 					throw new RuntimeException("Failed to inject dependency into field: " + field.getName(), iae);
 				}
 			}
+		}
 	}
 
 }

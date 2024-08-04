@@ -65,6 +65,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -123,7 +124,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	public CulturalNormDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
 			if(selectedRecord != null){
 				final Integer culturalNormID = extractRecordID(selectedRecord);

@@ -71,6 +71,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -152,7 +153,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	public MediaDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final TreeMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_MEDIA_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_MEDIA_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
 			if(selectedRecord != null){
 				final Integer mediaID = extractRecordID(selectedRecord);
@@ -395,13 +396,13 @@ public final class MediaDialog extends CommonListDialog{
 				.values().stream()
 				.map(CommonRecordDialog::extractRecordID)
 				.collect(Collectors.toSet());
-			records.entrySet()
-				.removeIf(entry -> !filteredMedias.contains(entry.getKey()));
+			records.keySet()
+				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
 		}
 		if(restrictToPhoto)
-			records.entrySet()
+			records.values()
 				.removeIf(entry -> {
-					String identifier = extractRecordIdentifier(entry.getValue());
+					String identifier = extractRecordIdentifier(entry);
 					if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 						identifier = basePath + identifier;
 					final File file = FileHelper.loadFile(identifier);

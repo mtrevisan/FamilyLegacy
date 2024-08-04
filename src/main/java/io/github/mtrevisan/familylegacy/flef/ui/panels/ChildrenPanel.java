@@ -43,7 +43,6 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,11 +71,11 @@ public class ChildrenPanel extends JPanel{
 	private static final String TABLE_NAME_EVENT = "event";
 
 
+	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+
 	private Map<String, Object>[] children;
 	private PersonPanel[] childBoxes;
 	private boolean[] adoptions;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-
 	private PersonListenerInterface personListener;
 
 
@@ -233,6 +232,10 @@ public class ChildrenPanel extends JPanel{
 			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toArray(Map[]::new);
+	}
+
+	public PersonPanel[] getChildBoxes(){
+		return childBoxes;
 	}
 
 	boolean isChildAdopted(final int index){
@@ -401,51 +404,55 @@ public class ChildrenPanel extends JPanel{
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonEdit(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.getPerson();
-				System.out.println("onEditPerson " + person.get("id"));
+			public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onFocusPerson " + extractRecordID(person) + ", type is " + type);
 			}
 
 			@Override
-			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> person = boxPanel.getPerson();
-				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
+			public void onPersonEdit(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onEditPerson " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> partner = boxPanel.getPartner();
-				final Map<String, Object> marriage = boxPanel.getUnion();
-				final Map<String, Object>[] children = boxPanel.getChildren();
-				System.out.println("onLinkPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
+			public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
+				System.out.println("onLinkPerson, type is " + type);
 			}
 
 			@Override
-			public void onPersonUnlink(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.getPerson();
-				System.out.println("onUnlinkPerson " + person.get("id"));
+			public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
+				System.out.println("onAddPerson, type is " + type);
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> partner = boxPanel.getPartner();
-				final Map<String, Object> marriage = boxPanel.getUnion();
-				final Map<String, Object>[] children = boxPanel.getChildren();
-				System.out.println("onAddPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
+			public void onPersonRemove(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onRemovePerson " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonRemove(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.getPerson();
-				System.out.println("onRemovePerson " + person.get("id"));
+			public void onPersonUnlinkFromParentGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onUnlinkPersonFromParentGroup " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.getPerson();
-				System.out.println("onAddPreferredImage " + person.get("id"));
+			public void onPersonAddToSiblingGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onAddToSiblingGroupPerson " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonUnlinkFromSiblingGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onUnlinkPersonFromSiblingGroup " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonAddImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onAddPreferredImage " + extractRecordID(person));
 			}
 		};
 

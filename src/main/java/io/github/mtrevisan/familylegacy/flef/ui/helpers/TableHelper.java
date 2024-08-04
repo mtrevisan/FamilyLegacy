@@ -79,8 +79,8 @@ public final class TableHelper{
 				//split input text around spaces and commas
 				final String[] components = StringUtils.split(text, " ,");
 				final Collection<RowFilter<DefaultTableModel, Object>> andFilters = new ArrayList<>(components.length);
-				for(final String component : components)
-					andFilters.add(RowFilter.regexFilter(StringHelper.composeTextFilter(component), columnIndexes));
+				for(int i = 0, length = components.length; i < length; i ++)
+					andFilters.add(RowFilter.regexFilter(StringHelper.composeTextFilter(components[i]), columnIndexes));
 				return RowFilter.andFilter(andFilters);
 			}
 			catch(final PatternSyntaxException ignored){

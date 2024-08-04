@@ -33,6 +33,8 @@ import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.LabelAutoToolTip;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -70,8 +72,6 @@ import java.beans.PropertyChangeListener;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +85,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	@Serial
 	private static final long serialVersionUID = -300117824230109203L;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(PersonPanel.class);
 
 
 	private static final String NO_DATA = "?";
@@ -123,6 +125,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final String TABLE_NAME_CALENDAR = "calendar";
 	private static final String TABLE_NAME_PLACE = "place";
 	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 
 	private final LabelAutoToolTip personalNameLabel = new LabelAutoToolTip();
@@ -130,20 +133,18 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final LabelAutoToolTip infoLabel = new LabelAutoToolTip();
 	private final JLabel imageLabel = new JLabel();
 	private final JMenuItem editPersonItem = new JMenuItem("Edit Person…", 'E');
-	private final JMenuItem linkPersonItem = new JMenuItem("Link Person…", 'L');
-	private final JMenuItem unlinkPersonItem = new JMenuItem("Unlink Person", 'U');
 	private final JMenuItem addPersonItem = new JMenuItem("Add Person…", 'A');
+	private final JMenuItem linkPersonItem = new JMenuItem("Link Person…", 'L');
 	private final JMenuItem removePersonItem = new JMenuItem("Remove Person", 'R');
+	private final JMenuItem unlinkFromParentGroupItem = new JMenuItem("Unlink from parent Group", 'U');
+	private final JMenuItem addToNewSiblingGroupItem = new JMenuItem("Add to new sibling Group…", 'S');
+	private final JMenuItem unlinkFromSiblingGroupItem = new JMenuItem("Unlink from sibling Group", 'G');
 
 	private final BoxPanelType boxType;
 	private final SelectedNodeType type;
-	private Map<String, Object> person;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
-	private Map<String, Object> partner = Collections.emptyMap();
-	private Map<String, Object> union = Collections.emptyMap();
-	@SuppressWarnings("unchecked")
-	private Map<String, Object>[] children = (Map<String, Object>[])new Map[0];
+	private final Map<String, Object> person = new HashMap<>(0);
 
 
 	static PersonPanel create(final BoxPanelType boxType, final SelectedNodeType type,
@@ -156,7 +157,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.boxType = boxType;
 		this.type = type;
-		this.person = Collections.emptyMap();
+		this.person.clear();
 		this.store = store;
 	}
 
@@ -186,30 +187,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	public final Map<String, Object> getPerson(){
 		return person;
-	}
-
-	public final Map<String, Object> getPartner(){
-		return partner;
-	}
-
-	final void setPartner(final Map<String, Object> partner){
-		this.partner = partner;
-	}
-
-	public final Map<String, Object> getUnion(){
-		return union;
-	}
-
-	final void setUnion(final Map<String, Object> union){
-		this.union = union;
-	}
-
-	public final Map<String, Object>[] getChildren(){
-		return children;
-	}
-
-	final void setChildren(final Map<String, Object>[] children){
-		this.children = children;
 	}
 
 	final void setPersonListener(final PersonListenerInterface listener){
@@ -260,17 +237,23 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		editPersonItem.addActionListener(e -> listener.onPersonEdit(this));
 		popupMenu.add(editPersonItem);
 
-		linkPersonItem.addActionListener(e -> listener.onPersonLink(this, type));
-		popupMenu.add(linkPersonItem);
-
-		unlinkPersonItem.addActionListener(e -> listener.onPersonUnlink(this));
-		popupMenu.add(unlinkPersonItem);
-
 		addPersonItem.addActionListener(e -> listener.onPersonAdd(this, type));
 		popupMenu.add(addPersonItem);
 
+		linkPersonItem.addActionListener(e -> listener.onPersonLink(this, type));
+		popupMenu.add(linkPersonItem);
+
 		removePersonItem.addActionListener(e -> listener.onPersonRemove(this));
 		popupMenu.add(removePersonItem);
+
+		unlinkFromParentGroupItem.addActionListener(e -> listener.onPersonUnlinkFromParentGroup(this));
+		popupMenu.add(unlinkFromParentGroupItem);
+
+		addToNewSiblingGroupItem.addActionListener(e -> listener.onPersonAddToSiblingGroup(this));
+		popupMenu.add(addToNewSiblingGroupItem);
+
+		unlinkFromSiblingGroupItem.addActionListener(e -> listener.onPersonUnlinkFromSiblingGroup(this));
+		popupMenu.add(unlinkFromSiblingGroupItem);
 
 		addMouseListener(new PopupMouseAdapter(popupMenu, this));
 	}
@@ -336,14 +319,16 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 
-	void loadData(final Map<String, Object> person){
+	public void loadData(final Map<String, Object> person){
 		prepareData(person);
 
 		loadData();
 	}
 
 	private void prepareData(final Map<String, Object> person){
-		this.person = person;
+		this.person.clear();
+
+		this.person.putAll(person);
 	}
 
 	private void loadData(){
@@ -411,13 +396,17 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_PERSON)
 			return;
 
-		final boolean hasPersons = !getRecords(TABLE_NAME_PERSON).isEmpty();
 		final boolean hasData = !person.isEmpty();
-		linkPersonItem.setEnabled(!hasData && hasPersons);
+		final boolean hasPersons = !getRecords(TABLE_NAME_PERSON).isEmpty();
+		final boolean hasParentGroup = hasParentGroup(person);
+		final boolean hasSiblingGroup = hasSiblingGroup(person);
 		editPersonItem.setEnabled(hasData);
-		unlinkPersonItem.setEnabled(hasData);
-		addPersonItem.setEnabled(!hasData && hasPersons);
+		addPersonItem.setEnabled(!hasData);
+		linkPersonItem.setEnabled(!hasData && hasPersons);
 		removePersonItem.setEnabled(hasData);
+		unlinkFromParentGroupItem.setEnabled(hasData && hasParentGroup);
+		addToNewSiblingGroupItem.setEnabled(hasData);
+		unlinkFromSiblingGroupItem.setEnabled(hasData && hasSiblingGroup);
 	}
 
 	private String extractIdentifier(final Integer selectedRecordID){
@@ -438,6 +427,51 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return name.toString();
 	}
 
+	private boolean hasParentGroup(final Map<String, Object> child){
+		boolean hasParentGroup = false;
+		if(!child.isEmpty()){
+			final Integer childID = extractRecordID(child);
+			//prefer biological family
+			final List<Integer> parentsIDs = getParentsIDs(childID, "child");
+			if(parentsIDs.size() > 1)
+				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
+
+			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
+			if(parentsID != null){
+				final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+				hasParentGroup = groups.containsKey(parentsID);
+			}
+			else{
+				//prefer first adopting family
+				final List<Integer> unionIDs = getParentsIDs(childID, "adoptee");
+				if(!unionIDs.isEmpty()){
+					final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+					hasParentGroup = groups.containsKey(unionIDs.getFirst());
+				}
+			}
+		}
+		return hasParentGroup;
+	}
+
+	private List<Integer> getParentsIDs(final Integer personID, final String personRole){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
+			.map(PersonPanel::extractRecordGroupID)
+			.toList();
+	}
+
+	private boolean hasSiblingGroup(final Map<String, Object> partner){
+		final Integer partnerID = extractRecordID(partner);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
+			.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
+	}
+
 	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
@@ -453,6 +487,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	protected static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
 	}
 
 	private static Integer extractRecordPersonID(final Map<String, Object> record){
@@ -752,51 +794,55 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonEdit(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.person;
-				System.out.println("onEditPerson " + person.get("id"));
+			public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onFocusPerson " + extractRecordID(person) + ", type is " + type);
 			}
 
 			@Override
-			public void onPersonFocus(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> person = boxPanel.person;
-				System.out.println("onFocusPerson " + person.get("id") + ", type is " + type);
+			public void onPersonEdit(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onEditPerson " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> partner = boxPanel.partner;
-				final Map<String, Object> marriage = boxPanel.union;
-				final Map<String, Object>[] children = boxPanel.children;
-				System.out.println("onLinkPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
+			public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
+				System.out.println("onAddPerson, type is " + type);
 			}
 
 			@Override
-			public void onPersonUnlink(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.person;
-				System.out.println("onUnlinkPerson " + person.get("id"));
+			public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
+				System.out.println("onLinkPerson, type is " + type);
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel boxPanel, final SelectedNodeType type){
-				final Map<String, Object> partner = boxPanel.partner;
-				final Map<String, Object> marriage = boxPanel.union;
-				final Map<String, Object>[] children = boxPanel.children;
-				System.out.println("onAddPerson (partner " + partner.get("id") + ", marriage " + marriage.get("id") + ", child "
-					+ Arrays.toString(Arrays.stream(children).map(PersonPanel::extractRecordID).toArray(Integer[]::new)) + "), type is " + type);
+			public void onPersonRemove(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onRemovePerson " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonRemove(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.person;
-				System.out.println("onRemovePerson " + person.get("id"));
+			public void onPersonUnlinkFromParentGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onUnlinkPersonFromParentGroup " + extractRecordID(person));
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel boxPanel){
-				final Map<String, Object> person = boxPanel.person;
-				System.out.println("onAddPreferredImage " + person.get("id"));
+			public void onPersonAddToSiblingGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onAddToSiblingGroupPerson " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonUnlinkFromSiblingGroup(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onUnlinkPersonFromSiblingGroup " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonAddImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.person;
+				System.out.println("onAddPreferredImage " + extractRecordID(person));
 			}
 		};
 

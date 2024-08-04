@@ -196,7 +196,9 @@ public final class SQLFileParser{
 		final String[] uniqueNames = matcher.group(2)
 			.toLowerCase(Locale.ROOT)
 			.split(",");
-		for(final String uniqueName : uniqueNames){
+		for(int i = 0, length = uniqueNames.length; i < length; i ++){
+			final String uniqueName = uniqueNames[i];
+
 			final GenericColumn uniqueColumn = currentTable.findColumn(uniqueName);
 			if(uniqueColumn == null)
 				throw new IllegalArgumentException("Table " + currentTable.getName() + " does not have column " + uniqueName + " for unique");
@@ -364,14 +366,14 @@ public final class SQLFileParser{
 					final Map<String, Object> result = new LinkedHashMap<>(columns.size());
 					final Object[] fields = datum.getFields();
 					int i = 0;
-					for(final GenericColumn column : columns){
+					for(int j = 0, length = columns.size(); j < length; j ++){
 						if(i == fields.length)
 							break;
 
 						if(fields[i] != null)
-							result.put(column.getName(), fields[i]);
+							result.put(columns.get(j).getName(), fields[i]);
 
-						i ++;
+						i++;
 					}
 					System.out.println(result);
 				});

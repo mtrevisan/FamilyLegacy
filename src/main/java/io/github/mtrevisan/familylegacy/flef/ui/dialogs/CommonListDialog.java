@@ -68,6 +68,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
 
@@ -349,7 +350,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		//create a new record
 		final Map<String, Object> newTable = new HashMap<>();
-		final TreeMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
+		final NavigableMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
 		final int nextRecordID = extractNextRecordID(storeTables);
 		newTable.put("id", nextRecordID);
 		storeTables.put(nextRecordID, newTable);

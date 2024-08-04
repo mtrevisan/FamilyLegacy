@@ -535,7 +535,7 @@ public class TreePanel extends JPanel{
 		partner2PartnersPanel.setVisible(!partner2.isEmpty());
 		partner1PartnersPanel.loadData(partner1Partners);
 		partner2PartnersPanel.loadData(partner2Partners);
-		homeFamilyPanel.loadData(partner1, partner2, homeFamily);
+		homeFamilyPanel.loadData(homeFamily, partner1, partner2);
 		childrenPanel.loadData(homeFamily);
 
 

@@ -55,6 +55,7 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
@@ -295,7 +296,7 @@ public final class PersonDialog extends CommonListDialog{
 
 	private String extractIdentifier(final int selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
 		getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(record -> extractRecordPersonID(record) == selectedRecordID)
