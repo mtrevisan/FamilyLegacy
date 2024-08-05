@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SelectedNodeType;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.TreePanel;
 import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogicalTree;
 import org.slf4j.Logger;
@@ -305,9 +304,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 
 	@Override
-	public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+	public void onPersonFocus(final PersonPanel personPanel){
 		final Map<String, Object> person = personPanel.getPerson();
-		LOGGER.debug("onFocusPerson {}, type is {}", extractRecordID(person), type);
+		LOGGER.debug("onFocusPerson {}", extractRecordID(person));
 
 		treePanel.loadDataFromPerson(person);
 	}
@@ -326,8 +325,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
-		LOGGER.debug("onLinkPerson, type is " + type);
+	public void onPersonLink(final PersonPanel personPanel){
+		LOGGER.debug("onLinkPerson");
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
 		dialog.initComponents();
@@ -340,8 +339,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
-		LOGGER.debug("onAddPerson, type is {}", type);
+	public void onPersonAdd(final PersonPanel personPanel){
+		LOGGER.debug("onAddPerson");
 
 		final PersonDialog dialog = PersonDialog.createRecordOnly(store, this)
 			.withOnCloseGracefully(record -> {

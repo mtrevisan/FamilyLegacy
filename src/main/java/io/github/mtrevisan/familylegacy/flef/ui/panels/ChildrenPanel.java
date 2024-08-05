@@ -183,7 +183,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private PersonPanel createChildPersonPanel(final Map<String, Object> child){
-		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, SelectedNodeType.CHILD, store);
+		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, store);
 		childBox.initComponents();
 		childBox.loadData(child);
 
@@ -404,9 +404,9 @@ public class ChildrenPanel extends JPanel{
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+			public void onPersonFocus(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.getPerson();
-				System.out.println("onFocusPerson " + extractRecordID(person) + ", type is " + type);
+				System.out.println("onFocusPerson " + extractRecordID(person));
 			}
 
 			@Override
@@ -416,13 +416,13 @@ public class ChildrenPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onLinkPerson, type is " + type);
+			public void onPersonLink(final PersonPanel personPanel){
+				System.out.println("onLinkPerson");
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onAddPerson, type is " + type);
+			public void onPersonAdd(final PersonPanel personPanel){
+				System.out.println("onAddPerson");
 			}
 
 			@Override

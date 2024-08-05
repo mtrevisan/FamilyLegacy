@@ -31,15 +31,14 @@ public interface PersonListenerInterface{
 	 * Bring person to primary position.
 	 *
 	 * @param personPanel	The box panel that originates the call.
-	 * @param type	Type of the person wrt the family it belongs.
 	 */
-	void onPersonFocus(PersonPanel personPanel, SelectedNodeType type);
+	void onPersonFocus(PersonPanel personPanel);
 
 	void onPersonEdit(PersonPanel personPanel);
 
-	void onPersonAdd(PersonPanel personPanel, SelectedNodeType type);
+	void onPersonAdd(PersonPanel personPanel);
 
-	void onPersonLink(PersonPanel personPanel, SelectedNodeType type);
+	void onPersonLink(PersonPanel personPanel);
 
 	void onPersonRemove(PersonPanel personPanel);
 

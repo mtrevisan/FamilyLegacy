@@ -144,22 +144,18 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final JMenuItem unlinkFromSiblingGroupItem = new JMenuItem("Unlink from sibling Group", 'G');
 
 	private final BoxPanelType boxType;
-	private final SelectedNodeType type;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 	private Map<String, Object> person = new HashMap<>(0);
 
 
-	static PersonPanel create(final BoxPanelType boxType, final SelectedNodeType type,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new PersonPanel(boxType, type, store);
+	static PersonPanel create(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new PersonPanel(boxType, store);
 	}
 
 
-	private PersonPanel(final BoxPanelType boxType, final SelectedNodeType type,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private PersonPanel(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.boxType = boxType;
-		this.type = type;
 		this.person.clear();
 		this.store = store;
 	}
@@ -208,14 +204,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 					@Override
 					public void mouseClicked(final MouseEvent evt){
 						if(SwingUtilities.isLeftMouseButton(evt))
-							listener.onPersonFocus(PersonPanel.this, type);
+							listener.onPersonFocus(PersonPanel.this);
 					}
 				});
 				familyNameLabel.addMouseListener(new MouseAdapter(){
 					@Override
 					public void mouseClicked(final MouseEvent evt){
 						if(SwingUtilities.isLeftMouseButton(evt))
-							listener.onPersonFocus(PersonPanel.this, type);
+							listener.onPersonFocus(PersonPanel.this);
 					}
 				});
 			}
@@ -262,10 +258,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		editPersonItem.addActionListener(e -> listener.onPersonEdit(this));
 		popupMenu.add(editPersonItem);
 
-		addPersonItem.addActionListener(e -> listener.onPersonAdd(this, type));
+		addPersonItem.addActionListener(e -> listener.onPersonAdd(this));
 		popupMenu.add(addPersonItem);
 
-		linkPersonItem.addActionListener(e -> listener.onPersonLink(this, type));
+		linkPersonItem.addActionListener(e -> listener.onPersonLink(this));
 		popupMenu.add(linkPersonItem);
 
 		removePersonItem.addActionListener(e -> listener.onPersonRemove(this));
@@ -842,9 +838,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+			public void onPersonFocus(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.person;
-				System.out.println("onFocusPerson " + extractRecordID(person) + ", type is " + type);
+				System.out.println("onFocusPerson " + extractRecordID(person));
 			}
 
 			@Override
@@ -854,13 +850,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onAddPerson, type is " + type);
+			public void onPersonAdd(final PersonPanel personPanel){
+				System.out.println("onAddPerson");
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onLinkPerson, type is " + type);
+			public void onPersonLink(final PersonPanel personPanel){
+				System.out.println("onLinkPerson");
 			}
 
 			@Override
@@ -901,7 +897,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final PersonPanel panel = create(boxType, SelectedNodeType.PARTNER, store);
+			final PersonPanel panel = create(boxType, store);
 			panel.initComponents();
 			panel.loadData(person1);
 			panel.setPersonListener(personListener);

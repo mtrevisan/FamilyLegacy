@@ -172,10 +172,10 @@ public class GroupPanel extends JPanel{
 
 
 	void initComponents(){
-		partner1Panel = PersonPanel.create(boxType, SelectedNodeType.PARTNER, store);
+		partner1Panel = PersonPanel.create(boxType, store);
 		partner1Panel.initComponents();
 		EventBusService.subscribe(partner1Panel);
-		partner2Panel = PersonPanel.create(boxType, SelectedNodeType.PARTNER, store);
+		partner2Panel = PersonPanel.create(boxType, store);
 		partner2Panel.initComponents();
 		EventBusService.subscribe(partner2Panel);
 
@@ -1042,9 +1042,9 @@ public class GroupPanel extends JPanel{
 		};
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
-			public void onPersonFocus(final PersonPanel personPanel, final SelectedNodeType type){
+			public void onPersonFocus(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.getPerson();
-				System.out.println("onFocusPerson " + extractRecordID(person) + ", type is " + type);
+				System.out.println("onFocusPerson " + extractRecordID(person));
 			}
 
 			@Override
@@ -1054,13 +1054,13 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonLink(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onLinkPerson, type is " + type);
+			public void onPersonLink(final PersonPanel personPanel){
+				System.out.println("onLinkPerson");
 			}
 
 			@Override
-			public void onPersonAdd(final PersonPanel personPanel, final SelectedNodeType type){
-				System.out.println("onAddPerson, type is " + type);
+			public void onPersonAdd(final PersonPanel personPanel){
+				System.out.println("onAddPerson");
 			}
 
 			@Override
