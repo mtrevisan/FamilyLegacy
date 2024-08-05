@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
@@ -42,6 +43,7 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -127,6 +129,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final String TABLE_NAME_EVENT = "event";
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_MEDIA = "media";
 
 	private final LabelAutoToolTip personalNameLabel = new LabelAutoToolTip();
 	private final LabelAutoToolTip familyNameLabel = new LabelAutoToolTip();
@@ -144,7 +147,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final SelectedNodeType type;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
-	private final Map<String, Object> person = new HashMap<>(0);
+	private Map<String, Object> person = new HashMap<>(0);
 
 
 	static PersonPanel create(final BoxPanelType boxType, final SelectedNodeType type,
@@ -224,8 +227,30 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			imageLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt))
-						listener.onPersonAddImage(PersonPanel.this);
+					if(SwingUtilities.isLeftMouseButton(evt)){
+						final ImageIcon icon = extractPreferredImage();
+						if(icon == null)
+							listener.onPersonAddPreferredImage(PersonPanel.this);
+						else
+							listener.onPersonEditPreferredImage(PersonPanel.this);
+					}
+					else if(SwingUtilities.isRightMouseButton(evt)){
+						final Integer photoID = extractRecordPhotoID(person);
+						if(photoID != null){
+							final int response = JOptionPane.showConfirmDialog(PersonPanel.this,
+								"Remove preferred photo?", "Warning", JOptionPane.YES_NO_OPTION);
+							if(response == JOptionPane.YES_OPTION){
+								//remove preferred image
+								person.remove("photo_id");
+								person.remove("photo_crop");
+
+								getRecords(TABLE_NAME_MEDIA)
+									.remove(photoID);
+
+								imageLabel.setIcon(ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
+							}
+						}
+					}
 				}
 			});
 		}
@@ -326,9 +351,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private void prepareData(final Map<String, Object> person){
-		this.person.clear();
-
-		this.person.putAll(person);
+		this.person = person;
 	}
 
 	private void loadData(){
@@ -373,8 +396,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
 		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
-		final ImageIcon icon = ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize());
-		imageLabel.setIcon(icon);
+		final ImageIcon icon = extractPreferredImage();
+		imageLabel.setIcon(icon != null? icon: ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
 
 		final boolean hasData = !person.isEmpty();
 		personalNameLabel.setVisible(hasData);
@@ -383,6 +406,23 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		imageLabel.setVisible(hasData);
 
 		refresh(ActionCommand.ACTION_COMMAND_PERSON);
+	}
+
+	private ImageIcon extractPreferredImage(){
+		ImageIcon icon = null;
+		final Integer photoID = extractRecordPhotoID(person);
+		if(photoID != null){
+			//recover image URI
+			final TreeMap<Integer, Map<String, Object>> medias = getRecords(TABLE_NAME_MEDIA);
+			final Map<String, Object> media = medias.get(photoID);
+			if(media == null)
+				LOGGER.error("Cannot find media ID {}", photoID);
+			else{
+				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(media));
+				icon = ResourceHelper.getImage(identifier, imageLabel.getPreferredSize());
+			}
+		}
+		return icon;
 	}
 
 	private boolean isPrimaryBox(){
@@ -634,9 +674,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
 		return getRecords(fromTable)
 			.values().stream()
-			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.toList();
 	}
 
@@ -666,6 +706,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
+	}
+
+	private static Integer extractRecordPhotoID(final Map<String, Object> record){
+		return (Integer)record.get("photo_id");
+	}
+
+	private static String extractRecordIdentifier(final Map<String, Object> record){
+		return (record != null? (String)record.get("identifier"): null);
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -840,9 +888,15 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel personPanel){
+			public void onPersonAddPreferredImage(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.person;
 				System.out.println("onAddPreferredImage " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonEditPreferredImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onEditPreferredImage " + extractRecordID(person));
 			}
 		};
 

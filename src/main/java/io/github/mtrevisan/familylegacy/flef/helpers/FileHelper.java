@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.helpers;
 
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PhotoCropDialog;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 
 public final class FileHelper{
@@ -53,9 +56,10 @@ public final class FileHelper{
 	private FileHelper(){}
 
 
-	public static File documentsDirectory(){
+	public static Path documentsDirectory(){
 		final FileSystemView fileSystemView = FileSystemView.getFileSystemView();
-		return fileSystemView.getDefaultDirectory();
+		return fileSystemView.getDefaultDirectory()
+			.toPath();
 	}
 
 
@@ -190,6 +194,35 @@ public final class FileHelper{
 			accomplished = (process.waitFor() == 0);
 		}
 		return accomplished;
+	}
+
+
+	/**
+	 * Calculates the relative path of the target directory with respect to the base directory.
+	 *
+	 * @param baseDir	The base directory.
+	 * @param targetDir	The target directory.
+	 * @return	The relative path of the target directory with respect to the base directory.
+	 */
+	public static String getRelativePath(final Path baseDir, final String targetDir){
+		final Path basePath = baseDir.toAbsolutePath().normalize();
+		final Path targetPath = Paths.get(targetDir != null? targetDir: StringUtils.EMPTY).toAbsolutePath().normalize();
+		final Path relativePath = basePath.relativize(targetPath);
+		return relativePath.toString();
+	}
+
+	/**
+	 * Calculates the target directory given a base directory and a relative path.
+	 *
+	 * @param baseDir	The base directory.
+	 * @param relativeDir	The relative path.
+	 * @return	The target directory.
+	 */
+	public static String getTargetPath(final Path baseDir, final String relativeDir){
+		final Path basePath = baseDir.toAbsolutePath().normalize();
+		final Path relativePath = Paths.get(relativeDir);
+		final Path targetPath = basePath.resolve(relativePath).normalize();
+		return targetPath.toString();
 	}
 
 }

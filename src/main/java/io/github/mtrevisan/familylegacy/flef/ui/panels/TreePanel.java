@@ -91,9 +91,9 @@ public class TreePanel extends JPanel{
 	//	every parent node is composed by two PersonPanels (also an union, DoubleNode), a leaf can be a single PersonPanel (SingleNode)
 	public GenealogicalTree genealogicalTree;
 
-	private final Map<String, Object> partner1 = new HashMap<>(0);
-	private final Map<String, Object> partner2 = new HashMap<>(0);
-	private final Map<String, Object> homeUnion = new HashMap<>(0);
+	private Map<String, Object> homeUnion = new HashMap<>(0);
+	private Map<String, Object> partner1 = new HashMap<>(0);
+	private Map<String, Object> partner2 = new HashMap<>(0);
 	private final int generations;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
@@ -472,21 +472,17 @@ public class TreePanel extends JPanel{
 			}
 		}
 
-		this.homeUnion.clear();
-		this.partner1.clear();
-		this.partner2.clear();
-
-		this.homeUnion.putAll(homeUnion);
-		this.partner1.putAll(partner1);
-		this.partner2.putAll(partner2);
+		this.homeUnion = homeUnion;
+		this.partner1 = partner1;
+		this.partner2 = partner2;
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return new ArrayList<>(getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(TreePanel::extractRecordReferenceID)
 			.toList());
 	}
@@ -494,9 +490,9 @@ public class TreePanel extends JPanel{
 	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
 		return getRecords(fromTable)
 			.values().stream()
-			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.toList();
 	}
 
@@ -558,18 +554,18 @@ public class TreePanel extends JPanel{
 
 	public void refresh(){
 		final Integer homeUnionID = extractRecordID(homeUnion);
-		if(homeUnionID != null && !getRecords(TABLE_NAME_GROUP).containsKey(homeUnionID))
-			loadData(Collections.emptyMap(), partner1, partner2);
-		else
-			loadData();
+		final Map<String, Object> union = (homeUnionID != null && !getRecords(TABLE_NAME_GROUP).containsKey(homeUnionID)
+			? Collections.emptyMap()
+			: homeUnion);
+		loadData(union, partner1, partner2);
 	}
 
 	private List<Integer> getPartnerIDs(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(TreePanel::extractRecordReferenceID)
 			.toList();
 	}
@@ -785,7 +781,7 @@ public class TreePanel extends JPanel{
 		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override
 			public void onGroupEdit(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
+				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onEditGroup " + extractRecordID(group));
 			}
 
@@ -802,20 +798,20 @@ public class TreePanel extends JPanel{
 			public void onGroupLink(final GroupPanel groupPanel){
 				final PersonPanel partner1 = groupPanel.getPartner1();
 				final PersonPanel partner2 = groupPanel.getPartner2();
-				final Map<String, Object> group = groupPanel.getGroup();
+				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
 					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
 			}
 
 			@Override
 			public void onGroupRemove(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
+				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onRemoveGroup " + extractRecordID(group));
 			}
 
 			@Override
 			public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
-				final Map<String, Object> currentParents = groupPanel.getGroup();
+				final Map<String, Object> currentParents = groupPanel.getUnion();
 				System.out.println("onGroupChangeParents person: " + extractRecordID(person.getPerson())
 					+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
 			}
@@ -823,7 +819,7 @@ public class TreePanel extends JPanel{
 			@Override
 			public void onPersonChangeUnion(final GroupPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
 					final Map<String, Object> newUnion){
-				final Map<String, Object> oldUnion = groupPanel.getGroup();
+				final Map<String, Object> oldUnion = groupPanel.getUnion();
 				System.out.println("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson())
 					+ ", old union: " + oldUnion.get("id") + ", new partner: " + extractRecordID(newPartner)
 					+ ", new union: " + extractRecordID(newUnion));
@@ -877,9 +873,15 @@ public class TreePanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel personPanel){
+			public void onPersonAddPreferredImage(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.getPerson();
 				System.out.println("onAddPreferredImage " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonEditPreferredImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onEditPreferredImage " + extractRecordID(person));
 			}
 		};
 

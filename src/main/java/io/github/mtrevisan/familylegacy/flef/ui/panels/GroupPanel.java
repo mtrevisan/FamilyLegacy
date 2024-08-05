@@ -59,6 +59,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -154,9 +155,9 @@ public class GroupPanel extends JPanel{
 	private final BoxPanelType boxType;
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
-	private final Map<String, Object> group = new HashMap<>(0);
-	private final Map<String, Object> partner1 = new HashMap<>(0);
-	private final Map<String, Object> partner2 = new HashMap<>(0);
+	private Map<String, Object> union = new HashMap<>(0);
+	private Map<String, Object> partner1 = new HashMap<>(0);
+	private Map<String, Object> partner2 = new HashMap<>(0);
 
 
 	static GroupPanel create(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -225,8 +226,8 @@ public class GroupPanel extends JPanel{
 		setOpaque(false);
 	}
 
-	public final Map<String, Object> getGroup(){
-		return group;
+	public final Map<String, Object> getUnion(){
+		return union;
 	}
 
 	public final PersonPanel getPartner1(){
@@ -317,7 +318,7 @@ public class GroupPanel extends JPanel{
 						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
 
 						//find current union in list
-						final Integer groupID = extractRecordID(group);
+						final Integer groupID = extractRecordID(union);
 						int newGroupID = -1;
 						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
 						for(int i = 0; i < otherPartnerUnionsCount; i ++)
@@ -357,7 +358,7 @@ public class GroupPanel extends JPanel{
 						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
 
 						//find current union in list
-						final Integer groupID = extractRecordID(group);
+						final Integer groupID = extractRecordID(union);
 						int newGroupID = -1;
 						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
 						for(int i = 0; i < otherPartnerUnionsCount; i ++)
@@ -453,7 +454,7 @@ public class GroupPanel extends JPanel{
 						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
 
 						//find current union in list
-						final Integer groupID = extractRecordID(group);
+						final Integer groupID = extractRecordID(union);
 						int newGroupID = -1;
 						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
 						for(int i = 0; i < otherPartnerUnionsCount; i ++)
@@ -492,7 +493,7 @@ public class GroupPanel extends JPanel{
 						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
 
 						//find current union in list
-						final Integer groupID = extractRecordID(group);
+						final Integer groupID = extractRecordID(union);
 						int newGroupID = -1;
 						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
 						for(int i = 0; i < otherPartnerUnionsCount; i ++)
@@ -595,26 +596,56 @@ public class GroupPanel extends JPanel{
 		loadData();
 	}
 
-	private void prepareData(final Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
-		if((partner1.isEmpty() || partner2.isEmpty()) && !group.isEmpty()){
-			//extract the first two persons from the group:
-			final Integer groupID = extractRecordID(group);
-			final List<Integer> personIDs = getPersonIDsInGroup(groupID);
-			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-			final int size = personIDs.size();
-			if(partner1.isEmpty())
-				partner1 = (size > 0? persons.getOrDefault(personIDs.get(0), Collections.emptyMap()): Collections.emptyMap());
-			if(partner2.isEmpty())
-				partner2 = (size > 1? persons.getOrDefault(personIDs.get(1), Collections.emptyMap()): Collections.emptyMap());
+	private void prepareData(Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
+		if(group.isEmpty()){
+			final List<Map<String, Object>> unions = extractUnions(partner1);
+			if(!unions.isEmpty())
+				//FIXME choose the last shown family, if any
+				group = unions.getFirst();
 		}
 
-		this.group.clear();
-		this.partner1.clear();
-		this.partner2.clear();
+		if(!group.isEmpty()){
+			final Integer homeUnionID = extractRecordID(group);
+			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
+			Integer partner1ID = extractRecordID(partner1);
+			if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
+				System.out.println("Person " + partner1ID + " does not belongs to the union " + homeUnionID + " (this cannot be)");
 
-		this.group.putAll(group);
-		this.partner1.putAll(partner1);
-		this.partner2.putAll(partner2);
+				partner1 = Collections.emptyMap();
+			}
+			Integer partner2ID = extractRecordID(partner2);
+			if(partner2ID != null && !personIDsInUnion.contains(partner2ID)){
+				System.out.println("Person " + partner2ID + " does not belongs to the union " + homeUnionID + " (this cannot be)");
+
+				partner2 = Collections.emptyMap();
+			}
+
+			if(partner1.isEmpty() || partner2.isEmpty()){
+				final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+
+				//extract the first two persons from the union:
+				if(!partner1.isEmpty())
+					personIDsInUnion.remove(extractRecordID(partner1));
+				if(!partner2.isEmpty())
+					personIDsInUnion.remove(extractRecordID(partner2));
+				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
+					partner1ID = personIDsInUnion.getFirst();
+					if(persons.containsKey(partner1ID))
+						partner1 = persons.get(partner1ID);
+					personIDsInUnion.remove(partner1ID);
+				}
+				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
+					partner2ID = personIDsInUnion.getFirst();
+					if(persons.containsKey(partner2ID))
+						partner2 = persons.get(partner2ID);
+					personIDsInUnion.remove(partner2ID);
+				}
+			}
+		}
+
+		this.union = group;
+		this.partner1 = partner1;
+		this.partner2 = partner2;
 	}
 
 	private void loadData(){
@@ -622,7 +653,7 @@ public class GroupPanel extends JPanel{
 		partner2Panel.loadData(partner2);
 
 		if(boxType == BoxPanelType.PRIMARY){
-			final Integer groupID = extractRecordID(group);
+			final Integer groupID = extractRecordID(union);
 			updatePreviousNextUnionIcons(groupID, partner2, partner1PreviousUnionLabel, partner1NextUnionLabel);
 			updatePreviousNextUnionIcons(groupID, partner1, partner2PreviousUnionLabel, partner2NextUnionLabel);
 
@@ -630,13 +661,34 @@ public class GroupPanel extends JPanel{
 			updatePreviousNextParentsIcons(partner2, partner2PreviousParentsLabel, partner2NextParentsLabel);
 		}
 
-		unionPanel.setBorder(!group.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
+		unionPanel.setBorder(! union.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
 
 		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 
 		partner1Panel.repaint();
 		partner2Panel.repaint();
+	}
+
+	private List<Map<String, Object>> extractUnions(final Map<String, Object> person){
+		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
+		if(!person.isEmpty()){
+			final Integer personID = extractRecordID(person);
+			unionGroups.addAll(getGroupIDs(personID));
+		}
+		return unionGroups;
+	}
+
+	private List<Map<String, Object>> getGroupIDs(final Integer personID){
+		final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(GroupPanel::extractRecordGroupID)
+			.map(groups::get)
+			.toList();
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -646,7 +698,7 @@ public class GroupPanel extends JPanel{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP)
 			return;
 
-		final boolean hasData = !group.isEmpty();
+		final boolean hasData = ! union.isEmpty();
 //		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
 //		final boolean hasChildren = (getChildren().length > 0);
 		editGroupItem.setEnabled(hasData);
@@ -764,13 +816,13 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return new ArrayList<>(getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(GroupPanel::extractRecordReferenceID)
-			.toList();
+			.toList());
 	}
 
 	private List<Integer> getUnionIDs(final Integer partnerID){
@@ -948,7 +1000,7 @@ public class GroupPanel extends JPanel{
 		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override
 			public void onGroupEdit(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
+				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onEditGroup " + extractRecordID(group));
 			}
 
@@ -961,20 +1013,20 @@ public class GroupPanel extends JPanel{
 			public void onGroupLink(final GroupPanel groupPanel){
 				final PersonPanel partner1 = groupPanel.getPartner1();
 				final PersonPanel partner2 = groupPanel.getPartner2();
-				final Map<String, Object> group = groupPanel.group;
+				final Map<String, Object> group = groupPanel.union;
 				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
 					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
 			}
 
 			@Override
 			public void onGroupRemove(final GroupPanel groupPanel){
-				final Map<String, Object> group = groupPanel.getGroup();
+				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onRemoveGroup " + extractRecordID(group));
 			}
 
 			@Override
 			public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
-				final Map<String, Object> currentParents = groupPanel.getGroup();
+				final Map<String, Object> currentParents = groupPanel.getUnion();
 				System.out.println("onGroupChangeParents person: " + extractRecordID(person.getPerson())
 					+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
 			}
@@ -982,7 +1034,7 @@ public class GroupPanel extends JPanel{
 			@Override
 			public void onPersonChangeUnion(final GroupPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
 					final Map<String, Object> newUnion){
-				final Map<String, Object> oldUnion = groupPanel.getGroup();
+				final Map<String, Object> oldUnion = groupPanel.getUnion();
 				System.out.println("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson())
 					+ ", old union: " + oldUnion.get("id") + ", new partner: " + extractRecordID(newPartner)
 					+ ", new union: " + extractRecordID(newUnion));
@@ -1036,9 +1088,15 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel personPanel){
+			public void onPersonAddPreferredImage(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.getPerson();
 				System.out.println("onAddPreferredImage " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonEditPreferredImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onEditPreferredImage " + extractRecordID(person));
 			}
 		};
 

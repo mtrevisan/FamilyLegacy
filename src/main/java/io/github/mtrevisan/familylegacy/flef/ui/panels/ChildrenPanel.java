@@ -208,8 +208,8 @@ public class ChildrenPanel extends JPanel{
 	private Set<Integer> extractAdoptionEventIDs(){
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
 			.map(ChildrenPanel::extractRecordReferenceID)
 			.collect(Collectors.toSet());
 	}
@@ -450,9 +450,15 @@ public class ChildrenPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonAddImage(final PersonPanel personPanel){
+			public void onPersonAddPreferredImage(final PersonPanel personPanel){
 				final Map<String, Object> person = personPanel.getPerson();
 				System.out.println("onAddPreferredImage " + extractRecordID(person));
+			}
+
+			@Override
+			public void onPersonEditPreferredImage(final PersonPanel personPanel){
+				final Map<String, Object> person = personPanel.getPerson();
+				System.out.println("onEditPreferredImage " + extractRecordID(person));
 			}
 		};
 

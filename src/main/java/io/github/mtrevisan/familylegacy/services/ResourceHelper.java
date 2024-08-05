@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.services;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.services.images.AnimatedGifEncoder;
 import io.github.mtrevisan.familylegacy.services.images.GifDecoder;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -44,6 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Iterator;
 
@@ -58,7 +60,17 @@ public final class ResourceHelper{
 	private ResourceHelper(){}
 
 	public static ImageIcon getOriginalImage(final String filename){
-		final URL imgURL = ResourceHelper.class.getResource(filename);
+		URL imgURL = ResourceHelper.class.getResource(filename);
+		if(imgURL == null){
+			final File file = FileHelper.loadFile(filename);
+			try{
+				imgURL = file.toURI()
+					.toURL();
+			}
+			catch(final MalformedURLException ignored){
+				return null;
+			}
+		}
 		return new ImageIcon(imgURL);
 	}
 

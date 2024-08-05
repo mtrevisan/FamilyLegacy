@@ -24,7 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PersonDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupListenerInterface;
@@ -62,6 +64,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_NOTE = "note";
 	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
+	private static final String TABLE_NAME_MEDIA = "media";
 	private static final String TABLE_NAME_EVENT = "event";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_RESTRICTION = "restriction";
@@ -138,7 +141,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 	@Override
 	public void onGroupEdit(final GroupPanel groupPanel){
-		final Map<String, Object> group = groupPanel.getGroup();
+		final Map<String, Object> group = groupPanel.getUnion();
 		LOGGER.debug("onEditGroup {}", extractRecordID(group));
 
 		final GroupDialog groupDialog = GroupDialog.createRecordOnly(store, this);
@@ -220,7 +223,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	public void onGroupLink(final GroupPanel groupPanel){
 		final PersonPanel partner1 = groupPanel.getPartner1();
 		final PersonPanel partner2 = groupPanel.getPartner2();
-		final Map<String, Object> group = groupPanel.getGroup();
+		final Map<String, Object> group = groupPanel.getUnion();
 		LOGGER.debug("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
 			+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
 
@@ -236,7 +239,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 	@Override
 	public void onGroupRemove(final GroupPanel groupPanel){
-		final Map<String, Object> group = groupPanel.getGroup();
+		final Map<String, Object> group = groupPanel.getUnion();
 		LOGGER.debug("onRemoveGroup {}", extractRecordID(group));
 
 		final Integer groupID = extractRecordID(group);
@@ -277,7 +280,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 	@Override
 	public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
-		final Map<String, Object> currentParents = groupPanel.getGroup();
+		final Map<String, Object> currentParents = groupPanel.getUnion();
 		LOGGER.debug("onGroupChangeParents person: " + extractRecordID(person.getPerson())
 			+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
 
@@ -288,7 +291,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonChangeUnion(final GroupPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
 			final Map<String, Object> newUnion){
-		final Map<String, Object> oldUnion = groupPanel.getGroup();
+		final Map<String, Object> oldUnion = groupPanel.getUnion();
 		LOGGER.debug("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson()) + ", old union: " + extractRecordID(oldUnion)
 			+ ", new partner: " + extractRecordID(newPartner) + ", new union: " + extractRecordID(newUnion));
 
@@ -320,8 +323,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		personDialog.setLocationRelativeTo(treePanel);
 		personDialog.setVisible(true);
-
-		//TODO save
 	}
 
 	@Override
@@ -347,7 +348,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 				if(record != null){
 					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
 					final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
-					final Integer unionID = extractRecordID(treeUnionPanel.getGroup());
+					final Integer unionID = extractRecordID(treeUnionPanel.getUnion());
 					final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
 
 					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
@@ -381,9 +382,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.map(MainFrame::extractRecordReferenceID)
 			.toList();
 	}
@@ -441,7 +442,41 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> person = personPanel.getPerson();
 		LOGGER.debug("onUnlinkPersonFromParentGroup {}", extractRecordID(person));
 
-		//TODO
+		final GroupPanel groupPanel;
+		final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
+		if(index == GenealogicalTree.LAST_GENERATION_CHILD)
+			groupPanel = treePanel.genealogicalTree.get(0);
+		else{
+			final GroupPanel unionPanel = treePanel.genealogicalTree.get(index);
+			final boolean isPartner1 = (unionPanel.getPartner1() == personPanel);
+			//extract union between `parent1Index` and `parent2Index`
+			groupPanel = treePanel.genealogicalTree.get(isPartner1
+				? GenealogicalTree.getLeftChild(index)
+				: GenealogicalTree.getRightChild(index));
+		}
+		final Map<String, Object> union = groupPanel.getUnion();
+		final Integer unionID = extractRecordID(union);
+
+		final Integer personID = extractRecordID(person);
+		//remove person from union
+		getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values()
+			.removeIf(entry -> unionID.equals(extractRecordGroupID(entry))
+				&& "child".equals(extractRecordRole(entry))
+				&& TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& Objects.equals(personID, extractRecordReferenceID(entry)));
+
+		treePanel.refresh();
+	}
+
+	private List<Integer> getGroupIDs(final Integer personID){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(MainFrame::extractRecordGroupID)
+			.toList();
 	}
 
 	@Override
@@ -459,7 +494,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
 		final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
-		final Map<String, Object> union = treeUnionPanel.getGroup();
+		final Map<String, Object> union = treeUnionPanel.getUnion();
 		final Integer unionID = extractRecordID(union);
 
 		final Integer personID = extractRecordID(person);
@@ -471,16 +506,61 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 				&& TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
 
-		//TODO verify
 		treePanel.refresh();
 	}
 
 	@Override
-	public void onPersonAddImage(final PersonPanel personPanel){
+	public void onPersonAddPreferredImage(final PersonPanel personPanel){
 		final Map<String, Object> person = personPanel.getPerson();
 		LOGGER.debug("onAddPreferredImage {}", extractRecordID(person));
 
-		//TODO
+		final Integer personID = extractRecordID(person);
+		final MediaDialog photoDialog = MediaDialog.createForPhoto(store, this)
+			.withBasePath(FileHelper.documentsDirectory())
+			.withReference(TABLE_NAME_PERSON, personID)
+			.withOnCloseGracefully(record -> {
+				if(record != null){
+					final Integer newPhotoID = extractRecordID(record);
+					person.put("photo_id", newPhotoID);
+
+					treePanel.refresh();
+				}
+			});
+		photoDialog.initComponents();
+		photoDialog.loadData();
+		photoDialog.showNewRecord();
+
+		photoDialog.setLocationRelativeTo(treePanel);
+		photoDialog.setVisible(true);
+	}
+
+	@Override
+	public void onPersonEditPreferredImage(final PersonPanel personPanel){
+		final Map<String, Object> person = personPanel.getPerson();
+		LOGGER.debug("onEditPreferredImage " + extractRecordID(person));
+
+		final MediaDialog photoDialog = MediaDialog.createRecordOnly(store, this)
+			.withBasePath(FileHelper.documentsDirectory())
+			.withOnCloseGracefully(record -> {
+				if(record != null){
+					final Integer newPhotoID = extractRecordID(record);
+					person.put("photo_id", newPhotoID);
+
+					treePanel.refresh();
+				}
+			});
+		photoDialog.initComponents();
+		final Integer photoID = extractRecordPhotoID(person);
+		final TreeMap<Integer, Map<String, Object>> medias = getRecords(TABLE_NAME_MEDIA);
+		final Map<String, Object> media = medias.get(photoID);
+		photoDialog.loadData(media);
+
+		photoDialog.setLocationRelativeTo(treePanel);
+		photoDialog.setVisible(true);
+	}
+
+	private static Integer extractRecordPhotoID(final Map<String, Object> record){
+		return (Integer)record.get("photo_id");
 	}
 
 

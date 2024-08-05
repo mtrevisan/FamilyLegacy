@@ -117,12 +117,6 @@ public final class GroupDialog extends CommonListDialog{
 		return new GroupDialog(store, parent);
 	}
 
-	public static GroupDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final GroupDialog dialog = new GroupDialog(store, parent);
-		dialog.selectRecordOnly = true;
-		return dialog;
-	}
-
 	public static GroupDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
 		dialog.showRecordOnly = true;

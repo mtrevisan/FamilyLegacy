@@ -49,6 +49,8 @@ public interface PersonListenerInterface{
 
 	void onPersonUnlinkFromSiblingGroup(PersonPanel personPanel);
 
-	void onPersonAddImage(PersonPanel personPanel);
+	void onPersonAddPreferredImage(PersonPanel personPanel);
+
+	void onPersonEditPreferredImage(PersonPanel personPanel);
 
 }
