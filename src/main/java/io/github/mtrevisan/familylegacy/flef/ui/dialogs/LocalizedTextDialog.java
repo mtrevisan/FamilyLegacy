@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -37,13 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -68,7 +65,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
 
-	private static final int TABLE_INDEX_RECORD_TEXT = 1;
+	private static final int TABLE_INDEX_RECORD_TEXT = 2;
 
 	private static final String TABLE_NAME = "localized_text";
 
@@ -157,8 +154,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
-		return new RecordTableModel();
+	protected String[] getTableColumnNames(){
+		return new String[]{"ID", "Filter", "Date"};
 	}
 
 	@Override
@@ -268,16 +265,17 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		}
 	}
 
-	@Override
-	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.getTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_TEXT);
-
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		sorter.setRowFilter(filter);
-	}
+	//FIXME filter table
+//	@Override
+//	protected void filterTableBy(final JDialog panel){
+//		final String title = GUIHelper.getTextTrimmed(filterField);
+//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+//			TABLE_INDEX_RECORD_TEXT);
+//
+//		@SuppressWarnings("unchecked")
+//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		sorter.setRowFilter(filter);
+//	}
 
 	@Override
 	protected void fillData(){
@@ -438,27 +436,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	}
 
 
-	private static class RecordTableModel extends DefaultTableModel{
-
-		@Serial
-		private static final long serialVersionUID = -2557082779637153562L;
-
-
-		RecordTableModel(){
-			super(new String[]{"ID", "Date"}, 0);
-		}
-
-		@Override
-		public final Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public final boolean isCellEditable(final int row, final int column){
-			return false;
-		}
-	}
-
 
 	public static void main(final String[] args){
 		try{
@@ -470,7 +447,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put(TABLE_NAME, localizedTexts);
+		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
@@ -483,7 +460,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, localizedTextJunctions);
+		store.put("localized_text_junction", localizedTextJunctions);
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("id", 1);
 		localizedTextJunction1.put("localized_text_id", 1);
@@ -520,12 +497,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			});
 			//with secondary
 			dialog.setLocationRelativeTo(null);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
 			dialog.setVisible(true);
 		});
 	}

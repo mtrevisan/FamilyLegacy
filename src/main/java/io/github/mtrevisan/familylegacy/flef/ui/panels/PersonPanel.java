@@ -267,8 +267,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		removePersonItem.addActionListener(e -> listener.onPersonRemove(this));
 		popupMenu.add(removePersonItem);
 
+		popupMenu.addSeparator();
+
 		unlinkFromParentGroupItem.addActionListener(e -> listener.onPersonUnlinkFromParentGroup(this));
 		popupMenu.add(unlinkFromParentGroupItem);
+
+		popupMenu.addSeparator();
 
 		addToNewSiblingGroupItem.addActionListener(e -> listener.onPersonAddToSiblingGroup(this));
 		popupMenu.add(addToNewSiblingGroupItem);

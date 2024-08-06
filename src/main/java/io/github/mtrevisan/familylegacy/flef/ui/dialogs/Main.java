@@ -448,12 +448,6 @@ public class Main{
 				}
 			});
 			dialog.setLocationRelativeTo(null);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
 			dialog.setVisible(true);
 		});
 	}

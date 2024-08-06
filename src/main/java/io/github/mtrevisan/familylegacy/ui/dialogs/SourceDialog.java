@@ -215,6 +215,7 @@ public class SourceDialog extends JDialog{
 	private void initCitationsComponents(){
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(SourceDialog.this);
 			}
@@ -501,12 +502,12 @@ public class SourceDialog extends JDialog{
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID, TABLE_INDEX_RECORD_TITLE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			recordTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			recordTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -56,6 +57,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.Arrays;
@@ -75,6 +77,9 @@ public final class GUIHelper{
 	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+
+	//[ms]
+	private static final long DOUBLE_PRESS_INTERVAL = 500;
 
 
 	private GUIHelper(){}
@@ -122,6 +127,7 @@ public final class GUIHelper{
 			text = text.trim();
 		return (text != null && !text.isEmpty()? text: null);
 	}
+
 
 	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Runnable onEdit){
 		if(label != null)
@@ -282,6 +288,7 @@ public final class GUIHelper{
 		}
 	}
 
+
 	public static void addBorder(final JButton button, final boolean dataPresent, final Color borderColor){
 		if(dataPresent)
 			addBorder(button, borderColor);
@@ -302,6 +309,7 @@ public final class GUIHelper{
 		final Border border = BorderFactory.createCompoundBorder(outsideBorder, insideBorder);
 		button.setBorder(border);
 	}
+
 
 	public static void setEnabled(final Supplier<Boolean> funEnabled, final JTextComponent... components){
 		for(int i = 0, length = components.length; i < length; i ++){
@@ -334,6 +342,7 @@ public final class GUIHelper{
 		for(int i = 0, length = components.length; i < length; i ++)
 			components[i].setEnabled(enabled);
 	}
+
 
 	public static void addValidDataListener(final ValidDataListenerInterface validDataInterface, final Color mandatoryBackgroundColor,
 			final Color defaultBackgroundColor, final JTextComponent... components){
@@ -378,6 +387,7 @@ public final class GUIHelper{
 		return valid;
 	}
 
+
 	public static void updateBackground(final boolean valid, final Color mandatoryBackgroundColor, final Color defaultBackgroundColor,
 			final JTextComponent... components){
 		final int length = components.length;
@@ -415,6 +425,25 @@ public final class GUIHelper{
 			final Component tab = hiddenTabs.remove(title);
 			tabbedPane.addTab(title, tab);
 		}
+	}
+
+
+	public static void addDoubleShiftListener(final JPanel panel, final Runnable onDoubleShiftPress){
+		panel.addKeyListener(new KeyAdapter(){
+			private long lastShiftPressTime = 0l;
+
+			@Override
+			public void keyPressed(final KeyEvent evt){
+				if(evt.getKeyCode() == KeyEvent.VK_SHIFT){
+					final long currentTime = System.currentTimeMillis();
+					if(currentTime - lastShiftPressTime < DOUBLE_PRESS_INTERVAL)
+						onDoubleShiftPress.run();
+
+					lastShiftPressTime = currentTime;
+				}
+			}
+		});
+		panel.setFocusable(true);
 	}
 
 }

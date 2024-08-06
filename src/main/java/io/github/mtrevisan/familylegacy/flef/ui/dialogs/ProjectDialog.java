@@ -218,7 +218,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
 		final TreeMap<Integer, Map<String, Object>> projects = new TreeMap<>();
-		store.put(TABLE_NAME, projects);
+		store.put("project", projects);
 		final Map<String, Object> project = new HashMap<>();
 		project.put("id", 1);
 		project.put("protocol_name", PROTOCOL_NAME_DEFAULT);
@@ -271,12 +271,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 				}
 			});
 			dialog.setLocationRelativeTo(null);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
 			dialog.setVisible(true);
 		});
 	}

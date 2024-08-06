@@ -173,6 +173,7 @@ public class LinkIndividualDialog extends JDialog{
 		filterLabel.setLabelFor(filterField);
 		filterField.setEnabled(false);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(LinkIndividualDialog.this);
 			}
@@ -231,12 +232,12 @@ public class LinkIndividualDialog extends JDialog{
 			TABLE_INDEX_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)individualsTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)individualsTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			individualsTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)individualsTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)individualsTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			individualsTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

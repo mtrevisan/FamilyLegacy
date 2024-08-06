@@ -75,6 +75,7 @@ public class EventsPanel extends JPanel{
 		final JLabel eventLabel = new JLabel("Event(s):");
 		eventLabel.setLabelFor(eventField);
 		eventField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(EventsPanel.this);
 			}

@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -41,13 +40,11 @@ import org.apache.commons.lang3.StringUtils;
 import javax.naming.OperationNotSupportedException;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -74,7 +71,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 6258734190218776466L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 1;
+	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "research_status";
 
@@ -111,8 +108,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
-		return new RecordTableModel();
+	protected String[] getTableColumnNames(){
+		return new String[]{"ID", "Filter", "Identifier"};
 	}
 
 	@Override
@@ -188,16 +185,17 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		}
 	}
 
-	@Override
-	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.getTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_IDENTIFIER);
-
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		sorter.setRowFilter(filter);
-	}
+	//FIXME filter table
+//	@Override
+//	protected void filterTableBy(final JDialog panel){
+//		final String title = GUIHelper.getTextTrimmed(filterField);
+//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+//			TABLE_INDEX_RECORD_IDENTIFIER);
+//
+//		@SuppressWarnings("unchecked")
+//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		sorter.setRowFilter(filter);
+//	}
 
 	@Override
 	protected void fillData(){
@@ -291,27 +289,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 
-	private static class RecordTableModel extends DefaultTableModel{
-
-		@Serial
-		private static final long serialVersionUID = -4786221445323184600L;
-
-
-		RecordTableModel(){
-			super(new String[]{"ID", "Identifier"}, 0);
-		}
-
-		@Override
-		public final Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public final boolean isCellEditable(final int row, final int column){
-			return false;
-		}
-	}
-
 	private static class PositiveIntegerFilter extends DocumentFilter{
 		@Override
 		public final void insertString(final FilterBypass fb, final int offset, final String text, final AttributeSet attr)
@@ -343,6 +320,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 
+
 	public static void main(final String[] args){
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -353,7 +331,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
 		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
-		store.put(TABLE_NAME, researchStatuses);
+		store.put("research_status", researchStatuses);
 		final Map<String, Object> researchStatus = new HashMap<>();
 		researchStatus.put("id", 1);
 		researchStatus.put("reference_table", "date");
@@ -420,12 +398,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 			});
 			dialog.setLocationRelativeTo(null);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
 			dialog.setVisible(true);
 		});
 	}

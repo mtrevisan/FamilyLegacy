@@ -193,6 +193,7 @@ public class GroupDialog extends JDialog{
 	private void initCitationsComponents(){
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(GroupDialog.this);
 			}
@@ -425,12 +426,12 @@ public class GroupDialog extends JDialog{
 			TABLE_INDEX_RECORD_NAME);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			recordTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			recordTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

@@ -278,13 +278,19 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	@Override
-	public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
-		final Map<String, Object> currentParents = groupPanel.getUnion();
-		LOGGER.debug("onGroupChangeParents person: " + extractRecordID(person.getPerson())
-			+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
+	public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel personPanel, final Map<String, Object> newParents){
+		final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
+		final boolean isPartner1 = Objects.equals(extractRecordID(groupPanel.getPartner1().getPerson()),
+			extractRecordID(personPanel.getPerson()));
+		final int parentIndex = (isPartner1? GenealogicalTree.getLeftChild(index): GenealogicalTree.getRightChild(index));
+		final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(parentIndex);
+		final Map<String, Object> currentParents = treeUnionPanel.getUnion();
+		LOGGER.debug("onGroupChangeParents person: " + extractRecordID(personPanel.getPerson())
+			+ ", current parents: " + extractRecordID(currentParents) + ", new parents: " + extractRecordID(newParents));
 
 		//TODO
-//		setPersonListener etc...
+
+		//TODO store "preferences" for panels, like "last position (parent1/2) of a person inside a group", "last group shown", etc
 	}
 
 	@Override
@@ -346,26 +352,48 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
-					final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
-					final Integer unionID = extractRecordID(treeUnionPanel.getUnion());
-					final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
+					if(index == GenealogicalTree.LAST_GENERATION_CHILD){
+						//add as child
+						final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(0);
+						final Map<String, Object> currentParents = treeUnionPanel.getUnion();
+						final Integer unionID = extractRecordID(currentParents);
 
-					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
-					Map<String, Object> groupJunction = new HashMap<>();
-					groupJunction.put("id", extractNextRecordID(groupJunctions));
-					groupJunction.put("group_id", unionID);
-					groupJunction.put("reference_table", TABLE_NAME_PERSON);
-					groupJunction.put("reference_id", extractRecordID(record));
-					groupJunction.put("role", "partner");
-					groupJunctions.put(extractRecordID(groupJunction), groupJunction);
-					for(final Integer partnerID : partnerIDs){
-						groupJunction = new HashMap<>();
+						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+						Map<String, Object> groupJunction = new HashMap<>();
 						groupJunction.put("id", extractNextRecordID(groupJunctions));
 						groupJunction.put("group_id", unionID);
 						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", partnerID);
+						groupJunction.put("reference_id", extractRecordID(record));
+						groupJunction.put("role", "child");
+						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+					}
+					else{
+						final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
+						final Integer unionID = extractRecordID(treeUnionPanel.getUnion());
+						if(unionID == null){
+							LOGGER.warn("Missing group, cannot create a person (FIXME hide popup menu entry)");
+
+							return;
+						}
+						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
+
+						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+						Map<String, Object> groupJunction = new HashMap<>();
+						groupJunction.put("id", extractNextRecordID(groupJunctions));
+						groupJunction.put("group_id", unionID);
+						groupJunction.put("reference_table", TABLE_NAME_PERSON);
+						groupJunction.put("reference_id", extractRecordID(record));
 						groupJunction.put("role", "partner");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+						for(final Integer partnerID : partnerIDs){
+							groupJunction = new HashMap<>();
+							groupJunction.put("id", extractNextRecordID(groupJunctions));
+							groupJunction.put("group_id", unionID);
+							groupJunction.put("reference_table", TABLE_NAME_PERSON);
+							groupJunction.put("reference_id", partnerID);
+							groupJunction.put("role", "partner");
+							groupJunctions.put(extractRecordID(groupJunction), groupJunction);
+						}
 					}
 
 					treePanel.refresh();
@@ -515,6 +543,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final Integer personID = extractRecordID(person);
 		final MediaDialog photoDialog = MediaDialog.createForPhoto(store, this)
+			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
 			.withReference(TABLE_NAME_PERSON, personID)
 			.withOnCloseGracefully(record -> {
@@ -539,6 +568,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onEditPreferredImage " + extractRecordID(person));
 
 		final MediaDialog photoDialog = MediaDialog.createRecordOnly(store, this)
+			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
 			.withOnCloseGracefully(record -> {
 				if(record != null){
@@ -657,6 +687,13 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		groupJunction6.put("reference_id", 4);
 		groupJunction6.put("role", "partner");
 		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
+		final Map<String, Object> groupJunction7 = new HashMap<>();
+		groupJunction7.put("id", 8);
+		groupJunction7.put("group_id", 3);
+		groupJunction7.put("reference_table", "person");
+		groupJunction7.put("reference_id", 5);
+		groupJunction7.put("role", "adoptee");
+		groupJunctions.put((Integer)groupJunction7.get("id"), groupJunction7);
 
 		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
 		store.put("event", events);

@@ -165,6 +165,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(DocumentStructureDialog.this);
 			}
@@ -451,12 +452,12 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_DOCUMENT_FILE);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)filesTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)filesTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			filesTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)filesTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)filesTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			filesTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

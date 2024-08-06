@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
 import javax.swing.GrayFilter;
@@ -79,6 +81,8 @@ public class GroupPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 6664809287767332824L;
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(GroupPanel.class);
+
 	private static final Color BORDER_COLOR = Color.BLACK;
 
 	private static final double PREVIOUS_NEXT_WIDTH = 12.;
@@ -105,6 +109,8 @@ public class GroupPanel extends JPanel{
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));
+	private static final Dimension NEXT_PREVIOUS_UNION_PREFERRED_SIZE = new Dimension(ICON_UNION_PREVIOUS_ENABLED.getIconWidth(),
+		ICON_UNION_PREVIOUS_ENABLED.getIconHeight());
 
 	/** Height of the union line from the bottom of the person panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
@@ -115,7 +121,7 @@ public class GroupPanel extends JPanel{
 	/** Distance between navigation union arrow and box. */
 	static final int NAVIGATION_UNION_ARROW_SEPARATION = 2;
 	/** Distance between navigation parents arrow and box. */
-	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_UNION_ARROW_SEPARATION << 1) + 1;
+	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_UNION_ARROW_SEPARATION << 1) + 3;
 
 	static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_UNION_ARROW_SEPARATION);
 	private static final int UNION_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH + NAVIGATION_UNION_ARROW_SEPARATION
@@ -186,7 +192,7 @@ public class GroupPanel extends JPanel{
 
 		final JPanel arrowPanel1 = new JPanel(new MigLayout("insets 0",
 			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
-		arrowPanel1.add(partner1ArrowsSpacer);
+		arrowPanel1.add(partner1ArrowsSpacer, "");
 		arrowPanel1.add(partner1PreviousParentsLabel, "right");
 		arrowPanel1.add(partner1NextParentsLabel, "left");
 		arrowPanel1.add(partner1PreviousUnionLabel, "right");
@@ -206,7 +212,7 @@ public class GroupPanel extends JPanel{
 		arrowPanel2.add(partner2NextUnionLabel, "left");
 		arrowPanel2.add(partner2PreviousParentsLabel, "right");
 		arrowPanel2.add(partner2NextParentsLabel, "left");
-		arrowPanel2.add(partner2ArrowsSpacer);
+		arrowPanel2.add(partner2ArrowsSpacer, "hidemode 2");
 		arrowPanel2.setOpaque(false);
 
 		arrowPersonPanel2 = new JPanel(new MigLayout("insets 0",
@@ -307,6 +313,7 @@ public class GroupPanel extends JPanel{
 					}
 				}
 			});
+			partner1PreviousUnionLabel.setPreferredSize(NEXT_PREVIOUS_UNION_PREFERRED_SIZE);
 			partner1PreviousUnionLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -347,6 +354,7 @@ public class GroupPanel extends JPanel{
 					}
 				}
 			});
+			partner1NextUnionLabel.setPreferredSize(NEXT_PREVIOUS_UNION_PREFERRED_SIZE);
 			partner1NextUnionLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
@@ -609,13 +617,13 @@ public class GroupPanel extends JPanel{
 			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
 			Integer partner1ID = extractRecordID(partner1);
 			if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
-				System.out.println("Person " + partner1ID + " does not belongs to the union " + homeUnionID + " (this cannot be)");
+				LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner1ID, homeUnionID);
 
 				partner1 = Collections.emptyMap();
 			}
 			Integer partner2ID = extractRecordID(partner2);
 			if(partner2ID != null && !personIDsInUnion.contains(partner2ID)){
-				System.out.println("Person " + partner2ID + " does not belongs to the union " + homeUnionID + " (this cannot be)");
+				LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner2ID, homeUnionID);
 
 				partner2 = Collections.emptyMap();
 			}
@@ -629,12 +637,14 @@ public class GroupPanel extends JPanel{
 				if(!partner2.isEmpty())
 					personIDsInUnion.remove(extractRecordID(partner2));
 				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
+					//FIXME choose the last shown person, if any
 					partner1ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner1ID))
 						partner1 = persons.get(partner1ID);
 					personIDsInUnion.remove(partner1ID);
 				}
 				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
+					//FIXME choose the last shown person, if any
 					partner2ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner2ID))
 						partner2 = persons.get(partner2ID);
@@ -741,10 +751,6 @@ public class GroupPanel extends JPanel{
 		if(hasMoreUnions)
 			icon = (partnerNextEnabled? ICON_UNION_NEXT_ENABLED: ICON_UNION_NEXT_DISABLED);
 		nextLabel.setIcon(icon);
-
-
-		(Objects.equals(extractRecordID(otherPartner), extractRecordID(partner2Panel.getPerson()))? partner1ArrowsSpacer: partner2ArrowsSpacer)
-			.setVisible(hasMoreUnions);
 	}
 
 	private void updatePreviousNextParentsIcons(final Map<String, Object> partner, final JLabel previousLabel, final JLabel nextLabel){
@@ -779,6 +785,12 @@ public class GroupPanel extends JPanel{
 		if(hasMoreParents)
 			icon = (parentsNextEnabled? ICON_PARENTS_NEXT_ENABLED: ICON_PARENTS_NEXT_DISABLED);
 		nextLabel.setIcon(icon);
+
+
+		final boolean isPartner1 = Objects.equals(extractRecordID(partner), extractRecordID(partner1Panel.getPerson()));
+		final List<Integer> otherPartnerUnionIDs = getUnionIDs(extractRecordID(isPartner1? partner2: partner1));
+		final boolean hasMoreUnions = (otherPartnerUnionIDs.size() > 1);
+		(isPartner1? partner1ArrowsSpacer: partner2ArrowsSpacer).setVisible(hasMoreParents && hasMoreUnions);
 	}
 
 
@@ -1025,10 +1037,9 @@ public class GroupPanel extends JPanel{
 			}
 
 			@Override
-			public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel person, final Map<String, Object> newParents){
-				final Map<String, Object> currentParents = groupPanel.getUnion();
-				System.out.println("onGroupChangeParents person: " + extractRecordID(person.getPerson())
-					+ ", current parents: " + extractRecordID(currentParents) + ", new: " + extractRecordID(newParents));
+			public void onPersonChangeParents(final GroupPanel groupPanel, final PersonPanel personPanel, final Map<String, Object> newParents){
+				System.out.println("onGroupChangeParents person: " + extractRecordID(personPanel.getPerson())
+					+ ", new parents: " + extractRecordID(newParents));
 			}
 
 			@Override

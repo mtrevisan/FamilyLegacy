@@ -189,6 +189,7 @@ public class LinkFamilyDialog extends JDialog{
 		filterLabel.setLabelFor(filterField);
 		filterField.setEnabled(false);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(LinkFamilyDialog.this);
 			}
@@ -259,12 +260,12 @@ public class LinkFamilyDialog extends JDialog{
 			TABLE_INDEX_PARTNER1_ADDITIONAL_NAMES, TABLE_INDEX_PARTNER2_ADDITIONAL_NAMES);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)familiesTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			familiesTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)familiesTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)familiesTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			familiesTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

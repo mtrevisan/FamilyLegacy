@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
@@ -42,13 +41,11 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
@@ -74,7 +71,7 @@ public final class EventDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 1136825738944999745L;
 
-	private static final int TABLE_INDEX_RECORD_TYPE = 1;
+	private static final int TABLE_INDEX_RECORD_TYPE = 2;
 
 	private static final String TABLE_NAME = "event";
 
@@ -123,8 +120,8 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected DefaultTableModel getDefaultTableModel(){
-		return new RecordTableModel();
+	protected String[] getTableColumnNames(){
+		return new String[]{"ID", "Filter", "Type"};
 	}
 
 	@Override
@@ -238,16 +235,17 @@ public final class EventDialog extends CommonListDialog{
 		}
 	}
 
-	@Override
-	protected void filterTableBy(final JDialog panel){
-		final String title = GUIHelper.getTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-			TABLE_INDEX_RECORD_TYPE);
-
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		sorter.setRowFilter(filter);
-	}
+	//FIXME filter table
+//	@Override
+//	protected void filterTableBy(final JDialog panel){
+//		final String title = GUIHelper.getTextTrimmed(filterField);
+//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
+//			TABLE_INDEX_RECORD_TYPE);
+//
+//		@SuppressWarnings("unchecked")
+//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		sorter.setRowFilter(filter);
+//	}
 
 	@Override
 	protected void fillData(){
@@ -360,27 +358,6 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 
-	private static class RecordTableModel extends DefaultTableModel{
-
-		@Serial
-		private static final long serialVersionUID = 8973917668709639778L;
-
-
-		RecordTableModel(){
-			super(new String[]{"ID", "Type"}, 0);
-		}
-
-		@Override
-		public final Class<?> getColumnClass(final int column){
-			return String.class;
-		}
-
-		@Override
-		public final boolean isCellEditable(final int row, final int column){
-			return false;
-		}
-	}
-
 
 	public static void main(final String[] args){
 		try{
@@ -392,7 +369,7 @@ public final class EventDialog extends CommonListDialog{
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
 		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put(TABLE_NAME, events);
+		store.put("event", events);
 		final Map<String, Object> event = new HashMap<>();
 		event.put("id", 1);
 		event.put("type", "birth");
@@ -420,7 +397,7 @@ public final class EventDialog extends CommonListDialog{
 		dates.put((Integer)date1.get("id"), date1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put(TABLE_NAME_NOTE, notes);
+		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
@@ -435,7 +412,7 @@ public final class EventDialog extends CommonListDialog{
 		notes.put((Integer)note2.get("id"), note2);
 
 		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put(TABLE_NAME_RESTRICTION, restrictions);
+		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
@@ -551,12 +528,6 @@ public final class EventDialog extends CommonListDialog{
 				}
 			});
 			dialog.setLocationRelativeTo(null);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
 			dialog.setVisible(true);
 		});
 	}

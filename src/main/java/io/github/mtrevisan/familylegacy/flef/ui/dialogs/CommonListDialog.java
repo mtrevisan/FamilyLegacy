@@ -50,8 +50,11 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
@@ -86,6 +89,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
 
 	protected static final int TABLE_INDEX_RECORD_ID = 0;
+	protected static final int TABLE_INDEX_RECORD_FILTER = 1;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
 
@@ -106,6 +110,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
 	protected volatile boolean selectRecordOnly;
+	protected volatile boolean hideUnselectButton;
 	protected volatile boolean showRecordOnly;
 
 
@@ -113,8 +118,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		super(store, parent);
 	}
 
-
-	protected abstract DefaultTableModel getDefaultTableModel();
 
 	@Override
 	public final void initComponents(){
@@ -130,7 +133,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		//store components:
 		filterLabel = new JLabel("Filter:");
 		filterField = new JTextField();
-		recordTable = new JTable(getDefaultTableModel());
+		recordTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
+			@Serial
+			private static final long serialVersionUID = 6564164142990308313L;
+
+			@Override
+			public Class<?> getColumnClass(final int column){
+				return String.class;
+			}
+
+			@Override
+			public boolean isCellEditable(final int row, final int column){
+				return false;
+			}
+		});
 		tableScrollPane = new JScrollPane(recordTable);
 		newRecordButton = new JButton("New");
 		unselectRecordButton = new JButton("Unselect");
@@ -142,6 +158,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		filterLabel.setLabelFor(filterField);
 		GUIHelper.addUndoCapability(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(CommonListDialog.this);
 			}
@@ -150,20 +167,30 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		recordTable.setAutoCreateRowSorter(true);
 		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		recordTable.setGridColor(GRID_COLOR);
-		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		recordTable.setDragEnabled(true);
 		recordTable.setDropMode(DropMode.INSERT_ROWS);
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
-		recordTable.setRowSorter(sorter);
+
+		//define selection
+		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		recordTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
 				if(!ignoreEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
 					selectAction();
 			});
+
+		//add sorter
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
+		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
+		recordTable.setRowSorter(sorter);
+
+		//hide filter column
+		final TableColumnModel columnModel = recordTable.getColumnModel();
+		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_RECORD_FILTER);
+		columnModel.removeColumn(hiddenColumn);
+
 		final InputMap recordTableInputMap = recordTable.getInputMap(JComponent.WHEN_FOCUSED);
 		recordTableInputMap.put(GUIHelper.INSERT_STROKE, ACTION_MAP_KEY_INSERT);
 		recordTableInputMap.put(GUIHelper.DELETE_STROKE, ACTION_MAP_KEY_DELETE);
@@ -187,7 +214,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			}
 		});
 		final Dimension viewSize = new Dimension();
-		viewSize.width = recordTable.getColumnModel()
+		viewSize.width = columnModel
 			.getTotalColumnWidth();
 		viewSize.height = TABLE_ROWS_SHOWN * recordTable.getRowHeight();
 		recordTable.setPreferredScrollableViewportSize(viewSize);
@@ -196,6 +223,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		newRecordButton.setVisible(!selectRecordOnly);
 		unselectRecordButton.setEnabled(false);
 		unselectRecordButton.addActionListener(evt -> unselectAction());
+		unselectRecordButton.setVisible(!hideUnselectButton);
 		deleteRecordButton.setEnabled(false);
 		deleteRecordButton.addActionListener(evt -> deleteAction());
 		deleteRecordButton.setVisible(!selectRecordOnly);
@@ -205,22 +233,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
-		if(showRecordOnly)
+		if(showRecordOnly){
 			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(filterLabel, "align label,split 2,hidemode 3");
-		add(filterField, "grow,wrap related,hidemode 3");
-		add(tableScrollPane, "grow,wrap related,hidemode 3");
-		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
-		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right"
-			+ (selectRecordOnly? ",wrap paragraph": StringUtils.EMPTY) + ",hidemode 3");
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph,hidemode 3");
-		add(recordTabbedPane, "grow");
-
-		if(selectRecordOnly)
-			GUIHelper.setEnabled(recordTabbedPane, false);
-		if(showRecordOnly){
 			filterLabel.setVisible(false);
 			filterField.setVisible(false);
 			tableScrollPane.setVisible(false);
@@ -228,6 +243,25 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setVisible(false);
 			deleteRecordButton.setVisible(false);
 		}
+		final boolean showRecordTabbedPane = (!selectRecordOnly || recordTabbedPane.getComponentCount() > 0);
+
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		add(filterLabel, "align label,split 2,hidemode 3");
+		add(filterField, "grow,wrap related,hidemode 3");
+		add(tableScrollPane, "grow"
+			+ (!hideUnselectButton || !showRecordOnly && selectRecordOnly && showRecordTabbedPane? ",wrap related": StringUtils.EMPTY)
+			+ ",hidemode 3");
+		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
+		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right"
+			+ (selectRecordOnly && showRecordTabbedPane? ",wrap paragraph": StringUtils.EMPTY)
+			+ ",hidemode 3");
+		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30" + (!showRecordOnly? ",wrap paragraph": StringUtils.EMPTY)
+			+ ",hidemode 3");
+		if(showRecordTabbedPane)
+			add(recordTabbedPane, "grow");
+
+		if(selectRecordOnly)
+			GUIHelper.setEnabled(recordTabbedPane, false);
 
 		pack();
 	}
@@ -258,8 +292,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		return false;
 	}
 
-	protected abstract void filterTableBy(final JDialog panel);
+	private void filterTableBy(final JDialog panel){
+		final String title = GUIHelper.getTextTrimmed(filterField);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_FILTER);
 
+		@SuppressWarnings("unchecked")
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+		sorter.setRowFilter(filter);
+	}
+
+	protected abstract String[] getTableColumnNames();
 
 	public void loadData(final Map<String, Object> record){
 		final Integer recordID = extractRecordID(record);

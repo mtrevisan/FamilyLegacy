@@ -147,6 +147,7 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(ContactStructureDialog.this);
 			}
@@ -384,12 +385,12 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(text, TABLE_INDEX_CONTACT_ID);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)contactsTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)contactsTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			contactsTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)contactsTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)contactsTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			contactsTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

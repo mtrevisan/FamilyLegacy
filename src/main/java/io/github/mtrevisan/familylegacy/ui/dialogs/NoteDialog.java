@@ -188,6 +188,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	private void initCitationsComponents(){
 		filterLabel.setLabelFor(filterField);
 		filterField.addKeyListener(new KeyAdapter(){
+			@Override
 			public void keyReleased(final KeyEvent evt){
 				filterDebouncer.call(NoteDialog.this);
 			}
@@ -394,12 +395,12 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			TABLE_INDEX_RECORD_LANGUAGE, TABLE_INDEX_RECORD_TEXT);
 
 		@SuppressWarnings("unchecked")
-		TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		if(sorter == null){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-			sorter = new TableRowSorter<>(model);
-			recordTable.setRowSorter(sorter);
-		}
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+//		if(sorter == null){
+//			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+//			sorter = new TableRowSorter<>(model);
+//			recordTable.setRowSorter(sorter);
+//		}
 		sorter.setRowFilter(filter);
 	}
 

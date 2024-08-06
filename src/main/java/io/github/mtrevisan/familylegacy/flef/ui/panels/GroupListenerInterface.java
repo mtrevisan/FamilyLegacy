@@ -41,10 +41,10 @@ public interface GroupListenerInterface{
 	 * Iterate through parents of a person.
 	 *
 	 * @param groupPanel	The current group panel from which to iterate.
-	 * @param person	The current person (that remain the same).
+	 * @param personPanel	The current person (that remain the same).
 	 * @param newParents	The union that has to change.
 	 */
-	void onPersonChangeParents(GroupPanel groupPanel, PersonPanel person, Map<String, Object> newParents);
+	void onPersonChangeParents(GroupPanel groupPanel, PersonPanel personPanel, Map<String, Object> newParents);
 
 	/**
 	 * Iterate through unions of a person.
