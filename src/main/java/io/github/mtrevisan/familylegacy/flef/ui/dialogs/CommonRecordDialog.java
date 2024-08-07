@@ -115,9 +115,9 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 	//record components:
-	protected final JPanel recordPanel = new JPanel();
+	private final JPanel recordPanel = new JPanel();
 
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+	protected final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private Consumer<Map<String, Object>> onCloseGracefully;
 
 	protected Map<String, Object> selectedRecord;
@@ -184,7 +184,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract void initRecordLayout(final JComponent recordPanel);
 
-	protected final void closeAction(final ActionEvent evt){
+	private void closeAction(final ActionEvent evt){
 		if(closeAction())
 			setVisible(false);
 	}

@@ -430,7 +430,7 @@ public class TreePanel extends JPanel{
 
 	private void prepareData(Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
 		if(homeUnion.isEmpty()){
-			final List<Map<String, Object>> unions = extractUnions(partner1, store);
+			final List<Map<String, Object>> unions = extractUnions(partner1);
 			if(!unions.isEmpty())
 				//FIXME choose the last shown union, if any
 				homeUnion = unions.getFirst();
@@ -606,18 +606,16 @@ public class TreePanel extends JPanel{
 		return parentsGroup;
 	}
 
-	static List<Map<String, Object>> extractUnions(final Map<String, Object> person,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private List<Map<String, Object>> extractUnions(final Map<String, Object> person){
 		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
 		if(!person.isEmpty()){
 			final Integer personID = extractRecordID(person);
-			unionGroups.addAll(getGroupIDs(personID, store));
+			unionGroups.addAll(getGroupIDs(personID));
 		}
 		return unionGroups;
 	}
 
-	private static List<Map<String, Object>> getGroupIDs(final Integer personID,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private List<Map<String, Object>> getGroupIDs(final Integer personID){
 		final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
 		return getRecords(TABLE_NAME_GROUP_JUNCTION, store)
 			.values().stream()

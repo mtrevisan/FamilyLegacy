@@ -52,16 +52,22 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Frame;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -95,7 +101,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	//store components:
 	private JLabel filterLabel;
-	protected JTextField filterField;
+	private JTextField filterField;
 	protected JTable recordTable;
 	private JScrollPane tableScrollPane;
 	private JButton newRecordButton;
@@ -164,13 +170,11 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			}
 		});
 
-		recordTable.setAutoCreateRowSorter(true);
 		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		recordTable.setFocusable(true);
 		recordTable.setGridColor(GRID_COLOR);
 		recordTable.setDragEnabled(true);
 		recordTable.setDropMode(DropMode.INSERT_ROWS);
-		recordTable.getTableHeader()
-			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
 
 		//define selection
@@ -182,12 +186,76 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			});
 
 		//add sorter
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_ID, Comparator.naturalOrder());
+		recordTable.setAutoCreateRowSorter(true);
+		final Comparator<?>[] comparators = getTableColumnComparators();
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(getRecordTableModel());
+		final int columnCount = recordTable.getColumnCount();
+		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
+			final Comparator<?> comparator = comparators[columnIndex];
+
+			if(comparator != null)
+				sorter.setComparator(columnIndex, comparator);
+		}
 		recordTable.setRowSorter(sorter);
 
-		//hide filter column
+		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
+		final int[] alignments = getTableColumnAlignments();
+		final JTableHeader tableHeader = recordTable.getTableHeader();
+		final Font tableFont = recordTable.getFont();
+		final Font headerFont = tableFont.deriveFont(Font.BOLD);
+		tableHeader.setDefaultRenderer(new DefaultTableCellRenderer(){
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+					final boolean hasFocus, final int row, final int column){
+				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+				setBorder(cellBorder);
+
+				final int alignment = alignments[table.convertColumnIndexToModel(column)];
+				setHorizontalAlignment(alignment);
+				setFont(headerFont);
+
+				return headerCell;
+			}
+		});
+
+		//add tooltip
 		final TableColumnModel columnModel = recordTable.getColumnModel();
+		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
+			final TableColumn column = columnModel.getColumn(columnIndex);
+			final int alignment = alignments[columnIndex];
+
+			column.setCellRenderer(new DefaultTableCellRenderer(){
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+						final boolean hasFocus, final int row, final int column){
+					final Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+					String cellText = null;
+					if(value != null){
+						cellText = value.toString();
+						final FontMetrics fm = cell.getFontMetrics(tableFont);
+						final int textWidth = fm.stringWidth(cellText);
+						final Insets insets = ((JComponent)cell).getInsets();
+						final int cellWidth = columnModel.getColumn(column).getWidth()
+							- insets.left - insets.right;
+
+						if(textWidth <= cellWidth)
+							cellText = null;
+					}
+
+					setBorder(cellBorder);
+
+					setToolTipText(cellText);
+
+					setHorizontalAlignment(alignment);
+
+					return cell;
+				}
+			});
+		}
+
+		//hide filter column
 		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_RECORD_FILTER);
 		columnModel.removeColumn(hiddenColumn);
 
@@ -266,6 +334,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		pack();
 	}
 
+	protected DefaultTableModel getRecordTableModel(){
+		return (DefaultTableModel)recordTable.getModel();
+	}
+
 	protected void addMandatoryField(final JTextComponent... fields){
 		mandatoryFields.add(fields);
 	}
@@ -278,13 +350,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final String tableName = getTableName();
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
 		if(records.containsKey(recordID)){
-			final TableModel model = recordTable.getModel();
-			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
+			final TableModel model = getRecordTableModel();
+			for(int row = 0, length = model.getRowCount(); row < length; row ++){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
 					return true;
 				}
+			}
 		}
 
 		LOGGER.info("{} id {} does not exists", tableName, recordID);
@@ -302,6 +377,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	protected abstract String[] getTableColumnNames();
+
+	protected abstract int[] getTableColumnAlignments();
+
+	protected abstract Comparator<?>[] getTableColumnComparators();
 
 	public void loadData(final Map<String, Object> record){
 		final Integer recordID = extractRecordID(record);
@@ -339,7 +418,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			final int viewRowIndex = recordTable.getSelectedRow();
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-			final TableModel model = recordTable.getModel();
+			final TableModel model = getRecordTableModel();
 			final String recordIdentifier = (String)model.getValueAt(modelRowIndex, 1);
 			unselectRecordButton.setEnabled(recordIdentifier != null && !recordIdentifier.isEmpty());
 
@@ -372,7 +451,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-		final TableModel model = recordTable.getModel();
+		final TableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
 
 		return getRecords(getTableName()).get(recordID);
@@ -401,7 +480,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		filterField.setText(null);
 
 		//add to table
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		final int oldSize = model.getRowCount();
 		model.setRowCount(oldSize + 1);
 		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_RECORD_ID);
@@ -452,7 +531,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final int viewRowIndex = recordTable.getSelectedRow();
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
 		if(viewRowIndex == -1)
 			//no row selected

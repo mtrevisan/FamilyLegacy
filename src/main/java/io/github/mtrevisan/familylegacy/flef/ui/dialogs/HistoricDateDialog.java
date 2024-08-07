@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -44,17 +46,18 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -114,14 +117,29 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		final Comparator<String> dateComparator = (date1, date2) -> {
+			//TODO retrieve calendar type? store julian date?
+			String calendar1 = CalendarParserBuilder.CALENDAR_GREGORIAN;
+			//TODO retrieve calendar type? store julian date?
+			String calendar2 = CalendarParserBuilder.CALENDAR_GREGORIAN;
+			final LocalDate localDate1 = DateParser.parse(date1, calendar1);
+			final LocalDate localDate2 = DateParser.parse(date2, calendar2);
+			return localDate1.compareTo(localDate2);
+		};
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, dateComparator};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_DATE, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -199,7 +217,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -208,26 +226,19 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 			final String date = extractRecordDate(container);
 			final String dateOriginal = extractRecordDateOriginal(container);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(date)
+				.add(dateOriginal);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
 				TABLE_INDEX_RECORD_DATE);
 
 			row ++;
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_DATE);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){
@@ -296,17 +307,18 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		//update table:
 		if(!Objects.equals(date, extractRecordDate(selectedRecord))){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
-			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			for(int row = 0, length = model.getRowCount(); row < length; row ++){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					model.setValueAt(date, modelRowIndex, TABLE_INDEX_RECORD_DATE);
 
 					break;
 				}
+			}
 		}
 
 		selectedRecord.put("date", date);
@@ -332,10 +344,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
 		return (Integer)record.get("calendar_original_id");
-	}
-
-	private static Integer extractRecordHistoricDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
 	}
 
 

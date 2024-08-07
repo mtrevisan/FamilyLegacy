@@ -43,10 +43,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -126,16 +125,22 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
 			+ (filterReferenceID > 0? " for person ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -226,14 +231,20 @@ public final class PersonNameDialog extends CommonListDialog{
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(filterReferenceID));
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
 			final Integer key = record.getKey();
-			final String identifier = extractIdentifier(extractRecordID(record.getValue()));
+			final Map<String, Object> container = record.getValue();
+
+			final String identifier = extractIdentifier(extractRecordID(container));
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(identifier);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
@@ -246,23 +257,6 @@ public final class PersonNameDialog extends CommonListDialog{
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_IDENTIFIER);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-////		if(sorter == null){
-////			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
-////			sorter = new TableRowSorter<>(model);
-////			recordTable.setRowSorter(sorter);
-////		}
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){
@@ -340,7 +334,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		//update table:
 		final Integer recordID = extractRecordID(selectedRecord);
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		for(int row = 0, length = model.getRowCount(); row < length; row ++)
 			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);

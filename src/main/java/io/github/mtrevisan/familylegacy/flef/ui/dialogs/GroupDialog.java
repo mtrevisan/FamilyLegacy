@@ -46,10 +46,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -175,6 +174,17 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder(),
+			Comparator.naturalOrder()};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
@@ -184,9 +194,6 @@ public final class GroupDialog extends CommonListDialog{
 
 
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_CATEGORY, 0, TABLE_PREFERRED_WIDTH_RECORD_CATEGORY);
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_CATEGORY, Comparator.naturalOrder());
-		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -302,7 +309,7 @@ public final class GroupDialog extends CommonListDialog{
 			? groups
 			: getGroups(groups));
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -310,8 +317,13 @@ public final class GroupDialog extends CommonListDialog{
 			final String categoryIdentifier = extractIdentifier(extractRecordID(record.getValue()));
 			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf(':'));
 			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf(':') + 1);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(category)
+				.add(identifier);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(category, row, TABLE_INDEX_RECORD_CATEGORY);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
@@ -327,18 +339,6 @@ public final class GroupDialog extends CommonListDialog{
 			.map(entry -> groups.get(extractRecordReferenceID(entry)))
 			.collect(Collectors.toMap(CommonRecordDialog::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_CATEGORY, TABLE_INDEX_RECORD_IDENTIFIER);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){

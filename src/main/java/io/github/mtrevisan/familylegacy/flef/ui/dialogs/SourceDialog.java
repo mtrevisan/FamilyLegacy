@@ -43,10 +43,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -54,6 +53,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -123,16 +123,22 @@ public final class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
 			+ (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -231,7 +237,7 @@ public final class SourceDialog extends CommonListDialog{
 			records.values()
 				.removeIf(entry -> !filterRepositoryID.equals(extractRecordRepositoryID(entry)));
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -239,25 +245,17 @@ public final class SourceDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractRecordIdentifier(container);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(identifier);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 			row ++;
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_IDENTIFIER);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void requestFocusAfterSelect(){
@@ -338,7 +336,7 @@ public final class SourceDialog extends CommonListDialog{
 
 		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){

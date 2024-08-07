@@ -24,24 +24,20 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -51,7 +47,19 @@ public final class SearchDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -1524494907031661540L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_RECORD_UNION_YEAR = 2;
+	private static final int TABLE_INDEX_RECORD_UNION_PLACE = 3;
+	private static final int TABLE_INDEX_RECORD_PARTNER1_ID = 4;
+	private static final int TABLE_INDEX_RECORD_PARTNER1_NAME = 5;
+	private static final int TABLE_INDEX_RECORD_PARTNER2_ID = 6;
+	private static final int TABLE_INDEX_RECORD_PARTNER2_NAME = 7;
+
+	private static final String TABLE_NAME_GROUP = "group";
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	private static final String TABLE_NAME_PERSON = "person";
+
+	private static final String NO_DATA = "?";
+	private static final String FIGURE_DASH = "\u2012";
 
 
 	public static SearchDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -80,7 +88,21 @@ public final class SearchDialog extends CommonListDialog{
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Identifier"};
+		return new String[]{"ID", "Filter", "Year", "Place",
+			"Partner 1 ID", "Partner 1",
+			"Partner 2 ID", "Partner 2"};
+	}
+
+	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT,
+			SwingConstants.RIGHT, SwingConstants.LEFT,
+			SwingConstants.RIGHT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
 	}
 
 	@Override
@@ -88,46 +110,79 @@ public final class SearchDialog extends CommonListDialog{
 		setTitle("Search");
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
-	protected void initRecordComponents(){
-		//TODO
-	}
+	protected void initRecordComponents(){}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){}
 
 	@Override
 	public void loadData(){
-		//TODO
-	}
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_GROUP);
 
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_IDENTIFIER);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
+		final DefaultTableModel model = getRecordTableModel();
+		model.setRowCount(records.size());
+		int row = 0;
+		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
+			final Integer key = record.getKey();
+			final Map<String, Object> container = record.getValue();
+
+			//TODO
+			final Integer unionID = extractRecordID(container);
+			final List<Integer> personIDsInUnion = getPartnerIDs(unionID);
+			final String earliestUnionYear = extractEarliestUnionYear(unionID);
+			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);
+			final Integer partner1ID = (!personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
+			final String partner1Name = extractFirstName(partner1ID);
+			final String earliestPartner1BirthYear = extractBirthYear(partner1ID);
+			final String earliestPartner1DeathYear = extractDeathYear(partner1ID);
+			final Integer partner2ID = (!personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
+			final String partner2Name = extractFirstName(partner2ID);
+			final String earliestPartner2BirthYear = extractBirthYear(partner2ID);
+			final String earliestPartner2DeathYear = extractDeathYear(partner2ID);
+			final String partner1Identifier = (partner1Name != null? partner1Name: NO_DATA)
+				+ " (" + (earliestPartner1BirthYear != null? earliestPartner1BirthYear: NO_DATA) + FIGURE_DASH
+				+ (earliestPartner1DeathYear != null? earliestPartner1DeathYear: NO_DATA) + ")";
+			final String partner2Identifier = (partner2Name != null? partner2Name: NO_DATA)
+				+ " (" + (earliestPartner2BirthYear != null? earliestPartner2BirthYear: NO_DATA) + FIGURE_DASH
+				+ (earliestPartner2DeathYear != null? earliestPartner2DeathYear: NO_DATA) + ")";
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(earliestUnionYear)
+				.add(earliestUnionPlace);
+			if(partner1ID != null)
+				filter.add(partner1ID.toString())
+					.add(partner1Name)
+					.add(earliestPartner1BirthYear)
+					.add(earliestPartner1DeathYear);
+			if(partner2ID != null)
+				filter.add(partner2ID.toString())
+					.add(partner2Name)
+					.add(earliestPartner2BirthYear)
+					.add(earliestPartner2DeathYear);
+
+			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
+			model.setValueAt(earliestUnionYear, row, TABLE_INDEX_RECORD_UNION_YEAR);
+			model.setValueAt(earliestUnionPlace, row, TABLE_INDEX_RECORD_UNION_PLACE);
+
+			model.setValueAt(partner1ID, row, TABLE_INDEX_RECORD_PARTNER1_ID);
+			model.setValueAt(partner1Identifier, row, TABLE_INDEX_RECORD_PARTNER1_NAME);
+
+			model.setValueAt(partner2ID, row, TABLE_INDEX_RECORD_PARTNER2_ID);
+			model.setValueAt(partner2Identifier, row, TABLE_INDEX_RECORD_PARTNER2_NAME);
+
+			row ++;
+		}
+	}
 
 	@Override
-	protected void fillData(){
-		//TODO
-	}
+	protected void fillData(){}
 
 	@Override
-	protected void clearData(){
-		//TODO
-	}
+	protected void clearData(){}
 
 	@Override
 	protected boolean validateData(){
@@ -140,12 +195,48 @@ public final class SearchDialog extends CommonListDialog{
 	}
 
 
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
+	private List<Integer> getPartnerIDs(final Integer groupID){
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(SearchDialog::extractRecordReferenceID)
+			.toList();
 	}
 
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
+	private String extractEarliestUnionYear(final Integer unionID){
+		final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(unionID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(SearchDialog::extractRecordGroupID)
+			.map(groups::get)
+			.findFirst()
+			.map(SearchDialog::extractRecordID);
+	}
+
+	private String extractEarliestUnionPlace(final Integer unionID){
+		final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(unionID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(SearchDialog::extractRecordGroupID)
+			.map(groups::get)
+			.findFirst()
+			.map(SearchDialog::extractRecordID);
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
 	}
 
 
@@ -240,88 +331,6 @@ public final class SearchDialog extends CommonListDialog{
 			final SearchDialog dialog = createSelectOnly(store, parent);
 			dialog.initComponents();
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(source1)))
-				dialog.showNewRecord();
-
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-
-				@EventHandler
-				public void refresh(final EditEvent editCommand){
-					final Map<String, Object> container = editCommand.getContainer();
-					final int sourceID = extractRecordID(container);
-					switch(editCommand.getType()){
-						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
-							placeDialog.initComponents();
-							placeDialog.loadData();
-							final Integer placeID = extractRecordPlaceID(container);
-							if(placeID != null)
-								placeDialog.selectData(placeID);
-
-							placeDialog.setLocationRelativeTo(null);
-							placeDialog.setVisible(true);
-						}
-						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
-							historicDateDialog.loadData();
-							final Integer dateID = extractRecordDateID(container);
-							if(dateID != null)
-								historicDateDialog.selectData(dateID);
-
-							historicDateDialog.setLocationRelativeTo(null);
-							historicDateDialog.setVisible(true);
-						}
-						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
-								.withReference("source", sourceID)
-								.withOnCloseGracefully(record -> {
-									if(record != null){
-										record.put("reference_table", "source");
-										record.put("reference_id", sourceID);
-									}
-								});
-							noteDialog.initComponents();
-							noteDialog.loadData();
-
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
-						}
-						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
-								.withBasePath(FileHelper.documentsDirectory())
-								.withReference("source", sourceID)
-								.withOnCloseGracefully(record -> {
-									if(record != null){
-										record.put("reference_table", "source");
-										record.put("reference_id", sourceID);
-									}
-								});
-							mediaDialog.initComponents();
-							mediaDialog.loadData();
-
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
-						}
-						case CITATION -> {
-							final CitationDialog citationDialog = CitationDialog.create(store, parent)
-								.withFilterOnSourceID(sourceID);
-							citationDialog.initComponents();
-							citationDialog.loadData();
-
-							citationDialog.setLocationRelativeTo(dialog);
-							citationDialog.setVisible(true);
-						}
-					}
-				}
-			};
-			EventBusService.subscribe(listener);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

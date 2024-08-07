@@ -48,10 +48,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.IOException;
@@ -60,6 +59,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -127,16 +127,22 @@ public final class AssertionDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_REFERENCE_TABLE, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -202,7 +208,7 @@ public final class AssertionDialog extends CommonListDialog{
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -217,25 +223,19 @@ public final class AssertionDialog extends CommonListDialog{
 				+ (location != null? location: StringUtils.EMPTY)
 				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
 				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(sourceIdentifier)
+				.add(location)
+				.add(referenceTable);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_REFERENCE_TABLE);
 
 			row ++;
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_REFERENCE_TABLE);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void requestFocusAfterSelect(){
@@ -291,13 +291,13 @@ public final class AssertionDialog extends CommonListDialog{
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
 
 		//update table:
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		final Integer recordID = extractRecordID(selectedRecord);
-		for(int row = 0, length = model.getRowCount(); row < length; row ++)
-			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-				final int viewRowIndex = recordTable.convertRowIndexToView(row);
-				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+		for(int row = 0, length = model.getRowCount(); row < length; row ++){
+			final int viewRowIndex = recordTable.convertRowIndexToView(row);
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
+			if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
 				final Map<String, Object> updatedAssertionRecord = getRecords(TABLE_NAME).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
@@ -312,6 +312,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 				break;
 			}
+		}
 
 		selectedRecord.put("role", role);
 		selectedRecord.put("certainty", certainty);

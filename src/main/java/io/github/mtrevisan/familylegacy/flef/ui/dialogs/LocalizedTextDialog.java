@@ -41,10 +41,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -155,7 +154,17 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Date"};
+		return new String[]{"ID", "Filter", "Text"};
+	}
+
+	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
 	}
 
 	@Override
@@ -165,10 +174,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_TEXT, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -243,7 +248,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
 		}
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -257,25 +262,17 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				identifier.add(primaryName);
 			if(secondaryName != null)
 				identifier.add(secondaryName);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(identifier.toString());
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(identifier.toString(), row, TABLE_INDEX_RECORD_TEXT);
 
 			row ++;
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_TEXT);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){
@@ -359,13 +356,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			|| withSecondaryInput && (!Objects.equals(primaryText, extractRecordPersonalName(selectedRecord))
 				|| !Objects.equals(secondaryText, extractRecordFamilyName(selectedRecord))));
 		if(shouldUpdate){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
-			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			for(int row = 0, length = model.getRowCount(); row < length; row ++){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					final StringJoiner text = new StringJoiner(", ");
 					if(primaryText != null)
 						text.add(primaryText);
@@ -376,6 +373,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 					break;
 				}
+			}
 		}
 
 		if(filterReferenceTable != null){

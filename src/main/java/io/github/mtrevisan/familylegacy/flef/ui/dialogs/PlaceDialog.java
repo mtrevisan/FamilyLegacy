@@ -44,10 +44,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
@@ -134,7 +133,17 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Date"};
+		return new String[]{"ID", "Filter", "Identifier"};
+	}
+
+	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
 	}
 
 	@Override
@@ -143,10 +152,6 @@ public final class PlaceDialog extends CommonListDialog{
 		setTitle(filterPlaceID != null? capitalizedTableName + " ID " + filterPlaceID: StringHelper.pluralize(capitalizedTableName));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_IDENTIFIER, Comparator.naturalOrder());
 	}
 
 	@Override
@@ -276,7 +281,7 @@ public final class PlaceDialog extends CommonListDialog{
 		if(filterPlaceID != null)
 			selectAction();
 		else{
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			model.setRowCount(records.size());
 			int row = 0;
 			for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -284,26 +289,18 @@ public final class PlaceDialog extends CommonListDialog{
 				final Map<String, Object> container = record.getValue();
 
 				final String identifier = extractRecordIdentifier(container);
+				final StringJoiner filter = new StringJoiner(" | ")
+					.add(key.toString())
+					.add(identifier);
 
 				model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+				model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 				model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
 
 				row ++;
 			}
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_IDENTIFIER);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){
@@ -400,7 +397,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
 				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.SeparatorComboBoxRenderer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -46,10 +47,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ItemEvent;
@@ -61,6 +61,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -125,38 +126,49 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT};
+	}
+
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
+		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
+	}
+
+	@Override
 	protected void initStoreComponents(){
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		super.initStoreComponents();
-
-
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
-		sorter.setComparator(TABLE_INDEX_RECORD_TYPE, Comparator.naturalOrder());
 	}
 
 	@Override
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "historic fact", "birth", "sex", "marriage", "death", "coroner report", "cremation",
-			"burial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "wedding", "ran away from home",
-			"residence", "autopsy", "divorce", "engagement", "annulment", "separation", "eye color", "hair color", "height", "weight", "build",
-			"complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education",
-			"able to read", "able to write", "career", "number of children (total)", "number of children (living)", "marital status",
+		typeComboBox = new JComboBox<>(new String[]{null,
+			"--- NO PERSON ---",
+			"historic fact", "natural disaster",
+			"--- SINGLE PERSON ---",
+			"birth", "sex", "gender", "number of marriages", "death", "coroner report", "cremation", "burial", "reburial", "occupation",
+			"imprisonment", "deportation", "invention", "religious conversion", "ran away from home", "residence", "autopsy",
+			"eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
+			"anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career",
 			"political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use",
-			"alcohol use", "drug problem", "guardianship", "inquest", "relationship", "bar mitzvah", "bas mitzvah", "jury duty", "baptism",
-			"excommunication", "betrothal", "resignation", "naturalization", "marriage license", "christening", "confirmation", "will", "deed",
-			"escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant",
-			"name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award",
-			"military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement",
-			"prison", "pardon", "membership", "hospitalization", "illness", "honor", "marriage bann", "missing in action", "adoption",
-			"reburial", "filing for divorce", "exhumation", "funeral", "celebration of life", "partnership", "natural disaster", "blessing",
-			"anniversary celebration", "first communion", "fosterage", "posthumous offspring", "immigration", "marriage contract", "reunion",
-			"scattering of ashes", "inurnment", "cohabitation", "living together", "wedding anniversary", "patent filing", "patent granted",
-			"internment", "learning", "conversion", "travel", "caste", "description", "number of marriages", "property", "imaginary",
-			"marriage settlement", "specialty", "award"});
+			"alcohol use", "drug problem", "guardianship", "inquest", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication",
+			"betrothal", "resignation", "naturalization", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement",
+			"ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase",
+			"land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion",
+			"military service", "military release", "military discharge", "military resignation", "military retirement", "imprisonment",
+			"pardon", "hospitalization", "illness", "honor", "missing in action", "adoption", "exhumation", "funeral", "celebration of life",
+			"blessing", "first communion", "fosterage", "immigration", "scattering of ashes", "inurnment", "patent filing", "patent granted",
+			//FIXME 'property' can be related to more than one person
+			"internment", "learning", "conversion", "travel", "caste", "description", "property", "imaginary", "specialty", "award",
+			"--- PEOPLE ---",
+			"cohabitation", "union", "wedding", "marriage", "marriage bann", "marriage license", "marriage contract", "marriage settlement",
+			"filing for divorce", "divorce", "engagement", "annulment", "separation", "number of children (total)",
+			"number of children (living)", "marital status", "membership", "partnership", "wedding anniversary", "anniversary celebration"});
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionField = new JTextField();
@@ -169,6 +181,7 @@ public final class EventDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
+		typeComboBox.setRenderer(new SeparatorComboBoxRenderer());
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
 
@@ -219,7 +232,7 @@ public final class EventDialog extends CommonListDialog{
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 
-		final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
@@ -227,25 +240,17 @@ public final class EventDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String type = extractRecordType(container);
+			final StringJoiner filter = new StringJoiner(" | ")
+				.add(key.toString())
+				.add(type);
 
 			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
 			model.setValueAt(type, row, TABLE_INDEX_RECORD_TYPE);
 
 			row ++;
 		}
 	}
-
-	//FIXME filter table
-//	@Override
-//	protected void filterTableBy(final JDialog panel){
-//		final String title = GUIHelper.getTextTrimmed(filterField);
-//		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_ID,
-//			TABLE_INDEX_RECORD_TYPE);
-//
-//		@SuppressWarnings("unchecked")
-//		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-//		sorter.setRowFilter(filter);
-//	}
 
 	@Override
 	protected void fillData(){
@@ -321,17 +326,18 @@ public final class EventDialog extends CommonListDialog{
 
 		//update table:
 		if(!Objects.equals(type, extractRecordType(selectedRecord))){
-			final DefaultTableModel model = (DefaultTableModel)recordTable.getModel();
+			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
-			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					final int viewRowIndex = recordTable.convertRowIndexToView(row);
-					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			for(int row = 0, length = model.getRowCount(); row < length; row ++){
+				final int viewRowIndex = recordTable.convertRowIndexToView(row);
+				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
 					model.setValueAt(type, modelRowIndex, TABLE_INDEX_RECORD_TYPE);
 
 					break;
 				}
+			}
 		}
 
 		selectedRecord.put("type", type);
