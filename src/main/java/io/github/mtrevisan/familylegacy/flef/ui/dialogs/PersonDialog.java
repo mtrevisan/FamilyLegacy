@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -64,11 +65,11 @@ public final class PersonDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 6043866696384851757L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "person";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
+	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_EVENT = "event";
 	private static final String TABLE_NAME_GROUP = "group";
@@ -223,13 +224,13 @@ public final class PersonDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractIdentifier(extractRecordID(container));
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -291,12 +292,12 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 
-	private String extractIdentifier(final int selectedRecordID){
+	private String extractIdentifier(final Integer selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
 		getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
-			.filter(record -> extractRecordPersonID(record) == selectedRecordID)
+			.filter(record -> Objects.equals(selectedRecordID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				//extract transliterations
 				final StringJoiner subIdentifier = new StringJoiner(", ");
@@ -304,8 +305,8 @@ public final class PersonDialog extends CommonListDialog{
 				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME, recordID)
 					.values().stream()
 					.filter(record2 -> Objects.equals("name", extractRecordReferenceType(record2)))
-					.map(record2 -> localizedTexts.get(extractRecordLocalizedTextID(record2)))
-					.forEach(record2 -> subIdentifier.add(extractRecordText(record2)));
+					.map(record2 -> localizedPersonNames.get(extractRecordLocalizedTextID(record2)))
+					.forEach(record2 -> subIdentifier.add(extractName(record2)));
 
 				identifier.add(extractName(record) + (subIdentifier.length() > 0? " (" + subIdentifier + ")": StringUtils.EMPTY));
 			});
@@ -343,10 +344,6 @@ public final class PersonDialog extends CommonListDialog{
 		return (String)record.get("personal_name");
 	}
 
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
-	}
-
 	private static String extractRecordFamilyName(final Map<String, Object> record){
 		return (String)record.get("family_name");
 	}
@@ -377,7 +374,7 @@ public final class PersonDialog extends CommonListDialog{
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
-		personName1.put("name_locale", "vec-IT");
+		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
@@ -385,7 +382,7 @@ public final class PersonDialog extends CommonListDialog{
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
-		personName2.put("name_locale", "it-IT");
+		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
 
@@ -402,22 +399,26 @@ public final class PersonDialog extends CommonListDialog{
 		localizedText2.put("locale", "en");
 		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put("localized_text_junction", localizedTextJunctions);
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("id", 1);
-		localizedTextJunction1.put("localized_text_id", 1);
-		localizedTextJunction1.put("reference_type", "name");
-		localizedTextJunction1.put("reference_table", "person_name");
-		localizedTextJunction1.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
-		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("id", 2);
-		localizedTextJunction2.put("localized_text_id", 2);
-		localizedTextJunction2.put("reference_type", "name");
-		localizedTextJunction2.put("reference_table", "person_name");
-		localizedTextJunction2.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localizedTextJunction2.get("id"), localizedTextJunction2);
+		final TreeMap<Integer, Map<String, Object>> localizedPersonNames = new TreeMap<>();
+		store.put("localized_person_name", localizedPersonNames);
+		final Map<String, Object> localizedPersonName1 = new HashMap<>();
+		localizedPersonName1.put("id", 1);
+		localizedPersonName1.put("personal_name", "true");
+		localizedPersonName1.put("family_name", "name");
+		localizedPersonName1.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
+		final Map<String, Object> localizedPersonName2 = new HashMap<>();
+		localizedPersonName2.put("id", 2);
+		localizedPersonName2.put("personal_name", "fake");
+		localizedPersonName2.put("family_name", "name");
+		localizedPersonName2.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName2.get("id"), localizedPersonName2);
+		final Map<String, Object> localizedPersonName3 = new HashMap<>();
+		localizedPersonName3.put("id", 3);
+		localizedPersonName3.put("personal_name", "other");
+		localizedPersonName3.put("family_name", "name");
+		localizedPersonName3.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName3.get("id"), localizedPersonName3);
 
 		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
 		store.put("media", medias);

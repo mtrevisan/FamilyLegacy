@@ -922,7 +922,7 @@ public class GroupPanel extends JPanel{
 		personName11.put("person_id", 1);
 		personName11.put("personal_name", "tòni");
 		personName11.put("family_name", "bruxatin");
-		personName11.put("name_locale", "vec-IT");
+		personName11.put("locale", "vec-IT");
 		personName11.put("type", "birth name");
 		personNames.put((Integer)personName11.get("id"), personName11);
 		final Map<String, Object> personName12 = new HashMap<>();
@@ -930,7 +930,7 @@ public class GroupPanel extends JPanel{
 		personName12.put("person_id", 1);
 		personName12.put("personal_name", "antonio");
 		personName12.put("family_name", "bruciatino");
-		personName12.put("name_locale", "it-IT");
+		personName12.put("locale", "it-IT");
 		personName12.put("type", "death name");
 		personNames.put((Integer)personName12.get("id"), personName12);
 		final Map<String, Object> personName21 = new HashMap<>();
@@ -938,7 +938,7 @@ public class GroupPanel extends JPanel{
 		personName21.put("person_id", 2);
 		personName21.put("personal_name", "bèpi");
 		personName21.put("family_name", "marangon");
-		personName21.put("name_locale", "vec-IT");
+		personName21.put("locale", "vec-IT");
 		personName21.put("type", "birth name");
 		personNames.put((Integer)personName21.get("id"), personName21);
 

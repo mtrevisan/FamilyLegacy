@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -63,7 +64,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -74,7 +74,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	@Serial
 	private static final long serialVersionUID = -3961030253095528462L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "cultural_norm";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
@@ -298,13 +298,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractRecordIdentifier(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -412,8 +412,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 					break;
 				}
@@ -507,7 +507,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
-		place1.put("name_locale", "en-US");
+		place1.put("locale", "en-US");
 		places.put((Integer)place1.get("id"), place1);
 
 		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();

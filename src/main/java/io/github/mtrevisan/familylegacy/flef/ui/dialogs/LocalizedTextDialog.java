@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -62,9 +63,9 @@ import java.util.stream.Collectors;
 public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
-	private static final long serialVersionUID = -8409918543709413945L;
+	private static final long serialVersionUID = 6171448434725755800L;
 
-	private static final int TABLE_INDEX_RECORD_TEXT = 2;
+	private static final int TABLE_INDEX_TEXT = 2;
 
 	private static final String TABLE_NAME = "localized_text";
 
@@ -262,13 +263,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				identifier.add(primaryName);
 			if(secondaryName != null)
 				identifier.add(secondaryName);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
-				.add(identifier.toString());
+			final FilterString filter = FilterString.create()
+				.add(key)
+				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier.toString(), row, TABLE_INDEX_RECORD_TEXT);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier.toString(), row, TABLE_INDEX_TEXT);
 
 			row ++;
 		}
@@ -362,14 +363,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 					final StringJoiner text = new StringJoiner(", ");
 					if(primaryText != null)
 						text.add(primaryText);
 					if(secondaryText != null)
 						text.add(secondaryText);
 
-					model.setValueAt(text.toString(), modelRowIndex, TABLE_INDEX_RECORD_TEXT);
+					model.setValueAt(text.toString(), modelRowIndex, TABLE_INDEX_TEXT);
 
 					break;
 				}
@@ -469,6 +470,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+//			final LocalizedTextDialog dialog = createComplexText(store, parent);
+//			final LocalizedTextDialog dialog = createSimpleText(store, parent);
+			final LocalizedTextDialog dialog = createSimpleTextWithSecondary(store, parent);
+			dialog.initComponents();
+			dialog.loadData();
+			if(!dialog.selectData(extractRecordID(localizedText1)))
+				dialog.showNewRecord();
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -477,14 +486,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				}
 			};
 			EventBusService.subscribe(listener);
-
-//			final LocalizedTextDialog dialog = createComplexText(store, parent);
-//			final LocalizedTextDialog dialog = createSimpleText(store, parent);
-			final LocalizedTextDialog dialog = createSimpleTextWithSecondary(store, parent);
-			dialog.initComponents();
-			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(localizedText1)))
-				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -49,13 +50,17 @@ import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.time.LocalDate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -76,6 +81,9 @@ public class TreePanel extends JPanel{
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
+	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
+	private static final String TABLE_NAME_CALENDAR = "calendar";
 
 
 	private GroupPanel partner1Partner1Panel;
@@ -410,16 +418,47 @@ public class TreePanel extends JPanel{
 		Map<String, Object> p1 = partner;
 		Map<String, Object> p2 = Collections.emptyMap();
 		final int partner1ID = extractRecordID(partner);
-		final List<Map<String, Object>> sexEvents = extractReferences(TABLE_NAME_EVENT, partner1ID, "sex");
-		if(sexEvents.size() == 1){
-			final String sex = extractRecordDescription(sexEvents.getFirst());
-			if("female".equalsIgnoreCase(sex)){
-				p1 = Collections.emptyMap();
-				p2 = partner;
-			}
+		final String sex = extractEarliestSex(partner1ID);
+		if("female".equalsIgnoreCase(sex)){
+			p1 = Collections.emptyMap();
+			p2 = partner;
 		}
 
 		loadData(Collections.emptyMap(), p1, p2);
+	}
+
+	private String extractEarliestSex(final Integer personID){
+		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> extractRecordDescription(entry.getValue());
+		return extractData(personID, List.of("sex"), comparator, extractor);
+	}
+
+	private <T> T extractData(final Integer referenceID, final List<String> eventTypes, final Comparator<LocalDate> comparator,
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		return getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
+			.filter(entry -> {
+				final Integer recordTypeID = extractRecordTypeID(entry);
+				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
+				return eventTypes.contains(recordType);
+			})
+			.map(entry -> {
+				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
+				final String dateValue = extractRecordDate(dateEntry);
+				final Integer calendarID = extractRecordCalendarID(dateEntry);
+				final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
+				final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
+			})
+			.filter(Objects::nonNull)
+			.min(Map.Entry.comparingByKey(comparator))
+			.map(extractor)
+			.orElse(null);
 	}
 
 	public final void loadData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
@@ -664,6 +703,22 @@ public class TreePanel extends JPanel{
 		return (String)record.get("type");
 	}
 
+	private static Integer extractRecordTypeID(final Map<String, Object> record){
+		return (Integer)record.get("type_id");
+	}
+
+	private static Integer extractRecordDateID(final Map<String, Object> record){
+		return (Integer)record.get("date_id");
+	}
+
+	private static String extractRecordDate(final Map<String, Object> record){
+		return (record != null? (String)record.get("date"): null);
+	}
+
+	private static Integer extractRecordCalendarID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("calendar_id"): null);
+	}
+
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
 		return (String)record.get("reference_table");
 	}
@@ -780,10 +835,18 @@ public class TreePanel extends JPanel{
 		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
-		event1.put("type", "adoption");
+		event1.put("type_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 5);
 		events.put((Integer)event1.get("id"), event1);
+
+		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
+		store.put("event_type", eventTypes);
+		final Map<String, Object> eventType1 = new HashMap<>();
+		eventType1.put("id", 1);
+		eventType1.put("type", "adoption");
+		eventType1.put("category", "adoption");
+		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 
 		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override

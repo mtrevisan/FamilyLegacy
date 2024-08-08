@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -57,7 +58,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -68,7 +68,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 3434407293578383806L;
 
-	private static final int TABLE_INDEX_RECORD_DATE = 2;
+	private static final int TABLE_INDEX_DATE = 2;
 
 	private static final String TABLE_NAME = "historic_date";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
@@ -226,15 +226,15 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 			final String date = extractRecordDate(container);
 			final String dateOriginal = extractRecordDateOriginal(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(date)
 				.add(dateOriginal);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
 			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
-				TABLE_INDEX_RECORD_DATE);
+				TABLE_INDEX_DATE);
 
 			row ++;
 		}
@@ -313,8 +313,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					model.setValueAt(date, modelRowIndex, TABLE_INDEX_RECORD_DATE);
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+					model.setValueAt(date, modelRowIndex, TABLE_INDEX_DATE);
 
 					break;
 				}

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ImagePreview;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -87,7 +88,7 @@ public final class MediaDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -800755271311929604L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "media";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
@@ -289,8 +290,8 @@ public final class MediaDialog extends CommonListDialog{
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
-						model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+					if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+						model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 						return;
 					}
 				}
@@ -447,13 +448,13 @@ public final class MediaDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractRecordIdentifier(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -467,7 +468,7 @@ public final class MediaDialog extends CommonListDialog{
 			final int viewRowIndex = recordTable.convertRowIndexToView(row);
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-			if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID))
+			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID))
 				return;
 		}
 
@@ -476,8 +477,8 @@ public final class MediaDialog extends CommonListDialog{
 			final int oldSize = model.getRowCount();
 			final String identifier = extractRecordIdentifier(record);
 			model.setRowCount(oldSize + 1);
-			model.setValueAt(recordID, oldSize, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(identifier, oldSize, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(recordID, oldSize, TABLE_INDEX_ID);
+			model.setValueAt(identifier, oldSize, TABLE_INDEX_IDENTIFIER);
 			//resort rows
 			final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
 			recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
@@ -618,11 +619,11 @@ public final class MediaDialog extends CommonListDialog{
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 					break;
 				}

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -67,7 +68,7 @@ public final class PlaceDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "place";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
@@ -289,13 +290,13 @@ public final class PlaceDialog extends CommonListDialog{
 				final Map<String, Object> container = record.getValue();
 
 				final String identifier = extractRecordIdentifier(container);
-				final StringJoiner filter = new StringJoiner(" | ")
-					.add(key.toString())
+				final FilterString filter = FilterString.create()
+					.add(key)
 					.add(identifier);
 
-				model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-				model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-				model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+				model.setValueAt(key, row, TABLE_INDEX_ID);
+				model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+				model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 				row ++;
 			}
@@ -307,7 +308,7 @@ public final class PlaceDialog extends CommonListDialog{
 		final Integer placeID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String name = extractRecordName(selectedRecord);
-		final String nameLocale = extractRecordNameLocale(selectedRecord);
+		final String nameLocale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String coordinate = extractRecordCoordinate(selectedRecord);
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
@@ -400,11 +401,11 @@ public final class PlaceDialog extends CommonListDialog{
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 					break;
 				}
@@ -428,8 +429,8 @@ public final class PlaceDialog extends CommonListDialog{
 		return (String)record.get("name");
 	}
 
-	private static String extractRecordNameLocale(final Map<String, Object> record){
-		return (String)record.get("name_locale");
+	private static String extractRecordLocale(final Map<String, Object> record){
+		return (String)record.get("locale");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -477,7 +478,7 @@ public final class PlaceDialog extends CommonListDialog{
 		place1.put("id", 1);
 		place1.put("identifier", "place");
 		place1.put("name", "name of the place");
-		place1.put("name_locale", "en-US");
+		place1.put("locale", "en-US");
 		place1.put("type", "province");
 //		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");

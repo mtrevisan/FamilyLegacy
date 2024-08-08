@@ -91,7 +91,7 @@ CREATE TABLE PLACE
  "ID"                   numeric PRIMARY KEY,
  IDENTIFIER             text NOT NULL UNIQUE,	-- An identifier for the place (must be unique).
  NAME                   text NOT NULL,				-- A verbatim copy of the name written in the original language.
- NAME_LOCALE            text,							-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
+ LOCALE                 text,							-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
  "TYPE"                 text,							-- The level of the place (ex. "nation", "province", "state", "county", "city", "township", "parish", "island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address").
  COORDINATE             text,							-- Ex. a latitude and longitude pair, or X and Y coordinates.
  COORDINATE_SYSTEM      text,							-- The coordinate system (ex. "WGS84", "UTM").
@@ -169,16 +169,29 @@ CREATE TABLE PERSON
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 
--- Transcriptions and transliterations of the name can be attached through a localized text (with type "name").
+-- Transcriptions and transliterations of the name can be attached through a localized person name.
 CREATE TABLE PERSON_NAME
 (
  "ID"          numeric PRIMARY KEY,
  PERSON_ID     numeric NOT NULL,
- PERSONAL_NAME text,					-- A verbatim copy of the (primary, that is the proper name) name written in the original language.
- FAMILY_NAME   text,					-- A verbatim copy of the (seconday, that is everything that is not a proper name, like a surname) name written in the original language.
- NAME_LOCALE   text,					-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
- "TYPE"        text,					-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
+ PERSONAL_NAME text,	-- A verbatim copy of the (primary, that is the proper name) name written in the original language.
+ FAMILY_NAME   text,	-- A verbatim copy of the (seconday, that is everything that is not a proper name, like a surname) name written in the original language.
+ LOCALE        text,	-- Locale of the name as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
+ "TYPE"        text,	-- (ex. "birth name" (name given on birth certificate), "also known as" (an unofficial pseudonym, also known as, alias, etc), "nickname" (a familiar name), "family nickname", "pseudonym", "legal" (legally changed name), "adoptive name" (name assumed upon adoption), "stage name", "marriage name" (name assumed at marriage), "call name", "official name", "anglicized name", "religious order name", "pen name", "name at work", "immigrant" (name assumed at the time of immigration) -- see https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md)
  FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE CASCADE
+);
+
+CREATE TABLE LOCALIZED_PERSON_NAME
+(
+ "ID"               numeric PRIMARY KEY,
+ PERSONAL_NAME      text,					-- A localized (primary, that is the proper name) name.
+ FAMILY_NAME        text,					-- A localized (seconday, that is everything that is not a proper name, like a surname) name.
+ LOCALE             text,					-- The locale identifier for the record (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47).
+ "TYPE"             text,					-- Can be "original", "transliteration", or "translation".
+ TRANSCRIPTION      text,					-- Indicates the system used in transcript the text to the romanized variation (ex. "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul").
+ TRANSCRIPTION_TYPE text,					-- Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc).
+ PERSON_NAME_ID     numeric NOT NULL,	-- The ID of the referenced record in the table.
+ FOREIGN KEY (PERSON_NAME_ID) REFERENCES PERSON_NAME ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -217,14 +230,30 @@ CREATE TABLE GROUP_JUNCTION
 CREATE TABLE EVENT
 (
  "ID"            numeric PRIMARY KEY,
- "TYPE"          text NOT NULL,		-- (ex. NO PERSON: "historic fact", "natural disaster"; SINGLE PERSON: "birth", "sex", "gender", "number of marriages", "death", "coroner report", "cremation", "burial", "reburial", "occupation", "imprisonment", "deportation", "invention", "religious conversion", "ran away from home", "residence", "autopsy", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career", "political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use", "alcohol use", "drug problem", "guardianship", "inquest", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication", "betrothal", "resignation", "naturalization", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement", "ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase", "land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "imprisonment", "pardon", "hospitalization", "illness", "honor", "missing in action", "adoption", "exhumation", "funeral", "celebration of life", "blessing", "first communion", "fosterage", "immigration", "scattering of ashes", "inurnment", "patent filing", "patent granted", "internment", "learning", "conversion", "travel", "caste", "description", "property", "imaginary", "specialty", "award"; PEOPLE: "cohabitation", "union", "wedding", "marriage", "marriage bann", "marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "engagement", "annulment", "separation", "number of children (total)", "number of children (living)", "marital status", "membership", "partnership", "wedding anniversary", "anniversary celebration")
+ TYPE_ID         numeric NOT NULL,
  DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        numeric,				-- The place this event happened.
  DATE_ID         numeric,				-- The date this event has happened.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
  REFERENCE_ID    numeric NOT NULL,	-- The ID of the referenced record in the table.
+ FOREIGN KEY (TYPE_ID) REFERENCES EVENT_TYPE ( "ID" ) ON DELETE CASCADE,
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
+);
+
+CREATE TABLE EVENT_TYPE
+(
+ "ID"          numeric PRIMARY KEY,
+ SUPER_TYPE_ID numeric NOT NULL,
+ "TYPE"        text NOT NULL,	-- (ex. Historical events and relevant facts: "historic fact", "natural disaster", "invention", "patent filing", "patent granted", Birth and early life: "birth", "sex", "fosterage", "adoption", "guardianship", Physical condition and personal description: "physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "marks/scars", "special talent", "disability", Nationality and immigration: "nationality", "emigration", "immigration", "naturalization", "caste", Residence and property: "residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow", Education and learning: "education", "graduation", "able to read", "able to write", "learning", "enrollment", Work and Career: "employment", "occupation", "career", "retirement", "resignation", Legal Events and Documents: "coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon", Health problems and habits: "hospitalization", "illness", "tobacco use", "alcohol use", "drug problem", Marriage and family life: "engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann", "marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation", "number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration", Military: "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "missing in action", Imprisonment and restrictions: "imprisonment", "deportation", "internment", Transfers and travel: "travel", Honors and Recognitions: "honor", "award", "membership", Death and burial: "death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial", Others: "anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home", Religious events: "religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation", "ordination", "blessing", "first communion")
+ CATEGORY      text,				-- (ex. birth of a person: "birth", death of a person: "death", "execution", union between two persons: "betrothal", "cohabitation", "union", "wedding", "marriage", "marriage bann", "marriage license", "marriage contract", adoption of a person: "adoption", "fosterage")
+ FOREIGN KEY (SUPER_TYPE_ID) REFERENCES EVENT_SUPER_TYPE ( "ID" ) ON DELETE CASCADE
+);
+
+CREATE TABLE EVENT_SUPER_TYPE
+(
+ "ID"       numeric PRIMARY KEY,
+ SUPER_TYPE text NOT NULL	-- (ex. "Historical events and relevant facts", "Birth and early life", "Physical condition and personal description", "Nationality and immigration", "Residence and property", "Education and learning", "Work and Career", "Legal Events and Documents", "Health problems and habits", "Marriage and family life", "Military", "Imprisonment and restrictions", "Transfers and travel", "Honors and Recognitions", "Death and burial", "Others", "Religious events")
 );
 
 

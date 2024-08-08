@@ -41,13 +41,17 @@ public final class TableHelper{
 	private TableHelper(){}
 
 
+	public static TableColumn setColumnFixedWidth(final JTable table, final int columnIndex, final int size){
+		return setColumnWidth(table, columnIndex, size, size, size);
+	}
+
 	public static TableColumn setColumnWidth(final JTable table, final int columnIndex, final int min, final int preferred){
 		return setColumnWidth(table, columnIndex, min, preferred, Short.MAX_VALUE);
 	}
 
 	public static TableColumn setColumnWidth(final JTable table, final int columnIndex, final int min, final int preferred, final int max){
 		final TableColumnModel columnModel = table.getColumnModel();
-		final TableColumn column = columnModel.getColumn(columnIndex);
+		final TableColumn column = columnModel.getColumn(table.convertColumnIndexToView(columnIndex));
 		column.setMinWidth(min);
 		column.setPreferredWidth(preferred);
 		column.setMaxWidth(max);

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -53,7 +54,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -64,7 +64,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 6136508398081805353L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "repository";
 	private static final String TABLE_NAME_SOURCE = "source";
@@ -209,13 +209,13 @@ public final class RepositoryDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractRecordIdentifier(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -298,11 +298,11 @@ public final class RepositoryDialog extends CommonListDialog{
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 					break;
 				}
@@ -376,7 +376,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		place1.put("id", 1);
 		place1.put("identifier", "place ident");
 		place1.put("name", "name of the place");
-		place1.put("name_locale", "en-US");
+		place1.put("locale", "en-US");
 		place1.put("type", "province");
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
@@ -388,7 +388,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		place2.put("id", 2);
 		place2.put("identifier", "another place ident");
 		place2.put("name", "name of another place");
-		place2.put("name_locale", "en-US");
+		place2.put("locale", "en-US");
 		place2.put("type", "custom");
 		places.put((Integer)place2.get("id"), place2);
 
@@ -428,7 +428,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
-		personName1.put("name_id", 3);
+		personName1.put("personal_name", "personal name");
+		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 

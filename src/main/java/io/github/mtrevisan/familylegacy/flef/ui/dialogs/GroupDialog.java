@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -57,10 +58,12 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -72,18 +75,20 @@ public final class GroupDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -2953401801022572404L;
 
-	private static final int TABLE_PREFERRED_WIDTH_RECORD_CATEGORY = 70;
+	private static final int TABLE_PREFERRED_WIDTH_CATEGORY = 70;
 
-	private static final int TABLE_INDEX_RECORD_CATEGORY = 2;
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 3;
+	private static final int TABLE_INDEX_CATEGORY = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 3;
 
 	private static final String TABLE_NAME = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
+	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_EVENT = "event";
+
+	private static final String NO_DATA = "?";
 
 
 	private JLabel typeLabel;
@@ -193,7 +198,7 @@ public final class GroupDialog extends CommonListDialog{
 		super.initStoreComponents();
 
 
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_CATEGORY, 0, TABLE_PREFERRED_WIDTH_RECORD_CATEGORY);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_CATEGORY, 0, TABLE_PREFERRED_WIDTH_CATEGORY);
 	}
 
 	@Override
@@ -317,15 +322,15 @@ public final class GroupDialog extends CommonListDialog{
 			final String categoryIdentifier = extractIdentifier(extractRecordID(record.getValue()));
 			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf(':'));
 			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf(':') + 1);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(category)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(category, row, TABLE_INDEX_RECORD_CATEGORY);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(category, row, TABLE_INDEX_CATEGORY);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -418,6 +423,7 @@ public final class GroupDialog extends CommonListDialog{
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 
 		//read link panel:
+		//TODO
 		final String role = GUIHelper.getTextTrimmed(linkRoleField);
 		final String certainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
@@ -432,7 +438,7 @@ public final class GroupDialog extends CommonListDialog{
 		final NavigableMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
 		final NavigableMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
 		final NavigableMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME);
-		final NavigableMap<Integer, Map<String, Object>> storeLocalizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> storeLocalizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map<String, Object> groupElement : storeGroupJunction.values()){
@@ -455,20 +461,56 @@ public final class GroupDialog extends CommonListDialog{
 				else
 					throw new IllegalArgumentException("Cannot exist a group of " + referenceTable);
 
+				final Set<Integer> processedPersonIDs = new HashSet<>(0);
 				for(int i = 0, length = personNamesInGroup.size(); i < length; i ++){
 					final Map<String, Object> storePersonName = personNamesInGroup.get(i);
 
-					final Integer extractRecordNameID = extractRecordNameID(storePersonName);
-					final Map<String, Object> localizedText = storeLocalizedTexts.get(extractRecordNameID);
-					final String name = extractRecordText(localizedText);
-					subIdentifier.add(name != null? name: "?");
+					final Integer personID = extractRecordPersonID(storePersonName);
+					if(!processedPersonIDs.contains(personID)){
+						final List<String> personAllNames = extractAllNames(personID);
+						for(int j = 0, count = personAllNames.size(); j < count; j ++)
+							subIdentifier.add(personAllNames.get(j));
+					}
+					processedPersonIDs.add(personID);
 				}
 
 				if(subIdentifier.length() > 0)
 					identifier.add(subIdentifier.toString());
 			}
 		}
-		return identifierCategory + ":" + identifier;
+		return identifierCategory + ":" + (identifier.length() > 0? identifier: NO_DATA);
+	}
+
+	private List<String> extractAllNames(final Integer personID){
+		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
+		final List<String> names = new ArrayList<>(0);
+		getRecords(TABLE_NAME_PERSON_NAME)
+			.values().stream()
+			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
+			.forEach(record -> {
+				names.add(extractName(record));
+
+				//extract transliterations
+				final Integer personNameID = extractRecordID(record);
+				localizedPersonNames
+					.values().stream()
+					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
+					.map(GroupDialog::extractName)
+					.filter(name -> !name.isEmpty())
+					.forEach(names::add);
+			});
+		return names;
+	}
+
+	private static String extractName(final Map<String, Object> record){
+		final String personalName = extractRecordPersonalName(record);
+		final String familyName = extractRecordFamilyName(record);
+		final StringJoiner name = new StringJoiner(", ");
+		if(personalName != null)
+			name.add(personalName);
+		if(familyName != null)
+			name.add(familyName);
+		return name.toString();
 	}
 
 	/** Extract the names of all the persons in this group. */
@@ -501,12 +543,16 @@ public final class GroupDialog extends CommonListDialog{
 		return (Integer)record.get("person_id");
 	}
 
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
+	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
+		return (Integer)record.get("person_name_id");
 	}
 
-	private static Integer extractRecordNameID(final Map<String, Object> record){
-		return (Integer)record.get("name_id");
+	private static String extractRecordPersonalName(final Map<String, Object> record){
+		return (String)record.get("personal_name");
+	}
+
+	private static String extractRecordFamilyName(final Map<String, Object> record){
+		return (String)record.get("family_name");
 	}
 
 	private static String extractRecordRole(final Map<String, Object> record){
@@ -572,39 +618,45 @@ public final class GroupDialog extends CommonListDialog{
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
-		personName1.put("name_id", 1);
+		personName1.put("personal_name", "personal name 1");
+		personName1.put("family_name", "family name 1");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
-		personName2.put("name_id", 2);
+		personName2.put("personal_name", "personal name 2");
+		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
 		final Map<String, Object> personName3 = new HashMap<>();
 		personName3.put("id", 3);
 		personName3.put("person_id", 2);
-		personName3.put("name_id", 3);
+		personName3.put("personal_name", "personal name 3");
+		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
 		personNames.put((Integer)personName3.get("id"), personName3);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
-		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
-		localizedText1.put("text", "true name");
-		localizedText1.put("locale", "en");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
-		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
-		localizedText2.put("text", "fake name");
-		localizedText2.put("locale", "en");
-		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
-		final Map<String, Object> localizedText3 = new HashMap<>();
-		localizedText3.put("id", 3);
-		localizedText3.put("text", "other name");
-		localizedText3.put("locale", "en");
-		localizedTexts.put((Integer)localizedText3.get("id"), localizedText3);
+		final TreeMap<Integer, Map<String, Object>> localizedPersonNames = new TreeMap<>();
+		store.put("localized_person_name", localizedPersonNames);
+		final Map<String, Object> localizedPersonName1 = new HashMap<>();
+		localizedPersonName1.put("id", 1);
+		localizedPersonName1.put("personal_name", "true");
+		localizedPersonName1.put("family_name", "name");
+		localizedPersonName1.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
+		final Map<String, Object> localizedPersonName2 = new HashMap<>();
+		localizedPersonName2.put("id", 2);
+		localizedPersonName2.put("personal_name", "fake");
+		localizedPersonName2.put("family_name", "name");
+		localizedPersonName2.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName2.get("id"), localizedPersonName2);
+		final Map<String, Object> localizedPersonName3 = new HashMap<>();
+		localizedPersonName3.put("id", 3);
+		localizedPersonName3.put("personal_name", "other");
+		localizedPersonName3.put("family_name", "name");
+		localizedPersonName3.put("locale", "en");
+		localizedPersonNames.put((Integer)localizedPersonName3.get("id"), localizedPersonName3);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put("note", notes);

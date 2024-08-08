@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.SeparatorComboBoxRenderer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -60,9 +61,10 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 
@@ -72,9 +74,10 @@ public final class EventDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 1136825738944999745L;
 
-	private static final int TABLE_INDEX_RECORD_TYPE = 2;
+	private static final int TABLE_INDEX_TYPE = 2;
 
 	private static final String TABLE_NAME = "event";
+	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 
 
 	private JLabel typeLabel;
@@ -127,7 +130,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected int[] getTableColumnAlignments(){
-		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT};
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
 	}
 
 	@Override
@@ -148,27 +151,46 @@ public final class EventDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{null,
-			"--- NO PERSON ---",
-			"historic fact", "natural disaster",
-			"--- SINGLE PERSON ---",
-			"birth", "sex", "gender", "number of marriages", "death", "coroner report", "cremation", "burial", "reburial", "occupation",
-			"imprisonment", "deportation", "invention", "religious conversion", "ran away from home", "residence", "autopsy",
-			"eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
-			"anecdote", "marks/scars", "disability", "condition", "religion", "education", "able to read", "able to write", "career",
-			"political affiliation", "special talent", "hobby", "nationality", "draft registration", "legal problem", "tobacco use",
-			"alcohol use", "drug problem", "guardianship", "inquest", "bar mitzvah", "bas mitzvah", "jury duty", "baptism", "excommunication",
-			"betrothal", "resignation", "naturalization", "christening", "confirmation", "will", "deed", "escrow", "probate", "retirement",
-			"ordination", "graduation", "emigration", "enrollment", "execution", "employment", "land grant", "name change", "land purchase",
-			"land sale", "military induction", "military enlistment", "military rank", "military award", "military promotion",
-			"military service", "military release", "military discharge", "military resignation", "military retirement", "imprisonment",
-			"pardon", "hospitalization", "illness", "honor", "missing in action", "adoption", "exhumation", "funeral", "celebration of life",
-			"blessing", "first communion", "fosterage", "immigration", "scattering of ashes", "inurnment", "patent filing", "patent granted",
-			//FIXME 'property' can be related to more than one person
-			"internment", "learning", "conversion", "travel", "caste", "description", "property", "imaginary", "specialty", "award",
-			"--- PEOPLE ---",
-			"cohabitation", "union", "wedding", "marriage", "marriage bann", "marriage license", "marriage contract", "marriage settlement",
-			"filing for divorce", "divorce", "engagement", "annulment", "separation", "number of children (total)",
-			"number of children (living)", "marital status", "membership", "partnership", "wedding anniversary", "anniversary celebration"});
+			"--- Historical events and relevant facts ---",
+			"historic fact", "natural disaster", "invention", "patent filing", "patent granted",
+			"--- Birth and early life ---",
+			"birth", "sex", "fosterage", "adoption", "guardianship",
+			"--- Physical condition and personal description ---",
+			"physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
+			"marks/scars", "special talent", "disability",
+			"--- Nationality and immigration ---",
+			"nationality", "emigration", "immigration", "naturalization", "caste",
+			"--- Residence and property ---",
+			"residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow",
+			"--- Education and learning ---",
+			"education", "graduation", "able to read", "able to write", "learning", "enrollment",
+			"--- Work and Career ---",
+			"employment", "occupation", "career", "retirement", "resignation",
+			"--- Legal Events and Documents ---",
+			"coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon",
+			"--- Health problems and habits ---",
+			"hospitalization", "illness", "tobacco use", "alcohol use", "drug problem",
+			"--- Marriage and family life ---",
+			"engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann",
+			"marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation",
+			"number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration",
+			"--- Military ---",
+			"military induction", "military enlistment", "military rank", "military award", "military promotion", "military service",
+			"military release", "military discharge", "military resignation", "military retirement", "missing in action",
+			"--- Imprisonment and restrictions ---",
+			"imprisonment", "deportation", "internment",
+			"--- Transfers and travel ---",
+			"travel",
+			"--- Honors and Recognitions ---",
+			"honor", "award", "membership",
+			"--- Death and burial ---",
+			"death", "execution", "autopsy",  "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
+			"--- Others ---",
+			"anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home",
+			"--- Religious events ---",
+			"religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation",
+			"ordination", "blessing", "first communion"
+		});
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionField = new JTextField();
@@ -231,6 +253,7 @@ public final class EventDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -239,14 +262,15 @@ public final class EventDialog extends CommonListDialog{
 			final Integer key = record.getKey();
 			final Map<String, Object> container = record.getValue();
 
-			final String type = extractRecordType(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final Integer typeID = extractRecordTypeID(container);
+			final String type = extractRecordType(storeEventTypes.get(typeID));
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(type);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(type, row, TABLE_INDEX_RECORD_TYPE);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
 			row ++;
 		}
@@ -254,7 +278,10 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final String type = extractRecordType(selectedRecord);
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+
+		final Integer typeID = extractRecordTypeID(selectedRecord);
+		final String type = extractRecordType(storeEventTypes.get(typeID));
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
@@ -325,27 +352,58 @@ public final class EventDialog extends CommonListDialog{
 		final String description = GUIHelper.getTextTrimmed(descriptionField);
 
 		//update table:
-		if(!Objects.equals(type, extractRecordType(selectedRecord))){
+		//TODO test
+		final NavigableMap<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+		final AtomicReference<Integer> recordTypeID = new AtomicReference<>(extractRecordTypeID(selectedRecord));
+		final String recordType = extractRecordType(storeEventTypes.get(recordTypeID.get()));
+		if(!Objects.equals(type, recordType)){
+			final boolean typePresent = storeEventTypes.values().stream()
+				.anyMatch(entry -> Objects.equals(type, extractRecordType(entry)));
+			if(!typePresent){
+				//if type is not present in the list, show a dialog to insert it within its appropriate super-type
+				final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(store, (Frame)getParent())
+					.withOnCloseGracefully(record -> {
+						final Integer superTypeID = extractRecordID(record);
+
+						//add event type with the specified super-type
+						final Map<String, Object> eventSuperType = new HashMap<>();
+						recordTypeID.set(extractNextRecordID(storeEventTypes));
+						eventSuperType.put("id", recordTypeID.get());
+						eventSuperType.put("super_type_id", superTypeID);
+						storeEventTypes.put(extractRecordID(eventSuperType), eventSuperType);
+					});
+				eventSuperTypeDialog.setTitle("New Event Type for `" + type + "`");
+				eventSuperTypeDialog.initComponents();
+				eventSuperTypeDialog.loadData();
+
+				eventSuperTypeDialog.setLocationRelativeTo(null);
+				eventSuperTypeDialog.setVisible(true);
+			}
+
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++){
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					model.setValueAt(type, modelRowIndex, TABLE_INDEX_RECORD_TYPE);
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+					model.setValueAt(type, modelRowIndex, TABLE_INDEX_TYPE);
 
 					break;
 				}
 			}
 		}
 
-		selectedRecord.put("type", type);
+		selectedRecord.put("type_id", recordTypeID.get());
 		selectedRecord.put("description", description);
 
 		return true;
 	}
 
+
+	private static Integer extractRecordTypeID(final Map<String, Object> record){
+		return (Integer)record.get("type_id");
+	}
 
 	private static String extractRecordType(final Map<String, Object> record){
 		return (String)record.get("type");
@@ -378,7 +436,7 @@ public final class EventDialog extends CommonListDialog{
 		store.put("event", events);
 		final Map<String, Object> event = new HashMap<>();
 		event.put("id", 1);
-		event.put("type", "birth");
+		event.put("type_id", 1);
 		event.put("description", "a birth");
 		event.put("place_id", 1);
 		event.put("date_id", 1);
@@ -386,13 +444,29 @@ public final class EventDialog extends CommonListDialog{
 		event.put("reference_id", 1);
 		events.put((Integer)event.get("id"), event);
 
+		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
+		store.put("event_type", eventTypes);
+		final Map<String, Object> eventType1 = new HashMap<>();
+		eventType1.put("id", 1);
+		eventType1.put("super_type_id", 1);
+		eventType1.put("type", "birth");
+		eventType1.put("category", "birth");
+		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+
+		final TreeMap<Integer, Map<String, Object>> eventSuperTypes = new TreeMap<>();
+		store.put("event_super_type", eventSuperTypes);
+		final Map<String, Object> eventSuperType1 = new HashMap<>();
+		eventSuperType1.put("id", 1);
+		eventSuperType1.put("super_type", "Birth and early life");
+		eventSuperTypes.put((Integer)eventSuperType1.get("id"), eventSuperType1);
+
 		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
 		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
-		place1.put("name_locale", "en-US");
+		place1.put("locale", "en-US");
 		places.put((Integer)place1.get("id"), place1);
 
 		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();

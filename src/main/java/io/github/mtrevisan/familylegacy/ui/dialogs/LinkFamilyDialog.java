@@ -156,21 +156,21 @@ public class LinkFamilyDialog extends JDialog{
 		familiesTable.setDefaultRenderer(String.class, nameRenderer);
 		final FamilyTableCellRenderer rightAlignedRenderer = new FamilyTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, 0, ID_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_MARRIAGE_ID, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_MARRIAGE_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_MARRIAGE_PLACE, 0, MARRIAGE_PLACE_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER1_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER1_ID, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER1_NAME, 0, PARTNER_NAME_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER1_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER1_BIRTH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER1_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER1_DEATH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER2_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER2_ID, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER2_NAME, 0, PARTNER_NAME_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER2_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER2_BIRTH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
-		TableHelper.setColumnWidth(familiesTable, TABLE_INDEX_PARTNER2_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(familiesTable, TABLE_INDEX_PARTNER2_DEATH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(familiesTable.getModel());
 		final Comparator<String> idDateComparator = GedcomNode::compareID;

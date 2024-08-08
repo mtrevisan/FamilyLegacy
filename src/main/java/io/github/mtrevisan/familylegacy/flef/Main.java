@@ -454,7 +454,7 @@ public final class Main{
 		flefPlace.put("id", placeID);
 		flefPlace.put("identifier", "Regno Lombardo-Veneto");
 		flefPlace.put("name", "Regno Lombardo-Veneto");
-		flefPlace.put("name_locale", "it-IT");
+		flefPlace.put("locale", "it-IT");
 		flefPlace.put("type", "reign");
 
 		Map<String, Object> flefHistoricDate = new HashMap<>();

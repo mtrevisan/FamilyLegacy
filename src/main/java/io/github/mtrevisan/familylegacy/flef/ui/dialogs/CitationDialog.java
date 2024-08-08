@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -66,7 +67,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	@Serial
 	private static final long serialVersionUID = -7601387139021862486L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "citation";
 	private static final String TABLE_NAME_SOURCE = "source";
@@ -241,14 +242,14 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final String extract = extractRecordExtract(container);
 			if(extract != null && !extract.isEmpty())
 				identifier.add("[" + extract + "]");
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(sourceIdentifier)
 				.add(location);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -338,7 +339,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final int viewRowIndex = recordTable.convertRowIndexToView(row);
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-			if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
+			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 				final Map<String, Object> updatedCitationRecord = getRecords(TABLE_NAME).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
@@ -348,7 +349,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 				if(extract != null && !extract.isEmpty())
 					identifier.add("[" + extract + "]");
 
-				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 				break;
 			}

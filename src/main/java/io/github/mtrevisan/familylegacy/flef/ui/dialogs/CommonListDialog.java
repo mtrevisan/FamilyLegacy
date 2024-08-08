@@ -92,10 +92,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private static final int DEBOUNCE_TIME = 400;
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
-	private static final int TABLE_PREFERRED_WIDTH_RECORD_ID = 25;
+	protected static final int TABLE_PREFERRED_WIDTH_ID = 25;
 
-	protected static final int TABLE_INDEX_RECORD_ID = 0;
-	protected static final int TABLE_INDEX_RECORD_FILTER = 1;
+	protected static final int TABLE_INDEX_ID = 0;
+	protected static final int TABLE_INDEX_FILTER = 1;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
 
@@ -175,7 +175,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		recordTable.setGridColor(GRID_COLOR);
 		recordTable.setDragEnabled(true);
 		recordTable.setDropMode(DropMode.INSERT_ROWS);
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_ID, TABLE_PREFERRED_WIDTH_ID);
 
 		//define selection
 		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -198,6 +198,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 		recordTable.setRowSorter(sorter);
 
+		final TableColumnModel columnModel = recordTable.getColumnModel();
 		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
 		final int[] alignments = getTableColumnAlignments();
 		final JTableHeader tableHeader = recordTable.getTableHeader();
@@ -208,6 +209,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
 					final boolean hasFocus, final int row, final int column){
 				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+				String cellText = null;
+				if(value != null){
+					cellText = value.toString();
+					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
+					final int textWidth = fm.stringWidth(cellText);
+					final Insets insets = ((JComponent)headerCell).getInsets();
+					final int cellWidth = columnModel.getColumn(column).getWidth()
+						- insets.left - insets.right;
+
+					if(textWidth <= cellWidth)
+						cellText = null;
+				}
+				setToolTipText(cellText);
 
 				setBorder(cellBorder);
 
@@ -220,7 +235,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		});
 
 		//add tooltip
-		final TableColumnModel columnModel = recordTable.getColumnModel();
 		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
 			final TableColumn column = columnModel.getColumn(columnIndex);
 			final int alignment = alignments[columnIndex];
@@ -243,10 +257,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 						if(textWidth <= cellWidth)
 							cellText = null;
 					}
+					setToolTipText(cellText);
 
 					setBorder(cellBorder);
-
-					setToolTipText(cellText);
 
 					setHorizontalAlignment(alignment);
 
@@ -256,7 +269,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 
 		//hide filter column
-		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_RECORD_FILTER);
+		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_FILTER);
 		columnModel.removeColumn(hiddenColumn);
 
 		final InputMap recordTableInputMap = recordTable.getInputMap(JComponent.WHEN_FOCUSED);
@@ -355,7 +368,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 					recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
 					return true;
 				}
@@ -369,7 +382,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	private void filterTableBy(final JDialog panel){
 		final String title = GUIHelper.getTextTrimmed(filterField);
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_RECORD_FILTER);
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(title, TABLE_INDEX_FILTER);
 
 		@SuppressWarnings("unchecked")
 		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
@@ -452,7 +465,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 		final TableModel model = getRecordTableModel();
-		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
+		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 
 		return getRecords(getTableName()).get(recordID);
 	}
@@ -483,7 +496,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final DefaultTableModel model = getRecordTableModel();
 		final int oldSize = model.getRowCount();
 		model.setRowCount(oldSize + 1);
-		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_RECORD_ID);
+		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_ID);
 		//resort rows
 		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
 		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
@@ -532,7 +545,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 		final DefaultTableModel model = getRecordTableModel();
-		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID);
+		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 		if(viewRowIndex == -1)
 			//no row selected
 			return;

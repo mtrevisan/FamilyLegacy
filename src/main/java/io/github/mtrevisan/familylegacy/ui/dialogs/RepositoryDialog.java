@@ -222,7 +222,7 @@ public class RepositoryDialog extends JDialog{
 			}));
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_RECORD_ID, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
 		sorter.setComparator(TABLE_INDEX_RECORD_NAME, Comparator.naturalOrder());

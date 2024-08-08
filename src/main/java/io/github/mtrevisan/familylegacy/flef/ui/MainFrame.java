@@ -699,10 +699,18 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
-		event1.put("type", "adoption");
+		event1.put("type_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 5);
 		events.put((Integer)event1.get("id"), event1);
+
+		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
+		store.put("event_type", eventTypes);
+		final Map<String, Object> eventType1 = new HashMap<>();
+		eventType1.put("id", 1);
+		eventType1.put("type", "adoption");
+		eventType1.put("category", "adoption");
+		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 
 
 		//create and display the form

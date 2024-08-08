@@ -45,6 +45,7 @@ import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -56,6 +57,8 @@ public class ChildrenPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -1250057284416778781L;
+
+	private static final List<String> EVENT_TYPE_ADOPTION = List.of("adoption", "fosterage");
 
 	private static final double UNION_HEIGHT = 12.;
 	private static final double UNION_ASPECT_RATIO = 3501. / 2662.;
@@ -69,6 +72,7 @@ public class ChildrenPanel extends JPanel{
 	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
@@ -93,10 +97,6 @@ public class ChildrenPanel extends JPanel{
 		setOpaque(false);
 	}
 
-
-	final Map<String, Object>[] getChildren(){
-		return children;
-	}
 
 	public void setPersonListener(final PersonListenerInterface personListener){
 		this.personListener = personListener;
@@ -206,10 +206,15 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<Integer> extractAdoptionEventIDs(){
+		final Map<Integer, Map<String, Object>> eventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals("adoption", extractRecordType(entry)))
+			.filter(entry -> {
+				final Integer recordTypeID = extractRecordTypeID(entry);
+				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
+				return EVENT_TYPE_ADOPTION.contains(recordType);
+			})
 			.map(ChildrenPanel::extractRecordReferenceID)
 			.collect(Collectors.toSet());
 	}
@@ -265,6 +270,10 @@ public class ChildrenPanel extends JPanel{
 
 	private static String extractRecordRole(final Map<String, Object> record){
 		return (String)record.get("role");
+	}
+
+	private static Integer extractRecordTypeID(final Map<String, Object> record){
+		return (Integer)record.get("type_id");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -397,10 +406,18 @@ public class ChildrenPanel extends JPanel{
 		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
-		event1.put("type", "adoption");
+		event1.put("type_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 5);
 		events.put((Integer)event1.get("id"), event1);
+
+		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
+		store.put("event_type", eventTypes);
+		final Map<String, Object> eventType1 = new HashMap<>();
+		eventType1.put("id", 1);
+		eventType1.put("type", "adoption");
+		eventType1.put("category", "adoption");
+		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override

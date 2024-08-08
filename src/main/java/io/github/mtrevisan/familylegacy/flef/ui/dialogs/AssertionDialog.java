@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -59,7 +60,6 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -69,7 +69,7 @@ public final class AssertionDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -28220354680747790L;
 
-	private static final int TABLE_INDEX_RECORD_REFERENCE_TABLE = 2;
+	private static final int TABLE_INDEX_REFERENCE_TABLE = 2;
 
 	private static final String TABLE_NAME = "assertion";
 	private static final String TABLE_NAME_CITATION = "citation";
@@ -223,15 +223,15 @@ public final class AssertionDialog extends CommonListDialog{
 				+ (location != null? location: StringUtils.EMPTY)
 				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
 				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(sourceIdentifier)
 				.add(location)
 				.add(referenceTable);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_REFERENCE_TABLE);
 
 			row ++;
 		}
@@ -297,7 +297,7 @@ public final class AssertionDialog extends CommonListDialog{
 			final int viewRowIndex = recordTable.convertRowIndexToView(row);
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-			if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
+			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 				final Map<String, Object> updatedAssertionRecord = getRecords(TABLE_NAME).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
@@ -308,7 +308,7 @@ public final class AssertionDialog extends CommonListDialog{
 					+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
 					+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
 
-				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_REFERENCE_TABLE);
+				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_REFERENCE_TABLE);
 
 				break;
 			}

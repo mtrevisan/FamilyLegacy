@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -50,7 +51,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -61,7 +61,7 @@ public final class CalendarDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 9026792737072096011L;
 
-	private static final int TABLE_INDEX_RECORD_TYPE = 2;
+	private static final int TABLE_INDEX_TYPE = 2;
 
 	private static final String TABLE_NAME = "calendar";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
@@ -173,13 +173,13 @@ public final class CalendarDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String type = extractRecordType(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(type);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(type, row, TABLE_INDEX_RECORD_TYPE);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
 			row ++;
 		}
@@ -246,8 +246,8 @@ public final class CalendarDialog extends CommonListDialog{
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_RECORD_ID).equals(recordID)){
-					model.setValueAt(type, modelRowIndex, TABLE_INDEX_RECORD_TYPE);
+				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+					model.setValueAt(type, modelRowIndex, TABLE_INDEX_TYPE);
 
 					break;
 				}

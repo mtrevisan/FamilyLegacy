@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
@@ -61,7 +62,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -71,7 +71,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 6258734190218776466L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "research_status";
 
@@ -183,13 +183,13 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractRecordIdentifier(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -197,6 +197,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		//TODO
 		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
@@ -251,11 +252,11 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+					model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 					break;
 				}

@@ -152,13 +152,13 @@ public class LinkIndividualDialog extends JDialog{
 		individualsTable.setDefaultRenderer(String.class, nameRenderer);
 		final IndividualTableCellRenderer rightAlignedRenderer = new IndividualTableCellRenderer();
 		rightAlignedRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
-		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_INDIVIDUAL_ID, 0, ID_PREFERRED_WIDTH);
+		TableHelper.setColumnFixedWidth(individualsTable, TABLE_INDEX_INDIVIDUAL_ID, ID_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_SEX, 0, SEX_PREFERRED_WIDTH);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_NAME, 0, NAME_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_BIRTH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(individualsTable, TABLE_INDEX_BIRTH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_BIRTH_PLACE, 0, PLACE_PREFERRED_WIDTH);
-		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_DEATH_YEAR, 0, YEAR_PREFERRED_WIDTH)
+		TableHelper.setColumnFixedWidth(individualsTable, TABLE_INDEX_DEATH_YEAR, YEAR_PREFERRED_WIDTH)
 			.setCellRenderer(rightAlignedRenderer);
 		TableHelper.setColumnWidth(individualsTable, TABLE_INDEX_DEATH_PLACE, 0, PLACE_PREFERRED_WIDTH);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(individualsTable.getModel());

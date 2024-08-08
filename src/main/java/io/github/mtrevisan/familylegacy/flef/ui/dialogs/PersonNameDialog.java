@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -64,7 +65,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -3816108402093925220L;
 
-	private static final int TABLE_INDEX_RECORD_IDENTIFIER = 2;
+	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "person_name";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
@@ -239,13 +240,13 @@ public final class PersonNameDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final String identifier = extractIdentifier(extractRecordID(container));
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(identifier);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_RECORD_IDENTIFIER);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
 		}
@@ -264,7 +265,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final String personalName = extractRecordPersonalName(selectedRecord);
 		final String familyName = extractRecordFamilyName(selectedRecord);
-		final String nameLocale = extractRecordNameLocale(selectedRecord);
+		final String nameLocale = extractRecordLocale(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 			CommonRecordDialog::extractRecordReferenceType, "name");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
@@ -336,7 +337,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		final Integer recordID = extractRecordID(selectedRecord);
 		final DefaultTableModel model = getRecordTableModel();
 		for(int row = 0, length = model.getRowCount(); row < length; row ++)
-			if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+			if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
@@ -346,14 +347,14 @@ public final class PersonNameDialog extends CommonListDialog{
 				if(familyName != null)
 					name.add(familyName);
 
-				model.setValueAt(name.toString(), modelRowIndex, TABLE_INDEX_RECORD_IDENTIFIER);
+				model.setValueAt(name.toString(), modelRowIndex, TABLE_INDEX_IDENTIFIER);
 
 				break;
 			}
 
 		selectedRecord.put("personal_name", personalName);
 		selectedRecord.put("family_name", familyName);
-		selectedRecord.put("name_locale", nameLocale);
+		selectedRecord.put("locale", nameLocale);
 		selectedRecord.put("type", type);
 
 		return true;
@@ -380,8 +381,8 @@ public final class PersonNameDialog extends CommonListDialog{
 		return (String)record.get("family_name");
 	}
 
-	private static String extractRecordNameLocale(final Map<String, Object> record){
-		return (String)record.get("name_locale");
+	private static String extractRecordLocale(final Map<String, Object> record){
+		return (String)record.get("locale");
 	}
 
 	private static Integer extractRecordPersonID(final Map<String, Object> record){
@@ -410,7 +411,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
-		personName1.put("name_locale", "vec-IT");
+		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
@@ -418,7 +419,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
-		personName2.put("name_locale", "it-IT");
+		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
 

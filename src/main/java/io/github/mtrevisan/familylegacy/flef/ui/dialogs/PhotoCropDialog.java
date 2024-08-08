@@ -192,6 +192,14 @@ public final class PhotoCropDialog extends JDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+			final PhotoCropDialog dialog = create(store, parent);
+			try{
+				dialog.loadData("/images/addPhoto.boy.jpg");
+			}
+			catch(final IOException e){
+				e.printStackTrace();
+			}
+
 			final Object listener = new Object(){
 				@EventHandler
 				public void error(final BusExceptionEvent exceptionEvent){
@@ -203,14 +211,6 @@ public final class PhotoCropDialog extends JDialog{
 				public void refresh(final EditEvent editCommand){}
 			};
 			EventBusService.subscribe(listener);
-
-			final PhotoCropDialog dialog = create(store, parent);
-			try{
-				dialog.loadData("/images/addPhoto.boy.jpg");
-			}
-			catch(final IOException e){
-				e.printStackTrace();
-			}
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override

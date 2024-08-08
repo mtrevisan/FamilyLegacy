@@ -74,12 +74,16 @@ import java.beans.PropertyChangeListener;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -90,6 +94,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonPanel.class);
 
+	private static final List<String> EVENT_TYPE_BIRTH = List.of("birth");
+	private static final List<String> EVENT_TYPE_DEATH = List.of("death", "execution");
 
 	private static final String NO_DATA = "?";
 	private static final String[] NO_NAME = {NO_DATA, NO_DATA};
@@ -127,6 +133,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final String TABLE_NAME_CALENDAR = "calendar";
 	private static final String TABLE_NAME_PLACE = "place";
 	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_MEDIA = "media";
@@ -552,8 +559,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private void extractBirthDeathPlaceAge(final StringJoiner sj, final StringJoiner toolTipSJ){
 		if(!person.isEmpty()){
 			final int personID = extractRecordID(person);
-			final Map<String, Object> birthRecord = extractEarliestBirth(personID);
-			final Map<String, Object> deathRecord = extractLatestDeath(personID);
+			final Map<String, Object> birthRecord = extractEarliestBirthDateAndPlace(personID);
+			final Map<String, Object> deathRecord = extractLatestDeathDateAndPlace(personID);
 
 			String age = null;
 			final String birthDateValue = (String)birthRecord.get("dateValue");
@@ -605,79 +612,70 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		}
 	}
 
-	private Map<String, Object> extractEarliestBirth(final int personID){
-		String earliestBirthValue = null;
-		LocalDate earliestBirthDate = null;
-		String earliestBirthPlaceName = null;
-		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+	private Map<String, Object> extractEarliestBirthDateAndPlace(final Integer personID){
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
-		final List<Map<String, Object>> birthEvents = extractReferences(TABLE_NAME_EVENT, personID, "birth");
-		for(int i = 0, length = birthEvents.size(); i < length; i ++){
-			final Map<String, Object> event = birthEvents.get(i);
-
+		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
+			final Map<String, Object> event = entry.getValue();
 			final Integer dateID = extractRecordDateID(event);
 			final Integer placeID = extractRecordPlaceID(event);
-			final Map<String, Object> dateRecord = (dateID != null? historicDates.get(dateID): null);
-			final Map<String, Object> placeRecord = (placeID != null? places.get(placeID): null);
-			final String dateValue = extractRecordDate(dateRecord);
-			final Integer calendarID = extractRecordCalendarID(dateRecord);
-			final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-			final LocalDate date = DateParser.parse(dateValue, calendarType);
 
-			if(date != null && (earliestBirthDate == null || date.isBefore(earliestBirthDate))){
-				earliestBirthValue = dateValue;
-				earliestBirthDate = date;
-				earliestBirthPlaceName = (placeRecord != null? (String)placeRecord.get("name"): null);
-			}
-		}
-		final Map<String, Object> result = new HashMap<>(3);
-		result.put("dateValue", earliestBirthValue);
-		result.put("date", earliestBirthDate);
-		result.put("placeName", earliestBirthPlaceName);
-		return result;
+			final Map<String, Object> result = new HashMap<>(3);
+			result.put("dateValue", extractRecordDate(historicDates.get(dateID)));
+			result.put("date", entry.getKey());
+			result.put("placeName", extractRecordName(places.get(placeID)));
+			return result;
+		};
+		final Map<String, Object> data = extractData(personID, EVENT_TYPE_BIRTH, comparator, extractor);
+		return (data != null? data: Collections.emptyMap());
 	}
 
-	private Map<String, Object> extractLatestDeath(final int personID){
-		LocalDate latestDeathDate = null;
-		String latestDeathValue = null;
-		String latestDeathPlaceName = null;
-		final TreeMap<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+	private Map<String, Object> extractLatestDeathDateAndPlace(final Integer personID){
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
-		final List<Map<String, Object>> deathEvents = extractReferences(TABLE_NAME_EVENT, personID, "death");
-		for(int i = 0, length = deathEvents.size(); i < length; i ++){
-			final Map<String, Object> event = deathEvents.get(i);
-
+		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
+			final Map<String, Object> event = entry.getValue();
 			final Integer dateID = extractRecordDateID(event);
 			final Integer placeID = extractRecordPlaceID(event);
-			final Map<String, Object> dateRecord = (dateID != null? historicDates.get(dateID): null);
-			final Map<String, Object> placeRecord = (placeID != null? places.get(placeID): null);
-			final String dateValue = extractRecordDate(dateRecord);
-			final Integer calendarID = extractRecordCalendarID(dateRecord);
-			final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-			final LocalDate date = DateParser.parse(dateValue, calendarType);
 
-			if(date != null && (latestDeathDate == null || date.isAfter(latestDeathDate))){
-				latestDeathValue = dateValue;
-				latestDeathDate = date;
-				latestDeathPlaceName = (placeRecord != null? (String)placeRecord.get("name"): null);
-			}
-		}
-		final Map<String, Object> result = new HashMap<>(3);
-		result.put("dateValue", latestDeathValue);
-		result.put("date", latestDeathDate);
-		result.put("placeName", latestDeathPlaceName);
-		return result;
+			final Map<String, Object> result = new HashMap<>(3);
+			result.put("dateValue", extractRecordDate(historicDates.get(dateID)));
+			result.put("date", entry.getKey());
+			result.put("placeName", extractRecordName(places.get(placeID)));
+			return result;
+		};
+		final Map<String, Object> data = extractData(personID, EVENT_TYPE_DEATH, comparator.reversed(), extractor);
+		return (data != null? data: Collections.emptyMap());
 	}
 
-	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
-		return getRecords(fromTable)
+	private <T> T extractData(final Integer referenceID, final List<String> eventTypes, final Comparator<LocalDate> comparator,
+			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
-			.toList();
+			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
+			.filter(entry -> {
+				final Integer recordTypeID = extractRecordTypeID(entry);
+				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
+				return eventTypes.contains(recordType);
+			})
+			.map(entry -> {
+				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
+				final String dateValue = extractRecordDate(dateEntry);
+				final Integer calendarID = extractRecordCalendarID(dateEntry);
+				final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
+				final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
+			})
+			.filter(Objects::nonNull)
+			.min(Map.Entry.comparingByKey(comparator))
+			.map(extractor)
+			.orElse(null);
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
@@ -686,6 +684,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static Integer extractRecordReferenceID(final Map<String, Object> record){
 		return (Integer)record.get("reference_id");
+	}
+
+	private static Integer extractRecordTypeID(final Map<String, Object> record){
+		return (Integer)record.get("type_id");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -714,6 +716,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static String extractRecordIdentifier(final Map<String, Object> record){
 		return (record != null? (String)record.get("identifier"): null);
+	}
+
+	private static String extractRecordName(final Map<String, Object> record){
+		return (record != null? (String)record.get("name"): null);
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -751,7 +757,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
-		personName1.put("name_locale", "vec-IT");
+		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
 		personNames.put((Integer)personName1.get("id"), personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
@@ -759,7 +765,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
-		personName2.put("name_locale", "it-IT");
+		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
 		personNames.put((Integer)personName2.get("id"), personName2);
 
@@ -767,7 +773,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
-		event1.put("type", "birth");
+		event1.put("type_id", 1);
 		event1.put("date_id", 1);
 		event1.put("place_id", 1);
 		event1.put("reference_table", "person");
@@ -775,13 +781,26 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		events.put((Integer)event1.get("id"), event1);
 		final Map<String, Object> event2 = new HashMap<>();
 		event2.put("id", 2);
-		event2.put("type", "death");
+		event2.put("type_id", 2);
 		event2.put("person_id", 1);
 		event2.put("date_id", 2);
 		event2.put("place_id", 2);
 		event2.put("reference_table", "person");
 		event2.put("reference_id", 1);
 		events.put((Integer)event2.get("id"), event2);
+
+		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
+		store.put("event_type", eventTypes);
+		final Map<String, Object> eventType1 = new HashMap<>();
+		eventType1.put("id", 1);
+		eventType1.put("type", "birth");
+		eventType1.put("category", "birth");
+		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		final Map<String, Object> eventType2 = new HashMap<>();
+		eventType2.put("id", 2);
+		eventType2.put("type", "death");
+		eventType2.put("category", "death");
+		eventTypes.put((Integer)eventType2.get("id"), eventType2);
 
 		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
 		store.put("historic_date", dates);

@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -54,7 +55,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -64,7 +64,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	@Serial
 	private static final long serialVersionUID = 3280504923967901715L;
 
-	private static final int TABLE_INDEX_RECORD_NOTE = 2;
+	private static final int TABLE_INDEX_NOTE = 2;
 
 	private static final String TABLE_NAME = "note";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
@@ -195,13 +195,13 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			final Map<String, Object> container = record.getValue();
 
 			final String note = extractRecordNote(container);
-			final StringJoiner filter = new StringJoiner(" | ")
-				.add(key.toString())
+			final FilterString filter = FilterString.create()
+				.add(key)
 				.add(note);
 
-			model.setValueAt(key, row, TABLE_INDEX_RECORD_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_RECORD_FILTER);
-			model.setValueAt(note, row, TABLE_INDEX_RECORD_NOTE);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
 			row ++;
 		}
@@ -259,11 +259,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++)
-				if(model.getValueAt(row, TABLE_INDEX_RECORD_ID).equals(recordID)){
+				if(model.getValueAt(row, TABLE_INDEX_ID).equals(recordID)){
 					final int viewRowIndex = recordTable.convertRowIndexToView(row);
 					final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-					model.setValueAt(note, modelRowIndex, TABLE_INDEX_RECORD_NOTE);
+					model.setValueAt(note, modelRowIndex, TABLE_INDEX_NOTE);
 
 					break;
 				}

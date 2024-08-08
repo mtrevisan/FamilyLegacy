@@ -207,7 +207,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 			}));
 		recordTable.getTableHeader()
 			.setFont(recordTable.getFont().deriveFont(Font.BOLD));
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_ID, 0, TABLE_PREFERRED_WIDTH_RECORD_ID);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_RECORD_ID, TABLE_PREFERRED_WIDTH_RECORD_ID);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_RECORD_LANGUAGE, 0, TABLE_PREFERRED_WIDTH_RECORD_LANGUAGE);
 		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordTable.getModel());
 		sorter.setComparator(TABLE_INDEX_RECORD_ID, (Comparator<String>)GedcomNode::compareID);
