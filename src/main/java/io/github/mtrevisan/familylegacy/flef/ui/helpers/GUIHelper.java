@@ -64,7 +64,6 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
@@ -177,8 +176,19 @@ public final class GUIHelper{
 			});
 	}
 
-	public static void bindLabelSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox,
-			final Consumer<ActionEvent> onSelection){
+	public static void bindLabelSelectionChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onSelection){
+		if(label != null)
+			label.setLabelFor(comboBox);
+
+		//if not editable:
+		if(onSelection != null)
+			comboBox.addActionListener(evt -> {
+				if(comboBox.getSelectedItem() != null)
+					onSelection.run();
+			});
+	}
+
+	public static void bindLabelSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onSelection){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
@@ -187,7 +197,7 @@ public final class GUIHelper{
 		if(onSelection != null)
 			comboBox.addActionListener(evt -> {
 				if(comboBox.getSelectedItem() != null)
-					onSelection.accept(evt);
+					onSelection.run();
 			});
 	}
 
@@ -219,18 +229,6 @@ public final class GUIHelper{
 			comboBox.addItemListener(evt -> {
 				if(evt.getStateChange() == ItemEvent.SELECTED)
 					onEdit.run();
-			});
-	}
-
-	public static void bindLabelSelectionChange(final JLabel label, final JComboBox<?> comboBox, final Consumer<ActionEvent> onSelection){
-		if(label != null)
-			label.setLabelFor(comboBox);
-
-		//if not editable:
-		if(onSelection != null)
-			comboBox.addActionListener(evt -> {
-				if(comboBox.getSelectedItem() != null)
-					onSelection.accept(evt);
 			});
 	}
 

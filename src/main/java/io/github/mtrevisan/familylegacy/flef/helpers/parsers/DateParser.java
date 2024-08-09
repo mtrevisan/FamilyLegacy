@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.RegexHelper;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 

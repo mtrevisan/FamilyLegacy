@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.JavaHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.JavaHelper;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -24,25 +24,51 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import javax.swing.DefaultComboBoxModel;
+import javax.swing.JLabel;
+import javax.swing.JToolTip;
+import java.awt.FontMetrics;
+import java.awt.SystemColor;
+import java.awt.event.MouseEvent;
 import java.io.Serial;
 
 
-public class CredibilityComboBoxModel extends DefaultComboBoxModel<String>{
+/**
+ * Parent class need to implement {@link java.beans.PropertyChangeListener} as follows
+ * <pre>{@code
+ *    @Override
+ * 	public void propertyChange(final PropertyChangeEvent evt){
+ * 		if("text".equals(evt.getPropertyName()))
+ * 			label.manageTooltip();
+ * 	}
+ * }</pre>
+ * and the field must set
+ * <pre>{@code
+ * 	label.addPropertyChangeListener("text", this);
+ * }</pre>
+ */
+public class LabelAutoToolTip extends JLabel{
 
 	@Serial
-	private static final long serialVersionUID = -8041236519870502016L;
-
-	private static final String[] ITEMS = {
-		null,
-		"unreliable/estimated data",
-		"questionable reliability of evidence",
-		"secondary evidence, data officially recorded sometime after event",
-		"direct and primary evidence used, or by dominance of the evidence"};
+	private static final long serialVersionUID = -3850625229732307986L;
 
 
-	public CredibilityComboBoxModel(){
-		super(ITEMS);
+	public String getToolTipText(final MouseEvent e){
+		final String text = getToolTipText();
+		final FontMetrics fm = getFontMetrics(getFont());
+		final int textWidth = fm.stringWidth(text);
+		return (textWidth > getSize().width? text: null);
+	}
+
+	public JToolTip createToolTip(){
+		final JToolTip tip = new JToolTip();
+		tip.setBackground(SystemColor.info);
+		tip.setComponent(this);
+		return tip;
+	}
+
+	public void manageToolTip(){
+		final boolean showToolTip = (getUI().getPreferredSize(this).width > getWidth());
+		setToolTipText(showToolTip? getToolTipText(): null);
 	}
 
 }

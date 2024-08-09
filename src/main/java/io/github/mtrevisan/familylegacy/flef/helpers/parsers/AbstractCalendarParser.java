@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.helpers.parsers;
 
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.RegexHelper;
 
 import java.time.LocalDate;
 import java.util.regex.Matcher;

@@ -50,7 +50,7 @@ public class EditEvent{
 
 		GROUP,
 
-		EVENT,
+		EVENT, EVENT_TYPE,
 
 		CULTURAL_NORM,
 

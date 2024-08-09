@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import org.apache.commons.lang3.StringUtils;
-
 import javax.swing.DefaultComboBoxModel;
 import java.io.Serial;
 
@@ -36,7 +34,7 @@ public class CertaintyComboBoxModel extends DefaultComboBoxModel<String>{
 	private static final long serialVersionUID = 2684474248300642031L;
 
 	private static final String[] ITEMS = {
-		StringUtils.EMPTY,
+		null,
 		"impossible",
 		"unlikely",
 		"possible",

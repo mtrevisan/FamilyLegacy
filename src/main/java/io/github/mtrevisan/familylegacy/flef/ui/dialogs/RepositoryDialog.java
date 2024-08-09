@@ -132,9 +132,9 @@ public final class RepositoryDialog extends CommonListDialog{
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "public library", "college library", "national library", "prison library",
-			"national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library", "religious library",
-			"genealogy society collection", "government agency", "funeral home"});
+		typeComboBox = new JComboBox<>(new String[]{null, "public library", "college library", "national library",
+			"prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library",
+			"religious library", "genealogy society collection", "government agency", "funeral home"});
 		personButton = new JButton("Reference person", ICON_PERSON);
 		placeButton = new JButton("Place", ICON_PLACE);
 

@@ -190,10 +190,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
 		transcriptionLabel = new JLabel("Transcription:");
-		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana", "hangul"});
+		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana",
+			"hangul"});
 		transcriptionTypeLabel = new JLabel("Transcription type:");
-		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized", "gairaigized",
-			"latinized"});
+		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized",
+			"gairaigized", "latinized"});
 
 
 		if(simplePrimaryText){
@@ -319,9 +320,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		localeField.setText(null);
 
 		typeComboBox.setSelectedItem(null);
-
 		transcriptionComboBox.setSelectedItem(null);
-
 		transcriptionTypeComboBox.setSelectedItem(null);
 	}
 

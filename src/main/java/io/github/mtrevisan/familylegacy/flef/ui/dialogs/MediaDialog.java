@@ -234,11 +234,11 @@ public final class MediaDialog extends CommonListDialog{
 		titleLabel = new JLabel("Title:");
 		titleField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel", "microfilm", "microfiche",
-			"cd-rom"});
+		typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel", "microfilm",
+			"microfiche", "cd-rom"});
 		photoProjectionLabel = new JLabel("Photo projection:");
-		photoProjectionComboBox = new JComboBox<>(new String[]{null, "rectangular", "spherical UV", "cylindrical equirectangular horizontal",
-			"cylindrical equirectangular vertical"});
+		photoProjectionComboBox = new JComboBox<>(new String[]{null, "rectangular", "spherical UV",
+			"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
 		dateButton = new JButton("Date", ICON_CALENDAR);
 
 		noteButton = new JButton("Notes", ICON_NOTE);

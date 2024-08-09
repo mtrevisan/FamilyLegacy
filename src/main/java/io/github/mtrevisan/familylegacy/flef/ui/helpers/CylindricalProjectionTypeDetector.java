@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
+
 public class CylindricalProjectionTypeDetector{
 
 /*

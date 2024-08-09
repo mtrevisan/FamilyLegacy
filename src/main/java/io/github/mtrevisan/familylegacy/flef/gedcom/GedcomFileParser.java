@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.TimeWatch;
+import io.github.mtrevisan.familylegacy.flef.helpers.TimeWatch;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

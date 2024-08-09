@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.ImageIcon;

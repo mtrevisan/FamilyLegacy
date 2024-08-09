@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
-
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;

@@ -154,9 +154,9 @@ public final class PersonNameDialog extends CommonListDialog{
 		nameLocaleField = new JTextField();
 		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "birth name", "also known as", "nickname", "family nickname", "pseudonym", "legal",
-			"adoptive name", "stage name", "marriage name", "call name", "official name", "anglicized name", "religious order name",
-			"pen name", "name at work", "immigrant"});
+		typeComboBox = new JComboBox<>(new String[]{null, "birth name", "also known as", "nickname", "family nickname",
+			"pseudonym", "legal", "adoptive name", "stage name", "marriage name", "call name", "official name", "anglicized name",
+			"religious order name", "pen name", "name at work", "immigrant"});
 
 		noteButton = new JButton("Notes", ICON_NOTE);
 		mediaButton = new JButton("Medias", ICON_MEDIA);

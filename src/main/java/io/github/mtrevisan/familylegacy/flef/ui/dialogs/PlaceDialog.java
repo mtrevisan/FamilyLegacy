@@ -165,12 +165,12 @@ public final class PlaceDialog extends CommonListDialog{
 		nameLocaleField = new JTextField();
 		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "nation", "province", "state", "county", "city", "township", "parish", "island",
-			"archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
+		typeComboBox = new JComboBox<>(new String[]{null, "nation", "province", "state", "county", "city", "township", "parish",
+			"island", "archipelago", "continent", "unincorporated town", "settlement", "village", "address"});
 		coordinateLabel = new JLabel("Coordinate:");
 		coordinateField = new JTextField();
 		coordinateSystemLabel = new JLabel("Coordinate system:");
-		coordinateSystemComboBox = new JComboBox<>(new String[]{"WGS84", "UTM"});
+		coordinateSystemComboBox = new JComboBox<>(new String[]{null, "WGS84", "UTM"});
 		coordinateCredibilityLabel = new JLabel("Coordinate credibility:");
 		coordinateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 		photoButton = new JButton("Photo", ICON_PHOTO);

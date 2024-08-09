@@ -139,7 +139,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 
 		statusLabel = new JLabel("Type:");
-		statusComboBox = new JComboBox<>(new String[]{"open", "active", "ended"});
+		statusComboBox = new JComboBox<>(new String[]{null, "open", "active", "ended"});
 
 		priorityLabel = new JLabel("Priority:");
 		priorityField = new JTextField();

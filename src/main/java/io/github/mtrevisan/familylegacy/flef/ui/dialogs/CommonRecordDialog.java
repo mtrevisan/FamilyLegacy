@@ -25,23 +25,29 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
@@ -122,7 +128,10 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected Map<String, Object> selectedRecord;
 	protected long selectedRecordHash;
+
 	protected Consumer<Map<String, Object>> newRecordDefault;
+	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
+
 	protected volatile boolean ignoreEvents;
 
 
@@ -149,6 +158,11 @@ public abstract class CommonRecordDialog extends JDialog{
 		initLayout();
 
 		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	}
+
+	protected void addValidDataListenerToMandatoryFields(final ValidDataListenerInterface validDataListener){
+		for(final JTextComponent[] mandatoryFields : mandatoryFields)
+			GUIHelper.addValidDataListener(validDataListener, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR, mandatoryFields);
 	}
 
 	protected abstract void initRecordComponents();
@@ -180,9 +194,25 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(recordPanel, "grow");
+
+		pack();
 	}
 
 	protected abstract void initRecordLayout(final JComponent recordPanel);
+
+	protected void addMandatoryField(final JTextComponent... fields){
+		mandatoryFields.add(fields);
+	}
+
+	protected static void addMandatoryField(final JComboBox<String> comboBox){
+		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
+	}
+
+	protected void setMandatoryFieldsBackgroundColor(final Color color){
+		for(final JTextComponent[] mandatoryFields : mandatoryFields)
+			for(int j = 0, length = mandatoryFields.length; j < length; j ++)
+				mandatoryFields[j].setBackground(color);
+	}
 
 	private void closeAction(final ActionEvent evt){
 		if(closeAction())
@@ -221,7 +251,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (int)record.get("id"): null);
+		return (record != null? (Integer)record.get("id"): null);
 	}
 
 

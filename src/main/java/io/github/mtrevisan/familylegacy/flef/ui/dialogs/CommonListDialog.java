@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
@@ -41,7 +40,6 @@ import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.InputMap;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -60,7 +58,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -72,10 +69,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -113,7 +108,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
 	private int previousIndex = -1;
-	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
 	protected volatile boolean selectRecordOnly;
 	protected volatile boolean hideUnselectButton;
@@ -131,8 +125,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		super.initComponents();
 
-		for(final JTextComponent[] mandatoryFields : mandatoryFields)
-			GUIHelper.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR, mandatoryFields);
+		addValidDataListenerToMandatoryFields(this);
 	}
 
 	protected void initStoreComponents(){
@@ -351,14 +344,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		return (DefaultTableModel)recordTable.getModel();
 	}
 
-	protected void addMandatoryField(final JTextComponent... fields){
-		mandatoryFields.add(fields);
-	}
-
-	protected static void addMandatoryField(final JComboBox<String> comboBox){
-		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
-	}
-
 	public final boolean selectData(final int recordID){
 		final String tableName = getTableName();
 		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
@@ -483,11 +468,11 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		ignoreEvents = true;
 
 		//create a new record
-		final Map<String, Object> newTable = new HashMap<>();
 		final NavigableMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
 		final int nextRecordID = extractNextRecordID(storeTables);
-		newTable.put("id", nextRecordID);
-		storeTables.put(nextRecordID, newTable);
+		final Map<String, Object> newRecord = new HashMap<>();
+		newRecord.put("id", nextRecordID);
+		storeTables.put(nextRecordID, newRecord);
 
 		//reset filter
 		filterField.setText(null);
@@ -510,12 +495,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
 
 		setMandatoryFieldsBackgroundColor(MANDATORY_BACKGROUND_COLOR);
-	}
-
-	private void setMandatoryFieldsBackgroundColor(final Color color){
-		for(final JTextComponent[] mandatoryFields : mandatoryFields)
-			for(int j = 0, length = mandatoryFields.length; j < length; j ++)
-				mandatoryFields[j].setBackground(color);
 	}
 
 	protected void requestFocusAfterSelect(){}

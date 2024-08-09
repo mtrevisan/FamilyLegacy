@@ -28,6 +28,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 //import org.opencv.imgcodecs.Imgcodecs;
 //import org.opencv.imgproc.Imgproc;
 
+
 public class ImageProjectionTypeDetector{
 
 //	static{

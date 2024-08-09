@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
+import io.github.mtrevisan.familylegacy.flef.helpers.RegexHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;

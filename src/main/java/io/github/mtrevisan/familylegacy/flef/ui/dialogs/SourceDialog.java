@@ -146,8 +146,8 @@ public final class SourceDialog extends CommonListDialog{
 		identifierLabel = new JLabel("Identifier:");
 		identifierField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine", "genealogy newsletter", "blog",
-			"baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook",
+		typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine", "genealogy newsletter",
+			"blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook",
 			"directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message",
 			"interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will",
 			"legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register",
@@ -281,7 +281,7 @@ public final class SourceDialog extends CommonListDialog{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		identifierField.setText(identifier);
-		typeComboBox.setSelectedItem(type);
+		typeComboBox.setSelectedItem(type != null? type: StringUtils.SPACE);
 		authorField.setText(author);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
@@ -297,7 +297,7 @@ public final class SourceDialog extends CommonListDialog{
 	@Override
 	protected void clearData(){
 		identifierField.setText(null);
-		typeComboBox.setSelectedItem(null);
+		typeComboBox.setSelectedItem(StringUtils.SPACE);
 		authorField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
 		GUIHelper.setDefaultBorder(dateButton);

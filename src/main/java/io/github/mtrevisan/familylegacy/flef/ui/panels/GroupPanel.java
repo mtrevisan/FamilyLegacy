@@ -25,9 +25,9 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -671,7 +671,7 @@ public class GroupPanel extends JPanel{
 			updatePreviousNextParentsIcons(partner2, partner2PreviousParentsLabel, partner2NextParentsLabel);
 		}
 
-		unionPanel.setBorder(! union.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
+		unionPanel.setBorder(!union.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
 			BorderFactory.createDashedBorder(BORDER_COLOR));
 
 		refresh(ActionCommand.ACTION_COMMAND_GROUP);
@@ -708,7 +708,7 @@ public class GroupPanel extends JPanel{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP)
 			return;
 
-		final boolean hasData = ! union.isEmpty();
+		final boolean hasData = !union.isEmpty();
 //		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
 //		final boolean hasChildren = (getChildren().length > 0);
 		editGroupItem.setEnabled(hasData);

@@ -204,7 +204,8 @@ public final class GroupDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "family", "neighborhood", "fraternity", "ladies club", "literary society"});
+		typeComboBox = new JComboBox<>(new String[]{null, "family", "neighborhood", "fraternity", "ladies club",
+			"literary society"});
 		photoButton = new JButton("Photo", ICON_PHOTO);
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 

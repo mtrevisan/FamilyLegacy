@@ -61,10 +61,8 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 
@@ -78,10 +76,18 @@ public final class EventDialog extends CommonListDialog{
 
 	private static final String TABLE_NAME = "event";
 	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
+	private static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
+
+	//NOTE: em dash `—`
+	private static final String MENU_SEPARATOR = "\u2014";
+	private static final String MENU_SEPARATOR_START = MENU_SEPARATOR + StringUtils.SPACE;
+	private static final String MENU_SEPARATOR_END = StringUtils.SPACE + MENU_SEPARATOR;
 
 
 	private JLabel typeLabel;
 	private JComboBox<String> typeComboBox;
+	private JButton addTypeButton;
+	private JButton removeTypeButton;
 	private JLabel descriptionLabel;
 	private JTextField descriptionField;
 	private JButton placeButton;
@@ -151,46 +157,48 @@ public final class EventDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{null,
-			"--- Historical events and relevant facts ---",
+			MENU_SEPARATOR_START + "Historical events" + MENU_SEPARATOR_END,
 			"historic fact", "natural disaster", "invention", "patent filing", "patent granted",
-			"--- Birth and early life ---",
+			MENU_SEPARATOR_START + "Personal origins" + MENU_SEPARATOR_END,
 			"birth", "sex", "fosterage", "adoption", "guardianship",
-			"--- Physical condition and personal description ---",
+			MENU_SEPARATOR_START + "Physical description" + MENU_SEPARATOR_END,
 			"physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
 			"marks/scars", "special talent", "disability",
-			"--- Nationality and immigration ---",
+			MENU_SEPARATOR_START + "Citizenship and migration" + MENU_SEPARATOR_END,
 			"nationality", "emigration", "immigration", "naturalization", "caste",
-			"--- Residence and property ---",
+			MENU_SEPARATOR_START + "Real estate assets" + MENU_SEPARATOR_END,
 			"residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow",
-			"--- Education and learning ---",
+			MENU_SEPARATOR_START + "Education" + MENU_SEPARATOR_END,
 			"education", "graduation", "able to read", "able to write", "learning", "enrollment",
-			"--- Work and Career ---",
+			MENU_SEPARATOR_START + "Work and Career" + MENU_SEPARATOR_END,
 			"employment", "occupation", "career", "retirement", "resignation",
-			"--- Legal Events and Documents ---",
+			MENU_SEPARATOR_START + "Legal Events and Documents" + MENU_SEPARATOR_END,
 			"coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon",
-			"--- Health problems and habits ---",
+			MENU_SEPARATOR_START + "Health problems and habits" + MENU_SEPARATOR_END,
 			"hospitalization", "illness", "tobacco use", "alcohol use", "drug problem",
-			"--- Marriage and family life ---",
+			MENU_SEPARATOR_START + "Marriage and family life" + MENU_SEPARATOR_END,
 			"engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann",
 			"marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation",
 			"number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration",
-			"--- Military ---",
+			MENU_SEPARATOR_START + "Military" + MENU_SEPARATOR_END,
 			"military induction", "military enlistment", "military rank", "military award", "military promotion", "military service",
 			"military release", "military discharge", "military resignation", "military retirement", "missing in action",
-			"--- Imprisonment and restrictions ---",
+			MENU_SEPARATOR_START + "Confinement" + MENU_SEPARATOR_END,
 			"imprisonment", "deportation", "internment",
-			"--- Transfers and travel ---",
+			MENU_SEPARATOR_START + "Transfers and travel" + MENU_SEPARATOR_END,
 			"travel",
-			"--- Honors and Recognitions ---",
+			MENU_SEPARATOR_START + "Accolades" + MENU_SEPARATOR_END,
 			"honor", "award", "membership",
-			"--- Death and burial ---",
+			MENU_SEPARATOR_START + "Death and burial" + MENU_SEPARATOR_END,
 			"death", "execution", "autopsy",  "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
-			"--- Others ---",
+			MENU_SEPARATOR_START + "Others" + MENU_SEPARATOR_END,
 			"anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home",
-			"--- Religious events ---",
+			MENU_SEPARATOR_START + "Religious events" + MENU_SEPARATOR_END,
 			"religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation",
 			"ordination", "blessing", "first communion"
 		});
+		addTypeButton = new JButton("Add");
+		removeTypeButton = new JButton("Remove");
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionField = new JTextField();
@@ -203,9 +211,24 @@ public final class EventDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 
-		typeComboBox.setRenderer(new SeparatorComboBoxRenderer());
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		typeComboBox.setRenderer(new SeparatorComboBoxRenderer(MENU_SEPARATOR_START, MENU_SEPARATOR_END));
+		GUIHelper.bindLabelSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
+		addTypeButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.EVENT_TYPE, TABLE_NAME, getSelectedRecord())));
+		removeTypeButton.addActionListener(evt -> {
+			//remove selected item from `typeComboBox`
+			final String type = GUIHelper.getTextTrimmed(typeComboBox);
+			if(type != null && (!type.startsWith(MENU_SEPARATOR_START) || !type.endsWith(MENU_SEPARATOR_END))){
+				//remove data from store
+				getRecords(TABLE_NAME_EVENT_TYPE)
+					.values()
+					.removeIf(entry -> Objects.equals(type, extractRecordType(entry)));
+
+				typeComboBox.removeItem(type);
+				typeComboBox.setSelectedItem(null);
+			}
+		});
 
 		GUIHelper.bindLabelTextChangeUndo(descriptionLabel, descriptionField, this::saveData);
 
@@ -233,7 +256,9 @@ public final class EventDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
+		recordPanelBase.add(typeComboBox, "grow,wrap related");
+		recordPanelBase.add(addTypeButton, "sizegroup btn,tag add,split 2,align right");
+		recordPanelBase.add(removeTypeButton, "sizegroup btn,tag delete,gapleft 20,wrap paragraph");
 		recordPanelBase.add(descriptionLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(descriptionField, "grow,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,split 2");
@@ -327,18 +352,6 @@ public final class EventDialog extends CommonListDialog{
 			return false;
 		}
 
-//		if(selectedRecord != null){
-//			final String referenceTable = extractRecordReferenceTable(selectedRecord);
-//			final Integer referenceID = extractRecordReferenceID(selectedRecord);
-//			if(!validData(referenceTable) || !validData(referenceID)){
-//				JOptionPane.showMessageDialog(getParent(), "Reference is required", "Error",
-//					JOptionPane.ERROR_MESSAGE);
-//				referenceButton.requestFocusInWindow();
-//
-//				return false;
-//			}
-//		}
-
 		return true;
 	}
 
@@ -349,52 +362,15 @@ public final class EventDialog extends CommonListDialog{
 
 		//read record panel:
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final Integer typeID = getRecords(TABLE_NAME_EVENT_TYPE)
+			.values().stream()
+			.filter(entry -> Objects.equals(type, extractRecordType(entry)))
+			.findFirst()
+			.map(EventDialog::extractRecordID)
+			.orElse(null);
 		final String description = GUIHelper.getTextTrimmed(descriptionField);
 
-		//update table:
-		//TODO test
-		final NavigableMap<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
-		final AtomicReference<Integer> recordTypeID = new AtomicReference<>(extractRecordTypeID(selectedRecord));
-		final String recordType = extractRecordType(storeEventTypes.get(recordTypeID.get()));
-		if(!Objects.equals(type, recordType)){
-			final boolean typePresent = storeEventTypes.values().stream()
-				.anyMatch(entry -> Objects.equals(type, extractRecordType(entry)));
-			if(!typePresent){
-				//if type is not present in the list, show a dialog to insert it within its appropriate super-type
-				final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(store, (Frame)getParent())
-					.withOnCloseGracefully(record -> {
-						final Integer superTypeID = extractRecordID(record);
-
-						//add event type with the specified super-type
-						final Map<String, Object> eventSuperType = new HashMap<>();
-						recordTypeID.set(extractNextRecordID(storeEventTypes));
-						eventSuperType.put("id", recordTypeID.get());
-						eventSuperType.put("super_type_id", superTypeID);
-						storeEventTypes.put(extractRecordID(eventSuperType), eventSuperType);
-					});
-				eventSuperTypeDialog.setTitle("New Event Type for `" + type + "`");
-				eventSuperTypeDialog.initComponents();
-				eventSuperTypeDialog.loadData();
-
-				eventSuperTypeDialog.setLocationRelativeTo(null);
-				eventSuperTypeDialog.setVisible(true);
-			}
-
-			final DefaultTableModel model = getRecordTableModel();
-			final Integer recordID = extractRecordID(selectedRecord);
-			for(int row = 0, length = model.getRowCount(); row < length; row ++){
-				final int viewRowIndex = recordTable.convertRowIndexToView(row);
-				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-					model.setValueAt(type, modelRowIndex, TABLE_INDEX_TYPE);
-
-					break;
-				}
-			}
-		}
-
-		selectedRecord.put("type_id", recordTypeID.get());
+		selectedRecord.put("type_id", typeID);
 		selectedRecord.put("description", description);
 
 		return true;
@@ -419,6 +395,14 @@ public final class EventDialog extends CommonListDialog{
 
 	private static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
+	}
+
+	private static Integer extractRecordSuperTypeID(final Map<String, Object> record){
+		return (Integer)record.get("super_type_id");
+	}
+
+	private static String extractRecordSuperType(final Map<String, Object> record){
+		return (String)record.get("super_type");
 	}
 
 
@@ -448,7 +432,7 @@ public final class EventDialog extends CommonListDialog{
 		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
-		eventType1.put("super_type_id", 1);
+		eventType1.put("super_type_id", 2);
 		eventType1.put("type", "birth");
 		eventType1.put("category", "birth");
 		eventTypes.put((Integer)eventType1.get("id"), eventType1);
@@ -457,8 +441,72 @@ public final class EventDialog extends CommonListDialog{
 		store.put("event_super_type", eventSuperTypes);
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("id", 1);
-		eventSuperType1.put("super_type", "Birth and early life");
+		eventSuperType1.put("super_type", "Historical events");
 		eventSuperTypes.put((Integer)eventSuperType1.get("id"), eventSuperType1);
+		final Map<String, Object> eventSuperType2 = new HashMap<>();
+		eventSuperType2.put("id", 2);
+		eventSuperType2.put("super_type", "Personal origins");
+		eventSuperTypes.put((Integer)eventSuperType2.get("id"), eventSuperType2);
+		final Map<String, Object> eventSuperType3 = new HashMap<>();
+		eventSuperType3.put("id", 3);
+		eventSuperType3.put("super_type", "Physical description");
+		eventSuperTypes.put((Integer)eventSuperType3.get("id"), eventSuperType3);
+		final Map<String, Object> eventSuperType4 = new HashMap<>();
+		eventSuperType4.put("id", 4);
+		eventSuperType4.put("super_type", "Citizenship and migration");
+		eventSuperTypes.put((Integer)eventSuperType4.get("id"), eventSuperType4);
+		final Map<String, Object> eventSuperType5 = new HashMap<>();
+		eventSuperType5.put("id", 5);
+		eventSuperType5.put("super_type", "Real estate assets");
+		eventSuperTypes.put((Integer)eventSuperType5.get("id"), eventSuperType5);
+		final Map<String, Object> eventSuperType6 = new HashMap<>();
+		eventSuperType6.put("id", 6);
+		eventSuperType6.put("super_type", "Education");
+		eventSuperTypes.put((Integer)eventSuperType6.get("id"), eventSuperType6);
+		final Map<String, Object> eventSuperType7 = new HashMap<>();
+		eventSuperType7.put("id", 7);
+		eventSuperType7.put("super_type", "Work and Career");
+		eventSuperTypes.put((Integer)eventSuperType7.get("id"), eventSuperType7);
+		final Map<String, Object> eventSuperType8 = new HashMap<>();
+		eventSuperType8.put("id", 8);
+		eventSuperType8.put("super_type", "Legal Events and Documents");
+		eventSuperTypes.put((Integer)eventSuperType8.get("id"), eventSuperType8);
+		final Map<String, Object> eventSuperType9 = new HashMap<>();
+		eventSuperType9.put("id", 9);
+		eventSuperType9.put("super_type", "Health problems and habits");
+		eventSuperTypes.put((Integer)eventSuperType9.get("id"), eventSuperType9);
+		final Map<String, Object> eventSuperType10 = new HashMap<>();
+		eventSuperType10.put("id", 10);
+		eventSuperType10.put("super_type", "Marriage and family life");
+		eventSuperTypes.put((Integer)eventSuperType10.get("id"), eventSuperType10);
+		final Map<String, Object> eventSuperType11 = new HashMap<>();
+		eventSuperType11.put("id", 11);
+		eventSuperType11.put("super_type", "Military");
+		eventSuperTypes.put((Integer)eventSuperType11.get("id"), eventSuperType11);
+		final Map<String, Object> eventSuperType12 = new HashMap<>();
+		eventSuperType12.put("id", 12);
+		eventSuperType12.put("super_type", "Confinement");
+		eventSuperTypes.put((Integer)eventSuperType12.get("id"), eventSuperType12);
+		final Map<String, Object> eventSuperType13 = new HashMap<>();
+		eventSuperType13.put("id", 13);
+		eventSuperType13.put("super_type", "Transfers and travel");
+		eventSuperTypes.put((Integer)eventSuperType13.get("id"), eventSuperType13);
+		final Map<String, Object> eventSuperType14 = new HashMap<>();
+		eventSuperType14.put("id", 14);
+		eventSuperType14.put("super_type", "Accolades");
+		eventSuperTypes.put((Integer)eventSuperType14.get("id"), eventSuperType14);
+		final Map<String, Object> eventSuperType15 = new HashMap<>();
+		eventSuperType15.put("id", 15);
+		eventSuperType15.put("super_type", "Death and burial");
+		eventSuperTypes.put((Integer)eventSuperType15.get("id"), eventSuperType15);
+		final Map<String, Object> eventSuperType16 = new HashMap<>();
+		eventSuperType16.put("id", 16);
+		eventSuperType16.put("super_type", "Others");
+		eventSuperTypes.put((Integer)eventSuperType16.get("id"), eventSuperType16);
+		final Map<String, Object> eventSuperType17 = new HashMap<>();
+		eventSuperType17.put("id", 17);
+		eventSuperType17.put("super_type", "Religious events");
+		eventSuperTypes.put((Integer)eventSuperType17.get("id"), eventSuperType17);
 
 		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
 		store.put("place", places);
@@ -595,7 +643,46 @@ public final class EventDialog extends CommonListDialog{
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
 						}
+						case EVENT_TYPE -> {
+							//if type is not present in the list, show a dialog to insert it within its appropriate super-type
+							final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(store, parent)
+								.withOnCloseGracefully(record -> {
+									final String newType = extractRecordType(record);
+									final Integer superTypeID = extractRecordSuperTypeID(record);
+									final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(TABLE_NAME_EVENT_SUPER_TYPE, store);
+									final String superTypeMenuItemText = MENU_SEPARATOR_START
+										+ extractRecordSuperType(storeEventSuperTypes.get(superTypeID))
+										+ MENU_SEPARATOR_END;
+
+									//add `newType` at the end of the `superTypeMenuItemText` section
+									for(int i = 0, length = dialog.typeComboBox.getItemCount(); i < length; i ++)
+										if(superTypeMenuItemText.equals(dialog.typeComboBox.getItemAt(i))){
+											//skip to end of section
+											while(++ i < length){
+												final String text = dialog.typeComboBox.getItemAt(i);
+												if(text.startsWith(MENU_SEPARATOR_START) && text.endsWith(MENU_SEPARATOR_END))
+													break;
+											}
+
+											//add new menu item
+											dialog.typeComboBox.insertItemAt(newType, i);
+											break;
+										}
+
+									dialog.typeComboBox.setSelectedItem(newType != null? newType: StringUtils.SPACE);
+								});
+							eventSuperTypeDialog.initComponents();
+							eventSuperTypeDialog.showNewRecord();
+
+							eventSuperTypeDialog.setLocationRelativeTo(dialog);
+							eventSuperTypeDialog.setVisible(true);
+						}
 					}
+				}
+
+				private static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName,
+						final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+					return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 				}
 			};
 			EventBusService.subscribe(listener);

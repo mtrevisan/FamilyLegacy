@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.gedcom;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.RegexHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
-import io.github.mtrevisan.familylegacy.services.RegexHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 

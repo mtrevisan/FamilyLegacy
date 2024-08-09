@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
