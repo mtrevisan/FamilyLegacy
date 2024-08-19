@@ -272,7 +272,7 @@ public class TextPreviewPane extends JSplitPane{
 
 		final Node document = MARKDOWN_PARSER.parse(markdown);
 		final String renderedDocument = HTML_RENDERER.render(document);
-		return  HTML_START + renderedDocument + HTML_END;
+		return HTML_START + renderedDocument + HTML_END;
 	}
 
 	/**

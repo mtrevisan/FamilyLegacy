@@ -61,6 +61,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
@@ -89,6 +90,14 @@ public final class GUIHelper{
 			runnable.run();
 		else
 			SwingUtilities.invokeLater(runnable);
+	}
+
+
+	public static Comparator<Object> getNumericComparator(){
+		return Comparator.comparingInt(key -> {
+			final String keyString = key.toString();
+			return (StringUtils.isNotBlank(keyString)? Integer.parseInt(keyString): -1);
+		});
 	}
 
 

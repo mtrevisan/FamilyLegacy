@@ -145,9 +145,9 @@ public final class Main{
 				if(line.startsWith("1 ")){
 					line = line.substring(2);
 					if(PATTERN4.matcher(line).matches()){
-            		final String number = PATTERN2.matcher(line).replaceAll("");
-            		line = PATTERN1.matcher(line).replaceAll("[" + number + "]");
-            	}
+						final String number = PATTERN2.matcher(line).replaceAll("");
+						line = PATTERN1.matcher(line).replaceAll("[" + number + "]");
+					}
 					if(line.startsWith("CONC ")){
 						final int prevIndex = output.size() - 1;
 						line = output.get(prevIndex) + line.split(" ", 2)[1];

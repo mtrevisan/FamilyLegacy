@@ -141,7 +141,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, Comparator.naturalOrder()};
+		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public final class EventDialog extends CommonListDialog{
 			MENU_SEPARATOR_START + "Accolades" + MENU_SEPARATOR_END,
 			"honor", "award", "membership",
 			MENU_SEPARATOR_START + "Death and burial" + MENU_SEPARATOR_END,
-			"death", "execution", "autopsy",  "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
+			"death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
 			MENU_SEPARATOR_START + "Others" + MENU_SEPARATOR_END,
 			"anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home",
 			MENU_SEPARATOR_START + "Religious events" + MENU_SEPARATOR_END,

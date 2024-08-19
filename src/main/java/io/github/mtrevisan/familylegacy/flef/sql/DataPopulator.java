@@ -144,7 +144,7 @@ class DataPopulator{
 					for(int i = 0, length = tableColumnName.length; i < length; i ++)
 						externalKeyValue[index++] = table.getValueForColumn(recordRow, tableColumnName[i]);
 					if(Arrays.stream(externalKeyValue).allMatch(Objects::isNull))
-            		continue;
+						continue;
 
 					final GenericKey externalKey = new GenericKey(externalKeyValue);
 

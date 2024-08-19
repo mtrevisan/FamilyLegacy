@@ -81,6 +81,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -93,9 +94,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final long serialVersionUID = -300117824230109203L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonPanel.class);
-
-	private static final List<String> EVENT_TYPE_BIRTH = List.of("birth");
-	private static final List<String> EVENT_TYPE_DEATH = List.of("death", "execution");
 
 	private static final String NO_DATA = "?";
 	private static final String[] NO_NAME = {NO_DATA, NO_DATA};
@@ -137,6 +135,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_MEDIA = "media";
+
+	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
+	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
 
 	private final LabelAutoToolTip personalNameLabel = new LabelAutoToolTip();
 	private final LabelAutoToolTip familyNameLabel = new LabelAutoToolTip();
@@ -627,7 +628,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			result.put("placeName", extractRecordName(places.get(placeID)));
 			return result;
 		};
-		final Map<String, Object> data = extractData(personID, EVENT_TYPE_BIRTH, comparator, extractor);
+		final Map<String, Object> data = extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
 		return (data != null? data: Collections.emptyMap());
 	}
 
@@ -646,15 +647,16 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			result.put("placeName", extractRecordName(places.get(placeID)));
 			return result;
 		};
-		final Map<String, Object> data = extractData(personID, EVENT_TYPE_DEATH, comparator.reversed(), extractor);
+		final Map<String, Object> data = extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);
 		return (data != null? data: Collections.emptyMap());
 	}
 
-	private <T> T extractData(final Integer referenceID, final List<String> eventTypes, final Comparator<LocalDate> comparator,
+	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
@@ -678,6 +680,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.orElse(null);
 	}
 
+	private Set<String> getEventTypes(final String category){
+		return getRecords(TABLE_NAME_EVENT_TYPE)
+			.values().stream()
+			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
+			.map(PersonPanel::extractRecordType)
+			.collect(Collectors.toSet());
+	}
+
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
 		return (String)record.get("reference_table");
 	}
@@ -688,6 +698,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static Integer extractRecordTypeID(final Map<String, Object> record){
 		return (Integer)record.get("type_id");
+	}
+
+	private static String extractRecordCategory(final Map<String, Object> record){
+		return (String)record.get("category");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -794,12 +808,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "birth");
-		eventType1.put("category", "birth");
+		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
 		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("id", 2);
 		eventType2.put("type", "death");
-		eventType2.put("category", "death");
+		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
 		eventTypes.put((Integer)eventType2.get("id"), eventType2);
 
 		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();

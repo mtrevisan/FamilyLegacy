@@ -84,7 +84,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private static final String ACTION_MAP_KEY_DELETE = "delete";
 
 	/** [ms] */
-	private static final int DEBOUNCE_TIME = 400;
+	protected static final int DEBOUNCE_TIME = 400;
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 	protected static final int TABLE_PREFERRED_WIDTH_ID = 25;
@@ -103,7 +103,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private JButton unselectRecordButton;
 	protected JButton deleteRecordButton;
 	//record components:
-	protected JTabbedPane recordTabbedPane;
+	protected final JTabbedPane recordTabbedPane = new JTabbedPane();
 
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
@@ -150,8 +150,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		newRecordButton = new JButton("New");
 		unselectRecordButton = new JButton("Unselect");
 		deleteRecordButton = new JButton("Delete");
-		//record components:
-		recordTabbedPane = new JTabbedPane();
 
 
 		filterLabel.setLabelFor(filterField);
@@ -417,8 +415,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			final TableModel model = getRecordTableModel();
-			final String recordIdentifier = (String)model.getValueAt(modelRowIndex, 1);
-			unselectRecordButton.setEnabled(recordIdentifier != null && !recordIdentifier.isEmpty());
+			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+			unselectRecordButton.setEnabled(recordIdentifier != null);
 
 			deleteRecordButton.setEnabled(!selectRecordOnly);
 		}

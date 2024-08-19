@@ -132,7 +132,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 			final LocalDate localDate2 = DateParser.parse(date2, calendar2);
 			return localDate1.compareTo(localDate2);
 		};
-		return new Comparator<?>[]{Comparator.comparingInt(key -> Integer.parseInt(key.toString())), null, dateComparator};
+		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, dateComparator};
 	}
 
 	@Override

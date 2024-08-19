@@ -22,20 +22,50 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
+package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.DropMode;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.RowFilter;
+import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Frame;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.util.AbstractMap;
@@ -46,22 +76,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
-public final class LinkUnionDialog extends CommonListDialog{
+public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterface{
 
 	@Serial
-	private static final long serialVersionUID = -1524494907031661540L;
+	private static final long serialVersionUID = 4199513069798359051L;
 
-	private static final List<String> EVENT_TYPE_BIRTH = List.of("birth");
-	private static final List<String> EVENT_TYPE_DEATH = List.of("death", "execution");
-	private static final List<String> EVENT_TYPE_UNION = List.of("cohabitation", "union", "wedding", "marriage", "marriage bann",
-		"marriage license", "marriage contract");
+	private static final Color GRID_COLOR = new Color(230, 230, 230);
+	private static final int TABLE_PREFERRED_WIDTH_ID = 25;
 
+	private static final int TABLE_INDEX_ID = 0;
+	private static final int TABLE_INDEX_FILTER = 1;
 	private static final int TABLE_INDEX_UNION_YEAR = 2;
 	private static final int TABLE_INDEX_UNION_PLACE = 3;
 	private static final int TABLE_INDEX_PARTNER1_ID = 4;
@@ -72,6 +103,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_PARTNER2_NAME = 9;
 	private static final int TABLE_INDEX_PARTNER2_BIRTH_YEAR = 10;
 	private static final int TABLE_INDEX_PARTNER2_DEATH_YEAR = 11;
+	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
@@ -88,61 +120,162 @@ public final class LinkUnionDialog extends CommonListDialog{
 	private static final String TABLE_NAME_CALENDAR = "calendar";
 	private static final String TABLE_NAME_PLACE = "place";
 
+	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
+	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
+	private static final String EVENT_TYPE_CATEGORY_UNION = "union";
+
 	private static final String NO_DATA = StringUtils.EMPTY;
 
 
-	public static LinkUnionDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LinkUnionDialog dialog = new LinkUnionDialog(store, parent);
-		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
-		return dialog;
+	private JTable recordTable;
+	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
+
+	private LinkListenerInterface linkListener;
+
+
+	public static LinkUnionPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new LinkUnionPanel(store);
 	}
 
 
-	private LinkUnionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private LinkUnionPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		this.store = store;
 	}
 
 
-	public LinkUnionDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		setOnCloseGracefully(onCloseGracefully);
+	public final LinkUnionPanel withLinkListener(final LinkListenerInterface linkListener){
+		this.linkListener = linkListener;
 
 		return this;
 	}
 
-	@Override
-	protected String getTableName(){
-		return null;
-	}
+	public void initComponents(){
+		//store components:
+		recordTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
+			@Serial
+			private static final long serialVersionUID = -4368712348987632631L;
 
-	@Override
-	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Year", "Place",
-			"ID", "Partner 1", "birth", "death",
-			"ID", "Partner 2", "birth", "death"};
-	}
+			@Override
+			public Class<?> getColumnClass(final int column){
+				return String.class;
+			}
 
-	@Override
-	protected int[] getTableColumnAlignments(){
-		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT,
-			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT,
-			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT};
-	}
+			@Override
+			public boolean isCellEditable(final int row, final int column){
+				return false;
+			}
+		});
 
-	@Override
-	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = Comparator.comparingInt(key -> Integer.parseInt(key.toString()));
-		final Comparator<String> textComparator = Comparator.naturalOrder();
-		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator,
-			numericComparator, textComparator, numericComparator, numericComparator,
-			numericComparator, textComparator, numericComparator, numericComparator};
-	}
 
-	@Override
-	protected void initStoreComponents(){
-		setTitle("Search");
+		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+		recordTable.setFocusable(true);
+		recordTable.setGridColor(GRID_COLOR);
+		recordTable.setDragEnabled(true);
+		recordTable.setDropMode(DropMode.INSERT_ROWS);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_ID, TABLE_PREFERRED_WIDTH_ID);
 
-		super.initStoreComponents();
+		//define selection
+		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		recordTable.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent evt){
+				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && recordTable.getSelectedRow() >= 0)
+					selectAction();
+			}
+		});
+
+		//add sorter
+		recordTable.setAutoCreateRowSorter(true);
+		final Comparator<?>[] comparators = getTableColumnComparators();
+		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(getRecordTableModel());
+		final int columnCount = recordTable.getColumnCount();
+		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
+			final Comparator<?> comparator = comparators[columnIndex];
+
+			if(comparator != null)
+				sorter.setComparator(columnIndex, comparator);
+		}
+		recordTable.setRowSorter(sorter);
+
+		final TableColumnModel columnModel = recordTable.getColumnModel();
+		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
+		final int[] alignments = getTableColumnAlignments();
+		final JTableHeader tableHeader = recordTable.getTableHeader();
+		final Font tableFont = recordTable.getFont();
+		final Font headerFont = tableFont.deriveFont(Font.BOLD);
+		tableHeader.setDefaultRenderer(new DefaultTableCellRenderer(){
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+				final boolean hasFocus, final int row, final int column){
+				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+				String cellText = null;
+				if(value != null){
+					cellText = value.toString();
+					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
+					final int textWidth = fm.stringWidth(cellText);
+					final Insets insets = ((JComponent)headerCell).getInsets();
+					final int cellWidth = columnModel.getColumn(column).getWidth()
+						- insets.left - insets.right;
+
+					if(textWidth <= cellWidth)
+						cellText = null;
+				}
+				setToolTipText(cellText);
+
+				setBorder(cellBorder);
+
+				final int alignment = alignments[table.convertColumnIndexToModel(column)];
+				setHorizontalAlignment(alignment);
+				setFont(headerFont);
+
+				return headerCell;
+			}
+		});
+
+		//add tooltip
+		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
+			final TableColumn column = columnModel.getColumn(columnIndex);
+			final int alignment = alignments[columnIndex];
+
+			column.setCellRenderer(new DefaultTableCellRenderer(){
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+					final boolean hasFocus, final int row, final int column){
+					final Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+					String cellText = null;
+					if(value != null){
+						cellText = value.toString();
+						final FontMetrics fm = cell.getFontMetrics(tableFont);
+						final int textWidth = fm.stringWidth(cellText);
+						final Insets insets = ((JComponent)cell).getInsets();
+						final int cellWidth = columnModel.getColumn(column).getWidth()
+							- insets.left - insets.right;
+
+						if(textWidth <= cellWidth)
+							cellText = null;
+					}
+					setToolTipText(cellText);
+
+					setBorder(cellBorder);
+
+					setHorizontalAlignment(alignment);
+
+					return cell;
+				}
+			});
+		}
+
+		//hide filter column
+		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_FILTER);
+		columnModel.removeColumn(hiddenColumn);
+
+		final Dimension viewSize = new Dimension();
+		viewSize.width = columnModel
+			.getTotalColumnWidth();
+		viewSize.height = TABLE_ROWS_SHOWN * recordTable.getRowHeight();
+		recordTable.setPreferredScrollableViewportSize(viewSize);
 
 
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_UNION_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
@@ -155,15 +288,53 @@ public final class LinkUnionDialog extends CommonListDialog{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PARTNER2_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
+
+
+		initLayout();
 	}
 
-	@Override
-	protected void initRecordComponents(){}
+	//http://www.migcalendar.com/miglayout/cheatsheet.html
+	protected void initLayout(){
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		add(new JScrollPane(recordTable), "grow");
+	}
 
-	@Override
-	protected void initRecordLayout(final JComponent recordTabbedPane){}
+	private String[] getTableColumnNames(){
+		return new String[]{"ID", "Filter", "Year", "Place",
+			"ID", "Partner 1", "birth", "death",
+			"ID", "Partner 2", "birth", "death"};
+	}
 
-	@Override
+	private int[] getTableColumnAlignments(){
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT,
+			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT,
+			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT};
+	}
+
+	private Comparator<?>[] getTableColumnComparators(){
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator,
+			numericComparator, textComparator, numericComparator, numericComparator,
+			numericComparator, textComparator, numericComparator, numericComparator};
+	}
+
+	private DefaultTableModel getRecordTableModel(){
+		return (DefaultTableModel)recordTable.getModel();
+	}
+
+	private void selectAction(){
+		if(linkListener != null){
+			final int viewRowIndex = recordTable.getSelectedRow();
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			final TableModel model = getRecordTableModel();
+			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+
+			linkListener.onRecordSelected(TABLE_NAME_GROUP, recordIdentifier);
+		}
+	}
+
+
 	public void loadData(){
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_GROUP);
 
@@ -175,6 +346,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 			final Map<String, Object> container = record.getValue();
 
 			final Integer unionID = extractRecordID(container);
+			final String type = extractRecordType(container);
 			final List<Integer> personIDsInUnion = getPartnerIDs(unionID);
 			final String earliestUnionYear = extractEarliestUnionYear(unionID);
 			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);
@@ -194,6 +366,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 			final String partner2DeathYear = (latestPartner2DeathYear != null? latestPartner2DeathYear: NO_DATA);
 			final FilterString filter = FilterString.create()
 				.add(key)
+				.add(type)
 				.add(earliestUnionYear)
 				.add(earliestUnionPlace);
 			if(partner1ID != null){
@@ -231,19 +404,17 @@ public final class LinkUnionDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void fillData(){}
+	public void setFilterAndSorting(final String filterText, final List<Map.Entry<String, String>> additionalFields){
+		//extract filter
+		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(filterText, TABLE_INDEX_FILTER);
+		//extract ordering
+		final List<RowSorter.SortKey> sortKeys = SearchParser.getSortKeys(additionalFields, getTableColumnNames());
 
-	@Override
-	protected void clearData(){}
-
-	@Override
-	protected boolean validateData(){
-		return true;
-	}
-
-	@Override
-	protected boolean saveData(){
-		return !ignoreEvents;
+		//apply filter and ordering
+		@SuppressWarnings("unchecked")
+		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
+		sorter.setRowFilter(filter);
+		sorter.setSortKeys(!sortKeys.isEmpty()? sortKeys: null);
 	}
 
 
@@ -253,7 +424,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.map(LinkUnionDialog::extractRecordReferenceID)
+			.map(LinkUnionPanel::extractRecordReferenceID)
 			.toList());
 	}
 
@@ -261,7 +432,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 		return getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(LinkUnionDialog::extractName)
+			.map(LinkUnionPanel::extractName)
 			.findFirst()
 			.orElse(null);
 	}
@@ -280,7 +451,7 @@ public final class LinkUnionDialog extends CommonListDialog{
 				localizedPersonNames
 					.values().stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(LinkUnionDialog::extractName)
+					.map(LinkUnionPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
 			});
@@ -301,19 +472,19 @@ public final class LinkUnionDialog extends CommonListDialog{
 	private String extractEarliestUnionYear(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
-		return extractData(unionID, EVENT_TYPE_UNION, comparator, extractor);
+		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
 	private String extractEarliestBirthYear(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
-		return extractData(personID, EVENT_TYPE_BIRTH, comparator, extractor);
+		return extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
 	}
 
 	private String extractLatestDeathYear(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
-		return extractData(personID, EVENT_TYPE_DEATH, comparator.reversed(), extractor);
+		return extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);
 	}
 
 	private String extractEarliestUnionPlace(final Integer unionID){
@@ -323,15 +494,16 @@ public final class LinkUnionDialog extends CommonListDialog{
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
 			return (placeID != null? extractRecordName(places.get(placeID)): null);
 		};
-		return extractData(unionID, EVENT_TYPE_UNION, comparator, extractor);
+		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
-	private <T> T extractData(final Integer referenceID, final List<String> eventTypes, final Comparator<LocalDate> comparator,
+	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
-		final String eventReferenceTable = (eventTypes == EVENT_TYPE_UNION? TABLE_NAME_GROUP: TABLE_NAME_PERSON);
+		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)? TABLE_NAME_GROUP: TABLE_NAME_PERSON);
+		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
 			.filter(entry -> Objects.equals(eventReferenceTable, extractRecordReferenceTable(entry)))
@@ -355,8 +527,28 @@ public final class LinkUnionDialog extends CommonListDialog{
 			.orElse(null);
 	}
 
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
+	private Set<String> getEventTypes(final String category){
+		return getRecords(TABLE_NAME_EVENT_TYPE)
+			.values().stream()
+			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
+			.map(LinkUnionPanel::extractRecordType)
+			.collect(Collectors.toSet());
+	}
+
+	private NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
+		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+	}
+
+	private static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("id"): null);
+	}
+
+	private static String extractRecordReferenceTable(final Map<String, Object> record){
+		return (String)record.get("reference_table");
+	}
+
+	private static Integer extractRecordReferenceID(final Map<String, Object> record){
+		return (Integer)record.get("reference_id");
 	}
 
 	private static Integer extractRecordGroupID(final Map<String, Object> record){
@@ -365,6 +557,14 @@ public final class LinkUnionDialog extends CommonListDialog{
 
 	private static String extractRecordRole(final Map<String, Object> record){
 		return (String)record.get("role");
+	}
+
+	private static Integer extractRecordPersonID(final Map<String, Object> record){
+		return (Integer)record.get("person_id");
+	}
+
+	private static String extractRecordCategory(final Map<String, Object> record){
+		return (String)record.get("category");
 	}
 
 	private static String extractRecordType(final Map<String, Object> record){
@@ -408,13 +608,13 @@ public final class LinkUnionDialog extends CommonListDialog{
 	}
 
 
-
 	public static void main(final String[] args){
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
 		catch(final Exception ignored){}
+
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
@@ -585,17 +785,17 @@ public final class LinkUnionDialog extends CommonListDialog{
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "birth");
-		eventType1.put("category", "birth");
+		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
 		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("id", 2);
 		eventType2.put("type", "death");
-		eventType2.put("category", "death");
+		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
 		eventTypes.put((Integer)eventType2.get("id"), eventType2);
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("id", 3);
 		eventType3.put("type", "marriage");
-		eventType3.put("category", "union");
+		eventType3.put("category", EVENT_TYPE_CATEGORY_UNION);
 		eventTypes.put((Integer)eventType3.get("id"), eventType3);
 
 		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
@@ -632,21 +832,33 @@ public final class LinkUnionDialog extends CommonListDialog{
 		calendar1.put("type", "gregorian");
 		calendars.put((Integer)calendar1.get("id"), calendar1);
 
-		EventQueue.invokeLater(() -> {
-			final JFrame parent = new JFrame();
-			final LinkUnionDialog dialog = createSelectOnly(store, parent);
-			dialog.initComponents();
-			dialog.loadData();
+		final LinkListenerInterface linkListener = new LinkListenerInterface(){
+			@Override
+			public void onRecordSelected(final String table, final Integer id){
+				System.out.println("onRecordSelected " + table + " " + id);
+			}
+		};
 
-			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
+		EventQueue.invokeLater(() -> {
+			final LinkUnionPanel panel = create(store)
+				.withLinkListener(linkListener);
+			panel.initComponents();
+			panel.loadData();
+
+			final JFrame frame = new JFrame();
+			final Container contentPane = frame.getContentPane();
+			contentPane.setLayout(new BorderLayout());
+			contentPane.add(panel, BorderLayout.NORTH);
+			frame.pack();
+			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			frame.addWindowListener(new WindowAdapter(){
 				@Override
-				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+				public void windowClosing(final WindowEvent e){
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
 		});
 	}
 
