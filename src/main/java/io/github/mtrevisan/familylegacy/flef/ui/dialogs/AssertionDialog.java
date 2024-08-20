@@ -133,7 +133,9 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -228,9 +230,10 @@ public final class AssertionDialog extends CommonListDialog{
 				.add(sourceIdentifier)
 				.add(location)
 				.add(referenceTable);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_REFERENCE_TABLE);
 
 			row ++;
@@ -445,14 +448,14 @@ public final class AssertionDialog extends CommonListDialog{
 
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
-		final Map<String, Object> localized_text1 = new HashMap<>();
-		localized_text1.put("id", 1);
-		localized_text1.put("text", "text 1");
-		localized_text1.put("locale", "it");
-		localized_text1.put("type", "original");
-		localized_text1.put("transcription", "IPA");
-		localized_text1.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localized_text1.get("id"), localized_text1);
+		final Map<String, Object> localizedText1 = new HashMap<>();
+		localizedText1.put("id", 1);
+		localizedText1.put("text", "text 1");
+		localizedText1.put("locale", "it");
+		localizedText1.put("type", "original");
+		localizedText1.put("transcription", "IPA");
+		localizedText1.put("transcription_type", "romanized");
+		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put("note", notes);
@@ -516,7 +519,6 @@ public final class AssertionDialog extends CommonListDialog{
 			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(assertion)))
 				dialog.showNewRecord();
@@ -542,7 +544,6 @@ public final class AssertionDialog extends CommonListDialog{
 										record.put("reference_id", assertionID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -558,7 +559,6 @@ public final class AssertionDialog extends CommonListDialog{
 										record.put("reference_id", assertionID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -573,7 +573,6 @@ public final class AssertionDialog extends CommonListDialog{
 										record.put("reference_id", assertionID);
 									}
 								});
-							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.setLocationRelativeTo(dialog);

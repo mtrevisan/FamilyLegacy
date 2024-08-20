@@ -25,8 +25,6 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 
-public interface LinkListenerInterface{
-
-	void onRecordSelected(String table, Integer id);
+public record SearchAllRecord(Integer id, String tableName, String filter, String identifier){
 
 }

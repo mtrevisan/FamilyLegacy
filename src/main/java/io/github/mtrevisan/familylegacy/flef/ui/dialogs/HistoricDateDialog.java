@@ -123,6 +123,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> dateComparator = (date1, date2) -> {
 			//TODO retrieve calendar type? store julian date?
 			String calendar1 = CalendarParserBuilder.CALENDAR_GREGORIAN;
@@ -132,7 +133,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 			final LocalDate localDate2 = DateParser.parse(date2, calendar2);
 			return localDate1.compareTo(localDate2);
 		};
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, dateComparator};
+		return new Comparator<?>[]{numericComparator, null, dateComparator};
 	}
 
 	@Override
@@ -230,9 +231,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 				.add(key)
 				.add(date)
 				.add(dateOriginal);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
 				TABLE_INDEX_DATE);
 
@@ -411,7 +413,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final HistoricDateDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(historicDate1)))
 				dialog.showNewRecord();
@@ -431,7 +432,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, historicDateID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -440,7 +440,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 						case CALENDAR -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("calendar_id", extractRecordID(record)));
-							calendarDialog.initComponents();
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarID(container));
 
@@ -450,7 +449,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("calendar_original_id", extractRecordID(record)));
-							calendarDialog.initComponents();
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
 
@@ -466,7 +464,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 										record.put("reference_id", historicDateID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);

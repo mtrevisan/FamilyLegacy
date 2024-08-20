@@ -61,6 +61,7 @@ import java.io.Serial;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
@@ -169,7 +170,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -301,9 +304,10 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -320,8 +324,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
+		final Integer recordID = extractRecordID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
-			CulturalNormDialog::extractRecordMediaID, extractRecordID(selectedRecord));
+			CulturalNormDialog::extractRecordMediaID, recordID);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
@@ -331,12 +336,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			.filter(entry -> Objects.equals(placeID, extractRecordPlaceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		//FIXME
-//		final String linkCertainty = extractRecordCertainty(recordMediaJunction);
-//		final String linkCredibility = extractRecordCredibility(recordMediaJunction);
 
 		identifierField.setText(identifier);
-		descriptionTextPreview.setText("Cultural norm " + extractRecordID(selectedRecord), description, null);
+		descriptionTextPreview.setText("Cultural norm " + recordID, description, null);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateStartButton, dateStartID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateEndButton, dateEndID != null, DATA_BUTTON_BORDER_COLOR);
@@ -351,13 +353,21 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		if(filterReferenceTable == null){
 			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
-				CulturalNormDialog::extractRecordCulturalNormID, extractRecordID(selectedRecord));
+				CulturalNormDialog::extractRecordCulturalNormID, recordID);
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
+
+			final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordCulturalNormJunction.entrySet().iterator();
+			if(itr.hasNext()){
+				final Map<String, Object> culturalNormJunction = itr.next()
+					.getValue();
+				final String linkCertainty = extractRecordCertainty(culturalNormJunction);
+				final String linkCredibility = extractRecordCredibility(culturalNormJunction);
+
+				linkCertaintyComboBox.setSelectedItem(linkCertainty);
+				linkCredibilityComboBox.setSelectedItem(linkCredibility);
+			}
 		}
-		//FIXME
-//		linkCertaintyComboBox.setSelectedItem(linkCertainty);
-//		linkCredibilityComboBox.setSelectedItem(linkCredibility);
 	}
 
 	@Override
@@ -565,7 +575,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 			final CulturalNormDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(culturalNorm)))
 				dialog.showNewRecord();
@@ -585,7 +594,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, culturalNormID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -593,7 +601,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
-							placeDialog.initComponents();
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -604,7 +611,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -622,7 +628,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 										record.put("reference_id", culturalNormID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -638,7 +643,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 										record.put("reference_id", culturalNormID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -647,7 +651,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, culturalNormID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);

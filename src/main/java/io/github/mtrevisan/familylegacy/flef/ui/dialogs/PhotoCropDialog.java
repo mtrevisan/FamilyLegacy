@@ -92,7 +92,7 @@ public final class PhotoCropDialog extends JDialog{
 		return this;
 	}
 
-	void initComponents(){
+	private void initComponents(){
 		initRecordComponents();
 
 		initLayout();

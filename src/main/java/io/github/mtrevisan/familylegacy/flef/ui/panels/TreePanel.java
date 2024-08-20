@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -64,7 +65,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class TreePanel extends JPanel{
+public class TreePanel extends JPanel implements TreeNavigationListenerInterface, RecordListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 4700955059623460223L;
@@ -95,6 +96,7 @@ public class TreePanel extends JPanel{
 	private GroupPanel homeGroupPanel;
 	private JScrollPane childrenScrollPane;
 	private ChildrenPanel childrenPanel;
+	private GenealogyNavigationPanel navigationPanel;
 	public GenealogicalTree genealogicalTree;
 
 	private Map<String, Object> homeUnion = new HashMap<>(0);
@@ -112,10 +114,13 @@ public class TreePanel extends JPanel{
 	private TreePanel(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.generations = generations;
 		this.store = store;
+
+
+		initComponents();
 	}
 
 
-	public void initComponents(){
+	private void initComponents(){
 		if(generations <= 3)
 			initComponents3Generations();
 		else
@@ -123,23 +128,25 @@ public class TreePanel extends JPanel{
 
 
 		GUIHelper.addDoubleShiftListener(this, () -> {
-			//TODO
-			System.out.println("Double shift");
+			//TODO parent?
+			final SearchDialog searchDialog = SearchDialog.create(store, null)
+				.withLinkListener(TreePanel.this);
+			searchDialog.loadData();
+
+			searchDialog.setLocationRelativeTo(TreePanel.this);
+			searchDialog.setVisible(true);
 		});
 	}
 
 	private void initComponents3Generations(){
 		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner1PartnersPanel.initComponents();
 		EventBusService.subscribe(partner1PartnersPanel);
 		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner2PartnersPanel.initComponents();
 		EventBusService.subscribe(partner2PartnersPanel);
 		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
-		homeGroupPanel.initComponents();
 		EventBusService.subscribe(homeGroupPanel);
 		childrenPanel = ChildrenPanel.create(store);
-		childrenPanel.initComponents();
+		navigationPanel = GenealogyNavigationPanel.create(this);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
@@ -154,7 +161,8 @@ public class TreePanel extends JPanel{
 			if(!homeUnion.isEmpty()){
 				//remember last scroll position, restore it if present
 				final Integer homeUnionID = extractRecordID(homeUnion);
-				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, childrenScrollPane.getHorizontalScrollBar().getValue());
+				final int scrollBarPosition = childrenScrollPane.getHorizontalScrollBar().getValue();
+				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, scrollBarPosition);
 			}
 		});
 
@@ -164,6 +172,7 @@ public class TreePanel extends JPanel{
 		genealogicalTree.addTo(GenealogicalTree.getLeftChild(0), partner1PartnersPanel);
 		genealogicalTree.addTo(GenealogicalTree.getRightChild(0), partner2PartnersPanel);
 
+		//TODO put navigationPanel somewhere
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + GroupPanel.GROUP_SEPARATION + "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
@@ -175,28 +184,21 @@ public class TreePanel extends JPanel{
 
 	private void initComponents4Generations(){
 		partner1Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner1Partner1Panel.initComponents();
 		EventBusService.subscribe(partner1Partner1Panel);
 		partner1Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner1Partner2Panel.initComponents();
 		EventBusService.subscribe(partner1Partner2Panel);
 		partner2Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner2Partner1Panel.initComponents();
 		EventBusService.subscribe(partner2Partner1Panel);
 		partner2Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner2Partner2Panel.initComponents();
 		EventBusService.subscribe(partner2Partner2Panel);
 		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner1PartnersPanel.initComponents();
 		EventBusService.subscribe(partner1PartnersPanel);
 		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
-		partner2PartnersPanel.initComponents();
 		EventBusService.subscribe(partner2PartnersPanel);
 		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
-		homeGroupPanel.initComponents();
 		EventBusService.subscribe(homeGroupPanel);
 		childrenPanel = ChildrenPanel.create(store);
-		childrenPanel.initComponents();
+		navigationPanel = GenealogyNavigationPanel.create(this);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
@@ -211,7 +213,8 @@ public class TreePanel extends JPanel{
 			if(!homeUnion.isEmpty()){
 				//remember last scroll position, restore it if present
 				final Integer homeUnionID = extractRecordID(homeUnion);
-				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, childrenScrollPane.getHorizontalScrollBar().getValue());
+				final int scrollBarPosition = childrenScrollPane.getHorizontalScrollBar().getValue();
+				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, scrollBarPosition);
 			}
 		});
 
@@ -227,6 +230,7 @@ public class TreePanel extends JPanel{
 		genealogicalTree.addTo(GenealogicalTree.getLeftChild(rightChild), partner2Partner1Panel);
 		genealogicalTree.addTo(GenealogicalTree.getRightChild(rightChild), partner2Partner2Panel);
 
+		//TODO put navigationPanel somewhere
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + GroupPanel.GROUP_SEPARATION
 				+ "[grow,center]" + GroupPanel.GROUP_SEPARATION
@@ -461,8 +465,13 @@ public class TreePanel extends JPanel{
 			.orElse(null);
 	}
 
-	public final void loadData(final Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
+	public final void loadData(final Map<String, Object> homeUnion, final Map<String, Object> partner1, final Map<String, Object> partner2){
 		prepareData(homeUnion, partner1, partner2);
+
+		if(homeUnion.isEmpty())
+			navigationPanel.navigateToPerson(extractRecordID(partner1.isEmpty()? partner2: partner1));
+		else
+			navigationPanel.navigateToUnion(extractRecordID(this.homeUnion));
 
 		loadData();
 	}
@@ -531,15 +540,6 @@ public class TreePanel extends JPanel{
 			.toList());
 	}
 
-	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
-		return getRecords(fromTable)
-			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
-			.toList();
-	}
-
 	private void loadData(){
 		final Map<String, Object> partner1Parents = extractParents(partner1, store);
 		final Map<String, Object> partner2Parents = extractParents(partner2, store);
@@ -592,6 +592,7 @@ public class TreePanel extends JPanel{
 		if(!homeUnion.isEmpty()){
 			//remember last scroll position, restore it if present
 			final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeUnionID);
+			//FIXME if a child was selected, bring to view
 			//center halfway if it's the first time the children are painted
 			final int scrollbarPositionX = (childrenScrollbarPosition == null?
 				(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
@@ -608,6 +609,19 @@ public class TreePanel extends JPanel{
 		loadData(union, partner1, partner2);
 	}
 
+	@Override
+	public void updateTree(final Integer lastPersonID, final Integer lastUnionID){
+		//TODO
+		System.out.println("updateTree " + lastPersonID + ", " + lastUnionID);
+	}
+
+	@Override
+	public void onRecordSelected(final String table, final Integer id){
+		//TODO
+		System.out.println("onRecordSelected " + table + " " + id);
+	}
+
+
 	private List<Integer> getPartnerIDs(final Integer groupID){
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
@@ -615,6 +629,15 @@ public class TreePanel extends JPanel{
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
 			.map(TreePanel::extractRecordReferenceID)
+			.toList();
+	}
+
+	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
+		return getRecords(fromTable)
+			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
+			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.toList();
 	}
 
@@ -956,7 +979,6 @@ public class TreePanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final TreePanel panel = create(4, store);
-			panel.initComponents();
 			panel.loadDataFromUnion(group1);
 			panel.setUnionListener(unionListener);
 			panel.setPersonListener(personListener);

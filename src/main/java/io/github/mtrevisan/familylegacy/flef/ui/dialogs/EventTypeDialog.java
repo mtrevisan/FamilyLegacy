@@ -375,7 +375,6 @@ public final class EventTypeDialog extends CommonRecordDialog{
 			final JFrame parent = new JFrame();
 			final EventTypeDialog dialog = create(store, parent);
 			dialog.setTitle("Event Type");
-			dialog.initComponents();
 			dialog.loadData(eventType1);
 
 			final Object listener = new Object(){

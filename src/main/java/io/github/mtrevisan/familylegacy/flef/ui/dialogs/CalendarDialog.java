@@ -109,7 +109,9 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -176,9 +178,10 @@ public final class CalendarDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(type);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
 			row ++;
@@ -312,7 +315,6 @@ public final class CalendarDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final CalendarDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(calendar3)))
 				dialog.showNewRecord();
@@ -332,7 +334,6 @@ public final class CalendarDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, calendarID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -347,7 +348,6 @@ public final class CalendarDialog extends CommonListDialog{
 										record.put("reference_id", calendarID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -356,7 +356,6 @@ public final class CalendarDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, calendarID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);

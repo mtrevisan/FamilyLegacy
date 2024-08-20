@@ -144,7 +144,9 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -293,9 +295,10 @@ public final class PlaceDialog extends CommonListDialog{
 				final FilterString filter = FilterString.create()
 					.add(key)
 					.add(identifier);
+				final String filterData = filter.toString();
 
 				model.setValueAt(key, row, TABLE_INDEX_ID);
-				model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+				model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 				model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 				row ++;
@@ -530,7 +533,6 @@ public final class PlaceDialog extends CommonListDialog{
 				dialog = create(store, parent);
 			else
 				dialog = createWithPlace(store, filterPlaceID, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(filterPlaceID == null && !dialog.selectData(extractRecordID(place1)))
 				dialog.showNewRecord();
@@ -551,7 +553,6 @@ public final class PlaceDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, placeID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -566,7 +567,6 @@ public final class PlaceDialog extends CommonListDialog{
 										record.put("reference_id", placeID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -576,7 +576,6 @@ public final class PlaceDialog extends CommonListDialog{
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, placeID);
-							photoDialog.initComponents();
 							photoDialog.loadData();
 							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
@@ -623,7 +622,6 @@ public final class PlaceDialog extends CommonListDialog{
 										record.put("reference_id", placeID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -639,7 +637,6 @@ public final class PlaceDialog extends CommonListDialog{
 										record.put("reference_id", placeID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -648,7 +645,6 @@ public final class PlaceDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, placeID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);
@@ -657,7 +653,6 @@ public final class PlaceDialog extends CommonListDialog{
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, placeID);
-							groupDialog.initComponents();
 							groupDialog.loadData();
 
 							groupDialog.setLocationRelativeTo(null);

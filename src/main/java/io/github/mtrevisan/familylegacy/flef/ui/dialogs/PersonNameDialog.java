@@ -132,7 +132,9 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -243,9 +245,10 @@ public final class PersonNameDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -463,7 +466,6 @@ public final class PersonNameDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final PersonNameDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(personName1)))
 				dialog.showNewRecord();
@@ -489,7 +491,6 @@ public final class PersonNameDialog extends CommonListDialog{
 										record.put("reference_id", personNameID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -504,7 +505,6 @@ public final class PersonNameDialog extends CommonListDialog{
 										record.put("reference_id", personNameID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -520,7 +520,6 @@ public final class PersonNameDialog extends CommonListDialog{
 										record.put("reference_id", personNameID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -535,7 +534,6 @@ public final class PersonNameDialog extends CommonListDialog{
 										record.put("reference_id", personNameID);
 									}
 								});
-							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.setLocationRelativeTo(dialog);
@@ -544,7 +542,6 @@ public final class PersonNameDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, personNameID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -553,7 +550,6 @@ public final class PersonNameDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, personNameID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);

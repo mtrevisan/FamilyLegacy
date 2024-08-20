@@ -27,43 +27,16 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
-import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.DropMode;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -84,30 +57,24 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterface{
+public class SearchPersonPanel extends CommonLinkPanel{
 
 	@Serial
 	private static final long serialVersionUID = -1361635723036701664L;
 
-	private static final Color GRID_COLOR = new Color(230, 230, 230);
-	private static final int TABLE_PREFERRED_WIDTH_ID = 25;
-
-	private static final int TABLE_INDEX_ID = 0;
-	private static final int TABLE_INDEX_FILTER = 1;
 	private static final int TABLE_INDEX_PERSON_NAME = 2;
 	private static final int TABLE_INDEX_PERSON_BIRTH_YEAR = 3;
 	private static final int TABLE_INDEX_PERSON_BIRTH_PLACE = 4;
 	private static final int TABLE_INDEX_PERSON_DEATH_YEAR = 5;
 	private static final int TABLE_INDEX_PERSON_DEATH_PLACE = 6;
-	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 
 	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
+	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_EVENT = "event";
 	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
@@ -117,189 +84,55 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
 
-	private static final String NO_DATA = StringUtils.EMPTY;
 
-
-	private JTable recordTable;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-
-	private LinkListenerInterface linkListener;
-
-
-	public static LinkPersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new LinkPersonPanel(store);
+	public static SearchPersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new SearchPersonPanel(store);
 	}
 
 
-	private LinkPersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		this.store = store;
+	private SearchPersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		super(store);
+
+
+		initComponents();
 	}
 
 
-	public final LinkPersonPanel withLinkListener(final LinkListenerInterface linkListener){
-		this.linkListener = linkListener;
+	public final SearchPersonPanel withLinkListener(final RecordListenerInterface linkListener){
+		super.setLinkListener(linkListener);
 
 		return this;
 	}
 
-	public void initComponents(){
-		//store components:
-		recordTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
-			@Serial
-			private static final long serialVersionUID = 6564164142990308313L;
-
-			@Override
-			public Class<?> getColumnClass(final int column){
-				return String.class;
-			}
-
-			@Override
-			public boolean isCellEditable(final int row, final int column){
-				return false;
-			}
-		});
-
-
-		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		recordTable.setFocusable(true);
-		recordTable.setGridColor(GRID_COLOR);
-		recordTable.setDragEnabled(true);
-		recordTable.setDropMode(DropMode.INSERT_ROWS);
-		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_ID, TABLE_PREFERRED_WIDTH_ID);
-
-		//define selection
-		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		recordTable.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && recordTable.getSelectedRow() >= 0)
-					selectAction();
-			}
-		});
-
-		//add sorter
-		recordTable.setAutoCreateRowSorter(true);
-		final Comparator<?>[] comparators = getTableColumnComparators();
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(getRecordTableModel());
-		final int columnCount = recordTable.getColumnCount();
-		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
-			final Comparator<?> comparator = comparators[columnIndex];
-
-			if(comparator != null)
-				sorter.setComparator(columnIndex, comparator);
-		}
-		recordTable.setRowSorter(sorter);
-
-		final TableColumnModel columnModel = recordTable.getColumnModel();
-		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
-		final int[] alignments = getTableColumnAlignments();
-		final JTableHeader tableHeader = recordTable.getTableHeader();
-		final Font tableFont = recordTable.getFont();
-		final Font headerFont = tableFont.deriveFont(Font.BOLD);
-		tableHeader.setDefaultRenderer(new DefaultTableCellRenderer(){
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-				final boolean hasFocus, final int row, final int column){
-				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-				String cellText = null;
-				if(value != null){
-					cellText = value.toString();
-					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
-					final int textWidth = fm.stringWidth(cellText);
-					final Insets insets = ((JComponent)headerCell).getInsets();
-					final int cellWidth = columnModel.getColumn(column).getWidth()
-						- insets.left - insets.right;
-
-					if(textWidth <= cellWidth)
-						cellText = null;
-				}
-				setToolTipText(cellText);
-
-				setBorder(cellBorder);
-
-				final int alignment = alignments[table.convertColumnIndexToModel(column)];
-				setHorizontalAlignment(alignment);
-				setFont(headerFont);
-
-				return headerCell;
-			}
-		});
-
-		//add tooltip
-		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
-			final TableColumn column = columnModel.getColumn(columnIndex);
-			final int alignment = alignments[columnIndex];
-
-			column.setCellRenderer(new DefaultTableCellRenderer(){
-				@Override
-				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-					final boolean hasFocus, final int row, final int column){
-					final Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-					String cellText = null;
-					if(value != null){
-						cellText = value.toString();
-						final FontMetrics fm = cell.getFontMetrics(tableFont);
-						final int textWidth = fm.stringWidth(cellText);
-						final Insets insets = ((JComponent)cell).getInsets();
-						final int cellWidth = columnModel.getColumn(column).getWidth()
-							- insets.left - insets.right;
-
-						if(textWidth <= cellWidth)
-							cellText = null;
-					}
-					setToolTipText(cellText);
-
-					setBorder(cellBorder);
-
-					setHorizontalAlignment(alignment);
-
-					return cell;
-				}
-			});
-		}
-
-		//hide filter column
-		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_FILTER);
-		columnModel.removeColumn(hiddenColumn);
-
-		final Dimension viewSize = new Dimension();
-		viewSize.width = columnModel
-			.getTotalColumnWidth();
-		viewSize.height = TABLE_ROWS_SHOWN * recordTable.getRowHeight();
-		recordTable.setPreferredScrollableViewportSize(viewSize);
-
-
+	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_BIRTH_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_DEATH_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
-
-
-		initLayout();
 	}
 
-	//http://www.migcalendar.com/miglayout/cheatsheet.html
-	protected void initLayout(){
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(new JScrollPane(recordTable), "grow");
+	@Override
+	protected String getTableName(){
+		return TABLE_NAME_PERSON;
 	}
 
-	private String[] getTableColumnNames(){
+	@Override
+	protected String[] getTableColumnNames(){
 		return new String[]{"ID", "Filter", "Person",
-			"birth year", "birth place",
-			"death year", "death place"};
+			"birth", "birth place",
+			"death", "death place"};
 	}
 
-	private int[] getTableColumnAlignments(){
+	@Override
+	protected int[] getTableColumnAlignments(){
 		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT,
 			SwingConstants.RIGHT, SwingConstants.LEFT,
 			SwingConstants.RIGHT, SwingConstants.LEFT};
 	}
 
-	private Comparator<?>[] getTableColumnComparators(){
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator,
@@ -307,23 +140,12 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 			numericComparator, textComparator};
 	}
 
-	private DefaultTableModel getRecordTableModel(){
-		return (DefaultTableModel)recordTable.getModel();
-	}
 
-	private void selectAction(){
-		if(linkListener != null){
-			final int viewRowIndex = recordTable.getSelectedRow();
-			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-			final TableModel model = getRecordTableModel();
-			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
-
-			linkListener.onRecordSelected(TABLE_NAME_PERSON, recordIdentifier);
-		}
-	}
-
-
+	@Override
 	public void loadData(){
+		tableData.clear();
+
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_PERSON);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -334,10 +156,10 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 			final List<String> personAllNames = extractAllNames(personID);
 			final Map<String, Object> earliestPersonBirthYearAndPlace = extractEarliestBirthYearAndPlace(personID);
 			final Map<String, Object> latestPersonDeathYearAndPlace = extractLatestDeathYearAndPlace(personID);
-			final String personBirthYear = (String)earliestPersonBirthYearAndPlace.get("year");
-			final String personBirthPlace = (String)earliestPersonBirthYearAndPlace.get("place");
-			final String personDeathYear = (String)latestPersonDeathYearAndPlace.get("year");
-			final String personDeathPlace = (String)latestPersonDeathYearAndPlace.get("place");
+			final String personBirthYear = extractRecordYear(earliestPersonBirthYearAndPlace);
+			final String personBirthPlace = extractRecordPlace(earliestPersonBirthYearAndPlace);
+			final String personDeathYear = extractRecordYear(latestPersonDeathYearAndPlace);
+			final String personDeathPlace = extractRecordPlace(latestPersonDeathYearAndPlace);
 			final FilterString filter = FilterString.create()
 				.add(personID);
 			for(final String name : personAllNames)
@@ -346,47 +168,28 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 				.add(personBirthPlace)
 				.add(personDeathYear)
 				.add(personDeathPlace);
+			final String filterData = filter.toString();
 
 			model.setValueAt(personID, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt((personName != null? personName: NO_DATA), row, TABLE_INDEX_PERSON_NAME);
 			model.setValueAt((personBirthYear != null? personBirthYear: NO_DATA), row, TABLE_INDEX_PERSON_BIRTH_YEAR);
 			model.setValueAt((personBirthPlace != null? personBirthPlace: NO_DATA), row, TABLE_INDEX_PERSON_BIRTH_PLACE);
 			model.setValueAt((personDeathYear != null? personDeathYear: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_YEAR);
 			model.setValueAt((personDeathPlace != null? personDeathPlace: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_PLACE);
 
+			tableData.add(new SearchAllRecord(personID, TABLE_NAME_PERSON, filterData, personName));
+
 			row ++;
 		}
 	}
 
-	@Override
-	public void setFilterAndSorting(final String filterText, final List<Map.Entry<String, String>> additionalFields){
-		//extract filter
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(filterText, TABLE_INDEX_FILTER);
-		//extract ordering
-		final List<RowSorter.SortKey> sortKeys = SearchParser.getSortKeys(additionalFields, getTableColumnNames());
-
-		//apply filter and ordering
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		sorter.setRowFilter(filter);
-		sorter.setSortKeys(!sortKeys.isEmpty()? sortKeys: null);
-	}
-
-
-	private NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
 
 	private String extractFirstName(final Integer personID){
 		return getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(LinkPersonPanel::extractName)
+			.map(SearchPersonPanel::extractName)
 			.findFirst()
 			.orElse(null);
 	}
@@ -405,7 +208,7 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 				localizedPersonNames
 					.values().stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(LinkPersonPanel::extractName)
+					.map(SearchPersonPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
 			});
@@ -488,8 +291,12 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(LinkPersonPanel::extractRecordType)
+			.map(SearchPersonPanel::extractRecordType)
 			.collect(Collectors.toSet());
+	}
+
+	private static Integer extractRecordID(final Map<String, Object> record){
+		return (record != null? (Integer)record.get("id"): null);
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
@@ -525,11 +332,11 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 	}
 
 	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+		return (record != null? (String)record.get("date"): null);
 	}
 
 	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
+		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
 	private static String extractRecordPersonalName(final Map<String, Object> record){
@@ -546,6 +353,14 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 
 	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
 		return (Integer)record.get("person_name_id");
+	}
+
+	private static String extractRecordYear(final Map<String, Object> record){
+		return (String)record.get("year");
+	}
+
+	private static String extractRecordPlace(final Map<String, Object> record){
+		return (String)record.get("place");
 	}
 
 
@@ -710,7 +525,7 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 		calendar1.put("type", "gregorian");
 		calendars.put((Integer)calendar1.get("id"), calendar1);
 
-		final LinkListenerInterface linkListener = new LinkListenerInterface(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelected(final String table, final Integer id){
 				System.out.println("onRecordSelected " + table + " " + id);
@@ -718,9 +533,8 @@ public class LinkPersonPanel extends JPanel implements FilteredTablePanelInterfa
 		};
 
 		EventQueue.invokeLater(() -> {
-			final LinkPersonPanel panel = create(store)
+			final SearchPersonPanel panel = create(store)
 				.withLinkListener(linkListener);
-			panel.initComponents();
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

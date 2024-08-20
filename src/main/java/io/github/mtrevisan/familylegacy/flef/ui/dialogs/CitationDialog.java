@@ -132,7 +132,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -246,9 +248,10 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 				.add(key)
 				.add(sourceIdentifier)
 				.add(location);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -450,24 +453,32 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		source.put("identifier", "source 1");
 		sources.put((Integer)source.get("id"), source);
 
+		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
+		store.put("repository", repositories);
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("id", 1);
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		repositories.put((Integer)repository1.get("id"), repository1);
+
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
-		final Map<String, Object> localized_text1 = new HashMap<>();
-		localized_text1.put("id", 1);
-		localized_text1.put("text", "text 1");
-		localized_text1.put("locale", "it");
-		localized_text1.put("type", "original");
-		localized_text1.put("transcription", "IPA");
-		localized_text1.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localized_text1.get("id"), localized_text1);
-		final Map<String, Object> localized_text2 = new HashMap<>();
-		localized_text2.put("id", 2);
-		localized_text2.put("text", "text 2");
-		localized_text2.put("locale", "en");
-		localized_text2.put("type", "original");
-		localized_text2.put("transcription", "kana");
-		localized_text2.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localized_text2.get("id"), localized_text2);
+		final Map<String, Object> localizedText1 = new HashMap<>();
+		localizedText1.put("id", 1);
+		localizedText1.put("text", "text 1");
+		localizedText1.put("locale", "it");
+		localizedText1.put("type", "original");
+		localizedText1.put("transcription", "IPA");
+		localizedText1.put("transcription_type", "romanized");
+		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+		final Map<String, Object> localizedText2 = new HashMap<>();
+		localizedText2.put("id", 2);
+		localizedText2.put("text", "text 2");
+		localizedText2.put("locale", "en");
+		localizedText2.put("type", "original");
+		localizedText2.put("transcription", "kana");
+		localizedText2.put("transcription_type", "romanized");
+		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
 
 		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
 		store.put("localized_text_junction", localizedTextJunctions);
@@ -507,7 +518,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final JFrame parent = new JFrame();
 			final CitationDialog dialog = create(store, parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(source)))
 				dialog.showNewRecord();
@@ -533,7 +543,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 										record.put("reference_id", citationID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -548,7 +557,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 										record.put("reference_id", citationID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -564,7 +572,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 										record.put("reference_id", citationID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -573,7 +580,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, citationID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);

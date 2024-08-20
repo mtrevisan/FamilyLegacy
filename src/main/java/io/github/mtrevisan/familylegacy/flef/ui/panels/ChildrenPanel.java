@@ -88,10 +88,13 @@ public class ChildrenPanel extends JPanel{
 
 	private ChildrenPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.store = store;
+
+
+		initComponents();
 	}
 
 
-	void initComponents(){
+	private void initComponents(){
 		setOpaque(false);
 	}
 
@@ -182,7 +185,6 @@ public class ChildrenPanel extends JPanel{
 
 	private PersonPanel createChildPersonPanel(final Map<String, Object> child){
 		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, store);
-		childBox.initComponents();
 		childBox.loadData(child);
 
 		EventBusService.subscribe(childBox);
@@ -492,7 +494,6 @@ public class ChildrenPanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final ChildrenPanel panel = create(store);
-			panel.initComponents();
 			panel.loadData(extractRecordID(group1));
 			panel.setPersonListener(personListener);
 

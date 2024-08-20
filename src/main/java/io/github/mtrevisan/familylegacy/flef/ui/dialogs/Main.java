@@ -66,7 +66,6 @@ public class Main{
 //			final CulturalNormDialog dialog = CulturalNormDialog.create(store, parent);
 			final ResearchStatusDialog dialog = ResearchStatusDialog.create(store, parent);
 //			final ProjectDialog dialog = ProjectDialog.create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 
 			final Object listener = new Object(){
@@ -85,7 +84,6 @@ public class Main{
 						//from: ?
 //						case REPOSITORY -> {
 //							final RepositoryDialog repositoryDialog = RepositoryDialog.create(store, parent);
-//							repositoryDialog.initComponents();
 //							repositoryDialog.loadData();
 //							final Integer repositoryID = extractRecordRepositoryID(container);
 //							if(repositoryID != null)
@@ -103,7 +101,6 @@ public class Main{
 									if(record != null)
 										record.put("repository_id", recordID);
 								});
-							sourceDialog.initComponents();
 							sourceDialog.loadData();
 							final Integer sourceID = extractRecordSourceID(container);
 							if(sourceID != null)
@@ -121,7 +118,6 @@ public class Main{
 									if(record != null)
 										record.put("source_id", recordID);
 								});
-							citationDialog.initComponents();
 							citationDialog.loadData();
 							final Integer citationID = extractRecordCitationID(container);
 							if(citationID != null)
@@ -135,7 +131,6 @@ public class Main{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(tableName, recordID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -146,7 +141,6 @@ public class Main{
 						//from: source, event, cultural norm, media
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -160,7 +154,6 @@ public class Main{
 						case CALENDAR -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("calendar_id", extractRecordID(record)));
-							calendarDialog.initComponents();
 							calendarDialog.loadData();
 							final Integer calendarID = extractRecordCalendarID(container);
 							if(calendarID != null)
@@ -174,7 +167,6 @@ public class Main{
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("calendar_original_id", extractRecordID(record)));
-							calendarDialog.initComponents();
 							calendarDialog.loadData();
 							final Integer calendarID = extractRecordCalendarOriginalID(container);
 							if(calendarID != null)
@@ -189,7 +181,6 @@ public class Main{
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
-							placeDialog.initComponents();
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -211,7 +202,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -229,7 +219,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -246,7 +235,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -263,7 +251,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							localizedTextDialog.initComponents();
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.setLocationRelativeTo(dialog);
@@ -282,7 +269,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 							final Integer mediaID = extractRecordMediaID(container);
 							if(mediaID != null)
@@ -303,7 +289,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							photoDialog.initComponents();
 							photoDialog.loadData();
 							final Integer photoID = extractRecordPhotoID(container);
 							if(photoID != null){
@@ -350,7 +335,6 @@ public class Main{
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("person_id", extractRecordID(record)));
-							personDialog.initComponents();
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -370,7 +354,6 @@ public class Main{
 									//update table identifier
 									dialog.loadData();
 								});
-							personNameDialog.initComponents();
 							personNameDialog.loadData();
 
 							personNameDialog.setLocationRelativeTo(null);
@@ -382,7 +365,6 @@ public class Main{
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(tableName, recordID);
-							groupDialog.initComponents();
 							groupDialog.loadData();
 							final Integer groupID = extractRecordGroupID(container);
 							if(groupID != null)
@@ -397,7 +379,6 @@ public class Main{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(tableName, recordID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);
@@ -415,7 +396,6 @@ public class Main{
 										record.put("reference_id", recordID);
 									}
 								});
-							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 							final Integer culturalNormID = extractRecordCulturalNormID(container);
 							if(culturalNormID != null)

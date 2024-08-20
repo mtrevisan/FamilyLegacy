@@ -113,7 +113,7 @@ public class ScaledImage extends JLabel{
 		return this;
 	}
 
-	void initComponents(){
+	private void initComponents(){
 		final ImageMouseListener listener = new ImageMouseListener();
 		addMouseListener(listener);
 		addMouseMotionListener(listener);

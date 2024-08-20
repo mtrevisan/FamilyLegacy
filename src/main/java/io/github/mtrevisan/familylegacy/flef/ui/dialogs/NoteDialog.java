@@ -123,7 +123,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -198,9 +200,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(note);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
 			row ++;
@@ -328,7 +331,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final NoteDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(note1)))
 				dialog.showNewRecord();
@@ -354,7 +356,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 										record.put("reference_id", noteID);
 									}
 								});
-							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.setLocationRelativeTo(dialog);
@@ -370,7 +371,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 										record.put("reference_id", noteID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);

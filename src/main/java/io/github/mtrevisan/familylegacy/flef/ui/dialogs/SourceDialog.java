@@ -129,7 +129,9 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -248,9 +250,10 @@ public final class SourceDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -482,7 +485,6 @@ public final class SourceDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final SourceDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(source1)))
 				dialog.showNewRecord();
@@ -502,7 +504,6 @@ public final class SourceDialog extends CommonListDialog{
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
-							placeDialog.initComponents();
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -513,7 +514,6 @@ public final class SourceDialog extends CommonListDialog{
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -531,7 +531,6 @@ public final class SourceDialog extends CommonListDialog{
 										record.put("reference_id", sourceID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -547,7 +546,6 @@ public final class SourceDialog extends CommonListDialog{
 										record.put("reference_id", sourceID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -556,7 +554,6 @@ public final class SourceDialog extends CommonListDialog{
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(store, parent)
 								.withFilterOnSourceID(sourceID);
-							citationDialog.initComponents();
 							citationDialog.loadData();
 
 							citationDialog.setLocationRelativeTo(dialog);

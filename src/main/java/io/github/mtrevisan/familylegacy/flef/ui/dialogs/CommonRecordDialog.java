@@ -139,6 +139,9 @@ public abstract class CommonRecordDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
+
+
+		initComponents();
 	}
 
 
@@ -152,7 +155,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract String getTableName();
 
-	void initComponents(){
+	private void initComponents(){
 		initRecordComponents();
 
 		initLayout();

@@ -174,15 +174,16 @@ public class GroupPanel extends JPanel{
 	private GroupPanel(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.boxType = boxType;
 		this.store = store;
+
+
+		initComponents();
 	}
 
 
-	void initComponents(){
+	private void initComponents(){
 		partner1Panel = PersonPanel.create(boxType, store);
-		partner1Panel.initComponents();
 		EventBusService.subscribe(partner1Panel);
 		partner2Panel = PersonPanel.create(boxType, store);
-		partner2Panel.initComponents();
 		EventBusService.subscribe(partner2Panel);
 
 		unionPanel.setBackground(Color.WHITE);
@@ -598,7 +599,7 @@ public class GroupPanel extends JPanel{
 		loadData(group, Collections.emptyMap(), Collections.emptyMap());
 	}
 
-	void loadData(final Map<String, Object> group, Map<String, Object> partner1, Map<String, Object> partner2){
+	void loadData(final Map<String, Object> group, final Map<String, Object> partner1, final Map<String, Object> partner2){
 		prepareData(group, partner1, partner2);
 
 		loadData();
@@ -1113,7 +1114,6 @@ public class GroupPanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final GroupPanel panel = create(boxType, store);
-			panel.initComponents();
 			panel.loadData(group1);
 			panel.setGroupListener(unionListener);
 			panel.setPersonListener(personListener);

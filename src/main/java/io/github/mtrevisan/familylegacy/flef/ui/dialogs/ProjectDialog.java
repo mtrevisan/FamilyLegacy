@@ -260,7 +260,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 			final ProjectDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			dialog.initComponents();
 			dialog.loadData();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){

@@ -165,7 +165,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -267,9 +269,10 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier.toString(), row, TABLE_INDEX_TEXT);
 
 			row ++;
@@ -472,7 +475,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 //			final LocalizedTextDialog dialog = createComplexText(store, parent);
 //			final LocalizedTextDialog dialog = createSimpleText(store, parent);
 			final LocalizedTextDialog dialog = createSimpleTextWithSecondary(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))
 				dialog.showNewRecord();

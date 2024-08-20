@@ -78,7 +78,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		this.store = store;
 
 		treePanel = TreePanel.create(4, store);
-		treePanel.initComponents();
 		treePanel.loadDataFromUnion(homeGroup);
 		treePanel.setUnionListener(this);
 		treePanel.setPersonListener(this);
@@ -102,6 +101,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 
+	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+	}
+
 	private List<Map<String, Object>> extractChildren(final Integer unionID){
 		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
 		return getRecords(TABLE_NAME_GROUP_JUNCTION)
@@ -111,10 +114,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toList();
-	}
-
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
 	private static Integer extractRecordID(final Map<String, Object> record){
@@ -144,7 +143,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onEditGroup {}", extractRecordID(group));
 
 		final GroupDialog groupDialog = GroupDialog.createRecordOnly(store, this);
-		groupDialog.initComponents();
 		groupDialog.loadData(group);
 
 		groupDialog.setLocationRelativeTo(treePanel);
@@ -207,14 +205,13 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					treePanel.refresh();
 				}
 			});
-		dialog.initComponents();
 		dialog.showNewRecord();
 
 		dialog.setLocationRelativeTo(treePanel);
 		dialog.setVisible(true);
 	}
 
-	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
+	private static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
 		return (records.isEmpty()? 1: records.lastKey() + 1);
 	}
 
@@ -227,7 +224,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
-		dialog.initComponents();
 		dialog.loadData();
 
 		dialog.setLocationRelativeTo(treePanel);
@@ -289,8 +285,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			+ ", current parents: " + extractRecordID(currentParents) + ", new parents: " + extractRecordID(newParents));
 
 		//TODO
-
-		//TODO store "preferences" for panels, like "last position (parent1/2) of a person inside a group", "last group shown", etc
 	}
 
 	@Override
@@ -323,7 +317,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onEditPerson {}", extractRecordID(person));
 
 		final PersonDialog personDialog = PersonDialog.createRecordOnly(store, this);
-		personDialog.initComponents();
 		personDialog.loadData(person);
 
 		personDialog.setLocationRelativeTo(treePanel);
@@ -335,7 +328,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onLinkPerson");
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
-		dialog.initComponents();
 		dialog.loadData();
 
 		dialog.setLocationRelativeTo(treePanel);
@@ -399,7 +391,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					treePanel.refresh();
 				}
 			});
-		dialog.initComponents();
 		dialog.showNewRecord();
 
 		dialog.setLocationRelativeTo(treePanel);
@@ -554,7 +545,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					treePanel.refresh();
 				}
 			});
-		photoDialog.initComponents();
 		photoDialog.loadData();
 		photoDialog.showNewRecord();
 
@@ -578,7 +568,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					treePanel.refresh();
 				}
 			});
-		photoDialog.initComponents();
 		final Integer photoID = extractRecordPhotoID(person);
 		final TreeMap<Integer, Map<String, Object>> medias = getRecords(TABLE_NAME_MEDIA);
 		final Map<String, Object> media = medias.get(photoID);

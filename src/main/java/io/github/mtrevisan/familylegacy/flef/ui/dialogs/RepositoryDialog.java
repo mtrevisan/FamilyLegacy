@@ -117,7 +117,9 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -212,9 +214,10 @@ public final class RepositoryDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -503,7 +506,6 @@ public final class RepositoryDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final RepositoryDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -524,7 +526,6 @@ public final class RepositoryDialog extends CommonListDialog{
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("person_id", extractRecordID(record)));
-							personDialog.initComponents();
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -536,7 +537,6 @@ public final class RepositoryDialog extends CommonListDialog{
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
-							placeDialog.initComponents();
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -554,7 +554,6 @@ public final class RepositoryDialog extends CommonListDialog{
 										record.put("reference_id", recordID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -570,7 +569,6 @@ public final class RepositoryDialog extends CommonListDialog{
 										record.put("reference_id", recordID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -583,7 +581,6 @@ public final class RepositoryDialog extends CommonListDialog{
 									if(record != null)
 										record.put("repository_id", recordID);
 								});
-							sourceDialog.initComponents();
 							sourceDialog.loadData();
 
 							sourceDialog.setLocationRelativeTo(null);

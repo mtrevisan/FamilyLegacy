@@ -211,7 +211,9 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -451,9 +453,10 @@ public final class MediaDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -748,7 +751,6 @@ public final class MediaDialog extends CommonListDialog{
 			final MediaDialog dialog = createForMedia(store, parent)
 //			final MediaDialog dialog = createRecordForPhoto(store, parent)
 				.withBasePath(FileHelper.documentsDirectory());
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(mediaJunction1)))
 				dialog.showNewRecord();
@@ -767,7 +769,6 @@ public final class MediaDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -785,7 +786,6 @@ public final class MediaDialog extends CommonListDialog{
 										record.put("reference_id", mediaID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -820,7 +820,6 @@ public final class MediaDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, mediaID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -829,7 +828,6 @@ public final class MediaDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, mediaID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);

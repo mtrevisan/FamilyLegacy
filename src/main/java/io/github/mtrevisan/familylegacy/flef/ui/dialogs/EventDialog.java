@@ -141,7 +141,9 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -292,9 +294,10 @@ public final class EventDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(type);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
 			row ++;
@@ -572,7 +575,6 @@ public final class EventDialog extends CommonListDialog{
 
 			final EventDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(event)))
 				dialog.showNewRecord();
@@ -590,7 +592,6 @@ public final class EventDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
-							placeDialog.initComponents();
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -601,7 +602,6 @@ public final class EventDialog extends CommonListDialog{
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							historicDateDialog.initComponents();
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -620,7 +620,6 @@ public final class EventDialog extends CommonListDialog{
 										record.put("reference_id", eventID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -637,7 +636,6 @@ public final class EventDialog extends CommonListDialog{
 										record.put("reference_id", eventID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -671,7 +669,6 @@ public final class EventDialog extends CommonListDialog{
 
 									dialog.typeComboBox.setSelectedItem(newType != null? newType: StringUtils.SPACE);
 								});
-							eventSuperTypeDialog.initComponents();
 							eventSuperTypeDialog.showNewRecord();
 
 							eventSuperTypeDialog.setLocationRelativeTo(dialog);

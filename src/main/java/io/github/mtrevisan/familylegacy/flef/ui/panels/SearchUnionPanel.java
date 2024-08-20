@@ -27,43 +27,16 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
-import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.DropMode;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Insets;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -83,16 +56,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterface{
+public class SearchUnionPanel extends CommonLinkPanel{
 
 	@Serial
 	private static final long serialVersionUID = 4199513069798359051L;
 
-	private static final Color GRID_COLOR = new Color(230, 230, 230);
-	private static final int TABLE_PREFERRED_WIDTH_ID = 25;
-
-	private static final int TABLE_INDEX_ID = 0;
-	private static final int TABLE_INDEX_FILTER = 1;
 	private static final int TABLE_INDEX_UNION_YEAR = 2;
 	private static final int TABLE_INDEX_UNION_PLACE = 3;
 	private static final int TABLE_INDEX_PARTNER1_ID = 4;
@@ -103,7 +71,6 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 	private static final int TABLE_INDEX_PARTNER2_NAME = 9;
 	private static final int TABLE_INDEX_PARTNER2_BIRTH_YEAR = 10;
 	private static final int TABLE_INDEX_PARTNER2_DEATH_YEAR = 11;
-	private static final int TABLE_ROWS_SHOWN = 5;
 
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
@@ -124,160 +91,27 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
 	private static final String EVENT_TYPE_CATEGORY_UNION = "union";
 
-	private static final String NO_DATA = StringUtils.EMPTY;
 
-
-	private JTable recordTable;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-
-	private LinkListenerInterface linkListener;
-
-
-	public static LinkUnionPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new LinkUnionPanel(store);
+	public static SearchUnionPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new SearchUnionPanel(store);
 	}
 
 
-	private LinkUnionPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		this.store = store;
+	private SearchUnionPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		super(store);
+
+
+		initComponents();
 	}
 
 
-	public final LinkUnionPanel withLinkListener(final LinkListenerInterface linkListener){
-		this.linkListener = linkListener;
+	public final SearchUnionPanel withLinkListener(final RecordListenerInterface linkListener){
+		super.setLinkListener(linkListener);
 
 		return this;
 	}
 
-	public void initComponents(){
-		//store components:
-		recordTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
-			@Serial
-			private static final long serialVersionUID = -4368712348987632631L;
-
-			@Override
-			public Class<?> getColumnClass(final int column){
-				return String.class;
-			}
-
-			@Override
-			public boolean isCellEditable(final int row, final int column){
-				return false;
-			}
-		});
-
-
-		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-		recordTable.setFocusable(true);
-		recordTable.setGridColor(GRID_COLOR);
-		recordTable.setDragEnabled(true);
-		recordTable.setDropMode(DropMode.INSERT_ROWS);
-		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_ID, TABLE_PREFERRED_WIDTH_ID);
-
-		//define selection
-		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		recordTable.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && recordTable.getSelectedRow() >= 0)
-					selectAction();
-			}
-		});
-
-		//add sorter
-		recordTable.setAutoCreateRowSorter(true);
-		final Comparator<?>[] comparators = getTableColumnComparators();
-		final TableRowSorter<TableModel> sorter = new TableRowSorter<>(getRecordTableModel());
-		final int columnCount = recordTable.getColumnCount();
-		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
-			final Comparator<?> comparator = comparators[columnIndex];
-
-			if(comparator != null)
-				sorter.setComparator(columnIndex, comparator);
-		}
-		recordTable.setRowSorter(sorter);
-
-		final TableColumnModel columnModel = recordTable.getColumnModel();
-		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
-		final int[] alignments = getTableColumnAlignments();
-		final JTableHeader tableHeader = recordTable.getTableHeader();
-		final Font tableFont = recordTable.getFont();
-		final Font headerFont = tableFont.deriveFont(Font.BOLD);
-		tableHeader.setDefaultRenderer(new DefaultTableCellRenderer(){
-			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-				final boolean hasFocus, final int row, final int column){
-				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-				String cellText = null;
-				if(value != null){
-					cellText = value.toString();
-					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
-					final int textWidth = fm.stringWidth(cellText);
-					final Insets insets = ((JComponent)headerCell).getInsets();
-					final int cellWidth = columnModel.getColumn(column).getWidth()
-						- insets.left - insets.right;
-
-					if(textWidth <= cellWidth)
-						cellText = null;
-				}
-				setToolTipText(cellText);
-
-				setBorder(cellBorder);
-
-				final int alignment = alignments[table.convertColumnIndexToModel(column)];
-				setHorizontalAlignment(alignment);
-				setFont(headerFont);
-
-				return headerCell;
-			}
-		});
-
-		//add tooltip
-		for(int columnIndex = 0; columnIndex < columnCount; columnIndex ++){
-			final TableColumn column = columnModel.getColumn(columnIndex);
-			final int alignment = alignments[columnIndex];
-
-			column.setCellRenderer(new DefaultTableCellRenderer(){
-				@Override
-				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-					final boolean hasFocus, final int row, final int column){
-					final Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
-					String cellText = null;
-					if(value != null){
-						cellText = value.toString();
-						final FontMetrics fm = cell.getFontMetrics(tableFont);
-						final int textWidth = fm.stringWidth(cellText);
-						final Insets insets = ((JComponent)cell).getInsets();
-						final int cellWidth = columnModel.getColumn(column).getWidth()
-							- insets.left - insets.right;
-
-						if(textWidth <= cellWidth)
-							cellText = null;
-					}
-					setToolTipText(cellText);
-
-					setBorder(cellBorder);
-
-					setHorizontalAlignment(alignment);
-
-					return cell;
-				}
-			});
-		}
-
-		//hide filter column
-		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_FILTER);
-		columnModel.removeColumn(hiddenColumn);
-
-		final Dimension viewSize = new Dimension();
-		viewSize.width = columnModel
-			.getTotalColumnWidth();
-		viewSize.height = TABLE_ROWS_SHOWN * recordTable.getRowHeight();
-		recordTable.setPreferredScrollableViewportSize(viewSize);
-
-
+	private void initComponents(){
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_UNION_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_UNION_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER1_ID, TABLE_PREFERRED_WIDTH_ID);
@@ -288,30 +122,29 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PARTNER2_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
-
-
-		initLayout();
 	}
 
-	//http://www.migcalendar.com/miglayout/cheatsheet.html
-	protected void initLayout(){
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		add(new JScrollPane(recordTable), "grow");
+	@Override
+	protected String getTableName(){
+		return TABLE_NAME_GROUP;
 	}
 
-	private String[] getTableColumnNames(){
+	@Override
+	protected String[] getTableColumnNames(){
 		return new String[]{"ID", "Filter", "Year", "Place",
 			"ID", "Partner 1", "birth", "death",
 			"ID", "Partner 2", "birth", "death"};
 	}
 
-	private int[] getTableColumnAlignments(){
+	@Override
+	protected int[] getTableColumnAlignments(){
 		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT,
 			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT,
 			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT};
 	}
 
-	private Comparator<?>[] getTableColumnComparators(){
+	@Override
+	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator,
@@ -319,23 +152,12 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 			numericComparator, textComparator, numericComparator, numericComparator};
 	}
 
-	private DefaultTableModel getRecordTableModel(){
-		return (DefaultTableModel)recordTable.getModel();
-	}
 
-	private void selectAction(){
-		if(linkListener != null){
-			final int viewRowIndex = recordTable.getSelectedRow();
-			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
-			final TableModel model = getRecordTableModel();
-			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
-
-			linkListener.onRecordSelected(TABLE_NAME_GROUP, recordIdentifier);
-		}
-	}
-
-
+	@Override
 	public void loadData(){
+		tableData.clear();
+
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_GROUP);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -383,9 +205,10 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 				filter.add(earliestPartner2BirthYear)
 					.add(latestPartner2DeathYear);
 			}
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(earliestUnionYear, row, TABLE_INDEX_UNION_YEAR);
 			model.setValueAt(earliestUnionPlace, row, TABLE_INDEX_UNION_PLACE);
 
@@ -399,22 +222,15 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 			model.setValueAt(partner2BirthYear, row, TABLE_INDEX_PARTNER2_BIRTH_YEAR);
 			model.setValueAt(partner2DeathYear, row, TABLE_INDEX_PARTNER2_DEATH_YEAR);
 
+			final StringJoiner partners = new StringJoiner(", ");
+			if(partner1Name != null)
+				partners.add(partner1Name);
+			if(partner2Name != null)
+				partners.add(partner2Name);
+			tableData.add(new SearchAllRecord(key, TABLE_NAME_GROUP, filterData, (partners.length() > 0? partners.toString(): NO_DATA)));
+
 			row ++;
 		}
-	}
-
-	@Override
-	public void setFilterAndSorting(final String filterText, final List<Map.Entry<String, String>> additionalFields){
-		//extract filter
-		final RowFilter<DefaultTableModel, Object> filter = TableHelper.createTextFilter(filterText, TABLE_INDEX_FILTER);
-		//extract ordering
-		final List<RowSorter.SortKey> sortKeys = SearchParser.getSortKeys(additionalFields, getTableColumnNames());
-
-		//apply filter and ordering
-		@SuppressWarnings("unchecked")
-		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
-		sorter.setRowFilter(filter);
-		sorter.setSortKeys(!sortKeys.isEmpty()? sortKeys: null);
 	}
 
 
@@ -424,7 +240,7 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.map(LinkUnionPanel::extractRecordReferenceID)
+			.map(SearchUnionPanel::extractRecordReferenceID)
 			.toList());
 	}
 
@@ -432,7 +248,7 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 		return getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(LinkUnionPanel::extractName)
+			.map(SearchUnionPanel::extractName)
 			.findFirst()
 			.orElse(null);
 	}
@@ -451,7 +267,7 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 				localizedPersonNames
 					.values().stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(LinkUnionPanel::extractName)
+					.map(SearchUnionPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
 			});
@@ -531,12 +347,8 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(LinkUnionPanel::extractRecordType)
+			.map(SearchUnionPanel::extractRecordType)
 			.collect(Collectors.toSet());
-	}
-
-	private NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
 	private static Integer extractRecordID(final Map<String, Object> record){
@@ -584,11 +396,11 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 	}
 
 	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+		return (record != null? (String)record.get("date"): null);
 	}
 
 	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
+		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
 	private static String extractRecordPersonalName(final Map<String, Object> record){
@@ -832,7 +644,7 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 		calendar1.put("type", "gregorian");
 		calendars.put((Integer)calendar1.get("id"), calendar1);
 
-		final LinkListenerInterface linkListener = new LinkListenerInterface(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelected(final String table, final Integer id){
 				System.out.println("onRecordSelected " + table + " " + id);
@@ -840,9 +652,8 @@ public class LinkUnionPanel extends JPanel implements FilteredTablePanelInterfac
 		};
 
 		EventQueue.invokeLater(() -> {
-			final LinkUnionPanel panel = create(store)
+			final SearchUnionPanel panel = create(store)
 				.withLinkListener(linkListener);
-			panel.initComponents();
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

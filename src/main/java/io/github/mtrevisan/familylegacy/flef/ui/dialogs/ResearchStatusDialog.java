@@ -119,7 +119,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -186,9 +188,10 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -207,7 +210,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		identifierField.setText(identifier);
 		descriptionTextPreview.setText("Research status " + extractRecordID(selectedRecord), description, null);
 		statusComboBox.setSelectedItem(status);
-		priorityField.setText(String.valueOf(priority));
+		priorityField.setText(priority != null? String.valueOf(priority): null);
 	}
 
 	@Override
@@ -341,13 +344,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		researchStatus.put("priority", 2);
 		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
 
-		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
-		store.put("historic_date", dates);
-		final Map<String, Object> date1 = new HashMap<>();
-		date1.put("id", 1);
-		date1.put("date", "18 OCT 2000");
-		dates.put((Integer)date1.get("id"), date1);
-
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
@@ -384,7 +380,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 			final ResearchStatusDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(researchStatus)))
 				dialog.showNewRecord();

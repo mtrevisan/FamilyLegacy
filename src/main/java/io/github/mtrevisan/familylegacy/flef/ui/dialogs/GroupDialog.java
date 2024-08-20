@@ -185,8 +185,9 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder(),
-			Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator};
 	}
 
 	@Override
@@ -327,9 +328,10 @@ public final class GroupDialog extends CommonListDialog{
 				.add(key)
 				.add(category)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(category, row, TABLE_INDEX_CATEGORY);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -697,12 +699,10 @@ public final class GroupDialog extends CommonListDialog{
 			final JFrame parent = new JFrame();
 			final GroupDialog dialog = create(store, parent);
 //			final GroupDialog dialog = createSelectOnly(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(group1)))
 				dialog.showNewRecord();
 //			final GroupDialog dialog = createRecordOnly(store, parent);
-//			dialog.initComponents();
 //			dialog.loadData(group1);
 
 			final Object listener = new Object(){
@@ -728,7 +728,6 @@ public final class GroupDialog extends CommonListDialog{
 
 									dialog.photoCropButton.setEnabled(newPhotoID != null);
 								});
-							photoDialog.initComponents();
 							photoDialog.loadData();
 							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
@@ -775,7 +774,6 @@ public final class GroupDialog extends CommonListDialog{
 										record.put("reference_id", groupID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -790,7 +788,6 @@ public final class GroupDialog extends CommonListDialog{
 										record.put("reference_id", groupID);
 									}
 								});
-							culturalNormDialog.initComponents();
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.setLocationRelativeTo(dialog);
@@ -806,7 +803,6 @@ public final class GroupDialog extends CommonListDialog{
 										record.put("reference_id", groupID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -815,7 +811,6 @@ public final class GroupDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -824,7 +819,6 @@ public final class GroupDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);
@@ -833,7 +827,6 @@ public final class GroupDialog extends CommonListDialog{
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
-							groupDialog.initComponents();
 							groupDialog.loadData();
 
 							groupDialog.setLocationRelativeTo(null);

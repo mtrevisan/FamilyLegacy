@@ -132,7 +132,9 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		return new Comparator<?>[]{GUIHelper.getNumericComparator(), null, Comparator.naturalOrder()};
+		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> textComparator = Comparator.naturalOrder();
+		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
 
 	@Override
@@ -227,9 +229,10 @@ public final class PersonDialog extends CommonListDialog{
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier);
+			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
-			model.setValueAt(filter.toString(), row, TABLE_INDEX_FILTER);
+			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
@@ -496,7 +499,6 @@ public final class PersonDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final PersonDialog dialog = create(store, parent);
-			dialog.initComponents();
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(person1)))
 				dialog.showNewRecord();
@@ -517,7 +519,6 @@ public final class PersonDialog extends CommonListDialog{
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, personID);
-							assertionDialog.initComponents();
 							assertionDialog.loadData();
 
 							assertionDialog.setLocationRelativeTo(dialog);
@@ -532,7 +533,6 @@ public final class PersonDialog extends CommonListDialog{
 									//update table identifier
 									dialog.loadData();
 								});
-							personNameDialog.initComponents();
 							personNameDialog.loadData();
 
 							personNameDialog.setLocationRelativeTo(null);
@@ -548,7 +548,6 @@ public final class PersonDialog extends CommonListDialog{
 
 									dialog.photoCropButton.setEnabled(newPhotoID != null);
 								});
-							photoDialog.initComponents();
 							photoDialog.loadData();
 							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
@@ -595,7 +594,6 @@ public final class PersonDialog extends CommonListDialog{
 										record.put("reference_id", personID);
 									}
 								});
-							noteDialog.initComponents();
 							noteDialog.loadData();
 
 							noteDialog.setLocationRelativeTo(dialog);
@@ -611,7 +609,6 @@ public final class PersonDialog extends CommonListDialog{
 										record.put("reference_id", personID);
 									}
 								});
-							mediaDialog.initComponents();
 							mediaDialog.loadData();
 
 							mediaDialog.setLocationRelativeTo(dialog);
@@ -620,7 +617,6 @@ public final class PersonDialog extends CommonListDialog{
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, personID);
-							eventDialog.initComponents();
 							eventDialog.loadData();
 
 							eventDialog.setLocationRelativeTo(null);
@@ -629,7 +625,6 @@ public final class PersonDialog extends CommonListDialog{
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, personID);
-							groupDialog.initComponents();
 							groupDialog.loadData();
 
 							groupDialog.setLocationRelativeTo(null);

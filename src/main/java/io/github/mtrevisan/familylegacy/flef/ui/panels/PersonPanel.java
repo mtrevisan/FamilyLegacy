@@ -166,10 +166,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		this.boxType = boxType;
 		this.person.clear();
 		this.store = store;
+
+
+		initComponents();
 	}
 
 
-	void initComponents(){
+	private void initComponents(){
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
@@ -935,7 +938,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 		EventQueue.invokeLater(() -> {
 			final PersonPanel panel = create(boxType, store);
-			panel.initComponents();
 			panel.loadData(person1);
 			panel.setPersonListener(personListener);
 

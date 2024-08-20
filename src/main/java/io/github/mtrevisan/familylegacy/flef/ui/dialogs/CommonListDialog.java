@@ -116,14 +116,13 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initComponents();
 	}
 
 
-	@Override
-	public final void initComponents(){
+	private void initComponents(){
 		initStoreComponents();
-
-		super.initComponents();
 
 		addValidDataListenerToMandatoryFields(this);
 	}
@@ -161,7 +160,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			}
 		});
 
-		recordTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
 		recordTable.setFocusable(true);
 		recordTable.setGridColor(GRID_COLOR);
 		recordTable.setDragEnabled(true);
