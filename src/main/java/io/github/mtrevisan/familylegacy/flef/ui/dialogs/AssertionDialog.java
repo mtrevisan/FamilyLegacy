@@ -100,6 +100,8 @@ public final class AssertionDialog extends CommonListDialog{
 
 	private AssertionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -112,6 +114,10 @@ public final class AssertionDialog extends CommonListDialog{
 	public AssertionDialog withReference(final String referenceTable, final int referenceID){
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
+
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		return this;
 	}
@@ -140,9 +146,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 	}

@@ -22,8 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -47,7 +48,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class SearchEventPanel extends CommonLinkPanel{
+public class SearchEventPanel extends CommonSearchPanel{
 
 	@Serial
 	private static final long serialVersionUID = -4869611094243229616L;
@@ -150,9 +151,7 @@ public class SearchEventPanel extends CommonLinkPanel{
 			final Integer dateID = extractRecordDateID(container);
 			final Map<String, Object> dateEntry = (dateID != null? historicDates.get(dateID): null);
 			final String dateValue = extractRecordDate(dateEntry);
-			final Integer calendarID = extractRecordCalendarID(dateEntry);
-			final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-			final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+			final LocalDate parsedDate = DateParser.parse(dateValue);
 			final Integer year = (parsedDate != null? parsedDate.getYear(): null);
 			final FilterString filter = FilterString.create()
 				.add(key)
@@ -211,10 +210,6 @@ public class SearchEventPanel extends CommonLinkPanel{
 
 	private static String extractRecordDate(final Map<String, Object> record){
 		return (record != null? (String)record.get("date"): null);
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
 

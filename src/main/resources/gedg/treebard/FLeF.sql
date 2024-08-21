@@ -62,19 +62,19 @@ CREATE TABLE REPOSITORY
 
 -- Date
 
+-- https://en.wikipedia.org/wiki/ISO_8601
 CREATE TABLE HISTORIC_DATE
 (
  "ID"                 numeric PRIMARY KEY,
- "DATE"               text NOT NULL,	-- The date.
- CALENDAR_ID          numeric,			-- An xref ID of a calendar type.
+ "DATE"               text NOT NULL,	-- The date as an ISO 8601 "DD MMM YYYY" date (ex. a "gregorian", "julian", "french republican", "venetan", "hebrew", "muslim", "chinese", "indian", "buddhist", "coptic", "soviet eternal", "ethiopian", "mayan", or whatever converted into ISO 8601).
  DATE_ORIGINAL        text,				-- The date as written into a document.
  CALENDAR_ORIGINAL_ID numeric,			-- An xref ID of a calendar type for the original date.
  CERTAINTY            text,				-- A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY          text,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (CALENDAR_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL
 );
 
+-- https://en.wikipedia.org/wiki/List_of_calendars
 CREATE TABLE CALENDAR
 (
  "ID"   numeric PRIMARY KEY,

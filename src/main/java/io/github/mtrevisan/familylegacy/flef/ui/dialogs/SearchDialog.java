@@ -31,21 +31,22 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.FilteredTablePanelInterface;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.RecordListenerInterface;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchAllPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchAllRecord;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchCitationPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchCulturalNormPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchEventPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchMediaPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchNotePanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchPersonPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchPlacePanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchRepositoryPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchResearchStatusPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchSourcePanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SearchUnionPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.CommonSearchPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.FilteredTablePanelInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchAllPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchAllRecord;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchCitationPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchCulturalNormPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchEventPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchMediaPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchNotePanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchPersonPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchPlacePanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchRepositoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchResearchStatusPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchSourcePanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchUnionPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -63,6 +64,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -75,18 +78,43 @@ public final class SearchDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 7854594091959021095L;
 
-	private static final String PANE_NAME_ALL = "all";
-	private static final String PANE_NAME_CITATION = "citation";
-	private static final String PANE_NAME_SOURCE = "source";
-	private static final String PANE_NAME_REPOSITORY = "repository";
-	private static final String PANE_NAME_PLACE = "place";
-	private static final String PANE_NAME_NOTE = "note";
-	private static final String PANE_NAME_MEDIA = "media";
-	private static final String PANE_NAME_PERSON = "person";
-	private static final String PANE_NAME_GROUP = "group";
-	private static final String PANE_NAME_EVENT = "event";
-	private static final String PANE_NAME_CULTURAL_NORM = "cultural norm";
-	private static final String PANE_NAME_RESEARCH_STATUS = "research status";
+
+	private static final class SearchData{
+		private final String tableName;
+		private final Class<? extends CommonSearchPanel> panel;
+		private CommonSearchPanel instance;
+		private Method loadDataMethod;
+		private Method exportTableDataMethod;
+
+		private static SearchData create(final Class<? extends CommonSearchPanel> panel){
+			return new SearchData(null, panel);
+		}
+
+		private static SearchData create(final String tableName, final Class<? extends CommonSearchPanel> panel){
+			return new SearchData(tableName, panel);
+		}
+
+		private SearchData(final String tableName, final Class<? extends CommonSearchPanel> panel){
+			this.tableName = tableName;
+			this.panel = panel;
+		}
+	}
+
+	private static final Map<String, SearchData> PANE_NAME_TABLE = new TreeMap<>();
+	static{
+		PANE_NAME_TABLE.put("All", SearchData.create(SearchAllPanel.class));
+		PANE_NAME_TABLE.put("Citations", SearchData.create("citation", SearchCitationPanel.class));
+		PANE_NAME_TABLE.put("Sources", SearchData.create("source", SearchSourcePanel.class));
+		PANE_NAME_TABLE.put("Repositories", SearchData.create("repository", SearchRepositoryPanel.class));
+		PANE_NAME_TABLE.put("Places", SearchData.create("place", SearchPlacePanel.class));
+		PANE_NAME_TABLE.put("Notes", SearchData.create("note", SearchNotePanel.class));
+		PANE_NAME_TABLE.put("Medias", SearchData.create("media", SearchMediaPanel.class));
+		PANE_NAME_TABLE.put("Persons", SearchData.create("person", SearchPersonPanel.class));
+		PANE_NAME_TABLE.put("Groups", SearchData.create("group", SearchUnionPanel.class));
+		PANE_NAME_TABLE.put("Events", SearchData.create("event", SearchEventPanel.class));
+		PANE_NAME_TABLE.put("Cultural norms", SearchData.create("cultural_norm", SearchCulturalNormPanel.class));
+		PANE_NAME_TABLE.put("Research statuses", SearchData.create("research_status", SearchResearchStatusPanel.class));
+	}
 
 
 	private JLabel filterLabel;
@@ -95,19 +123,7 @@ public final class SearchDialog extends JDialog{
 
 	private final Debouncer<SearchDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, CommonListDialog.DEBOUNCE_TIME);
 
-	private SearchAllPanel searchAllPanel;
-	private SearchCitationPanel searchCitationPanel;
-	private SearchSourcePanel searchSourcePanel;
-	private SearchRepositoryPanel searchRepositoryPanel;
-	private SearchPlacePanel searchPlacePanel;
-	private SearchNotePanel searchNotePanel;
-	private SearchMediaPanel searchMediaPanel;
-	private SearchPersonPanel searchPersonPanel;
-	private SearchUnionPanel searchUnionPanel;
-	private SearchEventPanel searchEventPanel;
-	private SearchCulturalNormPanel searchCulturalNormPanel;
-	private SearchResearchStatusPanel searchResearchStatusPanel;
-	private RecordListenerInterface listener;
+	private Method loadDataAllMethod;
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
@@ -128,7 +144,15 @@ public final class SearchDialog extends JDialog{
 
 
 	public SearchDialog withLinkListener(final RecordListenerInterface listener){
-		this.listener = listener;
+		try{
+			final Method setLinkListenerMethod = CommonSearchPanel.class.getDeclaredMethod("setLinkListener",
+				RecordListenerInterface.class);
+			setLinkListenerMethod.setAccessible(true);
+
+			for(final SearchData searchData : PANE_NAME_TABLE.values())
+				setLinkListenerMethod.invoke(searchData.instance, listener);
+		}
+		catch(final NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored){}
 
 		return this;
 	}
@@ -145,30 +169,23 @@ public final class SearchDialog extends JDialog{
 		filterLabel = new JLabel("Filter:");
 		filterField = new JTextField();
 
-		searchAllPanel = SearchAllPanel.create(store)
-			.withLinkListener(listener);
-		searchCitationPanel = SearchCitationPanel.create(store)
-			.withLinkListener(listener);
-		searchSourcePanel = SearchSourcePanel.create(store)
-			.withLinkListener(listener);
-		searchRepositoryPanel = SearchRepositoryPanel.create(store)
-			.withLinkListener(listener);
-		searchPlacePanel = SearchPlacePanel.create(store)
-			.withLinkListener(listener);
-		searchNotePanel = SearchNotePanel.create(store)
-			.withLinkListener(listener);
-		searchMediaPanel = SearchMediaPanel.create(store)
-			.withLinkListener(listener);
-		searchPersonPanel = SearchPersonPanel.create(store)
-			.withLinkListener(listener);
-		searchUnionPanel = SearchUnionPanel.create(store)
-			.withLinkListener(listener);
-		searchEventPanel = SearchEventPanel.create(store)
-			.withLinkListener(listener);
-		searchCulturalNormPanel = SearchCulturalNormPanel.create(store)
-			.withLinkListener(listener);
-		searchResearchStatusPanel = SearchResearchStatusPanel.create(store)
-			.withLinkListener(listener);
+		try{
+			for(final SearchData searchData : PANE_NAME_TABLE.values()){
+				final Class<? extends CommonSearchPanel> panelClass = searchData.panel;
+				final Method createMethod = panelClass.getMethod("create", Map.class);
+				final Method loadDataMethod = panelClass.getMethod("loadData");
+				if(searchData.tableName == null)
+					loadDataAllMethod = panelClass.getMethod("loadData", List.class);
+				final Method exportTableDataMethod = (searchData.tableName != null? panelClass.getMethod("exportTableData"): null);
+
+				final Object instance = createMethod.invoke(null, store);
+
+				searchData.instance = (CommonSearchPanel)instance;
+				searchData.loadDataMethod = loadDataMethod;
+				searchData.exportTableDataMethod = exportTableDataMethod;
+			}
+		}
+		catch(final NoSuchMethodException | InvocationTargetException | IllegalAccessException ignored){}
 
 
 		filterLabel.setLabelFor(filterField);
@@ -196,50 +213,30 @@ public final class SearchDialog extends JDialog{
 	}
 
 	private void initRecordLayout(){
-		recordTabbedPane.add(PANE_NAME_ALL, searchAllPanel);
-		recordTabbedPane.add(PANE_NAME_CITATION, searchCitationPanel);
-		recordTabbedPane.add(PANE_NAME_SOURCE, searchSourcePanel);
-		recordTabbedPane.add(PANE_NAME_REPOSITORY, searchRepositoryPanel);
-		recordTabbedPane.add(PANE_NAME_PLACE, searchPlacePanel);
-		recordTabbedPane.add(PANE_NAME_NOTE, searchNotePanel);
-		recordTabbedPane.add(PANE_NAME_MEDIA, searchMediaPanel);
-		recordTabbedPane.add(PANE_NAME_PERSON, searchPersonPanel);
-		recordTabbedPane.add(PANE_NAME_GROUP, searchUnionPanel);
-		recordTabbedPane.add(PANE_NAME_EVENT, searchEventPanel);
-		recordTabbedPane.add(PANE_NAME_CULTURAL_NORM, searchCulturalNormPanel);
-		recordTabbedPane.add(PANE_NAME_RESEARCH_STATUS, searchResearchStatusPanel);
+		PANE_NAME_TABLE.forEach((key, value) -> recordTabbedPane.add(key, value.instance));
 	}
 
 	private void closeAction(final ActionEvent evt){
 		setVisible(false);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void loadData(){
-		searchCitationPanel.loadData();
-		searchSourcePanel.loadData();
-		searchRepositoryPanel.loadData();
-		searchPlacePanel.loadData();
-		searchNotePanel.loadData();
-		searchMediaPanel.loadData();
-		searchPersonPanel.loadData();
-		searchUnionPanel.loadData();
-		searchEventPanel.loadData();
-		searchCulturalNormPanel.loadData();
-		searchResearchStatusPanel.loadData();
-
-		final List<SearchAllRecord> allTableData = new ArrayList<>(0);
-		allTableData.addAll(searchCitationPanel.exportTableData());
-		allTableData.addAll(searchSourcePanel.exportTableData());
-		allTableData.addAll(searchRepositoryPanel.exportTableData());
-		allTableData.addAll(searchPlacePanel.exportTableData());
-		allTableData.addAll(searchNotePanel.exportTableData());
-		allTableData.addAll(searchMediaPanel.exportTableData());
-		allTableData.addAll(searchPersonPanel.exportTableData());
-		allTableData.addAll(searchUnionPanel.exportTableData());
-		allTableData.addAll(searchEventPanel.exportTableData());
-		allTableData.addAll(searchCulturalNormPanel.exportTableData());
-		allTableData.addAll(searchResearchStatusPanel.exportTableData());
-		searchAllPanel.loadData(allTableData);
+		try{
+			final List<SearchAllRecord> allTableData = new ArrayList<>(0);
+			for(final SearchData searchData : PANE_NAME_TABLE.values()){
+				if(searchData.tableName != null){
+					final CommonSearchPanel instance = searchData.instance;
+					searchData.loadDataMethod.invoke(instance);
+					allTableData.addAll((List<SearchAllRecord>)searchData.exportTableDataMethod.invoke(instance));
+				}
+			}
+			final CommonSearchPanel searchAllPanel = PANE_NAME_TABLE.values().iterator()
+				.next()
+				.instance;
+			loadDataAllMethod.invoke(searchAllPanel, allTableData);
+		}
+		catch(final InvocationTargetException | IllegalAccessException ignored){}
 	}
 
 	private void filterTableBy(final JDialog panel){
@@ -255,6 +252,20 @@ public final class SearchDialog extends JDialog{
 
 			component.setFilterAndSorting(plainFilterText, additionalFields);
 		}
+	}
+
+
+	public static String getTableName(final String paneTitle){
+		return PANE_NAME_TABLE.get(paneTitle)
+			.tableName;
+	}
+
+	public static String getPaneTitle(final String tableName){
+		return PANE_NAME_TABLE.entrySet().stream()
+			.filter(entry -> tableName.equals(entry.getValue().tableName))
+			.findFirst()
+			.map(Map.Entry::getKey)
+			.orElse(null);
 	}
 
 
@@ -623,12 +634,10 @@ public final class SearchDialog extends JDialog{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("id", 2);
 		historicDate2.put("date", "1 JAN 1800");
-		historicDate2.put("calendar_id", 1);
 		historicDates.put((Integer)historicDate2.get("id"), historicDate2);
 
 		final TreeMap<Integer, Map<String, Object>> calendars = new TreeMap<>();

@@ -151,19 +151,6 @@ public class Main{
 						}
 
 						//from: historic date
-						case CALENDAR -> {
-							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("calendar_id", extractRecordID(record)));
-							calendarDialog.loadData();
-							final Integer calendarID = extractRecordCalendarID(container);
-							if(calendarID != null)
-								calendarDialog.selectData(calendarID);
-
-							calendarDialog.setLocationRelativeTo(dialog);
-							calendarDialog.setVisible(true);
-						}
-
-						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
 								.withOnCloseGracefully(record -> container.put("calendar_original_id", extractRecordID(record)));
@@ -227,7 +214,7 @@ public class Main{
 
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleTextWithSecondary(store, parent)
+							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(store, parent)
 								.withReference(tableName, recordID, "name")
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -455,10 +442,6 @@ public class Main{
 
 	private static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
 	}
 
 	private static Integer extractRecordMediaID(final Map<String, Object> record){

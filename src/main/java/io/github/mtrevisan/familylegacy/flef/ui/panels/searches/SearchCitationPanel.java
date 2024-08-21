@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -50,7 +50,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 
-public class SearchCitationPanel extends CommonLinkPanel{
+public class SearchCitationPanel extends CommonSearchPanel{
 
 	@Serial
 	private static final long serialVersionUID = -4600075588908748922L;

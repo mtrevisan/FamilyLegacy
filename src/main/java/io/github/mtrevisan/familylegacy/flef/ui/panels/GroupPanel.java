@@ -609,7 +609,7 @@ public class GroupPanel extends JPanel{
 		if(group.isEmpty()){
 			final List<Map<String, Object>> unions = extractUnions(partner1);
 			if(!unions.isEmpty())
-				//FIXME choose the last shown family, if any
+				//FIXME choose the last shown union, if any
 				group = unions.getFirst();
 		}
 

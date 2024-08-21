@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -50,7 +50,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 
-public class SearchPlacePanel extends CommonLinkPanel{
+public class SearchPlacePanel extends CommonSearchPanel{
 
 	@Serial
 	private static final long serialVersionUID = -2826101432109515521L;
@@ -258,7 +258,6 @@ public class SearchPlacePanel extends CommonLinkPanel{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");

@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.navigations;
 
 import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogyNavigation;
 import net.miginfocom.swing.MigLayout;

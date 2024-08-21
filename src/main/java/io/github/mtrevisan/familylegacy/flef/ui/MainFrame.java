@@ -77,7 +77,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private MainFrame(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Map<String, Object> homeGroup){
 		this.store = store;
 
-		treePanel = TreePanel.create(4, store);
+		treePanel = TreePanel.create(4, store, this);
 		treePanel.loadDataFromUnion(homeGroup);
 		treePanel.setUnionListener(this);
 		treePanel.setPersonListener(this);

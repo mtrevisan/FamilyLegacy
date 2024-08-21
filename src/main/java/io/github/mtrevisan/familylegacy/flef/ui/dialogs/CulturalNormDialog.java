@@ -315,6 +315,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		identifierField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
@@ -351,7 +357,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 
-		if(filterReferenceTable == null){
+		linkCertaintyComboBox.setSelectedItem(null);
+		linkCredibilityComboBox.setSelectedItem(null);
+		if(filterReferenceTable != null){
 			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
 				CulturalNormDialog::extractRecordCulturalNormID, recordID);
 			if(recordCulturalNormJunction.size() > 1)
@@ -368,6 +376,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				linkCredibilityComboBox.setSelectedItem(linkCredibility);
 			}
 		}
+
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
 
 	@Override
@@ -413,6 +423,27 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String description = descriptionTextPreview.getTextTrimmed();
 		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
+
+		if(filterReferenceTable != null){
+			//read link panel:
+			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
+			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
+
+			final Integer culturalNormID = extractRecordID(selectedRecord);
+			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
+				CulturalNormDialog::extractRecordCulturalNormID, culturalNormID);
+			if(recordCulturalNormJunction.size() == 1){
+				final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordCulturalNormJunction.entrySet().iterator();
+				if(itr.hasNext()){
+					final Map<String, Object> culturalNormJunction = itr.next()
+						.getValue();
+
+					//TODO pass through modification note asking?
+					culturalNormJunction.put("certainty", linkCertainty);
+					culturalNormJunction.put("credibility", linkCredibility);
+				}
+			}
+		}
 
 		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){

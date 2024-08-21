@@ -22,11 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 
-public interface RecordListenerInterface{
-
-	void onRecordSelected(String table, Integer id);
+public record SearchAllRecord(Integer id, String tableName, String filter, String identifier){
 
 }

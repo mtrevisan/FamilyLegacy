@@ -60,19 +60,20 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 
-public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
+public final class LocalizedPersonNameDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 6171448434725755800L;
 
 	private static final int TABLE_INDEX_TEXT = 2;
 
-	private static final String TABLE_NAME = "localized_text";
+	private static final String TABLE_NAME = "localized_person_name";
 
 
 	private JLabel personalTextLabel;
 	private TextPreviewPane textTextPreview;
 	private JTextField personalTextField;
+	private JLabel familyTextLabel;
 	private JTextField familyTextField;
 	private JLabel localeLabel;
 	private JTextField localeField;
@@ -87,29 +88,20 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private int filterReferenceID;
 	private String filterReferenceType;
 
-	private boolean simplePrimaryText;
 
-
-	public static LocalizedTextDialog createComplexText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
-		dialog.initialize();
-		return dialog;
-	}
-
-	public static LocalizedTextDialog createSimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
-		dialog.simplePrimaryText = true;
+	public static LocalizedPersonNameDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private LocalizedTextDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	private LocalizedPersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 	}
 
 
-	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public LocalizedPersonNameDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
@@ -134,7 +126,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		return this;
 	}
 
-	public LocalizedTextDialog withReference(final String referenceTable, final int referenceID, final String referenceType){
+	public LocalizedPersonNameDialog withReference(final String referenceTable, final int referenceID, final String referenceType){
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
 		filterReferenceType = referenceType;
@@ -177,10 +169,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void initRecordComponents(){
-		personalTextLabel = new JLabel("Text:");
+		personalTextLabel = new JLabel("(Primary) Name:");
 		textTextPreview = TextPreviewPane.createWithPreview(this);
 		textTextPreview.setTextViewFont(personalTextLabel.getFont());
 		personalTextField = new JTextField();
+		familyTextLabel = new JLabel("(Secondary) Name:");
 		familyTextField = new JTextField();
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
@@ -194,14 +187,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			"gairaigized", "latinized"});
 
 
-		if(simplePrimaryText){
-			GUIHelper.bindLabelTextChangeUndo(personalTextLabel, personalTextField, this::saveData);
-			addMandatoryField(personalTextField, familyTextField);
-		}
-		else{
-			GUIHelper.bindLabelTextChange(personalTextLabel, textTextPreview, this::saveData);
-			textTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
-		}
+		GUIHelper.bindLabelTextChangeUndo(personalTextLabel, personalTextField, this::saveData);
+		GUIHelper.bindLabelTextChangeUndo(familyTextLabel, familyTextField, this::saveData);
+		addMandatoryField(personalTextField, familyTextField);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
@@ -216,7 +204,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personalTextLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add((simplePrimaryText? personalTextField: textTextPreview), "grow,wrap related");
+		recordPanelBase.add(personalTextField, "grow,wrap related");
+		recordPanelBase.add(familyTextLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(familyTextField, "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(localeField, "grow,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
@@ -249,7 +239,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			final Integer key = record.getKey();
 			final Map<String, Object> container = record.getValue();
 
-			final String primaryName = extractRecordText(container);
+			final String primaryName = extractRecordPersonalName(container);
 			final String secondaryName = extractRecordFamilyName(container);
 			final StringJoiner identifier = new StringJoiner(", ");
 			if(primaryName != null)
@@ -278,15 +268,15 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	@Override
 	protected void fillData(){
 		final String text = extractRecordText(selectedRecord);
+		final String primaryName = extractRecordPersonalName(selectedRecord);
+		final String secondaryName = extractRecordFamilyName(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
-		if(simplePrimaryText)
-			personalTextField.setText(text);
-		else
-			textTextPreview.setText("Extract " + extractRecordID(selectedRecord), text, locale);
+		personalTextField.setText(primaryName);
+		familyTextField.setText(secondaryName);
 		localeField.setText(locale);
 		typeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
@@ -294,7 +284,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		if(filterReferenceTable == null){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedTextDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
+				LocalizedPersonNameDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
@@ -302,10 +292,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void clearData(){
-		if(simplePrimaryText)
-			personalTextField.setText(null);
-		else
-			textTextPreview.clear();
+		personalTextField.setText(null);
+		familyTextField.setText(null);
 
 		localeField.setText(null);
 
@@ -316,14 +304,12 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected boolean validateData(){
-		final String primaryText = (simplePrimaryText? GUIHelper.getTextTrimmed(personalTextField): textTextPreview.getTextTrimmed());
+		final String primaryText = GUIHelper.getTextTrimmed(personalTextField);
 		final String secondaryText = GUIHelper.getTextTrimmed(familyTextField);
 		if(!validData(primaryText) && !validData(secondaryText)){
-			JOptionPane.showMessageDialog(getParent(), "Text field is required", "Error", JOptionPane.ERROR_MESSAGE);
-			if(simplePrimaryText)
-				personalTextField.requestFocusInWindow();
-			else
-				textTextPreview.requestFocusInWindow();
+			JOptionPane.showMessageDialog(getParent(), "(Primary or secondary) Name field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			personalTextField.requestFocusInWindow();
 
 			return false;
 		}
@@ -336,7 +322,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			return false;
 
 		//read record panel:
-		final String primaryText = (simplePrimaryText? GUIHelper.getTextTrimmed(personalTextField): textTextPreview.getTextTrimmed());
+		final String primaryText = GUIHelper.getTextTrimmed(personalTextField);
 		final String secondaryText = GUIHelper.getTextTrimmed(familyTextField);
 		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
@@ -366,7 +352,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		}
 
 		//update table:
-		if(!Objects.equals(primaryText, extractRecordText(selectedRecord))){
+		final boolean shouldUpdate = (!Objects.equals(primaryText, extractRecordPersonalName(selectedRecord))
+			|| !Objects.equals(secondaryText, extractRecordFamilyName(selectedRecord)));
+		if(shouldUpdate){
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++){
@@ -387,7 +375,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			}
 		}
 
-		selectedRecord.put("text", primaryText);
+		selectedRecord.put("personal_name", primaryText);
+		selectedRecord.put("family_name", secondaryText);
 		selectedRecord.put("locale", locale);
 		selectedRecord.put("type", type);
 		selectedRecord.put("transcription", transcription);
@@ -471,8 +460,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final LocalizedTextDialog dialog = createComplexText(store, parent);
-//			final LocalizedTextDialog dialog = createSimpleText(store, parent);
+			final LocalizedPersonNameDialog dialog = create(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))
 				dialog.showNewRecord();

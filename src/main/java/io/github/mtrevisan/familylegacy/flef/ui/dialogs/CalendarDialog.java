@@ -83,6 +83,8 @@ public final class CalendarDialog extends CommonListDialog{
 
 	private CalendarDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -189,6 +191,12 @@ public final class CalendarDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		typeField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -199,7 +207,7 @@ public final class CalendarDialog extends CommonListDialog{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
 			.entrySet().stream()
-			.filter(entry -> Objects.equals(calendarID, extractRecordCalendarID(entry.getValue())))
+//			.filter(entry -> Objects.equals(calendarID, extractRecordCalendarID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 
 		typeField.setText(type);
@@ -265,10 +273,6 @@ public final class CalendarDialog extends CommonListDialog{
 
 	private static String extractRecordType(final Map<String, Object> record){
 		return (String)record.get("type");
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
 	}
 
 

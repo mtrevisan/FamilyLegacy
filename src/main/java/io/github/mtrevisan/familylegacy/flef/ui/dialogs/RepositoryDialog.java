@@ -91,6 +91,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	private RepositoryDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 

@@ -142,6 +142,9 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 		initComponents();
+
+		if(!CommonListDialog.class.isAssignableFrom(this.getClass()))
+			initLayout();
 	}
 
 
@@ -155,10 +158,8 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract String getTableName();
 
-	private void initComponents(){
+	protected void initComponents(){
 		initRecordComponents();
-
-		initLayout();
 
 		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
@@ -369,6 +370,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			storeModifications.put(extractRecordID(newModification), newModification);
 		}
 		else{
+			//TODO find a way to let the user skip this note
 			//TODO ask for a modification note
 //			//show note record dialog
 //			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
@@ -382,8 +384,9 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 			//update the record with `update_date`
-			recordModification.get(recordModification.firstKey())
-				.put("update_date", now);
+			final Map<String, Object> modification = recordModification.firstEntry()
+				.getValue();
+			modification.put("update_date", now);
 		}
 	}
 

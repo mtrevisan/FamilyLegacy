@@ -97,6 +97,8 @@ public final class SourceDialog extends CommonListDialog{
 
 	private SourceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -108,6 +110,9 @@ public final class SourceDialog extends CommonListDialog{
 
 	public SourceDialog withFilterOnRepositoryID(final int filterRepositoryID){
 		this.filterRepositoryID = filterRepositoryID;
+
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName + " for repository " + filterRepositoryID);
 
 		return this;
 	}
@@ -136,9 +141,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterRepositoryID != null? " for repository " + filterRepositoryID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 	}
@@ -438,7 +441,6 @@ public final class SourceDialog extends CommonListDialog{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");

@@ -68,6 +68,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 	private static final String TABLE_NAME = "person_name";
+	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_EVENT = "event";
@@ -100,6 +101,8 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	private PersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -111,6 +114,10 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	public PersonNameDialog withReference(final int filterReferenceID){
 		this.filterReferenceID = filterReferenceID;
+
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterReferenceID > 0? " for person ID " + filterReferenceID: StringUtils.EMPTY));
 
 		return this;
 	}
@@ -139,9 +146,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterReferenceID > 0? " for person ID " + filterReferenceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 	}
@@ -263,14 +268,22 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		personalNameField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final Integer personNameID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String personalName = extractRecordPersonalName(selectedRecord);
 		final String familyName = extractRecordFamilyName(selectedRecord);
 		final String nameLocale = extractRecordLocale(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-			CommonRecordDialog::extractRecordReferenceType, "name");
+		final boolean hasTransliterations = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME)
+			.values().stream()
+			.filter(record -> Objects.equals(personNameID, extractRecordPersonNameID(record)))
+			.anyMatch(PersonNameDialog::hasName);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
@@ -284,7 +297,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		personalNameField.setText(personalName);
 		familyNameField.setText(familyName);
 		nameLocaleField.setText(nameLocale);
-		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(transcribedNameButton, hasTransliterations, DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
@@ -293,6 +306,12 @@ public final class PersonNameDialog extends CommonListDialog{
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+	}
+
+	private static boolean hasName(final Map<String, Object> record){
+		final String personalName = extractRecordPersonalName(record);
+		final String familyName = extractRecordFamilyName(record);
+		return (personalName != null && familyName != null);
 	}
 
 	@Override
@@ -392,6 +411,10 @@ public final class PersonNameDialog extends CommonListDialog{
 		return (Integer)record.get("person_id");
 	}
 
+	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
+		return (Integer)record.get("person_name_id");
+	}
+
 	private static String extractRecordType(final Map<String, Object> record){
 		return (String)record.get("type");
 	}
@@ -483,7 +506,7 @@ public final class PersonNameDialog extends CommonListDialog{
 					final int personNameID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case LOCALIZED_PERSON_NAME -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleTextWithSecondary(store, parent)
+							final LocalizedPersonNameDialog localizedPersonNameDialog = LocalizedPersonNameDialog.create(store, parent)
 								.withReference(TABLE_NAME, personNameID, "name")
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -491,10 +514,10 @@ public final class PersonNameDialog extends CommonListDialog{
 										record.put("reference_id", personNameID);
 									}
 								});
-							localizedTextDialog.loadData();
+							localizedPersonNameDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedPersonNameDialog.setLocationRelativeTo(dialog);
+							localizedPersonNameDialog.setVisible(true);
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)

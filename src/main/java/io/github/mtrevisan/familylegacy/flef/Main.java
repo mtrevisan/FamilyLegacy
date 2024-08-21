@@ -462,13 +462,11 @@ public final class Main{
 		final int dateStartID = flefHistoricDates.size();
 		flefHistoricDate.put("id", dateStartID);
 		flefHistoricDate.put("date", "31 JAN 1807");
-		flefHistoricDate.put("calendar_id", 1);
 		flefHistoricDate = new HashMap<>();
 		flefHistoricDates.add(flefHistoricDate);
 		final int dateEndID = flefHistoricDates.size();
 		flefHistoricDate.put("id", dateEndID);
 		flefHistoricDate.put("date", "19 FEB 1811");
-		flefHistoricDate.put("calendar_id", 1);
 
 		Map<String, Object> flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
@@ -526,13 +524,11 @@ public final class Main{
 		final int concilioDateStartID = flefHistoricDates.size();
 		flefHistoricDate.put("id", concilioDateStartID);
 		flefHistoricDate.put("date", "11 NOV 1215");
-		flefHistoricDate.put("calendar_id", 2);
 
 		flefHistoricDates.add(flefHistoricDate);
 		final int codiceDirittoCanonicoStartID = flefHistoricDates.size();
 		flefHistoricDate.put("id", codiceDirittoCanonicoStartID);
 		flefHistoricDate.put("date", "1917");
-		flefHistoricDate.put("calendar_id", 1);
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);

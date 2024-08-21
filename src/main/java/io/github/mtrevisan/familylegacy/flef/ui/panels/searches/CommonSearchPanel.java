@@ -22,8 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import net.miginfocom.swing.MigLayout;
@@ -62,15 +63,13 @@ import java.util.NavigableMap;
 import java.util.TreeMap;
 
 
-public abstract class CommonLinkPanel extends JPanel implements FilteredTablePanelInterface{
+public abstract class CommonSearchPanel extends JPanel implements FilteredTablePanelInterface{
 
 	@Serial
 	private static final long serialVersionUID = 2064570563728935886L;
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 	protected static final int TABLE_PREFERRED_WIDTH_ID = 25;
-
-	protected static final String TABLE_NAME_SEPARATOR = "_";
 
 	protected static final int TABLE_INDEX_ID = 0;
 	protected static final int TABLE_INDEX_FILTER = 1;
@@ -88,7 +87,7 @@ public abstract class CommonLinkPanel extends JPanel implements FilteredTablePan
 	protected final List<SearchAllRecord> tableData = new ArrayList<>();
 
 
-	protected CommonLinkPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	protected CommonSearchPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.store = store;
 
 
@@ -257,7 +256,7 @@ public abstract class CommonLinkPanel extends JPanel implements FilteredTablePan
 			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 			if(tableName == null){
 				tableName = (String)model.getValueAt(modelRowIndex, TABLE_INDEX_TABLE_NAME);
-				tableName = StringUtils.replace(tableName, StringUtils.SPACE, TABLE_NAME_SEPARATOR);
+				tableName = SearchDialog.getTableName(tableName);
 			}
 
 			linkListener.onRecordSelected(tableName, recordIdentifier);

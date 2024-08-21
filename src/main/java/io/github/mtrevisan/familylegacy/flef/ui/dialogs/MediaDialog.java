@@ -28,11 +28,11 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ImagePreview;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ImagePreview;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -129,7 +129,9 @@ public final class MediaDialog extends CommonListDialog{
 
 
 	public static MediaDialog createForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new MediaDialog(store, parent);
+		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.initialize();
+		return dialog;
 	}
 
 	public static MediaDialog createForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -141,12 +143,14 @@ public final class MediaDialog extends CommonListDialog{
 
 			dialog.typeComboBox.setEnabled(false);
 		});
+		dialog.initialize();
 		return dialog;
 	}
 
 	public static MediaDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.initialize();
 		return dialog;
 	}
 
@@ -185,6 +189,10 @@ public final class MediaDialog extends CommonListDialog{
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
 
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+
 		return this;
 	}
 
@@ -218,9 +226,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName())));
 
 		super.initStoreComponents();
 	}
@@ -489,6 +495,12 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		fileField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final Integer mediaID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
@@ -520,8 +532,9 @@ public final class MediaDialog extends CommonListDialog{
 
 		enablePhotoRelatedButtons(identifier);
 
-
 		photoCropButtonEnabledBorder(identifier, mediaID);
+
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
 
 	//NOTE working table-junction extraction

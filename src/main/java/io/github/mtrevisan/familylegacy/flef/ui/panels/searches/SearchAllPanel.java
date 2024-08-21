@@ -22,11 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableModel;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 
-public class SearchAllPanel extends CommonLinkPanel{
+public class SearchAllPanel extends CommonSearchPanel{
 
 	@Serial
 	private static final long serialVersionUID = -352153790206338469L;
@@ -102,9 +102,9 @@ public class SearchAllPanel extends CommonLinkPanel{
 		model.setRowCount(length);
 		int row = 0;
 		for(int i = 0; i < length; i ++){
-			SearchAllRecord record = data.get(i);
+			final SearchAllRecord record = data.get(i);
 			final Integer id = record.id();
-			final String tableName = StringUtils.replace(record.tableName(), TABLE_NAME_SEPARATOR, StringUtils.SPACE);
+			final String tableName = SearchDialog.getPaneTitle(record.tableName());
 			final String filter = record.filter();
 			final String identifier = record.identifier();
 

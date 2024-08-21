@@ -193,6 +193,10 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		ignoreEvents = true;
 		fillData();
 		ignoreEvents = false;
+
+
+		//set focus on first field
+		superTypeComboBox.requestFocusInWindow();
 	}
 
 	@Override

@@ -103,7 +103,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private JButton unselectRecordButton;
 	protected JButton deleteRecordButton;
 	//record components:
-	protected final JTabbedPane recordTabbedPane = new JTabbedPane();
+	protected JTabbedPane recordTabbedPane;
 
 	private final Debouncer<CommonListDialog> filterDebouncer = new Debouncer<>(this::filterTableBy, DEBOUNCE_TIME);
 
@@ -116,12 +116,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initComponents();
 	}
 
 
-	private void initComponents(){
+	public void initialize(){
+		initComponents();
+
+		initLayout();
+	}
+
+	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+
 		initStoreComponents();
 
 		addValidDataListenerToMandatoryFields(this);
@@ -149,6 +157,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		newRecordButton = new JButton("New");
 		unselectRecordButton = new JButton("Unselect");
 		deleteRecordButton = new JButton("Delete");
+		recordTabbedPane = new JTabbedPane();
 
 
 		filterLabel.setLabelFor(filterField);
@@ -561,8 +570,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	@Override
 	public void onValidationChange(final boolean valid){
-		newRecordButton.setEnabled(!selectRecordOnly && (selectedRecord == null || valid));
-		unselectRecordButton.setEnabled(selectedRecord != null);
+		if(newRecordButton != null)
+			newRecordButton.setEnabled(!selectRecordOnly && (selectedRecord == null || valid));
+		if(unselectRecordButton != null)
+			unselectRecordButton.setEnabled(selectedRecord != null);
 	}
 
 }

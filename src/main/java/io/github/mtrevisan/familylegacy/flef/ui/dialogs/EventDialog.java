@@ -108,6 +108,8 @@ public final class EventDialog extends CommonListDialog{
 
 	private EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -120,6 +122,10 @@ public final class EventDialog extends CommonListDialog{
 	public EventDialog withReference(final String referenceTable, final int referenceID){
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
+
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
 		return this;
 	}
@@ -148,9 +154,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 	}
@@ -302,6 +306,12 @@ public final class EventDialog extends CommonListDialog{
 
 			row ++;
 		}
+	}
+
+	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		typeComboBox.requestFocusInWindow();
 	}
 
 	@Override

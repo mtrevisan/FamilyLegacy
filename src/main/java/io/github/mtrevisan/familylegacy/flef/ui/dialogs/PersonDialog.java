@@ -88,18 +88,22 @@ public final class PersonDialog extends CommonListDialog{
 
 
 	public static PersonDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new PersonDialog(store, parent);
+		final PersonDialog dialog = new PersonDialog(store, parent);
+		dialog.initialize();
+		return dialog;
 	}
 
 	public static PersonDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.initialize();
 		return dialog;
 	}
 
 	public static PersonDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.initialize();
 		return dialog;
 	}
 
@@ -295,17 +299,17 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 
-	private String extractIdentifier(final Integer selectedRecordID){
+	private String extractIdentifier(final Integer personID){
 		final StringJoiner identifier = new StringJoiner(" / ");
 		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
 		getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
-			.filter(record -> Objects.equals(selectedRecordID, extractRecordPersonID(record)))
+			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				//extract transliterations
 				final StringJoiner subIdentifier = new StringJoiner(", ");
-				final Integer recordID = extractRecordID(record);
-				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME, recordID)
+				final Integer personNameID = extractRecordID(record);
+				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME, personNameID)
 					.values().stream()
 					.filter(record2 -> Objects.equals("name", extractRecordReferenceType(record2)))
 					.map(record2 -> localizedPersonNames.get(extractRecordLocalizedTextID(record2)))
@@ -499,6 +503,8 @@ public final class PersonDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final PersonDialog dialog = create(store, parent);
+//			final PersonDialog dialog = createRecordOnly(store, parent);
+//			final PersonDialog dialog = createSelectOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(person1)))
 				dialog.showNewRecord();

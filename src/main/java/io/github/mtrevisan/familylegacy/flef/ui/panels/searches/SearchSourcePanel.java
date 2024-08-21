@@ -22,8 +22,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -39,44 +40,41 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 
 
-public class SearchRepositoryPanel extends CommonLinkPanel{
+public class SearchSourcePanel extends CommonSearchPanel{
 
 	@Serial
-	private static final long serialVersionUID = 6415793447255484171L;
+	private static final long serialVersionUID = -4869611094243229616L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 	private static final int TABLE_INDEX_TYPE = 3;
-	private static final int TABLE_INDEX_PERSON = 4;
+	private static final int TABLE_INDEX_AUTHOR = 4;
 	private static final int TABLE_INDEX_PLACE = 5;
+	private static final int TABLE_INDEX_DATE = 6;
 
 	private static final int TABLE_PREFERRED_WIDTH_IDENTIFIER = 250;
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
-	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
+	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 
-	private static final String TABLE_NAME_REPOSITORY = "repository";
-	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
-	private static final String TABLE_NAME_PERSON_NAME = "person_name";
+	private static final String TABLE_NAME_SOURCE = "source";
 	private static final String TABLE_NAME_PLACE = "place";
+	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
+	private static final String TABLE_NAME_CALENDAR = "calendar";
 
 
-	public static SearchRepositoryPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchRepositoryPanel(store);
+	public static SearchSourcePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new SearchSourcePanel(store);
 	}
 
 
-	private SearchRepositoryPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private SearchSourcePanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		super(store);
 
 
@@ -84,7 +82,7 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 	}
 
 
-	public final SearchRepositoryPanel withLinkListener(final RecordListenerInterface linkListener){
+	public final SearchSourcePanel withLinkListener(final RecordListenerInterface linkListener){
 		super.setLinkListener(linkListener);
 
 		return this;
@@ -93,31 +91,32 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TYPE, 0, TABLE_PREFERRED_WIDTH_TYPE);
-		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON, TABLE_PREFERRED_WIDTH_NAME);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_DATE, TABLE_PREFERRED_WIDTH_YEAR);
 	}
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME_REPOSITORY;
+		return TABLE_NAME_SOURCE;
 	}
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Identifier", "Type", "Name", "Place"};
+		return new String[]{"ID", "Filter", "Identifier", "Type", "Author", "Place", "Date"};
 	}
 
 	@Override
 	protected int[] getTableColumnAlignments(){
 		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT, SwingConstants.LEFT, SwingConstants.LEFT,
-			SwingConstants.LEFT};
+			SwingConstants.LEFT, SwingConstants.RIGHT};
 	}
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
-		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, textComparator};
+		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, textComparator,
+			numericComparator};
 	}
 
 
@@ -126,8 +125,10 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_REPOSITORY);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_SOURCE);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -138,28 +139,32 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 
 			final String identifier = extractRecordIdentifier(container);
 			final String type = extractRecordType(container);
-			final Integer personID = extractRecordPersonID(container);
-			final String personName = extractFirstName(personID);
-			final List<String> personAllNames = extractAllNames(personID);
+			final String author = extractRecordAuthor(container);
 			final Integer placeID = extractRecordPlaceID(container);
 			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
+			final Integer dateID = extractRecordDateID(container);
+			final Map<String, Object> dateEntry = (dateID != null? historicDates.get(dateID): null);
+			final String dateValue = extractRecordDate(dateEntry);
+			final LocalDate parsedDate = DateParser.parse(dateValue);
+			final Integer year = (parsedDate != null? parsedDate.getYear(): null);
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier)
-				.add(type);
-			for(final String name : personAllNames)
-				filter.add(name);
-			filter.add(place);
+				.add(type)
+				.add(author)
+				.add(place)
+				.add(year);
 			final String filterData = filter.toString();
 
 			model.setValueAt(key, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
-			model.setValueAt(personName, row, TABLE_INDEX_PERSON);
+			model.setValueAt(author, row, TABLE_INDEX_AUTHOR);
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
+			model.setValueAt(year, row, TABLE_INDEX_DATE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_REPOSITORY, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME_SOURCE, filterData, identifier));
 
 			row ++;
 		}
@@ -174,6 +179,10 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 		return (String)record.get("type");
 	}
 
+	private static String extractRecordAuthor(final Map<String, Object> record){
+		return (String)record.get("author");
+	}
+
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
 	}
@@ -182,65 +191,12 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 		return (String)record.get("name");
 	}
 
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
+	private static Integer extractRecordDateID(final Map<String, Object> record){
+		return (Integer)record.get("date_id");
 	}
 
-	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
-		return (Integer)record.get("person_name_id");
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
-	}
-
-	private String extractFirstName(final Integer personID){
-		return getRecords(TABLE_NAME_PERSON_NAME)
-			.values().stream()
-			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(SearchRepositoryPanel::extractName)
-			.findFirst()
-			.orElse(null);
-	}
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
-	private List<String> extractAllNames(final Integer personID){
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
-		final List<String> names = new ArrayList<>(0);
-		getRecords(TABLE_NAME_PERSON_NAME)
-			.values().stream()
-			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
-			.forEach(record -> {
-				names.add(extractName(record));
-
-				//extract transliterations
-				final Integer personNameID = extractRecordID(record);
-				localizedPersonNames
-					.values().stream()
-					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(SearchRepositoryPanel::extractName)
-					.filter(name -> !name.isEmpty())
-					.forEach(names::add);
-			});
-		return names;
-	}
-
-	private static String extractName(final Map<String, Object> record){
-		final String personalName = extractRecordPersonalName(record);
-		final String familyName = extractRecordFamilyName(record);
-		final StringJoiner name = new StringJoiner(", ");
-		if(personalName != null)
-			name.add(personalName);
-		if(familyName != null)
-			name.add(familyName);
-		return name.toString();
+	private static String extractRecordDate(final Map<String, Object> record){
+		return (record != null? (String)record.get("date"): null);
 	}
 
 
@@ -286,7 +242,6 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
@@ -314,7 +269,7 @@ public class SearchRepositoryPanel extends CommonLinkPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchRepositoryPanel panel = create(store)
+			final SearchSourcePanel panel = create(store)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

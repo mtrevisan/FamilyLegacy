@@ -55,10 +55,13 @@ import java.awt.Frame;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serial;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -116,12 +119,15 @@ public final class GroupDialog extends CommonListDialog{
 
 
 	public static GroupDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new GroupDialog(store, parent);
+		final GroupDialog dialog = new GroupDialog(store, parent);
+		dialog.initialize();
+		return dialog;
 	}
 
 	public static GroupDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.initialize();
 		return dialog;
 	}
 
@@ -132,7 +138,7 @@ public final class GroupDialog extends CommonListDialog{
 
 
 	public GroupDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
+		final Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
 			final NavigableMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
 			final int groupJunctionID = extractNextRecordID(groupJunctions);
 			if(selectedRecord == null)
@@ -165,6 +171,10 @@ public final class GroupDialog extends CommonListDialog{
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
 
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName
+			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+
 		return this;
 	}
 
@@ -192,9 +202,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 
@@ -308,9 +316,6 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
-//		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-//			? getRecords(TABLE_NAME)
-//			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
 		final NavigableMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? groups
@@ -349,6 +354,12 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		typeComboBox.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -367,9 +378,6 @@ public final class GroupDialog extends CommonListDialog{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final String role = extractRecordRole(selectedRecord);
-		final String certainty = extractRecordCertainty(selectedRecord);
-		final String credibility = extractRecordCredibility(selectedRecord);
 
 		typeComboBox.setSelectedItem(type);
 		GUIHelper.addBorder(photoButton, !selectRecordOnly && photoID != null, DATA_BUTTON_BORDER_COLOR);
@@ -385,13 +393,30 @@ public final class GroupDialog extends CommonListDialog{
 		GUIHelper.addBorder(groupButton, !recordGroups.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 
-		linkRoleField.setText(role);
-		linkCertaintyComboBox.setSelectedItem(certainty);
-		linkCredibilityComboBox.setSelectedItem(credibility);
+		linkRoleField.setText(null);
+		linkCertaintyComboBox.setSelectedItem(null);
+		linkCredibilityComboBox.setSelectedItem(null);
+		if(filterReferenceTable != null){
+			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(TABLE_NAME_GROUP_JUNCTION,
+				GroupDialog::extractRecordGroupID, groupID);
+			if(recordGroupJunction.size() > 1)
+				throw new IllegalArgumentException("Data integrity error");
 
+			final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordGroupJunction.entrySet().iterator();
+			if(itr.hasNext()){
+				final Map<String, Object> groupJunction = itr.next()
+					.getValue();
+				final String linkRole = extractRecordRole(groupJunction);
+				final String linkCertainty = extractRecordCertainty(groupJunction);
+				final String linkCredibility = extractRecordCredibility(groupJunction);
 
-		final String referenceTable = extractRecordReferenceTable(selectedRecord);
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", referenceTable != null);
+				linkRoleField.setText(linkRole);
+				linkCertaintyComboBox.setSelectedItem(linkCertainty);
+				linkCredibilityComboBox.setSelectedItem(linkCredibility);
+			}
+		}
+
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
 
 	@Override
@@ -425,11 +450,28 @@ public final class GroupDialog extends CommonListDialog{
 		//read record panel:
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 
-		//read link panel:
-		//TODO
-		final String role = GUIHelper.getTextTrimmed(linkRoleField);
-		final String certainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
-		final String credibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
+		if(filterReferenceTable != null){
+			//read link panel:
+			final String linkRole = GUIHelper.getTextTrimmed(linkRoleField);
+			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
+			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
+
+			final Integer groupID = extractRecordID(selectedRecord);
+			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(TABLE_NAME_GROUP_JUNCTION,
+				GroupDialog::extractRecordGroupID, groupID);
+			if(recordGroupJunction.size() == 1){
+				final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordGroupJunction.entrySet().iterator();
+				if(itr.hasNext()){
+					final Map<String, Object> groupJunction = itr.next()
+						.getValue();
+
+					//TODO pass through modification note asking?
+					groupJunction.put("role", linkRole);
+					groupJunction.put("certainty", linkCertainty);
+					groupJunction.put("credibility", linkCredibility);
+				}
+			}
+		}
 
 		selectedRecord.put("type", type);
 
@@ -441,7 +483,6 @@ public final class GroupDialog extends CommonListDialog{
 		final NavigableMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(TABLE_NAME_GROUP_JUNCTION);
 		final NavigableMap<Integer, Map<String, Object>> storePersonNames = getRecords(TABLE_NAME_PERSON_NAME);
 		final NavigableMap<Integer, Map<String, Object>> storeGroups = getRecords(TABLE_NAME);
-		final NavigableMap<Integer, Map<String, Object>> storeLocalizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map<String, Object> groupElement : storeGroupJunction.values()){
@@ -605,6 +646,9 @@ public final class GroupDialog extends CommonListDialog{
 		groupJunction3.put("group_id", 2);
 		groupJunction3.put("reference_table", "group");
 		groupJunction3.put("reference_id", 2);
+		groupJunction3.put("role", "partner");
+		groupJunction3.put("certainty", "certain");
+		groupJunction3.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
 
 		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
@@ -695,12 +739,23 @@ public final class GroupDialog extends CommonListDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+		final TreeMap<Integer, Map<String, Object>> modifications = new TreeMap<>();
+		store.put("modification", modifications);
+		final Map<String, Object> modification1 = new HashMap<>();
+		modification1.put("id", 1);
+		modification1.put("reference_table", TABLE_NAME);
+		modification1.put("reference_id", 2);
+		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		modifications.put((Integer)modification1.get("id"), modification1);
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final GroupDialog dialog = create(store, parent);
-//			final GroupDialog dialog = createSelectOnly(store, parent);
+			final GroupDialog dialog = create(store, parent)
+				.withReference("group", 2);
+//			final GroupDialog dialog = createRecordOnly(store, parent)
+//				.withReference("person", 1);
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(group1)))
+			if(!dialog.selectData(extractRecordID(group2)))
 				dialog.showNewRecord();
 //			final GroupDialog dialog = createRecordOnly(store, parent);
 //			dialog.loadData(group1);

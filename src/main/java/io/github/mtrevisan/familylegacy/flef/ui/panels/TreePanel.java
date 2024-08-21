@@ -24,19 +24,28 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogicalTree;
+import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogyNavigation;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -44,10 +53,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
@@ -65,7 +77,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class TreePanel extends JPanel implements TreeNavigationListenerInterface, RecordListenerInterface{
+public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = 4700955059623460223L;
@@ -77,6 +89,9 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 	private static final int GENERATION_SEPARATOR_SIZE = 36;
 
 	private static final Map<Integer, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>(0);
+
+	private static final String ACTION_MAP_KEY_NAVIGATION_BACK = "navigationBack";
+	private static final String ACTION_MAP_KEY_NAVIGATION_FORWARD = "navigationForward";
 
 	private static final String TABLE_NAME_GROUP = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
@@ -96,7 +111,8 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 	private GroupPanel homeGroupPanel;
 	private JScrollPane childrenScrollPane;
 	private ChildrenPanel childrenPanel;
-	private GenealogyNavigationPanel navigationPanel;
+	private GenealogyNavigation genealogyNavigation;
+	private SearchDialog searchDialog;
 	public GenealogicalTree genealogicalTree;
 
 	private Map<String, Object> homeUnion = new HashMap<>(0);
@@ -106,31 +122,50 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 
-	public static TreePanel create(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new TreePanel(generations, store);
+	public static TreePanel create(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store,
+			final Frame parentFrame){
+		return new TreePanel(generations, store, parentFrame);
 	}
 
 
-	private TreePanel(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private TreePanel(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parentFrame){
 		this.generations = generations;
 		this.store = store;
 
 
-		initComponents();
+		initComponents(parentFrame);
 	}
 
 
-	private void initComponents(){
+	private void initComponents(final Frame parentFrame){
 		if(generations <= 3)
 			initComponents3Generations();
 		else
 			initComponents4Generations();
 
 
+		final InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, KeyEvent.ALT_DOWN_MASK), ACTION_MAP_KEY_NAVIGATION_BACK);
+		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), ACTION_MAP_KEY_NAVIGATION_FORWARD);
+		final ActionMap actionMap = getActionMap();
+		actionMap.put(ACTION_MAP_KEY_NAVIGATION_BACK, new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				if(genealogyNavigation.goBack())
+					updateDisplay();
+			}
+		});
+		actionMap.put(ACTION_MAP_KEY_NAVIGATION_FORWARD, new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent evt){
+				if(genealogyNavigation.goForward())
+					updateDisplay();
+			}
+		});
+
+		searchDialog = SearchDialog.create(store, parentFrame)
+			.withLinkListener(TreePanel.this);
 		GUIHelper.addDoubleShiftListener(this, () -> {
-			//TODO parent?
-			final SearchDialog searchDialog = SearchDialog.create(store, null)
-				.withLinkListener(TreePanel.this);
 			searchDialog.loadData();
 
 			searchDialog.setLocationRelativeTo(TreePanel.this);
@@ -146,7 +181,8 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
 		EventBusService.subscribe(homeGroupPanel);
 		childrenPanel = ChildrenPanel.create(store);
-		navigationPanel = GenealogyNavigationPanel.create(this);
+//		navigationPanel = GenealogyNavigationPanel.create(this);
+		genealogyNavigation = new GenealogyNavigation();
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
@@ -172,7 +208,6 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		genealogicalTree.addTo(GenealogicalTree.getLeftChild(0), partner1PartnersPanel);
 		genealogicalTree.addTo(GenealogicalTree.getRightChild(0), partner2PartnersPanel);
 
-		//TODO put navigationPanel somewhere
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + GroupPanel.GROUP_SEPARATION + "[grow,center]",
 			"[]" + GENERATION_SEPARATOR_SIZE + "[]" + GENERATION_SEPARATOR_SIZE + "[]"));
@@ -198,7 +233,8 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
 		EventBusService.subscribe(homeGroupPanel);
 		childrenPanel = ChildrenPanel.create(store);
-		navigationPanel = GenealogyNavigationPanel.create(this);
+//		navigationPanel = GenealogyNavigationPanel.create(this);
+		genealogyNavigation = new GenealogyNavigation();
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 
@@ -230,7 +266,6 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		genealogicalTree.addTo(GenealogicalTree.getLeftChild(rightChild), partner2Partner1Panel);
 		genealogicalTree.addTo(GenealogicalTree.getRightChild(rightChild), partner2Partner2Panel);
 
-		//TODO put navigationPanel somewhere
 		setLayout(new MigLayout("insets 0",
 			"[grow,center]" + GroupPanel.GROUP_SEPARATION
 				+ "[grow,center]" + GroupPanel.GROUP_SEPARATION
@@ -454,9 +489,7 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 			.map(entry -> {
 				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
 				final String dateValue = extractRecordDate(dateEntry);
-				final Integer calendarID = extractRecordCalendarID(dateEntry);
-				final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-				final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+				final LocalDate parsedDate = DateParser.parse(dateValue);
 				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
 			})
 			.filter(Objects::nonNull)
@@ -469,9 +502,11 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		prepareData(homeUnion, partner1, partner2);
 
 		if(homeUnion.isEmpty())
-			navigationPanel.navigateToPerson(extractRecordID(partner1.isEmpty()? partner2: partner1));
+//			navigationPanel.navigateToPerson(extractRecordID(partner1.isEmpty()? partner2: partner1));
+			genealogyNavigation.navigateToPerson(extractRecordID(partner1.isEmpty()? partner2: partner1));
 		else
-			navigationPanel.navigateToUnion(extractRecordID(this.homeUnion));
+//			navigationPanel.navigateToUnion(extractRecordID(this.homeUnion));
+			genealogyNavigation.navigateToUnion(extractRecordID(this.homeUnion));
 
 		loadData();
 	}
@@ -589,16 +624,20 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		childrenPanel.loadData(homeUnionID);
 
 
-		if(!homeUnion.isEmpty()){
-			//remember last scroll position, restore it if present
-			final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(homeUnionID);
-			//FIXME if a child was selected, bring to view
+		if(!homeUnion.isEmpty())
+			scrollChildrenToLastPosition(homeUnionID);
+	}
+
+	private void scrollChildrenToLastPosition(final Integer unionID){
+		//remember last scroll position, restore it if present
+		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(unionID);
+		//FIXME if a child was selected, bring to view
+		final JViewport childrenViewport = childrenScrollPane.getViewport();
+		final int scrollbarPositionX = (childrenScrollbarPosition == null?
 			//center halfway if it's the first time the children are painted
-			final int scrollbarPositionX = (childrenScrollbarPosition == null?
-				(childrenPanel.getPreferredSize().width - childrenScrollPane.getViewport().getWidth()) / 4 - 7:
-				childrenScrollbarPosition);
-			childrenScrollPane.getViewport().setViewPosition(new Point(scrollbarPositionX, 0));
-		}
+			(childrenPanel.getPreferredSize().width - childrenViewport.getWidth()) / 4 - 7:
+			childrenScrollbarPosition);
+		childrenViewport.setViewPosition(new Point(scrollbarPositionX, 0));
 	}
 
 	public void refresh(){
@@ -609,16 +648,41 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		loadData(union, partner1, partner2);
 	}
 
-	@Override
-	public void updateTree(final Integer lastPersonID, final Integer lastUnionID){
-		//TODO
-		System.out.println("updateTree " + lastPersonID + ", " + lastUnionID);
+	private void updateDisplay(){
+		final Integer lastPersonID = genealogyNavigation.getLastPersonID();
+		final Integer lastUnionID = genealogyNavigation.getLastUnionID();
+
+		Map<String, Object> lastPerson = Collections.emptyMap();
+		if(lastPersonID != null){
+			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+			lastPerson = persons.get(lastPersonID);
+		}
+		Map<String, Object> lastUnion = Collections.emptyMap();
+		if(lastUnionID != null){
+			final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+			lastUnion = groups.get(lastUnionID);
+		}
+		prepareData(lastUnion, lastPerson, Collections.emptyMap());
+
+		loadData();
 	}
 
 	@Override
 	public void onRecordSelected(final String table, final Integer id){
-		//TODO
-		System.out.println("onRecordSelected " + table + " " + id);
+		searchDialog.setVisible(false);
+
+		switch(table){
+			case "person" -> {
+				final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+				final Map<String, Object> person = persons.get(id);
+				loadData(Collections.emptyMap(), person, Collections.emptyMap());
+			}
+			case "group" -> {
+				final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+				final Map<String, Object> union = groups.get(id);
+				loadData(union, Collections.emptyMap(), Collections.emptyMap());
+			}
+		}
 	}
 
 
@@ -736,10 +800,6 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 
 	private static String extractRecordDate(final Map<String, Object> record){
 		return (record != null? (String)record.get("date"): null);
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
@@ -978,7 +1038,7 @@ public class TreePanel extends JPanel implements TreeNavigationListenerInterface
 		};
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = create(4, store);
+			final TreePanel panel = create(4, store, null);
 			panel.loadDataFromUnion(group1);
 			panel.setUnionListener(unionListener);
 			panel.setPersonListener(personListener);

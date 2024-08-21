@@ -56,6 +56,16 @@ public final class DateParser{
 	 * Parse the string as date, with the default imprecise date handling preference of {@link DatePreciseness#PRECISE}.
 	 *
 	 * @param date	The date string.
+	 * @return	The date, if it can be derived from the string.
+	 */
+	public static LocalDate parse(final String date){
+		return parse(date, CalendarParserBuilder.CALENDAR_GREGORIAN, DatePreciseness.PRECISE);
+	}
+
+	/**
+	 * Parse the string as date, with the default imprecise date handling preference of {@link DatePreciseness#PRECISE}.
+	 *
+	 * @param date	The date string.
 	 * @param calendarType	The calendar used.
 	 * @return	The date, if it can be derived from the string.
 	 */

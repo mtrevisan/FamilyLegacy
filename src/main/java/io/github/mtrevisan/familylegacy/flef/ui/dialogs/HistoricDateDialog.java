@@ -76,7 +76,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	private JLabel dateLabel;
 	private JTextField dateField;
-	private JButton calendarButton;
 	private JLabel dateOriginalLabel;
 	private JTextField dateOriginalField;
 	private JButton calendarOriginalButton;
@@ -97,6 +96,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	private HistoricDateDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -125,12 +126,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> dateComparator = (date1, date2) -> {
-			//TODO retrieve calendar type? store julian date?
-			String calendar1 = CalendarParserBuilder.CALENDAR_GREGORIAN;
-			//TODO retrieve calendar type? store julian date?
-			String calendar2 = CalendarParserBuilder.CALENDAR_GREGORIAN;
-			final LocalDate localDate1 = DateParser.parse(date1, calendar1);
-			final LocalDate localDate2 = DateParser.parse(date2, calendar2);
+			final LocalDate localDate1 = DateParser.parse(date1);
+			final LocalDate localDate2 = DateParser.parse(date2);
 			return localDate1.compareTo(localDate2);
 		};
 		return new Comparator<?>[]{numericComparator, null, dateComparator};
@@ -147,7 +144,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		dateLabel = new JLabel("Date:");
 		dateField = new JTextField();
-		calendarButton = new JButton("Calendar", ICON_CALENDAR);
 		dateOriginalLabel = new JLabel("Date original:");
 		dateOriginalField = new JTextField();
 		calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
@@ -163,10 +159,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelTextChangeUndo(dateLabel, dateField, this::saveData);
 		addMandatoryField(dateField);
-
-		calendarButton.setToolTipText("Calendar");
-		calendarButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR, TABLE_NAME, getSelectedRecord())));
 
 		GUIHelper.bindLabelTextChangeUndo(dateOriginalLabel, dateOriginalField, this::saveData);
 		GUIHelper.addUndoCapability(dateOriginalField);
@@ -195,10 +187,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(dateLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(dateField, "grow");
-		recordPanelBase.add(calendarButton, "sizegroup btn,gapleft 30,wrap related");
+		recordPanelBase.add(dateField, "grow,sizegroup dtf");
+		recordPanelBase.add(new JPanel(), "sizegroup btn,gapleft 30,wrap related");
 		recordPanelBase.add(dateOriginalLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(dateOriginalField, "grow");
+		recordPanelBase.add(dateOriginalField, "grow,sizegroup dtf");
 		recordPanelBase.add(calendarOriginalButton, "sizegroup btn,gapleft 30,wrap paragraph");
 		recordPanelBase.add(certaintyLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(certaintyComboBox, "wrap related");
@@ -243,10 +235,15 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		dateField.requestFocusInWindow();
+	}
+
+	@Override
 	protected void fillData(){
 		final Integer dateID = extractRecordID(selectedRecord);
 		final String date = extractRecordDate(selectedRecord);
-		final Integer calendarID = extractRecordCalendarID(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
@@ -259,7 +256,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		dateField.setText(date);
-		GUIHelper.addBorder(calendarButton, calendarID != null, DATA_BUTTON_BORDER_COLOR);
 		dateOriginalField.setText(dateOriginal);
 		GUIHelper.addBorder(calendarOriginalButton, calendarOriginalID != null, DATA_BUTTON_BORDER_COLOR);
 		certaintyComboBox.setSelectedItem(certainty);
@@ -273,7 +269,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 	@Override
 	protected void clearData(){
 		dateField.setText(null);
-		GUIHelper.setDefaultBorder(calendarButton);
 		dateOriginalField.setText(null);
 		certaintyComboBox.setSelectedItem(null);
 		credibilityComboBox.setSelectedItem(null);
@@ -336,10 +331,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 		return (String)record.get("date");
 	}
 
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_id");
-	}
-
 	private static String extractRecordDateOriginal(final Map<String, Object> record){
 		return (String)record.get("date_original");
 	}
@@ -364,7 +355,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
@@ -436,15 +426,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
-						}
-						case CALENDAR -> {
-							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("calendar_id", extractRecordID(record)));
-							calendarDialog.loadData();
-							calendarDialog.selectData(extractRecordCalendarID(container));
-
-							calendarDialog.setLocationRelativeTo(dialog);
-							calendarDialog.setVisible(true);
 						}
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)

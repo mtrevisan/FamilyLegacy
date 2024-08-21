@@ -93,6 +93,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	private ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -196,6 +198,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 			row ++;
 		}
+	}
+
+	@Override
+	protected void requestFocusAfterSelect(){
+		//set focus on first field
+		identifierField.requestFocusInWindow();
 	}
 
 	@Override

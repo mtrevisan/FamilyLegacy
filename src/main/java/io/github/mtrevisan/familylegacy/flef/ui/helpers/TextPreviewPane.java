@@ -204,7 +204,6 @@ public class TextPreviewPane extends JSplitPane{
 		});
 
 		pane.previewView = new JEditorPane();
-		//TODO add inner padding
 		pane.previewView.setEditable(false);
 		pane.previewView.setContentType("text/html");
 		//manage links

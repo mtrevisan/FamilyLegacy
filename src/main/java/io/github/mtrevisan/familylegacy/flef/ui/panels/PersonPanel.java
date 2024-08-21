@@ -672,9 +672,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.map(entry -> {
 				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
 				final String dateValue = extractRecordDate(dateEntry);
-				final Integer calendarID = extractRecordCalendarID(dateEntry);
-				final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-				final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+				final LocalDate parsedDate = DateParser.parse(dateValue);
 				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
 			})
 			.filter(Objects::nonNull)
@@ -717,10 +715,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("calendar_id"): null);
 	}
 
 	private static Integer extractRecordPlaceID(final Map<String, Object> record){

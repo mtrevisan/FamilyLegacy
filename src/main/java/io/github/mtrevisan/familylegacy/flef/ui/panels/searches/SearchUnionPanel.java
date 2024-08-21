@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.ui.panels;
+package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -43,7 +43,6 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -57,24 +56,31 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class SearchPersonPanel extends CommonLinkPanel{
+public class SearchUnionPanel extends CommonSearchPanel{
 
 	@Serial
-	private static final long serialVersionUID = -1361635723036701664L;
+	private static final long serialVersionUID = 4199513069798359051L;
 
-	private static final int TABLE_INDEX_PERSON_NAME = 2;
-	private static final int TABLE_INDEX_PERSON_BIRTH_YEAR = 3;
-	private static final int TABLE_INDEX_PERSON_BIRTH_PLACE = 4;
-	private static final int TABLE_INDEX_PERSON_DEATH_YEAR = 5;
-	private static final int TABLE_INDEX_PERSON_DEATH_PLACE = 6;
+	private static final int TABLE_INDEX_UNION_YEAR = 2;
+	private static final int TABLE_INDEX_UNION_PLACE = 3;
+	private static final int TABLE_INDEX_PARTNER1_ID = 4;
+	private static final int TABLE_INDEX_PARTNER1_NAME = 5;
+	private static final int TABLE_INDEX_PARTNER1_BIRTH_YEAR = 6;
+	private static final int TABLE_INDEX_PARTNER1_DEATH_YEAR = 7;
+	private static final int TABLE_INDEX_PARTNER2_ID = 8;
+	private static final int TABLE_INDEX_PARTNER2_NAME = 9;
+	private static final int TABLE_INDEX_PARTNER2_BIRTH_YEAR = 10;
+	private static final int TABLE_INDEX_PARTNER2_DEATH_YEAR = 11;
 
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 
+	private static final String TABLE_NAME_GROUP = "group";
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
+	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_EVENT = "event";
 	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
@@ -83,14 +89,15 @@ public class SearchPersonPanel extends CommonLinkPanel{
 
 	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
+	private static final String EVENT_TYPE_CATEGORY_UNION = "union";
 
 
-	public static SearchPersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchPersonPanel(store);
+	public static SearchUnionPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new SearchUnionPanel(store);
 	}
 
 
-	private SearchPersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private SearchUnionPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		super(store);
 
 
@@ -98,46 +105,51 @@ public class SearchPersonPanel extends CommonLinkPanel{
 	}
 
 
-	public final SearchPersonPanel withLinkListener(final RecordListenerInterface linkListener){
+	public final SearchUnionPanel withLinkListener(final RecordListenerInterface linkListener){
 		super.setLinkListener(linkListener);
 
 		return this;
 	}
 
 	private void initComponents(){
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
-		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_BIRTH_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
-		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_DEATH_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_UNION_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_UNION_PLACE, 0, TABLE_PREFERRED_WIDTH_PLACE);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER1_ID, TABLE_PREFERRED_WIDTH_ID);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PARTNER1_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER1_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER1_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_ID, TABLE_PREFERRED_WIDTH_ID);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PARTNER2_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
+		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PARTNER2_DEATH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
 	}
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME_PERSON;
+		return TABLE_NAME_GROUP;
 	}
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Person",
-			"birth", "birth place",
-			"death", "death place"};
+		return new String[]{"ID", "Filter", "Year", "Place",
+			"ID", "Partner 1", "birth", "death",
+			"ID", "Partner 2", "birth", "death"};
 	}
 
 	@Override
 	protected int[] getTableColumnAlignments(){
-		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT,
-			SwingConstants.RIGHT, SwingConstants.LEFT,
-			SwingConstants.RIGHT, SwingConstants.LEFT};
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.LEFT,
+			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT,
+			SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT, SwingConstants.RIGHT};
 	}
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
-		return new Comparator<?>[]{numericComparator, null, textComparator,
-			numericComparator, textComparator,
-			numericComparator, textComparator};
+		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator,
+			numericComparator, textComparator, numericComparator, numericComparator,
+			numericComparator, textComparator, numericComparator, numericComparator};
 	}
 
 
@@ -146,50 +158,97 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_PERSON);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_GROUP);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Integer personID : records.keySet()){
-			final String personName = extractFirstName(personID);
-			final List<String> personAllNames = extractAllNames(personID);
-			final Map<String, Object> earliestPersonBirthYearAndPlace = extractEarliestBirthYearAndPlace(personID);
-			final Map<String, Object> latestPersonDeathYearAndPlace = extractLatestDeathYearAndPlace(personID);
-			final String personBirthYear = extractRecordYear(earliestPersonBirthYearAndPlace);
-			final String personBirthPlace = extractRecordPlace(earliestPersonBirthYearAndPlace);
-			final String personDeathYear = extractRecordYear(latestPersonDeathYearAndPlace);
-			final String personDeathPlace = extractRecordPlace(latestPersonDeathYearAndPlace);
+		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
+			final Integer key = record.getKey();
+			final Map<String, Object> container = record.getValue();
+
+			final Integer unionID = extractRecordID(container);
+			final String type = extractRecordType(container);
+			final List<Integer> personIDsInUnion = getPartnerIDs(unionID);
+			final String earliestUnionYear = extractEarliestUnionYear(unionID);
+			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);
+			final Integer partner1ID = (!personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
+			final String partner1Name = extractFirstName(partner1ID);
+			final List<String> partner1AllNames = extractAllNames(partner1ID);
+			final String earliestPartner1BirthYear = extractEarliestBirthYear(partner1ID);
+			final String latestPartner1DeathYear = extractLatestDeathYear(partner1ID);
+			final Integer partner2ID = (!personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
+			final String partner2Name = extractFirstName(partner2ID);
+			final List<String> partner2AllNames = extractAllNames(partner2ID);
+			final String earliestPartner2BirthYear = extractEarliestBirthYear(partner2ID);
+			final String latestPartner2DeathYear = extractLatestDeathYear(partner2ID);
+			final String partner1BirthYear = (earliestPartner1BirthYear != null? earliestPartner1BirthYear: NO_DATA);
+			final String partner1DeathYear = (latestPartner1DeathYear != null? latestPartner1DeathYear: NO_DATA);
+			final String partner2BirthYear = (earliestPartner2BirthYear != null? earliestPartner2BirthYear: NO_DATA);
+			final String partner2DeathYear = (latestPartner2DeathYear != null? latestPartner2DeathYear: NO_DATA);
 			final FilterString filter = FilterString.create()
-				.add(personID);
-			for(final String name : personAllNames)
-				filter.add(name);
-			filter.add(personBirthYear)
-				.add(personBirthPlace)
-				.add(personDeathYear)
-				.add(personDeathPlace);
+				.add(key)
+				.add(type)
+				.add(earliestUnionYear)
+				.add(earliestUnionPlace);
+			if(partner1ID != null){
+				filter.add(partner1ID);
+				for(final String name : partner1AllNames)
+					filter.add(name);
+				filter.add(earliestPartner1BirthYear)
+					.add(latestPartner1DeathYear);
+			}
+			if(partner2ID != null){
+				filter.add(partner2ID);
+				for(final String name : partner2AllNames)
+					filter.add(name);
+				filter.add(earliestPartner2BirthYear)
+					.add(latestPartner2DeathYear);
+			}
 			final String filterData = filter.toString();
 
-			model.setValueAt(personID, row, TABLE_INDEX_ID);
+			model.setValueAt(key, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
-			model.setValueAt((personName != null? personName: NO_DATA), row, TABLE_INDEX_PERSON_NAME);
-			model.setValueAt((personBirthYear != null? personBirthYear: NO_DATA), row, TABLE_INDEX_PERSON_BIRTH_YEAR);
-			model.setValueAt((personBirthPlace != null? personBirthPlace: NO_DATA), row, TABLE_INDEX_PERSON_BIRTH_PLACE);
-			model.setValueAt((personDeathYear != null? personDeathYear: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_YEAR);
-			model.setValueAt((personDeathPlace != null? personDeathPlace: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_PLACE);
+			model.setValueAt(earliestUnionYear, row, TABLE_INDEX_UNION_YEAR);
+			model.setValueAt(earliestUnionPlace, row, TABLE_INDEX_UNION_PLACE);
 
-			tableData.add(new SearchAllRecord(personID, TABLE_NAME_PERSON, filterData, personName));
+			model.setValueAt(partner1ID, row, TABLE_INDEX_PARTNER1_ID);
+			model.setValueAt((partner1Name != null? partner1Name: NO_DATA), row, TABLE_INDEX_PARTNER1_NAME);
+			model.setValueAt(partner1BirthYear, row, TABLE_INDEX_PARTNER1_BIRTH_YEAR);
+			model.setValueAt(partner1DeathYear, row, TABLE_INDEX_PARTNER1_DEATH_YEAR);
+
+			model.setValueAt(partner2ID, row, TABLE_INDEX_PARTNER2_ID);
+			model.setValueAt((partner2Name != null? partner2Name: NO_DATA), row, TABLE_INDEX_PARTNER2_NAME);
+			model.setValueAt(partner2BirthYear, row, TABLE_INDEX_PARTNER2_BIRTH_YEAR);
+			model.setValueAt(partner2DeathYear, row, TABLE_INDEX_PARTNER2_DEATH_YEAR);
+
+			final StringJoiner partners = new StringJoiner(", ");
+			if(partner1Name != null)
+				partners.add(partner1Name);
+			if(partner2Name != null)
+				partners.add(partner2Name);
+			tableData.add(new SearchAllRecord(key, TABLE_NAME_GROUP, filterData, (partners.length() > 0? partners.toString(): NO_DATA)));
 
 			row ++;
 		}
 	}
 
 
+	private List<Integer> getPartnerIDs(final Integer groupID){
+		return new ArrayList<>(getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
+			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.map(SearchUnionPanel::extractRecordReferenceID)
+			.toList());
+	}
+
 	private String extractFirstName(final Integer personID){
 		return getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(SearchPersonPanel::extractName)
+			.map(SearchUnionPanel::extractName)
 			.findFirst()
 			.orElse(null);
 	}
@@ -208,7 +267,7 @@ public class SearchPersonPanel extends CommonLinkPanel{
 				localizedPersonNames
 					.values().stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(SearchPersonPanel::extractName)
+					.map(SearchUnionPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
 			});
@@ -226,36 +285,32 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		return name.toString();
 	}
 
-	private Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
+	private String extractEarliestUnionYear(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
-		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
-			final String year = Integer.toString(entry.getKey().getYear());
-			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
-			final Map<String, Object> result = new HashMap<>(2);
-			result.put("year", year);
-			result.put("place", place);
-			return result;
-		};
-		final Map<String, Object> result = extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
-		return (result != null? result: Collections.emptyMap());
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
+		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
-	private Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
+	private String extractEarliestBirthYear(final Integer personID){
+		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
+		return extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
+	}
+
+	private String extractLatestDeathYear(final Integer personID){
+		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
+		return extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);
+	}
+
+	private String extractEarliestUnionPlace(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
-		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
-			final String year = Integer.toString(entry.getKey().getYear());
+		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> {
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
-			final Map<String, Object> result = new HashMap<>(2);
-			result.put("year", year);
-			result.put("place", place);
-			return result;
+			return (placeID != null? extractRecordName(places.get(placeID)): null);
 		};
-		final Map<String, Object> result = extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);
-		return (result != null? result: Collections.emptyMap());
+		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
@@ -263,10 +318,11 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)? TABLE_NAME_GROUP: TABLE_NAME_PERSON);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(eventReferenceTable, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -276,9 +332,7 @@ public class SearchPersonPanel extends CommonLinkPanel{
 			.map(entry -> {
 				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
 				final String dateValue = extractRecordDate(dateEntry);
-				final Integer calendarID = extractRecordCalendarID(dateEntry);
-				final String calendarType = (calendarID != null? extractRecordType(calendars.get(calendarID)): null);
-				final LocalDate parsedDate = DateParser.parse(dateValue, calendarType);
+				final LocalDate parsedDate = DateParser.parse(dateValue);
 				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
 			})
 			.filter(Objects::nonNull)
@@ -291,7 +345,7 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(SearchPersonPanel::extractRecordType)
+			.map(SearchUnionPanel::extractRecordType)
 			.collect(Collectors.toSet());
 	}
 
@@ -305,6 +359,14 @@ public class SearchPersonPanel extends CommonLinkPanel{
 
 	private static Integer extractRecordReferenceID(final Map<String, Object> record){
 		return (Integer)record.get("reference_id");
+	}
+
+	private static Integer extractRecordGroupID(final Map<String, Object> record){
+		return (Integer)record.get("group_id");
+	}
+
+	private static String extractRecordRole(final Map<String, Object> record){
+		return (String)record.get("role");
 	}
 
 	private static Integer extractRecordPersonID(final Map<String, Object> record){
@@ -335,10 +397,6 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		return (record != null? (String)record.get("date"): null);
 	}
 
-	private static Integer extractRecordCalendarID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("calendar_id"): null);
-	}
-
 	private static String extractRecordPersonalName(final Map<String, Object> record){
 		return (String)record.get("personal_name");
 	}
@@ -353,14 +411,6 @@ public class SearchPersonPanel extends CommonLinkPanel{
 
 	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
 		return (Integer)record.get("person_name_id");
-	}
-
-	private static String extractRecordYear(final Map<String, Object> record){
-		return (String)record.get("year");
-	}
-
-	private static String extractRecordPlace(final Map<String, Object> record){
-		return (String)record.get("place");
 	}
 
 
@@ -391,6 +441,69 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
 		persons.put((Integer)person5.get("id"), person5);
+
+		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
+		store.put("group", groups);
+		final Map<String, Object> group1 = new HashMap<>();
+		group1.put("id", 1);
+		group1.put("type", "family");
+		groups.put((Integer)group1.get("id"), group1);
+		final Map<String, Object> group2 = new HashMap<>();
+		group2.put("id", 2);
+		group2.put("type", "family");
+		groups.put((Integer)group2.get("id"), group2);
+
+		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
+		store.put("group_junction", groupJunctions);
+		final Map<String, Object> groupJunction11 = new HashMap<>();
+		groupJunction11.put("id", 1);
+		groupJunction11.put("group_id", 1);
+		groupJunction11.put("reference_table", "person");
+		groupJunction11.put("reference_id", 1);
+		groupJunction11.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction11.get("id"), groupJunction11);
+		final Map<String, Object> groupJunction2 = new HashMap<>();
+		groupJunction2.put("id", 2);
+		groupJunction2.put("group_id", 1);
+		groupJunction2.put("reference_table", "person");
+		groupJunction2.put("reference_id", 2);
+		groupJunction2.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction2.get("id"), groupJunction2);
+		final Map<String, Object> groupJunction13 = new HashMap<>();
+		groupJunction13.put("id", 3);
+		groupJunction13.put("group_id", 2);
+		groupJunction13.put("reference_table", "person");
+		groupJunction13.put("reference_id", 1);
+		groupJunction13.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction13.get("id"), groupJunction13);
+		final Map<String, Object> groupJunction3 = new HashMap<>();
+		groupJunction3.put("id", 4);
+		groupJunction3.put("group_id", 2);
+		groupJunction3.put("reference_table", "person");
+		groupJunction3.put("reference_id", 3);
+		groupJunction3.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
+		final Map<String, Object> groupJunction4 = new HashMap<>();
+		groupJunction4.put("id", 5);
+		groupJunction4.put("group_id", 1);
+		groupJunction4.put("reference_table", "person");
+		groupJunction4.put("reference_id", 4);
+		groupJunction4.put("role", "child");
+		groupJunctions.put((Integer)groupJunction4.get("id"), groupJunction4);
+		final Map<String, Object> groupJunction5 = new HashMap<>();
+		groupJunction5.put("id", 6);
+		groupJunction5.put("group_id", 1);
+		groupJunction5.put("reference_table", "person");
+		groupJunction5.put("reference_id", 5);
+		groupJunction5.put("role", "child");
+		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
+		final Map<String, Object> groupJunction6 = new HashMap<>();
+		groupJunction6.put("id", 7);
+		groupJunction6.put("group_id", 2);
+		groupJunction6.put("reference_table", "person");
+		groupJunction6.put("reference_id", 4);
+		groupJunction6.put("role", "partner");
+		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
 
 		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
 		store.put("person_name", personNames);
@@ -488,7 +601,7 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("id", 3);
 		eventType3.put("type", "marriage");
-		eventType3.put("category", "union");
+		eventType3.put("category", EVENT_TYPE_CATEGORY_UNION);
 		eventTypes.put((Integer)eventType3.get("id"), eventType3);
 
 		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
@@ -510,12 +623,10 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("calendar_id", 1);
 		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("id", 2);
 		historicDate2.put("date", "1 JAN 1800");
-		historicDate2.put("calendar_id", 1);
 		historicDates.put((Integer)historicDate2.get("id"), historicDate2);
 
 		final TreeMap<Integer, Map<String, Object>> calendars = new TreeMap<>();
@@ -533,7 +644,7 @@ public class SearchPersonPanel extends CommonLinkPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchPersonPanel panel = create(store)
+			final SearchUnionPanel panel = create(store)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

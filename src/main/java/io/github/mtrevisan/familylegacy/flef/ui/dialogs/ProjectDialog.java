@@ -137,6 +137,10 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		ignoreEvents = true;
 		fillData();
 		ignoreEvents = false;
+
+
+		//set focus on first field
+		copyrightField.requestFocusInWindow();
 	}
 
 	@Override
