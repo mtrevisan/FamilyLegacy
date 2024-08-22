@@ -51,9 +51,7 @@ import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -84,9 +82,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private JLabel transcriptionTypeLabel;
 	private JComboBox<String> transcriptionTypeComboBox;
 
-	private String filterReferenceTable;
 	private int filterReferenceID;
-	private String filterReferenceType;
 
 
 	public static LocalizedPersonNameDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -102,38 +98,17 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 
 	public LocalizedPersonNameDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
-			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			if(selectedRecord != null){
-				final Integer localizedTextID = extractRecordID(selectedRecord);
-				final Map<String, Object> mediaJunction = new HashMap<>();
-				mediaJunction.put("id", mediaJunctionID);
-				mediaJunction.put("localized_text_id", localizedTextID);
-				mediaJunction.put("reference_table", filterReferenceTable);
-				mediaJunction.put("reference_id", filterReferenceID);
-				mediaJunction.put("reference_type", filterReferenceType);
-				mediaJunctions.put(mediaJunctionID, mediaJunction);
-			}
-			else
-				mediaJunctions.remove(mediaJunctionID);
-		};
-		if(onCloseGracefully != null)
-			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
-
-		setOnCloseGracefully(innerOnCloseGracefully);
+		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
 	}
 
-	public LocalizedPersonNameDialog withReference(final String referenceTable, final int referenceID, final String referenceType){
-		filterReferenceTable = referenceTable;
+	public LocalizedPersonNameDialog withReference(final int referenceID){
 		filterReferenceID = referenceID;
-		filterReferenceType = referenceType;
 
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
 		setTitle(capitalizedPluralTableName
-			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
+			+ (filterReferenceID > 0? " for person name ID " + filterReferenceID: StringUtils.EMPTY));
 
 		return this;
 	}
@@ -221,16 +196,9 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	public void loadData(){
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
-		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
-				.values().stream()
-				.filter(record -> filterReferenceType.equals(extractRecordType(record)))
-				.map(CommonRecordDialog::extractRecordID)
-				.collect(Collectors.toSet());
-			records.keySet()
-				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
-		}
+		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
+			? getRecords(TABLE_NAME)
+			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -259,6 +227,13 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		}
 	}
 
+	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+		return getRecords(TABLE_NAME)
+			.entrySet().stream()
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry.getValue())))
+			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	}
+
 	@Override
 	protected void requestFocusAfterSelect(){
 		//set focus on first field
@@ -282,9 +257,9 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionComboBox.setSelectedItem(transcription);
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
-		if(filterReferenceTable == null){
+		if(filterReferenceID <= 0){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedPersonNameDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
+				LocalizedPersonNameDialog::extractRecordPersonNameID, extractRecordID(selectedRecord));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
@@ -328,28 +303,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String transcription = GUIHelper.getTextTrimmed(transcriptionComboBox);
 		final String transcriptionType = GUIHelper.getTextTrimmed(transcriptionTypeComboBox);
-
-		if(filterReferenceTable != null){
-			//TODO upsert junction
-			//read link panel:
-//			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
-//			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
-//
-//			final Integer culturalNormID = extractRecordID(selectedRecord);
-//			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
-//				CulturalNormDialog::extractRecordCulturalNormID, culturalNormID);
-//			if(recordCulturalNormJunction.size() == 1){
-//				final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordCulturalNormJunction.entrySet().iterator();
-//				if(itr.hasNext()){
-//					final Map<String, Object> culturalNormJunction = itr.next()
-//						.getValue();
-//
-//					//TODO pass through modification note asking?
-//					culturalNormJunction.put("certainty", linkCertainty);
-//					culturalNormJunction.put("credibility", linkCredibility);
-//				}
-//			}
-		}
 
 		//update table:
 		final boolean shouldUpdate = (!Objects.equals(primaryText, extractRecordPersonalName(selectedRecord))
@@ -406,8 +359,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		return (String)record.get("transcription_type");
 	}
 
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
+	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
+		return (Integer)record.get("person_name_id");
 	}
 
 	private static String extractRecordPersonalName(final Map<String, Object> record){
@@ -435,34 +388,23 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
-		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
-		localizedText1.put("text", "text 1");
-		localizedText1.put("personal_name", "personal name");
-		localizedText1.put("family_name", "family name");
-		localizedText1.put("locale", "en");
-		localizedText1.put("type", "original");
-		localizedText1.put("transcription", "IPA");
-		localizedText1.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
-
-		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put("localized_text_junction", localizedTextJunctions);
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("id", 1);
-		localizedTextJunction1.put("localized_text_id", 1);
-		localizedTextJunction1.put("reference_table", "localized_text");
-		localizedTextJunction1.put("reference_id", 1);
-		localizedTextJunction1.put("reference_type", "extract");
-		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
+		final TreeMap<Integer, Map<String, Object>> localizedPersonNames = new TreeMap<>();
+		store.put("localized_person_name", localizedPersonNames);
+		final Map<String, Object> localizedPersonName1 = new HashMap<>();
+		localizedPersonName1.put("id", 1);
+		localizedPersonName1.put("personal_name", "personal name");
+		localizedPersonName1.put("family_name", "family name");
+		localizedPersonName1.put("locale", "en");
+		localizedPersonName1.put("type", "original");
+		localizedPersonName1.put("transcription", "IPA");
+		localizedPersonName1.put("transcription_type", "romanized");
+		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedPersonNameDialog dialog = create(store, parent);
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(localizedText1)))
+			if(!dialog.selectData(extractRecordID(localizedPersonName1)))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){

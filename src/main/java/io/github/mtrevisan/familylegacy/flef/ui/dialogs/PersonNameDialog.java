@@ -282,8 +282,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		final String nameLocale = extractRecordLocale(selectedRecord);
 		final boolean hasTransliterations = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME)
 			.values().stream()
-			.filter(record -> Objects.equals(personNameID, extractRecordPersonNameID(record)))
-			.anyMatch(PersonNameDialog::hasName);
+			.anyMatch(record -> Objects.equals(personNameID, extractRecordPersonNameID(record)));
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
@@ -306,12 +305,6 @@ public final class PersonNameDialog extends CommonListDialog{
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
-	}
-
-	private static boolean hasName(final Map<String, Object> record){
-		final String personalName = extractRecordPersonalName(record);
-		final String familyName = extractRecordFamilyName(record);
-		return (personalName != null && familyName != null);
 	}
 
 	@Override
@@ -507,12 +500,10 @@ public final class PersonNameDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case LOCALIZED_PERSON_NAME -> {
 							final LocalizedPersonNameDialog localizedPersonNameDialog = LocalizedPersonNameDialog.create(store, parent)
-								.withReference(TABLE_NAME, personNameID, "name")
+								.withReference(personNameID)
 								.withOnCloseGracefully(record -> {
-									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personNameID);
-									}
+									if(record != null)
+										record.put("person_name_id", personNameID);
 								});
 							localizedPersonNameDialog.loadData();
 

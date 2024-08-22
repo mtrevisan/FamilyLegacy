@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -631,7 +630,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	private void scrollChildrenToLastPosition(final Integer unionID){
 		//remember last scroll position, restore it if present
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(unionID);
-		//FIXME if a child was selected, bring to view
+		//FIXME if a child was selected, bring it to view
 		final JViewport childrenViewport = childrenScrollPane.getViewport();
 		final int scrollbarPositionX = (childrenScrollbarPosition == null?
 			//center halfway if it's the first time the children are painted

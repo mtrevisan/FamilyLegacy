@@ -118,7 +118,7 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              numeric PRIMARY KEY,
  LOCALIZED_TEXT_ID numeric NOT NULL,
- REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "person name", "place").
+ REFERENCE_TABLE   text NOT NULL,		-- The table name this record is attached to (ex. "citation", "place").
  REFERENCE_ID      numeric NOT NULL,	-- The ID of the referenced record in the table.
  REFERENCE_TYPE    text NOT NULL,		-- The column name this record is attached to (ex. "extract", "name").
  FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE

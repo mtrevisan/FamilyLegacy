@@ -215,12 +215,10 @@ public class Main{
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(store, parent)
-								.withReference(tableName, recordID, "name")
+								.withReference(recordID)
 								.withOnCloseGracefully(record -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										record.put("person_name_id", recordID);
 								});
 							localizedTextDialog.loadData();
 
