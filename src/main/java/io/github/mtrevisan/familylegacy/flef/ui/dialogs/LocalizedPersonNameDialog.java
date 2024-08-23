@@ -24,14 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,7 +70,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 
 	private JLabel personalTextLabel;
-	private TextPreviewPane textTextPreview;
 	private JTextField personalTextField;
 	private JLabel familyTextLabel;
 	private JTextField familyTextField;
@@ -81,6 +81,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private JComboBox<String> transcriptionComboBox;
 	private JLabel transcriptionTypeLabel;
 	private JComboBox<String> transcriptionTypeComboBox;
+
+	private HistoryPanel historyPanel;
 
 	private int filterReferenceID;
 
@@ -130,7 +132,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -145,8 +147,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	@Override
 	protected void initRecordComponents(){
 		personalTextLabel = new JLabel("(Primary) Name:");
-		textTextPreview = TextPreviewPane.createWithPreview(this);
-		textTextPreview.setTextViewFont(personalTextLabel.getFont());
 		personalTextField = new JTextField();
 		familyTextLabel = new JLabel("(Secondary) Name:");
 		familyTextField = new JTextField();
@@ -160,6 +160,10 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeLabel = new JLabel("Transcription type:");
 		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized",
 			"gairaigized", "latinized"});
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(personalTextLabel, personalTextField, this::saveData);
@@ -192,6 +196,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		recordPanelBase.add(transcriptionTypeComboBox, "grow");
 
 		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -227,7 +232,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		}
 	}
 
-	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
 		return getRecords(TABLE_NAME)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry.getValue())))
@@ -237,12 +242,12 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	@Override
 	protected void requestFocusAfterSelect(){
 		//set focus on first field
-		textTextPreview.requestFocusInWindow();
+		personalTextField.requestFocusInWindow();
 	}
 
 	@Override
 	protected void fillData(){
-		final String text = extractRecordText(selectedRecord);
+		final Integer localizedPersonNameID = extractRecordID(selectedRecord);
 		final String primaryName = extractRecordPersonalName(selectedRecord);
 		final String secondaryName = extractRecordFamilyName(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
@@ -259,10 +264,13 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 		if(filterReferenceID <= 0){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedPersonNameDialog::extractRecordPersonNameID, extractRecordID(selectedRecord));
+				LocalizedPersonNameDialog::extractRecordPersonNameID, localizedPersonNameID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
+
+		historyPanel.withReference(TABLE_NAME, localizedPersonNameID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -412,6 +420,26 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 				public void error(final BusExceptionEvent exceptionEvent){
 					final Throwable cause = exceptionEvent.getCause();
 					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int localizedPersonNameID = extractRecordID(container);
+					switch(editCommand.getType()){
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + localizedPersonNameID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
+						}
+					}
 				}
 			};
 			EventBusService.subscribe(listener);

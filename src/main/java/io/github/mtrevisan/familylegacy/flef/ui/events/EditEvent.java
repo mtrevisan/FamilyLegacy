@@ -56,7 +56,9 @@ public class EditEvent{
 
 //		CONTACT,
 
-		REFERENCE
+		REFERENCE,
+
+		MODIFICATION_HISTORY
 	}
 
 

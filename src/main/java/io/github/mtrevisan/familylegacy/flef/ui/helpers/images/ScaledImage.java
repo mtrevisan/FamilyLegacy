@@ -64,7 +64,7 @@ public class ScaledImage extends JLabel{
 	private static final double INV_PI = 1. / Math.PI;
 	private static final double INV_2PI = 1. / (2. * Math.PI);
 
-	private final int RESIZE_EDGE_THRESHOLD = 5;
+	private static final int RESIZE_EDGE_THRESHOLD = 5;
 
 
 	private Image image;

@@ -37,6 +37,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,6 +58,8 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.io.Serial;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -88,6 +91,8 @@ public final class AssertionDialog extends CommonListDialog{
 	private JButton mediaButton;
 	private JButton culturalNormButton;
 	private JCheckBox restrictionCheckBox;
+
+	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -139,7 +144,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -161,9 +166,13 @@ public final class AssertionDialog extends CommonListDialog{
 		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		restrictionCheckBox = new JCheckBox("Confidential");
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, this::saveData);
@@ -206,6 +215,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -252,6 +262,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		final Integer assertionID = extractRecordID(selectedRecord);
 		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
@@ -268,6 +279,9 @@ public final class AssertionDialog extends CommonListDialog{
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, assertionID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -475,6 +489,18 @@ public final class AssertionDialog extends CommonListDialog{
 		note2.put("reference_table", TABLE_NAME);
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
+		final Map<String, Object> note3 = new HashMap<>();
+		note3.put("id", 3);
+		note3.put("note", "something to say");
+		note3.put("reference_table", "modification");
+		note3.put("reference_id", 1);
+		notes.put((Integer)note3.get("id"), note3);
+		final Map<String, Object> note4 = new HashMap<>();
+		note4.put("id", 4);
+		note4.put("note", "something more to say");
+		note4.put("reference_table", "modification");
+		note4.put("reference_id", 2);
+		notes.put((Integer)note4.get("id"), note4);
 
 		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
 		store.put("restriction", restrictions);
@@ -484,6 +510,23 @@ public final class AssertionDialog extends CommonListDialog{
 		restriction1.put("reference_table", TABLE_NAME);
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
+
+		final TreeMap<Integer, Map<String, Object>> modifications = new TreeMap<>();
+		store.put("modification", modifications);
+		final Map<String, Object> modification1 = new HashMap<>();
+		modification1.put("id", 1);
+		modification1.put("reference_table", TABLE_NAME);
+		modification1.put("reference_id", 1);
+		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		modifications.put((Integer)modification1.get("id"), modification1);
+		final Map<String, Object> modification2 = new HashMap<>();
+		modification2.put("id", 2);
+		modification2.put("reference_table", TABLE_NAME);
+		modification2.put("reference_id", 1);
+		modification2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
+		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
+		modifications.put((Integer)modification2.get("id"), modification2);
 
 		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
 		store.put("cultural_norm", culturalNorms);
@@ -581,6 +624,18 @@ public final class AssertionDialog extends CommonListDialog{
 
 							culturalNormDialog.setLocationRelativeTo(dialog);
 							culturalNormDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + assertionID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

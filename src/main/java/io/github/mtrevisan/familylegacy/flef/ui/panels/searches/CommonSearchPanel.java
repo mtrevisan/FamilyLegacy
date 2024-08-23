@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -38,6 +37,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -48,6 +48,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -95,7 +96,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 	}
 
 
-	protected final void setLinkListener(final RecordListenerInterface linkListener){
+	public final void setLinkListener(final RecordListenerInterface linkListener){
 		this.linkListener = linkListener;
 	}
 
@@ -145,7 +146,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		recordTable.setRowSorter(sorter);
 
 		final TableColumnModel columnModel = recordTable.getColumnModel();
-		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
+		final Border cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
 		final int[] alignments = getTableColumnAlignments();
 		final JTableHeader tableHeader = recordTable.getTableHeader();
 		tableHeader.setReorderingAllowed(false);
@@ -162,7 +163,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 					cellText = value.toString();
 					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
 					final int textWidth = fm.stringWidth(cellText);
-					final Insets insets = ((JComponent)headerCell).getInsets();
+					final Insets insets = ((Container)headerCell).getInsets();
 					final int cellWidth = columnModel.getColumn(column).getWidth()
 						- insets.left - insets.right;
 
@@ -197,7 +198,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 						cellText = value.toString();
 						final FontMetrics fm = cell.getFontMetrics(tableFont);
 						final int textWidth = fm.stringWidth(cellText);
-						final Insets insets = ((JComponent)cell).getInsets();
+						final Insets insets = ((Container)cell).getInsets();
 						final int cellWidth = columnModel.getColumn(column).getWidth()
 							- insets.left - insets.right;
 
@@ -235,7 +236,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		add(new JScrollPane(recordTable), "grow");
 	}
 
-	protected abstract String getTableName();
+	public abstract String getTableName();
 
 	protected abstract String[] getTableColumnNames();
 

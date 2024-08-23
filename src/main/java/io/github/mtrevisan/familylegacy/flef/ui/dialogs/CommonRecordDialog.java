@@ -40,6 +40,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -113,6 +114,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImage("/images/translation.png",
 		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
 
+	protected static final Dimension MINIMUM_NOTE_TEXT_PREVIEW_SIZE = new Dimension(300, 150);
+
 	protected static final String TABLE_NAME_NOTE = "note";
 	protected static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
 	protected static final String TABLE_NAME_RESTRICTION = "restriction";
@@ -143,7 +146,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		initComponents();
 
-		if(!CommonListDialog.class.isAssignableFrom(this.getClass()))
+		if(!CommonListDialog.class.isAssignableFrom(getClass()))
 			initLayout();
 	}
 
@@ -162,6 +165,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		initRecordComponents();
 
 		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	protected void addValidDataListenerToMandatoryFields(final ValidDataListenerInterface validDataListener){
@@ -219,13 +223,18 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	private void closeAction(final ActionEvent evt){
-		if(closeAction())
+		if(closeAction(true))
 			setVisible(false);
 	}
 
-	private boolean closeAction(){
+	private void closeActionNoModificationNote(final ActionEvent evt){
+		if(closeAction(false))
+			setVisible(false);
+	}
+
+	private boolean closeAction(final boolean askForModificationNote){
 		if(validateData()){
-			okAction();
+			okAction(askForModificationNote);
 
 			if(onCloseGracefully != null)
 				onCloseGracefully.accept(selectedRecord);
@@ -261,7 +270,8 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected void selectAction(){
 		if(validateData()){
-			okAction();
+			//FIXME THIS!
+			okAction(true);
 
 			selectedRecord = getSelectedRecord();
 			if(selectedRecord == null)
@@ -295,7 +305,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected final <T> NavigableMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final TreeMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
+		final NavigableMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
 		if(selectedRecord != null){
 			final Integer selectedRecordID = extractRecordID(selectedRecord);
 			final String tableName = getTableName();
@@ -330,7 +340,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		return (String)record.get("reference_type");
 	}
 
-	protected static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
+	private static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
 		return (store.isEmpty()? null: store.firstEntry().getValue());
 	}
 
@@ -347,7 +357,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		return (selectedRecord == null || field instanceof Integer || field instanceof final String s && !s.isEmpty());
 	}
 
-	protected void okAction(){
+	protected void okAction(final boolean askForModificationNote){
 		if(selectedRecord == null || !dataHasChanged())
 			return;
 
@@ -358,29 +368,38 @@ public abstract class CommonRecordDialog extends JDialog{
 		}
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final String recordTableName = getTableName();
+		final Integer recordID = extractRecordID(selectedRecord);
 		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
 			final NavigableMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
 			final Map<String, Object> newModification = new HashMap<>();
 			newModification.put("id", extractNextRecordID(storeModifications));
-			newModification.put("reference_table", getTableName());
-			newModification.put("reference_id", extractRecordID(selectedRecord));
+			newModification.put("reference_table", recordTableName);
+			newModification.put("reference_id", recordID);
 			newModification.put("creation_date", now);
 			storeModifications.put(extractRecordID(newModification), newModification);
 		}
 		else{
-			//TODO find a way to let the user skip this note
-			//TODO ask for a modification note
-//			//show note record dialog
-//			final NoteDialog changeNoteDialog = NoteDialog.createUpdateNote(store, (Frame)getParent());
-//			changeNoteDialog.setTitle("Change note for " + getTableName() + " " + extractRecordID(selectedRecord));
-//			changeNoteDialog.loadData(selectedRecord, dialog -> {
-//				selectedRecord = selectedRecord;
-//				selectedRecordHash = selectedRecord.hashCode();
-//			});
-//
-//			changeNoteDialog.setVisible(true);
+			if(askForModificationNote){
+				//TODO find a way to let the user skip this modification note?
+				//ask for a modification note
+				//show note record dialog
+				final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, (Frame)getParent())
+					.withOnCloseGracefully(record -> {
+						if(record != null){
+							record.put("reference_table", recordTableName);
+							record.put("reference_id", recordID);
+						}
+					});
+				final String title = StringUtils.capitalize(StringUtils.replace(recordTableName, "_", StringUtils.SPACE));
+				changeNoteDialog.setTitle("Change note for " + title + " " + recordID);
+				changeNoteDialog.showNewRecord();
+
+				changeNoteDialog.setLocationRelativeTo(null);
+				changeNoteDialog.setVisible(true);
+			}
 
 
 			//update the record with `update_date`
@@ -390,7 +409,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		}
 	}
 
-	protected boolean dataHasChanged(){
+	private boolean dataHasChanged(){
 		return (selectedRecord != null && selectedRecord.hashCode() != selectedRecordHash);
 	}
 

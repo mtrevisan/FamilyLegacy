@@ -61,7 +61,7 @@ public class PopupMouseAdapter extends MouseAdapter{
 	}
 
 	private boolean hasPopupMenuVisibleItems(){
-		Component[] components = popupMenu.getComponents();
+		final Component[] components = popupMenu.getComponents();
 		for(int i = 0, length = components.length; i < length; i ++)
 			if(components[i].isVisible())
 				return true;

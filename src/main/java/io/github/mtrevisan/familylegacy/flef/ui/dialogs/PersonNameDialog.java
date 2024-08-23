@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -91,6 +92,8 @@ public final class PersonNameDialog extends CommonListDialog{
 	private JButton eventButton;
 	private JCheckBox restrictionCheckBox;
 
+	private HistoryPanel historyPanel;
+
 	private int filterReferenceID;
 
 
@@ -139,7 +142,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -166,11 +169,15 @@ public final class PersonNameDialog extends CommonListDialog{
 			"religious order name", "pen name", "name at work", "immigrant"});
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		eventButton = new JButton("Events", ICON_EVENT);
 		restrictionCheckBox = new JCheckBox("Confidential");
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(personalNameLabel, personalNameField, this::saveData);
@@ -231,6 +238,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -260,7 +268,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		}
 	}
 
-	private TreeMap<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
 		return getRecords(TABLE_NAME)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonID(entry.getValue())))
@@ -305,6 +313,9 @@ public final class PersonNameDialog extends CommonListDialog{
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, personNameID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -568,6 +579,18 @@ public final class PersonNameDialog extends CommonListDialog{
 
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + personNameID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

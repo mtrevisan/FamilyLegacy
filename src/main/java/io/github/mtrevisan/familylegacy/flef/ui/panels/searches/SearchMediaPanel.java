@@ -58,7 +58,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TITLE = 150;
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
 
-	private static final String TABLE_NAME_MEDIA = "media";
+	private static final String TABLE_NAME = "media";
 
 
 	public static SearchMediaPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -74,12 +74,6 @@ public class SearchMediaPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchMediaPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TITLE, 0, TABLE_PREFERRED_WIDTH_TITLE);
@@ -87,8 +81,8 @@ public class SearchMediaPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_MEDIA;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -103,7 +97,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator};
 	}
@@ -114,7 +108,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_MEDIA);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -139,7 +133,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 			model.setValueAt(title, row, TABLE_INDEX_TITLE);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_MEDIA, filterData, title));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, title));
 
 			row ++;
 		}
@@ -201,8 +195,8 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchMediaPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchMediaPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

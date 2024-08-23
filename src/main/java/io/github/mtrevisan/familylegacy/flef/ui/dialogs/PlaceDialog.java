@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -101,6 +102,8 @@ public final class PlaceDialog extends CommonListDialog{
 	private JButton groupButton;
 	private JCheckBox restrictionCheckBox;
 
+	private HistoryPanel historyPanel;
+
 	private Integer filterPlaceID;
 
 
@@ -146,7 +149,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -181,17 +184,21 @@ public final class PlaceDialog extends CommonListDialog{
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		eventButton = new JButton("Events", ICON_EVENT);
 		groupButton = new JButton("Groups", ICON_GROUP);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, null);
+
+		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, null);
+		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, this::saveData);
 		addMandatoryField(nameField);
 		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
 
@@ -220,7 +227,7 @@ public final class PlaceDialog extends CommonListDialog{
 		noteButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
-		mediaButton.setToolTipText("Medias");
+		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 
@@ -270,6 +277,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -360,6 +368,9 @@ public final class PlaceDialog extends CommonListDialog{
 		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(groupButton, !recordGroups.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, placeID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -389,6 +400,14 @@ public final class PlaceDialog extends CommonListDialog{
 			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
 			identifierField.requestFocusInWindow();
+
+			return false;
+		}
+		final String name = GUIHelper.getTextTrimmed(nameField);
+		if(!validData(name)){
+			JOptionPane.showMessageDialog(getParent(), "Name field is required", "Error",
+				JOptionPane.ERROR_MESSAGE);
+			nameField.requestFocusInWindow();
 
 			return false;
 		}
@@ -665,6 +684,18 @@ public final class PlaceDialog extends CommonListDialog{
 
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + placeID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

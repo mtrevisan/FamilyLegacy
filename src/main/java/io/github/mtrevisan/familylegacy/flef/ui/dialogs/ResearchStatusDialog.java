@@ -121,7 +121,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -140,7 +140,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionTextPreview = TextPreviewPane.createWithoutPreview();
-		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 
 		statusLabel = new JLabel("Type:");
 		statusComboBox = new JComboBox<>(new String[]{null, "open", "active", "ended"});
@@ -154,6 +153,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		addMandatoryField(identifierField);
 
 		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
+		descriptionTextPreview.setTextViewFont(identifierField.getFont());
+		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, this::saveData);
 

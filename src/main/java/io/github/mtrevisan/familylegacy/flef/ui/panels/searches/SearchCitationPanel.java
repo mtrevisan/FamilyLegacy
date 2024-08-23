@@ -59,7 +59,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 	private static final int TABLE_PREFERRED_WIDTH_EXTRACT = 250;
 
-	private static final String TABLE_NAME_CITATION = "citation";
+	private static final String TABLE_NAME = "citation";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 
@@ -77,19 +77,13 @@ public class SearchCitationPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchCitationPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_EXTRACT, 0, TABLE_PREFERRED_WIDTH_EXTRACT);
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_CITATION;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -104,7 +98,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -115,7 +109,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_CITATION);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -146,7 +140,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(extract, row, TABLE_INDEX_EXTRACT);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_CITATION, filterData, extract));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, extract));
 
 			row ++;
 		}
@@ -160,7 +154,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
 		records.forEach((key, value) -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-					&& TABLE_NAME_CITATION.equals(extractRecordReferenceTable(value))
+					&& TABLE_NAME.equals(extractRecordReferenceTable(value))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(value)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(value));
 				matchedRecords.add(localizedText);
@@ -319,8 +313,8 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchCitationPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchCitationPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

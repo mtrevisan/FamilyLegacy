@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,6 +59,7 @@ import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -113,6 +114,8 @@ public final class GroupDialog extends CommonListDialog{
 	private JComboBox<String> linkCertaintyComboBox;
 	private JLabel linkCredibilityLabel;
 	private JComboBox<String> linkCredibilityComboBox;
+
+	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -195,7 +198,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator};
 	}
@@ -219,7 +222,7 @@ public final class GroupDialog extends CommonListDialog{
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		eventButton = new JButton("Events", ICON_EVENT);
@@ -232,6 +235,10 @@ public final class GroupDialog extends CommonListDialog{
 		linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
 		linkCredibilityLabel = new JLabel("Credibility:");
 		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
@@ -312,6 +319,8 @@ public final class GroupDialog extends CommonListDialog{
 
 			recordTabbedPane.add("link", recordPanelLink);
 		}
+
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -402,10 +411,10 @@ public final class GroupDialog extends CommonListDialog{
 			if(recordGroupJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordGroupJunction.entrySet().iterator();
+			final Iterator<Map<String, Object>> itr = recordGroupJunction.values().iterator();
 			if(itr.hasNext()){
-				final Map<String, Object> groupJunction = itr.next()
-					.getValue();
+				final Map<String, Object> groupJunction = itr.next();
+
 				final String linkRole = extractRecordRole(groupJunction);
 				final String linkCertainty = extractRecordCertainty(groupJunction);
 				final String linkCredibility = extractRecordCredibility(groupJunction);
@@ -415,6 +424,9 @@ public final class GroupDialog extends CommonListDialog{
 				linkCredibilityComboBox.setSelectedItem(linkCredibility);
 			}
 		}
+
+		historyPanel.withReference(TABLE_NAME, groupID);
+		historyPanel.loadData();
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
@@ -460,16 +472,13 @@ public final class GroupDialog extends CommonListDialog{
 			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(TABLE_NAME_GROUP_JUNCTION,
 				GroupDialog::extractRecordGroupID, groupID);
 			if(recordGroupJunction.size() == 1){
-				final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordGroupJunction.entrySet().iterator();
-				if(itr.hasNext()){
-					final Map<String, Object> groupJunction = itr.next()
-						.getValue();
+				final Iterator<Map<String, Object>> itr = recordGroupJunction.values().iterator();
+				final Map<String, Object> groupJunction = itr.next();
 
-					//TODO pass through modification note asking?
-					groupJunction.put("role", linkRole);
-					groupJunction.put("certainty", linkCertainty);
-					groupJunction.put("credibility", linkCredibility);
-				}
+				//TODO pass through modification note asking?
+				groupJunction.put("role", linkRole);
+				groupJunction.put("certainty", linkCertainty);
+				groupJunction.put("credibility", linkCredibility);
 			}
 		}
 
@@ -505,7 +514,7 @@ public final class GroupDialog extends CommonListDialog{
 				else
 					throw new IllegalArgumentException("Cannot exist a group of " + referenceTable);
 
-				final Set<Integer> processedPersonIDs = new HashSet<>(0);
+				final Collection<Integer> processedPersonIDs = new HashSet<>(0);
 				for(int i = 0, length = personNamesInGroup.size(); i < length; i ++){
 					final Map<String, Object> storePersonName = personNamesInGroup.get(i);
 
@@ -558,7 +567,7 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	/** Extract the names of all the persons in this group. */
-	private static List<Map<String, Object>> extractPersonNamesInGroup(final NavigableMap<Integer, Map<String, Object>> storePersonNames,
+	private static List<Map<String, Object>> extractPersonNamesInGroup(final Map<Integer, Map<String, Object>> storePersonNames,
 			final Integer personID){
 		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
 		for(final Map<String, Object> storePersonName : storePersonNames.values())
@@ -886,6 +895,18 @@ public final class GroupDialog extends CommonListDialog{
 
 							groupDialog.setLocationRelativeTo(null);
 							groupDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + groupID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

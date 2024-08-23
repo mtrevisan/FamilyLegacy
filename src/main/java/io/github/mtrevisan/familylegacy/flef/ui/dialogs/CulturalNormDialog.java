@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -106,6 +107,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private JLabel linkCredibilityLabel;
 	private JComboBox<String> linkCredibilityComboBox;
 
+	private HistoryPanel historyPanel;
+
 	private String filterReferenceTable;
 	private int filterReferenceID;
 
@@ -117,6 +120,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	private CulturalNormDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -170,7 +175,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -189,7 +194,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		descriptionLabel = new JLabel("Description:");
 		descriptionTextPreview = TextPreviewPane.createWithPreview(this);
-		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 
 		placeButton = new JButton("Place", ICON_PLACE);
 		dateStartButton = new JButton("Date start", ICON_CALENDAR);
@@ -201,7 +205,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		eventButton = new JButton("Events", ICON_EVENT);
 		restrictionCheckBox = new JCheckBox("Confidential");
@@ -211,9 +215,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCredibilityLabel = new JLabel("Credibility:");
 		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
+		descriptionTextPreview.setTextViewFont(identifierField.getFont());
+		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
 
@@ -287,6 +297,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("link", recordPanelLink);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -322,6 +333,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void fillData(){
+		final Integer culturalNormID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
@@ -330,9 +342,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Integer recordID = extractRecordID(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
-			CulturalNormDialog::extractRecordMediaID, recordID);
+			CulturalNormDialog::extractRecordMediaID, culturalNormID);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
@@ -344,7 +355,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
 		identifierField.setText(identifier);
-		descriptionTextPreview.setText("Cultural norm " + recordID, description, null);
+		descriptionTextPreview.setText("Cultural norm " + culturalNormID, description, null);
 		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateStartButton, dateStartID != null, DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(dateEndButton, dateEndID != null, DATA_BUTTON_BORDER_COLOR);
@@ -361,14 +372,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
 			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
-				CulturalNormDialog::extractRecordCulturalNormID, recordID);
+				CulturalNormDialog::extractRecordCulturalNormID, culturalNormID);
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordCulturalNormJunction.entrySet().iterator();
+			final Iterator<Map<String, Object>> itr = recordCulturalNormJunction.values().iterator();
 			if(itr.hasNext()){
-				final Map<String, Object> culturalNormJunction = itr.next()
-					.getValue();
+				final Map<String, Object> culturalNormJunction = itr.next();
+
 				final String linkCertainty = extractRecordCertainty(culturalNormJunction);
 				final String linkCredibility = extractRecordCredibility(culturalNormJunction);
 
@@ -376,6 +387,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				linkCredibilityComboBox.setSelectedItem(linkCredibility);
 			}
 		}
+
+		historyPanel.withReference(TABLE_NAME, culturalNormID);
+		historyPanel.loadData();
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
@@ -433,15 +447,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
 				CulturalNormDialog::extractRecordCulturalNormID, culturalNormID);
 			if(recordCulturalNormJunction.size() == 1){
-				final Iterator<Map.Entry<Integer, Map<String, Object>>> itr = recordCulturalNormJunction.entrySet().iterator();
-				if(itr.hasNext()){
-					final Map<String, Object> culturalNormJunction = itr.next()
-						.getValue();
+				final Iterator<Map<String, Object>> itr = recordCulturalNormJunction.values().iterator();
+				final Map<String, Object> culturalNormJunction = itr.next();
 
-					//TODO pass through modification note asking?
-					culturalNormJunction.put("certainty", linkCertainty);
-					culturalNormJunction.put("credibility", linkCredibility);
-				}
+				//TODO pass through modification note asking?
+				culturalNormJunction.put("certainty", linkCertainty);
+				culturalNormJunction.put("credibility", linkCredibility);
 			}
 		}
 
@@ -686,6 +697,18 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + culturalNormID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

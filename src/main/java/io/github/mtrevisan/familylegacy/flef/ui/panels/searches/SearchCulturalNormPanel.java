@@ -63,7 +63,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_DESCRIPTION = 150;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 
-	private static final String TABLE_NAME_CULTURAL_NORM = "cultural_norm";
+	private static final String TABLE_NAME = "cultural_norm";
 	private static final String TABLE_NAME_PLACE = "place";
 	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
 	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
@@ -82,12 +82,6 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchCulturalNormPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_DESCRIPTION, 0, TABLE_PREFERRED_WIDTH_DESCRIPTION);
@@ -95,8 +89,8 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_CULTURAL_NORM;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -111,7 +105,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator};
 	}
@@ -122,7 +116,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_CULTURAL_NORM);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -155,7 +149,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			model.setValueAt(description, row, TABLE_INDEX_DESCRIPTION);
 			model.setValueAt(placeName, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_CULTURAL_NORM, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
 
 			row ++;
 		}
@@ -293,8 +287,8 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchCulturalNormPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchCulturalNormPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

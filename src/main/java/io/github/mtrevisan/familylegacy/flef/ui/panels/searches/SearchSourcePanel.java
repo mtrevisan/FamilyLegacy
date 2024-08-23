@@ -63,7 +63,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 
-	private static final String TABLE_NAME_SOURCE = "source";
+	private static final String TABLE_NAME = "source";
 	private static final String TABLE_NAME_PLACE = "place";
 	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
 	private static final String TABLE_NAME_CALENDAR = "calendar";
@@ -82,12 +82,6 @@ public class SearchSourcePanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchSourcePanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TYPE, 0, TABLE_PREFERRED_WIDTH_TYPE);
@@ -96,8 +90,8 @@ public class SearchSourcePanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_SOURCE;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -113,7 +107,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, textComparator,
 			numericComparator};
@@ -125,7 +119,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_SOURCE);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
@@ -164,7 +158,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 			model.setValueAt(year, row, TABLE_INDEX_DATE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_SOURCE, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
 
 			row ++;
 		}
@@ -269,8 +263,8 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchSourcePanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchSourcePanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

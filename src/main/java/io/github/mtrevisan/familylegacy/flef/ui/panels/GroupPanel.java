@@ -654,7 +654,7 @@ public class GroupPanel extends JPanel{
 			}
 		}
 
-		this.union = group;
+		union = group;
 		this.partner1 = partner1;
 		this.partner2 = partner2;
 	}
@@ -795,11 +795,11 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	protected static Integer extractRecordID(final Map<String, Object> record){
+	private static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
@@ -1028,7 +1028,7 @@ public class GroupPanel extends JPanel{
 				final PersonPanel partner2 = groupPanel.getPartner2();
 				final Map<String, Object> group = groupPanel.union;
 				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
-					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
+					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + ", group: " + extractRecordID(group));
 			}
 
 			@Override

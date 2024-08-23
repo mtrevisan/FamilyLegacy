@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.StringJoiner;
 
 
@@ -35,7 +35,7 @@ public class FilterString{
 
 	private static final String FILER_DELIMITER = " | ";
 
-	private final Set<String> data = new HashSet<>(0);
+	private final Collection<String> data = new HashSet<>(0);
 
 
 	public static FilterString create(){

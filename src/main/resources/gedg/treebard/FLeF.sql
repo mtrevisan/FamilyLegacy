@@ -306,6 +306,7 @@ CREATE TABLE RESTRICTION
  REFERENCE_ID    numeric NOT NULL	-- The ID of the referenced record in the table.
 );
 
+-- Notes can be attached through a note.
 CREATE TABLE MODIFICATION
 (
  "ID"            numeric PRIMARY KEY,

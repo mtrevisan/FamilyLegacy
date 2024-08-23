@@ -68,7 +68,7 @@ public class AffineTransform{
 			final double dx = (zoomPointX - translateX) * (1. - zoomFactor);
 			final double dy = (zoomPointY - translateY) * (1. - zoomFactor);
 
-			setScale(newZoom);
+			scale = newZoom;
 			addTranslation(dx, dy);
 
 			return true;

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,6 +84,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	private JButton sourcesButton;
 
+	private HistoryPanel historyPanel;
+
 
 	public static RepositoryDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		return new RepositoryDialog(store, parent);
@@ -119,7 +122,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -143,10 +146,14 @@ public final class RepositoryDialog extends CommonListDialog{
 		placeButton = new JButton("Place", ICON_PLACE);
 
 		notesButton = new JButton("Notes", ICON_NOTE);
-		mediasButton = new JButton("Medias", ICON_MEDIA);
+		mediasButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 		sourcesButton = new JButton("Sources", ICON_SOURCE);
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
@@ -199,6 +206,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("children", recordPanelChildren);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -257,6 +265,9 @@ public final class RepositoryDialog extends CommonListDialog{
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 
 		GUIHelper.addBorder(sourcesButton, !recordSources.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+
+		historyPanel.withReference(TABLE_NAME, repositoryID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -523,7 +534,7 @@ public final class RepositoryDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final String tableName = editCommand.getIdentifier();
-					final Integer recordID = extractRecordID(container);
+					final Integer repositoryID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(store, parent)
@@ -549,11 +560,11 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
-								.withReference(tableName, recordID)
+								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
 										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
+										record.put("reference_id", repositoryID);
 									}
 								});
 							noteDialog.loadData();
@@ -564,11 +575,11 @@ public final class RepositoryDialog extends CommonListDialog{
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(tableName, recordID)
+								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
 										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", recordID);
+										record.put("reference_id", repositoryID);
 									}
 								});
 							mediaDialog.loadData();
@@ -578,15 +589,26 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case SOURCE -> {
 							final SourceDialog sourceDialog = SourceDialog.create(store, parent)
-								.withFilterOnRepositoryID(recordID)
+								.withFilterOnRepositoryID(repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null)
-										record.put("repository_id", recordID);
+										record.put("repository_id", repositoryID);
 								});
 							sourceDialog.loadData();
 
 							sourceDialog.setLocationRelativeTo(null);
 							sourceDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + repositoryID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

@@ -72,7 +72,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 
-	private static final String TABLE_NAME_PERSON = "person";
+	private static final String TABLE_NAME = "person";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_EVENT = "event";
@@ -98,12 +98,6 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchPersonPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PERSON_NAME, 0, TABLE_PREFERRED_WIDTH_NAME);
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_PERSON_BIRTH_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
@@ -113,8 +107,8 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_PERSON;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -133,7 +127,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator,
 			numericComparator, textComparator,
@@ -146,7 +140,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_PERSON);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -178,7 +172,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			model.setValueAt((personDeathYear != null? personDeathYear: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_YEAR);
 			model.setValueAt((personDeathPlace != null? personDeathPlace: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_PLACE);
 
-			tableData.add(new SearchAllRecord(personID, TABLE_NAME_PERSON, filterData, personName));
+			tableData.add(new SearchAllRecord(personID, TABLE_NAME, filterData, personName));
 
 			row ++;
 		}
@@ -266,7 +260,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -525,8 +519,8 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchPersonPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchPersonPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

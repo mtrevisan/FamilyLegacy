@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -90,6 +91,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	private JButton assertionButton;
 
+	private HistoryPanel historyPanel;
+
 	private Integer filterSourceID;
 
 
@@ -100,6 +103,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	private CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		initialize();
 	}
 
 
@@ -132,7 +137,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -152,7 +157,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		locationField = new JTextField();
 		extractLabel = new JLabel("Extract:");
 		extractTextPreview = TextPreviewPane.createWithPreview(this);
-		extractTextPreview.setTextViewFont(extractLabel.getFont());
 		extractLocaleLabel = new JLabel("Locale:");
 		extractLocaleField = new JTextField();
 		transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
@@ -160,15 +164,21 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		extractTypeComboBox = new JComboBox<>(new String[]{null, "transcript", "extract", "abstract"});
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
 
 		GUIHelper.bindLabelTextChange(extractLabel, extractTextPreview, this::saveData);
+		extractTextPreview.setTextViewFont(extractLabel.getFont());
+		extractTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 		extractTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(extractLocaleLabel, extractLocaleField, this::saveData);
@@ -219,6 +229,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("children", recordPanelChildren);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -292,6 +303,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 
 		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+
+		historyPanel.withReference(TABLE_NAME, citationID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -348,7 +362,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-					+ (location != null? location: StringUtils.EMPTY));;
+					+ (location != null? location: StringUtils.EMPTY));
 				if(extract != null && !extract.isEmpty())
 					identifier.add("[" + extract + "]");
 
@@ -584,6 +598,18 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 							assertionDialog.setLocationRelativeTo(dialog);
 							assertionDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + citationID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

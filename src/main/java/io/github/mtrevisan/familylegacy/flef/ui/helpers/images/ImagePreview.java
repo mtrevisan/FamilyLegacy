@@ -62,7 +62,7 @@ public class ImagePreview extends JComponent implements PropertyChangeListener{
 			final BufferedImage image = ResourceHelper.readImage(file);
 
 			final ImageIcon tmpIcon = new ImageIcon(image);
-			final int maxWidth = getPreferredSize().width - WIDTH_PAD * 2;
+			final int maxWidth = getPreferredSize().width - (WIDTH_PAD << 1);
 			if(tmpIcon.getIconWidth() > maxWidth)
 				thumbnail = new ImageIcon(tmpIcon.getImage().getScaledInstance(maxWidth, -1, Image.SCALE_DEFAULT));
 			else

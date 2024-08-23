@@ -105,7 +105,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 		noteLabel = new JLabel("Note:");
 		noteTextPreview = TextPreviewPane.createWithPreview(this);
-		noteTextPreview.setTextViewFont(copyrightField.getFont());
 
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
@@ -114,6 +113,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, this::saveData);
 
 		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
+		noteTextPreview.setTextViewFont(copyrightField.getFont());
+		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 	}

@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ImagePreview;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -118,6 +119,8 @@ public final class MediaDialog extends CommonListDialog{
 	private JCheckBox restrictionCheckBox;
 
 	private JButton photoCropButton;
+
+	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -219,7 +222,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -255,6 +258,10 @@ public final class MediaDialog extends CommonListDialog{
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, () -> {
 			String identifier = GUIHelper.getTextTrimmed(fileField);
@@ -424,6 +431,7 @@ public final class MediaDialog extends CommonListDialog{
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("link", recordPanelLink);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -533,6 +541,9 @@ public final class MediaDialog extends CommonListDialog{
 		enablePhotoRelatedButtons(identifier);
 
 		photoCropButtonEnabledBorder(identifier, mediaID);
+
+		historyPanel.withReference(TABLE_NAME, mediaID);
+		historyPanel.loadData();
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
 	}
@@ -845,6 +856,18 @@ public final class MediaDialog extends CommonListDialog{
 
 							eventDialog.setLocationRelativeTo(null);
 							eventDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + mediaID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

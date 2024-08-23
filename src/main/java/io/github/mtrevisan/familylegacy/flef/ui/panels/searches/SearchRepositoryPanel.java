@@ -65,7 +65,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 
-	private static final String TABLE_NAME_REPOSITORY = "repository";
+	private static final String TABLE_NAME = "repository";
 	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_PERSON_NAME = "person_name";
 	private static final String TABLE_NAME_PLACE = "place";
@@ -84,12 +84,6 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchRepositoryPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TYPE, 0, TABLE_PREFERRED_WIDTH_TYPE);
@@ -98,8 +92,8 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_REPOSITORY;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -115,7 +109,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, textComparator};
 	}
@@ -126,7 +120,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_REPOSITORY);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -159,7 +153,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			model.setValueAt(personName, row, TABLE_INDEX_PERSON);
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_REPOSITORY, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
 
 			row ++;
 		}
@@ -313,8 +307,8 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchRepositoryPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchRepositoryPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -79,12 +80,31 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private JButton culturalNormButton;
 	private JCheckBox restrictionCheckBox;
 
+	private HistoryPanel historyPanel;
+
 	private String filterReferenceTable;
 	private int filterReferenceID;
 
 
 	public static NoteDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new NoteDialog(store, parent);
+		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static NoteDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static NoteDialog createModificationRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.showRecordHistory = false;
+		dialog.initialize();
+		return dialog;
 	}
 
 
@@ -127,7 +147,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -143,16 +163,21 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	protected void initRecordComponents(){
 		noteLabel = new JLabel("Note:");
 		noteTextPreview = TextPreviewPane.createWithPreview(this);
-		noteTextPreview.setTextViewFont(noteLabel.getFont());
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+
 
 		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
+		noteTextPreview.setTextViewFont(noteLabel.getFont());
+		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 		noteTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
@@ -182,7 +207,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		if(!showRecordOnly)
+			recordTabbedPane.add("other", recordPanelOther);
+		if(showRecordHistory)
+			recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -220,18 +248,22 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void fillData(){
+		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
-		noteTextPreview.setText("Note " + extractRecordID(selectedRecord), note, locale);
+		noteTextPreview.setText("Note " + noteID, note, locale);
 		localeField.setText(locale);
 
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, noteID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -339,6 +371,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final NoteDialog dialog = create(store, parent);
+//			final NoteDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(note1)))
 				dialog.showNewRecord();
@@ -383,6 +416,18 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 							mediaDialog.setLocationRelativeTo(dialog);
 							mediaDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer modificationNoteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + noteID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(modificationNoteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

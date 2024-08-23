@@ -56,7 +56,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-public class SearchUnionPanel extends CommonSearchPanel{
+public class SearchGroupPanel extends CommonSearchPanel{
 
 	@Serial
 	private static final long serialVersionUID = 4199513069798359051L;
@@ -76,7 +76,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 
-	private static final String TABLE_NAME_GROUP = "group";
+	private static final String TABLE_NAME = "group";
 	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 	private static final String TABLE_NAME_PERSON = "person";
 	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
@@ -92,24 +92,18 @@ public class SearchUnionPanel extends CommonSearchPanel{
 	private static final String EVENT_TYPE_CATEGORY_UNION = "union";
 
 
-	public static SearchUnionPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchUnionPanel(store);
+	public static SearchGroupPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		return new SearchGroupPanel(store);
 	}
 
 
-	private SearchUnionPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private SearchGroupPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		super(store);
 
 
 		initComponents();
 	}
 
-
-	public final SearchUnionPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
 
 	private void initComponents(){
 		TableHelper.setColumnFixedWidth(recordTable, TABLE_INDEX_UNION_YEAR, TABLE_PREFERRED_WIDTH_YEAR);
@@ -125,8 +119,8 @@ public class SearchUnionPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_GROUP;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -145,7 +139,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator,
 			numericComparator, textComparator, numericComparator, numericComparator,
@@ -158,7 +152,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_GROUP);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -227,7 +221,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 				partners.add(partner1Name);
 			if(partner2Name != null)
 				partners.add(partner2Name);
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_GROUP, filterData, (partners.length() > 0? partners.toString(): NO_DATA)));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, (partners.length() > 0? partners.toString(): NO_DATA)));
 
 			row ++;
 		}
@@ -240,7 +234,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.map(SearchUnionPanel::extractRecordReferenceID)
+			.map(SearchGroupPanel::extractRecordReferenceID)
 			.toList());
 	}
 
@@ -248,7 +242,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 		return getRecords(TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(SearchUnionPanel::extractName)
+			.map(SearchGroupPanel::extractName)
 			.findFirst()
 			.orElse(null);
 	}
@@ -267,7 +261,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 				localizedPersonNames
 					.values().stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
-					.map(SearchUnionPanel::extractName)
+					.map(SearchGroupPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
 			});
@@ -318,7 +312,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
 		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
-		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)? TABLE_NAME_GROUP: TABLE_NAME_PERSON);
+		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)? TABLE_NAME: TABLE_NAME_PERSON);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return getRecords(TABLE_NAME_EVENT)
 			.values().stream()
@@ -345,7 +339,7 @@ public class SearchUnionPanel extends CommonSearchPanel{
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(SearchUnionPanel::extractRecordType)
+			.map(SearchGroupPanel::extractRecordType)
 			.collect(Collectors.toSet());
 	}
 
@@ -644,8 +638,8 @@ public class SearchUnionPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchUnionPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchGroupPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

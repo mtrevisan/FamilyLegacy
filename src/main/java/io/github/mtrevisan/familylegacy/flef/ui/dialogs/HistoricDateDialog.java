@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -87,6 +88,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 	private JButton assertionButton;
 	private JCheckBox restrictionCheckBox;
 
+	private HistoryPanel historyPanel;
+
 
 	public static HistoricDateDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		return new HistoricDateDialog(store, parent);
@@ -123,7 +126,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> dateComparator = (date1, date2) -> {
 			final LocalDate localDate1 = DateParser.parse(date1);
 			final LocalDate localDate2 = DateParser.parse(date2);
@@ -154,6 +157,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 		noteButton = new JButton("Notes", ICON_NOTE);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		restrictionCheckBox = new JCheckBox("Confidential");
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(dateLabel, dateField, this::saveData);
@@ -203,6 +210,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -241,7 +249,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final Integer dateID = extractRecordID(selectedRecord);
+		final Integer historicDateID = extractRecordID(selectedRecord);
 		final String date = extractRecordDate(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
@@ -250,7 +258,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
 			.entrySet().stream()
-			.filter(entry -> Objects.equals(dateID, extractRecordReferenceID(entry.getValue())))
+			.filter(entry -> Objects.equals(historicDateID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 
@@ -263,6 +271,9 @@ public final class HistoricDateDialog extends CommonListDialog{
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, historicDateID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -448,6 +459,18 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 							noteDialog.setLocationRelativeTo(dialog);
 							noteDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + historicDateID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

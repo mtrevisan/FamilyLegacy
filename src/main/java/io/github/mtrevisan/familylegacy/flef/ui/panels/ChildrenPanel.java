@@ -153,7 +153,7 @@ public class ChildrenPanel extends JPanel{
 		//for each child, scan its events and collect all that have type "adoption"
 		final Set<Integer> adoptionEventIDs = extractAdoptionEventIDs();
 		adoptions = new boolean[children.length];
-		for(int i = 0; i < adoptions.length; i ++)
+		for(int i = 0, length = adoptions.length; i < length; i ++)
 			adoptions[i] = adoptionEventIDs.contains(extractRecordID(children[i]));
 
 		setLayout(new MigLayout("insets 0", "[]0[]"));
@@ -248,7 +248,7 @@ public class ChildrenPanel extends JPanel{
 		return (index < adoptions.length && adoptions[index]);
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
@@ -297,7 +297,7 @@ public class ChildrenPanel extends JPanel{
 		return (Integer)record.get("group_id");
 	}
 
-	protected static Integer extractRecordID(final Map<String, Object> record){
+	private static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
 	}
 
@@ -305,7 +305,7 @@ public class ChildrenPanel extends JPanel{
 	Point[] getPaintingEnterPoints(){
 		final Component[] components = getComponents();
 		final Point[] enterPoints = new Point[components.length];
-		for(int i = 0; i < components.length; i ++){
+		for(int i = 0, length = components.length; i < length; i ++){
 			final Component component = components[i];
 
 			enterPoints[i] = new Point(component.getX() + component.getWidth() / 2, component.getY() + UNION_ARROW_HEIGHT);

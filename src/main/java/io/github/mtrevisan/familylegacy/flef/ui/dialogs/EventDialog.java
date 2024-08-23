@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -66,7 +67,6 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 
 
-//TODO manage historic events not linked to anything
 public final class EventDialog extends CommonListDialog{
 
 	@Serial
@@ -96,6 +96,8 @@ public final class EventDialog extends CommonListDialog{
 	private JButton noteButton;
 	private JButton mediaButton;
 	private JCheckBox restrictionCheckBox;
+
+	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -147,7 +149,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -213,8 +215,12 @@ public final class EventDialog extends CommonListDialog{
 		dateButton = new JButton("Date", ICON_CALENDAR);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		typeComboBox.setRenderer(new SeparatorComboBoxRenderer(MENU_SEPARATOR_START, MENU_SEPARATOR_END));
@@ -277,6 +283,7 @@ public final class EventDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -318,6 +325,7 @@ public final class EventDialog extends CommonListDialog{
 	protected void fillData(){
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 
+		final Integer eventID = extractRecordID(selectedRecord);
 		final Integer typeID = extractRecordTypeID(selectedRecord);
 		final String type = extractRecordType(storeEventTypes.get(typeID));
 		final String description = extractRecordDescription(selectedRecord);
@@ -341,6 +349,9 @@ public final class EventDialog extends CommonListDialog{
 		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+
+		historyPanel.withReference(TABLE_NAME, eventID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -599,6 +610,7 @@ public final class EventDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
+					final int eventID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
@@ -621,7 +633,6 @@ public final class EventDialog extends CommonListDialog{
 							historicDateDialog.setVisible(true);
 						}
 						case NOTE -> {
-							final int eventID = extractRecordID(container);
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {
@@ -636,7 +647,6 @@ public final class EventDialog extends CommonListDialog{
 							noteDialog.setVisible(true);
 						}
 						case MEDIA -> {
-							final int eventID = extractRecordID(container);
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, eventID)
@@ -684,10 +694,22 @@ public final class EventDialog extends CommonListDialog{
 							eventSuperTypeDialog.setLocationRelativeTo(dialog);
 							eventSuperTypeDialog.setVisible(true);
 						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + eventID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
+						}
 					}
 				}
 
-				private static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName,
+				private static Map<Integer, Map<String, Object>> getRecords(final String tableName,
 						final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 					return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 				}

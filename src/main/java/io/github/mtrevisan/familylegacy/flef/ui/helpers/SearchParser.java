@@ -29,13 +29,14 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.RowSorter;
 import javax.swing.SortOrder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
 
-public class SearchParser{
+public final class SearchParser{
 
 	public static final String PARAMETER_SEARCH_TEXT = "searchText";
 	public static final String PARAMETER_ADDITIONAL_FIELDS = "additionalFields";
@@ -54,7 +55,7 @@ public class SearchParser{
 		//map to store the parsing results
 		final Map<String, Object> result = new HashMap<>();
 		//list to store additional fields in X:Y format
-		final List<Map.Entry<String, String>> additionalFields = new ArrayList<>();
+		final Collection<Map.Entry<String, String>> additionalFields = new ArrayList<>();
 		//hold the main search text
 		final StringJoiner searchText = new StringJoiner(StringUtils.SPACE);
 

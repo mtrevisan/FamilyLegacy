@@ -184,7 +184,7 @@ public class LZWEncoder{
 		// Set up the necessary values
 		clearFlag = false;
 		numberOfBits = g_init_bits;
-		maxcode = MAXCODE(numberOfBits);
+		maxcode = maxCode(numberOfBits);
 
 		clearCode = 1 << (initBits - 1);
 		eofCode = clearCode + 1;
@@ -195,7 +195,7 @@ public class LZWEncoder{
 		ent = nextPixel();
 
 		hshift = 0;
-		for(fcode = HSIZE; fcode < 65536; fcode *= 2)
+		for(fcode = HSIZE; fcode < 65536; fcode <<= 1)
 			 ++ hshift;
 		hshift = 8 - hshift; // set hash code range bound
 
@@ -263,7 +263,7 @@ public class LZWEncoder{
 		}
 	}
 
-	final int MAXCODE(final int numberOfBits){
+	static int maxCode(final int numberOfBits){
 		return (1 << numberOfBits) - 1;
 	}
 
@@ -301,7 +301,7 @@ public class LZWEncoder{
 		// then increase it, if possible.
 		if(freeEntry > maxcode || clearFlag){
 			if(clearFlag){
-				maxcode = MAXCODE(numberOfBits = g_init_bits);
+				maxcode = maxCode(numberOfBits = g_init_bits);
 				clearFlag = false;
 			}
 			else{
@@ -309,7 +309,7 @@ public class LZWEncoder{
 				if(numberOfBits == MAX_BITS)
 					maxcode = MAX_MAX_CODE;
 				else
-					maxcode = MAXCODE(numberOfBits);
+					maxcode = maxCode(numberOfBits);
 			}
 		}
 

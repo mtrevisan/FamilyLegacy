@@ -62,7 +62,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 
-	private static final String TABLE_NAME_EVENT = "event";
+	private static final String TABLE_NAME = "event";
 	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
 	private static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
 	private static final String TABLE_NAME_PLACE = "place";
@@ -83,12 +83,6 @@ public class SearchEventPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchEventPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TYPE, 0, TABLE_PREFERRED_WIDTH_TYPE);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_DESCRIPTION, 0, TABLE_PREFERRED_WIDTH_DESCRIPTION);
@@ -97,8 +91,8 @@ public class SearchEventPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_EVENT;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -114,7 +108,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, numericComparator};
 	}
@@ -125,7 +119,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_EVENT);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> types = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> superTypes = getRecords(TABLE_NAME_EVENT_SUPER_TYPE);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
@@ -168,7 +162,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 			model.setValueAt(year, row, TABLE_INDEX_DATE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_EVENT, filterData, description));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, description));
 
 			row ++;
 		}
@@ -338,8 +332,8 @@ public class SearchEventPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchEventPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchEventPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

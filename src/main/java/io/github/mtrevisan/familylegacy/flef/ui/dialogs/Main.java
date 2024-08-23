@@ -418,7 +418,7 @@ public class Main{
 	}
 
 
-	protected static Integer extractRecordID(final Map<String, Object> record){
+	private static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
 	}
 

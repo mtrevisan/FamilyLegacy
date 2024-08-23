@@ -65,6 +65,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -148,6 +149,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, KeyEvent.ALT_DOWN_MASK), ACTION_MAP_KEY_NAVIGATION_FORWARD);
 		final ActionMap actionMap = getActionMap();
 		actionMap.put(ACTION_MAP_KEY_NAVIGATION_BACK, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -4059299635711242193L;
+
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				if(genealogyNavigation.goBack())
@@ -155,6 +159,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			}
 		});
 		actionMap.put(ACTION_MAP_KEY_NAVIGATION_FORWARD, new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -6542846485068325919L;
+
 			@Override
 			public void actionPerformed(final ActionEvent evt){
 				if(genealogyNavigation.goForward())
@@ -389,7 +396,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				graphics2D.drawLine(origin.x + c[0].x, origin.y + c[0].y - GENERATION_SEPARATOR_SIZE / 2,
 					origin.x + c[c.length - 1].x, origin.y + c[c.length - 1].y - GENERATION_SEPARATOR_SIZE / 2);
 				//vertical line connecting the children
-				for(int i = 0; i < c.length; i ++){
+				for(int i = 0, length = c.length; i < length; i ++){
 					final Point point = c[i];
 
 					final boolean isAdopted = childrenPanel.isChildAdopted(i);
@@ -471,7 +478,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		return extractData(personID, List.of("sex"), comparator, extractor);
 	}
 
-	private <T> T extractData(final Integer referenceID, final List<String> eventTypes, final Comparator<LocalDate> comparator,
+	private <T> T extractData(final Integer referenceID, final Collection<String> eventTypes, final Comparator<LocalDate> comparator,
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
@@ -763,16 +770,15 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.toList();
 	}
 
-	protected static Integer extractRecordID(final Map<String, Object> record){
+	private static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
 	}
 
-	protected static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName,
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
@@ -952,7 +958,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				final PersonPanel partner2 = groupPanel.getPartner2();
 				final Map<String, Object> group = groupPanel.getUnion();
 				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
-					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
+					+ ", partner 2: " + extractRecordID(partner2.getPerson()) + ", group: " + extractRecordID(group));
 			}
 
 			@Override

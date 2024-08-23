@@ -60,7 +60,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_STATUS = 50;
 	private static final int TABLE_PREFERRED_WIDTH_PRIORITY = 43;
 
-	private static final String TABLE_NAME_RESEARCH_STATUS = "research_status";
+	private static final String TABLE_NAME = "research_status";
 
 
 	public static SearchResearchStatusPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -76,12 +76,6 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchResearchStatusPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_IDENTIFIER, 0, TABLE_PREFERRED_WIDTH_IDENTIFIER);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_DESCRIPTION, 0, TABLE_PREFERRED_WIDTH_DESCRIPTION);
@@ -90,8 +84,8 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 	}
 
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_RESEARCH_STATUS;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -107,7 +101,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, textComparator, numericComparator};
 	}
@@ -118,7 +112,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_RESEARCH_STATUS);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -146,7 +140,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(status, row, TABLE_INDEX_STATUS);
 			model.setValueAt((priority != null? String.valueOf(priority): null), row, TABLE_INDEX_PRIORITY);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
 
 			row ++;
 		}
@@ -200,8 +194,8 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchResearchStatusPanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchResearchStatusPanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

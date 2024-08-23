@@ -51,7 +51,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 	private static final int TABLE_INDEX_NOTE = 2;
 
-	private static final String TABLE_NAME_NOTE = "note";
+	private static final String TABLE_NAME = "note";
 
 
 	public static SearchNotePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -64,15 +64,9 @@ public class SearchNotePanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchNotePanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	@Override
-	protected String getTableName(){
-		return TABLE_NAME_NOTE;
+	public String getTableName(){
+		return TABLE_NAME;
 	}
 
 	@Override
@@ -87,7 +81,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -98,7 +92,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME_NOTE);
+		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -119,7 +113,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_NOTE, filterData, note));
+			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, note));
 
 			row ++;
 		}
@@ -168,8 +162,8 @@ public class SearchNotePanel extends CommonSearchPanel{
 		};
 
 		EventQueue.invokeLater(() -> {
-			final SearchNotePanel panel = create(store)
-				.withLinkListener(linkListener);
+			final SearchNotePanel panel = create(store);
+			panel.setLinkListener(linkListener);
 			panel.loadData();
 
 			final JFrame frame = new JFrame();

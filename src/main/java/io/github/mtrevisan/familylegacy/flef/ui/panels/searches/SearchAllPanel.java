@@ -60,18 +60,12 @@ public class SearchAllPanel extends CommonSearchPanel{
 	}
 
 
-	public final SearchAllPanel withLinkListener(final RecordListenerInterface linkListener){
-		super.setLinkListener(linkListener);
-
-		return this;
-	}
-
 	private void initComponents(){
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TABLE_NAME, 0, TABLE_PREFERRED_WIDTH_TABLE_NAME);
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return null;
 	}
 
@@ -87,7 +81,7 @@ public class SearchAllPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, null, textComparator};
 	}

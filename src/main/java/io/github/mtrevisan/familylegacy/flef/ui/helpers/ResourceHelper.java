@@ -96,8 +96,8 @@ public final class ResourceHelper{
 			final int hints = Image.SCALE_SMOOTH;
 			return scaleImage(icon, w, h, hints);
 		}
-		catch(final IOException ex){
-			LOGGER.error(null, ex);
+		catch(final Exception e){
+			LOGGER.error(null, e);
 		}
 		return null;
 	}

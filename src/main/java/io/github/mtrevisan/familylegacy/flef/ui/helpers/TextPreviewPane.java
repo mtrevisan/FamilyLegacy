@@ -193,13 +193,13 @@ public class TextPreviewPane extends JSplitPane{
 		return pane;
 	}
 
-	private static void addPreview(TextPreviewPane pane){
+	private static void addPreview(final TextPreviewPane pane){
 		pane.textView.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyReleased(final KeyEvent event){
 				super.keyReleased(event);
 
-				pane.previewView.setText(pane.renderHtml(pane.textView.getText()));
+				pane.previewView.setText(TextPreviewPane.renderHtml(pane.textView.getText()));
 			}
 		});
 
@@ -265,7 +265,7 @@ public class TextPreviewPane extends JSplitPane{
 	 * @param markdown	Code string to be rendered.
 	 * @return	HTML string.
 	 */
-	private String renderHtml(final String markdown){
+	private static String renderHtml(final String markdown){
 		if(markdown == null || markdown.isEmpty())
 			return HTML_START + HTML_END;
 
@@ -288,7 +288,7 @@ public class TextPreviewPane extends JSplitPane{
 		final Locale locale = Locale.forLanguageTag(languageTag != null? languageTag: "en-US");
 		final String body = textView.getText();
 		try(final DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)))){
-			out.write(extractHtml(locale, htmlCssFile, title, body).getBytes());
+			out.write(extractHtml(locale, htmlCssFile, title, body).getBytes(StandardCharsets.UTF_8));
 			out.close();
 			JOptionPane.showMessageDialog(this, "Export HTML successful!");
 		}
@@ -306,7 +306,7 @@ public class TextPreviewPane extends JSplitPane{
 	}
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
-	private String extractStyle(final File htmlCssFile){
+	private static String extractStyle(final File htmlCssFile){
 		String style = StringUtils.EMPTY;
 		if(htmlCssFile != null && htmlCssFile.exists()){
 			try(final DataInputStream input = new DataInputStream(new BufferedInputStream(new FileInputStream(htmlCssFile)))){
@@ -402,7 +402,7 @@ public class TextPreviewPane extends JSplitPane{
 		}
 	}
 
-	private void removeAllActionListeners(final JMenuItem menuItem){
+	private static void removeAllActionListeners(final JMenuItem menuItem){
 		final ActionListener[] actionListeners = menuItem.getActionListeners();
 		for(int i = 0, length = actionListeners.length; i < length; i ++)
 			menuItem.removeActionListener(actionListeners[i]);

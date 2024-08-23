@@ -50,6 +50,8 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -60,6 +62,7 @@ import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -68,6 +71,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -87,7 +92,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected static final int DEBOUNCE_TIME = 400;
 
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
-	protected static final int TABLE_PREFERRED_WIDTH_ID = 25;
+	private static final int TABLE_PREFERRED_WIDTH_ID = 25;
 
 	protected static final int TABLE_INDEX_ID = 0;
 	protected static final int TABLE_INDEX_FILTER = 1;
@@ -112,14 +117,18 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected volatile boolean selectRecordOnly;
 	protected volatile boolean hideUnselectButton;
 	protected volatile boolean showRecordOnly;
+	protected volatile boolean showRecordHistory;
+	protected volatile boolean shiftRightMouseClick;
 
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
+
+		showRecordHistory = true;
 	}
 
 
-	public void initialize(){
+	protected void initialize(){
 		initComponents();
 
 		initLayout();
@@ -182,6 +191,21 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				if(!ignoreEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
 					selectAction();
 			});
+		//define selection with right mouse click
+		recordTable.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent evt){
+				//with right mouse click no modification note is asked
+				if(SwingUtilities.isRightMouseButton(evt)){
+					final int row = recordTable.rowAtPoint(evt.getPoint());
+					if(row >= 0 && !recordTable.isRowSelected(row)){
+						shiftRightMouseClick = true;
+
+						recordTable.setRowSelectionInterval(row, row);
+					}
+				}
+			}
+		});
 
 		//add sorter
 		recordTable.setAutoCreateRowSorter(true);
@@ -197,7 +221,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		recordTable.setRowSorter(sorter);
 
 		final TableColumnModel columnModel = recordTable.getColumnModel();
-		final EmptyBorder cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
+		final Border cellBorder = new EmptyBorder(new Insets(2, 5, 2, 5));
 		final int[] alignments = getTableColumnAlignments();
 		final JTableHeader tableHeader = recordTable.getTableHeader();
 		final Font tableFont = recordTable.getFont();
@@ -213,7 +237,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 					cellText = value.toString();
 					final FontMetrics fm = headerCell.getFontMetrics(tableFont);
 					final int textWidth = fm.stringWidth(cellText);
-					final Insets insets = ((JComponent)headerCell).getInsets();
+					final Insets insets = ((Container)headerCell).getInsets();
 					final int cellWidth = columnModel.getColumn(column).getWidth()
 						- insets.left - insets.right;
 
@@ -248,7 +272,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 						cellText = value.toString();
 						final FontMetrics fm = cell.getFontMetrics(tableFont);
 						final int textWidth = fm.stringWidth(cellText);
-						final Insets insets = ((JComponent)cell).getInsets();
+						final Insets insets = ((Container)cell).getInsets();
 						final int cellWidth = columnModel.getColumn(column).getWidth()
 							- insets.left - insets.right;
 
@@ -350,22 +374,18 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	public final boolean selectData(final int recordID){
-		final String tableName = getTableName();
-		final Map<Integer, Map<String, Object>> records = getRecords(tableName);
-		if(records.containsKey(recordID)){
-			final TableModel model = getRecordTableModel();
-			for(int row = 0, length = model.getRowCount(); row < length; row ++){
-				final int viewRowIndex = recordTable.convertRowIndexToView(row);
-				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+		final DefaultTableModel model = getRecordTableModel();
+		for(int row = 0, length = model.getRowCount(); row < length; row ++){
+			final int viewRowIndex = recordTable.convertRowIndexToView(row);
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
-				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-					recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
-					return true;
-				}
+			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
+				recordTable.setRowSelectionInterval(viewRowIndex, viewRowIndex);
+				return true;
 			}
 		}
 
-		LOGGER.info("{} id {} does not exists", tableName, recordID);
+		LOGGER.info("{} id {} does not exists", getTableName(), recordID);
 
 		return false;
 	}
@@ -409,7 +429,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		else{
 			previousIndex = recordTable.getSelectedRow();
 
-			okAction();
+			okAction(!shiftRightMouseClick);
 
 			selectedRecord = getSelectedRecord();
 			if(selectedRecord == null)
@@ -429,6 +449,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 
 		GUIHelper.executeOnEventDispatchThread(this::requestFocusAfterSelect);
+		shiftRightMouseClick = false;
 	}
 
 	private void selectActionInner(){

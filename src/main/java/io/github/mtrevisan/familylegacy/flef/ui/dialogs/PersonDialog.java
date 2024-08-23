@@ -136,7 +136,7 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -155,7 +155,7 @@ public final class PersonDialog extends CommonListDialog{
 		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		assertionButton = new JButton("Assertions", ICON_ASSERTION);
 		eventButton = new JButton("Events", ICON_EVENT);
 		groupButton = new JButton("Groups", ICON_GROUP);
@@ -180,7 +180,7 @@ public final class PersonDialog extends CommonListDialog{
 		noteButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
 
-		mediaButton.setToolTipText("Medias");
+		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
 

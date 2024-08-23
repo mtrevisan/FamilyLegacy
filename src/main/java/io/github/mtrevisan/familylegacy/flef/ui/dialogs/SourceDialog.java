@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -87,6 +88,8 @@ public final class SourceDialog extends CommonListDialog{
 
 	private JButton citationButton;
 
+	private HistoryPanel historyPanel;
+
 	private Integer filterRepositoryID;
 
 
@@ -134,7 +137,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -169,10 +172,14 @@ public final class SourceDialog extends CommonListDialog{
 		locationField = new JTextField();
 
 		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Medias", ICON_MEDIA);
+		mediaButton = new JButton("Media", ICON_MEDIA);
 		restrictionCheckBox = new JCheckBox("Confidential");
 
 		citationButton = new JButton("Citations", ICON_CITATION);
+
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
@@ -233,6 +240,7 @@ public final class SourceDialog extends CommonListDialog{
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("children", recordPanelChildren);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -298,6 +306,9 @@ public final class SourceDialog extends CommonListDialog{
 		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
 
 		GUIHelper.addBorder(citationButton, !recordCitations.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+
+		historyPanel.withReference(TABLE_NAME, sourceID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -560,6 +571,18 @@ public final class SourceDialog extends CommonListDialog{
 
 							citationDialog.setLocationRelativeTo(dialog);
 							citationDialog.setVisible(true);
+						}
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + sourceID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
 						}
 					}
 				}

@@ -98,7 +98,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final String NO_DATA = "?";
 	private static final String[] NO_NAME = {NO_DATA, NO_DATA};
 
-	static final int SECONDARY_MAX_HEIGHT = 65;
+	private static final int SECONDARY_MAX_HEIGHT = 65;
 
 	private static final Color BACKGROUND_COLOR_NO_PERSON = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
@@ -164,7 +164,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private PersonPanel(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
 		this.boxType = boxType;
-		this.person.clear();
+		person.clear();
 		this.store = store;
 
 
@@ -189,7 +189,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		setOpaque(false);
 	}
 
-	private void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio, final double shrinkFactor){
+	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
+			final double shrinkFactor){
 		final int width = (int)Math.ceil(baseWidth / shrinkFactor);
 		final int height = (int)Math.ceil(baseWidth * aspectRatio / shrinkFactor);
 		component.setPreferredSize(new Dimension(width, height));
@@ -489,14 +490,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
 			if(parentsID != null){
-				final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+				final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 				hasParentGroup = groups.containsKey(parentsID);
 			}
 			else{
 				//prefer first adopting family
 				final List<Integer> unionIDs = getParentsIDs(childID, "adoptee");
 				if(!unionIDs.isEmpty()){
-					final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+					final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
 					hasParentGroup = groups.containsKey(unionIDs.getFirst());
 				}
 			}
@@ -523,7 +524,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
 	}
 
-	protected final TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
@@ -536,7 +537,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
-	protected static Integer extractRecordID(final Map<String, Object> record){
+	private static Integer extractRecordID(final Map<String, Object> record){
 		return (record != null? (Integer)record.get("id"): null);
 	}
 

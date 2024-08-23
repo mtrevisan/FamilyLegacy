@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
@@ -60,6 +61,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
@@ -75,6 +77,7 @@ public final class GUIHelper{
 	private static final String ACTION_MAP_KEY_REDO = "redo";
 
 	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke SHIFT_ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, KeyEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
@@ -93,11 +96,14 @@ public final class GUIHelper{
 	}
 
 
-	public static Comparator<Object> getNumericComparator(){
-		return Comparator.comparingInt(key -> {
-			final String keyString = key.toString();
-			return (StringUtils.isNotBlank(keyString)? Integer.parseInt(keyString): -1);
-		});
+	public static Comparator<String> getNumericComparator(){
+		return Comparator.comparingInt(key -> (StringUtils.isNotBlank(key)? Integer.parseInt(key): -1));
+	}
+
+	public static Comparator<String> getHumanDateComparator(){
+		return Comparator.comparingLong(key -> (StringUtils.isNotBlank(key)
+			? Instant.from(HistoryPanel.HUMAN_DATE_FORMATTER.parse(key)).getEpochSecond()
+			: -1l));
 	}
 
 
@@ -114,7 +120,7 @@ public final class GUIHelper{
 		stack.add(component);
 		while(!stack.isEmpty()){
 			final Component comp = stack.pop();
-			if(comp instanceof Container container)
+			if(comp instanceof final Container container)
 				stack.addAll(Arrays.asList(container.getComponents()));
 
 			comp.setEnabled(enabled);
@@ -354,7 +360,8 @@ public final class GUIHelper{
 	public static void addValidDataListener(final ValidDataListenerInterface validDataInterface, final Color mandatoryBackgroundColor,
 			final Color defaultBackgroundColor, final JTextComponent... components){
 		for(int i = 0, length = components.length; i < length; i ++){
-			JTextComponent component = components[i];
+			final JTextComponent component = components[i];
+
 			final Document doc = component.getDocument();
 			doc.addDocumentListener(new DocumentListener(){
 				@Override
@@ -437,7 +444,7 @@ public final class GUIHelper{
 
 	public static void addDoubleShiftListener(final JPanel panel, final Runnable onDoubleShiftPress){
 		panel.addKeyListener(new KeyAdapter(){
-			private long lastShiftPressTime = 0l;
+			private long lastShiftPressTime;
 
 			@Override
 			public void keyPressed(final KeyEvent evt){

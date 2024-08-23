@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -32,6 +33,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -81,6 +83,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private JComboBox<String> transcriptionComboBox;
 	private JLabel transcriptionTypeLabel;
 	private JComboBox<String> transcriptionTypeComboBox;
+
+	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -162,7 +166,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<Object> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -178,7 +182,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	protected void initRecordComponents(){
 		textLabel = new JLabel("Text:");
 		textTextPreview = TextPreviewPane.createWithPreview(this);
-		textTextPreview.setTextViewFont(textLabel.getFont());
 		simpleTextField = new JTextField();
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
@@ -191,6 +194,10 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized",
 			"gairaigized", "latinized"});
 
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+
 
 		if(simplePrimaryText){
 			GUIHelper.bindLabelTextChangeUndo(textLabel, simpleTextField, this::saveData);
@@ -198,6 +205,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		}
 		else{
 			GUIHelper.bindLabelTextChange(textLabel, textTextPreview, this::saveData);
+			textTextPreview.setTextViewFont(textLabel.getFont());
+			textTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 			textTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 		}
 
@@ -225,6 +234,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		recordPanelBase.add(transcriptionTypeComboBox, "grow");
 
 		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -275,6 +285,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void fillData(){
+		final Integer localizedTextID = extractRecordID(selectedRecord);
 		final String text = extractRecordText(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
@@ -284,7 +295,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		if(simplePrimaryText)
 			simpleTextField.setText(text);
 		else
-			textTextPreview.setText("Extract " + extractRecordID(selectedRecord), text, locale);
+			textTextPreview.setText("Extract " + localizedTextID, text, locale);
 		localeField.setText(locale);
 		typeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
@@ -292,10 +303,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		if(filterReferenceTable == null){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedTextDialog::extractRecordLocalizedTextID, extractRecordID(selectedRecord));
+				LocalizedTextDialog::extractRecordLocalizedTextID, localizedTextID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
+
+		historyPanel.withReference(TABLE_NAME, localizedTextID);
+		historyPanel.loadData();
 	}
 
 	@Override
@@ -445,6 +459,26 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				public void error(final BusExceptionEvent exceptionEvent){
 					final Throwable cause = exceptionEvent.getCause();
 					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				@EventHandler
+				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
+					final int localizedTextID = extractRecordID(container);
+					switch(editCommand.getType()){
+						case MODIFICATION_HISTORY -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + localizedTextID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.setLocationRelativeTo(null);
+							changeNoteDialog.setVisible(true);
+						}
+					}
 				}
 			};
 			EventBusService.subscribe(listener);

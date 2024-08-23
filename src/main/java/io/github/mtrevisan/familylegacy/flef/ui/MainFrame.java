@@ -220,8 +220,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final PersonPanel partner1 = groupPanel.getPartner1();
 		final PersonPanel partner2 = groupPanel.getPartner2();
 		final Map<String, Object> group = groupPanel.getUnion();
-		LOGGER.debug("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(partner1.getPerson())
-			+ ", partner 2: " + extractRecordID(partner2.getPerson()) + "group: " + extractRecordID(group));
+		LOGGER.debug("onLinkPersonToSiblingGroup (partner 1: {}, partner 2: {}, group: {}", extractRecordID(partner1.getPerson()),
+			extractRecordID(partner2.getPerson()), extractRecordID(group));
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(store, this);
 		dialog.loadData();
@@ -281,8 +281,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final int parentIndex = (isPartner1? GenealogicalTree.getLeftChild(index): GenealogicalTree.getRightChild(index));
 		final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(parentIndex);
 		final Map<String, Object> currentParents = treeUnionPanel.getUnion();
-		LOGGER.debug("onGroupChangeParents person: " + extractRecordID(personPanel.getPerson())
-			+ ", current parents: " + extractRecordID(currentParents) + ", new parents: " + extractRecordID(newParents));
+		LOGGER.debug("onGroupChangeParents person: {}, current parents: {}, new parents: {}", extractRecordID(personPanel.getPerson()),
+			extractRecordID(currentParents), extractRecordID(newParents));
 
 		//TODO
 	}
@@ -291,8 +291,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	public void onPersonChangeUnion(final GroupPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
 			final Map<String, Object> newUnion){
 		final Map<String, Object> oldUnion = groupPanel.getUnion();
-		LOGGER.debug("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson()) + ", old union: " + extractRecordID(oldUnion)
-			+ ", new partner: " + extractRecordID(newPartner) + ", new union: " + extractRecordID(newUnion));
+		LOGGER.debug("onPersonChangeUnion old partner: {}, old union: {}, new partner: {}, new union: {}",
+			extractRecordID(oldPartner.getPerson()), extractRecordID(oldUnion), extractRecordID(newPartner), extractRecordID(newUnion));
 
 		final PersonPanel partner1 = groupPanel.getPartner1();
 		final PersonPanel partner2 = groupPanel.getPartner2();
@@ -351,7 +351,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Integer unionID = extractRecordID(currentParents);
 
 						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
-						Map<String, Object> groupJunction = new HashMap<>();
+						final Map<String, Object> groupJunction = new HashMap<>();
 						groupJunction.put("id", extractNextRecordID(groupJunctions));
 						groupJunction.put("group_id", unionID);
 						groupJunction.put("reference_table", TABLE_NAME_PERSON);
@@ -555,7 +555,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	@Override
 	public void onPersonEditPreferredImage(final PersonPanel personPanel){
 		final Map<String, Object> person = personPanel.getPerson();
-		LOGGER.debug("onEditPreferredImage " + extractRecordID(person));
+		LOGGER.debug("onEditPreferredImage {}", extractRecordID(person));
 
 		final MediaDialog photoDialog = MediaDialog.createRecordOnly(store, this)
 			//FIXME add path of flef file as base path
