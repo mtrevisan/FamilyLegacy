@@ -130,7 +130,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		superTypeComboBox.addActionListener(updateCategoryComboBox);
 		updateCategoryComboBox.actionPerformed(null);
 
-		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, null);
+		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, this::saveData);
 		addMandatoryField(typeField);
 
 		GUIHelper.bindLabelSelectionAutoCompleteChange(categoryLabel, categoryComboBox, this::saveData);
