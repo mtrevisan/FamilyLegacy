@@ -66,6 +66,8 @@ public final class StringHelper{
 	 */
 	public static String pluralize(String text){
 		text = StringUtils.replaceChars(text, '_', ' ');
+		if(text.endsWith("y"))
+			return text.substring(0, text.length() - 1) + "ies";
 		return text + (text.endsWith("us")? "es": "s");
 	}
 

@@ -58,7 +58,9 @@ public class EditEvent{
 
 		REFERENCE,
 
-		MODIFICATION_HISTORY
+		MODIFICATION_HISTORY,
+
+		SEARCH
 	}
 
 

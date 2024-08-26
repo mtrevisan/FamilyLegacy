@@ -99,14 +99,28 @@ public final class AssertionDialog extends CommonListDialog{
 
 
 	public static AssertionDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new AssertionDialog(store, parent);
+		final AssertionDialog dialog = new AssertionDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static AssertionDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final AssertionDialog dialog = new AssertionDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static AssertionDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final AssertionDialog dialog = new AssertionDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private AssertionDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -565,6 +579,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = create(store, parent);
+//			final AssertionDialog dialog = createRecordOnly(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(assertion)))
@@ -593,8 +608,7 @@ public final class AssertionDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -608,8 +622,7 @@ public final class AssertionDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
@@ -622,8 +635,7 @@ public final class AssertionDialog extends CommonListDialog{
 								});
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setLocationRelativeTo(dialog);
-							culturalNormDialog.setVisible(true);
+							culturalNormDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -634,8 +646,7 @@ public final class AssertionDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -649,8 +660,7 @@ public final class AssertionDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

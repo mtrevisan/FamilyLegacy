@@ -127,6 +127,13 @@ public final class GroupDialog extends CommonListDialog{
 		return dialog;
 	}
 
+	public static GroupDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final GroupDialog dialog = new GroupDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static GroupDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
 		dialog.showRecordOnly = true;
@@ -304,22 +311,18 @@ public final class GroupDialog extends CommonListDialog{
 		recordPanelOther.add(groupButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
+		recordPanelLink.add(linkRoleLabel, "align label,sizegroup lbl,split 2");
+		recordPanelLink.add(linkRoleField, "grow,wrap paragraph");
+		recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
+		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
+		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
+		recordPanelLink.add(linkCredibilityComboBox);
+		recordPanelLink.setEnabled(filterReferenceTable != null);
+
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-
-		if(!showRecordOnly){
-			final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-			recordPanelLink.add(linkRoleLabel, "align label,sizegroup lbl,split 2");
-			recordPanelLink.add(linkRoleField, "grow,wrap paragraph");
-			recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
-			recordPanelLink.add(linkCertaintyComboBox, "wrap related");
-			recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
-			recordPanelLink.add(linkCredibilityComboBox);
-			recordPanelLink.setEnabled(filterReferenceTable != null);
-
-			recordTabbedPane.add("link", recordPanelLink);
-		}
-
+		recordTabbedPane.add("link", recordPanelLink);
 		recordTabbedPane.add("history", historyPanel);
 	}
 
@@ -428,7 +431,7 @@ public final class GroupDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, groupID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", ((filterReferenceTable != null ||showRecordOnly) && selectedRecord != null));
 	}
 
 	@Override
@@ -759,15 +762,20 @@ public final class GroupDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final GroupDialog dialog = create(store, parent)
-				.withReference("group", 2);
+//			final GroupDialog dialog = create(store, parent)
+//				.withReference("group", 2);
+
 //			final GroupDialog dialog = createRecordOnly(store, parent)
 //				.withReference("person", 1);
-			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(group2)))
-				dialog.showNewRecord();
-//			final GroupDialog dialog = createRecordOnly(store, parent);
-//			dialog.loadData(group1);
+
+			final GroupDialog dialog = createRecordOnly(store, parent);
+			dialog.loadData(2);
+
+//			final GroupDialog dialog = createRecordOnly(store, parent)
+//				.withReference("group", 2);
+//			dialog.loadData();
+//			if(!dialog.selectData(extractRecordID(group2)))
+//				dialog.showNewRecord();
 
 			final Object listener = new Object(){
 				@EventHandler
@@ -801,8 +809,7 @@ public final class GroupDialog extends CommonListDialog{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setLocationRelativeTo(dialog);
-							photoDialog.setVisible(true);
+							photoDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
@@ -824,8 +831,7 @@ public final class GroupDialog extends CommonListDialog{
 								}
 
 								photoCropDialog.setSize(420, 295);
-								photoCropDialog.setLocationRelativeTo(dialog);
-								photoCropDialog.setVisible(true);
+								photoCropDialog.showDialog();
 							}
 							catch(final IOException ignored){}
 						}
@@ -840,8 +846,7 @@ public final class GroupDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
@@ -854,8 +859,7 @@ public final class GroupDialog extends CommonListDialog{
 								});
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setLocationRelativeTo(dialog);
-							culturalNormDialog.setVisible(true);
+							culturalNormDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -869,32 +873,28 @@ public final class GroupDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, groupID);
 							groupDialog.loadData();
 
-							groupDialog.setLocationRelativeTo(null);
-							groupDialog.setVisible(true);
+							groupDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -905,8 +905,7 @@ public final class GroupDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -920,8 +919,7 @@ public final class GroupDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

@@ -397,8 +397,7 @@ public abstract class CommonRecordDialog extends JDialog{
 				changeNoteDialog.setTitle("Change note for " + title + " " + recordID);
 				changeNoteDialog.showNewRecord();
 
-				changeNoteDialog.setLocationRelativeTo(null);
-				changeNoteDialog.setVisible(true);
+				changeNoteDialog.showDialog();
 			}
 
 

@@ -89,8 +89,7 @@ public class Main{
 //							if(repositoryID != null)
 //								repositoryDialog.selectData(repositoryID);
 //
-//							repositoryDialog.setLocationRelativeTo(null);
-//							repositoryDialog.setVisible(true);
+//							repositoryDialog.show();
 //						}
 
 						//from: repository
@@ -106,8 +105,7 @@ public class Main{
 							if(sourceID != null)
 								sourceDialog.selectData(sourceID);
 
-							sourceDialog.setLocationRelativeTo(null);
-							sourceDialog.setVisible(true);
+							sourceDialog.showDialog();
 						}
 
 						//from: source
@@ -123,8 +121,7 @@ public class Main{
 							if(citationID != null)
 								citationDialog.selectData(citationID);
 
-							citationDialog.setLocationRelativeTo(dialog);
-							citationDialog.setVisible(true);
+							citationDialog.showDialog();
 						}
 
 						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
@@ -133,8 +130,7 @@ public class Main{
 								.withReference(tableName, recordID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 
 
@@ -146,8 +142,7 @@ public class Main{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setLocationRelativeTo(null);
-							historicDateDialog.setVisible(true);
+							historicDateDialog.showDialog();
 						}
 
 						//from: historic date
@@ -159,8 +154,7 @@ public class Main{
 							if(calendarID != null)
 								calendarDialog.selectData(calendarID);
 
-							calendarDialog.setLocationRelativeTo(dialog);
-							calendarDialog.setVisible(true);
+							calendarDialog.showDialog();
 						}
 
 
@@ -173,8 +167,7 @@ public class Main{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setLocationRelativeTo(null);
-							placeDialog.setVisible(true);
+							placeDialog.showDialog();
 						}
 
 
@@ -191,8 +184,7 @@ public class Main{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 
 
@@ -208,8 +200,7 @@ public class Main{
 								});
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedTextDialog.showDialog();
 						}
 
 						//from: person name
@@ -222,8 +213,7 @@ public class Main{
 								});
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedTextDialog.showDialog();
 						}
 
 						//from: place
@@ -238,8 +228,7 @@ public class Main{
 								});
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedTextDialog.showDialog();
 						}
 
 
@@ -259,8 +248,7 @@ public class Main{
 							if(mediaID != null)
 								mediaDialog.selectData(mediaID);
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 
 						//from: person, group, place
@@ -284,8 +272,7 @@ public class Main{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setLocationRelativeTo(dialog);
-							photoDialog.setVisible(true);
+							photoDialog.showDialog();
 						}
 
 						//from: person, group, media, place
@@ -309,8 +296,7 @@ public class Main{
 								}
 
 								photoCropDialog.setSize(420, 295);
-								photoCropDialog.setLocationRelativeTo(dialog);
-								photoCropDialog.setVisible(true);
+								photoCropDialog.showDialog();
 							}
 							catch(final IOException ignored){}
 						}
@@ -325,8 +311,7 @@ public class Main{
 							if(personID != null)
 								personDialog.selectData(personID);
 
-							personDialog.setLocationRelativeTo(null);
-							personDialog.setVisible(true);
+							personDialog.showDialog();
 						}
 
 						//from: person
@@ -341,8 +326,7 @@ public class Main{
 								});
 							personNameDialog.loadData();
 
-							personNameDialog.setLocationRelativeTo(null);
-							personNameDialog.setVisible(true);
+							personNameDialog.showDialog();
 						}
 
 
@@ -355,8 +339,7 @@ public class Main{
 							if(groupID != null)
 								groupDialog.selectData(groupID);
 
-							groupDialog.setLocationRelativeTo(null);
-							groupDialog.setVisible(true);
+							groupDialog.showDialog();
 						}
 
 
@@ -366,8 +349,7 @@ public class Main{
 								.withReference(tableName, recordID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 
 
@@ -386,8 +368,7 @@ public class Main{
 							if(culturalNormID != null)
 								culturalNormDialog.selectData(culturalNormID);
 
-							culturalNormDialog.setLocationRelativeTo(dialog);
-							culturalNormDialog.setVisible(true);
+							culturalNormDialog.showDialog();
 						}
 
 
@@ -412,8 +393,7 @@ public class Main{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

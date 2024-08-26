@@ -41,10 +41,14 @@ public interface DatabaseManagerInterface{
 
 	Map<String, Integer> extractGroupIdentifierToIDMap(String tableName);
 
+
 	void insertDatabase(Map<String, TreeMap<Integer, Map<String, Object>>> database) throws SQLException;
+
 
 	void insert(String tableName, Map<String, Object> record) throws SQLException;
 
 	void update(String tableName, Map<String, Object> record) throws SQLException;
+
+	void delete(String tableName, Map<String, Object> record) throws SQLException;
 
 }

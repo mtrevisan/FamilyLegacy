@@ -40,9 +40,12 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.AbstractMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -57,9 +60,18 @@ public class DatabaseManager implements DatabaseManagerInterface{
 
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+(\"?[^\\s\\r\\n(]+\"?)[^;]*?;");
 	//https://stackoverflow.com/questions/6720050/foreign-key-constraints-when-to-use-on-update-and-on-delete
-	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(([^\\s]+)\\s+[^\\s]+\\s+)?(FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(?:DELETE|UPDATE)\\s+[^,);\r\n]+)?),?");
-	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?FOREIGN\\s+KEY.*?;");
+	private static final String FOREIGN_KEY_TRUE_PATTERN = "FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(DELETE\\s+(CASCADE|SET\\s+NULL|NO\\s+ACTION|RESTRICT)|UPDATE))?";
+	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(" + FOREIGN_KEY_TRUE_PATTERN + "),?");
+	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?" + FOREIGN_KEY_TRUE_PATTERN + ";");
+
+	private static final String NO_ACTION = "NO ACTION";
+	private static final String ALTER_TABLE_ADD_FOREIGN_KEY_ON_DELETE = "ALTER TABLE %s ADD FOREIGN KEY (\"%s\") REFERENCES \"%s\"(\"%s\") ON DELETE %s";
+
 	private static final Pattern PATTERN = Pattern.compile("(,[\\s\\r\\n]+){1,}\\)");
+
+
+	private record ForeignKeyRule(String foreignKeyColumn, String onDelete){}
+	private record DeletionTask(String tableName, String primaryKeyColumn, String idValue){}
 
 
 	private final String jdbcURL;
@@ -67,6 +79,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	private final String password;
 
 	private Graph<String, DefaultEdge> graph;
+	private final Map<String, ForeignKeyRule> foreignKeyRules = new HashMap<>(0);
 
 
 	public DatabaseManager(final String jdbcURL, final String user, final String password){
@@ -76,6 +89,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 
+	//TODO manage on update
 	public final void initialize(final String sqlFile) throws SQLException, IOException{
 		try(final Connection connection = DriverManager.getConnection(jdbcURL, user, password)){
 			final String sql = Files.readString(Paths.get(sqlFile));
@@ -98,40 +112,50 @@ public class DatabaseManager implements DatabaseManagerInterface{
 
 				//remove inline foreign keys and add them to the foreignKeyConstraints list
 				final Matcher foreignKeyMatcher = FOREIGN_KEY_PATTERN.matcher(createTableStatement);
-				final Collection<String> currentForeignKeyConstraints = new ArrayList<>(0);
 				while(foreignKeyMatcher.find()){
-					String foreignKey = foreignKeyMatcher.group(3);
+					final String foreignKeyColumn = foreignKeyMatcher.group(3);
+					final String referencedTable = foreignKeyMatcher.group(4);
+					final String referencedColumn = foreignKeyMatcher.group(5);
+					final String onDeleteAction = (foreignKeyMatcher.group(8) != null? foreignKeyMatcher.group(8): NO_ACTION);
 
-					createTableStatement = createTableStatement.replaceAll(Pattern.quote(foreignKey), "");
+					//remove inline foreign keys
+					createTableStatement = createTableStatement.replaceAll(Pattern.quote(foreignKeyMatcher.group()), "");
 
-					if(foreignKeyMatcher.group(4) == null)
-						//add table column
-						foreignKey = foreignKey.replace("REFERENCES", "(" + foreignKeyMatcher.group(2) + ") REFERENCES");
-
-					final String plainTableNameFrom = StringUtils.replaceChars(foreignKeyMatcher.group(6), "\"", "");
+					//add directed edge in the graph
+					final String plainTableNameFrom = StringUtils.replaceChars(referencedTable, "\"", "");
 					if(!plainTableNameFrom.equalsIgnoreCase(plainTableNameTo)){
 						directedEdgesFrom.add(plainTableNameFrom);
 						directedEdgesTo.add(plainTableNameTo);
 					}
 
-					foreignKey = "ALTER TABLE " + tableName + " ADD " + foreignKey;
+					final String foreignKey = String.format(ALTER_TABLE_ADD_FOREIGN_KEY_ON_DELETE,
+						tableName, foreignKeyColumn, referencedTable, referencedColumn, onDeleteAction);
 
-					currentForeignKeyConstraints.add(foreignKey);
+					foreignKeyConstraints.add(foreignKey);
+
+					//store foreign key rule
+					final String key = plainTableNameTo + "." + foreignKeyColumn;
+					foreignKeyRules.put(key, new ForeignKeyRule(foreignKeyColumn, onDeleteAction));
 				}
 
-				createTableStatement = PATTERN.matcher(createTableStatement.replaceAll("--[^\\r\\n]+[\\r\\n]+", "")
-					.replaceAll("/*.*?\\*/", ""))
-					.replaceAll(")");
+				createTableStatement = cleanCreateTableStatement(createTableStatement);
 				tableCreations.add(createTableStatement);
-				foreignKeyConstraints.addAll(currentForeignKeyConstraints);
 			}
 
 			for(int i = 0, length = directedEdgesFrom.size(); i < length; i ++)
 				graph.addEdge(directedEdgesFrom.get(i), directedEdgesTo.get(i));
 
 			final Matcher foreignKeyMatcher = ALTER_TABLE_PATTERN.matcher(sql);
-			while(foreignKeyMatcher.find())
+			while(foreignKeyMatcher.find()){
 				foreignKeyConstraints.add(foreignKeyMatcher.group());
+
+				//store foreign key rule
+				final String tableName = foreignKeyMatcher.group(1);
+				final String foreignKeyColumn = foreignKeyMatcher.group(2);
+				final String onDeleteAction = (foreignKeyMatcher.group(6) != null? foreignKeyMatcher.group(6): NO_ACTION);
+				final String key = tableName + "." + foreignKeyColumn;
+				foreignKeyRules.put(key, new ForeignKeyRule(foreignKeyColumn, onDeleteAction));
+			}
 
 			//execute table creation scripts
 			for(final String tableCreation : tableCreations)
@@ -143,6 +167,33 @@ public class DatabaseManager implements DatabaseManagerInterface{
 
 			System.out.println("Database initialized successfully.");
 		}
+	}
+
+	private static String cleanCreateTableStatement(final String createTableStatement){
+		final String commentFreeLine = createTableStatement.replaceAll("--[^\\r\\n]+[\\r\\n]+", "")
+			.replaceAll("/\\*.*?\\*/", "")
+			.replaceAll("\\s+", " ")
+			.trim();
+		return PATTERN.matcher(commentFreeLine)
+			.replaceAll(")");
+	}
+
+	/** NOTE: remember to appropriately manage on "CASCADE", "SET NULL", on "RESTRICT". */
+	public Collection<Map.Entry<String, String>> extractForeignRecordsUponDelete(final String tableName){
+		final Collection<Map.Entry<String, String>> result = new ArrayList<>(0);
+		for(final DefaultEdge edge : graph.outgoingEdgesOf(tableName)){
+			final String dependentTable = graph.getEdgeTarget(edge);
+
+			final ForeignKeyRule rule = foreignKeyRules.get(dependentTable);
+			if(rule == null)
+				continue;
+
+			final String foreignKeyColumn = rule.foreignKeyColumn();
+			final String onDelete = rule.onDelete();
+			result.add(new AbstractMap.SimpleEntry<>(foreignKeyColumn, onDelete));
+
+		}
+		return result;
 	}
 
 
@@ -254,18 +305,23 @@ public class DatabaseManager implements DatabaseManagerInterface{
 		}
 	}
 
+
 	@Override
 	public final void insert(final String tableName, final Map<String, Object> record) throws SQLException{
 		final int length = record.size();
 		final StringJoiner sql = new StringJoiner(", ",
-			"INSERT INTO \"" + tableName.toUpperCase(Locale.ROOT) + "\" (",
+			"INSERT INTO " + getTableName(tableName) + " (",
 			") VALUES (" + StringUtils.repeat(", ?", length).substring(2) + ")");
 		final Object[] fields = new Object[length];
 
+		//collect values
 		int index = 0;
 		for(final Map.Entry<String, Object> entry : record.entrySet()){
-			sql.add(entry.getKey().toUpperCase(Locale.ROOT));
-			fields[index] = entry.getValue();
+			final String key = entry.getKey();
+			final Object value = entry.getValue();
+
+			sql.add(key.toUpperCase(Locale.ROOT));
+			fields[index] = value;
 
 			index ++;
 		}
@@ -280,21 +336,127 @@ public class DatabaseManager implements DatabaseManagerInterface{
 		}
 	}
 
-
 	@Override
 	public final void update(final String tableName, final Map<String, Object> record) throws SQLException{
 		final StringJoiner sql = new StringJoiner(", ",
-			"UPDATE \"" + tableName.toUpperCase(Locale.ROOT) + "\" SET ",
+			"UPDATE " + getTableName(tableName) + " SET ",
 			" WHERE ID = " + record.get("id"));
-		for(final Map.Entry<String, Object> entry : record.entrySet())
-			if(!"id".equalsIgnoreCase(entry.getKey()))
-				sql.add(entry.getKey().toUpperCase(Locale.ROOT) + " = " + entry.getValue());
+		//TODO speed up execution?
+		for(final Map.Entry<String, Object> entry : record.entrySet()){
+			final String key = entry.getKey();
+			final Object value = entry.getValue();
+
+			if(!"id".equalsIgnoreCase(key))
+				sql.add(key.toUpperCase(Locale.ROOT) + " = " + value);
+		}
 
 		try(
-			final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-			final PreparedStatement stmt = connection.prepareStatement(sql.toString())){
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql.toString())){
 			stmt.executeUpdate();
 		}
+	}
+
+	@Override
+	public final void delete(final String tableName, final Map<String, Object> record) throws SQLException{
+		final String sql = "DELETE FROM " + getTableName(tableName) + " WHERE ID = " + record.get("id");
+
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
+			stmt.executeUpdate();
+		}
+	}
+
+	public void simulateDeletion(final String tableName, final Map<String, Object> record) throws SQLException{
+		final String idValue = (String)record.get("id");
+
+		final Deque<DeletionTask> queue = new ArrayDeque<>();
+		queue.add(new DeletionTask(tableName, "id", idValue));
+		while(!queue.isEmpty()){
+			final DeletionTask task = queue.poll();
+
+			//propagate deletion to employee records
+			final String currentTable = task.tableName;
+			for(final DefaultEdge edge : graph.outgoingEdgesOf(currentTable)){
+				final String dependentTable = graph.getEdgeTarget(edge);
+
+				final ForeignKeyRule rule = foreignKeyRules.get(dependentTable);
+				if(rule == null)
+					continue;
+
+				final String foreignKeyColumn = rule.foreignKeyColumn;
+				switch(rule.onDelete){
+					case "CASCADE":
+						final List<String> affectedIDs = deleteCascade(dependentTable, foreignKeyColumn, task.idValue);
+						for(final String affectedId : affectedIDs)
+							queue.add(new DeletionTask(dependentTable, foreignKeyColumn, affectedId));
+						break;
+
+					case "SET NULL":
+						setForeignKeyToNull(dependentTable, foreignKeyColumn, task.idValue);
+						break;
+
+					case NO_ACTION:
+						//no action could be handled here
+						break;
+
+					case "RESTRICT":
+						throw new SQLException("Cannot remove record, there's a reference to it from table " + dependentTable + ", foreign key column " + foreignKeyColumn + " ");
+
+					default:
+						throw new UnsupportedOperationException("Unsupported ON DELETE action: " + rule.onDelete);
+				}
+			}
+
+			//delete the record in the current table
+			deleteRecord(currentTable, task.primaryKeyColumn, task.idValue);
+		}
+	}
+
+	private List<String> deleteCascade(final String tableName, final String foreignKeyColumn, final String idValue) throws SQLException{
+		final String sql = String.format("DELETE FROM %s WHERE %s = ? RETURNING %s", getTableName(tableName), foreignKeyColumn,
+			foreignKeyColumn);
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
+			stmt.setString(1, idValue);
+			return executeAndGetDeletedIds(stmt);
+		}
+	}
+
+	private void setForeignKeyToNull(final String tableName, final String foreignKeyColumn, final String idValue) throws SQLException{
+		final String sql = String.format("UPDATE %s SET %s = NULL WHERE %s = ?", getTableName(tableName), foreignKeyColumn, foreignKeyColumn);
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
+			stmt.setString(1, idValue);
+			stmt.executeUpdate();
+		}
+	}
+
+	private void deleteRecord(final String tableName, final String primaryKeyColumn, final String idValue) throws SQLException{
+		final String sql = String.format("DELETE FROM %s WHERE %s = ?", getTableName(tableName), primaryKeyColumn);
+		try(
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
+			stmt.setString(1, idValue);
+			stmt.executeUpdate();
+		}
+	}
+
+	private static List<String> executeAndGetDeletedIds(final PreparedStatement statement) throws SQLException{
+		final List<String> deletedIds = new ArrayList<>();
+		statement.execute();
+		try(final ResultSet result = statement.getResultSet()){
+			while(result != null && result.next())
+				deletedIds.add(result.getString(1));
+		}
+		return deletedIds;
+	}
+
+	private static String getTableName(String tableName){
+		return "\"" + tableName.toUpperCase(Locale.ROOT) + "\"";
 	}
 
 }

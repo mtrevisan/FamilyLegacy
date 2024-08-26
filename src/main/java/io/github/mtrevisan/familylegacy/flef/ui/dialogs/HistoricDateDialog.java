@@ -92,14 +92,28 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 
 	public static HistoricDateDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new HistoricDateDialog(store, parent);
+		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static HistoricDateDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static HistoricDateDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private HistoricDateDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -413,6 +427,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final HistoricDateDialog dialog = create(store, parent);
+//			final HistoricDateDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(historicDate1)))
 				dialog.showNewRecord();
@@ -434,8 +449,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, historicDateID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
@@ -443,8 +457,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
 
-							calendarDialog.setLocationRelativeTo(dialog);
-							calendarDialog.setVisible(true);
+							calendarDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -457,8 +470,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -469,8 +481,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -484,8 +495,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

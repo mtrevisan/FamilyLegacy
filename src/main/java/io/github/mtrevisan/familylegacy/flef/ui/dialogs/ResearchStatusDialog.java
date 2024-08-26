@@ -87,14 +87,28 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 
 	public static ResearchStatusDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new ResearchStatusDialog(store, parent);
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static ResearchStatusDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static ResearchStatusDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -388,6 +402,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 			final ResearchStatusDialog dialog = create(store, parent);
+//			final ResearchStatusDialog dialog = createRecordOnly(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(researchStatus)))
@@ -400,8 +415,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

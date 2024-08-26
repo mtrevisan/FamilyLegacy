@@ -93,6 +93,20 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		return dialog;
 	}
 
+	public static LocalizedPersonNameDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static LocalizedPersonNameDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 
 	private LocalizedPersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
@@ -411,6 +425,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedPersonNameDialog dialog = create(store, parent);
+//			final LocalizedPersonNameDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedPersonName1)))
 				dialog.showNewRecord();
@@ -436,8 +451,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -452,8 +466,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 				}
 			});
 			//with secondary
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

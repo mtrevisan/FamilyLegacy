@@ -170,6 +170,11 @@ public final class PhotoCropDialog extends JDialog{
 		return imageHolder.getCrop();
 	}
 
+	public void showDialog(){
+		setLocationRelativeTo(getParent());
+		setVisible(true);
+	}
+
 
 	public static void main(final String[] args){
 		try{
@@ -220,14 +225,13 @@ public final class PhotoCropDialog extends JDialog{
 				}
 			});
 			dialog.setSize(420, 295);
-			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
 				public void componentResized(final java.awt.event.ComponentEvent e) {
 					System.out.println("Resized to " + e.getComponent().getSize());
 				}
 			});
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

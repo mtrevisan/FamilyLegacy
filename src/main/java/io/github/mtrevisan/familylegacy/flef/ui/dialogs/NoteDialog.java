@@ -92,6 +92,13 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
+	public static NoteDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static NoteDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.showRecordOnly = true;
@@ -399,8 +406,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								});
 							culturalNormDialog.loadData();
 
-							culturalNormDialog.setLocationRelativeTo(dialog);
-							culturalNormDialog.setVisible(true);
+							culturalNormDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -414,8 +420,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -426,8 +431,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(modificationNoteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -441,8 +445,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

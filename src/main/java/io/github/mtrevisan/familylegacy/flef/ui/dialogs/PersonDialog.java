@@ -527,8 +527,7 @@ public final class PersonDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case PERSON_NAME -> {
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(store, parent)
@@ -541,8 +540,7 @@ public final class PersonDialog extends CommonListDialog{
 								});
 							personNameDialog.loadData();
 
-							personNameDialog.setLocationRelativeTo(null);
-							personNameDialog.setVisible(true);
+							personNameDialog.showDialog();
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
@@ -563,8 +561,7 @@ public final class PersonDialog extends CommonListDialog{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setLocationRelativeTo(dialog);
-							photoDialog.setVisible(true);
+							photoDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
@@ -586,8 +583,7 @@ public final class PersonDialog extends CommonListDialog{
 								}
 
 								photoCropDialog.setSize(420, 295);
-								photoCropDialog.setLocationRelativeTo(dialog);
-								photoCropDialog.setVisible(true);
+								photoCropDialog.showDialog();
 							}
 							catch(final IOException ignored){}
 						}
@@ -602,8 +598,7 @@ public final class PersonDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -617,24 +612,21 @@ public final class PersonDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, personID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, personID);
 							groupDialog.loadData();
 
-							groupDialog.setLocationRelativeTo(null);
-							groupDialog.setVisible(true);
+							groupDialog.showDialog();
 						}
 					}
 				}
@@ -648,8 +640,7 @@ public final class PersonDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

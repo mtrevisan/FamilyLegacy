@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.DropMode;
 import javax.swing.InputMap;
 import javax.swing.JButton;
@@ -50,7 +49,6 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.RowFilter;
 import javax.swing.RowSorter;
-import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -71,8 +69,6 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -118,7 +114,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected volatile boolean hideUnselectButton;
 	protected volatile boolean showRecordOnly;
 	protected volatile boolean showRecordHistory;
-	protected volatile boolean shiftRightMouseClick;
 
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -191,21 +186,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				if(!ignoreEvents && !evt.getValueIsAdjusting() && recordTable.getSelectedRow() >= 0)
 					selectAction();
 			});
-		//define selection with right mouse click
-		recordTable.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent evt){
-				//with right mouse click no modification note is asked
-				if(SwingUtilities.isRightMouseButton(evt)){
-					final int row = recordTable.rowAtPoint(evt.getPoint());
-					if(row >= 0 && !recordTable.isRowSelected(row)){
-						shiftRightMouseClick = true;
-
-						recordTable.setRowSelectionInterval(row, row);
-					}
-				}
-			}
-		});
 
 		//add sorter
 		recordTable.setAutoCreateRowSorter(true);
@@ -337,7 +317,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		initRecordLayout(recordTabbedPane);
 
 		if(showRecordOnly){
-			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
+//			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
 
 			filterLabel.setVisible(false);
 			filterField.setVisible(false);
@@ -405,10 +385,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected abstract Comparator<?>[] getTableColumnComparators();
 
-	public void loadData(final Map<String, Object> record){
-		final Integer recordID = extractRecordID(record);
-		final String capitalizedTableName = StringUtils.capitalize(getTableName());
-		setTitle((recordID != null? capitalizedTableName + " ID " + recordID: StringHelper.pluralize(capitalizedTableName)));
+	public void loadData(final Integer id){
+		final String tableName = getTableName();
+		final Map<String, Object> record = store.get(tableName)
+			.get(id);
+		final String capitalizedTableName = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+		setTitle((id != null? capitalizedTableName + " ID " + id: StringHelper.pluralize(capitalizedTableName)));
 
 		selectedRecord = record;
 
@@ -429,7 +411,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		else{
 			previousIndex = recordTable.getSelectedRow();
 
-			okAction(!shiftRightMouseClick);
+			okAction(true);
 
 			selectedRecord = getSelectedRecord();
 			if(selectedRecord == null)
@@ -449,7 +431,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 
 		GUIHelper.executeOnEventDispatchThread(this::requestFocusAfterSelect);
-		shiftRightMouseClick = false;
 	}
 
 	private void selectActionInner(){
@@ -568,6 +549,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		deleteRecordButton.setEnabled(false);
 		setMandatoryFieldsBackgroundColor(Color.WHITE);
 
+		//TODO check referential integrity
+		//FIXME use a database?
+		//TODO keep going only if no foreign references are marked with restrict and there is a record that points to the current one to be deleted
 		//remove row from table
 		model.removeRow(modelRowIndex);
 		//remove data from records
@@ -585,8 +569,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
 		for(final Integer restrictionID : recordRestriction.keySet())
 			storeRestriction.remove(restrictionID);
-		//TODO check referential integrity
-		//FIXME use a database?
 	}
 
 	@Override
@@ -595,6 +577,11 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			newRecordButton.setEnabled(!selectRecordOnly && (selectedRecord == null || valid));
 		if(unselectRecordButton != null)
 			unselectRecordButton.setEnabled(selectedRecord != null);
+	}
+
+	public void showDialog(){
+		setLocationRelativeTo(getParent());
+		setVisible(true);
 	}
 
 }

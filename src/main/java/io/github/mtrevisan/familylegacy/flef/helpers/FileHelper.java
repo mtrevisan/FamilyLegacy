@@ -219,6 +219,9 @@ public final class FileHelper{
 	 * @return	The target directory.
 	 */
 	public static String getTargetPath(final Path baseDir, final String relativeDir){
+		if(baseDir == null)
+			return StringUtils.EMPTY;
+
 		final Path basePath = baseDir.toAbsolutePath().normalize();
 		final Path relativePath = Paths.get(relativeDir);
 		final Path targetPath = basePath.resolve(relativePath).normalize();

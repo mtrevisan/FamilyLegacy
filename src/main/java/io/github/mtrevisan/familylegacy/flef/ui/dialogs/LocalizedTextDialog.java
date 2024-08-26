@@ -95,12 +95,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	public static LocalizedTextDialog createComplexText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 	public static LocalizedTextDialog createSimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.showRecordOnly = true;
 		dialog.simplePrimaryText = true;
 		dialog.initialize();
 		return dialog;
@@ -475,8 +477,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -491,8 +492,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 				}
 			});
 			//with secondary
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

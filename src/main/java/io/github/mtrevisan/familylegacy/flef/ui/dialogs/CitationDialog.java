@@ -97,14 +97,28 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 
 	public static CitationDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new CitationDialog(store, parent);
+		final CitationDialog dialog = new CitationDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CitationDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final CitationDialog dialog = new CitationDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CitationDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final CitationDialog dialog = new CitationDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -531,6 +545,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final CitationDialog dialog = create(store, parent);
+//			final CitationDialog dialog = createRecordOnly(store, parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(source)))
@@ -559,8 +574,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								});
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedTextDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -573,8 +587,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -588,16 +601,14 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
 								.withReference(TABLE_NAME, citationID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -608,8 +619,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -623,8 +633,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

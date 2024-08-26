@@ -94,14 +94,28 @@ public final class SourceDialog extends CommonListDialog{
 
 
 	public static SourceDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new SourceDialog(store, parent);
+		final SourceDialog dialog = new SourceDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static SourceDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final SourceDialog dialog = new SourceDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static SourceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final SourceDialog dialog = new SourceDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private SourceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -224,13 +238,13 @@ public final class SourceDialog extends CommonListDialog{
 		recordPanelBase.add(typeComboBox, "wrap");
 		recordPanelBase.add(authorLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(authorField, "grow,wrap paragraph");
-		recordPanelBase.add(placeButton, "sizegroup btn,center,split 3");
+		recordPanelBase.add(placeButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(locationLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(locationField, "grow");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
@@ -498,6 +512,7 @@ public final class SourceDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final SourceDialog dialog = create(store, parent);
+//			final SourceDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(source1)))
 				dialog.showNewRecord();
@@ -522,8 +537,7 @@ public final class SourceDialog extends CommonListDialog{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setLocationRelativeTo(null);
-							placeDialog.setVisible(true);
+							placeDialog.showDialog();
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
@@ -532,8 +546,7 @@ public final class SourceDialog extends CommonListDialog{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setLocationRelativeTo(null);
-							historicDateDialog.setVisible(true);
+							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -546,8 +559,7 @@ public final class SourceDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -561,16 +573,14 @@ public final class SourceDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(store, parent)
 								.withFilterOnSourceID(sourceID);
 							citationDialog.loadData();
 
-							citationDialog.setLocationRelativeTo(dialog);
-							citationDialog.setVisible(true);
+							citationDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -581,8 +591,7 @@ public final class SourceDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -596,8 +605,7 @@ public final class SourceDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

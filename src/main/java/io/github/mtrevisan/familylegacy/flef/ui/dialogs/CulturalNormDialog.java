@@ -114,14 +114,28 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 
 	public static CulturalNormDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new CulturalNormDialog(store, parent);
+		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CulturalNormDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CulturalNormDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private CulturalNormDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -391,7 +405,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		historyPanel.withReference(TABLE_NAME, culturalNormID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", ((filterReferenceTable != null ||showRecordOnly) && selectedRecord != null));
 	}
 
 	@Override
@@ -616,6 +630,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 			final CulturalNormDialog dialog = create(store, parent);
+//			final CulturalNormDialog dialog = createRecordOnly(store, parent);
 			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(culturalNorm)))
@@ -638,8 +653,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 								.withReference(TABLE_NAME, culturalNormID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
@@ -648,8 +662,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setLocationRelativeTo(null);
-							placeDialog.setVisible(true);
+							placeDialog.showDialog();
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
@@ -658,8 +671,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setLocationRelativeTo(null);
-							historicDateDialog.setVisible(true);
+							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -672,8 +684,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -687,16 +698,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, culturalNormID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -707,8 +716,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -722,8 +730,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

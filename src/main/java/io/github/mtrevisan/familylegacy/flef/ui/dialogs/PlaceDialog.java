@@ -108,21 +108,29 @@ public final class PlaceDialog extends CommonListDialog{
 
 
 	public static PlaceDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new PlaceDialog(store, parent);
+		final PlaceDialog dialog = new PlaceDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static PlaceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 	public static PlaceDialog createWithPlace(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
 			final Integer filterPlaceID, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(store, parent);
 		dialog.filterPlaceID = filterPlaceID;
+		dialog.initialize();
 		return dialog;
 	}
 
 
 	private PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -421,6 +429,8 @@ public final class PlaceDialog extends CommonListDialog{
 
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(identifierField);
+		final String name = GUIHelper.getTextTrimmed(nameField);
+		final String nameLocale = GUIHelper.getTextTrimmed(nameLocaleField);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String coordinate = GUIHelper.getTextTrimmed(coordinateField);
 		final String coordinateSystem = GUIHelper.getTextTrimmed(coordinateSystemComboBox);
@@ -442,6 +452,8 @@ public final class PlaceDialog extends CommonListDialog{
 		}
 
 		selectedRecord.put("identifier", identifier);
+		selectedRecord.put("name", name);
+		selectedRecord.put("locale", nameLocale);
 		selectedRecord.put("type", type);
 		selectedRecord.put("coordinate", coordinate);
 		selectedRecord.put("coordinate_system", coordinateSystem);
@@ -582,8 +594,7 @@ public final class PlaceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, placeID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
@@ -596,8 +607,7 @@ public final class PlaceDialog extends CommonListDialog{
 								});
 							localizedTextDialog.loadData();
 
-							localizedTextDialog.setLocationRelativeTo(dialog);
-							localizedTextDialog.setVisible(true);
+							localizedTextDialog.showDialog();
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
@@ -612,8 +622,7 @@ public final class PlaceDialog extends CommonListDialog{
 							else
 								photoDialog.showNewRecord();
 
-							photoDialog.setLocationRelativeTo(dialog);
-							photoDialog.setVisible(true);
+							photoDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
@@ -635,8 +644,7 @@ public final class PlaceDialog extends CommonListDialog{
 								}
 
 								photoCropDialog.setSize(420, 295);
-								photoCropDialog.setLocationRelativeTo(dialog);
-								photoCropDialog.setVisible(true);
+								photoCropDialog.showDialog();
 							}
 							catch(final IOException ignored){}
 						}
@@ -651,8 +659,7 @@ public final class PlaceDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -666,24 +673,21 @@ public final class PlaceDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, placeID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(store, parent)
 								.withReference(TABLE_NAME, placeID);
 							groupDialog.loadData();
 
-							groupDialog.setLocationRelativeTo(null);
-							groupDialog.setVisible(true);
+							groupDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -694,8 +698,7 @@ public final class PlaceDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -709,8 +712,7 @@ public final class PlaceDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

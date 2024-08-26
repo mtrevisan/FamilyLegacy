@@ -150,6 +150,13 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
+	public static MediaDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static MediaDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.showRecordOnly = true;
@@ -545,7 +552,7 @@ public final class MediaDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, mediaID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", ((filterReferenceTable != null ||showRecordOnly) && selectedRecord != null));
 	}
 
 	//NOTE working table-junction extraction
@@ -798,8 +805,7 @@ public final class MediaDialog extends CommonListDialog{
 							if(dateID != null)
 								historicDateDialog.selectData(dateID);
 
-							historicDateDialog.setLocationRelativeTo(null);
-							historicDateDialog.setVisible(true);
+							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -812,8 +818,7 @@ public final class MediaDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
@@ -836,8 +841,7 @@ public final class MediaDialog extends CommonListDialog{
 								}
 
 								photoCropDialog.setSize(420, 295);
-								photoCropDialog.setLocationRelativeTo(dialog);
-								photoCropDialog.setVisible(true);
+								photoCropDialog.showDialog();
 							}
 							catch(final IOException ignored){}
 						}
@@ -846,16 +850,14 @@ public final class MediaDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, mediaID);
 							assertionDialog.loadData();
 
-							assertionDialog.setLocationRelativeTo(dialog);
-							assertionDialog.setVisible(true);
+							assertionDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(store, parent)
 								.withReference(TABLE_NAME, mediaID);
 							eventDialog.loadData();
 
-							eventDialog.setLocationRelativeTo(null);
-							eventDialog.setVisible(true);
+							eventDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
@@ -866,8 +868,7 @@ public final class MediaDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -881,8 +882,7 @@ public final class MediaDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

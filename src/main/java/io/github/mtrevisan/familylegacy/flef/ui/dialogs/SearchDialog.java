@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -250,6 +251,11 @@ public final class SearchDialog extends JDialog{
 			if(tableName.equals(entry.getValue().instance.getTableName()))
 				return entry.getKey();
 		return null;
+	}
+
+	public void showDialog(){
+		setLocationRelativeTo(getParent());
+		setVisible(true);
 	}
 
 
@@ -700,15 +706,33 @@ public final class SearchDialog extends JDialog{
 		researchStatus.put("priority", 2);
 		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
 
-		final RecordListenerInterface linkListener = new RecordListenerInterface(){
-			@Override
-			public void onRecordSelected(final String table, final Integer id){
-				System.out.println("onRecordSelected " + table + " " + id);
-			}
-		};
-
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
+
+			final RecordListenerInterface linkListener = (table, id) -> {
+				System.out.println("onRecordSelected " + table + " " + id);
+
+				CommonListDialog recordDialog = null;
+				switch(table){
+					case "repository" -> recordDialog = RepositoryDialog.createRecordOnly(store, parent);
+					case "source" -> recordDialog = SourceDialog.createRecordOnly(store, parent);
+					case "citation" -> recordDialog = CitationDialog.createRecordOnly(store, parent);
+					case "place" -> recordDialog = PlaceDialog.createRecordOnly(store, parent);
+					case "media" -> recordDialog = MediaDialog.createRecordOnly(store, parent)
+						.withBasePath(FileHelper.documentsDirectory());
+					case "note" -> recordDialog = NoteDialog.createRecordOnly(store, parent);
+					case "person" -> recordDialog = PersonDialog.createRecordOnly(store, parent);
+					case "group" -> recordDialog = GroupDialog.createRecordOnly(store, parent);
+					case "event" -> recordDialog = EventDialog.createRecordOnly(store, parent);
+					case "cultural_norm" -> recordDialog = CulturalNormDialog.createRecordOnly(store, parent);
+					case "research_status" -> recordDialog = ResearchStatusDialog.createRecordOnly(store, parent);
+				}
+				if(recordDialog != null){
+					recordDialog.loadData(id);
+
+					recordDialog.showDialog();
+				}
+			};
 			final SearchDialog dialog = create(store, parent)
 				.withLinkListener(linkListener);
 			dialog.loadData();
@@ -721,7 +745,11 @@ public final class SearchDialog extends JDialog{
 				}
 
 				@EventHandler
-				public void refresh(final EditEvent editCommand){}
+				public void refresh(final EditEvent editCommand){
+					switch(editCommand.getType()){
+						case SEARCH -> dialog.loadData();
+					}
+				}
 			};
 			EventBusService.subscribe(listener);
 
@@ -732,14 +760,13 @@ public final class SearchDialog extends JDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
 			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
 				@Override
 				public void componentResized(final java.awt.event.ComponentEvent e) {
 					System.out.println("Resized to " + e.getComponent().getSize());
 				}
 			});
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 

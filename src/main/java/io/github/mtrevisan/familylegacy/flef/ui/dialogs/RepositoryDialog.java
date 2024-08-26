@@ -88,14 +88,28 @@ public final class RepositoryDialog extends CommonListDialog{
 
 
 	public static RepositoryDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new RepositoryDialog(store, parent);
+		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static RepositoryDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static RepositoryDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
 	}
 
 
 	private RepositoryDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
-
-		initialize();
 	}
 
 
@@ -519,6 +533,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final RepositoryDialog dialog = create(store, parent);
+//			final RepositoryDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -544,8 +559,7 @@ public final class RepositoryDialog extends CommonListDialog{
 							if(personID != null)
 								personDialog.selectData(personID);
 
-							personDialog.setLocationRelativeTo(null);
-							personDialog.setVisible(true);
+							personDialog.showDialog();
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
@@ -555,8 +569,7 @@ public final class RepositoryDialog extends CommonListDialog{
 							if(placeID != null)
 								placeDialog.selectData(placeID);
 
-							placeDialog.setLocationRelativeTo(null);
-							placeDialog.setVisible(true);
+							placeDialog.showDialog();
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(store, parent)
@@ -569,8 +582,7 @@ public final class RepositoryDialog extends CommonListDialog{
 								});
 							noteDialog.loadData();
 
-							noteDialog.setLocationRelativeTo(dialog);
-							noteDialog.setVisible(true);
+							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
@@ -584,8 +596,7 @@ public final class RepositoryDialog extends CommonListDialog{
 								});
 							mediaDialog.loadData();
 
-							mediaDialog.setLocationRelativeTo(dialog);
-							mediaDialog.setVisible(true);
+							mediaDialog.showDialog();
 						}
 						case SOURCE -> {
 							final SourceDialog sourceDialog = SourceDialog.create(store, parent)
@@ -596,8 +607,7 @@ public final class RepositoryDialog extends CommonListDialog{
 								});
 							sourceDialog.loadData();
 
-							sourceDialog.setLocationRelativeTo(null);
-							sourceDialog.setVisible(true);
+							sourceDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY -> {
 							final Integer noteID = (Integer)container.get("note_id");
@@ -607,8 +617,7 @@ public final class RepositoryDialog extends CommonListDialog{
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
-							changeNoteDialog.setLocationRelativeTo(null);
-							changeNoteDialog.setVisible(true);
+							changeNoteDialog.showDialog();
 						}
 					}
 				}
@@ -622,8 +631,7 @@ public final class RepositoryDialog extends CommonListDialog{
 					System.exit(0);
 				}
 			});
-			dialog.setLocationRelativeTo(null);
-			dialog.setVisible(true);
+			dialog.showDialog();
 		});
 	}
 
