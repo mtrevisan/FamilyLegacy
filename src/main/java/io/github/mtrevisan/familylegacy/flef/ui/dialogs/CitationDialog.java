@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -61,6 +62,20 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class CitationDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -199,24 +214,24 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, TABLE_NAME, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 	}
 
 	@Override
@@ -297,7 +312,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-			CommonRecordDialog::extractRecordReferenceType, "extract");
+			EntityManager::extractRecordReferenceType, "extract");
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
@@ -386,18 +401,18 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			}
 		}
 
-		selectedRecord.put("location", location);
-		selectedRecord.put("extract", extract);
-		selectedRecord.put("extract_locale", extractLocale);
+		insertRecordLocation(selectedRecord, location);
+		insertRecordExtract(selectedRecord, extract);
+		insertRecordExtractLocale(selectedRecord, extractLocale);
 		if(extractType != null && !extractType.isEmpty())
-			selectedRecord.put("extract_type", extractType);
+			insertRecordExtractType(selectedRecord, extractType);
 
 		return true;
 	}
 
-
-	private static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
+	@Override
+	public void onPreviewStateChange(final boolean visible){
+		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 	private String extractRecordSourceIdentifier(final Map<String, Object> citationRecord){
@@ -411,32 +426,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			return null;
 
 		return (String)source.get("identifier");
-	}
-
-	private static String extractRecordLocation(final Map<String, Object> record){
-		return (String)record.get("location");
-	}
-
-	private static String extractRecordExtract(final Map<String, Object> record){
-		return (String)record.get("extract");
-	}
-
-	private static String extractRecordExtractLocale(final Map<String, Object> record){
-		return (String)record.get("extract_locale");
-	}
-
-	private static String extractRecordExtractType(final Map<String, Object> record){
-		return (String)record.get("extract_type");
-	}
-
-	private static Integer extractRecordCitationID(final Map<String, Object> record){
-		return (Integer)record.get("citation_id");
-	}
-
-
-	@Override
-	public void onPreviewStateChange(final boolean visible){
-		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
 
@@ -568,8 +557,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								.withReference(TABLE_NAME, citationID, "extract")
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", citationID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, citationID);
 									}
 								});
 							localizedTextDialog.loadData();
@@ -581,8 +570,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								.withReference(TABLE_NAME, citationID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", citationID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, citationID);
 									}
 								});
 							noteDialog.loadData();
@@ -595,8 +584,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 								.withReference(TABLE_NAME, citationID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", citationID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, citationID);
 									}
 								});
 							mediaDialog.loadData();

@@ -59,6 +59,17 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+
 
 public final class PersonDialog extends CommonListDialog{
 
@@ -164,37 +175,37 @@ public final class PersonDialog extends CommonListDialog{
 
 		namesButton.setToolTipText("Names");
 		namesButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PERSON_NAME, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PERSON_NAME, TABLE_NAME, selectedRecord)));
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, selectedRecord)));
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -298,7 +309,6 @@ public final class PersonDialog extends CommonListDialog{
 		return false;
 	}
 
-
 	private String extractIdentifier(final Integer personID){
 		final StringJoiner identifier = new StringJoiner(" / ");
 		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
@@ -318,41 +328,6 @@ public final class PersonDialog extends CommonListDialog{
 				identifier.add(extractName(record) + (subIdentifier.length() > 0? " (" + subIdentifier + ")": StringUtils.EMPTY));
 			});
 		return identifier.toString();
-	}
-
-	private static String extractName(final Map<String, Object> record){
-		final String personalName = extractRecordPersonalName(record);
-		final String familyName = extractRecordFamilyName(record);
-		final StringJoiner name = new StringJoiner(", ");
-		if(personalName != null)
-			name.add(personalName);
-		if(familyName != null)
-			name.add(familyName);
-		return name.toString();
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static String extractRecordPhotoCrop(final Map<String, Object> record){
-		return (String)record.get("photo_crop");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
 	}
 
 
@@ -592,8 +567,8 @@ public final class PersonDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, personID);
 									}
 								});
 							noteDialog.loadData();
@@ -606,8 +581,8 @@ public final class PersonDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, personID);
 									}
 								});
 							mediaDialog.loadData();

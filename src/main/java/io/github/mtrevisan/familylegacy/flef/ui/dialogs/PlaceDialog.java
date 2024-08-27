@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -63,6 +64,28 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCoordinate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCoordinateCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCoordinateSystem;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinateCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinateSystem;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class PlaceDialog extends CommonListDialog{
 
@@ -81,8 +104,8 @@ public final class PlaceDialog extends CommonListDialog{
 	private JTextField identifierField;
 	private JLabel nameLabel;
 	private JTextField nameField;
-	private JLabel nameLocaleLabel;
-	private JTextField nameLocaleField;
+	private JLabel localeLabel;
+	private JTextField localeField;
 	private JButton transcribedNameButton;
 	private JLabel typeLabel;
 	private JComboBox<String> typeComboBox;
@@ -176,8 +199,8 @@ public final class PlaceDialog extends CommonListDialog{
 		identifierField = new JTextField();
 		nameLabel = new JLabel("Name:");
 		nameField = new JTextField();
-		nameLocaleLabel = new JLabel("Locale:");
-		nameLocaleField = new JTextField();
+		localeLabel = new JLabel("Locale:");
+		localeField = new JTextField();
 		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
 		typeLabel = new JLabel("Type:");
 		typeComboBox = new JComboBox<>(new String[]{null, "nation", "province", "state", "county", "city", "township", "parish",
@@ -208,11 +231,11 @@ public final class PlaceDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, this::saveData);
 		addMandatoryField(nameField);
-		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
+		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, TABLE_NAME, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
@@ -223,33 +246,33 @@ public final class PlaceDialog extends CommonListDialog{
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, selectedRecord)));
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -261,8 +284,8 @@ public final class PlaceDialog extends CommonListDialog{
 		recordPanelBase.add(identifierField, "grow,wrap paragraph");
 		recordPanelBase.add(nameLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(nameField, "grow,wrap related");
-		recordPanelBase.add(nameLocaleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(nameLocaleField, "grow,wrap related");
+		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(localeField, "grow,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap paragraph");
@@ -291,7 +314,8 @@ public final class PlaceDialog extends CommonListDialog{
 	@Override
 	protected Map<String, Object> getSelectedRecord(){
 		if(filterPlaceID != null)
-			return getRecords(TABLE_NAME).get(filterPlaceID);
+			return getRecords(TABLE_NAME)
+				.get(filterPlaceID);
 		else
 			return super.getSelectedRecord();
 	}
@@ -344,7 +368,7 @@ public final class PlaceDialog extends CommonListDialog{
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
 		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
 		final Map<Integer, Map<String, Object>> recordTranscribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-			CommonRecordDialog::extractRecordReferenceType, "name");
+			EntityManager::extractRecordReferenceType, "name");
 		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
 		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
 			.entrySet().stream()
@@ -359,7 +383,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 		identifierField.setText(identifier);
 		nameField.setText(name);
-		nameLocaleField.setText(nameLocale);
+		localeField.setText(nameLocale);
 		GUIHelper.addBorder(transcribedNameButton, !recordTranscribedNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 		coordinateField.setText(coordinate);
@@ -385,7 +409,7 @@ public final class PlaceDialog extends CommonListDialog{
 	protected void clearData(){
 		identifierField.setText(null);
 		nameField.setText(null);
-		nameLocaleField.setText(null);
+		localeField.setText(null);
 		GUIHelper.setDefaultBorder(transcribedNameButton);
 		typeComboBox.setSelectedItem(null);
 		coordinateField.setText(null);
@@ -430,7 +454,7 @@ public final class PlaceDialog extends CommonListDialog{
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(identifierField);
 		final String name = GUIHelper.getTextTrimmed(nameField);
-		final String nameLocale = GUIHelper.getTextTrimmed(nameLocaleField);
+		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String coordinate = GUIHelper.getTextTrimmed(coordinateField);
 		final String coordinateSystem = GUIHelper.getTextTrimmed(coordinateSystemComboBox);
@@ -451,56 +475,15 @@ public final class PlaceDialog extends CommonListDialog{
 				}
 		}
 
-		selectedRecord.put("identifier", identifier);
-		selectedRecord.put("name", name);
-		selectedRecord.put("locale", nameLocale);
-		selectedRecord.put("type", type);
-		selectedRecord.put("coordinate", coordinate);
-		selectedRecord.put("coordinate_system", coordinateSystem);
-		selectedRecord.put("coordinate_credibility", coordinateCredibility);
+		insertRecordIdentifier(selectedRecord, identifier);
+		insertRecordName(selectedRecord, name);
+		insertRecordLocale(selectedRecord, locale);
+		insertRecordType(selectedRecord, type);
+		insertRecordCoordinate(selectedRecord, coordinate);
+		insertRecordCoordinateSystem(selectedRecord, coordinateSystem);
+		insertRecordCoordinateCredibility(selectedRecord, coordinateCredibility);
 
 		return true;
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordCoordinate(final Map<String, Object> record){
-		return (String)record.get("coordinate");
-	}
-
-	private static String extractRecordCoordinateSystem(final Map<String, Object> record){
-		return (String)record.get("coordinate_system");
-	}
-
-	private static String extractRecordCoordinateCredibility(final Map<String, Object> record){
-		return (String)record.get("coordinate_credibility");
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static String extractRecordPhotoCrop(final Map<String, Object> record){
-		return (String)record.get("photo_crop");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
 	}
 
 
@@ -601,8 +584,8 @@ public final class PlaceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, placeID, "name")
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", placeID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, placeID);
 									}
 								});
 							localizedTextDialog.loadData();
@@ -653,8 +636,8 @@ public final class PlaceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, placeID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", placeID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, placeID);
 									}
 								});
 							noteDialog.loadData();
@@ -667,8 +650,8 @@ public final class PlaceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, placeID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", placeID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, placeID);
 									}
 								});
 							mediaDialog.loadData();

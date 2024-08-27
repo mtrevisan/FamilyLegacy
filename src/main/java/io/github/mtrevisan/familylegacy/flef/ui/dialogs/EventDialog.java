@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
@@ -65,6 +66,19 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTypeID;
 
 
 public final class EventDialog extends CommonListDialog{
@@ -241,7 +255,7 @@ public final class EventDialog extends CommonListDialog{
 		GUIHelper.bindLabelSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
 		addTypeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT_TYPE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT_TYPE, TABLE_NAME, selectedRecord)));
 		removeTypeButton.addActionListener(evt -> {
 			//remove selected item from `typeComboBox`
 			final String type = GUIHelper.getTextTrimmed(typeComboBox);
@@ -260,20 +274,20 @@ public final class EventDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
 
 		dateButton.setToolTipText("Event date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -404,43 +418,14 @@ public final class EventDialog extends CommonListDialog{
 			.values().stream()
 			.filter(entry -> Objects.equals(type, extractRecordType(entry)))
 			.findFirst()
-			.map(EventDialog::extractRecordID)
+			.map(EntityManager::extractRecordID)
 			.orElse(null);
 		final String description = GUIHelper.getTextTrimmed(descriptionField);
 
-		selectedRecord.put("type_id", typeID);
-		selectedRecord.put("description", description);
+		insertRecordTypeID(selectedRecord, typeID);
+		insertRecordDescription(selectedRecord, description);
 
 		return true;
-	}
-
-
-	private static Integer extractRecordTypeID(final Map<String, Object> record){
-		return (Integer)record.get("type_id");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordDescription(final Map<String, Object> record){
-		return (String)record.get("description");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordSuperTypeID(final Map<String, Object> record){
-		return (Integer)record.get("super_type_id");
-	}
-
-	private static String extractRecordSuperType(final Map<String, Object> record){
-		return (String)record.get("super_type");
 	}
 
 
@@ -650,8 +635,8 @@ public final class EventDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", eventID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, eventID);
 									}
 								});
 							noteDialog.loadData();
@@ -664,8 +649,8 @@ public final class EventDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", eventID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, eventID);
 									}
 								});
 							mediaDialog.loadData();

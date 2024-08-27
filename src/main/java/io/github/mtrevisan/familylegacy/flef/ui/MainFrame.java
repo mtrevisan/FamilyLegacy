@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;
@@ -51,6 +52,12 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
 
 
 public final class MainFrame extends JFrame implements GroupListenerInterface, PersonListenerInterface{
@@ -116,26 +123,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.toList();
 	}
 
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
-	}
-
 
 	@Override
 	public void onGroupEdit(final GroupPanel groupPanel){
@@ -174,30 +161,30 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					final Map<String, Object> partner1Person = partner1.getPerson();
 					if(!partner1Person.isEmpty()){
 						final Map<String, Object> groupJunction = new HashMap<>();
-						groupJunction.put("id", extractNextRecordID(groupJunctions));
-						groupJunction.put("group_id", groupID);
-						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", extractRecordID(partner1Person));
-						groupJunction.put("role", "partner");
+						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+						insertRecordGroupID(groupJunction, groupID);
+						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceID(groupJunction, extractRecordID(partner1Person));
+						insertRecordRole(groupJunction, "partner");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					final Map<String, Object> partner2Person = partner2.getPerson();
 					if(!partner2Person.isEmpty()){
 						final Map<String, Object> groupJunction = new HashMap<>();
-						groupJunction.put("id", extractNextRecordID(groupJunctions));
-						groupJunction.put("group_id", groupID);
-						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", extractRecordID(partner2Person));
-						groupJunction.put("role", "partner");
+						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+						insertRecordGroupID(groupJunction, groupID);
+						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceID(groupJunction, extractRecordID(partner2Person));
+						insertRecordRole(groupJunction, "partner");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					for(final PersonPanel child : children){
 						final Map<String, Object> groupJunction = new HashMap<>();
-						groupJunction.put("id", extractNextRecordID(groupJunctions));
-						groupJunction.put("group_id", groupID);
-						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", extractRecordID(child.getPerson()));
-						groupJunction.put("role", "child");
+						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+						insertRecordGroupID(groupJunction, groupID);
+						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceID(groupJunction, extractRecordID(child.getPerson()));
+						insertRecordRole(groupJunction, "child");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 
@@ -347,11 +334,11 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
 						final Map<String, Object> groupJunction = new HashMap<>();
-						groupJunction.put("id", extractNextRecordID(groupJunctions));
-						groupJunction.put("group_id", unionID);
-						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", extractRecordID(record));
-						groupJunction.put("role", "child");
+						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+						insertRecordGroupID(groupJunction, unionID);
+						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceID(groupJunction, extractRecordID(record));
+						insertRecordRole(groupJunction, "child");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					else{
@@ -366,19 +353,19 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
 						Map<String, Object> groupJunction = new HashMap<>();
-						groupJunction.put("id", extractNextRecordID(groupJunctions));
-						groupJunction.put("group_id", unionID);
-						groupJunction.put("reference_table", TABLE_NAME_PERSON);
-						groupJunction.put("reference_id", extractRecordID(record));
-						groupJunction.put("role", "partner");
+						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+						insertRecordGroupID(groupJunction, unionID);
+						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceID(groupJunction, extractRecordID(record));
+						insertRecordRole(groupJunction, "partner");
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 						for(final Integer partnerID : partnerIDs){
 							groupJunction = new HashMap<>();
-							groupJunction.put("id", extractNextRecordID(groupJunctions));
-							groupJunction.put("group_id", unionID);
-							groupJunction.put("reference_table", TABLE_NAME_PERSON);
-							groupJunction.put("reference_id", partnerID);
-							groupJunction.put("role", "partner");
+							insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
+							insertRecordGroupID(groupJunction, unionID);
+							insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+							insertRecordReferenceID(groupJunction, partnerID);
+							insertRecordRole(groupJunction, "partner");
 							groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 						}
 					}
@@ -397,7 +384,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.map(MainFrame::extractRecordReferenceID)
+			.map(EntityManager::extractRecordReferenceID)
 			.toList();
 	}
 
@@ -407,7 +394,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals("child", extractRecordRole(entry)) || Objects.equals("adoptee", extractRecordRole(entry)))
-			.map(MainFrame::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 
@@ -487,7 +474,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
-			.map(MainFrame::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 
@@ -534,7 +521,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					final Integer newPhotoID = extractRecordID(record);
-					person.put("photo_id", newPhotoID);
+					insertRecordPhotoID(person, newPhotoID);
 
 					treePanel.refresh();
 				}
@@ -556,7 +543,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					final Integer newPhotoID = extractRecordID(record);
-					person.put("photo_id", newPhotoID);
+					insertRecordPhotoID(person, newPhotoID);
 
 					treePanel.refresh();
 				}
@@ -570,6 +557,31 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private static Integer extractRecordPhotoID(final Map<String, Object> record){
 		return (Integer)record.get("photo_id");
 	}
+
+	private static void insertRecordID(final Map<String, Object> record, final int id){
+		record.put("id", id);
+	}
+
+	private static void insertRecordGroupID(final Map<String, Object> record, final int groupID){
+		record.put("group_id", groupID);
+	}
+
+	private static void insertRecordReferenceTable(final Map<String, Object> record, final String referenceTable){
+		record.put("reference_table", referenceTable);
+	}
+
+	private static void insertRecordReferenceID(final Map<String, Object> record, final int referenceID){
+		record.put("reference_id", referenceID);
+	}
+
+	private static void insertRecordRole(final Map<String, Object> record, final String role){
+		record.put("role", role);
+	}
+
+	private static void insertRecordPhotoID(final Map<String, Object> record, final int photoID){
+		record.put("photo_id", photoID);
+	}
+
 
 
 	public static void main(final String[] args){

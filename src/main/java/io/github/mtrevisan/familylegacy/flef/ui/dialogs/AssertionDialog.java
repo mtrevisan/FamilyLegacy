@@ -66,6 +66,20 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCitationID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
+
 
 public final class AssertionDialog extends CommonListDialog{
 
@@ -198,15 +212,15 @@ public final class AssertionDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -349,9 +363,9 @@ public final class AssertionDialog extends CommonListDialog{
 			}
 		}
 
-		selectedRecord.put("role", role);
-		selectedRecord.put("certainty", certainty);
-		selectedRecord.put("credibility", credibility);
+		insertRecordRole(selectedRecord, role);
+		insertRecordCertainty(selectedRecord, certainty);
+		insertRecordCredibility(selectedRecord, credibility);
 
 		return true;
 	}
@@ -368,10 +382,6 @@ public final class AssertionDialog extends CommonListDialog{
 			return null;
 
 		return (String)citation.get("location");
-	}
-
-	private static Integer extractRecordCitationID(final Map<String, Object> record){
-		return (Integer)record.get("citation_id");
 	}
 
 	private String extractRecordSourceIdentifier(final Map<String, Object> assertionRecord){
@@ -394,18 +404,6 @@ public final class AssertionDialog extends CommonListDialog{
 			return null;
 
 		return extractRecordIdentifier(source);
-	}
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
 	}
 
 
@@ -602,8 +600,8 @@ public final class AssertionDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", assertionID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, assertionID);
 									}
 								});
 							noteDialog.loadData();
@@ -616,8 +614,8 @@ public final class AssertionDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", assertionID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, assertionID);
 									}
 								});
 							mediaDialog.loadData();
@@ -629,8 +627,8 @@ public final class AssertionDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", assertionID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, assertionID);
 									}
 								});
 							culturalNormDialog.loadData();

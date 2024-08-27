@@ -521,7 +521,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		if(homeUnion.isEmpty()){
 			final List<Map<String, Object>> unions = extractUnions(partner1);
 			if(!unions.isEmpty())
-				//FIXME choose the last shown union, if any
+				//TODO choose the last shown union, if any
 				homeUnion = unions.getFirst();
 		}
 
@@ -550,14 +550,14 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				if(!partner2.isEmpty())
 					personIDsInUnion.remove(extractRecordID(partner2));
 				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
-					//FIXME choose the last shown person, if any
+					//TODO choose the last shown person, if any
 					partner1ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner1ID))
 						partner1 = persons.get(partner1ID);
 					personIDsInUnion.remove(partner1ID);
 				}
 				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
-					//FIXME choose the last shown person, if any
+					//TODO choose the last shown person, if any
 					partner2ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner2ID))
 						partner2 = persons.get(partner2ID);
@@ -582,48 +582,48 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private void loadData(){
-		final Map<String, Object> partner1Parents = extractParents(partner1, store);
-		final Map<String, Object> partner2Parents = extractParents(partner2, store);
+		final Integer partner1ParentsID = extractParentsGroupID(partner1, store);
+		final Integer partner2ParentsID = extractParentsGroupID(partner2, store);
 		if(generations > 3){
-			final List<Integer> personIDsInGroup1 = getPartnerIDs(extractRecordID(partner1Parents));
+			final List<Integer> personIDsInGroup1 = getPartnerIDs(partner1ParentsID);
 			final int personInGroup1Count = personIDsInGroup1.size();
 			final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-			//FIXME choose the last shown person, if any
+			//TODO choose the last shown person, if any
 			final Map<String, Object> partner1Partner1 = (personInGroup1Count > 0
 				? persons.get(personIDsInGroup1.get(0))
 				: Collections.emptyMap());
-			//FIXME choose the last shown person, if any
+			//TODO choose the last shown person, if any
 			final Map<String, Object> partner1Partner2 = (personInGroup1Count > 1
 				? persons.get(personIDsInGroup1.get(1))
 				: Collections.emptyMap());
-			final Map<String, Object> partner1Partner1Parents = extractParents(partner1Partner1, store);
-			final Map<String, Object> partner1Partner2Parents = extractParents(partner1Partner2, store);
+			final Integer partner1Partner1ParentsID = extractParentsGroupID(partner1Partner1, store);
+			final Integer partner1Partner2ParentsID = extractParentsGroupID(partner1Partner2, store);
 
-			final List<Integer> personIDsInGroup2 = getPartnerIDs(extractRecordID(partner2Parents));
+			final List<Integer> personIDsInGroup2 = getPartnerIDs(partner2ParentsID);
 			final int personInGroup2Count = personIDsInGroup2.size();
-			//FIXME choose the last shown person, if any
+			//TODO choose the last shown person, if any
 			final Map<String, Object> partner2Partner1 = (personInGroup2Count > 0
 				? persons.get(personIDsInGroup2.get(0))
 				: Collections.emptyMap());
-			//FIXME choose the last shown person, if any
+			//TODO choose the last shown person, if any
 			final Map<String, Object> partner2Partner2 = (personInGroup2Count > 1
 				? persons.get(personIDsInGroup2.get(1))
 				: Collections.emptyMap());
-			final Map<String, Object> partner2Partner1Parents = extractParents(partner2Partner1, store);
-			final Map<String, Object> partner2Partner2Parents = extractParents(partner2Partner2, store);
+			final Integer partner2Partner1ParentsID = extractParentsGroupID(partner2Partner1, store);
+			final Integer partner2Partner2ParentsID = extractParentsGroupID(partner2Partner2, store);
 
-			partner1Partner1Panel.loadData(partner1Partner1Parents);
-			partner1Partner1Panel.setVisible(!partner1Parents.isEmpty());
-			partner1Partner2Panel.loadData(partner1Partner2Parents);
-			partner1Partner2Panel.setVisible(!partner1Parents.isEmpty());
-			partner2Partner1Panel.loadData(partner2Partner1Parents);
-			partner2Partner1Panel.setVisible(!partner2Parents.isEmpty());
-			partner2Partner2Panel.loadData(partner2Partner2Parents);
-			partner2Partner2Panel.setVisible(!partner2Parents.isEmpty());
+			partner1Partner1Panel.loadData(partner1Partner1ParentsID);
+			partner1Partner1Panel.setVisible(partner1ParentsID != null);
+			partner1Partner2Panel.loadData(partner1Partner2ParentsID);
+			partner1Partner2Panel.setVisible(partner1ParentsID != null);
+			partner2Partner1Panel.loadData(partner2Partner1ParentsID);
+			partner2Partner1Panel.setVisible(partner2ParentsID != null);
+			partner2Partner2Panel.loadData(partner2Partner2ParentsID);
+			partner2Partner2Panel.setVisible(partner2ParentsID != null);
 		}
-		partner1PartnersPanel.loadData(partner1Parents);
+		partner1PartnersPanel.loadData(partner1ParentsID);
 		partner1PartnersPanel.setVisible(!partner1.isEmpty());
-		partner2PartnersPanel.loadData(partner2Parents);
+		partner2PartnersPanel.loadData(partner2ParentsID);
 		partner2PartnersPanel.setVisible(!partner2.isEmpty());
 		homeGroupPanel.loadData(homeUnion, partner1, partner2);
 		final Integer homeUnionID = extractRecordID(homeUnion);
@@ -637,7 +637,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	private void scrollChildrenToLastPosition(final Integer unionID){
 		//remember last scroll position, restore it if present
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(unionID);
-		//FIXME if a child was selected, bring it to view
+		//TODO if a child was selected, bring it to view
 		final JViewport childrenViewport = childrenScrollPane.getViewport();
 		final int scrollbarPositionX = (childrenScrollbarPosition == null?
 			//center halfway if it's the first time the children are painted
@@ -711,9 +711,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.toList();
 	}
 
-	static Map<String, Object> extractParents(final Map<String, Object> child,
+	static Integer extractParentsGroupID(final Map<String, Object> child,
 			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		Map<String, Object> parentsGroup = Collections.emptyMap();
+		Integer parentsGroupID = null;
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
 			//prefer biological family
@@ -722,20 +722,16 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
 			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
-			if(parentsID != null){
-				final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
-				parentsGroup = groups.get(parentsID);
-			}
+			if(parentsID != null)
+				parentsGroupID = parentsID;
 			else{
 				//prefer first adopting family
 				final List<Integer> unionIDs = getParentsIDs(childID, "adoptee", store);
-				if(!unionIDs.isEmpty()){
-					final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP, store);
-					parentsGroup = groups.get(unionIDs.getFirst());
-				}
+				if(!unionIDs.isEmpty())
+					parentsGroupID = unionIDs.getFirst();
 			}
 		}
-		return parentsGroup;
+		return parentsGroupID;
 	}
 
 	private List<Map<String, Object>> extractUnions(final Map<String, Object> person){

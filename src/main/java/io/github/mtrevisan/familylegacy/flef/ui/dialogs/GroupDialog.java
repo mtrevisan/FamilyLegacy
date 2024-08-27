@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
@@ -72,6 +73,27 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
 
 
 public final class GroupDialog extends CommonListDialog{
@@ -153,17 +175,8 @@ public final class GroupDialog extends CommonListDialog{
 			final int groupJunctionID = extractNextRecordID(groupJunctions);
 			if(selectedRecord == null)
 				groupJunctions.remove(groupJunctionID);
-			else if(!showRecordOnly){
-				final Integer groupID = extractRecordID(selectedRecord);
-				final Map<String, Object> groupJunction = new HashMap<>();
-				groupJunction.put("id", groupJunctionID);
-				groupJunction.put("group_id", groupID);
-				groupJunction.put("reference_table", filterReferenceTable);
-				groupJunction.put("reference_id", filterReferenceID);
-				groupJunction.put("role", GUIHelper.getTextTrimmed(linkRoleField));
-				groupJunction.put("certainty", GUIHelper.getTextTrimmed(linkCertaintyComboBox));
-				groupJunction.put("credibility", GUIHelper.getTextTrimmed(linkCredibilityComboBox));
-				groupJunctions.put(groupJunctionID, groupJunction);
+			else if(filterReferenceTable != null){
+				groupJunctions.put(groupJunctionID, selectedRecordLink);
 
 				if(onCloseGracefully != null)
 					onCloseGracefully.accept(record);
@@ -191,6 +204,11 @@ public final class GroupDialog extends CommonListDialog{
 	@Override
 	protected String getTableName(){
 		return TABLE_NAME;
+	}
+
+	@Override
+	protected String  getJunctionTableName(){
+		return TABLE_NAME_GROUP_JUNCTION;
 	}
 
 	@Override
@@ -252,37 +270,37 @@ public final class GroupDialog extends CommonListDialog{
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, selectedRecord)));
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
 		photoCropButton.setEnabled(false);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.GROUP, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
@@ -362,7 +380,7 @@ public final class GroupDialog extends CommonListDialog{
 			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordGroupID(entry)))
 			.map(entry -> groups.get(extractRecordReferenceID(entry)))
-			.collect(Collectors.toMap(CommonRecordDialog::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
+			.collect(Collectors.toMap(EntityManager::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
 	}
 
 	@Override
@@ -410,17 +428,17 @@ public final class GroupDialog extends CommonListDialog{
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
 			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(TABLE_NAME_GROUP_JUNCTION,
-				GroupDialog::extractRecordGroupID, groupID);
+				EntityManager::extractRecordGroupID, groupID);
 			if(recordGroupJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
 			final Iterator<Map<String, Object>> itr = recordGroupJunction.values().iterator();
 			if(itr.hasNext()){
-				final Map<String, Object> groupJunction = itr.next();
+				selectedRecordLink = itr.next();
 
-				final String linkRole = extractRecordRole(groupJunction);
-				final String linkCertainty = extractRecordCertainty(groupJunction);
-				final String linkCredibility = extractRecordCredibility(groupJunction);
+				final String linkRole = extractRecordRole(selectedRecordLink);
+				final String linkCertainty = extractRecordCertainty(selectedRecordLink);
+				final String linkCredibility = extractRecordCredibility(selectedRecordLink);
 
 				linkRoleField.setText(linkRole);
 				linkCertaintyComboBox.setSelectedItem(linkCertainty);
@@ -431,7 +449,7 @@ public final class GroupDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, groupID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", ((filterReferenceTable != null ||showRecordOnly) && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null && selectedRecord != null));
 	}
 
 	@Override
@@ -471,21 +489,18 @@ public final class GroupDialog extends CommonListDialog{
 			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
 			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
 
-			final Integer groupID = extractRecordID(selectedRecord);
-			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(TABLE_NAME_GROUP_JUNCTION,
-				GroupDialog::extractRecordGroupID, groupID);
-			if(recordGroupJunction.size() == 1){
-				final Iterator<Map<String, Object>> itr = recordGroupJunction.values().iterator();
-				final Map<String, Object> groupJunction = itr.next();
-
-				//TODO pass through modification note asking?
-				groupJunction.put("role", linkRole);
-				groupJunction.put("certainty", linkCertainty);
-				groupJunction.put("credibility", linkCredibility);
+			if(selectedRecordLink == null){
+				selectedRecordLink = new HashMap<>(5);
+				insertRecordReferenceTable(selectedRecordLink, filterReferenceTable);
+				insertRecordReferenceID(selectedRecordLink, extractRecordID(selectedRecord));
 			}
+
+			insertRecordRole(selectedRecordLink, linkRole);
+			insertRecordCertainty(selectedRecordLink, linkCertainty);
+			insertRecordCredibility(selectedRecordLink, linkCredibility);
 		}
 
-		selectedRecord.put("type", type);
+		insertRecordType(selectedRecord, type);
 
 		return true;
 	}
@@ -577,42 +592,6 @@ public final class GroupDialog extends CommonListDialog{
 			if(personID.equals(extractRecordPersonID(storePersonName)))
 				personNamesInGroup.add(storePersonName);
 		return personNamesInGroup;
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static String extractRecordPhotoCrop(final Map<String, Object> record){
-		return (String)record.get("photo_crop");
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
-	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
-		return (Integer)record.get("person_name_id");
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
 	}
 
 
@@ -762,13 +741,12 @@ public final class GroupDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final GroupDialog dialog = create(store, parent)
+//			final GroupDialog dialog = create(store, parent);
 //				.withReference("group", 2);
+//			dialog.loadData();
 
-//			final GroupDialog dialog = createRecordOnly(store, parent)
-//				.withReference("person", 1);
-
-			final GroupDialog dialog = createRecordOnly(store, parent);
+			final GroupDialog dialog = createRecordOnly(store, parent)
+				.withReference("group", 2);
 			dialog.loadData(2);
 
 //			final GroupDialog dialog = createRecordOnly(store, parent)
@@ -840,8 +818,8 @@ public final class GroupDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", groupID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, groupID);
 									}
 								});
 							noteDialog.loadData();
@@ -853,8 +831,8 @@ public final class GroupDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", groupID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, groupID);
 									}
 								});
 							culturalNormDialog.loadData();
@@ -867,8 +845,8 @@ public final class GroupDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", groupID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, groupID);
 									}
 								});
 							mediaDialog.loadData();

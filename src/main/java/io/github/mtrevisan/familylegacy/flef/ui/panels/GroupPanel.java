@@ -269,12 +269,11 @@ public class GroupPanel extends JPanel{
 						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
-						final Map<String, Object> partnerParents = TreePanel.extractParents(person, store);
-						final Integer actualUnionID = extractRecordID(partnerParents);
+						final Integer partnerParentsID = TreePanel.extractParentsGroupID(person, store);
 						int newGroupID = -1;
 						final int parentsCount = unionsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(actualUnionID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
 								if(i > 0)
 									newGroupID = unionsIDs.get(i - 1);
 								break;
@@ -297,12 +296,11 @@ public class GroupPanel extends JPanel{
 						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
-						final Map<String, Object> partnerParents = TreePanel.extractParents(person, store);
-						final Integer actualUnionID = extractRecordID(partnerParents);
+						final Integer partnerParentsID = TreePanel.extractParentsGroupID(person, store);
 						int newGroupID = -1;
 						final int parentsCount = unionsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(actualUnionID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
 								if(i + 1 < parentsCount)
 									newGroupID = unionsIDs.get(i + 1);
 								break;
@@ -407,12 +405,11 @@ public class GroupPanel extends JPanel{
 						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
-						final Map<String, Object> partnerParents = TreePanel.extractParents(person, store);
-						final Integer actualUnionID = extractRecordID(partnerParents);
+						final Integer partnerParentsID = TreePanel.extractParentsGroupID(person, store);
 						int newGroupID = -1;
 						final int parentsCount = unionsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(actualUnionID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
 								if(i > 0)
 									newGroupID = unionsIDs.get(i - 1);
 								break;
@@ -435,12 +432,11 @@ public class GroupPanel extends JPanel{
 						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
-						final Map<String, Object> partnerParents = TreePanel.extractParents(person, store);
-						final Integer actualUnionID = extractRecordID(partnerParents);
+						final Integer partnerParentsID = TreePanel.extractParentsGroupID(person, store);
 						int newGroupID = -1;
 						final int parentsCount = unionsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(actualUnionID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
 								if(i + 1 < parentsCount)
 									newGroupID = unionsIDs.get(i + 1);
 								break;
@@ -595,7 +591,10 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	public void loadData(final Map<String, Object> group){
+	public void loadData(final Integer groupID){
+		final Map<String, Object> group = (groupID != null
+			? store.get(TABLE_NAME_GROUP).get(groupID)
+			: Collections.emptyMap());
 		loadData(group, Collections.emptyMap(), Collections.emptyMap());
 	}
 
@@ -609,7 +608,7 @@ public class GroupPanel extends JPanel{
 		if(group.isEmpty()){
 			final List<Map<String, Object>> unions = extractUnions(partner1);
 			if(!unions.isEmpty())
-				//FIXME choose the last shown union, if any
+				//TODO choose the last shown union, if any
 				group = unions.getFirst();
 		}
 
@@ -638,14 +637,14 @@ public class GroupPanel extends JPanel{
 				if(!partner2.isEmpty())
 					personIDsInUnion.remove(extractRecordID(partner2));
 				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
-					//FIXME choose the last shown person, if any
+					//TODO choose the last shown person, if any
 					partner1ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner1ID))
 						partner1 = persons.get(partner1ID);
 					personIDsInUnion.remove(partner1ID);
 				}
 				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
-					//FIXME choose the last shown person, if any
+					//TODO choose the last shown person, if any
 					partner2ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner2ID))
 						partner2 = persons.get(partner2ID);
@@ -660,8 +659,8 @@ public class GroupPanel extends JPanel{
 	}
 
 	private void loadData(){
-		partner1Panel.loadData(partner1);
-		partner2Panel.loadData(partner2);
+		partner1Panel.loadData(extractRecordID(partner1));
+		partner2Panel.loadData(extractRecordID(partner2));
 
 		if(boxType == BoxPanelType.PRIMARY){
 			final Integer groupID = extractRecordID(union);
@@ -760,12 +759,11 @@ public class GroupPanel extends JPanel{
 		final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 		//find current parents in list
-		final Map<String, Object> partnerParents = TreePanel.extractParents(partner2Panel.getPerson(), store);
-		final Integer actualUnionID = extractRecordID(partnerParents);
+		final Integer partnerParentsID = TreePanel.extractParentsGroupID(partner2Panel.getPerson(), store);
 		int currentGroupIndex = -1;
 		final int parentsCount = unionsIDs.size();
 		for(int i = 0; i < parentsCount; i ++)
-			if(Objects.equals(actualUnionID, unionsIDs.get(i))){
+			if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
 				currentGroupIndex = i;
 				break;
 			}
@@ -1114,7 +1112,7 @@ public class GroupPanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final GroupPanel panel = create(boxType, store);
-			panel.loadData(group1);
+			panel.loadData(1);
 			panel.setGroupListener(unionListener);
 			panel.setPersonListener(personListener);
 			EventBusService.subscribe(panel);

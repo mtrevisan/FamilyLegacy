@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -54,6 +55,15 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
 
 
 public final class EventTypeDialog extends CommonRecordDialog{
@@ -147,12 +157,13 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		recordPanel.add(categoryComboBox, "grow");
 	}
 
-	public void loadData(final Map<String, Object> record){
-		final Integer recordID = extractRecordID(record);
+	public void loadData(final Integer eventID){
+		final Map<String, Object> record = store.get(TABLE_NAME)
+			.get(eventID);
 		final String capitalizedTableName = StringUtils.capitalize(getTableName());
-		setTitle((recordID != null? capitalizedTableName + " ID " + recordID: StringHelper.pluralize(capitalizedTableName)));
+		setTitle((eventID != null? capitalizedTableName + " ID " + eventID: StringHelper.pluralize(capitalizedTableName)));
 
-		selectedRecord = record;
+		selectedRecord = new HashMap<>(record);
 
 		selectActionInner();
 	}
@@ -175,8 +186,8 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		final NavigableMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
 		final int nextRecordID = extractNextRecordID(storeTables);
 		final Map<String, Object> newRecord = new HashMap<>();
-		newRecord.put("id", nextRecordID);
-		newRecord.put("type", type);
+		insertRecordID(newRecord, nextRecordID);
+		insertRecordType(newRecord, type);
 		storeTables.put(nextRecordID, newRecord);
 
 		selectedRecord = newRecord;
@@ -256,34 +267,18 @@ public final class EventTypeDialog extends CommonRecordDialog{
 			.values().stream()
 			.filter(entry -> Objects.equals(superType, extractRecordSuperType(entry)))
 			.findFirst()
-			.map(CommonRecordDialog::extractRecordID)
+			.map(EntityManager::extractRecordID)
 			.orElse(null);
 		final String type = GUIHelper.getTextTrimmed(typeField);
 		final String category = GUIHelper.getTextTrimmed(categoryComboBox);
 
-		selectedRecord.put("super_type_id", superTypeID);
-		selectedRecord.put("type", type);
-		selectedRecord.put("category", category);
+		insertRecordSuperTypeID(selectedRecord, superTypeID);
+		insertRecordType(selectedRecord, type);
+		insertRecordCategory(selectedRecord, category);
 
 		return true;
 	}
 
-
-	private static Integer extractRecordSuperTypeID(final Map<String, Object> record){
-		return (Integer)record.get("super_type_id");
-	}
-
-	private static String extractRecordSuperType(final Map<String, Object> record){
-		return (String)record.get("super_type");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordCategory(final Map<String, Object> record){
-		return (String)record.get("category");
-	}
 
 
 	public static void main(final String[] args){
@@ -379,7 +374,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 			final JFrame parent = new JFrame();
 			final EventTypeDialog dialog = create(store, parent);
 			dialog.setTitle("Event Type");
-			dialog.loadData(eventType1);
+			dialog.loadData(1);
 
 			final Object listener = new Object(){
 				@EventHandler

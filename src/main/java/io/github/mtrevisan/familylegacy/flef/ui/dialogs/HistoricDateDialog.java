@@ -62,6 +62,20 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateOriginal;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateOriginal;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+
 
 public final class HistoricDateDialog extends CommonListDialog{
 
@@ -185,7 +199,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, TABLE_NAME, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
@@ -194,11 +208,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -342,25 +356,12 @@ public final class HistoricDateDialog extends CommonListDialog{
 			}
 		}
 
-		selectedRecord.put("date", date);
-		selectedRecord.put("date_original", dateOriginal);
-		selectedRecord.put("certainty", certainty);
-		selectedRecord.put("credibility", credibility);
+		insertRecordDate(selectedRecord, date);
+		insertRecordDateOriginal(selectedRecord, dateOriginal);
+		insertRecordCertainty(selectedRecord, certainty);
+		insertRecordCredibility(selectedRecord, credibility);
 
 		return true;
-	}
-
-
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
-	}
-
-	private static String extractRecordDateOriginal(final Map<String, Object> record){
-		return (String)record.get("date_original");
-	}
-
-	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
 	}
 
 
@@ -464,8 +465,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, historicDateID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", historicDateID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, historicDateID);
 									}
 								});
 							noteDialog.loadData();

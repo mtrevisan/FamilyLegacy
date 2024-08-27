@@ -366,6 +366,7 @@ public final class GedcomFileParser{
 	}
 
 
+
 	public static void main(final String[] args) throws GedcomGrammarException, GedcomDataException{
 		final GedcomFileParser parser = new GedcomFileParser();
 		parser.parse("/gedg/gedcom_5.5.1.tcgb.gedg");

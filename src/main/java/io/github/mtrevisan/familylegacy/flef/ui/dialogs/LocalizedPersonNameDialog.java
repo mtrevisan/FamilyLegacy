@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -58,6 +59,21 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class LocalizedPersonNameDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
@@ -69,10 +85,10 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private static final String TABLE_NAME = "localized_person_name";
 
 
-	private JLabel personalTextLabel;
-	private JTextField personalTextField;
-	private JLabel familyTextLabel;
-	private JTextField familyTextField;
+	private JLabel personalNameLabel;
+	private JTextField personalNameField;
+	private JLabel familyNameLabel;
+	private JTextField familyNameField;
 	private JLabel localeLabel;
 	private JTextField localeField;
 	private JLabel typeLabel;
@@ -160,10 +176,10 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected void initRecordComponents(){
-		personalTextLabel = new JLabel("(Primary) Name:");
-		personalTextField = new JTextField();
-		familyTextLabel = new JLabel("(Secondary) Name:");
-		familyTextField = new JTextField();
+		personalNameLabel = new JLabel("(Primary) Name:");
+		personalNameField = new JTextField();
+		familyNameLabel = new JLabel("(Secondary) Name:");
+		familyNameField = new JTextField();
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 		typeLabel = new JLabel("Type:");
@@ -180,9 +196,9 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
 
 
-		GUIHelper.bindLabelTextChangeUndo(personalTextLabel, personalTextField, this::saveData);
-		GUIHelper.bindLabelTextChangeUndo(familyTextLabel, familyTextField, this::saveData);
-		addMandatoryField(personalTextField, familyTextField);
+		GUIHelper.bindLabelTextChangeUndo(personalNameLabel, personalNameField, this::saveData);
+		GUIHelper.bindLabelTextChangeUndo(familyNameLabel, familyNameField, this::saveData);
+		addMandatoryField(personalNameField, familyNameField);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
@@ -196,10 +212,10 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(personalTextLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(personalTextField, "grow,wrap related");
-		recordPanelBase.add(familyTextLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(familyTextField, "grow,wrap related");
+		recordPanelBase.add(personalNameLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(personalNameField, "grow,wrap related");
+		recordPanelBase.add(familyNameLabel, "align label,sizegroup lbl,split 2");
+		recordPanelBase.add(familyNameField, "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(localeField, "grow,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
@@ -256,21 +272,21 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	@Override
 	protected void requestFocusAfterSelect(){
 		//set focus on first field
-		personalTextField.requestFocusInWindow();
+		personalNameField.requestFocusInWindow();
 	}
 
 	@Override
 	protected void fillData(){
 		final Integer localizedPersonNameID = extractRecordID(selectedRecord);
-		final String primaryName = extractRecordPersonalName(selectedRecord);
-		final String secondaryName = extractRecordFamilyName(selectedRecord);
+		final String personalName = extractRecordPersonalName(selectedRecord);
+		final String familyName = extractRecordFamilyName(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
-		personalTextField.setText(primaryName);
-		familyTextField.setText(secondaryName);
+		personalNameField.setText(personalName);
+		familyNameField.setText(familyName);
 		localeField.setText(locale);
 		typeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
@@ -278,7 +294,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 		if(filterReferenceID <= 0){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedPersonNameDialog::extractRecordPersonNameID, localizedPersonNameID);
+				EntityManager::extractRecordPersonNameID, localizedPersonNameID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
@@ -289,8 +305,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected void clearData(){
-		personalTextField.setText(null);
-		familyTextField.setText(null);
+		personalNameField.setText(null);
+		familyNameField.setText(null);
 
 		localeField.setText(null);
 
@@ -301,12 +317,12 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected boolean validateData(){
-		final String primaryText = GUIHelper.getTextTrimmed(personalTextField);
-		final String secondaryText = GUIHelper.getTextTrimmed(familyTextField);
-		if(!validData(primaryText) && !validData(secondaryText)){
+		final String personName = GUIHelper.getTextTrimmed(personalNameField);
+		final String familyName = GUIHelper.getTextTrimmed(familyNameField);
+		if(!validData(personName) && !validData(familyName)){
 			JOptionPane.showMessageDialog(getParent(), "(Primary or secondary) Name field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
-			personalTextField.requestFocusInWindow();
+			personalNameField.requestFocusInWindow();
 
 			return false;
 		}
@@ -319,16 +335,16 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			return false;
 
 		//read record panel:
-		final String primaryText = GUIHelper.getTextTrimmed(personalTextField);
-		final String secondaryText = GUIHelper.getTextTrimmed(familyTextField);
+		final String personalName = GUIHelper.getTextTrimmed(personalNameField);
+		final String familyName = GUIHelper.getTextTrimmed(familyNameField);
 		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String transcription = GUIHelper.getTextTrimmed(transcriptionComboBox);
 		final String transcriptionType = GUIHelper.getTextTrimmed(transcriptionTypeComboBox);
 
 		//update table:
-		final boolean shouldUpdate = (!Objects.equals(primaryText, extractRecordPersonalName(selectedRecord))
-			|| !Objects.equals(secondaryText, extractRecordFamilyName(selectedRecord)));
+		final boolean shouldUpdate = (!Objects.equals(personalName, extractRecordPersonalName(selectedRecord))
+			|| !Objects.equals(familyName, extractRecordFamilyName(selectedRecord)));
 		if(shouldUpdate){
 			final DefaultTableModel model = getRecordTableModel();
 			final Integer recordID = extractRecordID(selectedRecord);
@@ -338,10 +354,10 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 				if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 					final StringJoiner text = new StringJoiner(", ");
-					if(primaryText != null)
-						text.add(primaryText);
-					if(secondaryText != null)
-						text.add(secondaryText);
+					if(personalName != null)
+						text.add(personalName);
+					if(familyName != null)
+						text.add(familyName);
 
 					model.setValueAt(text.toString(), modelRowIndex, TABLE_INDEX_TEXT);
 
@@ -350,49 +366,15 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			}
 		}
 
-		selectedRecord.put("personal_name", primaryText);
-		selectedRecord.put("family_name", secondaryText);
-		selectedRecord.put("locale", locale);
-		selectedRecord.put("type", type);
-		selectedRecord.put("transcription", transcription);
-		selectedRecord.put("transcription_type", transcriptionType);
+		insertRecordPersonalName(selectedRecord, personalName);
+		insertRecordFamilyName(selectedRecord, familyName);
+		insertRecordLocale(selectedRecord, locale);
+		insertRecordType(selectedRecord, type);
+		insertRecordTranscription(selectedRecord, transcription);
+		insertRecordTranscriptionType(selectedRecord, transcriptionType);
 
 		return true;
 	}
-
-
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordTranscription(final Map<String, Object> record){
-		return (String)record.get("transcription");
-	}
-
-	private static String extractRecordTranscriptionType(final Map<String, Object> record){
-		return (String)record.get("transcription_type");
-	}
-
-	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
-		return (Integer)record.get("person_name_id");
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
-	}
-
 
 	@Override
 	public void onPreviewStateChange(final boolean visible){

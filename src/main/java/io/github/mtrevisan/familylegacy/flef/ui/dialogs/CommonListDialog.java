@@ -66,15 +66,21 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
+import java.util.Objects;
 import java.util.TreeMap;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
 
 
 public abstract class CommonListDialog extends CommonRecordDialog implements ValidDataListenerInterface{
@@ -124,8 +130,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 
 	protected void initialize(){
-		initComponents();
-
 		initLayout();
 	}
 
@@ -274,6 +278,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final TableColumn hiddenColumn = columnModel.getColumn(TABLE_INDEX_FILTER);
 		columnModel.removeColumn(hiddenColumn);
 
+		//enable map key insert also if the scroll pane is select (delete will be skipped if no line has been selected)
+		tableScrollPane.getViewport().addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent evt){
+				final Point point = evt.getPoint();
+				final int rowAtPoint = recordTable.rowAtPoint(point);
+				if(rowAtPoint == -1)
+					recordTable.requestFocus();
+			}
+		});
 		final InputMap recordTableInputMap = recordTable.getInputMap(JComponent.WHEN_FOCUSED);
 		recordTableInputMap.put(GUIHelper.INSERT_STROKE, ACTION_MAP_KEY_INSERT);
 		recordTableInputMap.put(GUIHelper.DELETE_STROKE, ACTION_MAP_KEY_DELETE);
@@ -392,7 +406,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final String capitalizedTableName = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 		setTitle((id != null? capitalizedTableName + " ID " + id: StringHelper.pluralize(capitalizedTableName)));
 
-		selectedRecord = record;
+		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
+		selectedRecordLink = null;
 
 		selectActionInner();
 	}
@@ -413,9 +428,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 			okAction(true);
 
-			selectedRecord = getSelectedRecord();
-			if(selectedRecord == null)
+			final Map<String, Object> record = getSelectedRecord();
+			if(record == null)
 				return;
+
+			selectedRecord = new HashMap<>(record);
+			selectedRecordLink = null;
 
 			selectActionInner();
 
@@ -434,7 +452,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	private void selectActionInner(){
-		selectedRecordHash = selectedRecord.hashCode();
+		selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
 
 		if(!selectRecordOnly)
 			GUIHelper.setEnabled(recordTabbedPane, true);
@@ -459,7 +477,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final TableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 
-		return getRecords(getTableName()).get(recordID);
+		return getRecords(getTableName())
+			.get(recordID);
 	}
 
 	public final void showNewRecord(){
@@ -478,7 +497,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final NavigableMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
 		final int nextRecordID = extractNextRecordID(storeTables);
 		final Map<String, Object> newRecord = new HashMap<>();
-		newRecord.put("id", nextRecordID);
+		insertRecordID(newRecord, nextRecordID);
 		storeTables.put(nextRecordID, newRecord);
 
 		//reset filter
@@ -513,6 +532,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		//clear previously selected row
 		selectedRecord = null;
+		selectedRecordLink = null;
 
 		ignoreEvents = true;
 		clearData();
@@ -528,16 +548,18 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	private void deleteAction(){
 		final int viewRowIndex = recordTable.getSelectedRow();
+		if(viewRowIndex < 0)
+			//no row selected
+			return;
+
 		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 		final DefaultTableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
-		if(viewRowIndex == -1)
-			//no row selected
-			return;
 
 		//clear previously selected row
 		selectedRecord = null;
+		selectedRecordLink = null;
 
 		ignoreEvents = true;
 		clearData();

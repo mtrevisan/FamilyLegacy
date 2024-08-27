@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -61,6 +62,23 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordText;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscriptionType;
+
 
 public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
@@ -78,7 +96,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private JLabel localeLabel;
 	private JTextField localeField;
 	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
+	private JComboBox<String> referenceTypeComboBox;
 	private JLabel transcriptionLabel;
 	private JComboBox<String> transcriptionComboBox;
 	private JLabel transcriptionTypeLabel;
@@ -121,11 +139,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			if(selectedRecord != null){
 				final Integer localizedTextID = extractRecordID(selectedRecord);
 				final Map<String, Object> mediaJunction = new HashMap<>();
-				mediaJunction.put("id", mediaJunctionID);
-				mediaJunction.put("localized_text_id", localizedTextID);
-				mediaJunction.put("reference_table", filterReferenceTable);
-				mediaJunction.put("reference_id", filterReferenceID);
-				mediaJunction.put("reference_type", filterReferenceType);
+				insertRecordID(mediaJunction, mediaJunctionID);
+				insertRecordLocalizedTextID(mediaJunction, localizedTextID);
+				insertRecordReferenceTable(mediaJunction, filterReferenceTable);
+				insertRecordReferenceID(mediaJunction, filterReferenceID);
+				insertRecordReferenceType(mediaJunction, filterReferenceType);
 				mediaJunctions.put(mediaJunctionID, mediaJunction);
 			}
 			else
@@ -188,7 +206,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		localeLabel = new JLabel("Locale:");
 		localeField = new JTextField();
 		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
+		referenceTypeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
 		transcriptionLabel = new JLabel("Transcription:");
 		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana",
 			"hangul"});
@@ -214,7 +232,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, referenceTypeComboBox, this::saveData);
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, this::saveData);
 
@@ -229,7 +247,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(localeField, "grow,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
+		recordPanelBase.add(referenceTypeComboBox, "grow,wrap paragraph");
 		recordPanelBase.add(transcriptionLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(transcriptionComboBox, "grow,wrap related");
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
@@ -245,8 +263,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		if(filterReferenceTable != null){
 			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
 				.values().stream()
-				.filter(record -> filterReferenceType.equals(extractRecordType(record)))
-				.map(CommonRecordDialog::extractRecordID)
+				.filter(record -> filterReferenceType.equals(extractRecordReferenceType(record)))
+				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
 			records.keySet()
 				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
@@ -290,7 +308,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final Integer localizedTextID = extractRecordID(selectedRecord);
 		final String text = extractRecordText(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final String type = extractRecordType(selectedRecord);
+		final String type = extractRecordReferenceType(selectedRecord);
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
@@ -299,13 +317,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		else
 			textTextPreview.setText("Extract " + localizedTextID, text, locale);
 		localeField.setText(locale);
-		typeComboBox.setSelectedItem(type);
+		referenceTypeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceTable == null){
 			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				LocalizedTextDialog::extractRecordLocalizedTextID, localizedTextID);
+				EntityManager::extractRecordLocalizedTextID, localizedTextID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
@@ -323,7 +341,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		localeField.setText(null);
 
-		typeComboBox.setSelectedItem(null);
+		referenceTypeComboBox.setSelectedItem(null);
 		transcriptionComboBox.setSelectedItem(null);
 		transcriptionTypeComboBox.setSelectedItem(null);
 	}
@@ -351,7 +369,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		//read record panel:
 		final String text = (simplePrimaryText? GUIHelper.getTextTrimmed(simpleTextField): textTextPreview.getTextTrimmed());
 		final String locale = GUIHelper.getTextTrimmed(localeField);
-		final String type = GUIHelper.getTextTrimmed(typeComboBox);
+		final String referenceType = GUIHelper.getTextTrimmed(referenceTypeComboBox);
 		final String transcription = GUIHelper.getTextTrimmed(transcriptionComboBox);
 		final String transcriptionType = GUIHelper.getTextTrimmed(transcriptionTypeComboBox);
 
@@ -371,42 +389,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			}
 		}
 
-		selectedRecord.put("text", text);
-		selectedRecord.put("locale", locale);
-		selectedRecord.put("reference_type", type);
-		selectedRecord.put("transcription", transcription);
-		selectedRecord.put("transcription_type", transcriptionType);
+		insertRecordText(selectedRecord, text);
+		insertRecordLocale(selectedRecord, locale);
+		insertRecordReferenceType(selectedRecord, referenceType);
+		insertRecordTranscription(selectedRecord, transcription);
+		insertRecordTranscriptionType(selectedRecord, transcriptionType);
 
 		return true;
-	}
-
-
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
-	}
-
-	private static String extractRecordTranscription(final Map<String, Object> record){
-		return (String)record.get("transcription");
-	}
-
-	private static String extractRecordTranscriptionType(final Map<String, Object> record){
-		return (String)record.get("transcription_type");
-	}
-
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
 	}
 
 

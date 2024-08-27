@@ -43,7 +43,6 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -165,7 +164,7 @@ public class ChildrenPanel extends JPanel{
 				final Integer childID = extractRecordID(child);
 				final boolean hasChildUnion = hasUnion(childID);
 				final JPanel box = createChildPanel(hasChildUnion);
-				final PersonPanel childBox = createChildPersonPanel(child);
+				final PersonPanel childBox = createChildPersonPanel(childID);
 				box.add(childBox);
 				add(box, "gapright " + CHILD_SEPARATION);
 				childBoxes[i] = childBox;
@@ -174,7 +173,7 @@ public class ChildrenPanel extends JPanel{
 
 		//add empty child
 		final JPanel box = createChildPanel(false);
-		final PersonPanel childBox = createChildPersonPanel(Collections.emptyMap());
+		final PersonPanel childBox = createChildPersonPanel(null);
 		box.add(childBox);
 		add(box);
 		childBoxes[children.length] = childBox;
@@ -183,9 +182,9 @@ public class ChildrenPanel extends JPanel{
 			setPersonListener(personListener);
 	}
 
-	private PersonPanel createChildPersonPanel(final Map<String, Object> child){
+	private PersonPanel createChildPersonPanel(final Integer childID){
 		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, store);
-		childBox.loadData(child);
+		childBox.loadData(childID);
 
 		EventBusService.subscribe(childBox);
 

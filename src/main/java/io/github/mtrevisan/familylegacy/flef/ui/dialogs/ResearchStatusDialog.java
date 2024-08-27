@@ -65,6 +65,16 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordStatus;
+
 
 public final class ResearchStatusDialog extends CommonListDialog{
 
@@ -223,8 +233,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		//TODO
-		final Integer referenceID = extractRecordReferenceID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final String status = extractRecordStatus(selectedRecord);
@@ -288,29 +296,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 		}
 
-		selectedRecord.put("identifier", identifier);
-		selectedRecord.put("description", description);
-		selectedRecord.put("status", status);
-		selectedRecord.put("priority", priority);
+		insertRecordIdentifier(selectedRecord, identifier);
+		insertRecordDescription(selectedRecord, description);
+		insertRecordStatus(selectedRecord, status);
+		insertRecordPriority(selectedRecord, priority);
 
 		return true;
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordDescription(final Map<String, Object> record){
-		return (String)record.get("description");
-	}
-
-	private static String extractRecordStatus(final Map<String, Object> record){
-		return (String)record.get("status");
-	}
-
-	private static Integer extractRecordPriority(final Map<String, Object> record){
-		return (Integer)record.get("priority");
 	}
 
 

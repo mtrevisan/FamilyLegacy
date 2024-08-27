@@ -56,6 +56,13 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class CalendarDialog extends CommonListDialog{
 
@@ -160,15 +167,15 @@ public final class CalendarDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 	}
 
 	@Override
@@ -290,14 +297,9 @@ public final class CalendarDialog extends CommonListDialog{
 			}
 		}
 
-		selectedRecord.put("type", type);
+		insertRecordType(selectedRecord, type);
 
 		return true;
-	}
-
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
 	}
 
 
@@ -359,7 +361,7 @@ public final class CalendarDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
-					final Integer calendarID = extractRecordID(container);
+					final int calendarID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
@@ -373,8 +375,8 @@ public final class CalendarDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, calendarID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", calendarID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, calendarID);
 									}
 								});
 							noteDialog.loadData();

@@ -55,6 +55,18 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolVersion;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordUpdateDate;
+
 
 public final class ProjectDialog extends CommonRecordDialog implements TextPreviewListenerInterface{
 
@@ -132,8 +144,9 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	public void loadData(){
-		selectedRecord = getRecords(TABLE_NAME)
-			.computeIfAbsent(1, k -> new HashMap<>());
+		final Map<String, Object> record = getRecords(TABLE_NAME)
+			.get(1);
+		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
 		ignoreEvents = true;
 		fillData();
@@ -179,38 +192,24 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String updateDate = extractUpdateDate(selectedRecord);
 
-		selectedRecord.put("protocol_name", PROTOCOL_NAME_DEFAULT);
-		selectedRecord.put("protocol_version", PROTOCOL_VERSION_DEFAULT);
-		selectedRecord.put("copyright", copyright);
-		selectedRecord.put("note", note);
-		selectedRecord.put("locale", locale);
-		selectedRecord.put((updateDate == null? "creation_date": "update_date"), now);
+		insertRecordProtocolName(selectedRecord, PROTOCOL_NAME_DEFAULT);
+		insertRecordProtocolVersion(selectedRecord, PROTOCOL_VERSION_DEFAULT);
+		insertRecordCopyright(selectedRecord, copyright);
+		insertRecordNote(selectedRecord, note);
+		insertRecordLocale(selectedRecord, locale);
+		if(updateDate == null)
+			insertRecordCreationDate(selectedRecord, now);
+		else
+			insertRecordUpdateDate(selectedRecord, now);
 
 		return true;
 	}
-
-
-	private static String extractRecordCopyright(final Map<String, Object> record){
-		return (String)record.get("copyright");
-	}
-
-	private static String extractRecordNote(final Map<String, Object> record){
-		return (String)record.get("note");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractUpdateDate(final Map<String, Object> record){
-		return (String)record.get("update_date");
-	}
-
 
 	@Override
 	public void onPreviewStateChange(final boolean visible){
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
+
 
 
 	public static void main(final String[] args){

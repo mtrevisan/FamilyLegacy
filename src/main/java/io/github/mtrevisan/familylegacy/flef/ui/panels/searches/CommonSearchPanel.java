@@ -25,10 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
-import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -263,9 +261,6 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 			}
 
 			linkListener.onRecordSelected(tableName, recordIdentifier);
-
-			//TODO fire event only if something's changed?
-			EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, tableName, null));
 		}
 	}
 

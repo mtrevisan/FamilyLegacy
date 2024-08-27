@@ -344,6 +344,7 @@ public final class SQLFileParser{
 	}
 
 
+
 	public static void main(final String[] args) throws SQLGrammarException, SQLDataException{
 		final SQLFileParser parser = new SQLFileParser();
 		parser.parse("src/main/resources/gedg/treebard/FLeF.sql");

@@ -60,6 +60,21 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class PersonNameDialog extends CommonListDialog{
 
@@ -201,30 +216,30 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, TABLE_NAME, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -392,14 +407,13 @@ public final class PersonNameDialog extends CommonListDialog{
 				break;
 			}
 
-		selectedRecord.put("personal_name", personalName);
-		selectedRecord.put("family_name", familyName);
-		selectedRecord.put("locale", nameLocale);
-		selectedRecord.put("type", type);
+		insertRecordPersonalName(selectedRecord, personalName);
+		insertRecordFamilyName(selectedRecord, familyName);
+		insertRecordLocale(selectedRecord, nameLocale);
+		insertRecordType(selectedRecord, type);
 
 		return true;
 	}
-
 
 	private String extractIdentifier(final int selectedRecordID){
 		final Map<String, Object> storePersonNames = getRecords(TABLE_NAME).get(selectedRecordID);
@@ -411,30 +425,6 @@ public final class PersonNameDialog extends CommonListDialog{
 		if(familyName != null)
 			name.add(familyName);
 		return name.toString();
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
-	private static Integer extractRecordPersonNameID(final Map<String, Object> record){
-		return (Integer)record.get("person_name_id");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
 	}
 
 
@@ -540,8 +530,8 @@ public final class PersonNameDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personNameID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, personNameID);
 									}
 								});
 							noteDialog.loadData();
@@ -554,8 +544,8 @@ public final class PersonNameDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personNameID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, personNameID);
 									}
 								});
 							mediaDialog.loadData();
@@ -567,8 +557,8 @@ public final class PersonNameDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", personNameID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, personNameID);
 									}
 								});
 							culturalNormDialog.loadData();

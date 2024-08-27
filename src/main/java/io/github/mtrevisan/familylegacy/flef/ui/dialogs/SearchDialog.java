@@ -259,6 +259,7 @@ public final class SearchDialog extends JDialog{
 	}
 
 
+
 	public static void main(final String[] args){
 		try{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
@@ -747,7 +748,7 @@ public final class SearchDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					switch(editCommand.getType()){
-						case SEARCH -> dialog.loadData();
+						case SEARCH -> { if(dialog.isShowing()) dialog.loadData(); }
 					}
 				}
 			};

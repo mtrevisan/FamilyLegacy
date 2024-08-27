@@ -59,6 +59,17 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class RepositoryDialog extends CommonListDialog{
 
@@ -177,26 +188,26 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		personButton.setToolTipText("Reference person");
 		personButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PERSON, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PERSON, TABLE_NAME, selectedRecord)));
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
 
 
 		notesButton.setToolTipText("Notes");
 		notesButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediasButton.setToolTipText("Media");
 		mediasButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		sourcesButton.setToolTipText("Sources");
 		sourcesButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.SOURCE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.SOURCE, TABLE_NAME, selectedRecord)));
 	}
 
 	@Override
@@ -338,35 +349,10 @@ public final class RepositoryDialog extends CommonListDialog{
 				}
 		}
 
-		selectedRecord.put("identifier", identifier);
-		selectedRecord.put("type", type);
+		insertRecordIdentifier(selectedRecord, identifier);
+		insertRecordType(selectedRecord, type);
 
 		return true;
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static Integer extractRecordRepositoryID(final Map<String, Object> record){
-		return (Integer)record.get("repository_id");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
 	}
 
 
@@ -549,7 +535,7 @@ public final class RepositoryDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final String tableName = editCommand.getIdentifier();
-					final Integer repositoryID = extractRecordID(container);
+					final int repositoryID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(store, parent)
@@ -576,8 +562,8 @@ public final class RepositoryDialog extends CommonListDialog{
 								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", repositoryID);
+										insertRecordReferenceTable(record, tableName);
+										insertRecordReferenceID(record, repositoryID);
 									}
 								});
 							noteDialog.loadData();
@@ -590,8 +576,8 @@ public final class RepositoryDialog extends CommonListDialog{
 								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", repositoryID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, repositoryID);
 									}
 								});
 							mediaDialog.loadData();

@@ -59,6 +59,14 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+
 
 public final class NoteDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
@@ -191,11 +199,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -319,21 +327,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 				}
 		}
 
-		selectedRecord.put("note", note);
-		selectedRecord.put("locale", locale);
+		insertRecordNote(selectedRecord, note);
+		insertRecordLocale(selectedRecord, locale);
 
 		return true;
 	}
-
-
-	private static String extractRecordNote(final Map<String, Object> record){
-		return (String)record.get("note");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
 
 	@Override
 	public void onPreviewStateChange(final boolean visible){
@@ -400,8 +398,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								.withReference(TABLE_NAME, noteID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", noteID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, noteID);
 									}
 								});
 							culturalNormDialog.loadData();
@@ -414,8 +412,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								.withReference(TABLE_NAME, noteID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", noteID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, noteID);
 									}
 								});
 							mediaDialog.loadData();

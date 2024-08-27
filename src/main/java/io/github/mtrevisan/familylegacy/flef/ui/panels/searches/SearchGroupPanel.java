@@ -157,12 +157,12 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
+		for(final Map.Entry<Integer, Map<String, Object>> entry : records.entrySet()){
+			final Integer key = entry.getKey();
+			final Map<String, Object> record = entry.getValue();
 
-			final Integer unionID = extractRecordID(container);
-			final String type = extractRecordType(container);
+			final Integer unionID = extractRecordID(record);
+			final String type = extractRecordType(record);
 			final List<Integer> personIDsInUnion = getPartnerIDs(unionID);
 			final String earliestUnionYear = extractEarliestUnionYear(unionID);
 			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);

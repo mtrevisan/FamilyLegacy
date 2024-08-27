@@ -88,6 +88,7 @@ public final class Main{
 	}
 
 
+
 	public static void main(final String[] args) throws URISyntaxException, SQLGrammarException, SQLDataException, GedcomGrammarException,
 			GedcomDataException, SQLException, IOException{
 //		final GedcomFileParser gedcomParser = new GedcomFileParser();

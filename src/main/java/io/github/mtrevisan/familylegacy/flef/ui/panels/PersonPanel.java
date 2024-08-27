@@ -356,7 +356,11 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 
-	public void loadData(final Map<String, Object> person){
+	public void loadData(final Integer personID){
+		final Map<String, Object> person = (personID != null
+			? store.get(TABLE_NAME_PERSON).get(personID)
+			: Collections.emptyMap());
+
 		prepareData(person);
 
 		loadData();
@@ -690,6 +694,15 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.collect(Collectors.toSet());
 	}
 
+	private static Font deriveInfoFont(final Font baseFont){
+		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
+	}
+
+	final Point getPaintingEnterPoint(){
+		return new Point(getX() + getWidth() / 2, getY());
+	}
+
+
 	private static String extractRecordReferenceTable(final Map<String, Object> record){
 		return (String)record.get("reference_table");
 	}
@@ -732,15 +745,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private static String extractRecordName(final Map<String, Object> record){
 		return (record != null? (String)record.get("name"): null);
-	}
-
-	private static Font deriveInfoFont(final Font baseFont){
-		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
-	}
-
-
-	final Point getPaintingEnterPoint(){
-		return new Point(getX() + getWidth() / 2, getY());
 	}
 
 
@@ -933,7 +937,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 		EventQueue.invokeLater(() -> {
 			final PersonPanel panel = create(boxType, store);
-			panel.loadData(person1);
+			panel.loadData(1);
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

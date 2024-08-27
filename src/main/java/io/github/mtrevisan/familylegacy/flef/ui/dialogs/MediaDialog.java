@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -79,6 +80,25 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordMediaID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoProjection;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTitle;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoMediaID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoProjection;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTitle;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
 
 
 public final class MediaDialog extends CommonListDialog{
@@ -142,7 +162,7 @@ public final class MediaDialog extends CommonListDialog{
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
-			newRecord.put("type", "photo");
+			insertRecordType(newRecord, "photo");
 
 			dialog.typeComboBox.setEnabled(false);
 		});
@@ -179,10 +199,10 @@ public final class MediaDialog extends CommonListDialog{
 			else{
 				final Integer mediaID = extractRecordID(selectedRecord);
 				final Map<String, Object> mediaJunction = new HashMap<>();
-				mediaJunction.put("id", mediaJunctionID);
-				mediaJunction.put("media_id", mediaID);
-				mediaJunction.put("reference_table", filterReferenceTable);
-				mediaJunction.put("reference_id", filterReferenceID);
+				insertRecordID(mediaJunction, mediaJunctionID);
+				insertRecordPhotoMediaID(mediaJunction, mediaID);
+				insertRecordReferenceTable(mediaJunction, filterReferenceTable);
+				insertRecordReferenceID(mediaJunction, filterReferenceID);
 				mediaJunctions.put(mediaJunctionID, mediaJunction);
 
 				if(onCloseGracefully != null)
@@ -369,27 +389,27 @@ public final class MediaDialog extends CommonListDialog{
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
 		photoCropButton.setEnabled(false);
 	}
 
@@ -447,7 +467,7 @@ public final class MediaDialog extends CommonListDialog{
 		if(filterReferenceTable != null){
 			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable, filterReferenceID)
 				.values().stream()
-				.map(CommonRecordDialog::extractRecordID)
+				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
 			records.keySet()
 				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
@@ -552,7 +572,7 @@ public final class MediaDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, mediaID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", ((filterReferenceTable != null ||showRecordOnly) && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null && selectedRecord != null));
 	}
 
 	//NOTE working table-junction extraction
@@ -664,45 +684,12 @@ public final class MediaDialog extends CommonListDialog{
 		}
 
 
-		selectedRecord.put("identifier", FileHelper.getRelativePath(basePath, identifier));
-		selectedRecord.put("title", title);
-		selectedRecord.put("type", type);
-		selectedRecord.put("photo_projection", photoProjection);
+		insertRecordIdentifier(selectedRecord, FileHelper.getRelativePath(basePath, identifier));
+		insertRecordTitle(selectedRecord, title);
+		insertRecordType(selectedRecord, type);
+		insertRecordPhotoProjection(selectedRecord, photoProjection);
 
 		return true;
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordTitle(final Map<String, Object> record){
-		return (String)record.get("title");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordPhotoProjection(final Map<String, Object> record){
-		return (String)record.get("photo_projection");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordMediaID(final Map<String, Object> record){
-		return (Integer)record.get("media_id");
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static String extractRecordPhotoCrop(final Map<String, Object> record){
-		return (record != null? (String)record.get("photo_crop"): null);
 	}
 
 
@@ -796,7 +783,7 @@ public final class MediaDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
-					final Integer mediaID = extractRecordID(container);
+					final int mediaID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
@@ -812,8 +799,8 @@ public final class MediaDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, mediaID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", mediaID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, mediaID);
 									}
 								});
 							noteDialog.loadData();

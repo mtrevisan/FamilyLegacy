@@ -59,6 +59,23 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+
 
 public final class SourceDialog extends CommonListDialog{
 
@@ -205,28 +222,28 @@ public final class SourceDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		citationButton.setToolTipText("Citations");
 		citationButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CITATION, TABLE_NAME, getSelectedRecord())));
+			EditEvent.create(EditEvent.EditType.CITATION, TABLE_NAME, selectedRecord)));
 	}
 
 	@Override
@@ -380,47 +397,13 @@ public final class SourceDialog extends CommonListDialog{
 				}
 		}
 
-		selectedRecord.put("identifier", identifier);
-		selectedRecord.put("type", type);
-		selectedRecord.put("author", author);
-		if(filterRepositoryID != null)
-			selectedRecord.put("repository_id", filterRepositoryID);
-		selectedRecord.put("location", location);
+		insertRecordIdentifier(selectedRecord, identifier);
+		insertRecordType(selectedRecord, type);
+		insertRecordAuthor(selectedRecord, author);
+		insertRecordRepositoryID(selectedRecord, filterRepositoryID);
+		insertRecordLocation(selectedRecord, location);
 
 		return true;
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordAuthor(final Map<String, Object> record){
-		return (String)record.get("author");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordRepositoryID(final Map<String, Object> record){
-		return (Integer)record.get("repository_id");
-	}
-
-	private static String extractRecordLocation(final Map<String, Object> record){
-		return (String)record.get("location");
-	}
-
-	private static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
 	}
 
 
@@ -553,8 +536,8 @@ public final class SourceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, sourceID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", sourceID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, sourceID);
 									}
 								});
 							noteDialog.loadData();
@@ -567,8 +550,8 @@ public final class SourceDialog extends CommonListDialog{
 								.withReference(TABLE_NAME, sourceID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										record.put("reference_table", TABLE_NAME);
-										record.put("reference_id", sourceID);
+										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceID(record, sourceID);
 									}
 								});
 							mediaDialog.loadData();

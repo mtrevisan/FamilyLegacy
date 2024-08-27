@@ -227,13 +227,13 @@ public class DatabaseManager implements DatabaseManagerInterface{
 		}
 	}
 
-	public final Map<String, Integer> extractIdenToIDMap(final String tableName, final String iden) throws SQLException{
+	private Map<String, Integer> extractIdenToIDMap(final String tableName, final String iden) throws SQLException{
 		final String sql = "SELECT " + iden + ", id FROM " + tableName;
 
 		final Map<String, Integer> identifierToIDMap = new HashMap<>();
 		try(
-			final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-			final PreparedStatement stmt = connection.prepareStatement(sql)){
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
 			final ResultSet rs = stmt.executeQuery();
 			while(rs.next()){
 				final String identifier = rs.getString(iden);
@@ -247,12 +247,12 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	@Override
 	public final Map<String, Integer> extractPersonIdentifierToIDMap(final String tableName){
 		final String sql = "SELECT lt.text AS text, pn.id as id FROM PERSON_NAME pn, LOCALIZED_TEXT_JUNCTION ltj, LOCALIZED_TEXT lt" +
-			" WHERE pn.NAME_ID = ltj.REFERENCE_ID AND ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
+			" WHERE ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
 
 		final Map<String, Integer> identifierToIDMap = new HashMap<>();
 		try(
-			final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-			final PreparedStatement stmt = connection.prepareStatement(sql)){
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
 			final ResultSet rs = stmt.executeQuery();
 			while(rs.next()){
 				final String identifier = rs.getString("text");
@@ -270,12 +270,12 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	public final Map<String, Integer> extractGroupIdentifierToIDMap(final String tableName){
 		//TODO
 		final String sql = "SELECT lt.text AS text, pn.id as id FROM GROUP g, GROUP_JUNCTION gj, PERSON_NAME pn, LOCALIZED_TEXT_JUNCTION ltj, LOCALIZED_TEXT lt" +
-			" WHERE pn.NAME_ID = ltj.REFERENCE_ID AND ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
+			" WHERE ltj.REFERENCE_TABLE = 'person' AND lt.ID = ltj.LOCALIZED_TEXT_ID";
 
 		final Map<String, Integer> identifierToIDMap = new HashMap<>();
 		try(
-			final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-			final PreparedStatement stmt = connection.prepareStatement(sql)){
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql)){
 			final ResultSet rs = stmt.executeQuery();
 			while(rs.next()){
 				final String identifier = rs.getString("text");
@@ -327,8 +327,8 @@ public class DatabaseManager implements DatabaseManagerInterface{
 		}
 
 		try(
-			final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
-			final PreparedStatement stmt = connection.prepareStatement(sql.toString())){
+				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
+				final PreparedStatement stmt = connection.prepareStatement(sql.toString())){
 			for(int i = 0; i < length; i ++)
 				stmt.setObject(i + 1, fields[i]);
 
