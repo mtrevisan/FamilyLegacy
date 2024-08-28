@@ -95,7 +95,10 @@ public class EditEvent{
 
 	@Override
 	public final String toString(){
-		return "EditEvent{" + "type=" + type + ", container=" + container + '}';
+		return "EditEvent{"
+			+ "type = " + type
+			+ ", container = " + container
+			+ '}';
 	}
 
 }

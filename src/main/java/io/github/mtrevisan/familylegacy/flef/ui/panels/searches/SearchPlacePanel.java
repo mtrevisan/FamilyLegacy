@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -132,7 +133,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			final String name = extractRecordName(container);
 			final String nameLocale = extractRecordLocale(container);
 			final List<Map<String, Object>> transcribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				key, SearchPlacePanel::extractRecordReferenceType, "name");
+				key, SearchPlacePanel::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final String type = extractRecordType(container);
 			final FilterString filter = FilterString.create()
 				.add(key)

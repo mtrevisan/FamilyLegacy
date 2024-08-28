@@ -102,6 +102,26 @@ public final class ResourceHelper{
 		return null;
 	}
 
+	public static ImageIcon getImageFixedHeight(final String filename, final int height){
+		return getImageFixedHeight(getOriginalImage(filename), height);
+	}
+
+	private static ImageIcon getImageFixedHeight(final ImageIcon icon, final int height){
+		try{
+			final int iconWidth = icon.getIconWidth();
+			final int iconHeight = icon.getIconHeight();
+			final double ratio = (double)height / iconHeight;
+			final int w = (int)(iconWidth * ratio);
+			final int h = (int)(iconHeight * ratio);
+			final int hints = Image.SCALE_SMOOTH;
+			return scaleImage(icon, w, h, hints);
+		}
+		catch(final Exception e){
+			LOGGER.error(null, e);
+		}
+		return null;
+	}
+
 	private static ImageIcon scaleImage(final ImageIcon icon, final int w, final int h, final int hints) throws IOException{
 		final ImageIcon scaled;
 		if(icon.getDescription().endsWith(EXTENSION_GIF)){

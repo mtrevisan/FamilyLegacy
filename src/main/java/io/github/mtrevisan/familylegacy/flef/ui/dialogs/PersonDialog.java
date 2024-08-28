@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -57,16 +58,20 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 
@@ -83,19 +88,19 @@ public final class PersonDialog extends CommonListDialog{
 	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 	private static final String TABLE_NAME_EVENT = "event";
-	private static final String TABLE_NAME_GROUP = "group";
+	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
 
 
-	private JButton namesButton;
-	private JButton photoButton;
-	private JButton photoCropButton;
+	private final JButton personNameButton = new JButton("Names", ICON_TEXT);
+	private final JButton photoButton = new JButton("Photo", ICON_PHOTO);
+	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JButton assertionButton;
-	private JButton eventButton;
-	private JButton groupButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
+	private final JButton groupButton = new JButton("Groups", ICON_GROUP);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 
 	public static PersonDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -107,6 +112,8 @@ public final class PersonDialog extends CommonListDialog{
 	public static PersonDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton, dialog.photoCropButton, dialog.noteButton,
+			dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -161,20 +168,8 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		namesButton = new JButton("Names", ICON_TEXT);
-		photoButton = new JButton("Photo", ICON_PHOTO);
-		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		eventButton = new JButton("Events", ICON_EVENT);
-		groupButton = new JButton("Groups", ICON_GROUP);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-
-		namesButton.setToolTipText("Names");
-		namesButton.addActionListener(e -> EventBusService.publish(
+		personNameButton.setToolTipText("Names");
+		personNameButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PERSON_NAME, TABLE_NAME, selectedRecord)));
 
 		photoButton.setToolTipText("Photo");
@@ -213,7 +208,7 @@ public final class PersonDialog extends CommonListDialog{
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelBase.add(namesButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(personNameButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
 
@@ -231,6 +226,8 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -252,6 +249,9 @@ public final class PersonDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -259,37 +259,67 @@ public final class PersonDialog extends CommonListDialog{
 		final Integer personID = extractRecordID(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNames = extractReferences(TABLE_NAME_PERSON_NAME);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME_GROUP);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasPersonNames = (getRecords(TABLE_NAME_PERSON_NAME)
+			.values().stream()
+			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasGroups = (getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
-		GUIHelper.addBorder(namesButton, !recordNames.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(photoButton, photoID != null, DATA_BUTTON_BORDER_COLOR);
-		photoCropButton.setEnabled(photoID != null);
+		setButtonEnableAndBorder(personNameButton, hasPersonNames);
+		setButtonEnableAndBorder(photoButton, photoID != null);
+		photoCropButton.setEnabled(photoID != null && (!selectRecordOnly || photoCrop != null));
 		GUIHelper.addBorder(photoCropButton, photoID != null && photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(groupButton, !recordGroups.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonEnableAndBorder(groupButton, hasGroups);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
 	protected void clearData(){
-		GUIHelper.setDefaultBorder(namesButton);
+		GUIHelper.setDefaultBorder(personNameButton);
 		GUIHelper.setDefaultBorder(photoButton);
+		GUIHelper.setDefaultBorder(photoCropButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
@@ -321,13 +351,24 @@ public final class PersonDialog extends CommonListDialog{
 				final Integer personNameID = extractRecordID(record);
 				getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, TABLE_NAME_PERSON_NAME, personNameID)
 					.values().stream()
-					.filter(record2 -> Objects.equals("name", extractRecordReferenceType(record2)))
+					.filter(record2 -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_NAME, extractRecordReferenceType(record2)))
 					.map(record2 -> localizedPersonNames.get(extractRecordLocalizedTextID(record2)))
 					.forEach(record2 -> subIdentifier.add(extractName(record2)));
 
 				identifier.add(extractName(record) + (subIdentifier.length() > 0? " (" + subIdentifier + ")": StringUtils.EMPTY));
 			});
 		return identifier.toString();
+	}
+
+	private static String extractName(final Map<String, Object> record){
+		final String personalName = extractRecordPersonalName(record);
+		final String familyName = extractRecordFamilyName(record);
+		final StringJoiner name = new StringJoiner(", ");
+		if(personalName != null)
+			name.add(personalName);
+		if(familyName != null)
+			name.add(familyName);
+		return name.toString();
 	}
 
 
@@ -402,8 +443,8 @@ public final class PersonDialog extends CommonListDialog{
 		localizedPersonName3.put("locale", "en");
 		localizedPersonNames.put((Integer)localizedPersonName3.get("id"), localizedPersonName3);
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
@@ -411,7 +452,7 @@ public final class PersonDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
@@ -419,7 +460,7 @@ public final class PersonDialog extends CommonListDialog{
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
 		media2.put("date_id", 1);
-		medias.put((Integer)media2.get("id"), media2);
+		media.put((Integer)media2.get("id"), media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
@@ -427,7 +468,7 @@ public final class PersonDialog extends CommonListDialog{
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
 		media3.put("date_id", 1);
-		medias.put((Integer)media3.get("id"), media3);
+		media.put((Integer)media3.get("id"), media3);
 
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
 		store.put("media_junction", mediaJunctions);
@@ -477,9 +518,9 @@ public final class PersonDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final PersonDialog dialog = create(store, parent);
+//			final PersonDialog dialog = create(store, parent);
 //			final PersonDialog dialog = createRecordOnly(store, parent);
-//			final PersonDialog dialog = createSelectOnly(store, parent);
+			final PersonDialog dialog = createSelectOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(person1)))
 				dialog.showNewRecord();
@@ -498,17 +539,21 @@ public final class PersonDialog extends CommonListDialog{
 					final Integer photoID = extractRecordPhotoID(container);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, personID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case PERSON_NAME -> {
-							final PersonNameDialog personNameDialog = PersonNameDialog.create(store, parent)
+							final PersonNameDialog personNameDialog = (dialog.isViewOnlyComponent(dialog.personNameButton)
+									? PersonNameDialog.createSelectOnly(store, parent)
+									: PersonNameDialog.create(store, parent))
 								.withReference(personID)
 								.withOnCloseGracefully(record -> {
-									record.put("person_id", personID);
+									insertRecordPersonID(record, personID);
 
 									//update table identifier
 									dialog.loadData();
@@ -518,12 +563,14 @@ public final class PersonDialog extends CommonListDialog{
 							personNameDialog.showDialog();
 						}
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
+							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
+									? MediaDialog.createSelectOnlyForPhoto(store, parent)
+									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
 									final Integer newPhotoID = extractRecordID(record);
-									container.put("photo_id", newPhotoID);
+									insertRecordPhotoID(container, newPhotoID);
 
 									dialog.photoCropButton.setEnabled(newPhotoID != null);
 								});
@@ -539,7 +586,9 @@ public final class PersonDialog extends CommonListDialog{
 							photoDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
+							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+								? PhotoCropDialog.createSelectOnly(store, parent)
+								: PhotoCropDialog.create(store, parent));
 							photoCropDialog.withOnCloseGracefully(record -> {
 									final Rectangle crop = photoCropDialog.getCrop();
 									if(crop != null){
@@ -548,7 +597,7 @@ public final class PersonDialog extends CommonListDialog{
 											.add(Integer.toString(crop.y))
 											.add(Integer.toString(crop.width))
 											.add(Integer.toString(crop.height));
-										container.put("photo_crop", sj);
+										insertRecordPhotoCrop(container, sj.toString());
 									}
 								});
 							try{
@@ -563,7 +612,9 @@ public final class PersonDialog extends CommonListDialog{
 							catch(final IOException ignored){}
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -576,7 +627,9 @@ public final class PersonDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
@@ -590,14 +643,18 @@ public final class PersonDialog extends CommonListDialog{
 							mediaDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, personID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
 						case GROUP -> {
-							final GroupDialog groupDialog = GroupDialog.create(store, parent)
+							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
+									? GroupDialog.createSelectOnly(store, parent)
+									: GroupDialog.create(store, parent))
 								.withReference(TABLE_NAME, personID);
 							groupDialog.loadData();
 

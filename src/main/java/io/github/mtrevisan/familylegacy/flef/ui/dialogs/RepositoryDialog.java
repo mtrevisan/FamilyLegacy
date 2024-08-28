@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -57,15 +58,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
@@ -82,18 +86,20 @@ public final class RepositoryDialog extends CommonListDialog{
 	private static final String TABLE_NAME_SOURCE = "source";
 
 
-	private JLabel identifierLabel;
-	private JTextField identifierField;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JButton personButton;
-	private JButton placeButton;
+	private final JLabel identifierLabel = new JLabel("Identifier:");
+	private final JTextField identifierField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "public library", "college library",
+		"national library", "prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum",
+		"state library", "religious library", "genealogy society collection", "government agency", "funeral home"});
+	private final JButton referencePersonButton = new JButton("Reference person", ICON_PERSON);
+	private final JButton placeButton = new JButton("Place", ICON_PLACE);
 
-	private JButton notesButton;
-	private JButton mediasButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private JButton sourcesButton;
+	private final JButton sourcesButton = new JButton("Sources", ICON_SOURCE);
 
 	private HistoryPanel historyPanel;
 
@@ -107,6 +113,8 @@ public final class RepositoryDialog extends CommonListDialog{
 	public static RepositoryDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.referencePersonButton, dialog.placeButton, dialog.noteButton, dialog.mediaButton,
+			dialog.sourcesButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -161,21 +169,6 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		identifierLabel = new JLabel("Identifier:");
-		identifierField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "public library", "college library", "national library",
-			"prison library", "national archives", "website", "personal collection", "cemetery/mausoleum", "museum", "state library",
-			"religious library", "genealogy society collection", "government agency", "funeral home"});
-		personButton = new JButton("Reference person", ICON_PERSON);
-		placeButton = new JButton("Place", ICON_PLACE);
-
-		notesButton = new JButton("Notes", ICON_NOTE);
-		mediasButton = new JButton("Media", ICON_MEDIA);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		sourcesButton = new JButton("Sources", ICON_SOURCE);
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -186,8 +179,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
-		personButton.setToolTipText("Reference person");
-		personButton.addActionListener(e -> EventBusService.publish(
+		referencePersonButton.setToolTipText("Reference person");
+		referencePersonButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PERSON, TABLE_NAME, selectedRecord)));
 
 		placeButton.setToolTipText("Place");
@@ -195,12 +188,12 @@ public final class RepositoryDialog extends CommonListDialog{
 			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
 
 
-		notesButton.setToolTipText("Notes");
-		notesButton.addActionListener(e -> EventBusService.publish(
+		noteButton.setToolTipText("Notes");
+		noteButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
 
-		mediasButton.setToolTipText("Media");
-		mediasButton.addActionListener(e -> EventBusService.publish(
+		mediaButton.setToolTipText("Media");
+		mediaButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
@@ -217,12 +210,12 @@ public final class RepositoryDialog extends CommonListDialog{
 		recordPanelBase.add(identifierField, "grow,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap paragraph");
-		recordPanelBase.add(personButton, "sizegroup btn,center,split 2");
+		recordPanelBase.add(referencePersonButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(placeButton, "sizegroup btn,gapleft 30,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(notesButton, "sizegroup btn,center,split 3");
-		recordPanelOther.add(mediasButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
+		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
 		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
@@ -236,6 +229,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -257,6 +252,9 @@ public final class RepositoryDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -272,24 +270,41 @@ public final class RepositoryDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordSources = getRecords(TABLE_NAME_SOURCE)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(repositoryID, extractRecordRepositoryID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
+		final boolean hasSources = (getRecords(TABLE_NAME_SOURCE)
+			.values().stream()
+			.filter(record -> Objects.equals(repositoryID, extractRecordRepositoryID(record)))
+			.findFirst()
+			.orElse(null) != null);
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
-		GUIHelper.addBorder(personButton, personID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(referencePersonButton, personID != null);
+		setButtonEnableAndBorder(placeButton, placeID != null);
 
-		GUIHelper.addBorder(notesButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediasButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
-		GUIHelper.addBorder(sourcesButton, !recordSources.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(sourcesButton, hasSources);
 
 		historyPanel.withReference(TABLE_NAME, repositoryID);
 		historyPanel.loadData();
@@ -299,11 +314,11 @@ public final class RepositoryDialog extends CommonListDialog{
 	protected void clearData(){
 		identifierField.setText(null);
 		typeComboBox.setSelectedItem(null);
-		GUIHelper.setDefaultBorder(personButton);
+		GUIHelper.setDefaultBorder(referencePersonButton);
 		GUIHelper.setDefaultBorder(placeButton);
 
-		GUIHelper.setDefaultBorder(notesButton);
-		GUIHelper.setDefaultBorder(mediasButton);
+		GUIHelper.setDefaultBorder(noteButton);
+		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
 
 		GUIHelper.setDefaultBorder(sourcesButton);
@@ -464,8 +479,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
@@ -473,7 +488,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
+
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
 		store.put("media_junction", mediaJunctions);
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
@@ -518,8 +534,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final RepositoryDialog dialog = create(store, parent);
-//			final RepositoryDialog dialog = createRecordOnly(store, parent);
+//			final RepositoryDialog dialog = create(store, parent);
+			final RepositoryDialog dialog = createRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -538,8 +554,10 @@ public final class RepositoryDialog extends CommonListDialog{
 					final int repositoryID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PERSON -> {
-							final PersonDialog personDialog = PersonDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("person_id", extractRecordID(record)));
+							final PersonDialog personDialog = (dialog.showRecordOnly
+									? PersonDialog.createRecordOnly(store, parent)
+									: PersonDialog.create(store, parent))
+								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -548,8 +566,10 @@ public final class RepositoryDialog extends CommonListDialog{
 							personDialog.showDialog();
 						}
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
+							final PlaceDialog placeDialog = (dialog.showRecordOnly
+									? PlaceDialog.createRecordOnly(store, parent)
+									: PlaceDialog.create(store, parent))
+								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -558,7 +578,9 @@ public final class RepositoryDialog extends CommonListDialog{
 							placeDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -571,7 +593,9 @@ public final class RepositoryDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, repositoryID)
 								.withOnCloseGracefully(record -> {

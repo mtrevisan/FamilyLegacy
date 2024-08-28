@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -41,6 +42,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
 
 
 public class Main{
@@ -148,7 +155,7 @@ public class Main{
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("calendar_original_id", extractRecordID(record)));
+								.withOnCloseGracefully(record -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
 							calendarDialog.loadData();
 							final Integer calendarID = extractRecordCalendarOriginalID(container);
 							if(calendarID != null)
@@ -161,7 +168,7 @@ public class Main{
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
+								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -191,7 +198,7 @@ public class Main{
 						//from: citation
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference("citation", recordID, "extract")
+								.withReference("citation", recordID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
 										record.put("reference_table", tableName);
@@ -209,7 +216,7 @@ public class Main{
 								.withReference(recordID)
 								.withOnCloseGracefully(record -> {
 									if(record != null)
-										record.put("person_name_id", recordID);
+										insertRecordPersonNameID(record, recordID);
 								});
 							localizedTextDialog.loadData();
 
@@ -219,7 +226,7 @@ public class Main{
 						//from: place
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(tableName, recordID, "name")
+								.withReference(tableName, recordID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
 										record.put("reference_table", tableName);
@@ -286,7 +293,7 @@ public class Main{
 										.add(Integer.toString(crop.y))
 										.add(Integer.toString(crop.width))
 										.add(Integer.toString(crop.height));
-									container.put("photo_crop", sj);
+									insertRecordPhotoCrop(container, sj.toString());
 								}
 							});
 							try{
@@ -305,7 +312,7 @@ public class Main{
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("person_id", extractRecordID(record)));
+								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -319,7 +326,7 @@ public class Main{
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(store, parent)
 								.withReference(recordID)
 								.withOnCloseGracefully(record -> {
-									record.put("person_id", recordID);
+									insertRecordPersonID(record, recordID);
 
 									//update table identifier
 									dialog.loadData();

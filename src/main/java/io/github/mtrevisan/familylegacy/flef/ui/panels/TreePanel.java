@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -320,7 +321,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toArray(Map[]::new);
 	}
@@ -576,7 +577,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(TreePanel::extractRecordReferenceID)
 			.toList());
 	}
@@ -697,7 +698,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(TreePanel::extractRecordReferenceID)
 			.toList();
 	}
@@ -749,7 +750,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(TreePanel::extractRecordGroupID)
 			.map(groups::get)
 			.toList();

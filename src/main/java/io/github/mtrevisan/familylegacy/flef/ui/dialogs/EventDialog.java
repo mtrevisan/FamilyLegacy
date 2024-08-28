@@ -71,6 +71,8 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
@@ -98,18 +100,58 @@ public final class EventDialog extends CommonListDialog{
 	private static final String MENU_SEPARATOR_END = StringUtils.SPACE + MENU_SEPARATOR;
 
 
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JButton addTypeButton;
-	private JButton removeTypeButton;
-	private JLabel descriptionLabel;
-	private JTextField descriptionField;
-	private JButton placeButton;
-	private JButton dateButton;
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null,
+		MENU_SEPARATOR_START + "Historical events" + MENU_SEPARATOR_END,
+		"historic fact", "natural disaster", "invention", "patent filing", "patent granted",
+		MENU_SEPARATOR_START + "Personal origins" + MENU_SEPARATOR_END,
+		"birth", "sex", "fosterage", "adoption", "guardianship",
+		MENU_SEPARATOR_START + "Physical description" + MENU_SEPARATOR_END,
+		"physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
+		"marks/scars", "special talent", "disability",
+		MENU_SEPARATOR_START + "Citizenship and migration" + MENU_SEPARATOR_END,
+		"nationality", "emigration", "immigration", "naturalization", "caste",
+		MENU_SEPARATOR_START + "Real estate assets" + MENU_SEPARATOR_END,
+		"residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow",
+		MENU_SEPARATOR_START + "Education" + MENU_SEPARATOR_END,
+		"education", "graduation", "able to read", "able to write", "learning", "enrollment",
+		MENU_SEPARATOR_START + "Work and Career" + MENU_SEPARATOR_END,
+		"employment", "occupation", "career", "retirement", "resignation",
+		MENU_SEPARATOR_START + "Legal Events and Documents" + MENU_SEPARATOR_END,
+		"coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon",
+		MENU_SEPARATOR_START + "Health problems and habits" + MENU_SEPARATOR_END,
+		"hospitalization", "illness", "tobacco use", "alcohol use", "drug problem",
+		MENU_SEPARATOR_START + "Marriage and family life" + MENU_SEPARATOR_END,
+		"engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann",
+		"marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation",
+		"number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration",
+		MENU_SEPARATOR_START + "Military" + MENU_SEPARATOR_END,
+		"military induction", "military enlistment", "military rank", "military award", "military promotion", "military service",
+		"military release", "military discharge", "military resignation", "military retirement", "missing in action",
+		MENU_SEPARATOR_START + "Confinement" + MENU_SEPARATOR_END,
+		"imprisonment", "deportation", "internment",
+		MENU_SEPARATOR_START + "Transfers and travel" + MENU_SEPARATOR_END,
+		"travel",
+		MENU_SEPARATOR_START + "Accolades" + MENU_SEPARATOR_END,
+		"honor", "award", "membership",
+		MENU_SEPARATOR_START + "Death and burial" + MENU_SEPARATOR_END,
+		"death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
+		MENU_SEPARATOR_START + "Others" + MENU_SEPARATOR_END,
+		"anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home",
+		MENU_SEPARATOR_START + "Religious events" + MENU_SEPARATOR_END,
+		"religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation",
+		"ordination", "blessing", "first communion"
+	});
+	private final JButton addTypeButton = new JButton("Add");
+	private final JButton removeTypeButton = new JButton("Remove");
+	private final JLabel descriptionLabel = new JLabel("Description:");
+	private final JTextField descriptionField = new JTextField();
+	private final JButton placeButton = new JButton("Place", ICON_PLACE);
+	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private HistoryPanel historyPanel;
 
@@ -126,6 +168,7 @@ public final class EventDialog extends CommonListDialog{
 	public static EventDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final EventDialog dialog = new EventDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -191,61 +234,6 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null,
-			MENU_SEPARATOR_START + "Historical events" + MENU_SEPARATOR_END,
-			"historic fact", "natural disaster", "invention", "patent filing", "patent granted",
-			MENU_SEPARATOR_START + "Personal origins" + MENU_SEPARATOR_END,
-			"birth", "sex", "fosterage", "adoption", "guardianship",
-			MENU_SEPARATOR_START + "Physical description" + MENU_SEPARATOR_END,
-			"physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin",
-			"marks/scars", "special talent", "disability",
-			MENU_SEPARATOR_START + "Citizenship and migration" + MENU_SEPARATOR_END,
-			"nationality", "emigration", "immigration", "naturalization", "caste",
-			MENU_SEPARATOR_START + "Real estate assets" + MENU_SEPARATOR_END,
-			"residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow",
-			MENU_SEPARATOR_START + "Education" + MENU_SEPARATOR_END,
-			"education", "graduation", "able to read", "able to write", "learning", "enrollment",
-			MENU_SEPARATOR_START + "Work and Career" + MENU_SEPARATOR_END,
-			"employment", "occupation", "career", "retirement", "resignation",
-			MENU_SEPARATOR_START + "Legal Events and Documents" + MENU_SEPARATOR_END,
-			"coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon",
-			MENU_SEPARATOR_START + "Health problems and habits" + MENU_SEPARATOR_END,
-			"hospitalization", "illness", "tobacco use", "alcohol use", "drug problem",
-			MENU_SEPARATOR_START + "Marriage and family life" + MENU_SEPARATOR_END,
-			"engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann",
-			"marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation",
-			"number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration",
-			MENU_SEPARATOR_START + "Military" + MENU_SEPARATOR_END,
-			"military induction", "military enlistment", "military rank", "military award", "military promotion", "military service",
-			"military release", "military discharge", "military resignation", "military retirement", "missing in action",
-			MENU_SEPARATOR_START + "Confinement" + MENU_SEPARATOR_END,
-			"imprisonment", "deportation", "internment",
-			MENU_SEPARATOR_START + "Transfers and travel" + MENU_SEPARATOR_END,
-			"travel",
-			MENU_SEPARATOR_START + "Accolades" + MENU_SEPARATOR_END,
-			"honor", "award", "membership",
-			MENU_SEPARATOR_START + "Death and burial" + MENU_SEPARATOR_END,
-			"death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial",
-			MENU_SEPARATOR_START + "Others" + MENU_SEPARATOR_END,
-			"anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home",
-			MENU_SEPARATOR_START + "Religious events" + MENU_SEPARATOR_END,
-			"religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation",
-			"ordination", "blessing", "first communion"
-		});
-		addTypeButton = new JButton("Add");
-		removeTypeButton = new JButton("Remove");
-
-		descriptionLabel = new JLabel("Description:");
-		descriptionField = new JTextField();
-
-		placeButton = new JButton("Place", ICON_PLACE);
-		dateButton = new JButton("Date", ICON_CALENDAR);
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -316,6 +304,8 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
@@ -341,6 +331,9 @@ public final class EventDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -359,9 +352,25 @@ public final class EventDialog extends CommonListDialog{
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		final ItemEvent itemEvent = new ItemEvent(typeComboBox, ItemEvent.ITEM_STATE_CHANGED, typeComboBox.getItemAt(0),
 			ItemEvent.SELECTED);
@@ -371,12 +380,12 @@ public final class EventDialog extends CommonListDialog{
 		typeComboBox.setSelectedItem(type);
 
 		descriptionField.setText(description);
-		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(placeButton, placeID != null);
+		setButtonEnableAndBorder(dateButton, dateID != null);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		historyPanel.withReference(TABLE_NAME, eventID);
 		historyPanel.loadData();
@@ -631,7 +640,9 @@ public final class EventDialog extends CommonListDialog{
 							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -644,7 +655,9 @@ public final class EventDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, eventID)
 								.withOnCloseGracefully(record -> {

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -233,7 +234,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(SearchGroupPanel::extractRecordReferenceID)
 			.toList());
 	}

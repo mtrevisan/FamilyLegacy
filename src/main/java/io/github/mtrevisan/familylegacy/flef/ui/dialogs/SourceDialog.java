@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -57,7 +58,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordAuthor;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
@@ -65,12 +65,15 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordAuthor;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRepositoryID;
@@ -88,22 +91,31 @@ public final class SourceDialog extends CommonListDialog{
 	private static final String TABLE_NAME_CITATION = "citation";
 
 
-	private JLabel identifierLabel;
-	private JTextField identifierField;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JLabel authorLabel;
-	private JTextField authorField;
-	private JButton placeButton;
-	private JButton dateButton;
-	private JLabel locationLabel;
-	private JTextField locationField;
+	private final JLabel identifierLabel = new JLabel("Identifier:");
+	private final JTextField identifierField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine",
+		"genealogy newsletter", "blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census",
+		"death certificate", "yearbook", "directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)",
+		"diary", "email message", "interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard",
+		"probate record", "will", "legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license",
+		"marriage register", "marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing",
+		"passenger list", "tax roll", "death index", "birth index", "town record", "web page", "military record", "draft registration",
+		"enlistment record", "muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication",
+		"passport", "passport application", "identification card", "immigration record", "border crossing record", "funeral home record",
+		"article", "newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record"});
+	private final JLabel authorLabel = new JLabel("Author:");
+	private final JTextField authorField = new JTextField();
+	private final JButton placeButton = new JButton("Place", ICON_PLACE);
+	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
+	private final JLabel locationLabel = new JLabel("Location:");
+	private final JTextField locationField = new JTextField();
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private JButton citationButton;
+	private final JButton citationButton = new JButton("Citations", ICON_CITATION);
 
 	private HistoryPanel historyPanel;
 
@@ -119,6 +131,7 @@ public final class SourceDialog extends CommonListDialog{
 	public static SourceDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final SourceDialog dialog = new SourceDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton, dialog.citationButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -146,7 +159,7 @@ public final class SourceDialog extends CommonListDialog{
 		this.filterRepositoryID = filterRepositoryID;
 
 		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName + " for repository " + filterRepositoryID);
+		setTitle(capitalizedPluralTableName + " for Repository ID " + filterRepositoryID);
 
 		return this;
 	}
@@ -182,32 +195,6 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		identifierLabel = new JLabel("Identifier:");
-		identifierField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "newspaper", "technical journal", "magazine", "genealogy newsletter",
-			"blog", "baptism record", "birth certificate", "birth register", "book", "grave marker", "census", "death certificate", "yearbook",
-			"directory (organization)", "directory (telephone)", "deed", "land patent", "patent (invention)", "diary", "email message",
-			"interview", "personal knowledge", "family story", "audio record", "video record", "letter/postcard", "probate record", "will",
-			"legal proceedings record", "manuscript", "map", "marriage certificate", "marriage license", "marriage register",
-			"marriage record", "naturalization", "obituary", "pension file", "photograph", "painting/drawing", "passenger list", "tax roll",
-			"death index", "birth index", "town record", "web page", "military record", "draft registration", "enlistment record",
-			"muster roll", "burial record", "cemetery record", "death notice", "marriage index", "alumni publication", "passport",
-			"passport application", "identification card", "immigration record", "border crossing record", "funeral home record", "article",
-			"newsletter", "brochure", "pamphlet", "poster", "jewelry", "advertisement", "cemetery", "prison record", "arrest record"});
-		authorLabel = new JLabel("Author:");
-		authorField = new JTextField();
-		placeButton = new JButton("Place", ICON_PLACE);
-		dateButton = new JButton("Date", ICON_CALENDAR);
-		locationLabel = new JLabel("Location:");
-		locationField = new JTextField();
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		citationButton = new JButton("Citations", ICON_CITATION);
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -276,6 +263,8 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterRepositoryID != null)
 			records.values()
@@ -300,6 +289,9 @@ public final class SourceDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -317,26 +309,43 @@ public final class SourceDialog extends CommonListDialog{
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordCitations = getRecords(TABLE_NAME_CITATION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(sourceID, extractRecordSourceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
+		final boolean hasCitations = (getRecords(TABLE_NAME_CITATION)
+			.values().stream()
+			.filter(record -> Objects.equals(sourceID, extractRecordSourceID(record)))
+			.findFirst()
+			.orElse(null) != null);
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type != null? type: StringUtils.SPACE);
 		authorField.setText(author);
-		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(placeButton, placeID != null);
+		setButtonEnableAndBorder(dateButton, dateID != null);
 		locationField.setText(location);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
-		GUIHelper.addBorder(citationButton, !recordCitations.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(citationButton, hasCitations);
 
 		historyPanel.withReference(TABLE_NAME, sourceID);
 		historyPanel.loadData();
@@ -514,7 +523,7 @@ public final class SourceDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("place_id", extractRecordID(record)));
+								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -532,7 +541,9 @@ public final class SourceDialog extends CommonListDialog{
 							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, sourceID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -545,7 +556,9 @@ public final class SourceDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, sourceID)
 								.withOnCloseGracefully(record -> {

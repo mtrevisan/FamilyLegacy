@@ -25,10 +25,20 @@
 package io.github.mtrevisan.familylegacy.flef.db;
 
 import java.util.Map;
-import java.util.StringJoiner;
 
 
 public class EntityManager{
+
+	public static final String GROUP_ROLE_PARTNER = "partner";
+	public static final String GROUP_ROLE_CHILD = "child";
+	public static final String GROUP_ROLE_ADOPTEE = "adoptee";
+
+	public static final String LOCALIZED_TEXT_TYPE_NAME = "name";
+	public static final String LOCALIZED_TEXT_TYPE_EXTRACT = "extract";
+
+	public static final String RESTRICTION_CONFIDENTIAL = "confidential";
+	public static final String RESTRICTION_PUBLIC = "public";
+
 
 	private EntityManager(){}
 
@@ -57,6 +67,11 @@ public class EntityManager{
 		return (String)record.get("reference_type");
 	}
 
+	public static String extractRecordRestriction(final Map<String, Object> record){
+		return (String)record.get("restriction");
+	}
+
+	//FIXME implement save through button
 	public static Integer extractRecordCitationID(final Map<String, Object> record){
 		return (Integer)record.get("citation_id");
 	}
@@ -65,6 +80,7 @@ public class EntityManager{
 		return (String)record.get("identifier");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordSourceID(final Map<String, Object> record){
 		return (Integer)record.get("source_id");
 	}
@@ -101,22 +117,27 @@ public class EntityManager{
 		return (Integer)record.get("place_id");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordDateStartID(final Map<String, Object> record){
 		return (Integer)record.get("date_start_id");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordDateEndID(final Map<String, Object> record){
 		return (Integer)record.get("date_end_id");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordMediaID(final Map<String, Object> record){
 		return (Integer)record.get("media_id");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordCulturalNormID(final Map<String, Object> record){
 		return (Integer)record.get("cultural_norm_id");
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
 	}
@@ -145,6 +166,7 @@ public class EntityManager{
 		return (record != null? (String)record.get("photo_crop"): null);
 	}
 
+	//FIXME implement save through button
 	public static Integer extractRecordGroupID(final Map<String, Object> record){
 		return (Integer)record.get("group_id");
 	}
@@ -209,17 +231,6 @@ public class EntityManager{
 		return (String)record.get("note");
 	}
 
-	public static String extractName(final Map<String, Object> record){
-		final String personalName = extractRecordPersonalName(record);
-		final String familyName = extractRecordFamilyName(record);
-		final StringJoiner name = new StringJoiner(", ");
-		if(personalName != null)
-			name.add(personalName);
-		if(familyName != null)
-			name.add(familyName);
-		return name.toString();
-	}
-
 	public static String extractRecordName(final Map<String, Object> record){
 		return (String)record.get("name");
 	}
@@ -240,7 +251,7 @@ public class EntityManager{
 		return (String)record.get("copyright");
 	}
 
-	public static String extractUpdateDate(final Map<String, Object> record){
+	public static String extractRecordUpdateDate(final Map<String, Object> record){
 		return (String)record.get("update_date");
 	}
 
@@ -337,12 +348,36 @@ public class EntityManager{
 		record.put("category", category);
 	}
 
+	public static void insertRecordPlaceID(final Map<String, Object> record, final Integer placeID){
+		record.put("place_id", placeID);
+	}
+
+	public static void insertRecordPhotoID(final Map<String, Object> record, final Integer photoID){
+		record.put("photo_id", photoID);
+	}
+
+	public static void insertRecordPhotoCrop(final Map<String, Object> record, final String photoCrop){
+		record.put("photo_crop", photoCrop);
+	}
+
+	public static void insertRecordPersonID(final Map<String, Object> record, final Integer personID){
+		record.put("person_id", personID);
+	}
+
+	public static void insertRecordPersonNameID(final Map<String, Object> record, final Integer personNameID){
+		record.put("person_name_id", personNameID);
+	}
+
 	public static void insertRecordDate(final Map<String, Object> record, final String date){
 		record.put("date", date);
 	}
 
 	public static void insertRecordDateOriginal(final Map<String, Object> record, final String dateOriginal){
 		record.put("date_original", dateOriginal);
+	}
+
+	public static void insertRecordCalendarOriginalID(final Map<String, Object> record, final Integer calendarOriginalID){
+		record.put("calendar_original_id", calendarOriginalID);
 	}
 
 	public static void insertRecordPersonalName(final Map<String, Object> record, final String personalName){

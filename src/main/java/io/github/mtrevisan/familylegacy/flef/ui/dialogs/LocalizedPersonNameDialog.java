@@ -85,18 +85,20 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private static final String TABLE_NAME = "localized_person_name";
 
 
-	private JLabel personalNameLabel;
-	private JTextField personalNameField;
-	private JLabel familyNameLabel;
-	private JTextField familyNameField;
-	private JLabel localeLabel;
-	private JTextField localeField;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JLabel transcriptionLabel;
-	private JComboBox<String> transcriptionComboBox;
-	private JLabel transcriptionTypeLabel;
-	private JComboBox<String> transcriptionTypeComboBox;
+	private final JLabel personalNameLabel = new JLabel("(Primary) Name:");
+	private final JTextField personalNameField = new JTextField();
+	private final JLabel familyNameLabel = new JLabel("(Secondary) Name:");
+	private final JTextField familyNameField = new JTextField();
+	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JTextField localeField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
+	private final JLabel transcriptionLabel = new JLabel("Transcription:");
+	private final JComboBox<String> transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin",
+		"wāpuro rōmaji", "kana", "hangul"});
+	private final JLabel transcriptionTypeLabel = new JLabel("Transcription type:");
+	private final JComboBox<String> transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized",
+		"francized", "gairaigized", "latinized"});
 
 	private HistoryPanel historyPanel;
 
@@ -176,21 +178,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected void initRecordComponents(){
-		personalNameLabel = new JLabel("(Primary) Name:");
-		personalNameField = new JTextField();
-		familyNameLabel = new JLabel("(Secondary) Name:");
-		familyNameField = new JTextField();
-		localeLabel = new JLabel("Locale:");
-		localeField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
-		transcriptionLabel = new JLabel("Transcription:");
-		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana",
-			"hangul"});
-		transcriptionTypeLabel = new JLabel("Transcription type:");
-		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized",
-			"gairaigized", "latinized"});
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -231,6 +218,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(filterReferenceID));
@@ -260,6 +249,9 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -62,6 +63,8 @@ import java.util.function.Consumer;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
@@ -79,14 +82,14 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
-	private JLabel noteLabel;
-	private TextPreviewPane noteTextPreview;
-	private JLabel localeLabel;
-	private JTextField localeField;
+	private final JLabel noteLabel = new JLabel("Note:");
+	private final TextPreviewPane noteTextPreview = TextPreviewPane.createWithPreview(NoteDialog.this);
+	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JTextField localeField = new JTextField();
 
-	private JButton mediaButton;
-	private JButton culturalNormButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private HistoryPanel historyPanel;
 
@@ -103,6 +106,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	public static NoteDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.mediaButton, dialog.culturalNormButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -176,15 +180,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initRecordComponents(){
-		noteLabel = new JLabel("Note:");
-		noteTextPreview = TextPreviewPane.createWithPreview(this);
-		localeLabel = new JLabel("Locale:");
-		localeField = new JTextField();
-
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -230,6 +225,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
@@ -253,6 +250,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -266,16 +266,32 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasCulturalNorms = (getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		noteTextPreview.setText("Note " + noteID, note, locale);
 		localeField.setText(locale);
 
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		historyPanel.withReference(TABLE_NAME, noteID);
 		historyPanel.loadData();
@@ -407,7 +423,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							culturalNormDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, noteID)
 								.withOnCloseGracefully(record -> {

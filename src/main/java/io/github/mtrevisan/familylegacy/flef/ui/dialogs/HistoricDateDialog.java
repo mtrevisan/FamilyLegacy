@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
@@ -60,7 +61,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
@@ -69,6 +69,8 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateOriginal;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDate;
@@ -88,19 +90,19 @@ public final class HistoricDateDialog extends CommonListDialog{
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 
 
-	private JLabel dateLabel;
-	private JTextField dateField;
-	private JLabel dateOriginalLabel;
-	private JTextField dateOriginalField;
-	private JButton calendarOriginalButton;
-	private JLabel certaintyLabel;
-	private JComboBox<String> certaintyComboBox;
-	private JLabel credibilityLabel;
-	private JComboBox<String> credibilityComboBox;
+	private final JLabel dateLabel = new JLabel("Date:");
+	private final JTextField dateField = new JTextField();
+	private final JLabel dateOriginalLabel = new JLabel("Date original:");
+	private final JTextField dateOriginalField = new JTextField();
+	private final JButton calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
+	private final JLabel certaintyLabel = new JLabel("Certainty:");
+	private final JComboBox<String> certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private JButton noteButton;
-	private JButton assertionButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private HistoryPanel historyPanel;
 
@@ -114,6 +116,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public static HistoricDateDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.calendarOriginalButton, dialog.noteButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -172,20 +175,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		dateLabel = new JLabel("Date:");
-		dateField = new JTextField();
-		dateOriginalLabel = new JLabel("Date original:");
-		dateOriginalField = new JTextField();
-		calendarOriginalButton = new JButton("Calendar original", ICON_CALENDAR);
-		certaintyLabel = new JLabel("Certainty:");
-		certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-		credibilityLabel = new JLabel("Credibility:");
-		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -243,6 +232,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -267,6 +258,9 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -283,22 +277,35 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(historicDateID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		dateField.setText(date);
 		dateOriginalField.setText(dateOriginal);
-		GUIHelper.addBorder(calendarOriginalButton, calendarOriginalID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(calendarOriginalButton, calendarOriginalID != null);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		historyPanel.withReference(TABLE_NAME, historicDateID);
 		historyPanel.loadData();
@@ -446,7 +453,9 @@ public final class HistoricDateDialog extends CommonListDialog{
 					final int historicDateID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, historicDateID);
 							assertionDialog.loadData();
 
@@ -454,14 +463,16 @@ public final class HistoricDateDialog extends CommonListDialog{
 						}
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> container.put("calendar_original_id", extractRecordID(record)));
+								.withOnCloseGracefully(record -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
 
 							calendarDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, historicDateID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){

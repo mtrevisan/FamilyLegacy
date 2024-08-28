@@ -58,7 +58,7 @@ import java.util.function.Consumer;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCopyright;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordUpdateDate;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCopyright;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
@@ -79,16 +79,18 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	private static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
 
 
-	private JLabel copyrightLabel;
-	private JTextField copyrightField;
-	private JLabel noteLabel;
-	private TextPreviewPane noteTextPreview;
-	private JLabel localeLabel;
-	private JTextField localeField;
+	private final JLabel copyrightLabel = new JLabel("Copyright:");
+	private final JTextField copyrightField = new JTextField();
+	private final JLabel noteLabel = new JLabel("Note:");
+	private final TextPreviewPane noteTextPreview = TextPreviewPane.createWithPreview(ProjectDialog.this);
+	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JTextField localeField = new JTextField();
 
 
 	public static ProjectDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new ProjectDialog(store, parent);
+		final ProjectDialog dialog = new ProjectDialog(store, parent);
+		dialog.initialize();
+		return dialog;
 	}
 
 
@@ -109,17 +111,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 	@Override
-	protected void initRecordComponents(){
+	protected void initComponents(){
 		setTitle(StringUtils.capitalize(getTableName()));
-
-		copyrightLabel = new JLabel("Copyright:");
-		copyrightField = new JTextField();
-
-		noteLabel = new JLabel("Note:");
-		noteTextPreview = TextPreviewPane.createWithPreview(this);
-
-		localeLabel = new JLabel("Locale:");
-		localeField = new JTextField();
 
 
 		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, this::saveData);
@@ -190,7 +183,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String copyright = GUIHelper.getTextTrimmed(copyrightField);
 		final String note = noteTextPreview.getTextTrimmed();
 		final String locale = GUIHelper.getTextTrimmed(localeField);
-		final String updateDate = extractUpdateDate(selectedRecord);
+		final String updateDate = extractRecordUpdateDate(selectedRecord);
 
 		insertRecordProtocolName(selectedRecord, PROTOCOL_NAME_DEFAULT);
 		insertRecordProtocolVersion(selectedRecord, PROTOCOL_VERSION_DEFAULT);

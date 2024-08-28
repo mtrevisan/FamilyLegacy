@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -695,7 +696,7 @@ public class GroupPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(GroupPanel::extractRecordGroupID)
 			.map(groups::get)
 			.toList();
@@ -831,7 +832,7 @@ public class GroupPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(GroupPanel::extractRecordReferenceID)
 			.toList());
 	}
@@ -841,7 +842,7 @@ public class GroupPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(GroupPanel::extractRecordGroupID)
 			.toList();
 	}
@@ -851,7 +852,8 @@ public class GroupPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(adopteeID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)) || Objects.equals("adoptee", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
+				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
 			.map(GroupPanel::extractRecordGroupID)
 			.toList();
 	}
@@ -862,7 +864,7 @@ public class GroupPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toList();
 	}

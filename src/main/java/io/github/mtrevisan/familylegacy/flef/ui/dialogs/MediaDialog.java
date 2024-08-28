@@ -89,10 +89,12 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoProjection;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoMediaID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoProjection;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
@@ -119,26 +121,28 @@ public final class MediaDialog extends CommonListDialog{
 	private static final String MEDIA_TYPE_PHOTO = "photo";
 
 
-	private JLabel fileLabel;
-	private JTextField fileField;
-	private JButton fileButton;
-	private JFileChooser fileChooser;
-	private JButton openFolderButton;
+	private final JLabel fileLabel = new JLabel("Identifier:");
+	private final JTextField fileField = new JTextField();
+	private final JButton fileButton = new JButton(ICON_CHOOSE_DOCUMENT);
+	private final JFileChooser fileChooser = new JFileChooser();
+	private final JButton openFolderButton = new JButton("Open folder", ICON_OPEN_FOLDER);
 	private JButton openLinkButton;
-	private JLabel titleLabel;
-	private JTextField titleField;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JLabel photoProjectionLabel;
-	private JComboBox<String> photoProjectionComboBox;
-	private JButton dateButton;
+	private final JLabel titleLabel = new JLabel("Title:");
+	private final JTextField titleField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel", "microfilm",
+		"microfiche", "cd-rom"});
+	private final JLabel photoProjectionLabel = new JLabel("Photo projection:");
+	private final JComboBox<String> photoProjectionComboBox = new JComboBox<>(new String[]{null, "rectangular", "spherical UV",
+		"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
+	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
 
-	private JButton noteButton;
-	private JButton assertionButton;
-	private JButton eventButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private JButton photoCropButton;
+	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 	private HistoryPanel historyPanel;
 
@@ -170,9 +174,27 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createSelectOnlyForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static MediaDialog createSelectOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton);
+		dialog.restrictToPhoto = true;
+		dialog.mediaType = MEDIA_TYPE_PHOTO;
+		dialog.setNewRecordDefault(newRecord -> {
+			insertRecordType(newRecord, "photo");
+
+			dialog.typeComboBox.setEnabled(false);
+		});
 		dialog.initialize();
 		return dialog;
 	}
@@ -263,28 +285,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		fileLabel = new JLabel("Identifier:");
-		fileField = new JTextField();
-		fileButton = new JButton(ICON_CHOOSE_DOCUMENT);
-		fileChooser = new JFileChooser();
-		openFolderButton = new JButton("Open folder", ICON_OPEN_FOLDER);
 		openLinkButton = new JButton("Open " + mediaType, ICON_OPEN_LINK);
-		titleLabel = new JLabel("Title:");
-		titleField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel", "microfilm",
-			"microfiche", "cd-rom"});
-		photoProjectionLabel = new JLabel("Photo projection:");
-		photoProjectionComboBox = new JComboBox<>(new String[]{null, "rectangular", "spherical UV",
-			"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
-		dateButton = new JButton("Date", ICON_CALENDAR);
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		eventButton = new JButton("Events", ICON_EVENT);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
@@ -463,14 +464,16 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable, filterReferenceID)
+			final Set<Integer> filteredMedia = getFilteredRecords(TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable, filterReferenceID)
 				.values().stream()
 				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
 			records.keySet()
-				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
+				.removeIf(mediaID -> !filteredMedia.contains(mediaID));
 		}
 		if(restrictToPhoto)
 			records.values()
@@ -502,6 +505,9 @@ public final class MediaDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	public void addData(final Map<String, Object> record){
@@ -543,27 +549,42 @@ public final class MediaDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(mediaID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		fileField.setText(identifier);
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
-		GUIHelper.addBorder(dateButton, dateID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(dateButton, dateButton != null);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		enablePhotoRelatedButtons(identifier);
 
@@ -703,8 +724,8 @@ public final class MediaDialog extends CommonListDialog{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
@@ -712,7 +733,7 @@ public final class MediaDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
@@ -720,7 +741,7 @@ public final class MediaDialog extends CommonListDialog{
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
 		media2.put("date_id", 1);
-		medias.put((Integer)media2.get("id"), media2);
+		media.put((Integer)media2.get("id"), media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
@@ -728,7 +749,7 @@ public final class MediaDialog extends CommonListDialog{
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
 		media3.put("date_id", 1);
-		medias.put((Integer)media3.get("id"), media3);
+		media.put((Integer)media3.get("id"), media3);
 
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
 		store.put("media_junction", mediaJunctions);
@@ -795,7 +816,9 @@ public final class MediaDialog extends CommonListDialog{
 							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, mediaID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -808,7 +831,9 @@ public final class MediaDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
+							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+								? PhotoCropDialog.createSelectOnly(store, parent)
+								: PhotoCropDialog.create(store, parent));
 							photoCropDialog.withOnCloseGracefully(record -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
@@ -817,7 +842,7 @@ public final class MediaDialog extends CommonListDialog{
 										.add(Integer.toString(crop.y))
 										.add(Integer.toString(crop.width))
 										.add(Integer.toString(crop.height));
-									container.put("photo_crop", sj);
+									insertRecordPhotoCrop(container, sj.toString());
 								}
 							});
 							try{
@@ -833,14 +858,18 @@ public final class MediaDialog extends CommonListDialog{
 							catch(final IOException ignored){}
 						}
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, mediaID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, mediaID);
 							eventDialog.loadData();
 

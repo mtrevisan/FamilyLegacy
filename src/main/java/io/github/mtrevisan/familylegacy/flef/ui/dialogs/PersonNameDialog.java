@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -67,9 +68,11 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
@@ -90,22 +93,24 @@ public final class PersonNameDialog extends CommonListDialog{
 	private static final String TABLE_NAME_EVENT = "event";
 
 
-	private JLabel personalNameLabel;
-	private JTextField personalNameField;
-	private JLabel familyNameLabel;
-	private JTextField familyNameField;
-	private JLabel nameLocaleLabel;
-	private JTextField nameLocaleField;
-	private JButton transcribedNameButton;
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
+	private final JLabel personalNameLabel = new JLabel("(Personal) Name:");
+	private final JTextField personalNameField = new JTextField();
+	private final JLabel familyNameLabel = new JLabel("(Family) Name:");
+	private final JTextField familyNameField = new JTextField();
+	private final JLabel nameLocaleLabel = new JLabel("Locale:");
+	private final JTextField nameLocaleField = new JTextField();
+	private final JButton transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "birth name", "also known as", "nickname",
+		"family nickname", "pseudonym", "legal", "adoptive name", "stage name", "marriage name", "call name", "official name",
+		"anglicized name", "religious order name", "pen name", "name at work", "immigrant"});
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JButton assertionButton;
-	private JButton culturalNormButton;
-	private JButton eventButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private HistoryPanel historyPanel;
 
@@ -121,6 +126,8 @@ public final class PersonNameDialog extends CommonListDialog{
 	public static PersonNameDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonNameDialog dialog = new PersonNameDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.transcribedNameButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton,
+			dialog.culturalNormButton, dialog.eventButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -185,25 +192,6 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		personalNameLabel = new JLabel("(Personal) Name:");
-		personalNameField = new JTextField();
-		familyNameLabel = new JLabel("(Family) Name:");
-		familyNameField = new JTextField();
-		nameLocaleLabel = new JLabel("Locale:");
-		nameLocaleField = new JTextField();
-		transcribedNameButton = new JButton("Transcribed names", ICON_TRANSLATION);
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "birth name", "also known as", "nickname", "family nickname",
-			"pseudonym", "legal", "adoptive name", "stage name", "marriage name", "call name", "official name", "anglicized name",
-			"religious order name", "pen name", "name at work", "immigrant"});
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
-		eventButton = new JButton("Events", ICON_EVENT);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -272,6 +260,8 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
 			? getRecords(TABLE_NAME)
 			: getFilteredRecords(filterReferenceID));
@@ -295,6 +285,9 @@ public final class PersonNameDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
@@ -320,15 +313,43 @@ public final class PersonNameDialog extends CommonListDialog{
 		final boolean hasTransliterations = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME)
 			.values().stream()
 			.anyMatch(record -> Objects.equals(personNameID, extractRecordPersonNameID(record)));
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(personNameID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordEvents = extractReferences(TABLE_NAME_EVENT);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasCulturalNorms = (getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		personalNameField.setText(personalName);
 		familyNameField.setText(familyName);
@@ -336,12 +357,12 @@ public final class PersonNameDialog extends CommonListDialog{
 		GUIHelper.addBorder(transcribedNameButton, hasTransliterations, DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		historyPanel.withReference(TABLE_NAME, personNameID);
 		historyPanel.loadData();
@@ -519,14 +540,16 @@ public final class PersonNameDialog extends CommonListDialog{
 								.withReference(personNameID)
 								.withOnCloseGracefully(record -> {
 									if(record != null)
-										record.put("person_name_id", personNameID);
+										insertRecordPersonNameID(record, personNameID);
 								});
 							localizedPersonNameDialog.loadData();
 
 							localizedPersonNameDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -539,7 +562,9 @@ public final class PersonNameDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personNameID)
 								.withOnCloseGracefully(record -> {
@@ -566,14 +591,18 @@ public final class PersonNameDialog extends CommonListDialog{
 							culturalNormDialog.showDialog();
 						}
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, personNameID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, personNameID);
 							eventDialog.loadData();
 

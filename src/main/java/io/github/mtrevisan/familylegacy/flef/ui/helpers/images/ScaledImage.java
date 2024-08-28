@@ -104,8 +104,21 @@ public class ScaledImage extends JLabel{
 	private int dragStartPointY;
 	private volatile char resizingCropEdge;
 
+	private volatile boolean viewOnly;
 
-	public ScaledImage(){
+
+	public static ScaledImage create(){
+		return new ScaledImage();
+	}
+
+	public static ScaledImage createViewOnly(){
+		final ScaledImage si = new ScaledImage();
+		si.viewOnly = true;
+		return si;
+	}
+
+
+	private ScaledImage(){
 		initComponents();
 	}
 
@@ -446,6 +459,9 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public void mouseMoved(final MouseEvent evt){
+			if(viewOnly)
+				return;
+
 			if(!cropDefinition && cropStartPointX >= 0)
 				setCropCursor();
 		}
@@ -459,6 +475,15 @@ public class ScaledImage extends JLabel{
 				repaint();
 			}
 			else if(SwingUtilities.isLeftMouseButton(evt)){
+				if(evt.isControlDown()){
+					dragStartPointX = evt.getX();
+					dragStartPointY = evt.getY();
+
+					return;
+				}
+				if(viewOnly)
+					return;
+
 				if(isNearCropBorder(evt)){
 					//calculate bounds of the crop rectangle
 					final int x1 = getWestCoordinate();
@@ -478,10 +503,6 @@ public class ScaledImage extends JLabel{
 						resizingCropEdge = 'W';
 					else
 						resizingCropEdge = 0;
-				}
-				else if(evt.isControlDown()){
-					dragStartPointX = evt.getX();
-					dragStartPointY = evt.getY();
 				}
 				else{
 					//crop start point:
@@ -516,6 +537,9 @@ public class ScaledImage extends JLabel{
 
 		@Override
 		public final void mouseReleased(final MouseEvent evt){
+			if(viewOnly)
+				return;
+
 			if(resizingCropEdge != 0)
 				resizingCropEdge = 0;
 			else if(cropDefinition && evt.getClickCount() == 1){
@@ -532,43 +556,46 @@ public class ScaledImage extends JLabel{
 		@Override
 		public final void mouseDragged(final MouseEvent evt){
 			if(SwingUtilities.isLeftMouseButton(evt)){
-				if(resizingCropEdge == 'N'){
-					final int y = getInverseY(evt.getY());
-					final boolean insideY = (y >= 0 && y <= imageHeight);
-					if(insideY)
-						cropStartPointY = y;
-				}
-				else if(resizingCropEdge == 'S'){
-					final int y = getInverseY(evt.getY());
-					final boolean insideY = (y >= 0 && y <= imageHeight);
-					if(insideY)
-						cropEndPointY = y;
-				}
-				else if(resizingCropEdge == 'E'){
-					final int x = getInverseX(evt.getX());
-					final boolean insideX = (x >= 0 && x <= imageWidth);
-					if(insideX)
-						cropEndPointX = x;
-				}
-				else if(resizingCropEdge == 'W'){
-					final int x = getInverseX(evt.getX());
-					final boolean insideX = (x >= 0 && x <= imageWidth);
-					if(insideX)
-						cropStartPointX = x;
-				}
-				else if(evt.isControlDown()){
+				if(evt.isControlDown()){
 					//pan:
 					transformation.addTranslation(evt.getX() - dragStartPointX, evt.getY() - dragStartPointY);
 
 					dragStartPointX = evt.getX();
 					dragStartPointY = evt.getY();
 				}
-				else if(cropDefinition && cropStartPointX >= 0){
-					//crop end point:
-					final int x = getInverseX(evt.getX());
-					final int y = getInverseY(evt.getY());
-					cropEndPointX = Math.max(Math.min(x, imageWidth), 0);
-					cropEndPointY = Math.max(Math.min(y, imageHeight), 0);
+
+				if(!viewOnly){
+					if(resizingCropEdge == 'N'){
+						final int y = getInverseY(evt.getY());
+						final boolean insideY = (y >= 0 && y <= imageHeight);
+						if(insideY)
+							cropStartPointY = y;
+					}
+					else if(resizingCropEdge == 'S'){
+						final int y = getInverseY(evt.getY());
+						final boolean insideY = (y >= 0 && y <= imageHeight);
+						if(insideY)
+							cropEndPointY = y;
+					}
+					else if(resizingCropEdge == 'E'){
+						final int x = getInverseX(evt.getX());
+						final boolean insideX = (x >= 0 && x <= imageWidth);
+						if(insideX)
+							cropEndPointX = x;
+					}
+					else if(resizingCropEdge == 'W'){
+						final int x = getInverseX(evt.getX());
+						final boolean insideX = (x >= 0 && x <= imageWidth);
+						if(insideX)
+							cropStartPointX = x;
+					}
+					else if(cropDefinition && cropStartPointX >= 0){
+						//crop end point:
+						final int x = getInverseX(evt.getX());
+						final int y = getInverseY(evt.getY());
+						cropEndPointX = Math.max(Math.min(x, imageWidth), 0);
+						cropEndPointY = Math.max(Math.min(y, imageHeight), 0);
+					}
 				}
 
 				repaint();

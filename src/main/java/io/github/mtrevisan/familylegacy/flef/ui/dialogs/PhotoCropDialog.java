@@ -76,7 +76,15 @@ public final class PhotoCropDialog extends JDialog{
 
 
 	public static PhotoCropDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new PhotoCropDialog(store, parent);
+		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
+		dialog.initialize(false);
+		return dialog;
+	}
+
+	public static PhotoCropDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
+		dialog.initialize(true);
+		return dialog;
 	}
 
 
@@ -84,8 +92,6 @@ public final class PhotoCropDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
-
-		initComponents();
 	}
 
 
@@ -95,16 +101,18 @@ public final class PhotoCropDialog extends JDialog{
 		return this;
 	}
 
-	private void initComponents(){
-		initRecordComponents();
+	private void initialize(final boolean viewOnly){
+		initRecordComponents(viewOnly);
 
 		initLayout();
 	}
 
-	private void initRecordComponents(){
+	private void initRecordComponents(final boolean viewOnly){
 		setTitle("Define crop");
 
-		imageHolder = new ScaledImage();
+		imageHolder = (viewOnly
+			? ScaledImage.createViewOnly()
+			: ScaledImage.create());
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
@@ -186,19 +194,20 @@ public final class PhotoCropDialog extends JDialog{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final PhotoCropDialog dialog = create(store, parent);
+//			final PhotoCropDialog dialog = createSelectOnly(store, parent);
 			try{
 				dialog.loadData("/images/addPhoto.boy.jpg");
 			}

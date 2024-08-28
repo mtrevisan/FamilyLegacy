@@ -69,7 +69,6 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
@@ -81,6 +80,7 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
@@ -102,28 +102,29 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private static final String TABLE_NAME_EVENT = "event";
 
 
-	private JLabel identifierLabel;
-	private JTextField identifierField;
-	private JLabel descriptionLabel;
-	private TextPreviewPane descriptionTextPreview;
-	private JButton placeButton;
-	private JButton dateStartButton;
-	private JButton dateEndButton;
-	private JLabel certaintyLabel;
-	private JComboBox<String> certaintyComboBox;
-	private JLabel credibilityLabel;
-	private JComboBox<String> credibilityComboBox;
+	private final JLabel identifierLabel = new JLabel("Identifier:");
+	private final JTextField identifierField = new JTextField();
+	private final JLabel descriptionLabel = new JLabel("Description:");
+	private final TextPreviewPane descriptionTextPreview = TextPreviewPane.createWithPreview(CulturalNormDialog.this);
+	private final JButton placeButton = new JButton("Place", ICON_PLACE);
+	private final JButton dateStartButton = new JButton("Date start", ICON_CALENDAR);
+	private final JButton dateEndButton = new JButton("Date end", ICON_CALENDAR);
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JButton assertionButton;
-	private JButton eventButton;
-	private JCheckBox restrictionCheckBox;
+	private final JLabel certaintyLabel = new JLabel("Certainty:");
+	private final JComboBox<String> certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+	private final JLabel credibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
-	private JLabel linkCertaintyLabel;
-	private JComboBox<String> linkCertaintyComboBox;
-	private JLabel linkCredibilityLabel;
-	private JComboBox<String> linkCredibilityComboBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
+
+	private final JLabel linkCertaintyLabel = new JLabel("Certainty:");
+	private final JComboBox<String> linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+	private final JLabel linkCredibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 	private HistoryPanel historyPanel;
 
@@ -140,6 +141,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public static CulturalNormDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateStartButton, dialog.dateEndButton, dialog.noteButton, dialog.mediaButton,
+			dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -223,32 +226,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void initRecordComponents(){
-		identifierLabel = new JLabel("Identifier:");
-		identifierField = new JTextField();
-
-		descriptionLabel = new JLabel("Description:");
-		descriptionTextPreview = TextPreviewPane.createWithPreview(this);
-
-		placeButton = new JButton("Place", ICON_PLACE);
-		dateStartButton = new JButton("Date start", ICON_CALENDAR);
-		dateEndButton = new JButton("Date end", ICON_CALENDAR);
-
-		certaintyLabel = new JLabel("Certainty:");
-		certaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-		credibilityLabel = new JLabel("Credibility:");
-		credibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		eventButton = new JButton("Events", ICON_EVENT);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		linkCertaintyLabel = new JLabel("Certainty:");
-		linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-		linkCredibilityLabel = new JLabel("Credibility:");
-		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -336,6 +313,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -357,6 +336,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -375,32 +357,51 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION,
-			EntityManager::extractRecordMediaID, culturalNormID);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(placeID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(placeID, extractRecordPlaceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		identifierField.setText(identifier);
 		descriptionTextPreview.setText("Cultural norm " + culturalNormID, description, null);
-		GUIHelper.addBorder(placeButton, placeID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(dateStartButton, dateStartID != null, DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(dateEndButton, dateEndID != null, DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(placeButton, placeID != null);
+		setButtonEnableAndBorder(dateStartButton, dateStartID != null);
+		setButtonEnableAndBorder(dateEndButton, dateEndID != null);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
@@ -634,7 +635,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					final int culturalNormID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, culturalNormID);
 							assertionDialog.loadData();
 
@@ -659,7 +662,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							historicDateDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, culturalNormID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -672,7 +677,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, culturalNormID)
 								.withOnCloseGracefully(record -> {
@@ -686,7 +693,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							mediaDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, culturalNormID);
 							eventDialog.loadData();
 

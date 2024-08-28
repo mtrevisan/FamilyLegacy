@@ -54,10 +54,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
@@ -76,12 +76,12 @@ public final class CalendarDialog extends CommonListDialog{
 	private static final String TABLE_NAME_EVENT = "event";
 
 
-	private JLabel typeLabel;
-	private JTextField typeField;
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
 
-	private JButton noteButton;
-	private JButton assertionButton;
-	private JButton eventButton;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
 
 	private HistoryPanel historyPanel;
 
@@ -95,6 +95,7 @@ public final class CalendarDialog extends CommonListDialog{
 	public static CalendarDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CalendarDialog dialog = new CalendarDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.noteButton, dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -149,13 +150,6 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		typeLabel = new JLabel("Type:");
-		typeField = new JTextField();
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		eventButton = new JButton("Events", ICON_EVENT);
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -196,6 +190,8 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -217,6 +213,9 @@ public final class CalendarDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -229,21 +228,30 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(calendarID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
-			.entrySet().stream()
-//			.filter(entry -> Objects.equals(calendarID, extractRecordCalendarID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
 
 		typeField.setText(type);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
 
 		historyPanel.withReference(TABLE_NAME, calendarID);
 		historyPanel.loadData();
@@ -364,14 +372,18 @@ public final class CalendarDialog extends CommonListDialog{
 					final int calendarID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, calendarID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, calendarID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -384,7 +396,9 @@ public final class CalendarDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, calendarID);
 							eventDialog.loadData();
 

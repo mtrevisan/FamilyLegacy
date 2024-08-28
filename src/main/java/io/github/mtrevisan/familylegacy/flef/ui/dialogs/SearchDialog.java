@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
@@ -64,6 +65,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -73,6 +75,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordMediaID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
 
 
 public final class SearchDialog extends JDialog{
@@ -205,7 +216,6 @@ public final class SearchDialog extends JDialog{
 		setVisible(false);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void loadData(){
 		final List<SearchAllRecord> allTableData = new ArrayList<>(0);
 		for(final Map.Entry<String, SearchData> entry : PANE_NAME_TABLE){
@@ -350,6 +360,8 @@ public final class SearchDialog extends JDialog{
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
+		repository1.put("person_id", 1);
+		repository1.put("place_id", 1);
 		repositories.put((Integer)repository1.get("id"), repository1);
 
 		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
@@ -625,6 +637,10 @@ public final class SearchDialog extends JDialog{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("calendar_original_id", 2);
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("id", 2);
@@ -637,6 +653,14 @@ public final class SearchDialog extends JDialog{
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
 		calendars.put((Integer)calendar1.get("id"), calendar1);
+		final Map<String, Object> calendar2 = new HashMap<>();
+		calendar2.put("id", 2);
+		calendar2.put("type", "julian");
+		calendars.put((Integer)calendar2.get("id"), calendar2);
+		final Map<String, Object> calendar3 = new HashMap<>();
+		calendar3.put("id", 3);
+		calendar3.put("type", "venetan");
+		calendars.put((Integer)calendar3.get("id"), calendar3);
 
 		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
 		store.put("note", notes);
@@ -653,36 +677,29 @@ public final class SearchDialog extends JDialog{
 		note2.put("reference_id", 2);
 		notes.put((Integer)note2.get("id"), note2);
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		medias.put((Integer)media2.get("id"), media2);
+		media.put((Integer)media2.get("id"), media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		medias.put((Integer)media3.get("id"), media3);
-
-		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
-		store.put("historic_date", dates);
-		final Map<String, Object> date1 = new HashMap<>();
-		date1.put("id", 1);
-		date1.put("date", "18 OCT 2000");
-		dates.put((Integer)date1.get("id"), date1);
+		media.put((Integer)media3.get("id"), media3);
 
 		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
 		store.put("cultural_norm", culturalNorms);
@@ -747,8 +764,231 @@ public final class SearchDialog extends JDialog{
 
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
+					final Map<String, Object> container = editCommand.getContainer();
 					switch(editCommand.getType()){
 						case SEARCH -> { if(dialog.isShowing()) dialog.loadData(); }
+
+						//from: repository
+						case SOURCE -> {
+							final Integer repositoryID = extractRecordID(container);
+							final SourceDialog sourceDialog = SourceDialog.createSelectOnly(store, parent)
+								.withFilterOnRepositoryID(repositoryID);
+							sourceDialog.loadData();
+
+							sourceDialog.showDialog();
+						}
+
+						//from: source
+						case CITATION -> {
+							final Integer sourceID = extractRecordID(container);
+							final CitationDialog citationDialog = CitationDialog.createSelectOnly(store, parent)
+								.withFilterOnSourceID(sourceID);
+							citationDialog.loadData();
+
+							citationDialog.showDialog();
+						}
+
+						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
+						case ASSERTION -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final AssertionDialog assertionDialog = AssertionDialog.createSelectOnly(store, parent)
+								.withReference(tableName, recordID);
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
+
+						//from: source, event, cultural norm, media
+						case HISTORIC_DATE -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(store, parent);
+							final Integer dateID = extractRecordDateID(container);
+							historicDateDialog.loadData(dateID);
+
+							historicDateDialog.showDialog();
+						}
+
+						//from: historic date
+						case CALENDAR_ORIGINAL -> {
+							final CalendarDialog calendarDialog = CalendarDialog.createRecordOnly(store, parent);
+							final Integer calendarID = extractRecordCalendarOriginalID(container);
+							calendarDialog.loadData(calendarID);
+
+							calendarDialog.showDialog();
+						}
+
+
+						//from: repository, source, event, cultural norm
+						case PLACE -> {
+							final PlaceDialog placeDialog = PlaceDialog.createRecordOnly(store, parent);
+							final Integer placeID = extractRecordPlaceID(container);
+							placeDialog.loadData(placeID);
+
+							placeDialog.showDialog();
+						}
+
+
+						//from: repository, source, citation, assertion, historic date, calendar, person, person name, group, event,
+						// cultural norm, media, place
+						case NOTE -> {
+							final Integer recordID = extractRecordID(container);
+							final NoteDialog noteDialog = NoteDialog.createRecordOnly(store, parent);
+							noteDialog.loadData(recordID);
+
+							noteDialog.showDialog();
+						}
+
+
+						//from: citation
+						case LOCALIZED_EXTRACT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createRecordOnlySimpleText(store, parent)
+								.withReference(tableName, recordID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.showDialog();
+						}
+
+						//from: person name
+						case LOCALIZED_PERSON_NAME -> {
+							//FIXME
+							final Integer personNameID = extractRecordID(container);
+							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.createSelectOnly(store, parent)
+								.withReference(personNameID);
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.showDialog();
+						}
+
+						//from: place
+						case LOCALIZED_PLACE_NAME -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer placeID = extractRecordID(container);
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
+								.withReference(tableName, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+							localizedTextDialog.loadData();
+
+							localizedTextDialog.showDialog();
+						}
+
+
+						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
+						case MEDIA -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final MediaDialog mediaDialog = MediaDialog.createSelectOnlyForMedia(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(tableName, recordID);
+							final Integer mediaID = extractRecordMediaID(container);
+							mediaDialog.loadData(mediaID);
+
+							mediaDialog.showDialog();
+						}
+
+						//from: person, group, place
+						case PHOTO -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final MediaDialog photoDialog = MediaDialog.createSelectOnlyForPhoto(store, parent)
+								.withBasePath(FileHelper.documentsDirectory())
+								.withReference(tableName, recordID);
+							final Integer photoID = extractRecordPhotoID(container);
+							photoDialog.loadData(photoID);
+
+							photoDialog.showDialog();
+						}
+
+						//from: person, group, media, place
+						case PHOTO_CROP -> {
+							try{
+								//FIXME
+								final PhotoCropDialog photoCropDialog = PhotoCropDialog.createSelectOnly(store, parent);
+								final Integer recordID = extractRecordID(container);
+								final String photoCrop = extractRecordPhotoCrop(container);
+								photoCropDialog.loadData(recordID, photoCrop);
+
+								photoCropDialog.setSize(420, 295);
+								photoCropDialog.showDialog();
+							}
+							catch(final IOException ignored){}
+						}
+
+
+						//from: repository
+						case PERSON -> {
+							final PersonDialog personDialog = PersonDialog.createRecordOnly(store, parent);
+							final Integer personID = extractRecordPersonID(container);
+							personDialog.loadData(personID);
+
+							personDialog.showDialog();
+						}
+
+						//from: person
+						case PERSON_NAME -> {
+							//FIXME
+							final Integer personID = extractRecordPersonID(container);
+							final PersonNameDialog personNameDialog = PersonNameDialog.createSelectOnly(store, parent)
+								.withReference(personID);
+							personNameDialog.loadData();
+
+							personNameDialog.showDialog();
+						}
+
+
+						//from: person, group, place
+						case GROUP -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final GroupDialog groupDialog = GroupDialog.createSelectOnly(store, parent)
+								.withReference(tableName, recordID);
+							groupDialog.loadData();
+
+							groupDialog.showDialog();
+						}
+
+
+						//from: calendar, person, person name, group, cultural norm, media, place
+						case EVENT -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final EventDialog eventDialog = EventDialog.createSelectOnly(store, parent)
+								.withReference(tableName, recordID);
+							eventDialog.loadData();
+
+							eventDialog.showDialog();
+						}
+
+
+						//from: assertion, person name, group, note
+						case CULTURAL_NORM -> {
+							//FIXME
+							final String tableName = editCommand.getIdentifier();
+							final Integer recordID = extractRecordID(container);
+							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.createSelectOnly(store, parent)
+								.withReference(tableName, recordID);
+							culturalNormDialog.loadData();
+
+							culturalNormDialog.showDialog();
+						}
+
+
+//						case RESEARCH_STATUS -> {
+//TODO
+//						}
+
+
+//from: ?
+//						case PROJECT -> {
+//TODO
+//						}
 					}
 				}
 			};

@@ -61,7 +61,6 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractLocale;
@@ -69,6 +68,8 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractLocale;
@@ -90,21 +91,21 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private static final String TABLE_NAME_ASSERTION = "assertion";
 
 
-	private JLabel locationLabel;
-	private JTextField locationField;
-	private JLabel extractLabel;
-	private TextPreviewPane extractTextPreview;
-	private JLabel extractLocaleLabel;
-	private JTextField extractLocaleField;
-	private JButton transcribedExtractButton;
-	private JLabel extractTypeLabel;
-	private JComboBox<String> extractTypeComboBox;
+	private final JLabel locationLabel = new JLabel("Location:");
+	private final JTextField locationField = new JTextField();
+	private final JLabel extractLabel = new JLabel("Extract:");
+	private final TextPreviewPane extractTextPreview = TextPreviewPane.createWithPreview(CitationDialog.this);
+	private final JLabel extractLocaleLabel = new JLabel("Locale:");
+	private final JTextField extractLocaleField = new JTextField();
+	private final JButton transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
+	private final JLabel extractTypeLabel = new JLabel("Type:");
+	private final JComboBox<String> extractTypeComboBox = new JComboBox<>(new String[]{null, "transcript", "extract", "abstract"});
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private JButton assertionButton;
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
 
 	private HistoryPanel historyPanel;
 
@@ -120,6 +121,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public static CitationDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CitationDialog dialog = new CitationDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.transcribedExtractButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -145,6 +147,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	public CitationDialog withFilterOnSourceID(final int filterSourceID){
 		this.filterSourceID = filterSourceID;
+
+		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
+		setTitle(capitalizedPluralTableName + " for Source ID " + filterSourceID);
 
 		return this;
 	}
@@ -173,31 +178,13 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected void initStoreComponents(){
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(getTableName()));
-		setTitle(capitalizedPluralTableName
-			+ (filterSourceID != null? " for source ID " + filterSourceID: StringUtils.EMPTY));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
 	}
 
 	@Override
 	protected void initRecordComponents(){
-		locationLabel = new JLabel("Location:");
-		locationField = new JTextField();
-		extractLabel = new JLabel("Extract:");
-		extractTextPreview = TextPreviewPane.createWithPreview(this);
-		extractLocaleLabel = new JLabel("Locale:");
-		extractLocaleField = new JTextField();
-		transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
-		extractTypeLabel = new JLabel("Type:");
-		extractTypeComboBox = new JComboBox<>(new String[]{null, "transcript", "extract", "abstract"});
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -248,7 +235,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		recordPanelBase.add(extractTypeComboBox);
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelOther.add(noteButton, "sizegroup btn,center,split 3");
+		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
@@ -263,6 +250,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterSourceID != null)
 			records.values()
@@ -296,6 +285,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -311,27 +303,50 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordTranscribedExtracts = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-			EntityManager::extractRecordReferenceType, "extract");
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(citationID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		final boolean hasTranscribedExtracts = (getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
+			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT, extractRecordReferenceType(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
 
 		locationField.setText(location);
 		extractTextPreview.setText("Note " + extractRecordID(selectedRecord), extract, extractLocale);
 		extractLocaleField.setText(extractLocale);
 		extractTypeComboBox.setSelectedItem(extractType);
-		GUIHelper.addBorder(transcribedExtractButton, !recordTranscribedExtracts.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(transcribedExtractButton, hasTranscribedExtracts);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
 
 		historyPanel.withReference(TABLE_NAME, citationID);
 		historyPanel.loadData();
@@ -533,7 +548,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final CitationDialog dialog = create(store, parent);
+//			final CitationDialog dialog = create(store, parent);
+			final CitationDialog dialog = createSelectOnly(store, parent);
 //			final CitationDialog dialog = createRecordOnly(store, parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
 			dialog.loadData();
@@ -554,7 +570,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					switch(editCommand.getType()){
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(TABLE_NAME, citationID, "extract")
+								.withReference(TABLE_NAME, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
 										insertRecordReferenceTable(record, TABLE_NAME);
@@ -566,7 +582,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							localizedTextDialog.showDialog();
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, citationID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -579,7 +597,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, citationID)
 								.withOnCloseGracefully(record -> {
@@ -593,7 +613,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							mediaDialog.showDialog();
 						}
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, citationID);
 							assertionDialog.loadData();
 

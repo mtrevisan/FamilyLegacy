@@ -86,14 +86,14 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	private static final String TABLE_NAME = "research_status";
 
 
-	private JLabel identifierLabel;
-	private JTextField identifierField;
-	private JLabel descriptionLabel;
-	private TextPreviewPane descriptionTextPreview;
-	private JLabel statusLabel;
-	private JComboBox<String> statusComboBox;
-	private JLabel priorityLabel;
-	private JTextField priorityField;
+	private final JLabel identifierLabel = new JLabel("Identifier:");
+	private final JTextField identifierField = new JTextField();
+	private final JLabel descriptionLabel = new JLabel("Description:");
+	private final TextPreviewPane descriptionTextPreview = TextPreviewPane.createWithoutPreview();
+	private final JLabel statusLabel = new JLabel("Type:");
+	private final JComboBox<String> statusComboBox = new JComboBox<>(new String[]{null, "open", "active", "ended"});
+	private final JLabel priorityLabel = new JLabel("Priority:");
+	private final JTextField priorityField = new JTextField();
 
 
 	public static ResearchStatusDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -159,17 +159,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		identifierLabel = new JLabel("Identifier:");
-		identifierField = new JTextField();
-
-		descriptionLabel = new JLabel("Description:");
-		descriptionTextPreview = TextPreviewPane.createWithoutPreview();
-
-		statusLabel = new JLabel("Type:");
-		statusComboBox = new JComboBox<>(new String[]{null, "open", "active", "ended"});
-
-		priorityLabel = new JLabel("Priority:");
-		priorityField = new JTextField();
 		((AbstractDocument)priorityField.getDocument()).setDocumentFilter(new PositiveIntegerFilter());
 
 
@@ -202,6 +191,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -223,6 +214,9 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override

@@ -118,7 +118,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toList();
 	}
@@ -383,7 +383,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
 			.toList();
 	}
@@ -393,7 +393,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)) || Objects.equals("adoptee", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
+				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
@@ -473,7 +474,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals("partner", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}

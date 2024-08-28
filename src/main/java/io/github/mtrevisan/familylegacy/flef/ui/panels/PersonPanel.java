@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
@@ -86,6 +87,9 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
 
 
 public class PersonPanel extends JPanel implements PropertyChangeListener{
@@ -249,8 +253,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 								"Remove preferred photo?", "Warning", JOptionPane.YES_NO_OPTION);
 							if(response == JOptionPane.YES_OPTION){
 								//remove preferred image
-								person.remove("photo_id");
-								person.remove("photo_crop");
+								insertRecordPhotoID(person, null);
+								insertRecordPhotoCrop(person, null);
 
 								getRecords(TABLE_NAME_MEDIA)
 									.remove(photoID);
@@ -429,12 +433,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Integer photoID = extractRecordPhotoID(person);
 		if(photoID != null){
 			//recover image URI
-			final TreeMap<Integer, Map<String, Object>> medias = getRecords(TABLE_NAME_MEDIA);
-			final Map<String, Object> media = medias.get(photoID);
-			if(media == null)
+			final TreeMap<Integer, Map<String, Object>> media = getRecords(TABLE_NAME_MEDIA);
+			final Map<String, Object> md = media.get(photoID);
+			if(md == null)
 				LOGGER.error("Cannot find media ID {}", photoID);
 			else{
-				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(media));
+				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(md));
 				icon = ResourceHelper.getImage(identifier, imageLabel.getPreferredSize());
 			}
 		}
@@ -525,7 +529,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
-			.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
+			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
 
 	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
@@ -224,7 +225,7 @@ public class ChildrenPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-			.anyMatch(entry -> Objects.equals("partner", extractRecordRole(entry)));
+			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -234,7 +235,7 @@ public class ChildrenPanel extends JPanel{
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals("child", extractRecordRole(entry)))
+			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
 			.toArray(Map[]::new);
 	}

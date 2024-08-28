@@ -90,17 +90,20 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private static final String TABLE_NAME = "localized_text";
 
 
-	private JLabel textLabel;
-	private TextPreviewPane textTextPreview;
-	private JTextField simpleTextField;
-	private JLabel localeLabel;
-	private JTextField localeField;
-	private JLabel typeLabel;
-	private JComboBox<String> referenceTypeComboBox;
-	private JLabel transcriptionLabel;
-	private JComboBox<String> transcriptionComboBox;
-	private JLabel transcriptionTypeLabel;
-	private JComboBox<String> transcriptionTypeComboBox;
+	private final JLabel textLabel = new JLabel("Text:");
+	private final TextPreviewPane textTextPreview = TextPreviewPane.createWithPreview(LocalizedTextDialog.this);
+	private final JTextField simpleTextField = new JTextField();
+	private final JLabel localeLabel = new JLabel("Locale:");
+	private final JTextField localeField = new JTextField();
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> referenceTypeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration",
+		"translation"});
+	private final JLabel transcriptionLabel = new JLabel("Transcription:");
+	private final JComboBox<String> transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin",
+		"wāpuro rōmaji", "kana", "hangul"});
+	private final JLabel transcriptionTypeLabel = new JLabel("Transcription type:");
+	private final JComboBox<String> transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized",
+		"francized", "gairaigized", "latinized"});
 
 	private HistoryPanel historyPanel;
 
@@ -111,9 +114,26 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private boolean simplePrimaryText;
 
 
+	public static LocalizedTextDialog createRecordOnlyComplexText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.selectRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static LocalizedTextDialog createComplexText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static LocalizedTextDialog createRecordOnlySimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.showRecordOnly = true;
+		dialog.selectRecordOnly = true;
+		dialog.simplePrimaryText = true;
 		dialog.initialize();
 		return dialog;
 	}
@@ -200,20 +220,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void initRecordComponents(){
-		textLabel = new JLabel("Text:");
-		textTextPreview = TextPreviewPane.createWithPreview(this);
-		simpleTextField = new JTextField();
-		localeLabel = new JLabel("Locale:");
-		localeField = new JTextField();
-		typeLabel = new JLabel("Type:");
-		referenceTypeComboBox = new JComboBox<>(new String[]{null, "original", "transliteration", "translation"});
-		transcriptionLabel = new JLabel("Transcription:");
-		transcriptionComboBox = new JComboBox<>(new String[]{null, "IPA", "Wade-Giles", "hanyu pinyin", "wāpuro rōmaji", "kana",
-			"hangul"});
-		transcriptionTypeLabel = new JLabel("Transcription type:");
-		transcriptionTypeComboBox = new JComboBox<>(new String[]{null, "romanized", "anglicized", "cyrillized", "francized",
-			"gairaigized", "latinized"});
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -259,15 +265,17 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
 		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedias = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
+			final Set<Integer> filteredMedia = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
 				.values().stream()
 				.filter(record -> filterReferenceType.equals(extractRecordReferenceType(record)))
-				.map(EntityManager::extractRecordID)
+				.map(EntityManager::extractRecordReferenceID)
 				.collect(Collectors.toSet());
 			records.keySet()
-				.removeIf(mediaID -> !filteredMedias.contains(mediaID));
+				.removeIf(mediaID -> !filteredMedia.contains(mediaID));
 		}
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -295,6 +303,9 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	@Override
@@ -439,7 +450,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedTextDialog dialog = createComplexText(store, parent)
-				.withReference("citation", 1, "extract");
+				.withReference("citation", 1, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 //			final LocalizedTextDialog dialog = createSimpleText(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))

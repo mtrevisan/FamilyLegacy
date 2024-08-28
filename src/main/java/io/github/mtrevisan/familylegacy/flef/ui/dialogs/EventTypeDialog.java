@@ -75,16 +75,24 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	private static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
 
 
-	private JLabel superTypeLabel;
-	private JComboBox<String> superTypeComboBox;
-	private JLabel typeLabel;
-	private JTextField typeField;
-	private JLabel categoryLabel;
-	private JComboBox<String> categoryComboBox;
+	private final JLabel superTypeLabel = new JLabel("Super type:");
+	private final JComboBox<String> superTypeComboBox = new JComboBox<>(new String[]{null, "Historical events", "Personal origins",
+		"Physical description", "Citizenship and migration", "Real estate assets", "Education", "Work and Career",
+		"Legal Events and Documents", "Health problems and habits", "Marriage and family life", "Military", "Confinement",
+		"Transfers and travel", "Accolades", "Death and burial", "Others", "Religious events"});
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JTextField typeField = new JTextField();
+	private final JLabel categoryLabel = new JLabel("Category:");
+	//"birth" and "adoption" only if `superTypeComboBox` is "Personal origins"
+	//"death" only if `superTypeComboBox` is "Death and burial"
+	//"union" only if `superTypeComboBox` is "Marriage and family life"
+	private final JComboBox<String> categoryComboBox = new JComboBox<>();
 
 
 	public static EventTypeDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		return new EventTypeDialog(store, parent);
+		final EventTypeDialog dialog = new EventTypeDialog(store, parent);
+		dialog.initialize();
+		return dialog;
 	}
 
 
@@ -105,21 +113,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 	@Override
-	protected void initRecordComponents(){
-		superTypeLabel = new JLabel("Super type:");
-		superTypeComboBox = new JComboBox<>(new String[]{null, "Historical events", "Personal origins", "Physical description",
-			"Citizenship and migration", "Real estate assets", "Education", "Work and Career", "Legal Events and Documents",
-			"Health problems and habits", "Marriage and family life", "Military", "Confinement", "Transfers and travel", "Accolades",
-			"Death and burial", "Others", "Religious events"});
-		typeLabel = new JLabel("Type:");
-		typeField = new JTextField();
-		categoryLabel = new JLabel("Category:");
-		//"birth" and "adoption" only if `superTypeComboBox` is "Personal origins"
-		//"death" only if `superTypeComboBox` is "Death and burial"
-		//"union" only if `superTypeComboBox` is "Marriage and family life"
-		categoryComboBox = new JComboBox<>();
-
-
+	protected void initComponents(){
 		GUIHelper.bindLabelSelectionAutoCompleteChange(superTypeLabel, superTypeComboBox, this::saveData);
 		addMandatoryField(superTypeComboBox);
 		final ActionListener updateCategoryComboBox = evt -> {

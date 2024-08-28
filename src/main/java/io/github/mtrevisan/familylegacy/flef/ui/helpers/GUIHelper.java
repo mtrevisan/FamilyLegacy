@@ -67,6 +67,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 
@@ -115,7 +116,7 @@ public final class GUIHelper{
 			component.setEnabled(enabled);
 	}
 
-	public static void setEnabled(final Component component, final boolean enabled){
+	public static void setEnabled(final Component component){
 		final Deque<Component> stack = new LinkedList<>();
 		stack.add(component);
 		while(!stack.isEmpty()){
@@ -123,7 +124,20 @@ public final class GUIHelper{
 			if(comp instanceof final Container container)
 				stack.addAll(Arrays.asList(container.getComponents()));
 
-			comp.setEnabled(enabled);
+			comp.setEnabled(true);
+		}
+	}
+
+	public static void setDisabled(final Component component, final Set<Component> viewOnlyComponents){
+		final Deque<Component> stack = new LinkedList<>();
+		stack.add(component);
+		while(!stack.isEmpty()){
+			final Component comp = stack.pop();
+			if(comp instanceof final Container container)
+				stack.addAll(Arrays.asList(container.getComponents()));
+
+			if(viewOnlyComponents == null || !viewOnlyComponents.contains(comp))
+				comp.setEnabled(false);
 		}
 	}
 

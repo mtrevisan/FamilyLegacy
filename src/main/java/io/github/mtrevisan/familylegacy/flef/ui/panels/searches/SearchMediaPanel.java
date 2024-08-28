@@ -163,29 +163,29 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		medias.put((Integer)media2.get("id"), media2);
+		media.put((Integer)media2.get("id"), media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		medias.put((Integer)media3.get("id"), media3);
+		media.put((Integer)media3.get("id"), media3);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

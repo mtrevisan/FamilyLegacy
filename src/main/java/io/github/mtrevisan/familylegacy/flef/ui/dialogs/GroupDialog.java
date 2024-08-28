@@ -90,6 +90,8 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
@@ -117,25 +119,26 @@ public final class GroupDialog extends CommonListDialog{
 	private static final String NO_DATA = "?";
 
 
-	private JLabel typeLabel;
-	private JComboBox<String> typeComboBox;
-	private JButton photoButton;
-	private JButton photoCropButton;
+	private final JLabel typeLabel = new JLabel("Type:");
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "family", "neighborhood", "fraternity", "ladies club",
+		"literary society"});
+	private final JButton photoButton = new JButton("Photo", ICON_PHOTO);
+	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
-	private JButton noteButton;
-	private JButton mediaButton;
-	private JButton assertionButton;
-	private JButton culturalNormButton;
-	private JButton eventButton;
-	private JButton groupButton;
-	private JCheckBox restrictionCheckBox;
+	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
+	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
+	private final JButton groupButton = new JButton("Groups", ICON_GROUP);
+	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private JLabel linkRoleLabel;
-	private JTextField linkRoleField;
-	private JLabel linkCertaintyLabel;
-	private JComboBox<String> linkCertaintyComboBox;
-	private JLabel linkCredibilityLabel;
-	private JComboBox<String> linkCredibilityComboBox;
+	private final JLabel linkRoleLabel = new JLabel("Role:");
+	private final JTextField linkRoleField = new JTextField();
+	private final JLabel linkCertaintyLabel = new JLabel("Certainty:");
+	private final JComboBox<String> linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
+	private final JLabel linkCredibilityLabel = new JLabel("Credibility:");
+	private final JComboBox<String> linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 	private HistoryPanel historyPanel;
 
@@ -152,6 +155,8 @@ public final class GroupDialog extends CommonListDialog{
 	public static GroupDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.photoButton, dialog.photoCropButton, dialog.noteButton, dialog.mediaButton,
+			dialog.assertionButton, dialog.culturalNormButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -240,27 +245,6 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		typeLabel = new JLabel("Type:");
-		typeComboBox = new JComboBox<>(new String[]{null, "family", "neighborhood", "fraternity", "ladies club",
-			"literary society"});
-		photoButton = new JButton("Photo", ICON_PHOTO);
-		photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
-
-		noteButton = new JButton("Notes", ICON_NOTE);
-		mediaButton = new JButton("Media", ICON_MEDIA);
-		assertionButton = new JButton("Assertions", ICON_ASSERTION);
-		culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
-		eventButton = new JButton("Events", ICON_EVENT);
-		groupButton = new JButton("Groups", ICON_GROUP);
-		restrictionCheckBox = new JCheckBox("Confidential");
-
-		linkRoleLabel = new JLabel("Role:");
-		linkRoleField = new JTextField();
-		linkCertaintyLabel = new JLabel("Certainty:");
-		linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-		linkCredibilityLabel = new JLabel("Credibility:");
-		linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-
 		historyPanel = HistoryPanel.create(store)
 			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
 				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
@@ -346,6 +330,8 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	public void loadData(){
+		unselectAction();
+
 		final NavigableMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
 			? groups
@@ -372,6 +358,9 @@ public final class GroupDialog extends CommonListDialog{
 
 			row ++;
 		}
+
+		if(selectRecordOnly)
+			selectFirstData();
 	}
 
 	private Map<Integer, Map<String, Object>> getGroups(final Map<Integer, Map<String, Object>> groups){
@@ -395,33 +384,63 @@ public final class GroupDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordAssertions = getRecords(TABLE_NAME_ASSERTION)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(groupID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordEvents = getRecords(TABLE_NAME_EVENT)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-		final Map<Integer, Map<String, Object>> recordGroups = extractReferences(TABLE_NAME);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasCulturalNorms = (getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final boolean hasGroups = (getRecords(TABLE_NAME_GROUP_JUNCTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.orElse(null) != null);
+		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+			.values().stream()
+			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
+			.findFirst()
+			.map(EntityManager::extractRecordRestriction)
+			.orElse(null);
 
 		typeComboBox.setSelectedItem(type);
-		GUIHelper.addBorder(photoButton, !selectRecordOnly && photoID != null, DATA_BUTTON_BORDER_COLOR);
-		photoCropButton.setEnabled(!selectRecordOnly && photoID != null);
+		setButtonEnableAndBorder(photoButton, photoID != null);
+		photoCropButton.setEnabled(photoID != null && (!selectRecordOnly || photoCrop != null));
 		GUIHelper.addBorder(photoCropButton, !selectRecordOnly && (photoID != null && photoCrop != null && !photoCrop.isEmpty()),
 			DATA_BUTTON_BORDER_COLOR);
 
-		GUIHelper.addBorder(noteButton, !recordNotes.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(mediaButton, !recordMediaJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(assertionButton, !recordAssertions.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(culturalNormButton, !recordCulturalNormJunction.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(eventButton, !recordEvents.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		GUIHelper.addBorder(groupButton, !recordGroups.isEmpty(), DATA_BUTTON_BORDER_COLOR);
-		restrictionCheckBox.setSelected(!recordRestriction.isEmpty());
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonEnableAndBorder(groupButton, hasGroups);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		linkRoleField.setText(null);
 		linkCertaintyComboBox.setSelectedItem(null);
@@ -711,15 +730,15 @@ public final class GroupDialog extends CommonListDialog{
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
-		final TreeMap<Integer, Map<String, Object>> medias = new TreeMap<>();
-		store.put("media", medias);
+		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
+		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "/images/addPhoto.boy.jpg");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		medias.put((Integer)media1.get("id"), media1);
+		media.put((Integer)media1.get("id"), media1);
 
 		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
 		store.put("restriction", restrictions);
@@ -769,12 +788,14 @@ public final class GroupDialog extends CommonListDialog{
 					final Integer photoID = extractRecordPhotoID(container);
 					switch(editCommand.getType()){
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
+							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
+									? MediaDialog.createSelectOnlyForPhoto(store, parent)
+									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
 									final Integer newPhotoID = extractRecordID(record);
-									container.put("photo_id", newPhotoID);
+									insertRecordPhotoID(container, newPhotoID);
 
 									dialog.photoCropButton.setEnabled(newPhotoID != null);
 								});
@@ -790,7 +811,9 @@ public final class GroupDialog extends CommonListDialog{
 							photoDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
+							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+								? PhotoCropDialog.createSelectOnly(store, parent)
+								: PhotoCropDialog.create(store, parent));
 							photoCropDialog.withOnCloseGracefully(record -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
@@ -799,7 +822,7 @@ public final class GroupDialog extends CommonListDialog{
 										.add(Integer.toString(crop.y))
 										.add(Integer.toString(crop.width))
 										.add(Integer.toString(crop.height));
-									container.put("photo_crop", sj);
+									insertRecordPhotoCrop(container, sj.toString());
 								}
 							});
 							try{
@@ -814,7 +837,9 @@ public final class GroupDialog extends CommonListDialog{
 							catch(final IOException ignored){}
 						}
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+									? NoteDialog.createSelectOnly(store, parent)
+									: NoteDialog.create(store, parent))
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
@@ -840,7 +865,9 @@ public final class GroupDialog extends CommonListDialog{
 							culturalNormDialog.showDialog();
 						}
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+									? MediaDialog.createSelectOnlyForMedia(store, parent)
+									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, groupID)
 								.withOnCloseGracefully(record -> {
@@ -854,21 +881,27 @@ public final class GroupDialog extends CommonListDialog{
 							mediaDialog.showDialog();
 						}
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+									? AssertionDialog.createSelectOnly(store, parent)
+									: AssertionDialog.create(store, parent))
 								.withReference(TABLE_NAME, groupID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+									? EventDialog.createSelectOnly(store, parent)
+									: EventDialog.create(store, parent))
 								.withReference(TABLE_NAME, groupID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
 						case GROUP -> {
-							final GroupDialog groupDialog = GroupDialog.create(store, parent)
+							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
+									? GroupDialog.createSelectOnly(store, parent)
+									: GroupDialog.create(store, parent))
 								.withReference(TABLE_NAME, groupID);
 							groupDialog.loadData();
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
@@ -79,52 +80,51 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 	protected static final Color DATA_BUTTON_BORDER_COLOR = Color.BLUE;
 
-	private static final int ICON_WIDTH_DEFAULT = 20;
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	protected static final ImageIcon ICON_CHOOSE_DOCUMENT = ResourceHelper.getImage("/images/choose_document.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_OPEN_FOLDER = ResourceHelper.getImage("/images/open_folder.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_OPEN_LINK = ResourceHelper.getImage("/images/open_link.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_ASSERTION = ResourceHelper.getImage("/images/assertion.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CALENDAR = ResourceHelper.getImage("/images/calendar.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CITATION = ResourceHelper.getImage("/images/citation.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_CULTURAL_NORM = ResourceHelper.getImage("/images/cultural_norm.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_EVENT = ResourceHelper.getImage("/images/event.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_GROUP = ResourceHelper.getImage("/images/group.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_MEDIA = ResourceHelper.getImage("/images/media.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PERSON = ResourceHelper.getImage("/images/person.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PHOTO = ResourceHelper.getImage("/images/photo.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PHOTO_CROP = ResourceHelper.getImage("/images/photo_crop.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_PLACE = ResourceHelper.getImage("/images/place.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_REFERENCE = ResourceHelper.getImage("/images/reference.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImage("/images/repository.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_RESTRICTION = ResourceHelper.getImage("/images/restriction.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_SOURCE = ResourceHelper.getImage("/images/source.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_TEXT = ResourceHelper.getImage("/images/text.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
-	protected static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImage("/images/translation.png",
-		ICON_WIDTH_DEFAULT, ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_CHOOSE_DOCUMENT = ResourceHelper.getImageFixedHeight("/images/choose_document.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_OPEN_FOLDER = ResourceHelper.getImageFixedHeight("/images/open_folder.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_OPEN_LINK = ResourceHelper.getImageFixedHeight("/images/open_link.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_ASSERTION = ResourceHelper.getImageFixedHeight("/images/assertion.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_CALENDAR = ResourceHelper.getImageFixedHeight("/images/calendar.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_CITATION = ResourceHelper.getImageFixedHeight("/images/citation.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_CULTURAL_NORM = ResourceHelper.getImageFixedHeight("/images/cultural_norm.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_EVENT = ResourceHelper.getImageFixedHeight("/images/event.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_GROUP = ResourceHelper.getImageFixedHeight("/images/group.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_MEDIA = ResourceHelper.getImageFixedHeight("/images/media.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_NOTE = ResourceHelper.getImageFixedHeight("/images/note.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_PERSON = ResourceHelper.getImageFixedHeight("/images/person.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_PHOTO = ResourceHelper.getImageFixedHeight("/images/photo.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_PHOTO_CROP = ResourceHelper.getImageFixedHeight("/images/photo_crop.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_PLACE = ResourceHelper.getImageFixedHeight("/images/place.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_REFERENCE = ResourceHelper.getImageFixedHeight("/images/reference.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_REPOSITORY = ResourceHelper.getImageFixedHeight("/images/repository.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_RESTRICTION = ResourceHelper.getImageFixedHeight("/images/restriction.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_SOURCE = ResourceHelper.getImageFixedHeight("/images/source.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_TEXT = ResourceHelper.getImageFixedHeight("/images/text.png",
+		ICON_HEIGHT_DEFAULT);
+	protected static final ImageIcon ICON_TRANSLATION = ResourceHelper.getImageFixedHeight("/images/translation.png",
+		ICON_HEIGHT_DEFAULT);
 
 	protected static final Dimension MINIMUM_NOTE_TEXT_PREVIEW_SIZE = new Dimension(300, 150);
 
@@ -155,12 +155,14 @@ public abstract class CommonRecordDialog extends JDialog{
 		super(parent, true);
 
 		this.store = store;
+	}
 
-
+	protected void initialize(){
 		initComponents();
 
-		if(!CommonListDialog.class.isAssignableFrom(getClass()))
-			initLayout();
+		initDialog();
+
+		initLayout();
 	}
 
 
@@ -178,9 +180,9 @@ public abstract class CommonRecordDialog extends JDialog{
 		return null;
 	}
 
-	protected void initComponents(){
-		initRecordComponents();
+	protected abstract void initComponents();
 
+	protected void initDialog(){
 		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
@@ -190,20 +192,18 @@ public abstract class CommonRecordDialog extends JDialog{
 			GUIHelper.addValidDataListener(validDataListener, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR, mandatoryFields);
 	}
 
-	protected abstract void initRecordComponents();
-
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
 		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(TABLE_NAME_RESTRICTION));
 
 		if(evt.getStateChange() == ItemEvent.SELECTED){
 			if(recordRestriction != null)
-				insertRecordRestriction(recordRestriction, "confidential");
+				insertRecordRestriction(recordRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
 			else{
 				final NavigableMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
 				insertRecordID(newRestriction, extractNextRecordID(storeRestrictions));
-				insertRecordRestriction(newRestriction, "confidential");
+				insertRecordRestriction(newRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
 				insertRecordReferenceTable(newRestriction, getTableName());
 				insertRecordReferenceID(newRestriction, extractRecordID(selectedRecord));
 				storeRestrictions.put(extractRecordID(newRestriction), newRestriction);
@@ -294,7 +294,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 			selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
 
-			GUIHelper.setEnabled(recordPanel, true);
+			GUIHelper.setEnabled(recordPanel);
 
 			if(newRecordDefault != null)
 				newRecordDefault.accept(selectedRecord);
