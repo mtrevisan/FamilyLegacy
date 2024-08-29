@@ -616,7 +616,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createSelectOnlyForPhoto(store, parent)
+									? MediaDialog.createRecordOnlyForPhoto(store, parent)
 									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, placeID);

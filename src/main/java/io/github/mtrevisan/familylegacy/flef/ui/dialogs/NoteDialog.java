@@ -217,10 +217,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		recordPanelOther.add(restrictionCheckBox);
 
 		recordTabbedPane.add("base", recordPanelBase);
-		if(!showRecordOnly)
-			recordTabbedPane.add("other", recordPanelOther);
-		if(showRecordHistory)
-			recordTabbedPane.add("history", historyPanel);
+		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override

@@ -305,7 +305,7 @@ public final class PersonDialog extends CommonListDialog{
 		setButtonEnableAndBorder(personNameButton, hasPersonNames);
 		setButtonEnableAndBorder(photoButton, photoID != null);
 		photoCropButton.setEnabled(photoID != null && (!selectRecordOnly || photoCrop != null));
-		GUIHelper.addBorder(photoCropButton, photoID != null && photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+		GUIHelper.addBorder(photoCropButton, (photoID != null && photoCrop != null && !photoCrop.isEmpty()), DATA_BUTTON_BORDER_COLOR);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -564,7 +564,7 @@ public final class PersonDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createSelectOnlyForPhoto(store, parent)
+									? MediaDialog.createRecordOnlyForPhoto(store, parent)
 									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)

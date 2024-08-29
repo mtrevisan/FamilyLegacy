@@ -129,6 +129,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		return dialog;
 	}
 
+	public static LocalizedTextDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.selectRecordOnly = true;
+		dialog.simplePrimaryText = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static LocalizedTextDialog createRecordOnlySimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
 		dialog.showRecordOnly = true;

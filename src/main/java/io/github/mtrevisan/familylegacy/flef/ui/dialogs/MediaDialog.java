@@ -65,6 +65,9 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -79,6 +82,7 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
@@ -107,6 +111,8 @@ public final class MediaDialog extends CommonListDialog{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDialog.class);
 
+	private static final Pattern PATH_PATTERN = Pattern.compile("^[A-Za-z]:[\\\\/].*");
+
 
 	@Serial
 	private static final long serialVersionUID = -800755271311929604L;
@@ -130,8 +136,8 @@ public final class MediaDialog extends CommonListDialog{
 	private final JLabel titleLabel = new JLabel("Title:");
 	private final JTextField titleField = new JTextField();
 	private final JLabel typeLabel = new JLabel("Type:");
-	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel", "microfilm",
-		"microfiche", "cd-rom"});
+	private final JComboBox<String> typeComboBox = new JComboBox<>(new String[]{null, "photo", "audio", "video", "home movie", "newsreel",
+		"microfilm", "microfiche", "cd-rom"});
 	private final JLabel photoProjectionLabel = new JLabel("Photo projection:");
 	private final JComboBox<String> photoProjectionComboBox = new JComboBox<>(new String[]{null, "rectangular", "spherical UV",
 		"cylindrical equirectangular horizontal", "cylindrical equirectangular vertical"});
@@ -166,7 +172,7 @@ public final class MediaDialog extends CommonListDialog{
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
-			insertRecordType(newRecord, "photo");
+			insertRecordType(newRecord, MEDIA_TYPE_PHOTO);
 
 			dialog.typeComboBox.setEnabled(false);
 		});
@@ -178,20 +184,20 @@ public final class MediaDialog extends CommonListDialog{
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton);
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static MediaDialog createSelectOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createRecordOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
-		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton);
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
-			insertRecordType(newRecord, "photo");
+			insertRecordType(newRecord, MEDIA_TYPE_PHOTO);
 
 			dialog.typeComboBox.setEnabled(false);
 		});
@@ -241,7 +247,8 @@ public final class MediaDialog extends CommonListDialog{
 		filterReferenceTable = referenceTable;
 		filterReferenceID = referenceID;
 
-		final String capitalizedPluralTableName = StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName()));
+		final String capitalizedPluralTableName = StringUtils.capitalize(
+			StringHelper.pluralize(restrictToPhoto? MEDIA_TYPE_PHOTO: getTableName()));
 		setTitle(capitalizedPluralTableName
 			+ (filterReferenceTable != null? " for " + filterReferenceTable + " ID " + filterReferenceID: StringUtils.EMPTY));
 
@@ -278,7 +285,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle(StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? "photo": getTableName())));
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(restrictToPhoto? MEDIA_TYPE_PHOTO: getTableName())));
 
 		super.initStoreComponents();
 	}
@@ -579,7 +586,7 @@ public final class MediaDialog extends CommonListDialog{
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
-		setButtonEnableAndBorder(dateButton, dateButton != null);
+		setButtonEnableAndBorder(dateButton, dateID != null);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
@@ -637,15 +644,33 @@ public final class MediaDialog extends CommonListDialog{
 
 		if(identifier.charAt(0) == '/' || identifier.charAt(0) == '\\')
 			identifier = basePath + identifier;
-		final File file = FileHelper.loadFile(identifier);
-		if(file != null && file.exists()){
-			openFolderButton.setEnabled(true);
+		boolean fileExists = true;
+		if(isValidURL(identifier))
 			openLinkButton.setEnabled(true);
+		else if(PATH_PATTERN.matcher(identifier).matches()){
+			final File file = FileHelper.loadFile(identifier);
+			fileExists = (file != null && file.isFile() && file.exists());
+			if(fileExists){
+				openFolderButton.setEnabled(true);
+				openLinkButton.setEnabled(true);
 
-			enable = FileHelper.isPhoto(file);
+				enable = FileHelper.isPhoto(file);
+			}
 		}
+		GUIHelper.addBorder(fileField, !fileExists, NON_EXISTENT_MEDIA_BORDER_COLOR);
 
 		photoProjectionComboBox.setEnabled(enable);
+	}
+
+	private static boolean isValidURL(final String url){
+		try{
+			new URI(url)
+				.toURL();
+			return true;
+		}
+		catch(final URISyntaxException | MalformedURLException ignored){
+			return false;
+		}
 	}
 
 	@Override

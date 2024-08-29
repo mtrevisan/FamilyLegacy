@@ -26,11 +26,26 @@ package io.github.mtrevisan.familylegacy.flef.ui.helpers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 
 public final class StringHelper{
+
+	private static final Pattern PLURAL_PATTERN_S = Pattern.compile(".*?(s|sh|ch|x|z)$");
+	private static final Pattern PLURAL_PATTERN_VOWEL_Y = Pattern.compile(".*?[aeiou]y$");
+	private static final Pattern PLURAL_PATTERN_CONSONANT_Y = Pattern.compile(".*?[^aeiou]y$");
+	private static final Pattern PLURAL_PATTERN_F = Pattern.compile(".*?fe?$");
+	private static final Pattern PLURAL_PATTERN_CONSONANT_O = Pattern.compile(".*?[^aeiou]o$");
+
+	private static final Set<String> UNCOUNTABLE = new HashSet<>(List.of("media"));
+	private static final Set<String> F_EXCEPTIONS = new HashSet<>(List.of("roof", "cliff", "chief", "belief", "chef"));
+	private static final Set<String> CONSONANT_O_EXCEPTIONS = new HashSet<>(List.of("piano", "halo", "photo"));
+
 
 	private StringHelper(){}
 
@@ -64,11 +79,37 @@ public final class StringHelper{
 	 *
 	 * @see <a href="https://github.com/atteo/evo-inflector/blob/master/src/main/java/org/atteo/evo/inflector/English.java">English.java</a>
 	 */
-	public static String pluralize(String text){
-		text = StringUtils.replaceChars(text, '_', ' ');
-		if(text.endsWith("y"))
-			return text.substring(0, text.length() - 1) + "ies";
-		return text + (text.endsWith("us")? "es": "s");
+	public static String pluralize(String word){
+		word = StringUtils.replaceChars(word, '_', ' ');
+		if(isUncountable(word))
+			return word;
+
+		if(PLURAL_PATTERN_S.matcher(word).matches())
+			//FIXME words that end in Z sometimes add an extra Z to the plural form of the word
+			word += "es";
+		else if(PLURAL_PATTERN_VOWEL_Y.matcher(word).matches())
+			word += "s";
+		else if(PLURAL_PATTERN_CONSONANT_Y.matcher(word).matches())
+			word = word.substring(0, word.length() - 1) + "ies";
+		else if(PLURAL_PATTERN_F.matcher(word).matches() && !isFException(word))
+			word = word.substring(0, word.length() - (word.endsWith("fe")? 2: 1)) + "ves";
+		else if(PLURAL_PATTERN_CONSONANT_O.matcher(word).matches() && !isConsonantOException(word))
+			word += "es";
+		else
+			word += "s";
+		return word;
+	}
+
+	private static boolean isUncountable(final String word){
+		return UNCOUNTABLE.contains(word.toLowerCase(Locale.ROOT));
+	}
+
+	private static boolean isFException(final String word){
+		return F_EXCEPTIONS.contains(word.toLowerCase(Locale.ROOT));
+	}
+
+	private static boolean isConsonantOException(final String word){
+		return CONSONANT_O_EXCEPTIONS.contains(word.toLowerCase(Locale.ROOT));
 	}
 
 }

@@ -79,7 +79,6 @@ import java.util.TreeMap;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordMediaID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
@@ -290,6 +289,18 @@ public final class SearchDialog extends JDialog{
 		citation.put("extract_type", "transcript");
 		citations.put((Integer)citation.get("id"), citation);
 
+		final TreeMap<Integer, Map<String, Object>> assertions = new TreeMap<>();
+		store.put("assertion", assertions);
+		final Map<String, Object> assertion = new HashMap<>();
+		assertion.put("id", 1);
+		assertion.put("citation_id", 1);
+		assertion.put("reference_table", "citation");
+		assertion.put("reference_id", 1);
+		assertion.put("role", "father");
+		assertion.put("certainty", "certain");
+		assertion.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		assertions.put((Integer)assertion.get("id"), assertion);
+
 		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
 		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localizedText1 = new HashMap<>();
@@ -368,6 +379,8 @@ public final class SearchDialog extends JDialog{
 		store.put("person", persons);
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
+		person1.put("photo_id", 3);
+		person1.put("photo_crop", "0 0 5 10");
 		persons.put((Integer)person1.get("id"), person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
@@ -676,6 +689,12 @@ public final class SearchDialog extends JDialog{
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
 		notes.put((Integer)note2.get("id"), note2);
+		final Map<String, Object> note3 = new HashMap<>();
+		note3.put("id", 3);
+		note3.put("note", "note for repository");
+		note3.put("reference_table", "repository");
+		note3.put("reference_id", 1);
+		notes.put((Integer)note3.get("id"), note3);
 
 		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
 		store.put("media", media);
@@ -701,6 +720,16 @@ public final class SearchDialog extends JDialog{
 		media3.put("photo_projection", "rectangular");
 		media.put((Integer)media3.get("id"), media3);
 
+		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
+		store.put("media_junction", mediaJunctions);
+		final Map<String, Object> mediaJunction1 = new HashMap<>();
+		mediaJunction1.put("id", 1);
+		mediaJunction1.put("media_id", 3);
+		mediaJunction1.put("reference_table", "repository");
+		mediaJunction1.put("reference_id", 1);
+		mediaJunction1.put("photo_crop", "0 0 10 50");
+		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
+
 		final TreeMap<Integer, Map<String, Object>> culturalNorms = new TreeMap<>();
 		store.put("cultural_norm", culturalNorms);
 		final Map<String, Object> culturalNorm = new HashMap<>();
@@ -711,6 +740,17 @@ public final class SearchDialog extends JDialog{
 		culturalNorm.put("certainty", "certain");
 		culturalNorm.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		culturalNorms.put((Integer)culturalNorm.get("id"), culturalNorm);
+
+		final TreeMap<Integer, Map<String, Object>> culturalNormJunctions = new TreeMap<>();
+		store.put("cultural_norm_junction", culturalNormJunctions);
+		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
+		culturalNormJunction1.put("id", 1);
+		culturalNormJunction1.put("cultural_norm_id", 1);
+		culturalNormJunction1.put("reference_table", "person_name");
+		culturalNormJunction1.put("reference_id", 1);
+		culturalNormJunction1.put("certainty", "probable");
+		culturalNormJunction1.put("credibility", "probable");
+		culturalNormJunctions.put((Integer)culturalNormJunction1.get("id"), culturalNormJunction1);
 
 		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
 		store.put("research_status", researchStatuses);
@@ -790,7 +830,6 @@ public final class SearchDialog extends JDialog{
 
 						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
 						case ASSERTION -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
 							final AssertionDialog assertionDialog = AssertionDialog.createSelectOnly(store, parent)
@@ -833,9 +872,11 @@ public final class SearchDialog extends JDialog{
 						//from: repository, source, citation, assertion, historic date, calendar, person, person name, group, event,
 						// cultural norm, media, place
 						case NOTE -> {
+							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
-							final NoteDialog noteDialog = NoteDialog.createRecordOnly(store, parent);
-							noteDialog.loadData(recordID);
+							final NoteDialog noteDialog = NoteDialog.createSelectOnly(store, parent)
+								.withReference(tableName, recordID);
+							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
@@ -854,7 +895,6 @@ public final class SearchDialog extends JDialog{
 
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
-							//FIXME
 							final Integer personNameID = extractRecordID(container);
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.createSelectOnly(store, parent)
 								.withReference(personNameID);
@@ -865,10 +905,9 @@ public final class SearchDialog extends JDialog{
 
 						//from: place
 						case LOCALIZED_PLACE_NAME -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer placeID = extractRecordID(container);
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSelectOnly(store, parent)
 								.withReference(tableName, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 							localizedTextDialog.loadData();
 
@@ -878,26 +917,20 @@ public final class SearchDialog extends JDialog{
 
 						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
 						case MEDIA -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
 							final MediaDialog mediaDialog = MediaDialog.createSelectOnlyForMedia(store, parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, recordID);
-							final Integer mediaID = extractRecordMediaID(container);
-							mediaDialog.loadData(mediaID);
+							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 
 						//from: person, group, place
 						case PHOTO -> {
-							//FIXME
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
-							final MediaDialog photoDialog = MediaDialog.createSelectOnlyForPhoto(store, parent)
-								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(tableName, recordID);
+							final MediaDialog photoDialog = MediaDialog.createRecordOnlyForPhoto(store, parent)
+								.withBasePath(FileHelper.documentsDirectory());
 							final Integer photoID = extractRecordPhotoID(container);
 							photoDialog.loadData(photoID);
 
@@ -931,8 +964,7 @@ public final class SearchDialog extends JDialog{
 
 						//from: person
 						case PERSON_NAME -> {
-							//FIXME
-							final Integer personID = extractRecordPersonID(container);
+							final Integer personID = extractRecordID(container);
 							final PersonNameDialog personNameDialog = PersonNameDialog.createSelectOnly(store, parent)
 								.withReference(personID);
 							personNameDialog.loadData();
@@ -943,7 +975,6 @@ public final class SearchDialog extends JDialog{
 
 						//from: person, group, place
 						case GROUP -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
 							final GroupDialog groupDialog = GroupDialog.createSelectOnly(store, parent)
@@ -956,7 +987,6 @@ public final class SearchDialog extends JDialog{
 
 						//from: calendar, person, person name, group, cultural norm, media, place
 						case EVENT -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
 							final EventDialog eventDialog = EventDialog.createSelectOnly(store, parent)
@@ -969,7 +999,6 @@ public final class SearchDialog extends JDialog{
 
 						//from: assertion, person name, group, note
 						case CULTURAL_NORM -> {
-							//FIXME
 							final String tableName = editCommand.getIdentifier();
 							final Integer recordID = extractRecordID(container);
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.createSelectOnly(store, parent)

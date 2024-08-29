@@ -79,6 +79,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected static final Color MANDATORY_BACKGROUND_COLOR = Color.PINK;
 	protected static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 	protected static final Color DATA_BUTTON_BORDER_COLOR = Color.BLUE;
+	protected static final Color NON_EXISTENT_MEDIA_BORDER_COLOR = Color.RED;
 
 	private static final int ICON_HEIGHT_DEFAULT = 20;
 

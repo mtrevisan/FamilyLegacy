@@ -33,7 +33,6 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -316,25 +315,28 @@ public final class GUIHelper{
 	}
 
 
-	public static void addBorder(final JButton button, final boolean dataPresent, final Color borderColor){
+	public static void addBorder(final JComponent component, final boolean dataPresent, final Color borderColor){
 		if(dataPresent)
-			addBorder(button, borderColor);
+			addBorder(component, borderColor);
 		else
-			setDefaultBorder(button);
+			setDefaultBorder(component);
 	}
 
-	public static void setDefaultBorder(final JButton button){
-		final Border border = UIManager.getBorder("Button.border");
-		button.setBorder(border);
+	public static void setDefaultBorder(final JComponent component){
+		final String className = component.getClass()
+			.getSimpleName()
+			.substring(1);
+		final Border border = UIManager.getBorder(className + ".border");
+		component.setBorder(border);
 	}
 
-	public static void addBorder(final JButton button, final Color borderColor){
-		final Insets insets = button.getInsets();
+	public static void addBorder(final JComponent component, final Color borderColor){
+		final Insets insets = component.getInsets();
 		final Border outsideBorder = BorderFactory.createLineBorder(borderColor);
 		final Border insideBorder = BorderFactory.createEmptyBorder(insets.top - 1, insets.left - 1,
 			insets.bottom - 1, insets.right - 1);
 		final Border border = BorderFactory.createCompoundBorder(outsideBorder, insideBorder);
-		button.setBorder(border);
+		component.setBorder(border);
 	}
 
 

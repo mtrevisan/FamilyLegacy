@@ -368,7 +368,7 @@ public final class GroupDialog extends CommonListDialog{
 			.values().stream()
 			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordGroupID(entry)))
-			.map(entry -> groups.get(extractRecordReferenceID(entry)))
+			.map(entry -> groups.get(extractRecordGroupID(entry)))
 			.collect(Collectors.toMap(EntityManager::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
 	}
 
@@ -789,7 +789,7 @@ public final class GroupDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createSelectOnlyForPhoto(store, parent)
+									? MediaDialog.createRecordOnlyForPhoto(store, parent)
 									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, groupID)
