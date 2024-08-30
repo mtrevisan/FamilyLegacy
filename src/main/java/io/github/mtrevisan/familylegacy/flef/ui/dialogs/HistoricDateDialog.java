@@ -123,6 +123,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	public static HistoricDateDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

@@ -29,6 +29,8 @@ import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.ProjectDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -48,6 +50,43 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
+
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCitationID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinateSystem;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCulturalNormID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateEndID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateStartID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordMediaID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoProjection;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolVersion;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTitle;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
 
 
 public final class Main{
@@ -346,7 +385,7 @@ public final class Main{
 	private static GedcomObject extractor(final Iterable<String> lines){
 		final GedcomObject root = new GedcomObject();
 		final Map<String, GedcomObject> context = new HashMap<>();
-		context.put("", root);
+		context.put(StringUtils.EMPTY, root);
 
 		for(String line : lines){
 			line = line.trim();
@@ -407,11 +446,11 @@ public final class Main{
 
 		final Map<String, Object> flefProject = new HashMap<>();
 		flefProjects.add(flefProject);
-		flefProject.put("id", 1);
-		flefProject.put("protocol_name", "Family LEgacy Format");
-		flefProject.put("protocol_version", "0.0.10");
-		flefProject.put("copyright", "(c) 2024 Mauro Trevisan");
-		flefProject.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		insertRecordID(flefProject, 1);
+		insertRecordProtocolName(flefProject, ProjectDialog.PROTOCOL_NAME_DEFAULT);
+		insertRecordProtocolVersion(flefProject, ProjectDialog.PROTOCOL_VERSION_DEFAULT);
+		insertRecordCopyright(flefProject, "(c) 2024 Mauro Trevisan");
+		insertRecordCreationDate(flefProject, DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 	}
 
 	private static void transferCalendar(final Map<String, List<Map<String, Object>>> output){
@@ -419,28 +458,28 @@ public final class Main{
 
 		Map<String, Object> flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
-		flefCalendar.put("id", 1);
-		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_GREGORIAN);
+		insertRecordID(flefCalendar, 1);
+		insertRecordType(flefCalendar, CalendarParserBuilder.CALENDAR_GREGORIAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
-		flefCalendar.put("id", 2);
-		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_JULIAN);
+		insertRecordID(flefCalendar, 2);
+		insertRecordType(flefCalendar, CalendarParserBuilder.CALENDAR_JULIAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
-		flefCalendar.put("id", 3);
-		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_VENETAN);
+		insertRecordID(flefCalendar, 3);
+		insertRecordType(flefCalendar, CalendarParserBuilder.CALENDAR_VENETAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
-		flefCalendar.put("id", 4);
-		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN);
+		insertRecordID(flefCalendar, 4);
+		insertRecordType(flefCalendar, CalendarParserBuilder.CALENDAR_FRENCH_REPUBLICAN);
 
 		flefCalendar = new HashMap<>();
 		flefCalendars.add(flefCalendar);
-		flefCalendar.put("id", 5);
-		flefCalendar.put("type", CalendarParserBuilder.CALENDAR_HEBREW);
+		insertRecordID(flefCalendar, 5);
+		insertRecordType(flefCalendar, CalendarParserBuilder.CALENDAR_HEBREW);
 	}
 
 	private static void transferCulturalNorm(final Map<String, List<Map<String, Object>>> output){
@@ -452,103 +491,103 @@ public final class Main{
 		final Map<String, Object> flefPlace = new HashMap<>();
 		flefPlaces.add(flefPlace);
 		final int placeID = flefPlaces.size();
-		flefPlace.put("id", placeID);
-		flefPlace.put("identifier", "Regno Lombardo-Veneto");
-		flefPlace.put("name", "Regno Lombardo-Veneto");
-		flefPlace.put("locale", "it-IT");
-		flefPlace.put("type", "reign");
+		insertRecordID(flefPlace, placeID);
+		insertRecordIdentifier(flefPlace, "Regno Lombardo-Veneto");
+		insertRecordName(flefPlace, "Regno Lombardo-Veneto");
+		insertRecordLocale(flefPlace, "it-IT");
+		insertRecordType(flefPlace, "reign");
 
 		Map<String, Object> flefHistoricDate = new HashMap<>();
 		flefHistoricDates.add(flefHistoricDate);
 		final int dateStartID = flefHistoricDates.size();
-		flefHistoricDate.put("id", dateStartID);
-		flefHistoricDate.put("date", "31 JAN 1807");
+		insertRecordID(flefHistoricDate, dateStartID);
+		insertRecordDate(flefHistoricDate, "31 JAN 1807");
 		flefHistoricDate = new HashMap<>();
 		flefHistoricDates.add(flefHistoricDate);
 		final int dateEndID = flefHistoricDates.size();
-		flefHistoricDate.put("id", dateEndID);
-		flefHistoricDate.put("date", "19 FEB 1811");
+		insertRecordID(flefHistoricDate, dateEndID);
+		insertRecordDate(flefHistoricDate, "19 FEB 1811");
 
 		Map<String, Object> flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 1);
-		flefCulturalNorm.put("identifier", "nomi latini");
-		flefCulturalNorm.put("description", "per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in *-us* per il maschile e *-a* per il femminile)");
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 1);
+		insertRecordIdentifier(flefCulturalNorm, "nomi latini");
+		insertRecordDescription(flefCulturalNorm, "per i nomi in latino si deve usare il nominativo (quello che generalmente finisce in *-us* per il maschile e *-a* per il femminile)");
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 2);
-		flefCulturalNorm.put("identifier", "napoleonic code age of majority in men");
-		flefCulturalNorm.put("description", "23 anni minore, 29 anni maggiore");
-		flefCulturalNorm.put("place_id", placeID);
-		flefCulturalNorm.put("date_start_id", dateStartID);
-		flefCulturalNorm.put("date_end_id", dateEndID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 2);
+		insertRecordIdentifier(flefCulturalNorm, "napoleonic code age of majority in men");
+		insertRecordDescription(flefCulturalNorm, "23 anni minore, 29 anni maggiore");
+		insertRecordPlaceID(flefCulturalNorm, placeID);
+		insertRecordDateStartID(flefCulturalNorm, dateStartID);
+		insertRecordDateEndID(flefCulturalNorm, dateEndID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 3);
-		flefCulturalNorm.put("identifier", "napoleonic code respectful act for men");
-		flefCulturalNorm.put("description", "fino ai 30");
-		flefCulturalNorm.put("place_id", placeID);
-		flefCulturalNorm.put("date_start_id", dateStartID);
-		flefCulturalNorm.put("date_end_id", dateEndID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 3);
+		insertRecordIdentifier(flefCulturalNorm, "napoleonic code respectful act for men");
+		insertRecordDescription(flefCulturalNorm, "fino ai 30");
+		insertRecordPlaceID(flefCulturalNorm, placeID);
+		insertRecordDateStartID(flefCulturalNorm, dateStartID);
+		insertRecordDateEndID(flefCulturalNorm, dateEndID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 4);
-		flefCulturalNorm.put("identifier", "napoleonic code age of majority in women");
-		flefCulturalNorm.put("description", "22 anni minore");
-		flefCulturalNorm.put("place_id", placeID);
-		flefCulturalNorm.put("date_start_id", dateStartID);
-		flefCulturalNorm.put("date_end_id", dateEndID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 4);
+		insertRecordIdentifier(flefCulturalNorm, "napoleonic code age of majority in women");
+		insertRecordDescription(flefCulturalNorm, "22 anni minore");
+		insertRecordPlaceID(flefCulturalNorm, placeID);
+		insertRecordDateStartID(flefCulturalNorm, dateStartID);
+		insertRecordDateEndID(flefCulturalNorm, dateEndID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 5);
-		flefCulturalNorm.put("identifier", "napoleonic code respectful act for women");
-		flefCulturalNorm.put("description", "fino ai 25");
-		flefCulturalNorm.put("place_id", placeID);
-		flefCulturalNorm.put("date_start_id", dateStartID);
-		flefCulturalNorm.put("date_end_id", dateEndID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 5);
+		insertRecordIdentifier(flefCulturalNorm, "napoleonic code respectful act for women");
+		insertRecordDescription(flefCulturalNorm, "fino ai 25");
+		insertRecordPlaceID(flefCulturalNorm, placeID);
+		insertRecordDateStartID(flefCulturalNorm, dateStartID);
+		insertRecordDateEndID(flefCulturalNorm, dateEndID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefHistoricDates.add(flefHistoricDate);
 		final int concilioDateStartID = flefHistoricDates.size();
-		flefHistoricDate.put("id", concilioDateStartID);
-		flefHistoricDate.put("date", "11 NOV 1215");
+		insertRecordID(flefHistoricDate, concilioDateStartID);
+		insertRecordDate(flefHistoricDate, "11 NOV 1215");
 
 		flefHistoricDates.add(flefHistoricDate);
 		final int codiceDirittoCanonicoStartID = flefHistoricDates.size();
-		flefHistoricDate.put("id", codiceDirittoCanonicoStartID);
-		flefHistoricDate.put("date", "1917");
+		insertRecordID(flefHistoricDate, codiceDirittoCanonicoStartID);
+		insertRecordDate(flefHistoricDate, "1917");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 6);
-		flefCulturalNorm.put("identifier", "impedimento di diritto ecclesiastico");
-		flefCulturalNorm.put("description", "il Concilio Lateranense IV nel 1215 ridusse l’impedimento al quarto grado della linea collaterale");
-		flefCulturalNorm.put("date_start_id", concilioDateStartID);
-		flefCulturalNorm.put("date_end_id", codiceDirittoCanonicoStartID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 6);
+		insertRecordIdentifier(flefCulturalNorm, "impedimento di diritto ecclesiastico");
+		insertRecordDescription(flefCulturalNorm, "il Concilio Lateranense IV nel 1215 ridusse l’impedimento al quarto grado della linea collaterale");
+		insertRecordDateStartID(flefCulturalNorm, concilioDateStartID);
+		insertRecordDateEndID(flefCulturalNorm, codiceDirittoCanonicoStartID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		flefCulturalNorm = new HashMap<>();
 		flefCulturalNorms.add(flefCulturalNorm);
-		flefCulturalNorm.put("id", 7);
-		flefCulturalNorm.put("identifier", "impedimento di diritto ecclesiastico");
-		flefCulturalNorm.put("description", "can. 1076 - In linea retta di consanguineità legittima o naturale è sempre nullo il Matrimonio. In linea collaterale fino al terzo, moltiplicandosi l’impedimento con lo stipite. Nel dubbio di consanguineità in linea retta o del primo collaterale non si permetterà il Matrimonio.\\r\\ncan. 1077 - L’affinità in linea retta irrita il Matrimonio in tutti i gradi; nella collaterale fino al secondo compreso. Si moltiplica con la consanguineità da cui procede, con la ripetizione successiva del Matrimonio con un consanguineo del defunto.");
-		flefCulturalNorm.put("date_start_id", codiceDirittoCanonicoStartID);
-		flefCulturalNorm.put("certainty", "certain");
-		flefCulturalNorm.put("credibility", 3);
+		insertRecordID(flefCulturalNorm, 7);
+		insertRecordIdentifier(flefCulturalNorm, "impedimento di diritto ecclesiastico");
+		insertRecordDescription(flefCulturalNorm, "can. 1076 - In linea retta di consanguineità legittima o naturale è sempre nullo il Matrimonio. In linea collaterale fino al terzo, moltiplicandosi l’impedimento con lo stipite. Nel dubbio di consanguineità in linea retta o del primo collaterale non si permetterà il Matrimonio.\\r\\ncan. 1077 - L’affinità in linea retta irrita il Matrimonio in tutti i gradi; nella collaterale fino al secondo compreso. Si moltiplica con la consanguineità da cui procede, con la ripetizione successiva del Matrimonio con un consanguineo del defunto.");
+		insertRecordDateStartID(flefCulturalNorm, codiceDirittoCanonicoStartID);
+		insertRecordCertainty(flefCulturalNorm, "certain");
+		insertRecordCredibility(flefCulturalNorm, "direct and primary evidence used, or by dominance of the evidence");
 
 		//https://www.voxcanonica.com/2022/12/05/limpedimento-di-affinita-can-1092/
 		//https://dadun.unav.edu/bitstream/10171/6811/1/85-08.Pellegrino.pdf
@@ -561,10 +600,10 @@ public final class Main{
 		//Metodo per calcolare i gradi di parentela: in linea retta si cominciano a contare le generazioni dal soggetto del quale si vuole conoscere il grado di parentela fino al capostipite, escludendo quest ultimo. In linea collaterale si risale da uno dei parenti fino allo stipite comune e da questo si discende all’altro parente, senza tener conto dello stipite
 		final Map<String, Object> flefNote = new HashMap<>();
 		flefNotes.add(flefNote);
-		flefNote.put("id", 20_000);
-		flefNote.put("note", "Codice di Diritto Canonico 1917\\r\\nhttps://www.ecclesiadei.it/wp-content/uploads/2021/01/Codice-Diritto-Canonico-1917.pdf\\r\\npag. 102");
-		flefNote.put("reference_table", "cultural_norm");
-		flefNote.put("reference_id", 7);
+		insertRecordID(flefNote, 20_000);
+		insertRecordNote(flefNote, "Codice di Diritto Canonico 1917\\r\\nhttps://www.ecclesiadei.it/wp-content/uploads/2021/01/Codice-Diritto-Canonico-1917.pdf\\r\\npag. 102");
+		insertRecordReferenceTable(flefNote, "cultural_norm");
+		insertRecordReferenceID(flefNote, 7);
 
 		//età matrimonio
 		//http://www.appuntigiurisprudenza.it/diritto-ecclesiastico/gli-impedimenti-al-matrimonio-canonico-nello-specifico.html
@@ -622,8 +661,8 @@ public final class Main{
 					final Map<String, Object> flefHistoricDate = new HashMap<>();
 					flefHistoricDates.add(flefHistoricDate);
 					marriageDateID = flefHistoricDates.size();
-					flefHistoricDate.put("id", marriageDateID);
-					flefHistoricDate.put("date", marriageDate);
+					insertRecordID(flefHistoricDate, marriageDateID);
+					insertRecordDate(flefHistoricDate, marriageDate);
 				}
 
 				//add place
@@ -641,13 +680,13 @@ public final class Main{
 
 					final Map<String, Object> flefPlace = new HashMap<>();
 					flefPlaces.add(flefPlace);
-					flefPlace.put("id", marriagePlace.id);
+					insertRecordID(flefPlace, marriagePlace.id);
 					if(marriagePlaceName != null)
-						flefPlace.put("identifier", marriagePlaceName);
-					flefPlace.put("name", marriagePlaceName);
+						insertRecordIdentifier(flefPlace, marriagePlaceName);
+					insertRecordName(flefPlace, marriagePlaceName);
 					if(coordinate != null){
-						flefPlace.put("coordinate", coordinate);
-						flefPlace.put("coordinate_system", "WGS84");
+						insertRecordCoordinate(flefPlace, coordinate);
+						insertRecordCoordinateSystem(flefPlace, "WGS84");
 					}
 
 
@@ -669,39 +708,39 @@ public final class Main{
 						final Map<String, Object> flefCitation = new HashMap<>();
 						flefCitations.add(flefCitation);
 						final int citationID = flefCitations.size();
-						flefCitation.put("id", citationID);
-						flefCitation.put("source_id", marriagePlaceSource.id);
+						insertRecordID(flefCitation, citationID);
+						insertRecordSourceID(flefCitation, marriagePlaceSource.id);
 						if(marriagePlaceSourceLocation != null)
-							flefCitation.put("location", marriagePlaceSourceLocation);
+							insertRecordLocation(flefCitation, marriagePlaceSourceLocation);
 
 						//create assertion connected to a date
 						if(marriageDateID != null){
 							final Map<String, Object> flefAssertionDate = new HashMap<>();
 							flefAssertions.add(flefAssertionDate);
-							flefAssertionDate.put("id", flefAssertions.size());
-							flefAssertionDate.put("citation_id", citationID);
-							flefAssertionDate.put("reference_table", "historic_date");
-							flefAssertionDate.put("reference_id", marriageDateID);
+							insertRecordID(flefAssertionDate, flefAssertions.size());
+							insertRecordCitationID(flefAssertionDate, citationID);
+							insertRecordReferenceTable(flefAssertionDate, "historic_date");
+							insertRecordReferenceID(flefAssertionDate, marriageDateID);
 							if(evenRole != null)
-								flefAssertionDate.put("role", evenRole);
+								insertRecordRole(flefAssertionDate, evenRole);
 							if(marriagePlaceSourceCredibility != null){
-								flefAssertionDate.put("certainty", "certain");
-								flefAssertionDate.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+								insertRecordCertainty(flefAssertionDate, "certain");
+								insertRecordCredibility(flefAssertionDate, marriagePlaceSourceCredibility);
 							}
 						}
 
 						//create assertion connected to a place
 						final Map<String, Object> flefAssertionPlace = new HashMap<>();
 						flefAssertions.add(flefAssertionPlace);
-						flefAssertionPlace.put("id", flefAssertions.size());
-						flefAssertionPlace.put("citation_id", citationID);
-						flefAssertionPlace.put("reference_table", "place");
-						flefAssertionPlace.put("reference_id", marriagePlace.id);
+						insertRecordID(flefAssertionPlace, flefAssertions.size());
+						insertRecordCitationID(flefAssertionPlace, citationID);
+						insertRecordReferenceTable(flefAssertionPlace, "place");
+						insertRecordReferenceID(flefAssertionPlace, marriagePlace.id);
 						if(evenRole != null)
-							flefAssertionPlace.put("role", evenRole);
+							insertRecordRole(flefAssertionPlace, evenRole);
 						if(marriagePlaceSourceCredibility != null){
-							flefAssertionPlace.put("certainty", "certain");
-							flefAssertionPlace.put("credibility", Integer.valueOf(marriagePlaceSourceCredibility));
+							insertRecordCertainty(flefAssertionPlace, "certain");
+							insertRecordCredibility(flefAssertionPlace, marriagePlaceSourceCredibility);
 						}
 					}
 				}
@@ -713,41 +752,41 @@ public final class Main{
 						final Map<String, Object> flefEvent = new HashMap<>();
 						flefEvents.add(flefEvent);
 						final int eventID = flefEvents.size();
-						flefEvent.put("id", eventID);
-						flefEvent.put("type", "marriage");
+						insertRecordID(flefEvent, eventID);
+						insertRecordType(flefEvent, "marriage");
 						if(marriagePlace != null)
-							flefEvent.put("place_id", marriagePlace.id);
+							insertRecordPlaceID(flefEvent, marriagePlace.id);
 						if(marriageDateID != null)
-							flefEvent.put("date_id", marriageDateID);
-						flefEvent.put("reference_table", "group");
-						flefEvent.put("reference_id", marriage.id);
+							insertRecordDateID(flefEvent, marriageDateID);
+						insertRecordReferenceTable(flefEvent, "group");
+						insertRecordReferenceID(flefEvent, marriage.id);
 
 						//add note
 						final Map<String, Object> flefNote = new HashMap<>();
 						flefNotes.add(flefNote);
-						flefNote.put("id", note.id);
-						flefNote.put("note", desc);
-						flefNote.put("reference_table", "event");
-						flefNote.put("reference_id", eventID);
+						insertRecordID(flefNote, note.id);
+						insertRecordNote(flefNote, desc);
+						insertRecordReferenceTable(flefNote, "event");
+						insertRecordReferenceID(flefNote, eventID);
 						if("dispensati dall'impedimento dirimente di consanguineità in 3° grado eguale linea collaterale".equals(desc)){
 							final Map<String, Object> flefCulturalNormJunction = new HashMap<>();
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
-							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
-							flefCulturalNormJunction.put("cultural_norm_id", 7);
-							flefCulturalNormJunction.put("reference_table", "note");
-							flefCulturalNormJunction.put("reference_id", note.id);
-							flefCulturalNormJunction.put("certainty", "certain");
-							flefCulturalNormJunction.put("credibility", 3);
+							insertRecordID(flefCulturalNormJunction, flefCulturalNormJunctions.size());
+							insertRecordCulturalNormID(flefCulturalNormJunction, 7);
+							insertRecordReferenceTable(flefCulturalNormJunction, "note");
+							insertRecordReferenceID(flefCulturalNormJunction, note.id);
+							insertRecordCertainty(flefCulturalNormJunction, "certain");
+							insertRecordCredibility(flefCulturalNormJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
 						else if(desc.contains("dispensa")){
 							final Map<String, Object> flefCulturalNormJunction = new HashMap<>();
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
-							flefCulturalNormJunction.put("id", flefCulturalNormJunctions.size());
-							flefCulturalNormJunction.put("cultural_norm_id", 6);
-							flefCulturalNormJunction.put("reference_table", "note");
-							flefCulturalNormJunction.put("reference_id", note.id);
-							flefCulturalNormJunction.put("certainty", "certain");
-							flefCulturalNormJunction.put("credibility", 3);
+							insertRecordID(flefCulturalNormJunction, flefCulturalNormJunctions.size());
+							insertRecordCulturalNormID(flefCulturalNormJunction, 6);
+							insertRecordReferenceTable(flefCulturalNormJunction, "note");
+							insertRecordReferenceID(flefCulturalNormJunction, note.id);
+							insertRecordCertainty(flefCulturalNormJunction, "certain");
+							insertRecordCredibility(flefCulturalNormJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
 					}
 				}
@@ -761,20 +800,20 @@ public final class Main{
 						final Map<String, Object> flefCitation = new HashMap<>();
 						flefCitations.add(flefCitation);
 						final int citationID = flefCitations.size();
-						flefCitation.put("id", citationID);
-						flefCitation.put("source_id", marriageSource.id);
+						insertRecordID(flefCitation, citationID);
+						insertRecordSourceID(flefCitation, marriageSource.id);
 
 						//create assertion connected to a place
 						final Map<String, Object> flefAssertion = new HashMap<>();
 						flefAssertions.add(flefAssertion);
-						flefAssertion.put("id", flefAssertions.size());
-						flefAssertion.put("citation_id", citationID);
-						flefAssertion.put("reference_table", "place");
-						flefAssertion.put("reference_id", marriagePlace.id);
+						insertRecordID(flefAssertion, flefAssertions.size());
+						insertRecordCitationID(flefAssertion, citationID);
+						insertRecordReferenceTable(flefAssertion, "place");
+						insertRecordReferenceID(flefAssertion, marriagePlace.id);
 						if(evenRole != null)
-							flefAssertion.put("role", evenRole);
-						flefAssertion.put("certainty", "certain");
-						flefAssertion.put("credibility", 3);
+							insertRecordRole(flefAssertion, evenRole);
+						insertRecordCertainty(flefAssertion, "certain");
+						insertRecordCredibility(flefAssertion, "direct and primary evidence used, or by dominance of the evidence");
 					}
 
 					if(marriageDate != null){
@@ -782,20 +821,20 @@ public final class Main{
 						final Map<String, Object> flefCitation = new HashMap<>();
 						flefCitations.add(flefCitation);
 						final int citationID = flefCitations.size();
-						flefCitation.put("id", citationID);
-						flefCitation.put("source_id", marriageSource.id);
+						insertRecordID(flefCitation, citationID);
+						insertRecordSourceID(flefCitation, marriageSource.id);
 
 						//create assertion connected to a date
 						final Map<String, Object> flefAssertion = new HashMap<>();
 						flefAssertions.add(flefAssertion);
-						flefAssertion.put("id", flefAssertions.size());
-						flefAssertion.put("citation_id", citationID);
-						flefAssertion.put("reference_table", "historic_date");
-						flefAssertion.put("reference_id", marriageDateID);
+						insertRecordID(flefAssertion, flefAssertions.size());
+						insertRecordCitationID(flefAssertion, citationID);
+						insertRecordReferenceTable(flefAssertion, "historic_date");
+						insertRecordReferenceID(flefAssertion, marriageDateID);
 						if(evenRole != null)
-							flefAssertion.put("role", evenRole);
-						flefAssertion.put("certainty", "certain");
-						flefAssertion.put("credibility", 3);
+							insertRecordRole(flefAssertion, evenRole);
+						insertRecordCertainty(flefAssertion, "certain");
+						insertRecordCredibility(flefAssertion, "direct and primary evidence used, or by dominance of the evidence");
 					}
 				}
 
@@ -804,34 +843,34 @@ public final class Main{
 				if(husband != null || wife != null){
 					final Map<String, Object> flefGroup = new HashMap<>();
 					flefGroups.add(flefGroup);
-					flefGroup.put("id", marriage.id);
-					flefGroup.put("type", "family");
+					insertRecordID(flefGroup, marriage.id);
+					insertRecordType(flefGroup, "family");
 
 					if(husband != null){
 						final Map<String, Object> flefGroupJunction = new HashMap<>();
 						flefGroupJunctions.add(flefGroupJunction);
-						flefGroupJunction.put("id", flefGroupJunctions.size());
-						flefGroupJunction.put("group_id", marriage.id);
-						flefGroupJunction.put("reference_table", "person");
-						flefGroupJunction.put("reference_id", husband.id);
-						flefGroupJunction.put("role", "partner");
+						insertRecordID(flefGroupJunction, flefGroupJunctions.size());
+						insertRecordGroupID(flefGroupJunction, marriage.id);
+						insertRecordReferenceTable(flefGroupJunction, "person");
+						insertRecordReferenceID(flefGroupJunction, husband.id);
+						insertRecordRole(flefGroupJunction, "partner");
 						if(verifiedMarriage){
-							flefGroupJunction.put("certainty", "certain");
-							flefGroupJunction.put("credibility", 3);
+							insertRecordCertainty(flefGroupJunction, "certain");
+							insertRecordCredibility(flefGroupJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
 					}
 
 					if(wife != null){
 						final Map<String, Object> flefGroupJunction = new HashMap<>();
 						flefGroupJunctions.add(flefGroupJunction);
-						flefGroupJunction.put("id", flefGroupJunctions.size());
-						flefGroupJunction.put("group_id", marriage.id);
-						flefGroupJunction.put("reference_table", "person");
-						flefGroupJunction.put("reference_id", wife.id);
-						flefGroupJunction.put("role", "partner");
+						insertRecordID(flefGroupJunction, flefGroupJunctions.size());
+						insertRecordGroupID(flefGroupJunction, marriage.id);
+						insertRecordReferenceTable(flefGroupJunction, "person");
+						insertRecordReferenceID(flefGroupJunction, wife.id);
+						insertRecordRole(flefGroupJunction, "partner");
 						if(verifiedMarriage){
-							flefGroupJunction.put("certainty", "certain");
-							flefGroupJunction.put("credibility", 3);
+							insertRecordCertainty(flefGroupJunction, "certain");
+							insertRecordCredibility(flefGroupJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
 					}
 				}
@@ -862,18 +901,18 @@ public final class Main{
 
 				final Map<String, Object> flefPlace = new HashMap<>();
 				flefPlaces.add(flefPlace);
-				flefPlace.put("id", plac.id);
-				flefPlace.put("identifier", address);
+				insertRecordID(flefPlace, plac.id);
+				insertRecordIdentifier(flefPlace, address);
 				if(repositoryName != null)
-					flefPlace.put("name", repositoryName);
+					insertRecordName(flefPlace, repositoryName);
 			}
 
 			final Map<String, Object> flefRepository = new HashMap<>();
 			flefRepositories.add(flefRepository);
-			flefRepository.put("id", repository.id);
-			flefRepository.put("identifier", repositoryName);
+			insertRecordID(flefRepository, repository.id);
+			insertRecordIdentifier(flefRepository, repositoryName);
 			if(plac != null)
-				flefRepository.put("place_id", plac.id);
+				insertRecordPlaceID(flefRepository, plac.id);
 		}
 	}
 
@@ -894,10 +933,10 @@ public final class Main{
 			for(final Integer personID : personIDs){
 				final Map<String, Object> flefNote = new HashMap<>();
 				flefNotes.add(flefNote);
-				flefNote.put("id", note.id);
-				flefNote.put("note", text);
-				flefNote.put("reference_table", "person");
-				flefNote.put("reference_id", personID);
+				insertRecordID(flefNote, note.id);
+				insertRecordNote(flefNote, text);
+				insertRecordReferenceTable(flefNote, "person");
+				insertRecordReferenceID(flefNote, personID);
 			}
 		}
 	}
@@ -923,10 +962,10 @@ public final class Main{
 				else{
 					final Map<String, Object> flefNote = new HashMap<>();
 					flefNotes.add(flefNote);
-					flefNote.put("id", sourceNote.id);
-					flefNote.put("note", desc);
-					flefNote.put("reference_table", "source");
-					flefNote.put("reference_id", source.id);
+					insertRecordID(flefNote, sourceNote.id);
+					insertRecordNote(flefNote, desc);
+					insertRecordReferenceTable(flefNote, "source");
+					insertRecordReferenceID(flefNote, source.id);
 				}
 			}
 
@@ -935,13 +974,14 @@ public final class Main{
 			final String titl = attributes.get("TITL");
 			final Map<String, Object> flefSource = new HashMap<>();
 			flefSources.add(flefSource);
-			flefSource.put("id", source.id);
-			flefSource.put("identifier", titl);
-			flefSource.put("author", auth);
-			flefSource.put("date_id", "TODO see media");
-			flefSource.put("repository_id", repoID);
+			insertRecordID(flefSource, source.id);
+			insertRecordRepositoryID(flefSource, repoID);
+			insertRecordIdentifier(flefSource, titl);
+			insertRecordAuthor(flefSource, auth);
+			//TODO see media for date ID
+			insertRecordDateID(flefSource, -1);
 			if(sourceLocation != null)
-				flefSource.put("location", sourceLocation);
+				insertRecordLocation(flefSource, sourceLocation);
 
 			final List<GedcomObject> medias = getAllStartingWith(children, "OBJE");
 			for(final GedcomObject media : medias){
@@ -955,32 +995,32 @@ public final class Main{
 				if(date != null){
 					final Map<String, Object> flefHistoricDate = new HashMap<>();
 					flefHistoricDates.add(flefHistoricDate);
-					flefHistoricDate.put("id", dateID);
-					flefHistoricDate.put("date", date);
+					insertRecordID(flefHistoricDate, dateID);
+					insertRecordDate(flefHistoricDate, date);
 				}
 				final Map<String, Object> flefMedia = new HashMap<>();
 				flefMedias.add(flefMedia);
-				flefMedia.put("id", media.id);
-				flefMedia.put("identifier", identifier);
-				flefMedia.put("title", title);
+				insertRecordID(flefMedia, media.id);
+				insertRecordIdentifier(flefMedia, identifier);
+				insertRecordTitle(flefMedia, title);
 				final boolean isImage = (identifier.endsWith(".jpg") || identifier.endsWith(".psd") || identifier.endsWith(".png")
 					|| identifier.endsWith(".bmp") || identifier.endsWith(".gif") || identifier.endsWith(".tif"));
-				flefMedia.put("type", (isImage
+				insertRecordType(flefMedia, (isImage
 					? "photo":
 					(identifier.endsWith(".mp4")
 						? "video"
 						: "TODO see identifier")));
 				if(isImage)
-					flefMedia.put("photo_projection", "rectangular");
+					insertRecordPhotoProjection(flefMedia, "rectangular");
 				if(date != null)
-					flefMedia.put("date_id", dateID);
+					insertRecordDateID(flefMedia, dateID);
 
 				final Map<String, Object> flefMediaJunction = new HashMap<>();
 				flefMediaJunctions.add(flefMediaJunction);
-				flefMediaJunction.put("id", media.id);
-				flefMediaJunction.put("media_id", media.id);
-				flefMediaJunction.put("reference_table", "source");
-				flefMediaJunction.put("reference_id", source.id);
+				insertRecordID(flefMediaJunction, media.id);
+				insertRecordMediaID(flefMediaJunction, media.id);
+				insertRecordReferenceTable(flefMediaJunction, "source");
+				insertRecordReferenceID(flefMediaJunction, source.id);
 			}
 
 			final List<GedcomObject> notes = getAllStartingWith(children, "NOTE");
@@ -991,10 +1031,10 @@ public final class Main{
 					final String text = extractDesc(noteAttributes);
 					final Map<String, Object> flefNote = new HashMap<>();
 					flefNotes.add(flefNote);
-					flefNote.put("id", note.id);
-					flefNote.put("note", text);
-					flefNote.put("reference_table", "source");
-					flefNote.put("reference_id", source.id);
+					insertRecordID(flefNote, note.id);
+					insertRecordNote(flefNote, text);
+					insertRecordReferenceTable(flefNote, "source");
+					insertRecordReferenceID(flefNote, source.id);
 				}
 
 			final GedcomObject citation = getFirstStartingWith(children, "TEXT");
@@ -1003,12 +1043,12 @@ public final class Main{
 				final String flefText = extractDesc(citation.attributes);
 				final Map<String, Object> flefCitation = new HashMap<>();
 				flefCitations.add(flefCitation);
-				flefCitation.put("id", citation.id);
-				flefCitation.put("source_id", source.id);
-				flefCitation.put("location", flefLocation);
-				flefCitation.put("extract", flefText);
-				flefCitation.put("extract_locale", "TODO see text");
-				flefCitation.put("extract_type", "transcript");
+				insertRecordID(flefCitation, citation.id);
+				insertRecordSourceID(flefCitation, source.id);
+				insertRecordLocation(flefCitation, flefLocation);
+				insertRecordExtract(flefCitation, flefText);
+				insertRecordExtractLocale(flefCitation, "TODO see text");
+				insertRecordExtractType(flefCitation, "transcript");
 			}
 		}
 	}

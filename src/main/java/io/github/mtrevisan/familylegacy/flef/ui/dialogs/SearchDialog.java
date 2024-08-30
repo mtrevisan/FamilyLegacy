@@ -940,7 +940,6 @@ public final class SearchDialog extends JDialog{
 						//from: person, group, media, place
 						case PHOTO_CROP -> {
 							try{
-								//FIXME
 								final PhotoCropDialog photoCropDialog = PhotoCropDialog.createSelectOnly(store, parent);
 								final Integer recordID = extractRecordID(container);
 								final String photoCrop = extractRecordPhotoCrop(container);
@@ -1009,15 +1008,13 @@ public final class SearchDialog extends JDialog{
 						}
 
 
-//						case RESEARCH_STATUS -> {
-//TODO
-//						}
+						case RESEARCH_STATUS -> {
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createRecordOnly(store, parent);
+							final Integer researchStatusID = extractRecordID(container);
+							researchStatusDialog.loadData(researchStatusID);
 
-
-//from: ?
-//						case PROJECT -> {
-//TODO
-//						}
+							researchStatusDialog.showDialog();
+						}
 					}
 				}
 			};

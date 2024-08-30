@@ -338,7 +338,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		add(filterLabel, "align label,split 2,hidemode 3");
 		add(filterField, "grow,wrap related,hidemode 3");
 		add(tableScrollPane, "grow"
-			+ (!hideUnselectButton || !showRecordOnly && selectRecordOnly && showRecordTabbedPane? ",wrap related": StringUtils.EMPTY)
+			+ (!hideUnselectButton || !showRecordOnly && selectRecordOnly && showRecordTabbedPane? ",wrap paragraph": StringUtils.EMPTY)
 			+ ",hidemode 3");
 		//FIXME
 		int splitCount = 3;

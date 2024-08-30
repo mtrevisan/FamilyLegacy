@@ -106,6 +106,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	public static NoteDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.mediaButton, dialog.culturalNormButton);
 		dialog.initialize();
 		return dialog;
@@ -113,6 +114,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	public static NoteDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

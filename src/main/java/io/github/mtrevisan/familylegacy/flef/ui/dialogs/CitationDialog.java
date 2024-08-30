@@ -121,6 +121,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public static CitationDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CitationDialog dialog = new CitationDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.transcribedExtractButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
@@ -128,6 +129,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	public static CitationDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CitationDialog dialog = new CitationDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

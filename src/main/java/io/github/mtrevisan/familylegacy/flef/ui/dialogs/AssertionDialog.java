@@ -124,6 +124,7 @@ public final class AssertionDialog extends CommonListDialog{
 	public static AssertionDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final AssertionDialog dialog = new AssertionDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.noteButton, dialog.mediaButton, dialog.culturalNormButton);
 		dialog.initialize();
 		return dialog;

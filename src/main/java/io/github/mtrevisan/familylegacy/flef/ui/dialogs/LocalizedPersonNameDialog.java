@@ -114,6 +114,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	public static LocalizedPersonNameDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.initialize();
 		return dialog;
 	}

@@ -133,12 +133,14 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.simplePrimaryText = true;
+		dialog.hideUnselectButton = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 	public static LocalizedTextDialog createRecordOnlySimpleText(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.selectRecordOnly = true;
 		dialog.simplePrimaryText = true;

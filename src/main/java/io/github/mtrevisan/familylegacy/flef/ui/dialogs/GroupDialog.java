@@ -155,6 +155,7 @@ public final class GroupDialog extends CommonListDialog{
 	public static GroupDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.photoCropButton, dialog.noteButton, dialog.mediaButton,
 			dialog.assertionButton, dialog.culturalNormButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -163,6 +164,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	public static GroupDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final GroupDialog dialog = new GroupDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -468,7 +470,7 @@ public final class GroupDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, groupID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 	}
 
 	@Override

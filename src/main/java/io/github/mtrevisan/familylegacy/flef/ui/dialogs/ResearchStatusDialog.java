@@ -111,6 +111,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	public static ResearchStatusDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

@@ -102,6 +102,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	public static CalendarDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CalendarDialog dialog = new CalendarDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

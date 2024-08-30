@@ -149,6 +149,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	public static PlaceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

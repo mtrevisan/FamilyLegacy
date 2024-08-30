@@ -75,8 +75,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	private static final String TABLE_NAME = "project";
 
-	private static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
-	private static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
+	public static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
+	public static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
 
 
 	private final JLabel copyrightLabel = new JLabel("Copyright:");

@@ -131,6 +131,7 @@ public final class SourceDialog extends CommonListDialog{
 	public static SourceDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final SourceDialog dialog = new SourceDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton, dialog.citationButton);
 		dialog.initialize();
 		return dialog;
@@ -138,6 +139,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	public static SourceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final SourceDialog dialog = new SourceDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

@@ -168,6 +168,7 @@ public final class EventDialog extends CommonListDialog{
 	public static EventDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final EventDialog dialog = new EventDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton);
 		dialog.initialize();
 		return dialog;
@@ -175,6 +176,7 @@ public final class EventDialog extends CommonListDialog{
 
 	public static EventDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final EventDialog dialog = new EventDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

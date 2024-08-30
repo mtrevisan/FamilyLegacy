@@ -60,6 +60,8 @@ public class EditEvent{
 
 		MODIFICATION_HISTORY,
 
+		RESEARCH_STATUS,
+
 		SEARCH
 	}
 

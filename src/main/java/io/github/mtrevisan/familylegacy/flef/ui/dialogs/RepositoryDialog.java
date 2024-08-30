@@ -121,6 +121,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	public static RepositoryDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

@@ -141,6 +141,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public static CulturalNormDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateStartButton, dialog.dateEndButton, dialog.noteButton, dialog.mediaButton,
 			dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
@@ -149,6 +150,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	public static CulturalNormDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -426,7 +428,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		historyPanel.withReference(TABLE_NAME, culturalNormID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 	}
 
 	@Override

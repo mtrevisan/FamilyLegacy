@@ -120,6 +120,7 @@ public final class PersonDialog extends CommonListDialog{
 
 	public static PersonDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;

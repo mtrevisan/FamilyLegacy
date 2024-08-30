@@ -126,6 +126,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	public static PersonNameDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonNameDialog dialog = new PersonNameDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.transcribedNameButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton,
 			dialog.culturalNormButton, dialog.eventButton);
 		dialog.initialize();

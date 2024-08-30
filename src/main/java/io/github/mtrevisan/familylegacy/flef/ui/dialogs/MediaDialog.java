@@ -183,6 +183,7 @@ public final class MediaDialog extends CommonListDialog{
 	public static MediaDialog createSelectOnlyForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
@@ -191,6 +192,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	public static MediaDialog createRecordOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
@@ -207,6 +209,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	public static MediaDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -600,7 +603,7 @@ public final class MediaDialog extends CommonListDialog{
 		historyPanel.withReference(TABLE_NAME, mediaID);
 		historyPanel.loadData();
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (filterReferenceTable != null && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 	}
 
 	//NOTE working table-junction extraction
