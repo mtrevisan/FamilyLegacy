@@ -74,10 +74,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -319,6 +322,14 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract void initRecordComponents();
 
 	@Override
+	protected void initDialog(){
+		super.initDialog();
+
+		//data edit dialog
+		getRootPane().registerKeyboardAction(this::editDialogAction, GUIHelper.CONTROL_E, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	}
+
+	@Override
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
@@ -355,7 +366,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		if(showRecordTabbedPane)
 			add(recordTabbedPane, "grow");
 
-		if(selectRecordOnly || showRecordOnly)
+		if(selectRecordOnly && showRecordOnly)
 			GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
 
 		pack();
@@ -401,13 +412,46 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
-		button.setEnabled(!showRecordOnly && !selectRecordOnly || hasData);
+		button.setEnabled(!showRecordOnly || !selectRecordOnly || hasData);
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}
 
 	protected void setCheckBoxEnableAndBorder(final JCheckBox checkBox, final boolean isSelected){
-		checkBox.setEnabled(!showRecordOnly && !selectRecordOnly);
+		checkBox.setEnabled(!showRecordOnly || !selectRecordOnly);
 		checkBox.setSelected(isSelected);
+	}
+
+	private void editDialogAction(final ActionEvent evt){
+		selectRecordOnly = false;
+
+		//get visible pane name
+		final String visiblePaneName = recordTabbedPane.getTitleAt(recordTabbedPane.getSelectedIndex());
+
+		GUIHelper.setEnabled(recordTabbedPane);
+
+		resetDialog();
+
+		initLayout();
+
+		//restore previously selected pane
+		final int paneIndex = recordTabbedPane.indexOfTab(visiblePaneName);
+		if(paneIndex >= 0)
+			recordTabbedPane.setSelectedIndex(paneIndex);
+	}
+
+	private void resetDialog(){
+		final Container contentPane = getContentPane();
+
+		final Deque<Component> stack = new LinkedList<>();
+		stack.add(contentPane);
+		while(!stack.isEmpty()){
+			final Component comp = stack.pop();
+			if(comp instanceof final Container container){
+				stack.addAll(Arrays.asList(container.getComponents()));
+
+				container.removeAll();
+			}
+		}
 	}
 
 	private void filterTableBy(final JDialog panel){
@@ -460,6 +504,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 			selectedRecord = new HashMap<>(record);
 			selectedRecordLink = null;
+
+			GUIHelper.setEnabled(recordPanel, (!showRecordOnly || !selectRecordOnly));
 
 			selectActionInner();
 

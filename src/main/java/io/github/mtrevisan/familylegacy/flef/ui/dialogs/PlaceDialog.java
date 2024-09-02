@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -147,9 +148,16 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static PlaceDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static PlaceDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -192,7 +200,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -207,9 +215,18 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);

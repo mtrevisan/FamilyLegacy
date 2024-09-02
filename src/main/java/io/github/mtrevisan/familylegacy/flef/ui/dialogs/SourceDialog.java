@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -137,9 +138,16 @@ public final class SourceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static SourceDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static SourceDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final SourceDialog dialog = new SourceDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static SourceDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final SourceDialog dialog = new SourceDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -183,7 +191,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -197,9 +205,18 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
@@ -337,7 +354,7 @@ public final class SourceDialog extends CommonListDialog{
 			.orElse(null) != null);
 
 		identifierField.setText(identifier);
-		typeComboBox.setSelectedItem(type != null? type: StringUtils.SPACE);
+		typeComboBox.setSelectedItem(type);
 		authorField.setText(author);
 		setButtonEnableAndBorder(placeButton, placeID != null);
 		setButtonEnableAndBorder(dateButton, dateID != null);
@@ -356,7 +373,7 @@ public final class SourceDialog extends CommonListDialog{
 	@Override
 	protected void clearData(){
 		identifierField.setText(null);
-		typeComboBox.setSelectedItem(StringUtils.SPACE);
+		typeComboBox.setSelectedItem(null);
 		authorField.setText(null);
 		GUIHelper.setDefaultBorder(placeButton);
 		GUIHelper.setDefaultBorder(dateButton);

@@ -251,7 +251,8 @@ public final class SearchDialog extends JDialog{
 	public static String getTableName(final String paneTitle){
 		for(final Map.Entry<String, SearchData> entry : PANE_NAME_TABLE)
 			if(paneTitle.equals(entry.getKey()))
-				return entry.getValue().instance.getTableName();
+				return entry.getValue().instance
+					.getTableName();
 		return null;
 	}
 
@@ -767,28 +768,57 @@ public final class SearchDialog extends JDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 
-			final RecordListenerInterface linkListener = (table, id) -> {
-				System.out.println("onRecordSelected " + table + " " + id);
+			final RecordListenerInterface linkListener = new RecordListenerInterface(){
+				@Override
+				public void onRecordSelect(final String table, final Integer id){
+					System.out.println("onRecordSelect " + table + " " + id);
 
-				CommonListDialog recordDialog = null;
-				switch(table){
-					case "repository" -> recordDialog = RepositoryDialog.createRecordOnly(store, parent);
-					case "source" -> recordDialog = SourceDialog.createRecordOnly(store, parent);
-					case "citation" -> recordDialog = CitationDialog.createRecordOnly(store, parent);
-					case "place" -> recordDialog = PlaceDialog.createRecordOnly(store, parent);
-					case "media" -> recordDialog = MediaDialog.createRecordOnly(store, parent)
-						.withBasePath(FileHelper.documentsDirectory());
-					case "note" -> recordDialog = NoteDialog.createRecordOnly(store, parent);
-					case "person" -> recordDialog = PersonDialog.createRecordOnly(store, parent);
-					case "group" -> recordDialog = GroupDialog.createRecordOnly(store, parent);
-					case "event" -> recordDialog = EventDialog.createRecordOnly(store, parent);
-					case "cultural_norm" -> recordDialog = CulturalNormDialog.createRecordOnly(store, parent);
-					case "research_status" -> recordDialog = ResearchStatusDialog.createRecordOnly(store, parent);
+					CommonListDialog recordDialog = null;
+					switch(table){
+						case "repository" -> recordDialog = RepositoryDialog.createShowRecordOnly(store, parent);
+						case "source" -> recordDialog = SourceDialog.createShowRecordOnly(store, parent);
+						case "citation" -> recordDialog = CitationDialog.createShowRecordOnly(store, parent);
+						case "place" -> recordDialog = PlaceDialog.createShowRecordOnly(store, parent);
+						case "media" -> recordDialog = MediaDialog.createShowRecordOnly(store, parent)
+							.withBasePath(FileHelper.documentsDirectory());
+						case "note" -> recordDialog = NoteDialog.createShowRecordOnly(store, parent);
+						case "person" -> recordDialog = PersonDialog.createShowRecordOnly(store, parent);
+						case "group" -> recordDialog = GroupDialog.createShowRecordOnly(store, parent);
+						case "event" -> recordDialog = EventDialog.createShowRecordOnly(store, parent);
+						case "cultural_norm" -> recordDialog = CulturalNormDialog.createShowRecordOnly(store, parent);
+						case "research_status" -> recordDialog = ResearchStatusDialog.createShowRecordOnly(store, parent);
+					}
+					if(recordDialog != null){
+						recordDialog.loadData(id);
+
+						recordDialog.showDialog();
+					}
 				}
-				if(recordDialog != null){
-					recordDialog.loadData(id);
 
-					recordDialog.showDialog();
+				@Override
+				public void onRecordEdit(final String table, final Integer id){
+					System.out.println("onRecordEdit " + table + " " + id);
+
+					CommonListDialog recordDialog = null;
+					switch(table){
+						case "repository" -> recordDialog = RepositoryDialog.createEditRecordOnly(store, parent);
+						case "source" -> recordDialog = SourceDialog.createEditRecordOnly(store, parent);
+						case "citation" -> recordDialog = CitationDialog.createEditRecordOnly(store, parent);
+						case "place" -> recordDialog = PlaceDialog.createEditRecordOnly(store, parent);
+						case "media" -> recordDialog = MediaDialog.createEditRecordOnly(store, parent)
+							.withBasePath(FileHelper.documentsDirectory());
+						case "note" -> recordDialog = NoteDialog.createEditRecordOnly(store, parent);
+						case "person" -> recordDialog = PersonDialog.createEditRecordOnly(store, parent);
+						case "group" -> recordDialog = GroupDialog.createEditRecordOnly(store, parent);
+						case "event" -> recordDialog = EventDialog.createEditRecordOnly(store, parent);
+						case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditRecordOnly(store, parent);
+						case "research_status" -> recordDialog = ResearchStatusDialog.createEditRecordOnly(store, parent);
+					}
+					if(recordDialog != null){
+						recordDialog.loadData(id);
+
+						recordDialog.showDialog();
+					}
 				}
 			};
 			final SearchDialog dialog = create(store, parent)
@@ -861,7 +891,7 @@ public final class SearchDialog extends JDialog{
 
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.createRecordOnly(store, parent);
+							final PlaceDialog placeDialog = PlaceDialog.createShowRecordOnly(store, parent);
 							final Integer placeID = extractRecordPlaceID(container);
 							placeDialog.loadData(placeID);
 
@@ -954,7 +984,7 @@ public final class SearchDialog extends JDialog{
 
 						//from: repository
 						case PERSON -> {
-							final PersonDialog personDialog = PersonDialog.createRecordOnly(store, parent);
+							final PersonDialog personDialog = PersonDialog.createShowRecordOnly(store, parent);
 							final Integer personID = extractRecordPersonID(container);
 							personDialog.loadData(personID);
 
@@ -1009,7 +1039,7 @@ public final class SearchDialog extends JDialog{
 
 
 						case RESEARCH_STATUS -> {
-							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createRecordOnly(store, parent);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowRecordOnly(store, parent);
 							final Integer researchStatusID = extractRecordID(container);
 							researchStatusDialog.loadData(researchStatusID);
 

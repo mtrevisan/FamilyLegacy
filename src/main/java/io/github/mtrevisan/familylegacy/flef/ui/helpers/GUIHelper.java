@@ -78,6 +78,7 @@ public final class GUIHelper{
 
 	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke SHIFT_ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, KeyEvent.SHIFT_DOWN_MASK);
+	public static final KeyStroke CONTROL_E = KeyStroke.getKeyStroke(KeyEvent.VK_E, KeyEvent.CTRL_DOWN_MASK);
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
 
@@ -96,8 +97,8 @@ public final class GUIHelper{
 	}
 
 
-	public static Comparator<String> getNumericComparator(){
-		return Comparator.comparingInt(key -> (StringUtils.isNotBlank(key)? Integer.parseInt(key): -1));
+	public static Comparator<Integer> getNumericComparator(){
+		return Comparator.nullsFirst(Comparator.comparingInt(key -> key));
 	}
 
 	public static Comparator<String> getHumanDateComparator(){
@@ -113,6 +114,18 @@ public final class GUIHelper{
 		final Component component = label.getLabelFor();
 		if(component != null)
 			component.setEnabled(enabled);
+	}
+
+	public static void setEnabled(final Component component, final boolean enabled){
+		final Deque<Component> stack = new LinkedList<>();
+		stack.add(component);
+		while(!stack.isEmpty()){
+			final Component comp = stack.pop();
+			if(comp instanceof final Container container)
+				stack.addAll(Arrays.asList(container.getComponents()));
+
+			comp.setEnabled(enabled);
+		}
 	}
 
 	public static void setEnabled(final Component component){

@@ -137,7 +137,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 	//record components:
-	private final JPanel recordPanel = new JPanel();
+	protected final JPanel recordPanel = new JPanel();
 
 	protected final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private Consumer<Map<String, Object>> onCloseGracefully;
@@ -184,7 +184,9 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract void initComponents();
 
 	protected void initDialog(){
+		//close dialog
 		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		//close dialog
 		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
@@ -211,7 +213,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			}
 		}
 		else if(recordRestriction != null)
-			insertRecordRestriction(recordRestriction, "public");
+			insertRecordRestriction(recordRestriction, EntityManager.RESTRICTION_PUBLIC);
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html

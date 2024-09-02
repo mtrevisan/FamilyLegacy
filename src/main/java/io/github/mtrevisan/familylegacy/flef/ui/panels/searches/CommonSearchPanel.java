@@ -74,7 +74,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 
 	protected static final int TABLE_INDEX_ID = 0;
 	protected static final int TABLE_INDEX_FILTER = 1;
-	protected static final int TABLE_INDEX_TABLE_NAME = 2;
+	protected static final int TABLE_INDEX_PANE_TITLE = 2;
 	private static final int TABLE_ROWS_SHOWN = 15;
 
 	protected static final String NO_DATA = StringUtils.EMPTY;
@@ -126,9 +126,20 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		recordTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		recordTable.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent evt){
-				if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt) && recordTable.getSelectedRow() >= 0)
-					selectAction();
+			public void mousePressed(final MouseEvent evt){
+				final int row = recordTable.rowAtPoint(evt.getPoint());
+				if(row >= 0)
+					recordTable.setRowSelectionInterval(row, row);
+			}
+
+			@Override
+			public void mouseReleased(final MouseEvent evt){
+				SwingUtilities.invokeLater(() -> {
+					if(evt.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(evt))
+						selectAction();
+					else if(evt.getClickCount() == 1 && SwingUtilities.isRightMouseButton(evt))
+						editAction();
+				});
 			}
 		});
 
@@ -254,13 +265,29 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 			final int viewRowIndex = recordTable.getSelectedRow();
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 			final TableModel model = getRecordTableModel();
-			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+			final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 			if(tableName == null){
-				tableName = (String)model.getValueAt(modelRowIndex, TABLE_INDEX_TABLE_NAME);
-				tableName = SearchDialog.getTableName(tableName);
+				final String paneTitle = (String)model.getValueAt(modelRowIndex, TABLE_INDEX_PANE_TITLE);
+				tableName = SearchDialog.getTableName(paneTitle);
 			}
 
-			linkListener.onRecordSelected(tableName, recordIdentifier);
+			linkListener.onRecordSelect(tableName, recordID);
+		}
+	}
+
+	private void editAction(){
+		if(linkListener != null){
+			String tableName = getTableName();
+			final int viewRowIndex = recordTable.getSelectedRow();
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			final TableModel model = getRecordTableModel();
+			final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+			if(tableName == null){
+				final String paneTitle = (String)model.getValueAt(modelRowIndex, TABLE_INDEX_PANE_TITLE);
+				tableName = SearchDialog.getTableName(paneTitle);
+			}
+
+			linkListener.onRecordEdit(tableName, recordID);
 		}
 	}
 

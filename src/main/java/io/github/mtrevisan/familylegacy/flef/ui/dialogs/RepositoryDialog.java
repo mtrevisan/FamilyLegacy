@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -119,9 +120,16 @@ public final class RepositoryDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static RepositoryDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static RepositoryDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static RepositoryDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -156,7 +164,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -170,9 +178,18 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
@@ -536,7 +553,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final RepositoryDialog dialog = create(store, parent);
-			final RepositoryDialog dialog = createRecordOnly(store, parent);
+			final RepositoryDialog dialog = createShowRecordOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -556,7 +573,7 @@ public final class RepositoryDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PERSON -> {
 							final PersonDialog personDialog = (dialog.showRecordOnly
-									? PersonDialog.createRecordOnly(store, parent)
+									? PersonDialog.createShowRecordOnly(store, parent)
 									: PersonDialog.create(store, parent))
 								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
@@ -568,7 +585,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = (dialog.showRecordOnly
-									? PlaceDialog.createRecordOnly(store, parent)
+									? PlaceDialog.createShowRecordOnly(store, parent)
 									: PlaceDialog.create(store, parent))
 								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();

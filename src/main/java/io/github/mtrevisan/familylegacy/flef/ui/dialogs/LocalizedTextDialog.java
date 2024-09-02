@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -216,7 +217,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -230,9 +231,18 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected void initRecordComponents(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 
 		if(simplePrimaryText){

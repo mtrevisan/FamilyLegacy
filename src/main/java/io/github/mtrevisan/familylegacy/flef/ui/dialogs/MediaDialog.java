@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ImagePreview;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -207,9 +208,16 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static MediaDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -281,7 +289,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -297,9 +305,18 @@ public final class MediaDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		openLinkButton = new JButton("Open " + mediaType, ICON_OPEN_LINK);
 
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, () -> {
 			String identifier = GUIHelper.getTextTrimmed(fileField);
