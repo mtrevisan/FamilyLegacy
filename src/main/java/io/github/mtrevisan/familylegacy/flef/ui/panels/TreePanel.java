@@ -675,7 +675,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	@Override
-	public void onRecordSelected(final String table, final Integer id){
+	public void onRecordSelect(final String table, final Integer id){
 		searchDialog.setVisible(false);
 
 		switch(table){
@@ -690,6 +690,15 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				loadData(union, Collections.emptyMap(), Collections.emptyMap());
 			}
 		}
+	}
+
+	@Override
+	public void onRecordEdit(final String table, final Integer id){
+		searchDialog.setVisible(false);
+
+		System.out.println("onRecordEdit " + table + " " + id);
+
+		//TODO
 	}
 
 

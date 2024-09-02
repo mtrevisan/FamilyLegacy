@@ -99,7 +99,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -308,8 +308,13 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
-			public void onRecordSelected(final String table, final Integer id){
-				System.out.println("onRecordSelected " + table + " " + id);
+			public void onRecordSelect(final String table, final Integer id){
+				System.out.println("onRecordSelect " + table + " " + id);
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){
+				System.out.println("onRecordEdit " + table + " " + id);
 			}
 		};
 

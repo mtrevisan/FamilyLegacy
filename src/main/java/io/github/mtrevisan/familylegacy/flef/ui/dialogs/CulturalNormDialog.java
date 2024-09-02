@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -148,9 +149,16 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		return dialog;
 	}
 
-	public static CulturalNormDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CulturalNormDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CulturalNormDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
@@ -214,7 +222,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator};
 	}
@@ -228,9 +236,18 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void initRecordComponents(){
+		final RecordListenerInterface linkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){}
+		};
 		historyPanel = HistoryPanel.create(store)
-			.withLinkListener((table, id) -> EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-				Map.of("id", extractRecordID(selectedRecord), "note_id", id))));
+			.withLinkListener(linkListener);
 
 
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
@@ -617,7 +634,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 //			final CulturalNormDialog dialog = create(store, parent);
-			final CulturalNormDialog dialog = createRecordOnly(store, parent)
+			final CulturalNormDialog dialog = createShowRecordOnly(store, parent)
 				.withReference("cultural_norm", 1);
 			injector.injectDependencies(dialog);
 			dialog.loadData(1);

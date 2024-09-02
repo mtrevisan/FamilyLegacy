@@ -355,7 +355,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		if(showRecordTabbedPane)
 			add(recordTabbedPane, "grow");
 
-		if(selectRecordOnly || showRecordOnly)
+		if(selectRecordOnly && showRecordOnly)
 			GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
 
 		pack();
@@ -401,12 +401,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
-		button.setEnabled(!showRecordOnly && !selectRecordOnly || hasData);
+		button.setEnabled(!showRecordOnly || !selectRecordOnly || hasData);
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}
 
 	protected void setCheckBoxEnableAndBorder(final JCheckBox checkBox, final boolean isSelected){
-		checkBox.setEnabled(!showRecordOnly && !selectRecordOnly);
+		checkBox.setEnabled(!showRecordOnly || !selectRecordOnly);
 		checkBox.setSelected(isSelected);
 	}
 
@@ -460,6 +460,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 			selectedRecord = new HashMap<>(record);
 			selectedRecordLink = null;
+
+			GUIHelper.setEnabled(recordPanel, (!showRecordOnly || !selectRecordOnly));
 
 			selectActionInner();
 

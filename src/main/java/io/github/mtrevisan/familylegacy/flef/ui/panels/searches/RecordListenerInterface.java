@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 public interface RecordListenerInterface{
 
-	void onRecordSelected(String table, Integer id);
+	void onRecordSelect(String table, Integer id);
+
+	void onRecordEdit(String table, Integer id);
 
 }

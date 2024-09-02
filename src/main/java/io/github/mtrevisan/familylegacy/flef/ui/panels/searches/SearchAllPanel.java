@@ -61,7 +61,7 @@ public class SearchAllPanel extends CommonSearchPanel{
 
 
 	private void initComponents(){
-		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_TABLE_NAME, 0, TABLE_PREFERRED_WIDTH_TABLE_NAME);
+		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PANE_TITLE, 0, TABLE_PREFERRED_WIDTH_TABLE_NAME);
 	}
 
 	@Override
@@ -81,7 +81,7 @@ public class SearchAllPanel extends CommonSearchPanel{
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
-		final Comparator<String> numericComparator = GUIHelper.getNumericComparator();
+		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, null, textComparator};
 	}
@@ -104,7 +104,7 @@ public class SearchAllPanel extends CommonSearchPanel{
 
 			model.setValueAt(id, row, TABLE_INDEX_ID);
 			model.setValueAt(filter, row, TABLE_INDEX_FILTER);
-			model.setValueAt(tableName, row, TABLE_INDEX_TABLE_NAME);
+			model.setValueAt(tableName, row, TABLE_INDEX_PANE_TITLE);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
 			row ++;
