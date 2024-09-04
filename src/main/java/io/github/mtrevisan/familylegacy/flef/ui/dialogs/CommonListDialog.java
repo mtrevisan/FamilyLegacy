@@ -74,13 +74,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -343,28 +340,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setVisible(false);
 			deleteRecordButton.setVisible(false);
 		}
+		if(selectRecordOnly)
+			unselectRecordButton.setVisible(false);
 		final boolean showRecordTabbedPane = (!selectRecordOnly || recordTabbedPane.getComponentCount() > 0);
+		if(!showRecordTabbedPane)
+			recordTabbedPane.setVisible(false);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2,hidemode 3");
 		add(filterField, "grow,wrap related,hidemode 3");
-		add(tableScrollPane, "grow"
-			+ (!hideUnselectButton || !showRecordOnly && selectRecordOnly && showRecordTabbedPane? ",wrap paragraph": StringUtils.EMPTY)
-			+ ",hidemode 3");
-		//FIXME
-		int splitCount = 3;
-		if(selectRecordOnly && showRecordTabbedPane)
-			splitCount = 2;
-		else if(showRecordOnly && showRecordTabbedPane)
-			splitCount = 4;
-		add(newRecordButton, "sizegroup btn,tag add,split " + splitCount + ",align right,hidemode 3");
-		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right"
-			+ (selectRecordOnly && showRecordTabbedPane? ",wrap paragraph": StringUtils.EMPTY)
-			+ ",hidemode 3");
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30" + (!showRecordOnly? ",wrap paragraph": StringUtils.EMPTY)
-			+ ",hidemode 3");
-		if(showRecordTabbedPane)
-			add(recordTabbedPane, "grow");
+		add(tableScrollPane, "grow,wrap paragraph,hidemode 3");
+		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
+		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3");
+		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph,hidemode 3");
+		add(recordTabbedPane, "grow,hidemode 3");
 
 		if(selectRecordOnly && showRecordOnly)
 			GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
@@ -422,6 +411,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	private void editDialogAction(final ActionEvent evt){
+		if(!selectRecordOnly)
+			return;
+
 		selectRecordOnly = false;
 
 		//get visible pane name
@@ -461,6 +453,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract Comparator<?>[] getTableColumnComparators();
 
 	public void loadData(final Integer id){
+		if(id == null){
+			LOGGER.error("Cannot call loadData with null ID");
+
+			throw new IllegalArgumentException("Cannot call loadData with null ID");
+		}
+
 		final String tableName = getTableName();
 		final Map<String, Object> record = store.get(tableName)
 			.get(id);

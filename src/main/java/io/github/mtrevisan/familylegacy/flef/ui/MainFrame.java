@@ -129,7 +129,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> group = groupPanel.getUnion();
 		LOGGER.debug("onEditGroup {}", extractRecordID(group));
 
-		final GroupDialog groupDialog = GroupDialog.createShowRecordOnly(store, this);
+		final GroupDialog groupDialog = GroupDialog.createEditOnly(store, this);
 		groupDialog.loadData(extractRecordID(group));
 
 		groupDialog.showDialog();
@@ -142,7 +142,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onAddGroup (partner 1: {}, partner 2: {})", extractRecordID(partner1.getPerson()),
 			extractRecordID(partner2.getPerson()));
 
-		final GroupDialog dialog = GroupDialog.createShowRecordOnly(store, this)
+		final GroupDialog dialog = GroupDialog.createEditOnly(store, this)
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					PersonPanel[] children = new PersonPanel[0];
@@ -300,7 +300,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> person = personPanel.getPerson();
 		LOGGER.debug("onEditPerson {}", extractRecordID(person));
 
-		final PersonDialog personDialog = PersonDialog.createShowRecordOnly(store, this);
+		final PersonDialog personDialog = PersonDialog.createEditOnly(store, this);
 		personDialog.loadData(extractRecordID(person));
 
 		personDialog.showDialog();
@@ -322,7 +322,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	public void onPersonAdd(final PersonPanel personPanel){
 		LOGGER.debug("onAddPerson");
 
-		final PersonDialog dialog = PersonDialog.createShowRecordOnly(store, this)
+		final PersonDialog dialog = PersonDialog.createEditOnly(store, this)
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
@@ -538,7 +538,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> person = personPanel.getPerson();
 		LOGGER.debug("onEditPreferredImage {}", extractRecordID(person));
 
-		final MediaDialog photoDialog = MediaDialog.createShowRecordOnly(store, this)
+		final MediaDialog photoDialog = MediaDialog.createEditOnly(store, this)
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
 			.withOnCloseGracefully(record -> {

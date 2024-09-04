@@ -113,7 +113,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
-	public static NoteDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static NoteDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -121,15 +121,16 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
-	public static NoteDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static NoteDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static NoteDialog createModificationRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static NoteDialog createModificationNoteShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.showRecordHistory = false;
 		dialog.initialize();
@@ -237,7 +238,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("history", historyPanel);
+		if(showRecordHistory)
+			recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -458,7 +460,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer modificationNoteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + noteID);
 							changeNoteDialog.loadData();

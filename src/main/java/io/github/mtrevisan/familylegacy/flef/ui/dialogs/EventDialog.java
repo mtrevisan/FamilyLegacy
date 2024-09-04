@@ -175,7 +175,7 @@ public final class EventDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static EventDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static EventDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final EventDialog dialog = new EventDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -183,7 +183,7 @@ public final class EventDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static EventDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static EventDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final EventDialog dialog = new EventDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -724,7 +724,7 @@ public final class EventDialog extends CommonListDialog{
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + eventID);
 							changeNoteDialog.loadData();

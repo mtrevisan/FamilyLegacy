@@ -25,8 +25,21 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CitationDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CommonListDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CulturalNormDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.EventDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PersonDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PlaceDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.RepositoryDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.ResearchStatusDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -694,11 +707,28 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	@Override
 	public void onRecordEdit(final String table, final Integer id){
-		searchDialog.setVisible(false);
-
 		System.out.println("onRecordEdit " + table + " " + id);
 
-		//TODO
+		CommonListDialog recordDialog = null;
+		switch(table){
+			case "repository" -> recordDialog = RepositoryDialog.createEditOnly(store, null);
+			case "source" -> recordDialog = SourceDialog.createEditOnly(store, null);
+			case "citation" -> recordDialog = CitationDialog.createEditOnly(store, null);
+			case "place" -> recordDialog = PlaceDialog.createEditOnly(store, null);
+			case "media" -> recordDialog = MediaDialog.createEditOnly(store, null)
+				.withBasePath(FileHelper.documentsDirectory());
+			case "note" -> recordDialog = NoteDialog.createEditOnly(store, null);
+			case "person" -> recordDialog = PersonDialog.createEditOnly(store, null);
+			case "group" -> recordDialog = GroupDialog.createEditOnly(store, null);
+			case "event" -> recordDialog = EventDialog.createEditOnly(store, null);
+			case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditOnly(store, null);
+			case "research_status" -> recordDialog = ResearchStatusDialog.createEditOnly(store, null);
+		}
+		if(recordDialog != null){
+			recordDialog.loadData(id);
+
+			recordDialog.showDialog();
+		}
 	}
 
 

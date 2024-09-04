@@ -402,7 +402,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			if(askForModificationNote){
 				//ask for a modification note
 				//show note record dialog
-				final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, (Frame)getParent())
+				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, (Frame)getParent())
 					.withOnCloseGracefully(record -> {
 						if(record != null){
 							insertRecordReferenceTable(record, recordTableName);

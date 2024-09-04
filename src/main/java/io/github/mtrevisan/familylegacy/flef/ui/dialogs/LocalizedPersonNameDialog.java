@@ -430,7 +430,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + localizedPersonNameID);
 							changeNoteDialog.loadData();

@@ -53,14 +53,11 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.Rectangle;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
@@ -83,7 +80,6 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecor
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
@@ -119,7 +115,6 @@ public final class PlaceDialog extends CommonListDialog{
 	private final JLabel coordinateCredibilityLabel = new JLabel("Coordinate credibility:");
 	private final JComboBox<String> coordinateCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 	private final JButton photoButton = new JButton("Photo", ICON_PHOTO);
-	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
@@ -148,7 +143,7 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static PlaceDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -156,7 +151,7 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static PlaceDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -251,11 +246,6 @@ public final class PlaceDialog extends CommonListDialog{
 		photoButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, selectedRecord)));
 
-		photoCropButton.setToolTipText("Define a crop");
-		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
-		photoCropButton.setEnabled(false);
-
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
@@ -298,8 +288,7 @@ public final class PlaceDialog extends CommonListDialog{
 		recordPanelBase.add(coordinateSystemComboBox, "sizegroup gnss,wrap paragraph");
 		recordPanelBase.add(coordinateCredibilityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(coordinateCredibilityComboBox, "wrap paragraph");
-		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
+		recordPanelBase.add(photoButton, "sizegroup btn,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
@@ -428,9 +417,6 @@ public final class PlaceDialog extends CommonListDialog{
 		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
 		coordinateCredibilityComboBox.setSelectedItem(coordinateCredibility);
 		setButtonEnableAndBorder(photoButton, photoID != null);
-		photoCropButton.setEnabled(photoID != null && (!selectRecordOnly || photoCrop != null));
-		GUIHelper.addBorder(photoCropButton, photoID != null && photoCrop != null && !photoCrop.isEmpty(),
-			DATA_BUTTON_BORDER_COLOR);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -634,7 +620,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createRecordOnlyForPhoto(store, parent)
+									? MediaDialog.createEditOnlyForPhoto(store, parent)
 									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, placeID);
@@ -649,32 +635,32 @@ public final class PlaceDialog extends CommonListDialog{
 
 							photoDialog.showDialog();
 						}
-						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-								? PhotoCropDialog.createSelectOnly(store, parent)
-								: PhotoCropDialog.create(store, parent));
-							photoCropDialog.withOnCloseGracefully(record -> {
-								final Rectangle crop = photoCropDialog.getCrop();
-								if(crop != null){
-									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-									sj.add(Integer.toString(crop.x))
-										.add(Integer.toString(crop.y))
-										.add(Integer.toString(crop.width))
-										.add(Integer.toString(crop.height));
-									insertRecordPhotoCrop(container, sj.toString());
-								}
-							});
-							try{
-								if(photoID != null){
-									final String photoCrop = extractRecordPhotoCrop(container);
-									photoCropDialog.loadData(photoID, photoCrop);
-								}
-
-								photoCropDialog.setSize(420, 295);
-								photoCropDialog.showDialog();
-							}
-							catch(final IOException ignored){}
-						}
+//						case PHOTO_CROP -> {
+//							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+//								? PhotoCropDialog.createSelectOnly(store, parent)
+//								: PhotoCropDialog.create(store, parent));
+//							photoCropDialog.withOnCloseGracefully(record -> {
+//								final Rectangle crop = photoCropDialog.getCrop();
+//								if(crop != null){
+//									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+//									sj.add(Integer.toString(crop.x))
+//										.add(Integer.toString(crop.y))
+//										.add(Integer.toString(crop.width))
+//										.add(Integer.toString(crop.height));
+//									insertRecordPhotoCrop(container, sj.toString());
+//								}
+//							});
+//							try{
+//								if(photoID != null){
+//									final String photoCrop = extractRecordPhotoCrop(container);
+//									photoCropDialog.loadData(photoID, photoCrop);
+//								}
+//
+//								photoCropDialog.setSize(420, 295);
+//								photoCropDialog.showDialog();
+//							}
+//							catch(final IOException ignored){}
+//						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
@@ -727,7 +713,7 @@ public final class PlaceDialog extends CommonListDialog{
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + placeID);
 							changeNoteDialog.loadData();

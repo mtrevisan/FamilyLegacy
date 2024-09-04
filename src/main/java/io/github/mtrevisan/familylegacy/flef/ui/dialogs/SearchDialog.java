@@ -69,6 +69,8 @@ import java.io.IOException;
 import java.io.Serial;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -696,6 +698,19 @@ public final class SearchDialog extends JDialog{
 		note3.put("reference_table", "repository");
 		note3.put("reference_id", 1);
 		notes.put((Integer)note3.get("id"), note3);
+		store.put("note", notes);
+		final Map<String, Object> note4 = new HashMap<>();
+		note4.put("id", 4);
+		note4.put("note", "something to say");
+		note4.put("reference_table", "modification");
+		note4.put("reference_id", 1);
+		notes.put((Integer)note4.get("id"), note4);
+		final Map<String, Object> note5 = new HashMap<>();
+		note5.put("id", 5);
+		note5.put("note", "something more to say");
+		note5.put("reference_table", "modification");
+		note5.put("reference_id", 2);
+		notes.put((Integer)note5.get("id"), note5);
 
 		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
 		store.put("media", media);
@@ -765,6 +780,21 @@ public final class SearchDialog extends JDialog{
 		researchStatus.put("priority", 2);
 		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
 
+		final TreeMap<Integer, Map<String, Object>> modifications = new TreeMap<>();
+		store.put("modification", modifications);
+		final Map<String, Object> modification1 = new HashMap<>();
+		modification1.put("id", 1);
+		modification1.put("reference_table", "repository");
+		modification1.put("reference_id", 1);
+		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		modifications.put((Integer)modification1.get("id"), modification1);
+		final Map<String, Object> modification2 = new HashMap<>();
+		modification2.put("id", 2);
+		modification2.put("reference_table", "repository");
+		modification2.put("reference_id", 1);
+		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
+		modifications.put((Integer)modification2.get("id"), modification2);
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 
@@ -775,18 +805,18 @@ public final class SearchDialog extends JDialog{
 
 					CommonListDialog recordDialog = null;
 					switch(table){
-						case "repository" -> recordDialog = RepositoryDialog.createShowRecordOnly(store, parent);
-						case "source" -> recordDialog = SourceDialog.createShowRecordOnly(store, parent);
-						case "citation" -> recordDialog = CitationDialog.createShowRecordOnly(store, parent);
-						case "place" -> recordDialog = PlaceDialog.createShowRecordOnly(store, parent);
-						case "media" -> recordDialog = MediaDialog.createShowRecordOnly(store, parent)
+						case "repository" -> recordDialog = RepositoryDialog.createShowOnly(store, parent);
+						case "source" -> recordDialog = SourceDialog.createShowOnly(store, parent);
+						case "citation" -> recordDialog = CitationDialog.createShowOnly(store, parent);
+						case "place" -> recordDialog = PlaceDialog.createShowOnly(store, parent);
+						case "media" -> recordDialog = MediaDialog.createShowOnly(store, parent)
 							.withBasePath(FileHelper.documentsDirectory());
-						case "note" -> recordDialog = NoteDialog.createShowRecordOnly(store, parent);
-						case "person" -> recordDialog = PersonDialog.createShowRecordOnly(store, parent);
-						case "group" -> recordDialog = GroupDialog.createShowRecordOnly(store, parent);
-						case "event" -> recordDialog = EventDialog.createShowRecordOnly(store, parent);
-						case "cultural_norm" -> recordDialog = CulturalNormDialog.createShowRecordOnly(store, parent);
-						case "research_status" -> recordDialog = ResearchStatusDialog.createShowRecordOnly(store, parent);
+						case "note" -> recordDialog = NoteDialog.createShowOnly(store, parent);
+						case "person" -> recordDialog = PersonDialog.createShowOnly(store, parent);
+						case "group" -> recordDialog = GroupDialog.createShowOnly(store, parent);
+						case "event" -> recordDialog = EventDialog.createShowOnly(store, parent);
+						case "cultural_norm" -> recordDialog = CulturalNormDialog.createShowOnly(store, parent);
+						case "research_status" -> recordDialog = ResearchStatusDialog.createShowOnly(store, parent);
 					}
 					if(recordDialog != null){
 						recordDialog.loadData(id);
@@ -801,18 +831,18 @@ public final class SearchDialog extends JDialog{
 
 					CommonListDialog recordDialog = null;
 					switch(table){
-						case "repository" -> recordDialog = RepositoryDialog.createEditRecordOnly(store, parent);
-						case "source" -> recordDialog = SourceDialog.createEditRecordOnly(store, parent);
-						case "citation" -> recordDialog = CitationDialog.createEditRecordOnly(store, parent);
-						case "place" -> recordDialog = PlaceDialog.createEditRecordOnly(store, parent);
-						case "media" -> recordDialog = MediaDialog.createEditRecordOnly(store, parent)
+						case "repository" -> recordDialog = RepositoryDialog.createEditOnly(store, parent);
+						case "source" -> recordDialog = SourceDialog.createEditOnly(store, parent);
+						case "citation" -> recordDialog = CitationDialog.createEditOnly(store, parent);
+						case "place" -> recordDialog = PlaceDialog.createEditOnly(store, parent);
+						case "media" -> recordDialog = MediaDialog.createEditOnly(store, parent)
 							.withBasePath(FileHelper.documentsDirectory());
-						case "note" -> recordDialog = NoteDialog.createEditRecordOnly(store, parent);
-						case "person" -> recordDialog = PersonDialog.createEditRecordOnly(store, parent);
-						case "group" -> recordDialog = GroupDialog.createEditRecordOnly(store, parent);
-						case "event" -> recordDialog = EventDialog.createEditRecordOnly(store, parent);
-						case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditRecordOnly(store, parent);
-						case "research_status" -> recordDialog = ResearchStatusDialog.createEditRecordOnly(store, parent);
+						case "note" -> recordDialog = NoteDialog.createEditOnly(store, parent);
+						case "person" -> recordDialog = PersonDialog.createEditOnly(store, parent);
+						case "group" -> recordDialog = GroupDialog.createEditOnly(store, parent);
+						case "event" -> recordDialog = EventDialog.createEditOnly(store, parent);
+						case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditOnly(store, parent);
+						case "research_status" -> recordDialog = ResearchStatusDialog.createEditOnly(store, parent);
 					}
 					if(recordDialog != null){
 						recordDialog.loadData(id);
@@ -891,7 +921,7 @@ public final class SearchDialog extends JDialog{
 
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.createShowRecordOnly(store, parent);
+							final PlaceDialog placeDialog = PlaceDialog.createShowOnly(store, parent);
 							final Integer placeID = extractRecordPlaceID(container);
 							placeDialog.loadData(placeID);
 
@@ -959,10 +989,18 @@ public final class SearchDialog extends JDialog{
 
 						//from: person, group, place
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createRecordOnlyForPhoto(store, parent)
-								.withBasePath(FileHelper.documentsDirectory());
+							final MediaDialog photoDialog;
 							final Integer photoID = extractRecordPhotoID(container);
-							photoDialog.loadData(photoID);
+							if(photoID != null){
+								photoDialog = MediaDialog.createEditOnlyForPhoto(store, parent)
+									.withBasePath(FileHelper.documentsDirectory());
+								photoDialog.loadData(photoID);
+							}
+							else{
+								photoDialog = MediaDialog.createForPhoto(store, parent)
+									.withBasePath(FileHelper.documentsDirectory());
+								photoDialog.loadData();
+							}
 
 							photoDialog.showDialog();
 						}
@@ -984,7 +1022,7 @@ public final class SearchDialog extends JDialog{
 
 						//from: repository
 						case PERSON -> {
-							final PersonDialog personDialog = PersonDialog.createShowRecordOnly(store, parent);
+							final PersonDialog personDialog = PersonDialog.createShowOnly(store, parent);
 							final Integer personID = extractRecordPersonID(container);
 							personDialog.loadData(personID);
 
@@ -1039,11 +1077,26 @@ public final class SearchDialog extends JDialog{
 
 
 						case RESEARCH_STATUS -> {
-							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowRecordOnly(store, parent);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(store, parent);
 							final Integer researchStatusID = extractRecordID(container);
 							researchStatusDialog.loadData(researchStatusID);
 
 							researchStatusDialog.showDialog();
+						}
+
+
+						//from: modification notes
+						case MODIFICATION_HISTORY -> {
+							final int recordID = extractRecordID(container);
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("note_id");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Change modification note for " + title + " " + recordID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
 						}
 					}
 				}

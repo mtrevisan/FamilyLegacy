@@ -164,12 +164,15 @@ public final class MediaDialog extends CommonListDialog{
 
 	public static MediaDialog createForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
 
 	public static MediaDialog createForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
+		dialog.selectRecordOnly = true;
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
@@ -177,6 +180,8 @@ public final class MediaDialog extends CommonListDialog{
 
 			dialog.typeComboBox.setEnabled(false);
 		});
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -191,7 +196,7 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createRecordOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createEditOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -208,17 +213,21 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static MediaDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static MediaDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final MediaDialog dialog = new MediaDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -375,12 +384,16 @@ public final class MediaDialog extends CommonListDialog{
 				String identifier = GUIHelper.getTextTrimmed(fileField);
 				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 					identifier = basePath + identifier;
+
 				file = FileHelper.loadFile(identifier);
-				if(file != null)
-					FileHelper.browse(file);
+				if(file.isFile())
+					file = file.getParentFile();
+
+				if(!FileHelper.browse(file))
+					throw new IllegalArgumentException("Folder does not exist: '" + file.getAbsoluteFile() + "'");
 			}
-			catch(final IOException | InterruptedException e){
-				LOGGER.warn("Exception while opening folder {}", (file != null? file.getParent(): null), e);
+			catch(final Exception e){
+				throw new IllegalArgumentException("Exception while opening folder: '" + (file != null? file.getAbsoluteFile(): null) + "'", e);
 			}
 		});
 		openLinkButton.addActionListener(evt -> {
@@ -389,18 +402,19 @@ public final class MediaDialog extends CommonListDialog{
 			try{
 				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 					identifier = basePath + identifier;
+
 				file = FileHelper.loadFile(identifier);
 				if(file != null)
 					FileHelper.openFileWithChosenEditor(file);
 			}
-			catch(final Exception e1){
-				LOGGER.warn("Exception while opening file {}", file, e1);
+			catch(final Exception e){
+				LOGGER.warn("Exception while opening file {}", file, e);
 
 				try{
 					FileHelper.browseURL(identifier);
 				}
-				catch(final Exception e2){
-					LOGGER.warn("Exception while browsing URL {}", identifier, e2);
+				catch(final Exception e1){
+					throw new IllegalArgumentException("Exception while opening file/browsing URL: '" + identifier + "'", e1);
 				}
 			}
 		});
@@ -923,7 +937,7 @@ public final class MediaDialog extends CommonListDialog{
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + mediaID);
 							changeNoteDialog.loadData();

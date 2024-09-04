@@ -91,6 +91,9 @@ public final class FileHelper{
 	//https://stackoverflow.com/questions/18004150/desktop-api-is-not-supported-on-the-current-platform
 	@SuppressWarnings("UseOfProcessBuilder")
 	public static boolean browse(File file) throws IOException, InterruptedException{
+		if(!file.exists())
+			return false;
+
 		if(file.isFile())
 			file = file.getParentFile();
 

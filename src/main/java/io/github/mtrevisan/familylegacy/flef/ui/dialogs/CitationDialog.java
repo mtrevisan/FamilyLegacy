@@ -128,7 +128,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		return dialog;
 	}
 
-	public static CitationDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CitationDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CitationDialog dialog = new CitationDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -136,7 +136,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		return dialog;
 	}
 
-	public static CitationDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CitationDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CitationDialog dialog = new CitationDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -643,7 +643,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + citationID);
 							changeNoteDialog.loadData();

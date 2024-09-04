@@ -120,7 +120,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static RepositoryDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static RepositoryDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -128,7 +128,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static RepositoryDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static RepositoryDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -553,7 +553,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final RepositoryDialog dialog = create(store, parent);
-			final RepositoryDialog dialog = createShowRecordOnly(store, parent);
+			final RepositoryDialog dialog = createShowOnly(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -573,7 +573,7 @@ public final class RepositoryDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PERSON -> {
 							final PersonDialog personDialog = (dialog.showRecordOnly
-									? PersonDialog.createShowRecordOnly(store, parent)
+									? PersonDialog.createShowOnly(store, parent)
 									: PersonDialog.create(store, parent))
 								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
@@ -585,7 +585,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = (dialog.showRecordOnly
-									? PlaceDialog.createShowRecordOnly(store, parent)
+									? PlaceDialog.createShowOnly(store, parent)
 									: PlaceDialog.create(store, parent))
 								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
@@ -639,7 +639,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case MODIFICATION_HISTORY -> {
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + repositoryID);
 							changeNoteDialog.loadData();

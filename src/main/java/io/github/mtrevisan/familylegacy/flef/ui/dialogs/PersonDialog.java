@@ -47,8 +47,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.awt.Rectangle;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -70,7 +68,6 @@ import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractReco
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
@@ -93,7 +90,6 @@ public final class PersonDialog extends CommonListDialog{
 
 	private final JButton personNameButton = new JButton("Names", ICON_TEXT);
 	private final JButton photoButton = new JButton("Photo", ICON_PHOTO);
-	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
 
 	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
 	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
@@ -112,13 +108,13 @@ public final class PersonDialog extends CommonListDialog{
 	public static PersonDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.selectRecordOnly = true;
-		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton, dialog.photoCropButton, dialog.noteButton,
-			dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
+		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
+			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static PersonDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static PersonDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -126,7 +122,7 @@ public final class PersonDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PersonDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static PersonDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final PersonDialog dialog = new PersonDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -184,11 +180,6 @@ public final class PersonDialog extends CommonListDialog{
 		photoButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PHOTO, TABLE_NAME, selectedRecord)));
 
-		photoCropButton.setToolTipText("Define a crop");
-		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, TABLE_NAME, selectedRecord)));
-		photoCropButton.setEnabled(false);
-
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
@@ -217,8 +208,7 @@ public final class PersonDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personNameButton, "sizegroup btn,center,wrap paragraph");
-		recordPanelBase.add(photoButton, "sizegroup btn,center,split 2");
-		recordPanelBase.add(photoCropButton, "sizegroup btn,gapleft 30,center");
+		recordPanelBase.add(photoButton, "sizegroup btn,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
@@ -312,8 +302,6 @@ public final class PersonDialog extends CommonListDialog{
 
 		setButtonEnableAndBorder(personNameButton, hasPersonNames);
 		setButtonEnableAndBorder(photoButton, photoID != null);
-		photoCropButton.setEnabled(photoID != null && (!selectRecordOnly || photoCrop != null));
-		GUIHelper.addBorder(photoCropButton, (photoID != null && photoCrop != null && !photoCrop.isEmpty()), DATA_BUTTON_BORDER_COLOR);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -327,7 +315,6 @@ public final class PersonDialog extends CommonListDialog{
 	protected void clearData(){
 		GUIHelper.setDefaultBorder(personNameButton);
 		GUIHelper.setDefaultBorder(photoButton);
-		GUIHelper.setDefaultBorder(photoCropButton);
 
 		GUIHelper.setDefaultBorder(noteButton);
 		GUIHelper.setDefaultBorder(mediaButton);
@@ -572,15 +559,13 @@ public final class PersonDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createRecordOnlyForPhoto(store, parent)
+									? MediaDialog.createEditOnlyForPhoto(store, parent)
 									: MediaDialog.createForPhoto(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(TABLE_NAME, personID)
 								.withOnCloseGracefully(record -> {
 									final Integer newPhotoID = extractRecordID(record);
 									insertRecordPhotoID(container, newPhotoID);
-
-									dialog.photoCropButton.setEnabled(newPhotoID != null);
 								});
 							photoDialog.loadData();
 							if(photoID != null){
@@ -593,32 +578,32 @@ public final class PersonDialog extends CommonListDialog{
 
 							photoDialog.showDialog();
 						}
-						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-								? PhotoCropDialog.createSelectOnly(store, parent)
-								: PhotoCropDialog.create(store, parent));
-							photoCropDialog.withOnCloseGracefully(record -> {
-									final Rectangle crop = photoCropDialog.getCrop();
-									if(crop != null){
-										final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-										sj.add(Integer.toString(crop.x))
-											.add(Integer.toString(crop.y))
-											.add(Integer.toString(crop.width))
-											.add(Integer.toString(crop.height));
-										insertRecordPhotoCrop(container, sj.toString());
-									}
-								});
-							try{
-								if(photoID != null){
-									final String photoCrop = extractRecordPhotoCrop(container);
-									photoCropDialog.loadData(photoID, photoCrop);
-								}
-
-								photoCropDialog.setSize(420, 295);
-								photoCropDialog.showDialog();
-							}
-							catch(final IOException ignored){}
-						}
+//						case PHOTO_CROP -> {
+//							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+//								? PhotoCropDialog.createSelectOnly(store, parent)
+//								: PhotoCropDialog.create(store, parent));
+//							photoCropDialog.withOnCloseGracefully(record -> {
+//									final Rectangle crop = photoCropDialog.getCrop();
+//									if(crop != null){
+//										final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+//										sj.add(Integer.toString(crop.x))
+//											.add(Integer.toString(crop.y))
+//											.add(Integer.toString(crop.width))
+//											.add(Integer.toString(crop.height));
+//										insertRecordPhotoCrop(container, sj.toString());
+//									}
+//								});
+//							try{
+//								if(photoID != null){
+//									final String photoCrop = extractRecordPhotoCrop(container);
+//									photoCropDialog.loadData(photoID, photoCrop);
+//								}
+//
+//								photoCropDialog.setSize(420, 295);
+//								photoCropDialog.showDialog();
+//							}
+//							catch(final IOException ignored){}
+//						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)

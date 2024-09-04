@@ -65,7 +65,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -451,23 +450,6 @@ public final class GUIHelper{
 		final int index = tabbedPane.indexOfTab(title);
 		if(index >= 0)
 			tabbedPane.setEnabledAt(index, enable);
-	}
-
-	public static void hideTabByTitle(final JTabbedPane tabbedPane, final String title, final Map<String, Component> hiddenTabs){
-		final int index = tabbedPane.indexOfTab(title);
-		if(index >= 0){
-			final Component tab = tabbedPane.getComponentAt(index);
-			hiddenTabs.put(title, tab);
-			tabbedPane.removeTabAt(index);
-		}
-	}
-
-	public static void showTabByTitle(final JTabbedPane tabbedPane, final String title, final Map<String, JComponent> hiddenTabs){
-		final int index = tabbedPane.indexOfTab(title);
-		if(index >= 0){
-			final Component tab = hiddenTabs.remove(title);
-			tabbedPane.addTab(title, tab);
-		}
 	}
 
 

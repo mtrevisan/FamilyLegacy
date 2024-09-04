@@ -266,6 +266,10 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 			final TableModel model = getRecordTableModel();
 			final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+			if(recordID == null)
+				//(no note associated with the modification record)
+				return;
+
 			if(tableName == null){
 				final String paneTitle = (String)model.getValueAt(modelRowIndex, TABLE_INDEX_PANE_TITLE);
 				tableName = SearchDialog.getTableName(paneTitle);

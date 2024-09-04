@@ -149,7 +149,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		return dialog;
 	}
 
-	public static CulturalNormDialog createShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CulturalNormDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
@@ -157,7 +157,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		return dialog;
 	}
 
-	public static CulturalNormDialog createEditRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static CulturalNormDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -634,7 +634,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			injector.register(DatabaseManagerInterface.class, dbManager);
 
 //			final CulturalNormDialog dialog = create(store, parent);
-			final CulturalNormDialog dialog = createShowRecordOnly(store, parent)
+			final CulturalNormDialog dialog = createShowOnly(store, parent)
 				.withReference("cultural_norm", 1);
 			injector.injectDependencies(dialog);
 			dialog.loadData(1);
@@ -723,7 +723,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationRecordOnly(store, parent);
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle("Change modification note for " + title + " " + culturalNormID);
 							changeNoteDialog.loadData();
