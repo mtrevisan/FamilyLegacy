@@ -74,10 +74,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -319,6 +322,14 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected abstract void initRecordComponents();
 
 	@Override
+	protected void initDialog(){
+		super.initDialog();
+
+		//data edit dialog
+		getRootPane().registerKeyboardAction(this::editDialogAction, GUIHelper.CONTROL_E, JComponent.WHEN_IN_FOCUSED_WINDOW);
+	}
+
+	@Override
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 
@@ -408,6 +419,30 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected void setCheckBoxEnableAndBorder(final JCheckBox checkBox, final boolean isSelected){
 		checkBox.setEnabled(!showRecordOnly || !selectRecordOnly);
 		checkBox.setSelected(isSelected);
+	}
+
+	private void editDialogAction(final ActionEvent evt){
+		selectRecordOnly = false;
+
+		//get visible pane name
+		final String visiblePaneName = recordTabbedPane.getTitleAt(recordTabbedPane.getSelectedIndex());
+
+		GUIHelper.setEnabled(recordTabbedPane);
+
+		resetDialog();
+
+		initLayout();
+
+		//restore previously selected pane
+		final int paneIndex = recordTabbedPane.indexOfTab(visiblePaneName);
+		if(paneIndex >= 0)
+			recordTabbedPane.setSelectedIndex(paneIndex);
+	}
+
+	private void resetDialog(){
+		recordTabbedPane.removeAll();
+
+		getContentPane().removeAll();
 	}
 
 	private void filterTableBy(final JDialog panel){
