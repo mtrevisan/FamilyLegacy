@@ -440,18 +440,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	private void resetDialog(){
-		final Container contentPane = getContentPane();
+		recordTabbedPane.removeAll();
 
-		final Deque<Component> stack = new LinkedList<>();
-		stack.add(contentPane);
-		while(!stack.isEmpty()){
-			final Component comp = stack.pop();
-			if(comp instanceof final Container container){
-				stack.addAll(Arrays.asList(container.getComponents()));
-
-				container.removeAll();
-			}
-		}
+		getContentPane().removeAll();
 	}
 
 	private void filterTableBy(final JDialog panel){
