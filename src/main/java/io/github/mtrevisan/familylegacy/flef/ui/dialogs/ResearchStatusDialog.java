@@ -58,6 +58,8 @@ import java.awt.Frame;
 import java.io.IOException;
 import java.io.Serial;
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,11 +67,13 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCreationDate;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPriority;
@@ -98,6 +102,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	public static ResearchStatusDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
@@ -105,6 +110,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public static ResearchStatusDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
@@ -113,6 +119,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
+		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
@@ -120,6 +127,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public static ResearchStatusDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
 		dialog.showRecordOnly = true;
+		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
@@ -275,6 +283,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			return false;
 
 		//read record panel:
+		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String identifier = GUIHelper.getTextTrimmed(identifierField);
 		final String description = descriptionTextPreview.getTextTrimmed();
 		final String status = GUIHelper.getTextTrimmed(statusComboBox);
@@ -302,6 +311,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		insertRecordDescription(selectedRecord, description);
 		insertRecordStatus(selectedRecord, status);
 		insertRecordPriority(selectedRecord, priority);
+		if(extractRecordCreationDate(selectedRecord) == null)
+			insertRecordCreationDate(selectedRecord, now);
 
 		return true;
 	}
@@ -358,6 +369,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		researchStatus.put("description", "see people, do things");
 		researchStatus.put("status", "open");
 		researchStatus.put("priority", 2);
+		researchStatus.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
 
 		EventQueue.invokeLater(() -> {
@@ -370,14 +382,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 				}
 
 				@EventHandler
-				public static void refresh(final EditEvent editCommand) throws OperationNotSupportedException{
-					switch(editCommand.getType()){
-						case REFERENCE -> {
-							throw new OperationNotSupportedException();
-							//TODO single reference
-						}
-					}
-				}
+				public static void refresh(final EditEvent editCommand) throws OperationNotSupportedException{}
 			};
 			EventBusService.subscribe(listener);
 

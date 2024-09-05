@@ -43,6 +43,18 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCitationID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCulturalNormID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordMediaID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonNameID;
@@ -402,55 +414,6 @@ public class Main{
 			});
 			dialog.showDialog();
 		});
-	}
-
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("person_id"): null);
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
-	}
-
-	private static Integer extractRecordCitationID(final Map<String, Object> record){
-		return (Integer)record.get("citation_id");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordMediaID(final Map<String, Object> record){
-		return (Integer)record.get("media_id");
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
-	private static Integer extractRecordCulturalNormID(final Map<String, Object> record){
-		return (Integer)record.get("cultural_norm_id");
-	}
-
-	private static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
-	}
-
-	private static String extractRecordPhotoCrop(final Map<String, Object> record){
-		return (String)record.get("photo_crop");
 	}
 
 }

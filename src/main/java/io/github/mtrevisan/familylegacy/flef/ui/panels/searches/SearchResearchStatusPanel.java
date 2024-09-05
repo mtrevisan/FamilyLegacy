@@ -44,6 +44,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
+
 
 public class SearchResearchStatusPanel extends CommonSearchPanel{
 
@@ -144,23 +149,6 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 			row ++;
 		}
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordDescription(final Map<String, Object> record){
-		return (String)record.get("description");
-	}
-
-	private static String extractRecordStatus(final Map<String, Object> record){
-		return (String)record.get("status");
-	}
-
-	private static Integer extractRecordPriority(final Map<String, Object> record){
-		return (Integer)record.get("priority");
 	}
 
 

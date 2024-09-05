@@ -36,8 +36,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -136,8 +134,6 @@ public final class GroupDialog extends CommonListDialog{
 	private final JComboBox<String> linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
 	private final JLabel linkCredibilityLabel = new JLabel("Credibility:");
 	private final JComboBox<String> linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
-
-	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -251,20 +247,6 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		final RecordListenerInterface linkListener = new RecordListenerInterface(){
-			@Override
-			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
-			}
-
-			@Override
-			public void onRecordEdit(final String table, final Integer id){}
-		};
-		historyPanel = HistoryPanel.create(store)
-			.withLinkListener(linkListener);
-
-
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
 		photoButton.setToolTipText("Photo");
@@ -334,7 +316,6 @@ public final class GroupDialog extends CommonListDialog{
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
 		recordTabbedPane.add("link", recordPanelLink);
-		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -470,9 +451,6 @@ public final class GroupDialog extends CommonListDialog{
 				linkCredibilityComboBox.setSelectedItem(linkCredibility);
 			}
 		}
-
-		historyPanel.withReference(TABLE_NAME, groupID);
-		historyPanel.loadData();
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 	}
@@ -913,14 +891,31 @@ public final class GroupDialog extends CommonListDialog{
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
-							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final Integer noteID = (Integer)container.get("noteID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final NoteDialog changeNoteDialog = (showOnly
+								? NoteDialog.createModificationNoteShowOnly(store, parent)
+								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle("Change modification note for " + title + " " + groupID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + groupID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final ResearchStatusDialog researchStatusDialog = (showOnly
+								? ResearchStatusDialog.createShowOnly(store, parent)
+								: ResearchStatusDialog.createEditOnly(store, parent));
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + groupID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
 						}
 					}
 				}

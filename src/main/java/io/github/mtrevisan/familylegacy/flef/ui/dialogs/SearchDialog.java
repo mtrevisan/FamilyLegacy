@@ -768,18 +768,6 @@ public final class SearchDialog extends JDialog{
 		culturalNormJunction1.put("credibility", "probable");
 		culturalNormJunctions.put((Integer)culturalNormJunction1.get("id"), culturalNormJunction1);
 
-		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
-		store.put("research_status", researchStatuses);
-		final Map<String, Object> researchStatus = new HashMap<>();
-		researchStatus.put("id", 1);
-		researchStatus.put("reference_table", "date");
-		researchStatus.put("reference_id", 1);
-		researchStatus.put("identifier", "research 1");
-		researchStatus.put("description", "see people, do things");
-		researchStatus.put("status", "open");
-		researchStatus.put("priority", 2);
-		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
-
 		final TreeMap<Integer, Map<String, Object>> modifications = new TreeMap<>();
 		store.put("modification", modifications);
 		final Map<String, Object> modification1 = new HashMap<>();
@@ -794,6 +782,38 @@ public final class SearchDialog extends JDialog{
 		modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		modifications.put((Integer)modification2.get("id"), modification2);
+
+		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
+		store.put("research_status", researchStatuses);
+		final Map<String, Object> researchStatus1 = new HashMap<>();
+		researchStatus1.put("id", 1);
+		researchStatus1.put("reference_table", "date");
+		researchStatus1.put("reference_id", 1);
+		researchStatus1.put("identifier", "research 1");
+		researchStatus1.put("description", "see people, do things");
+		researchStatus1.put("status", "open");
+		researchStatus1.put("priority", 2);
+		researchStatuses.put((Integer)researchStatus1.get("id"), researchStatus1);
+		final Map<String, Object> researchStatus2 = new HashMap<>();
+		researchStatus2.put("id", 2);
+		researchStatus2.put("reference_table", "repository");
+		researchStatus2.put("reference_id", 1);
+		researchStatus2.put("identifier", "identifier 1");
+		researchStatus2.put("description", "some description");
+		researchStatus2.put("status", "open");
+		researchStatus2.put("priority", 0);
+		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		researchStatuses.put((Integer)researchStatus2.get("id"), researchStatus2);
+		final Map<String, Object> researchStatus3 = new HashMap<>();
+		researchStatus3.put("id", 3);
+		researchStatus3.put("reference_table", "repository");
+		researchStatus3.put("reference_id", 1);
+		researchStatus3.put("identifier", "identifier 2");
+		researchStatus3.put("description", "another description");
+		researchStatus3.put("status", "active");
+		researchStatus3.put("priority", 1);
+		researchStatus3.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
+		researchStatuses.put((Integer)researchStatus3.get("id"), researchStatus3);
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
@@ -1076,27 +1096,37 @@ public final class SearchDialog extends JDialog{
 						}
 
 
-						case RESEARCH_STATUS -> {
-							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(store, parent);
-							final Integer researchStatusID = extractRecordID(container);
-							researchStatusDialog.loadData(researchStatusID);
-
-							researchStatusDialog.showDialog();
-						}
-
-
 						//from: modification notes
 						case MODIFICATION_HISTORY -> {
 							final int recordID = extractRecordID(container);
 							final String tableName = editCommand.getIdentifier();
-							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final Integer noteID = (Integer)container.get("noteID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final NoteDialog changeNoteDialog = (showOnly
+								? NoteDialog.createModificationNoteShowOnly(store, parent)
+								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle("Change modification note for " + title + " " + recordID);
-							changeNoteDialog.loadData();
-							changeNoteDialog.selectData(noteID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + recordID);
+							changeNoteDialog.loadData(noteID);
 
 							changeNoteDialog.showDialog();
+						}
+
+
+						//from: assertion, calendar, citation, cultural norm, event, group, historic date, localized person name, localized text,
+						// media, note, person name, place, repository, source
+						case RESEARCH_STATUS -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final ResearchStatusDialog researchStatusDialog = (showOnly
+								? ResearchStatusDialog.createShowOnly(store, parent)
+								: ResearchStatusDialog.createEditOnly(store, parent));
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + researchStatusID);
+							researchStatusDialog.loadData(researchStatusID);
+
+							researchStatusDialog.showDialog();
 						}
 					}
 				}

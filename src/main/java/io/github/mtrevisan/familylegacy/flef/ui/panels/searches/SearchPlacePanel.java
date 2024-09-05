@@ -50,6 +50,15 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+
 
 public class SearchPlacePanel extends CommonSearchPanel{
 
@@ -133,7 +142,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			final String name = extractRecordName(container);
 			final String nameLocale = extractRecordLocale(container);
 			final List<Map<String, Object>> transcribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				key, SearchPlacePanel::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final String type = extractRecordType(container);
 			final FilterString filter = FilterString.create()
 				.add(key)
@@ -174,41 +183,6 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		return matchedRecords;
 	}
 
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordReferenceType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
-	}
-
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
-
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
-	}
 
 
 	public static void main(final String[] args){

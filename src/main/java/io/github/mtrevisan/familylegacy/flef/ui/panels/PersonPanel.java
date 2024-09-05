@@ -88,6 +88,22 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
 
@@ -519,7 +535,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
-			.map(PersonPanel::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 
@@ -543,30 +559,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
-	}
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
-	private static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
-	private static String extractRecordPersonalName(final Map<String, Object> record){
-		return (String)record.get("personal_name");
-	}
-
-	private static String extractRecordFamilyName(final Map<String, Object> record){
-		return (String)record.get("family_name");
 	}
 
 	private void extractBirthDeathPlaceAge(final StringJoiner sj, final StringJoiner toolTipSJ){
@@ -694,7 +686,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(PersonPanel::extractRecordType)
+			.map(EntityManager::extractRecordType)
 			.collect(Collectors.toSet());
 	}
 
@@ -706,50 +698,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return new Point(getX() + getWidth() / 2, getY());
 	}
 
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static Integer extractRecordTypeID(final Map<String, Object> record){
-		return (Integer)record.get("type_id");
-	}
-
-	private static String extractRecordCategory(final Map<String, Object> record){
-		return (String)record.get("category");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (record != null? (String)record.get("date"): null);
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (record != null? (String)record.get("identifier"): null);
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (record != null? (String)record.get("name"): null);
-	}
 
 
 	public static void main(final String[] args){

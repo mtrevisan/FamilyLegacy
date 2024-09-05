@@ -55,9 +55,16 @@ import java.util.TreeMap;
 
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
 
 
 public final class MainFrame extends JFrame implements GroupListenerInterface, PersonListenerInterface{
@@ -553,34 +560,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		photoDialog.loadData(photoID);
 
 		photoDialog.showDialog();
-	}
-
-	private static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
-	}
-
-	private static void insertRecordID(final Map<String, Object> record, final int id){
-		record.put("id", id);
-	}
-
-	private static void insertRecordGroupID(final Map<String, Object> record, final int groupID){
-		record.put("group_id", groupID);
-	}
-
-	private static void insertRecordReferenceTable(final Map<String, Object> record, final String referenceTable){
-		record.put("reference_table", referenceTable);
-	}
-
-	private static void insertRecordReferenceID(final Map<String, Object> record, final int referenceID){
-		record.put("reference_id", referenceID);
-	}
-
-	private static void insertRecordRole(final Map<String, Object> record, final String role){
-		record.put("role", role);
-	}
-
-	private static void insertRecordPhotoID(final Map<String, Object> record, final int photoID){
-		record.put("photo_id", photoID);
 	}
 
 

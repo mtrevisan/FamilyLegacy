@@ -56,16 +56,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+//https://www.tutorialspoint.com/sql/sql-backup-database.htm
+//https://www.postgresql.org/docs/current/sql-createtable.html
 public class DatabaseManager implements DatabaseManagerInterface{
 
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+(\"?[^\\s\\r\\n(]+\"?)[^;]*?;");
+	private static final Pattern ROW_DEFINITION_PATTERN = Pattern.compile("(?i)\\s+([^\\s\\r\\n,)]+).+?\\s+DEFAULT\\s+([^\\s\\r\\n,)]+)");
 	//https://stackoverflow.com/questions/6720050/foreign-key-constraints-when-to-use-on-update-and-on-delete
-	private static final String FOREIGN_KEY_TRUE_PATTERN = "FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(DELETE\\s+(CASCADE|SET\\s+NULL|NO\\s+ACTION|RESTRICT)|UPDATE))?";
+	private static final String FOREIGN_KEY_TRUE_PATTERN = "FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(DELETE\\s+(CASCADE|SET\\s+(NULL|DEFAULT)|NO\\s+ACTION|RESTRICT)))?";
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(" + FOREIGN_KEY_TRUE_PATTERN + "),?");
 	private static final Pattern ALTER_TABLE_PATTERN = Pattern.compile("(?i)ALTER\\s+TABLE.*?ADD\\s+CONSTRAINT.*?" + FOREIGN_KEY_TRUE_PATTERN + ";");
 
 	private static final String NO_ACTION = "NO ACTION";
 	private static final String ALTER_TABLE_ADD_FOREIGN_KEY_ON_DELETE = "ALTER TABLE %s ADD FOREIGN KEY (\"%s\") REFERENCES \"%s\"(\"%s\") ON DELETE %s";
+	private static final String VALUE_NULL = "NULL";
 
 	private static final Pattern PATTERN = Pattern.compile("(,[\\s\\r\\n]+){1,}\\)");
 
@@ -78,6 +82,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	private final String user;
 	private final String password;
 
+	private List<String> tableCreations;
 	private Graph<String, DefaultEdge> graph;
 	private final Map<String, ForeignKeyRule> foreignKeyRules = new HashMap<>(0);
 
@@ -89,14 +94,13 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 
-	//TODO manage on update
 	public final void initialize(final String sqlFile) throws SQLException, IOException{
 		try(final Connection connection = DriverManager.getConnection(jdbcURL, user, password)){
 			final String sql = Files.readString(Paths.get(sqlFile));
 
 			//separate table creation and foreign key constraints
-			final Collection<String> tableCreations = new ArrayList<>(0);
-			final Collection<String> foreignKeyConstraints = new ArrayList<>(0);
+			tableCreations = new ArrayList<>(0);
+			final List<String> foreignKeyConstraints = new ArrayList<>(0);
 
 			graph = new DirectedAcyclicGraph<>(DefaultEdge.class);
 			final List<String> directedEdgesFrom = new ArrayList<>(0);
@@ -158,12 +162,12 @@ public class DatabaseManager implements DatabaseManagerInterface{
 			}
 
 			//execute table creation scripts
-			for(final String tableCreation : tableCreations)
-				RunScript.execute(connection, new StringReader(tableCreation));
+			for(int i = 0, length = tableCreations.size(); i < length; i ++)
+				RunScript.execute(connection, new StringReader(tableCreations.get(i)));
 
 			//execute foreign key constraint scripts
-			for(final String foreignKeyConstraint : foreignKeyConstraints)
-				RunScript.execute(connection, new StringReader(foreignKeyConstraint));
+			for(int i = 0, length = foreignKeyConstraints.size(); i < length; i ++)
+				RunScript.execute(connection, new StringReader(foreignKeyConstraints.get(i)));
 
 			System.out.println("Database initialized successfully.");
 		}
@@ -178,7 +182,7 @@ public class DatabaseManager implements DatabaseManagerInterface{
 			.replaceAll(")");
 	}
 
-	/** NOTE: remember to appropriately manage on "CASCADE", "SET NULL", on "RESTRICT". */
+	/** NOTE: remember to appropriately manage on "CASCADE", "SET (NULL|DEFAULT)", on "RESTRICT". */
 	public Collection<Map.Entry<String, String>> extractForeignRecordsUponDelete(final String tableName){
 		final Collection<Map.Entry<String, String>> result = new ArrayList<>(0);
 		for(final DefaultEdge edge : graph.outgoingEdgesOf(tableName)){
@@ -388,20 +392,53 @@ public class DatabaseManager implements DatabaseManagerInterface{
 				final String foreignKeyColumn = rule.foreignKeyColumn;
 				switch(rule.onDelete){
 					case "CASCADE":
+						//delete any rows referencing the deleted row, or update the values of the referencing column(s) to the new values of the
+						// referenced columns, respectively.
 						final List<String> affectedIDs = deleteCascade(dependentTable, foreignKeyColumn, task.idValue);
 						for(final String affectedId : affectedIDs)
 							queue.add(new DeletionTask(dependentTable, foreignKeyColumn, affectedId));
 						break;
 
 					case "SET NULL":
+						//set all of the referencing columns, or a specified subset of the referencing columns, to `null`. A subset of columns
+						// can only be specified for ON DELETE actions.
 						setForeignKeyToNull(dependentTable, foreignKeyColumn, task.idValue);
 						break;
 
-					case NO_ACTION:
-						//no action could be handled here
+					case "SET DEFAULT":
+						//set all of the referencing columns, or a specified subset of the referencing columns, to their default values. A subset
+						// of columns can only be specified for ON DELETE actions. (There must be a row in the referenced table matching the
+						// default values, if they are not null, or the operation will fail.)
+						Object defaultValue = null;
+						for(int i = 0, length = tableCreations.size(); defaultValue == null && i < length; i ++){
+							final String tableCreation = tableCreations.get(i);
+							final Matcher tableMatcher = CREATE_TABLE_PATTERN.matcher(tableCreation);
+							if(tableMatcher.find()){
+								final String tableCreationName = tableMatcher.group(1);
+								if(!tableCreationName.equalsIgnoreCase(dependentTable))
+									continue;
+
+								final Matcher columnMatcher = ROW_DEFINITION_PATTERN.matcher(tableCreation);
+                     	while(defaultValue == null && columnMatcher.find()){
+                     		final String columnName = columnMatcher.group(1);
+                     		final String columnDefault = columnMatcher.group(2);
+                     		if(columnName.equalsIgnoreCase(foreignKeyColumn))
+										defaultValue = columnDefault;
+                     	}
+							}
+						}
+						if(defaultValue == null)
+							defaultValue = VALUE_NULL;
+						setForeignKeyToDefault(dependentTable, foreignKeyColumn, defaultValue, task.idValue);
 						break;
 
+					case NO_ACTION:
+						//produce an error indicating that the deletion or update would create a foreign key constraint violation. If the
+						// constraint is deferred, this error will be produced at constraint check time if there still exist any referencing rows.
+						// This is the default action.
 					case "RESTRICT":
+						//produce an error indicating that the deletion or update would create a foreign key constraint violation. This is the
+						// same as NO ACTION except that the check is not deferrable.
 						throw new SQLException("Cannot remove record, there's a reference to it from table " + dependentTable + ", foreign key column " + foreignKeyColumn + " ");
 
 					default:
@@ -426,7 +463,13 @@ public class DatabaseManager implements DatabaseManagerInterface{
 	}
 
 	private void setForeignKeyToNull(final String tableName, final String foreignKeyColumn, final String idValue) throws SQLException{
-		final String sql = String.format("UPDATE %s SET %s = NULL WHERE %s = ?", getTableName(tableName), foreignKeyColumn, foreignKeyColumn);
+		setForeignKeyToDefault(tableName, foreignKeyColumn, VALUE_NULL, idValue);
+	}
+
+	private void setForeignKeyToDefault(final String tableName, final String foreignKeyColumn, final Object defaultValue,
+			final String idValue) throws SQLException{
+		final String sql = String.format("UPDATE %s SET %s = %s WHERE %s = ?", getTableName(tableName), foreignKeyColumn, defaultValue,
+			foreignKeyColumn);
 		try(
 				final Connection connection = DriverManager.getConnection(jdbcURL, user, password);
 				final PreparedStatement stmt = connection.prepareStatement(sql)){

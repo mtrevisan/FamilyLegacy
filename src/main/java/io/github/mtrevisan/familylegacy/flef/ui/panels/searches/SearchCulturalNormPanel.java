@@ -50,6 +50,16 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
+
 
 public class SearchCulturalNormPanel extends CommonSearchPanel{
 
@@ -133,7 +143,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			final String placeName = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final String placeNameLocale = extractRecordLocale(container);
 			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				key, SearchCulturalNormPanel::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(identifier)
@@ -173,45 +183,6 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		return matchedRecords;
 	}
 
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordDescription(final Map<String, Object> record){
-		return (String)record.get("description");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
-
-	private static String extractRecordText(final Map<String, Object> record){
-		return (String)record.get("text");
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordReferenceType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
-	}
-
-	private static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
 
 
 	public static void main(final String[] args){

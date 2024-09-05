@@ -56,6 +56,12 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordUpdateDate;
+
 
 public class HistoryPanel extends CommonSearchPanel{
 
@@ -70,7 +76,7 @@ public class HistoryPanel extends CommonSearchPanel{
 	private static final String TABLE_NAME_MODIFICATION = "modification";
 	private static final String TABLE_NAME_NOTE = "note";
 
-	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss", Locale.US)
+	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss", Locale.US)
 		.withZone(ZoneId.systemDefault());
 
 	private String filterReferenceTable;
@@ -143,7 +149,8 @@ public class HistoryPanel extends CommonSearchPanel{
 
 		final Map<Integer, Map<String, Object>> recordModifications = getRecords(TABLE_NAME_MODIFICATION)
 			.entrySet().stream()
-			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue())) && filterReferenceID == extractRecordReferenceID(entry.getValue()))
+			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue()))
+				&& filterReferenceID == extractRecordReferenceID(entry.getValue()))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		final Map<Integer, Map<String, Object>> recordsNotes = getRecords(TABLE_NAME_NOTE)
 			.entrySet().stream()
@@ -182,27 +189,6 @@ public class HistoryPanel extends CommonSearchPanel{
 
 			row ++;
 		}
-	}
-
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
-	private static String extractRecordNote(final Map<String, Object> record){
-		return (String)record.get("note");
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordUpdateDate(final Map<String, Object> record){
-		return (String)record.get("update_date");
 	}
 
 

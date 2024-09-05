@@ -38,8 +38,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -109,8 +107,6 @@ public final class AssertionDialog extends CommonListDialog{
 	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
 	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-
-	private HistoryPanel historyPanel;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -192,20 +188,6 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		final RecordListenerInterface linkListener = new RecordListenerInterface(){
-			@Override
-			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
-			}
-
-			@Override
-			public void onRecordEdit(final String table, final Integer id){}
-		};
-		historyPanel = HistoryPanel.create(store)
-			.withLinkListener(linkListener);
-
-
 		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, this::saveData);
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
@@ -246,7 +228,6 @@ public final class AssertionDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -336,9 +317,6 @@ public final class AssertionDialog extends CommonListDialog{
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
-
-		historyPanel.withReference(TABLE_NAME, assertionID);
-		historyPanel.loadData();
 	}
 
 	@Override
@@ -590,6 +568,29 @@ public final class AssertionDialog extends CommonListDialog{
 		culturalNormJunction1.put("credibility", "probable");
 		culturalNormJunctions.put((Integer)culturalNormJunction1.get("id"), culturalNormJunction1);
 
+		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
+		store.put("research_status", researchStatuses);
+		final Map<String, Object> researchStatus1 = new HashMap<>();
+		researchStatus1.put("id", 1);
+		researchStatus1.put("reference_table", "assertion");
+		researchStatus1.put("reference_id", 1);
+		researchStatus1.put("identifier", "identifier 1");
+		researchStatus1.put("description", "some description");
+		researchStatus1.put("status", "open");
+		researchStatus1.put("priority", 0);
+		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		researchStatuses.put((Integer)researchStatus1.get("id"), researchStatus1);
+		final Map<String, Object> researchStatus2 = new HashMap<>();
+		researchStatus2.put("id", 2);
+		researchStatus2.put("reference_table", "assertion");
+		researchStatus2.put("reference_id", 1);
+		researchStatus2.put("identifier", "identifier 2");
+		researchStatus2.put("description", "another description");
+		researchStatus2.put("status", "active");
+		researchStatus2.put("priority", 1);
+		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
+		researchStatuses.put((Integer)researchStatus2.get("id"), researchStatus2);
+
 		EventQueue.invokeLater(() -> {
 			final DependencyInjector injector = new DependencyInjector();
 			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
@@ -670,14 +671,31 @@ public final class AssertionDialog extends CommonListDialog{
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
-							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final Integer noteID = (Integer)container.get("noteID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final NoteDialog changeNoteDialog = (showOnly
+								? NoteDialog.createModificationNoteShowOnly(store, parent)
+								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle("Change modification note for " + title + " " + assertionID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + assertionID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final ResearchStatusDialog researchStatusDialog = (showOnly
+								? ResearchStatusDialog.createShowOnly(store, parent)
+								: ResearchStatusDialog.createEditOnly(store, parent));
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + assertionID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
 						}
 					}
 				}

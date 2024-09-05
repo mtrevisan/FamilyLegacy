@@ -43,6 +43,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+
 
 public class SearchNotePanel extends CommonSearchPanel{
 
@@ -119,14 +122,6 @@ public class SearchNotePanel extends CommonSearchPanel{
 		}
 	}
 
-
-	private static String extractRecordNote(final Map<String, Object> record){
-		return (String)record.get("note");
-	}
-
-	private static String extractRecordLocale(final Map<String, Object> record){
-		return (String)record.get("locale");
-	}
 
 
 	public static void main(final String[] args){

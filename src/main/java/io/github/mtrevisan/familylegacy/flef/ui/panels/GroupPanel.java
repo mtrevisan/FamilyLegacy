@@ -71,6 +71,12 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+
 
 //http://www.miglayout.com/whitepaper.html
 //http://www.miglayout.com/QuickStart.pdf
@@ -697,7 +703,7 @@ public class GroupPanel extends JPanel{
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(GroupPanel::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.map(groups::get)
 			.toList();
 	}
@@ -794,10 +800,6 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
-	}
-
 	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
@@ -811,29 +813,13 @@ public class GroupPanel extends JPanel{
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
 	}
 
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return new ArrayList<>(getRecords(TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(GroupPanel::extractRecordReferenceID)
+			.map(EntityManager::extractRecordReferenceID)
 			.toList());
 	}
 
@@ -843,7 +829,7 @@ public class GroupPanel extends JPanel{
 			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(GroupPanel::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 
@@ -854,7 +840,7 @@ public class GroupPanel extends JPanel{
 			.filter(entry -> Objects.equals(adopteeID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
 				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
-			.map(GroupPanel::extractRecordGroupID)
+			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 

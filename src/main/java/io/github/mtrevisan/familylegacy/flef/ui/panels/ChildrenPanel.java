@@ -51,6 +51,15 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
+
 
 public class ChildrenPanel extends JPanel{
 
@@ -216,7 +225,7 @@ public class ChildrenPanel extends JPanel{
 				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
 				return eventTypesAdoptions.contains(recordType);
 			})
-			.map(ChildrenPanel::extractRecordReferenceID)
+			.map(EntityManager::extractRecordReferenceID)
 			.collect(Collectors.toSet());
 	}
 
@@ -265,40 +274,8 @@ public class ChildrenPanel extends JPanel{
 		return getRecords(TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
-			.map(ChildrenPanel::extractRecordType)
+			.map(EntityManager::extractRecordType)
 			.collect(Collectors.toSet());
-	}
-
-	private static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	private static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	private static String extractRecordRole(final Map<String, Object> record){
-		return (String)record.get("role");
-	}
-
-	private static Integer extractRecordTypeID(final Map<String, Object> record){
-		return (Integer)record.get("type_id");
-	}
-
-	private static String extractRecordCategory(final Map<String, Object> record){
-		return (String)record.get("category");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
-	private static Integer extractRecordID(final Map<String, Object> record){
-		return (record != null? (Integer)record.get("id"): null);
 	}
 
 

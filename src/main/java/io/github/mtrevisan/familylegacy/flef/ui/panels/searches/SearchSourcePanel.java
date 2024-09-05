@@ -46,6 +46,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+
 
 public class SearchSourcePanel extends CommonSearchPanel{
 
@@ -122,7 +130,6 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -162,35 +169,6 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 			row ++;
 		}
-	}
-
-
-	private static String extractRecordIdentifier(final Map<String, Object> record){
-		return (String)record.get("identifier");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordAuthor(final Map<String, Object> record){
-		return (String)record.get("author");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (record != null? (String)record.get("date"): null);
 	}
 
 

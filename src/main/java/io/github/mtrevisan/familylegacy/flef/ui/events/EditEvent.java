@@ -56,8 +56,6 @@ public class EditEvent{
 
 //		CONTACT,
 
-		REFERENCE,
-
 		MODIFICATION_HISTORY,
 
 		RESEARCH_STATUS,

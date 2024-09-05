@@ -35,8 +35,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -92,8 +90,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private HistoryPanel historyPanel;
-
 	private String filterReferenceTable;
 	private int filterReferenceID;
 
@@ -128,9 +124,17 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
-	public static NoteDialog createModificationNoteShowRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	public static NoteDialog createModificationNoteShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.selectRecordOnly = true;
+		dialog.showRecordOnly = true;
+		dialog.showRecordHistory = false;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static NoteDialog createModificationNoteEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+		final NoteDialog dialog = new NoteDialog(store, parent);
 		dialog.showRecordOnly = true;
 		dialog.showRecordHistory = false;
 		dialog.initialize();
@@ -191,20 +195,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initRecordComponents(){
-		final RecordListenerInterface linkListener = new RecordListenerInterface(){
-			@Override
-			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
-			}
-
-			@Override
-			public void onRecordEdit(final String table, final Integer id){}
-		};
-		historyPanel = HistoryPanel.create(store)
-			.withLinkListener(linkListener);
-
-
 		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
 		noteTextPreview.setTextViewFont(noteLabel.getFont());
 		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
@@ -238,8 +228,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		if(showRecordHistory)
-			recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -311,9 +299,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
-
-		historyPanel.withReference(TABLE_NAME, noteID);
-		historyPanel.loadData();
 	}
 
 	@Override
@@ -459,14 +444,31 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
-							final Integer modificationNoteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final Integer modificationNoteID = (Integer)container.get("noteID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final NoteDialog changeNoteDialog = (showOnly
+								? NoteDialog.createModificationNoteShowOnly(store, parent)
+								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle("Change modification note for " + title + " " + noteID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + noteID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(modificationNoteID);
 
 							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final ResearchStatusDialog researchStatusDialog = (showOnly
+								? ResearchStatusDialog.createShowOnly(store, parent)
+								: ResearchStatusDialog.createEditOnly(store, parent));
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + noteID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
 						}
 					}
 				}

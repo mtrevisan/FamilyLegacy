@@ -24,11 +24,17 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.AssertionRepository;
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.ResearchStatusPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -85,6 +91,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
 
 
@@ -139,18 +146,55 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected volatile boolean hideUnselectButton;
 	protected volatile boolean showRecordOnly;
 	protected volatile boolean showRecordHistory;
+	protected volatile boolean showRecordResearchStatus;
+
+
+	private HistoryPanel historyPanel;
+	private ResearchStatusPanel researchStatusPanel;
 
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
 		super(store, parent);
 
 		showRecordHistory = true;
+		showRecordResearchStatus = true;
 	}
 
 
 	@Override
 	protected void initComponents(){
 		initStoreComponents();
+
+		final RecordListenerInterface modificationLinkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "noteID", id, "showOnly", true)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "noteID", id, "showOnly", false)));
+			}
+		};
+		final RecordListenerInterface researchStatusLinkListener = new RecordListenerInterface(){
+			@Override
+			public void onRecordSelect(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id, "showOnly", true)));
+			}
+
+			@Override
+			public void onRecordEdit(final String table, final Integer id){
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id, "showOnly", false)));
+			}
+		};
+		historyPanel = HistoryPanel.create(store)
+			.withLinkListener(modificationLinkListener);
+		researchStatusPanel = ResearchStatusPanel.create(store)
+			.withLinkListener(researchStatusLinkListener);
 
 		initRecordComponents();
 
@@ -329,6 +373,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	@Override
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
+		if(showRecordHistory)
+			recordTabbedPane.add("history", historyPanel);
+		if(showRecordResearchStatus)
+			recordTabbedPane.add("research status", researchStatusPanel);
 
 		if(showRecordOnly){
 //			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
@@ -521,8 +569,22 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		if(newRecordDefault != null)
 			newRecordDefault.accept(selectedRecord);
 
+
 		ignoreEvents = true;
+
 		fillData();
+
+		final String tableName = getTableName();
+		final int recordID = extractRecordID(selectedRecord);
+		if(showRecordHistory){
+			historyPanel.withReference(tableName, recordID);
+			historyPanel.loadData();
+		}
+		if(showRecordResearchStatus){
+			researchStatusPanel.withReference(tableName, recordID);
+			researchStatusPanel.loadData();
+		}
+
 		ignoreEvents = false;
 	}
 

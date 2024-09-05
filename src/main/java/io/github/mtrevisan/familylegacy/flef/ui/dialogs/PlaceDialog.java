@@ -34,8 +34,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -123,8 +121,6 @@ public final class PlaceDialog extends CommonListDialog{
 	private final JButton groupButton = new JButton("Groups", ICON_GROUP);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private HistoryPanel historyPanel;
-
 	private Integer filterPlaceID;
 
 
@@ -210,20 +206,6 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		final RecordListenerInterface linkListener = new RecordListenerInterface(){
-			@Override
-			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "note_id", id)));
-			}
-
-			@Override
-			public void onRecordEdit(final String table, final Integer id){}
-		};
-		historyPanel = HistoryPanel.create(store)
-			.withLinkListener(linkListener);
-
-
 		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
@@ -300,7 +282,6 @@ public final class PlaceDialog extends CommonListDialog{
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("history", historyPanel);
 	}
 
 	@Override
@@ -424,9 +405,6 @@ public final class PlaceDialog extends CommonListDialog{
 		setButtonEnableAndBorder(eventButton, hasEvents);
 		setButtonEnableAndBorder(groupButton, hasGroups);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
-
-		historyPanel.withReference(TABLE_NAME, placeID);
-		historyPanel.loadData();
 	}
 
 	@Override
@@ -712,14 +690,31 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 						case MODIFICATION_HISTORY -> {
 							final String tableName = editCommand.getIdentifier();
-							final Integer noteID = (Integer)container.get("note_id");
-							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowRecordOnly(store, parent);
+							final Integer noteID = (Integer)container.get("noteID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final NoteDialog changeNoteDialog = (showOnly
+								? NoteDialog.createModificationNoteShowOnly(store, parent)
+								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle("Change modification note for " + title + " " + placeID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + placeID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final Boolean showOnly = (Boolean)container.get("showOnly");
+							final ResearchStatusDialog researchStatusDialog = (showOnly
+								? ResearchStatusDialog.createShowOnly(store, parent)
+								: ResearchStatusDialog.createEditOnly(store, parent));
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + placeID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
 						}
 					}
 				}

@@ -46,6 +46,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
+
 
 public class SearchEventPanel extends CommonSearchPanel{
 
@@ -124,7 +134,6 @@ public class SearchEventPanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> superTypes = getRecords(TABLE_NAME_EVENT_SUPER_TYPE);
 		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
 		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -168,42 +177,6 @@ public class SearchEventPanel extends CommonSearchPanel{
 		}
 	}
 
-
-	private static Integer extractRecordSuperTypeID(final Map<String, Object> record){
-		return (Integer)record.get("super_type_id");
-	}
-
-	private static Integer extractRecordTypeID(final Map<String, Object> record){
-		return (Integer)record.get("type_id");
-	}
-
-	private static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
-	}
-
-	private static String extractRecordSuperType(final Map<String, Object> record){
-		return (String)record.get("super_type");
-	}
-
-	private static String extractRecordDescription(final Map<String, Object> record){
-		return (String)record.get("description");
-	}
-
-	private static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	private static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
-	}
-
-	private static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	private static String extractRecordDate(final Map<String, Object> record){
-		return (record != null? (String)record.get("date"): null);
-	}
 
 
 	public static void main(final String[] args){

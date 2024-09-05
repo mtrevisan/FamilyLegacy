@@ -180,7 +180,7 @@ public class EntityManager{
 	}
 
 	public static String extractRecordDate(final Map<String, Object> record){
-		return (String)record.get("date");
+		return (record != null? (String)record.get("date"): null);
 	}
 
 	public static String extractRecordDateOriginal(final Map<String, Object> record){
@@ -241,6 +241,10 @@ public class EntityManager{
 
 	public static String extractRecordCopyright(final Map<String, Object> record){
 		return (String)record.get("copyright");
+	}
+
+	public static String extractRecordCreationDate(final Map<String, Object> record){
+		return (String)record.get("creation_date");
 	}
 
 	public static String extractRecordUpdateDate(final Map<String, Object> record){

@@ -71,6 +71,16 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
 		<apache.tika-core.version>2.9.2</apache.tika-core.version>
 
+		<!-- Jakarta -->
+		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
+		<jakarta.persistence.version>3.2.0</jakarta.persistence.version>
+		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
+		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
+
+		<!-- Hibernate -->
+		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+		<hibernate.hibernate-core.version>6.6.0.Final</hibernate.hibernate-core.version>
+
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.opencv/opencv -->
 		<opencv.version>4.10.0</opencv.version>
@@ -343,11 +353,23 @@
 			<version>${apache.tika-core.version}</version>
 		</dependency>
 
-		<!-- Image processing -->
+		<!-- Jakarta -->
 		<dependency>
-			<groupId>org.opencv</groupId>
-			<artifactId>opencv</artifactId>
-			<version>${opencv.version}</version>
+			<groupId>jakarta.persistence</groupId>
+			<artifactId>jakarta.persistence-api</artifactId>
+			<version>${jakarta.persistence.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.transaction</groupId>
+			<artifactId>jakarta.transaction-api</artifactId>
+			<version>${jakarta.transaction.version}</version>
+		</dependency>
+
+		<!-- Hibernate -->
+		<dependency>
+			<groupId>org.hibernate.orm</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${hibernate.hibernate-core.version}</version>
 		</dependency>
 
 		<!-- Database -->
@@ -355,6 +377,13 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>${h2.version}</version>
+		</dependency>
+
+		<!-- Image processing -->
+		<dependency>
+			<groupId>org.opencv</groupId>
+			<artifactId>opencv</artifactId>
+			<version>${opencv.version}</version>
 		</dependency>
 
 		<dependency>
