@@ -32,7 +32,7 @@ import java.time.ZonedDateTime;
 
 
 @Entity(name = "project")
-public class ProjectEntity{
+public class ProjectEntity extends AbstractEntity{
 
 	@Id
 	@Column(name = "id", nullable = false)
@@ -65,23 +65,9 @@ public class ProjectEntity{
 	private ZonedDateTime updateDate;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final ProjectEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

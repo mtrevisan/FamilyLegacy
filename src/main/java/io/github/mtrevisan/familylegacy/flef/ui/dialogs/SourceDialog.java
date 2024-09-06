@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -58,25 +58,25 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRepositoryID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRepositoryID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class SourceDialog extends CommonListDialog{
@@ -85,9 +85,6 @@ public final class SourceDialog extends CommonListDialog{
 	private static final long serialVersionUID = -8850730067231141478L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
-
-	private static final String TABLE_NAME = "source";
-	private static final String TABLE_NAME_CITATION = "citation";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -172,7 +169,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_SOURCE;
 	}
 
 	@Override
@@ -210,28 +207,28 @@ public final class SourceDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.TABLE_NAME_SOURCE, selectedRecord)));
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_SOURCE, selectedRecord)));
 
 		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_SOURCE, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_SOURCE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		citationButton.setToolTipText("Citations");
 		citationButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CITATION, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CITATION, EntityManager.TABLE_NAME_SOURCE, selectedRecord)));
 	}
 
 	@Override
@@ -265,7 +262,7 @@ public final class SourceDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.TABLE_NAME_SOURCE));
 		if(filterRepositoryID != null)
 			records.values()
 				.removeIf(entry -> !filterRepositoryID.equals(extractRecordRepositoryID(entry)));
@@ -309,26 +306,26 @@ public final class SourceDialog extends CommonListDialog{
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
 		final String location = extractRecordLocation(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_SOURCE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_SOURCE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_SOURCE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(sourceID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasCitations = (getRecords(TABLE_NAME_CITATION)
+		final boolean hasCitations = (getRecords(EntityManager.TABLE_NAME_CITATION)
 			.values().stream()
 			.filter(record -> Objects.equals(sourceID, extractRecordSourceID(record)))
 			.findFirst()
@@ -485,7 +482,7 @@ public final class SourceDialog extends CommonListDialog{
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "source");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -494,7 +491,7 @@ public final class SourceDialog extends CommonListDialog{
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "source");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -541,10 +538,10 @@ public final class SourceDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, sourceID)
+								.withReference(EntityManager.TABLE_NAME_SOURCE, sourceID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_SOURCE);
 										insertRecordReferenceID(record, sourceID);
 									}
 								});
@@ -557,10 +554,10 @@ public final class SourceDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(store, parent)
 									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(TABLE_NAME, sourceID)
+								.withReference(EntityManager.TABLE_NAME_SOURCE, sourceID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_SOURCE);
 										insertRecordReferenceID(record, sourceID);
 									}
 								});

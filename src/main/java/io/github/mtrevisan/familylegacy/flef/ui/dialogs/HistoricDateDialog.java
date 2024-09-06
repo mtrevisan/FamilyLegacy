@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
@@ -61,21 +61,21 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateOriginal;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateOriginal;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateOriginal;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDateOriginal;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class HistoricDateDialog extends CommonListDialog{
@@ -84,9 +84,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 	private static final long serialVersionUID = 3434407293578383806L;
 
 	private static final int TABLE_INDEX_DATE = 2;
-
-	private static final String TABLE_NAME = "historic_date";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
 
 
 	private final JLabel dateLabel = new JLabel("Date:");
@@ -140,7 +137,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_HISTORIC_DATE;
 	}
 
 	@Override
@@ -181,7 +178,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
@@ -190,11 +187,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -226,7 +223,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -269,21 +266,21 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -408,7 +405,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "historic_date");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -417,7 +414,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "historic_date");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -445,7 +442,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
-								.withReference(TABLE_NAME, historicDateID);
+								.withReference(EntityManager.TABLE_NAME_HISTORIC_DATE, historicDateID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -462,10 +459,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, historicDateID)
+								.withReference(EntityManager.TABLE_NAME_HISTORIC_DATE, historicDateID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_HISTORIC_DATE);
 										insertRecordReferenceID(record, historicDateID);
 									}
 								});

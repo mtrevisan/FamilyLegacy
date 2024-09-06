@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -50,15 +50,15 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 
 
 public class SearchCulturalNormPanel extends CommonSearchPanel{
@@ -73,11 +73,6 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_IDENTIFIER = 250;
 	private static final int TABLE_PREFERRED_WIDTH_DESCRIPTION = 150;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
-
-	private static final String TABLE_NAME = "cultural_norm";
-	private static final String TABLE_NAME_PLACE = "place";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 
 
 	public static SearchCulturalNormPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -101,7 +96,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_CULTURAL_NORM;
 	}
 
 	@Override
@@ -127,8 +122,8 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM);
+		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -142,7 +137,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			final Integer placeID = extractRecordPlaceID(container);
 			final String placeName = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final String placeNameLocale = extractRecordLocale(container);
-			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final FilterString filter = FilterString.create()
 				.add(key)
@@ -160,7 +155,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			model.setValueAt(description, row, TABLE_INDEX_DESCRIPTION);
 			model.setValueAt(placeName, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_CULTURAL_NORM, filterData, identifier));
 
 			row ++;
 		}
@@ -170,11 +165,11 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT);
 		final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
 		records.forEach((key, value) -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-					&& TABLE_NAME_PLACE.equals(extractRecordReferenceTable(value))
+					&& EntityManager.TABLE_NAME_PLACE.equals(extractRecordReferenceTable(value))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(value)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(value));
 				matchedRecords.add(localizedText);

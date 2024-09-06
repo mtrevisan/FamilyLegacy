@@ -37,7 +37,7 @@ import jakarta.persistence.SequenceGenerator;
 
 //Name can be attached through a person name.
 @Entity(name = "person")
-public class PersonEntity{
+public class PersonEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "person_generator")
@@ -55,23 +55,9 @@ public class PersonEntity{
 	private String photoCrop;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final PersonEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -71,11 +71,11 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 
 
 //http://www.miglayout.com/whitepaper.html
@@ -139,10 +139,6 @@ public class GroupPanel extends JPanel{
 	static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f);
 	static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
 		new float[]{2.f}, 0.f);
-
-	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
-	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_GROUP = "group";
 
 
 	private final JLabel partner1ArrowsSpacer = new JLabel();
@@ -286,7 +282,7 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
 						groupListener.onPersonChangeParents(GroupPanel.this, partner1Panel, newParents);
 					}
@@ -313,7 +309,7 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
 						groupListener.onPersonChangeParents(GroupPanel.this, partner1Panel, newParents);
 					}
@@ -341,12 +337,12 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newUnion = groups.getOrDefault(newGroupID, Collections.emptyMap());
 
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+							final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
 							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
@@ -382,12 +378,12 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newUnion = groups.getOrDefault(newGroupID, Collections.emptyMap());
 
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+							final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
 							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
@@ -422,7 +418,7 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
 						groupListener.onPersonChangeParents(GroupPanel.this, partner2Panel, newParents);
 					}
@@ -449,7 +445,7 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newParents = groups.getOrDefault(newGroupID, Collections.emptyMap());
 						groupListener.onPersonChangeParents(GroupPanel.this, partner2Panel, newParents);
 					}
@@ -475,12 +471,12 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newUnion = groups.get(newGroupID);
 
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+							final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
 							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
@@ -515,12 +511,12 @@ public class GroupPanel extends JPanel{
 								break;
 							}
 
-						final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 						final Map<String, Object> newUnion = groups.get(newGroupID);
 
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
-							final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+							final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
 							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
@@ -600,7 +596,7 @@ public class GroupPanel extends JPanel{
 
 	public void loadData(final Integer groupID){
 		final Map<String, Object> group = (groupID != null
-			? store.get(TABLE_NAME_GROUP).get(groupID)
+			? store.get(EntityManager.TABLE_NAME_GROUP).get(groupID)
 			: Collections.emptyMap());
 		loadData(group, Collections.emptyMap(), Collections.emptyMap());
 	}
@@ -636,7 +632,7 @@ public class GroupPanel extends JPanel{
 			}
 
 			if(partner1.isEmpty() || partner2.isEmpty()){
-				final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
+				final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
 
 				//extract the first two persons from the union:
 				if(!partner1.isEmpty())
@@ -697,10 +693,10 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Map<String, Object>> getGroupIDs(final Integer personID){
-		final TreeMap<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -814,9 +810,9 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return new ArrayList<>(getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return new ArrayList<>(getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
@@ -824,9 +820,9 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Integer> getUnionIDs(final Integer partnerID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -834,9 +830,9 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(adopteeID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
 				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
@@ -845,10 +841,10 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Map<String, Object>> extractChildren(final Integer unionID){
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))

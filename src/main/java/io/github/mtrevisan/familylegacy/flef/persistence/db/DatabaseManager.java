@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.db;
+package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
 import org.apache.commons.lang3.StringUtils;
 import org.h2.tools.RunScript;
@@ -419,12 +419,12 @@ public class DatabaseManager implements DatabaseManagerInterface{
 									continue;
 
 								final Matcher columnMatcher = ROW_DEFINITION_PATTERN.matcher(tableCreation);
-                     	while(defaultValue == null && columnMatcher.find()){
-                     		final String columnName = columnMatcher.group(1);
-                     		final String columnDefault = columnMatcher.group(2);
-                     		if(columnName.equalsIgnoreCase(foreignKeyColumn))
+								while(defaultValue == null && columnMatcher.find()){
+									final String columnName = columnMatcher.group(1);
+									final String columnDefault = columnMatcher.group(2);
+									if(columnName.equalsIgnoreCase(foreignKeyColumn))
 										defaultValue = columnDefault;
-                     	}
+								}
 							}
 						}
 						if(defaultValue == null)

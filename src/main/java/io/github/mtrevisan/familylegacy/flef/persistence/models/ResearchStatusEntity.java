@@ -39,7 +39,7 @@ import java.time.ZonedDateTime;
 
 @Entity(name = "research_status")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class ResearchStatusEntity{
+public class ResearchStatusEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "research_status_generator")
@@ -79,35 +79,24 @@ public class ResearchStatusEntity{
 	private ZonedDateTime creationDate;
 
 
+	@Override
 	public Long getID(){
 		return id;
 	}
 
+	@Override
 	public String getReferenceTable(){
 		return referenceTable;
 	}
 
+	@Override
 	public Long getReferenceID(){
 		return referenceID;
 	}
 
-	public void setReferencedEntity(final Object referencedEntity){
+	@Override
+	public void setReferencedEntity(final AbstractEntity referencedEntity){
 		this.referencedEntity = referencedEntity;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final ResearchStatusEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

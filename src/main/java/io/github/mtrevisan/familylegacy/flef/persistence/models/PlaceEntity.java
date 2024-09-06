@@ -41,7 +41,7 @@ import jakarta.persistence.UniqueConstraint;
 // Additional media can be attached.
 @Entity(name = "place")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class PlaceEntity{
+public class PlaceEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "place_generator")
@@ -90,23 +90,9 @@ public class PlaceEntity{
 	private String photoCrop;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final PlaceEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

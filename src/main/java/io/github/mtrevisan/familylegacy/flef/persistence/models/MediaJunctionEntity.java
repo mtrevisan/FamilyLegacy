@@ -37,7 +37,7 @@ import jakarta.persistence.Transient;
 
 
 @Entity(name = "media_junction")
-public class MediaJunctionEntity{
+public class MediaJunctionEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_junction_generator")
@@ -66,35 +66,24 @@ public class MediaJunctionEntity{
 	private String photoCrop;
 
 
+	@Override
 	public Long getID(){
 		return id;
 	}
 
+	@Override
 	public String getReferenceTable(){
 		return referenceTable;
 	}
 
+	@Override
 	public Long getReferenceID(){
 		return referenceID;
 	}
 
-	public void setReferencedEntity(final Object referencedEntity){
+	@Override
+	public void setReferencedEntity(final AbstractEntity referencedEntity){
 		this.referencedEntity = referencedEntity;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final MediaJunctionEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

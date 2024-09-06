@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
@@ -69,23 +69,23 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateEndID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateStartID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateEndID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateStartID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class CulturalNormDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -94,11 +94,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private static final long serialVersionUID = -3961030253095528462L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
-
-	private static final String TABLE_NAME = "cultural_norm";
-	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
-	private static final String TABLE_NAME_EVENT = "event";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -168,7 +163,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	public CulturalNormDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
 			if(selectedRecord == null)
 				mediaJunctions.remove(mediaJunctionID);
@@ -198,12 +193,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_CULTURAL_NORM;
 	}
 
 	@Override
-	protected String  getJunctionTableName(){
-		return TABLE_NAME_CULTURAL_NORM_JUNCTION;
+	protected String getJunctionTableName(){
+		return EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION;
 	}
 
 	@Override
@@ -241,15 +236,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		dateStartButton.setToolTipText("Start date");
 		dateStartButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		dateEndButton.setToolTipText("End date");
 		dateEndButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
@@ -257,19 +252,19 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.TABLE_NAME_CULTURAL_NORM, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
@@ -315,7 +310,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -357,33 +352,33 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+		final boolean hasEvents = (getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -406,8 +401,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(TABLE_NAME_CULTURAL_NORM_JUNCTION,
-				EntityManager::extractRecordCulturalNormID, culturalNormID);
+			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(
+				EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION, EntityManager::extractRecordCulturalNormID, culturalNormID);
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -576,7 +571,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "cultural_norm");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -585,7 +580,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "cultural_norm");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -613,7 +608,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 //			final CulturalNormDialog dialog = create(store, parent);
 			final CulturalNormDialog dialog = createShowOnly(store, parent)
-				.withReference("cultural_norm", 1);
+				.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, 1);
 			injector.injectDependencies(dialog);
 			dialog.loadData(1);
 //			if(!dialog.selectData(extractRecordID(culturalNorm)))
@@ -635,7 +630,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
-								.withReference(TABLE_NAME, culturalNormID);
+								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -662,10 +657,10 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, culturalNormID)
+								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CULTURAL_NORM);
 										insertRecordReferenceID(record, culturalNormID);
 									}
 								});
@@ -678,10 +673,10 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? MediaDialog.createSelectOnlyForMedia(store, parent)
 									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(TABLE_NAME, culturalNormID)
+								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CULTURAL_NORM);
 										insertRecordReferenceID(record, culturalNormID);
 									}
 								});
@@ -693,7 +688,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(store, parent)
 									: EventDialog.create(store, parent))
-								.withReference(TABLE_NAME, culturalNormID);
+								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();

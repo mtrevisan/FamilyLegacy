@@ -51,7 +51,7 @@ https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://elearn
 */
 @Entity(name = "cultural_norm")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class CulturalNormEntity{
+public class CulturalNormEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cultural_norm_generator")
@@ -91,23 +91,9 @@ public class CulturalNormEntity{
 	private CredibilityEnum credibility;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final CulturalNormEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

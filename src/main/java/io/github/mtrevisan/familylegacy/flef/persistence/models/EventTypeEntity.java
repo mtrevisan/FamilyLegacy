@@ -36,7 +36,7 @@ import jakarta.persistence.SequenceGenerator;
 
 
 @Entity(name = "event_type")
-public class EventTypeEntity{
+public class EventTypeEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "event_type_generator")
@@ -76,23 +76,9 @@ public class EventTypeEntity{
 	private String category;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final EventTypeEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

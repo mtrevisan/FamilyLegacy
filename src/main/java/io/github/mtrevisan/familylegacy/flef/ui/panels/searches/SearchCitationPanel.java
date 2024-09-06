@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -50,17 +50,17 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtract;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscriptionType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
 public class SearchCitationPanel extends CommonSearchPanel{
@@ -71,10 +71,6 @@ public class SearchCitationPanel extends CommonSearchPanel{
 	private static final int TABLE_INDEX_EXTRACT = 2;
 
 	private static final int TABLE_PREFERRED_WIDTH_EXTRACT = 250;
-
-	private static final String TABLE_NAME = "citation";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 
 
 	public static SearchCitationPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -96,7 +92,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_CITATION;
 	}
 
 	@Override
@@ -122,7 +118,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_CITATION);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -134,7 +130,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			final String extract = extractRecordExtract(container);
 			final String extractLocale = extractRecordExtractLocale(container);
 			final String extractType = extractRecordExtractType(container);
-			final List<Map<String, Object>> transcribedExtracts = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final List<Map<String, Object>> transcribedExtracts = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 			final FilterString filter = FilterString.create()
 				.add(key)
@@ -153,7 +149,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(extract, row, TABLE_INDEX_EXTRACT);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, extract));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_CITATION, filterData, extract));
 
 			row ++;
 		}
@@ -163,11 +159,11 @@ public class SearchCitationPanel extends CommonSearchPanel{
 	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT);
 		final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
 		records.forEach((key, value) -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-					&& TABLE_NAME.equals(extractRecordReferenceTable(value))
+					&& EntityManager.TABLE_NAME_CITATION.equals(extractRecordReferenceTable(value))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(value)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(value));
 				matchedRecords.add(localizedText);

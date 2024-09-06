@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -67,17 +68,17 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPriority;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordStatus;
 
 
 public final class ResearchStatusDialog extends CommonListDialog{
@@ -86,8 +87,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	private static final long serialVersionUID = 6258734190218776466L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
-
-	private static final String TABLE_NAME = "research_status";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -146,7 +145,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -209,7 +208,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());

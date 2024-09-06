@@ -40,7 +40,7 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity(name = "media")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class MediaEntity{
+public class MediaEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "media_generator")
@@ -76,23 +76,9 @@ public class MediaEntity{
 	private HistoricDateEntity date;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final MediaEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

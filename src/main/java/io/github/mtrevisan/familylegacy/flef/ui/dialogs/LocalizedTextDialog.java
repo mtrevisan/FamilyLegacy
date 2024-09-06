@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -61,22 +61,22 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscriptionType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocalizedTextID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordText;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordText;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscriptionType;
 
 
 public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -85,8 +85,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	private static final long serialVersionUID = 6171448434725755800L;
 
 	private static final int TABLE_INDEX_TEXT = 2;
-
-	private static final String TABLE_NAME = "localized_text";
 
 
 	private final JLabel textLabel = new JLabel("Text:");
@@ -161,7 +159,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	public LocalizedTextDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
 		Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
+			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION);
 			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
 			if(selectedRecord != null){
 				final Integer localizedTextID = extractRecordID(selectedRecord);
@@ -198,7 +196,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_LOCALIZED_TEXT;
 	}
 
 	@Override
@@ -268,9 +266,10 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT));
 		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedia = getFilteredRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable, filterReferenceID)
+			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable,
+					filterReferenceID)
 				.values().stream()
 				.filter(record -> filterReferenceType.equals(extractRecordReferenceType(record)))
 				.map(EntityManager::extractRecordReferenceID)
@@ -334,7 +333,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceTable == null){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 				EntityManager::extractRecordLocalizedTextID, localizedTextID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
@@ -448,7 +447,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedTextDialog dialog = createComplexText(store, parent)
-				.withReference("citation", 1, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+				.withReference(EntityManager.TABLE_NAME_CITATION, 1, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 //			final LocalizedTextDialog dialog = createSimpleText(store, parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))

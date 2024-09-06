@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
@@ -61,15 +61,15 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRestriction;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRestriction;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordUpdateDate;
 
 
 public abstract class CommonRecordDialog extends JDialog{
@@ -128,12 +128,6 @@ public abstract class CommonRecordDialog extends JDialog{
 		ICON_HEIGHT_DEFAULT);
 
 	protected static final Dimension MINIMUM_NOTE_TEXT_PREVIEW_SIZE = new Dimension(300, 150);
-
-	protected static final String TABLE_NAME_NOTE = "note";
-	protected static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	protected static final String TABLE_NAME_RESTRICTION = "restriction";
-	protected static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
-	private static final String TABLE_NAME_MODIFICATION = "modification";
 
 
 	//record components:
@@ -196,13 +190,13 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(TABLE_NAME_RESTRICTION));
+		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.TABLE_NAME_RESTRICTION));
 
 		if(evt.getStateChange() == ItemEvent.SELECTED){
 			if(recordRestriction != null)
 				insertRecordRestriction(recordRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
 			else{
-				final NavigableMap<Integer, Map<String, Object>> storeRestrictions = getRecords(TABLE_NAME_RESTRICTION);
+				final NavigableMap<Integer, Map<String, Object>> storeRestrictions = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
 				insertRecordID(newRestriction, extractNextRecordID(storeRestrictions));
@@ -387,10 +381,10 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String recordTableName = getTableName();
-		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(TABLE_NAME_MODIFICATION);
+		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(EntityManager.TABLE_NAME_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
-			final NavigableMap<Integer, Map<String, Object>> storeModifications = getRecords(TABLE_NAME_MODIFICATION);
+			final NavigableMap<Integer, Map<String, Object>> storeModifications = getRecords(EntityManager.TABLE_NAME_MODIFICATION);
 			final Map<String, Object> newModification = new HashMap<>();
 			insertRecordID(newModification, extractNextRecordID(storeModifications));
 			insertRecordReferenceTable(newModification, recordTableName);

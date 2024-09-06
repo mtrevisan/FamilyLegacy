@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -49,15 +50,15 @@ import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
 public class SearchRepositoryPanel extends CommonSearchPanel{
@@ -74,11 +75,6 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
-
-	private static final String TABLE_NAME = "repository";
-	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
-	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_PLACE = "place";
 
 
 	public static SearchRepositoryPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -103,7 +99,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_REPOSITORY;
 	}
 
 	@Override
@@ -130,8 +126,8 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_REPOSITORY);
+		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -163,7 +159,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			model.setValueAt(personName, row, TABLE_INDEX_PERSON);
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_REPOSITORY, filterData, identifier));
 
 			row ++;
 		}
@@ -171,7 +167,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 
 
 	private String extractFirstName(final Integer personID){
-		return getRecords(TABLE_NAME_PERSON_NAME)
+		return getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchRepositoryPanel::extractName)
@@ -180,9 +176,9 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
+		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		getRecords(TABLE_NAME_PERSON_NAME)
+		getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {

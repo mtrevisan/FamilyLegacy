@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -57,20 +57,20 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class SearchPersonPanel extends CommonSearchPanel{
@@ -87,15 +87,6 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
-
-	private static final String TABLE_NAME = "person";
-	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
-	private static final String TABLE_NAME_EVENT = "event";
-	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
-	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
-	private static final String TABLE_NAME_CALENDAR = "calendar";
-	private static final String TABLE_NAME_PLACE = "place";
 
 	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
@@ -124,7 +115,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_PERSON;
 	}
 
 	@Override
@@ -156,7 +147,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_PERSON);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -188,7 +179,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			model.setValueAt((personDeathYear != null? personDeathYear: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_YEAR);
 			model.setValueAt((personDeathPlace != null? personDeathPlace: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_PLACE);
 
-			tableData.add(new SearchAllRecord(personID, TABLE_NAME, filterData, personName));
+			tableData.add(new SearchAllRecord(personID, EntityManager.TABLE_NAME_PERSON, filterData, personName));
 
 			row ++;
 		}
@@ -196,7 +187,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 
 	private String extractFirstName(final Integer personID){
-		return getRecords(TABLE_NAME_PERSON_NAME)
+		return getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchPersonPanel::extractName)
@@ -205,9 +196,9 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(TABLE_NAME_LOCALIZED_PERSON_NAME);
+		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		getRecords(TABLE_NAME_PERSON_NAME)
+		getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
@@ -238,7 +229,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
@@ -254,7 +245,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
@@ -270,13 +261,12 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return getRecords(TABLE_NAME_EVENT)
+		return getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -296,7 +286,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(TABLE_NAME_EVENT_TYPE)
+		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)

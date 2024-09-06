@@ -37,7 +37,7 @@ import jakarta.persistence.Transient;
 
 
 @Entity(name = "localized_text_junction")
-public class LocalizedTextJunctionEntity{
+public class LocalizedTextJunctionEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "localized_text_junction_generator")
@@ -65,14 +65,17 @@ public class LocalizedTextJunctionEntity{
 	private Object referencedEntity;
 
 
+	@Override
 	public Long getID(){
 		return id;
 	}
 
+	@Override
 	public String getReferenceTable(){
 		return referenceTable;
 	}
 
+	@Override
 	public Long getReferenceID(){
 		return referenceID;
 	}
@@ -81,23 +84,9 @@ public class LocalizedTextJunctionEntity{
 		return referenceType;
 	}
 
-	public void setReferencedEntity(final Object referencedEntity){
+	@Override
+	public void setReferencedEntity(final AbstractEntity referencedEntity){
 		this.referencedEntity = referencedEntity;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final LocalizedTextJunctionEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

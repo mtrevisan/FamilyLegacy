@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -54,13 +55,13 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class CalendarDialog extends CommonListDialog{
@@ -69,10 +70,6 @@ public final class CalendarDialog extends CommonListDialog{
 	private static final long serialVersionUID = 9026792737072096011L;
 
 	private static final int TABLE_INDEX_TYPE = 2;
-
-	private static final String TABLE_NAME = "calendar";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
-	private static final String TABLE_NAME_EVENT = "event";
 
 
 	private final JLabel typeLabel = new JLabel("Type:");
@@ -119,7 +116,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_CALENDAR;
 	}
 
 	@Override
@@ -154,15 +151,15 @@ public final class CalendarDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_CALENDAR, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_CALENDAR, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.TABLE_NAME_CALENDAR, selectedRecord)));
 	}
 
 	@Override
@@ -184,7 +181,7 @@ public final class CalendarDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -220,21 +217,21 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(TABLE_NAME_EVENT)
+		final boolean hasEvents = (getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
@@ -336,7 +333,7 @@ public final class CalendarDialog extends CommonListDialog{
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "calendar");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -364,7 +361,7 @@ public final class CalendarDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
-								.withReference(TABLE_NAME, calendarID);
+								.withReference(EntityManager.TABLE_NAME_CALENDAR, calendarID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -373,10 +370,10 @@ public final class CalendarDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, calendarID)
+								.withReference(EntityManager.TABLE_NAME_CALENDAR, calendarID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CALENDAR);
 										insertRecordReferenceID(record, calendarID);
 									}
 								});
@@ -388,7 +385,7 @@ public final class CalendarDialog extends CommonListDialog{
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(store, parent)
 									: EventDialog.create(store, parent))
-								.withReference(TABLE_NAME, calendarID);
+								.withReference(EntityManager.TABLE_NAME_CALENDAR, calendarID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();

@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
@@ -67,20 +67,20 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCitationID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCitationID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
 public final class AssertionDialog extends CommonListDialog{
@@ -89,11 +89,6 @@ public final class AssertionDialog extends CommonListDialog{
 	private static final long serialVersionUID = -28220354680747790L;
 
 	private static final int TABLE_INDEX_REFERENCE_TABLE = 2;
-
-	private static final String TABLE_NAME = "assertion";
-	private static final String TABLE_NAME_CITATION = "citation";
-	private static final String TABLE_NAME_SOURCE = "source";
-	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 
 
 	private final JLabel roleLabel = new JLabel("Role:");
@@ -159,7 +154,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_ASSERTION;
 	}
 
 	@Override
@@ -197,15 +192,15 @@ public final class AssertionDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_ASSERTION, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_ASSERTION, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.TABLE_NAME_ASSERTION, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -235,8 +230,8 @@ public final class AssertionDialog extends CommonListDialog{
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(TABLE_NAME)
-			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
+			? getRecords(EntityManager.TABLE_NAME_ASSERTION)
+			: getFilteredRecords(EntityManager.TABLE_NAME_ASSERTION, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -283,27 +278,27 @@ public final class AssertionDialog extends CommonListDialog{
 		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+		final boolean hasCulturalNorms = (getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -354,7 +349,7 @@ public final class AssertionDialog extends CommonListDialog{
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedAssertionRecord = getRecords(TABLE_NAME).get(recordID);
+				final Map<String, Object> updatedAssertionRecord = getRecords(EntityManager.TABLE_NAME_ASSERTION).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
 				final String referenceTable = extractRecordReferenceTable(updatedAssertionRecord);
@@ -383,7 +378,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> citations = getRecords(TABLE_NAME_CITATION);
+		final Map<Integer, Map<String, Object>> citations = getRecords(EntityManager.TABLE_NAME_CITATION);
 		final Map<String, Object> citation = citations.get(citationID);
 		if(citation == null)
 			return null;
@@ -396,7 +391,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> citations = getRecords(TABLE_NAME_CITATION);
+		final Map<Integer, Map<String, Object>> citations = getRecords(EntityManager.TABLE_NAME_CITATION);
 		final Map<String, Object> citation = citations.get(citationID);
 		if(citation == null)
 			return null;
@@ -405,7 +400,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(sourceID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> sources = getRecords(TABLE_NAME_SOURCE);
+		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.TABLE_NAME_SOURCE);
 		final Map<String, Object> source = sources.get(sourceID);
 		if(source == null)
 			return null;
@@ -505,7 +500,7 @@ public final class AssertionDialog extends CommonListDialog{
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "assertion");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 		final Map<String, Object> note3 = new HashMap<>();
@@ -526,7 +521,7 @@ public final class AssertionDialog extends CommonListDialog{
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "assertion");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -534,14 +529,14 @@ public final class AssertionDialog extends CommonListDialog{
 		store.put("modification", modifications);
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("id", 1);
-		modification1.put("reference_table", TABLE_NAME);
+		modification1.put("reference_table", "assertion");
 		modification1.put("reference_id", 1);
 		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		modifications.put((Integer)modification1.get("id"), modification1);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("id", 2);
-		modification2.put("reference_table", TABLE_NAME);
+		modification2.put("reference_table", "assertion");
 		modification2.put("reference_id", 1);
 		modification2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
@@ -629,10 +624,10 @@ public final class AssertionDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, assertionID)
+								.withReference(EntityManager.TABLE_NAME_ASSERTION, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_ASSERTION);
 										insertRecordReferenceID(record, assertionID);
 									}
 								});
@@ -645,10 +640,10 @@ public final class AssertionDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(store, parent)
 									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(TABLE_NAME, assertionID)
+								.withReference(EntityManager.TABLE_NAME_ASSERTION, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_ASSERTION);
 										insertRecordReferenceID(record, assertionID);
 									}
 								});
@@ -658,10 +653,10 @@ public final class AssertionDialog extends CommonListDialog{
 						}
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
-								.withReference(TABLE_NAME, assertionID)
+								.withReference(EntityManager.TABLE_NAME_ASSERTION, assertionID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_ASSERTION);
 										insertRecordReferenceID(record, assertionID);
 									}
 								});

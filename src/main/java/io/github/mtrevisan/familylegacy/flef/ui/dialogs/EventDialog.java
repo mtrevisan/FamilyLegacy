@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
@@ -66,20 +66,20 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTypeID;
 
 
 public final class EventDialog extends CommonListDialog{
@@ -88,10 +88,6 @@ public final class EventDialog extends CommonListDialog{
 	private static final long serialVersionUID = 1136825738944999745L;
 
 	private static final int TABLE_INDEX_TYPE = 2;
-
-	private static final String TABLE_NAME = "event";
-	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
-	private static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
 
 	//NOTE: em dash `—`
 	private static final String MENU_SEPARATOR = "\u2014";
@@ -211,7 +207,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_EVENT;
 	}
 
 	@Override
@@ -244,13 +240,13 @@ public final class EventDialog extends CommonListDialog{
 		GUIHelper.bindLabelSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
 		addTypeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT_TYPE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT_TYPE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
 		removeTypeButton.addActionListener(evt -> {
 			//remove selected item from `typeComboBox`
 			final String type = GUIHelper.getTextTrimmed(typeComboBox);
 			if(type != null && (!type.startsWith(MENU_SEPARATOR_START) || !type.endsWith(MENU_SEPARATOR_END))){
 				//remove data from store
-				getRecords(TABLE_NAME_EVENT_TYPE)
+				getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
 					.values()
 					.removeIf(entry -> Objects.equals(type, extractRecordType(entry)));
 
@@ -263,20 +259,20 @@ public final class EventDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
 
 		dateButton.setToolTipText("Event date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -307,9 +303,9 @@ public final class EventDialog extends CommonListDialog{
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(TABLE_NAME)
-			: getFilteredRecords(TABLE_NAME, filterReferenceTable, filterReferenceID));
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+			? getRecords(EntityManager.TABLE_NAME_EVENT)
+			: getFilteredRecords(EntityManager.TABLE_NAME_EVENT, filterReferenceTable, filterReferenceID));
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -344,7 +340,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
 
 		final Integer eventID = extractRecordID(selectedRecord);
 		final Integer typeID = extractRecordTypeID(selectedRecord);
@@ -352,21 +348,21 @@ public final class EventDialog extends CommonListDialog{
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -420,7 +416,7 @@ public final class EventDialog extends CommonListDialog{
 
 		//read record panel:
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
-		final Integer typeID = getRecords(TABLE_NAME_EVENT_TYPE)
+		final Integer typeID = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(type, extractRecordType(entry)))
 			.findFirst()
@@ -564,7 +560,7 @@ public final class EventDialog extends CommonListDialog{
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "event");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -573,7 +569,7 @@ public final class EventDialog extends CommonListDialog{
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "event");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -640,10 +636,10 @@ public final class EventDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, eventID)
+								.withReference(EntityManager.TABLE_NAME_EVENT, eventID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_EVENT);
 										insertRecordReferenceID(record, eventID);
 									}
 								});
@@ -656,10 +652,10 @@ public final class EventDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(store, parent)
 									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(TABLE_NAME, eventID)
+								.withReference(EntityManager.TABLE_NAME_EVENT, eventID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_EVENT);
 										insertRecordReferenceID(record, eventID);
 									}
 								});
@@ -673,7 +669,8 @@ public final class EventDialog extends CommonListDialog{
 								.withOnCloseGracefully(record -> {
 									final String newType = extractRecordType(record);
 									final Integer superTypeID = extractRecordSuperTypeID(record);
-									final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(TABLE_NAME_EVENT_SUPER_TYPE, store);
+									final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(
+										EntityManager.TABLE_NAME_EVENT_SUPER_TYPE, store);
 									final String superTypeMenuItemText = MENU_SEPARATOR_START
 										+ extractRecordSuperType(storeEventSuperTypes.get(superTypeID))
 										+ MENU_SEPARATOR_END;

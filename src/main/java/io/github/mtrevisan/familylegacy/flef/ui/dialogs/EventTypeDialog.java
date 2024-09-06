@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -56,23 +56,20 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSuperTypeID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordSuperTypeID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordSuperTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class EventTypeDialog extends CommonRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 8998243615466495079L;
-
-	private static final String TABLE_NAME = "event_type";
-	private static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
 
 
 	private final JLabel superTypeLabel = new JLabel("Super type:");
@@ -109,7 +106,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_EVENT_TYPE;
 	}
 
 	@Override
@@ -152,7 +149,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 	public void loadData(final Integer eventID){
-		final Map<String, Object> record = store.get(TABLE_NAME)
+		final Map<String, Object> record = store.get(EntityManager.TABLE_NAME_EVENT_TYPE)
 			.get(eventID);
 		final String capitalizedTableName = StringUtils.capitalize(getTableName());
 		setTitle((eventID != null? capitalizedTableName + " ID " + eventID: StringHelper.pluralize(capitalizedTableName)));
@@ -206,7 +203,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 	@Override
 	protected void fillData(){
-		final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(TABLE_NAME_EVENT_SUPER_TYPE);
+		final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(EntityManager.TABLE_NAME_EVENT_SUPER_TYPE);
 		final Integer superTypeID = extractRecordSuperTypeID(selectedRecord);
 		final String superType = (superTypeID != null? extractRecordSuperType(storeEventSuperTypes.get(superTypeID)): null);
 		final String type = extractRecordType(selectedRecord);
@@ -257,7 +254,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 		//read record panel:
 		final String superType = GUIHelper.getTextTrimmed(superTypeComboBox);
-		final Integer superTypeID = getRecords(TABLE_NAME_EVENT_SUPER_TYPE)
+		final Integer superTypeID = getRecords(EntityManager.TABLE_NAME_EVENT_SUPER_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(superType, extractRecordSuperType(entry)))
 			.findFirst()

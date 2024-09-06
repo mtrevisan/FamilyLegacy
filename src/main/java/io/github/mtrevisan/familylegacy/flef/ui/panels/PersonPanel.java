@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
@@ -88,24 +88,24 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoID;
 
 
 public class PersonPanel extends JPanel implements PropertyChangeListener{
@@ -144,17 +144,6 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
 	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
-
-	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_PERSON_NAME = "person_name";
-	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
-	private static final String TABLE_NAME_CALENDAR = "calendar";
-	private static final String TABLE_NAME_PLACE = "place";
-	private static final String TABLE_NAME_EVENT = "event";
-	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
-	private static final String TABLE_NAME_GROUP = "group";
-	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
-	private static final String TABLE_NAME_MEDIA = "media";
 
 	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
@@ -272,7 +261,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 								insertRecordPhotoID(person, null);
 								insertRecordPhotoCrop(person, null);
 
-								getRecords(TABLE_NAME_MEDIA)
+								getRecords(EntityManager.TABLE_NAME_MEDIA)
 									.remove(photoID);
 
 								imageLabel.setIcon(ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
@@ -378,7 +367,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	public void loadData(final Integer personID){
 		final Map<String, Object> person = (personID != null
-			? store.get(TABLE_NAME_PERSON).get(personID)
+			? store.get(EntityManager.TABLE_NAME_PERSON).get(personID)
 			: Collections.emptyMap());
 
 		prepareData(person);
@@ -449,7 +438,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Integer photoID = extractRecordPhotoID(person);
 		if(photoID != null){
 			//recover image URI
-			final TreeMap<Integer, Map<String, Object>> media = getRecords(TABLE_NAME_MEDIA);
+			final TreeMap<Integer, Map<String, Object>> media = getRecords(EntityManager.TABLE_NAME_MEDIA);
 			final Map<String, Object> md = media.get(photoID);
 			if(md == null)
 				LOGGER.error("Cannot find media ID {}", photoID);
@@ -473,7 +462,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			return;
 
 		final boolean hasData = !person.isEmpty();
-		final boolean hasPersons = !getRecords(TABLE_NAME_PERSON).isEmpty();
+		final boolean hasPersons = !getRecords(EntityManager.TABLE_NAME_PERSON).isEmpty();
 		final boolean hasParentGroup = hasParentGroup(person);
 		final boolean hasSiblingGroup = hasSiblingGroup(person);
 		editPersonItem.setEnabled(hasData);
@@ -487,7 +476,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private String extractIdentifier(final Integer selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		getRecords(TABLE_NAME_PERSON_NAME)
+		getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
 			.values().stream()
 			.filter(record -> Objects.equals(selectedRecordID, extractRecordPersonID(record)))
 			.forEach(record -> identifier.add(extractName(record)));
@@ -508,20 +497,20 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
 			//prefer biological family
-			final List<Integer> parentsIDs = getParentsIDs(childID, "child");
+			final List<Integer> parentsIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_CHILD);
 			if(parentsIDs.size() > 1)
 				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
 			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
 			if(parentsID != null){
-				final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+				final Map<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 				hasParentGroup = groups.containsKey(parentsID);
 			}
 			else{
 				//prefer first adopting family
-				final List<Integer> unionIDs = getParentsIDs(childID, "adoptee");
+				final List<Integer> unionIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_ADOPTEE);
 				if(!unionIDs.isEmpty()){
-					final Map<Integer, Map<String, Object>> groups = getRecords(TABLE_NAME_GROUP);
+					final Map<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
 					hasParentGroup = groups.containsKey(unionIDs.getFirst());
 				}
 			}
@@ -530,9 +519,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private List<Integer> getParentsIDs(final Integer personID, final String personRole){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -541,9 +530,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private boolean hasSiblingGroup(final Map<String, Object> partner){
 		final Integer partnerID = extractRecordID(partner);
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
 			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
@@ -618,8 +607,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Map<String, Object> extractEarliestBirthDateAndPlace(final Integer personID){
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
+		final TreeMap<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
@@ -637,8 +626,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Map<String, Object> extractLatestDeathDateAndPlace(final Integer personID){
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
+		final TreeMap<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
@@ -657,13 +646,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(TABLE_NAME_CALENDAR);
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> calendars = getRecords(EntityManager.TABLE_NAME_CALENDAR);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return getRecords(TABLE_NAME_EVENT)
+		return getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -683,7 +672,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(TABLE_NAME_EVENT_TYPE)
+		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)

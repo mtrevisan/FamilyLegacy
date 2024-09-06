@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -55,28 +56,23 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCopyright;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordUpdateDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCopyright;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolVersion;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolVersion;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordUpdateDate;
 
 
 public final class ProjectDialog extends CommonRecordDialog implements TextPreviewListenerInterface{
 
 	@Serial
 	private static final long serialVersionUID = -3776676890876630508L;
-
-	private static final String TABLE_NAME = "project";
-
-	public static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
-	public static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
 
 
 	private final JLabel copyrightLabel = new JLabel("Copyright:");
@@ -107,7 +103,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_PROJECT;
 	}
 
 	@Override
@@ -137,7 +133,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	public void loadData(){
-		final Map<String, Object> record = getRecords(TABLE_NAME)
+		final Map<String, Object> record = getRecords(EntityManager.TABLE_NAME_PROJECT)
 			.get(1);
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
@@ -185,8 +181,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String locale = GUIHelper.getTextTrimmed(localeField);
 		final String updateDate = extractRecordUpdateDate(selectedRecord);
 
-		insertRecordProtocolName(selectedRecord, PROTOCOL_NAME_DEFAULT);
-		insertRecordProtocolVersion(selectedRecord, PROTOCOL_VERSION_DEFAULT);
+		insertRecordProtocolName(selectedRecord, EntityManager.PROTOCOL_NAME_DEFAULT);
+		insertRecordProtocolVersion(selectedRecord, EntityManager.PROTOCOL_VERSION_DEFAULT);
 		insertRecordCopyright(selectedRecord, copyright);
 		insertRecordNote(selectedRecord, note);
 		insertRecordLocale(selectedRecord, locale);
@@ -218,8 +214,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		store.put("project", projects);
 		final Map<String, Object> project = new HashMap<>();
 		project.put("id", 1);
-		project.put("protocol_name", PROTOCOL_NAME_DEFAULT);
-		project.put("protocol_version", PROTOCOL_VERSION_DEFAULT);
+		project.put("protocol_name", EntityManager.PROTOCOL_NAME_DEFAULT);
+		project.put("protocol_version", EntityManager.PROTOCOL_VERSION_DEFAULT);
 		project.put("copyright", "(c) 2024");
 		project.put("note", "some notes");
 		project.put("locale", "en-US");

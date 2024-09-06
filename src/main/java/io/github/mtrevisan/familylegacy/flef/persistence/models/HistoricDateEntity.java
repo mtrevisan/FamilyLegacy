@@ -39,7 +39,7 @@ import jakarta.persistence.SequenceGenerator;
 
 //https://en.wikipedia.org/wiki/ISO_8601
 @Entity(name = "historic_date")
-public class HistoricDateEntity{
+public class HistoricDateEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "historic_date_generator")
@@ -70,23 +70,9 @@ public class HistoricDateEntity{
 	private CredibilityEnum credibility;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final HistoricDateEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -46,13 +47,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
 public class SearchSourcePanel extends CommonSearchPanel{
@@ -70,11 +71,6 @@ public class SearchSourcePanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
 	private static final int TABLE_PREFERRED_WIDTH_PLACE = 250;
 	private static final int TABLE_PREFERRED_WIDTH_YEAR = 43;
-
-	private static final String TABLE_NAME = "source";
-	private static final String TABLE_NAME_PLACE = "place";
-	private static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
-	private static final String TABLE_NAME_CALENDAR = "calendar";
 
 
 	public static SearchSourcePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -99,7 +95,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_SOURCE;
 	}
 
 	@Override
@@ -127,9 +123,9 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
-		final Map<Integer, Map<String, Object>> places = getRecords(TABLE_NAME_PLACE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_SOURCE);
+		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -165,7 +161,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 			model.setValueAt(year, row, TABLE_INDEX_DATE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_SOURCE, filterData, identifier));
 
 			row ++;
 		}

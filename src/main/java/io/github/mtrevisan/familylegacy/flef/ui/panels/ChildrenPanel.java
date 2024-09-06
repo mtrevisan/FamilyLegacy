@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
@@ -51,14 +51,14 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTypeID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class ChildrenPanel extends JPanel{
@@ -74,13 +74,6 @@ public class ChildrenPanel extends JPanel{
 
 	private static final int CHILD_SEPARATION = 15;
 	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION;
-
-	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
-	private static final String TABLE_NAME_EVENT = "event";
-	private static final String TABLE_NAME_EVENT_TYPE = "event_type";
-
-	private static final String EVENT_TYPE_CATEGORY_ADOPTION = "adoption";
 
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
@@ -215,11 +208,11 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<Integer> extractAdoptionEventIDs(){
-		final Map<Integer, Map<String, Object>> eventTypes = getRecords(TABLE_NAME_EVENT_TYPE);
-		final Set<String> eventTypesAdoptions = getEventTypes(EVENT_TYPE_CATEGORY_ADOPTION);
-		return getRecords(TABLE_NAME_EVENT)
+		final Map<Integer, Map<String, Object>> eventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+		final Set<String> eventTypesAdoptions = getEventTypes(EntityManager.EVENT_TYPE_CATEGORY_ADOPTION);
+		return getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
@@ -230,19 +223,19 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private boolean hasUnion(final Integer childID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
 			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
@@ -271,7 +264,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(TABLE_NAME_EVENT_TYPE)
+		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)
@@ -406,7 +399,7 @@ public class ChildrenPanel extends JPanel{
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "adoption");
-		eventType1.put("category", EVENT_TYPE_CATEGORY_ADOPTION);
+		eventType1.put("category", "adoption");
 		eventTypes.put((Integer)eventType1.get("id"), eventType1);
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){

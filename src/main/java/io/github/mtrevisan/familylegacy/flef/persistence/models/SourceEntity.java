@@ -40,7 +40,7 @@ import jakarta.persistence.UniqueConstraint;
 //https://www.evidenceexplained.com/content/sample-quickcheck-models
 @Entity(name = "source")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class SourceEntity{
+public class SourceEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "source_generator")
@@ -92,23 +92,9 @@ public class SourceEntity{
 	private String location;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final SourceEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

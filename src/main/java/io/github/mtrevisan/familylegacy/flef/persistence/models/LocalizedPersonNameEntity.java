@@ -36,7 +36,7 @@ import jakarta.persistence.SequenceGenerator;
 
 
 @Entity(name = "localized_person_name")
-public class LocalizedPersonNameEntity{
+public class LocalizedPersonNameEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "localized_person_name_generator")
@@ -75,23 +75,9 @@ public class LocalizedPersonNameEntity{
 	private PersonNameEntity personName;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final LocalizedPersonNameEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

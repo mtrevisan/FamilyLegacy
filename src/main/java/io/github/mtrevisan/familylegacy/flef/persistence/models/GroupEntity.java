@@ -36,7 +36,7 @@ import jakarta.persistence.SequenceGenerator;
 
 
 @Entity(name = "group")
-public class GroupEntity{
+public class GroupEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "group_generator")
@@ -58,23 +58,9 @@ public class GroupEntity{
 	private String photoCrop;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final GroupEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

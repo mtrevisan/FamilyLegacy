@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 
@@ -43,8 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
 
 
 public class SearchNotePanel extends CommonSearchPanel{
@@ -53,8 +54,6 @@ public class SearchNotePanel extends CommonSearchPanel{
 	private static final long serialVersionUID = 3256683988706664072L;
 
 	private static final int TABLE_INDEX_NOTE = 2;
-
-	private static final String TABLE_NAME = "note";
 
 
 	public static SearchNotePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -69,7 +68,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_NOTE;
 	}
 
 	@Override
@@ -95,7 +94,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_NOTE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -116,7 +115,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, note));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_NOTE, filterData, note));
 
 			row ++;
 		}

@@ -22,12 +22,45 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.db;
+package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
 import java.util.Map;
 
 
 public class EntityManager{
+
+	public static final String TABLE_NAME_NOTE = "note";
+	public static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
+	public static final String TABLE_NAME_RESTRICTION = "restriction";
+	public static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
+	public static final String TABLE_NAME_MODIFICATION = "modification";
+	public static final String TABLE_NAME_ASSERTION = "assertion";
+	public static final String TABLE_NAME_CITATION = "citation";
+	public static final String TABLE_NAME_SOURCE = "source";
+	public static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
+	public static final String TABLE_NAME_CULTURAL_NORM = "cultural_norm";
+	public static final String TABLE_NAME_EVENT = "event";
+	public static final String TABLE_NAME_EVENT_TYPE = "event_type";
+	public static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
+	public static final String TABLE_NAME_GROUP = "group";
+	public static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
+	public static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
+	public static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
+	public static final String TABLE_NAME_CALENDAR = "calendar";
+	public static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
+	public static final String TABLE_NAME_MEDIA = "media";
+	public static final String TABLE_NAME_PERSON = "person";
+	public static final String TABLE_NAME_PERSON_NAME = "person_name";
+	public static final String TABLE_NAME_PLACE = "place";
+	public static final String TABLE_NAME_REPOSITORY = "repository";
+	public static final String TABLE_NAME_RESEARCH_STATUS = "research_status";
+	public static final String TABLE_NAME_PROJECT = "project";
+
+	public static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
+	public static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
+
+	public static final String MEDIA_TYPE_LINK = "link";
+	public static final String MEDIA_TYPE_PHOTO = "photo";
 
 	public static final String GROUP_ROLE_PARTNER = "partner";
 	public static final String GROUP_ROLE_CHILD = "child";
@@ -38,6 +71,8 @@ public class EntityManager{
 
 	public static final String RESTRICTION_CONFIDENTIAL = "confidential";
 	public static final String RESTRICTION_PUBLIC = "public";
+
+	public static final String EVENT_TYPE_CATEGORY_ADOPTION = "adoption";
 
 
 	private EntityManager(){}

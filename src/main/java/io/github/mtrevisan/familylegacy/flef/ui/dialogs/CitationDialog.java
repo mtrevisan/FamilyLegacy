@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -61,21 +61,21 @@ import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.function.Consumer;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtract;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordExtractType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordSourceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtract;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class CitationDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -84,10 +84,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private static final long serialVersionUID = -7601387139021862486L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
-
-	private static final String TABLE_NAME = "citation";
-	private static final String TABLE_NAME_SOURCE = "source";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
 
 
 	private final JLabel locationLabel = new JLabel("Location:");
@@ -162,7 +158,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_CITATION;
 	}
 
 	@Override
@@ -202,24 +198,24 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, TABLE_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
 	}
 
 	@Override
@@ -252,7 +248,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(TABLE_NAME));
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.TABLE_NAME_CITATION));
 		if(filterSourceID != null)
 			records.values()
 				.removeIf(entry -> !filterSourceID.equals(extractRecordSourceID(entry)));
@@ -303,35 +299,35 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final boolean hasTranscribedExtracts = (getRecords(TABLE_NAME_LOCALIZED_TEXT_JUNCTION)
+		final boolean hasTranscribedExtracts = (getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT, extractRecordReferenceType(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasNotes = (getRecords(TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasAssertions = (getRecords(TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(TABLE_NAME, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
@@ -398,7 +394,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedCitationRecord = getRecords(TABLE_NAME).get(recordID);
+				final Map<String, Object> updatedCitationRecord = getRecords(EntityManager.TABLE_NAME_CITATION).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
@@ -432,7 +428,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		if(sourceID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> sources = getRecords(TABLE_NAME_SOURCE);
+		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.TABLE_NAME_SOURCE);
 		final Map<String, Object> source = sources.get(sourceID);
 		if(source == null)
 			return null;
@@ -530,7 +526,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", TABLE_NAME);
+		note2.put("reference_table", "citation");
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
@@ -539,7 +535,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", TABLE_NAME);
+		restriction1.put("reference_table", "citation");
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
@@ -567,10 +563,10 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					switch(editCommand.getType()){
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(TABLE_NAME, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
+								.withReference(EntityManager.TABLE_NAME_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -582,10 +578,10 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(store, parent)
 									: NoteDialog.create(store, parent))
-								.withReference(TABLE_NAME, citationID)
+								.withReference(EntityManager.TABLE_NAME_CITATION, citationID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -598,10 +594,10 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									? MediaDialog.createSelectOnlyForMedia(store, parent)
 									: MediaDialog.createForMedia(store, parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(TABLE_NAME, citationID)
+								.withReference(EntityManager.TABLE_NAME_CITATION, citationID)
 								.withOnCloseGracefully(record -> {
 									if(record != null){
-										insertRecordReferenceTable(record, TABLE_NAME);
+										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -613,7 +609,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
-								.withReference(TABLE_NAME, citationID);
+								.withReference(EntityManager.TABLE_NAME_CITATION, citationID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();

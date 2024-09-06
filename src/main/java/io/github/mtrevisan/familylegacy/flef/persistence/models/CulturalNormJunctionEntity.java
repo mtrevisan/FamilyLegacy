@@ -39,7 +39,7 @@ import jakarta.persistence.Transient;
 
 
 @Entity(name = "cultural_norm_junction")
-public class CulturalNormJunctionEntity{
+public class CulturalNormJunctionEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cultural_norm_junction_generator")
@@ -71,35 +71,24 @@ public class CulturalNormJunctionEntity{
 	private CredibilityEnum credibility;
 
 
+	@Override
 	public Long getID(){
 		return id;
 	}
 
+	@Override
 	public String getReferenceTable(){
 		return referenceTable;
 	}
 
+	@Override
 	public Long getReferenceID(){
 		return referenceID;
 	}
 
-	public void setReferencedEntity(final Object referencedEntity){
+	@Override
+	public void setReferencedEntity(final AbstractEntity referencedEntity){
 		this.referencedEntity = referencedEntity;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final CulturalNormJunctionEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

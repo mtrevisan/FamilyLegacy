@@ -33,7 +33,7 @@ import jakarta.persistence.SequenceGenerator;
 
 
 @Entity(name = "localized_text")
-public class LocalizedTextEntity{
+public class LocalizedTextEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "localized_text_generator")
@@ -63,23 +63,9 @@ public class LocalizedTextEntity{
 	private String transcriptionType;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final LocalizedTextEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;
@@ -53,34 +53,23 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordGroupID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordGroupID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
 public final class MainFrame extends JFrame implements GroupListenerInterface, PersonListenerInterface{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
-
-	private static final String TABLE_NAME_PERSON = "person";
-	private static final String TABLE_NAME_GROUP = "group";
-	private static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
-	private static final String TABLE_NAME_ASSERTION = "assertion";
-	private static final String TABLE_NAME_NOTE = "note";
-	private static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	private static final String TABLE_NAME_MEDIA = "media";
-	private static final String TABLE_NAME_EVENT = "event";
-	private static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
-	private static final String TABLE_NAME_RESTRICTION = "restriction";
 
 
 	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
@@ -120,10 +109,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	private List<Map<String, Object>> extractChildren(final Integer unionID){
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(TABLE_NAME_PERSON);
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
@@ -164,15 +153,15 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					}
 
 					final Integer groupID = extractRecordID(record);
-					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+					final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION);
 					final Map<String, Object> partner1Person = partner1.getPerson();
 					if(!partner1Person.isEmpty()){
 						final Map<String, Object> groupJunction = new HashMap<>();
 						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 						insertRecordGroupID(groupJunction, groupID);
-						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 						insertRecordReferenceID(groupJunction, extractRecordID(partner1Person));
-						insertRecordRole(groupJunction, "partner");
+						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					final Map<String, Object> partner2Person = partner2.getPerson();
@@ -180,18 +169,18 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Map<String, Object> groupJunction = new HashMap<>();
 						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 						insertRecordGroupID(groupJunction, groupID);
-						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 						insertRecordReferenceID(groupJunction, extractRecordID(partner2Person));
-						insertRecordRole(groupJunction, "partner");
+						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					for(final PersonPanel child : children){
 						final Map<String, Object> groupJunction = new HashMap<>();
 						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 						insertRecordGroupID(groupJunction, groupID);
-						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 						insertRecordReferenceID(groupJunction, extractRecordID(child.getPerson()));
-						insertRecordRole(groupJunction, "child");
+						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_CHILD);
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 
@@ -230,35 +219,35 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final Integer groupID = extractRecordID(group);
 		//remove group
-		getRecords(TABLE_NAME_GROUP)
+		getRecords(EntityManager.TABLE_NAME_GROUP)
 			.remove(groupID);
 		//remove group associates
-		getRecords(TABLE_NAME_GROUP_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values()
 			.removeIf(entry -> Objects.equals(groupID, extractRecordGroupID(entry)));
-		getRecords(TABLE_NAME_ASSERTION)
+		getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_NOTE)
+		getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_EVENT)
+		getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_CULTURAL_NORM_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_RESTRICTION)
+		getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_GROUP.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(groupID, extractRecordReferenceID(entry)));
 
 		treePanel.refresh();
@@ -339,13 +328,13 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Map<String, Object> currentParents = treeUnionPanel.getUnion();
 						final Integer unionID = extractRecordID(currentParents);
 
-						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION);
 						final Map<String, Object> groupJunction = new HashMap<>();
 						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 						insertRecordGroupID(groupJunction, unionID);
-						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 						insertRecordReferenceID(groupJunction, extractRecordID(record));
-						insertRecordRole(groupJunction, "child");
+						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_CHILD);
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 					}
 					else{
@@ -358,21 +347,21 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						}
 						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
 
-						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(TABLE_NAME_GROUP_JUNCTION);
+						final TreeMap<Integer, Map<String, Object>> groupJunctions = getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION);
 						Map<String, Object> groupJunction = new HashMap<>();
 						insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 						insertRecordGroupID(groupJunction, unionID);
-						insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+						insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 						insertRecordReferenceID(groupJunction, extractRecordID(record));
-						insertRecordRole(groupJunction, "partner");
+						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
 						groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 						for(final Integer partnerID : partnerIDs){
 							groupJunction = new HashMap<>();
 							insertRecordID(groupJunction, extractNextRecordID(groupJunctions));
 							insertRecordGroupID(groupJunction, unionID);
-							insertRecordReferenceTable(groupJunction, TABLE_NAME_PERSON);
+							insertRecordReferenceTable(groupJunction, EntityManager.TABLE_NAME_PERSON);
 							insertRecordReferenceID(groupJunction, partnerID);
-							insertRecordRole(groupJunction, "partner");
+							insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
 							groupJunctions.put(extractRecordID(groupJunction), groupJunction);
 						}
 					}
@@ -386,9 +375,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
@@ -396,9 +385,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer childID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> Objects.equals(TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
 				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
@@ -413,32 +402,32 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final Integer personID = extractRecordID(person);
 		//remove person
-		getRecords(TABLE_NAME_GROUP)
+		getRecords(EntityManager.TABLE_NAME_GROUP)
 			.remove(personID);
 		//remove person associates
-		getRecords(TABLE_NAME_GROUP_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_ASSERTION)
+		getRecords(EntityManager.TABLE_NAME_ASSERTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_NOTE)
+		getRecords(EntityManager.TABLE_NAME_NOTE)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_MEDIA_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_EVENT)
+		getRecords(EntityManager.TABLE_NAME_EVENT)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
-		getRecords(TABLE_NAME_RESTRICTION)
+		getRecords(EntityManager.TABLE_NAME_RESTRICTION)
 			.values()
-			.removeIf(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+			.removeIf(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
 
 		treePanel.refresh();
@@ -466,20 +455,20 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final Integer personID = extractRecordID(person);
 		//remove person from union
-		getRecords(TABLE_NAME_GROUP_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values()
 			.removeIf(entry -> unionID.equals(extractRecordGroupID(entry))
-				&& "child".equals(extractRecordRole(entry))
-				&& TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& EntityManager.GROUP_ROLE_CHILD.equals(extractRecordRole(entry))
+				&& EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
 
 		treePanel.refresh();
 	}
 
 	private List<Integer> getGroupIDs(final Integer personID){
-		return getRecords(TABLE_NAME_GROUP_JUNCTION)
+		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(entry -> TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -506,11 +495,11 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final Integer personID = extractRecordID(person);
 		//remove person from union
-		getRecords(TABLE_NAME_GROUP_JUNCTION)
+		getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values()
 			.removeIf(entry -> unionID.equals(extractRecordGroupID(entry))
-				&& "partner".equals(extractRecordRole(entry))
-				&& TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
+				&& EntityManager.GROUP_ROLE_PARTNER.equals(extractRecordRole(entry))
+				&& EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry))
 				&& Objects.equals(personID, extractRecordReferenceID(entry)));
 
 		treePanel.refresh();
@@ -525,7 +514,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final MediaDialog photoDialog = MediaDialog.createForPhoto(store, this)
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
-			.withReference(TABLE_NAME_PERSON, personID)
+			.withReference(EntityManager.TABLE_NAME_PERSON, personID)
 			.withOnCloseGracefully(record -> {
 				if(record != null){
 					final Integer newPhotoID = extractRecordID(record);

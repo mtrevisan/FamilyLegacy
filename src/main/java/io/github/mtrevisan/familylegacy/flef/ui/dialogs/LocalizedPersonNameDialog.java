@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -58,20 +58,20 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonNameID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTranscriptionType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTranscriptionType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordFamilyName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonalName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class LocalizedPersonNameDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -80,8 +80,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private static final long serialVersionUID = 6171448434725755800L;
 
 	private static final int TABLE_INDEX_TEXT = 2;
-
-	private static final String TABLE_NAME = "localized_person_name";
 
 
 	private final JLabel personalNameLabel = new JLabel("(Primary) Name:");
@@ -147,7 +145,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME;
 	}
 
 	@Override
@@ -213,7 +211,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
-			? getRecords(TABLE_NAME)
+			? getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME)
 			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -247,7 +245,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	}
 
 	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return getRecords(TABLE_NAME)
+		return getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -277,7 +275,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceID <= 0){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 				EntityManager::extractRecordPersonNameID, localizedPersonNameID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");

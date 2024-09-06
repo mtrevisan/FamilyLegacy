@@ -36,7 +36,7 @@ import java.time.ZonedDateTime;
 
 
 @Entity(name = "modification")
-public class ModificationEntity{
+public class ModificationEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "modification_generator")
@@ -62,35 +62,24 @@ public class ModificationEntity{
 	private ZonedDateTime updateDate;
 
 
+	@Override
 	public Long getID(){
 		return id;
 	}
 
+	@Override
 	public String getReferenceTable(){
 		return referenceTable;
 	}
 
+	@Override
 	public Long getReferenceID(){
 		return referenceID;
 	}
 
-	public void setReferencedEntity(final Object referencedEntity){
+	@Override
+	public void setReferencedEntity(final AbstractEntity referencedEntity){
 		this.referencedEntity = referencedEntity;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final ModificationEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

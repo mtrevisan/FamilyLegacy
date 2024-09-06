@@ -36,7 +36,7 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity(name = "event_super_type")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_type", columnNames = "super_type"))
-public class EventSuperTypeEntity{
+public class EventSuperTypeEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "event_super_type_generator")
@@ -52,23 +52,9 @@ public class EventSuperTypeEntity{
 	private String superType;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final EventSuperTypeEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

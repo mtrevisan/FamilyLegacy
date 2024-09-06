@@ -24,8 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.repositories;
 
-import io.github.mtrevisan.familylegacy.flef.db.JPAUtil;
-import io.github.mtrevisan.familylegacy.flef.db.Transactional;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.JPAUtil;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.Transactional;
+import io.github.mtrevisan.familylegacy.flef.persistence.models.AbstractEntity;
 import io.github.mtrevisan.familylegacy.flef.persistence.models.AssertionEntity;
 import io.github.mtrevisan.familylegacy.flef.persistence.models.CalendarEntity;
 import io.github.mtrevisan.familylegacy.flef.persistence.models.CulturalNormEntity;
@@ -51,6 +52,7 @@ import io.github.mtrevisan.familylegacy.flef.persistence.models.RepositoryEntity
 import io.github.mtrevisan.familylegacy.flef.persistence.models.ResearchStatusEntity;
 import io.github.mtrevisan.familylegacy.flef.persistence.models.RestrictionEntity;
 import io.github.mtrevisan.familylegacy.flef.persistence.models.SourceEntity;
+import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
@@ -58,65 +60,61 @@ import java.util.List;
 
 
 //https://www.infoworld.com/article/2260064/java-persistence-with-jpa-and-hibernate-part-2-persisting-data-to-a-database.html
-public class AssertionRepository{
+public class Repository{
 
 	//https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth
-	/*public class Main {
-    public static void main(String[] args) {
+	/*
         // Creazione del proxy del servizio
-        UserService userService = TransactionHandler.createProxy(new UserService(), UserService.class);
+        Repository repo = TransactionHandler.createProxy(Repository.class);
 
         // Creazione di un utente
-        userService.createUser(1L, "John Doe", "john.doe@example.com");
+        repo.createUser(1L, "John Doe", "john.doe@example.com");
 
         // Recupero dell'utente
-        User retrievedUser = userService.getUser(1L);
-        System.out.println("User: " + retrievedUser.getName() + ", Email: " + retrievedUser.getEmail());
-
-        // Chiusura del EntityManagerFactory al termine dell'applicazione
-        JpaUtil.closeEntityManagerFactory();
-    }
-	}*/
+        User retrievedUser = repo.getUser(1L);
+	*/
 
 	@Transactional
-	public void save(final AssertionEntity entity){
+	public <T extends AbstractEntity> void save(final T entity){
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
 			entityManager.persist(entity);
 		}
 	}
 
 	@Transactional
-	public void update(final AssertionEntity entity){
+	public <T extends AbstractEntity> void update(final T entity){
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
 			entityManager.merge(entity);
 		}
 	}
 
-	public AssertionEntity findById(final Long id){
+	public <T extends AbstractEntity> T findByID(final Class<T> entityClass, final Long id){
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final AssertionEntity entity = entityManager.find(AssertionEntity.class, id);
+			final T entity = entityManager.find(entityClass, id);
 
 			//recover referenced record
 			if(entity != null){
 				final String tableName = entity.getReferenceTable();
 				final Long referenceID = entity.getReferenceID();
 
-				final Object referencedEntity = findReferencedEntity(tableName, referenceID);
-				entity.setReferencedEntity(referencedEntity);
+				if(tableName != null && referenceID != null){
+					final AbstractEntity referencedEntity = findReferencedEntity(tableName, referenceID);
+					entity.setReferencedEntity(referencedEntity);
+				}
 			}
 
 			return entity;
 		}
 	}
 
-	private Object findReferencedEntity(final String tableName, final Long referenceID){
+	private AbstractEntity findReferencedEntity(final String tableName, final Long referenceID){
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final Class<?> entityClass = getEntityClassFromTableName(tableName);
+			final Class<? extends AbstractEntity> entityClass = getEntityClassFromTableName(tableName);
 			return (entityClass != null? entityManager.find(entityClass, referenceID): null);
 		}
 	}
 
-	private Class<?> getEntityClassFromTableName(final String tableName){
+	private Class<? extends AbstractEntity> getEntityClassFromTableName(final String tableName){
 		return switch(tableName){
 			case "assertion" -> AssertionEntity.class;
 			case "calendar" -> CalendarEntity.class;
@@ -147,22 +145,24 @@ public class AssertionRepository{
 		};
 	}
 
-	public List<AssertionEntity> findAll(){
+	public <T extends AbstractEntity> List<T> findAll(final Class<T> entityClass){
+		final String tableName = entityClass.getAnnotation(Entity.class)
+			.name();
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final TypedQuery<AssertionEntity> query = entityManager.createQuery("SELECT a FROM assertion a", AssertionEntity.class);
+			final TypedQuery<T> query = entityManager.createQuery("SELECT t FROM " + tableName + " t", entityClass);
 			return query.getResultList();
 		}
 	}
 
 	@Transactional
-	public void delete(final AssertionEntity entity){
+	public <T extends AbstractEntity> void delete(final T entity){
 		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
 			if(entityManager.contains(entity))
 				entityManager.remove(entity);
 			else{
-				final AssertionEntity managedUser = entityManager.find(AssertionEntity.class, entity.getID());
-				if(managedUser != null)
-					entityManager.remove(managedUser);
+				final AbstractEntity managedEntity = entityManager.find(entity.getClass(), entity.getID());
+				if(managedEntity != null)
+					entityManager.remove(managedEntity);
 			}
 		}
 	}

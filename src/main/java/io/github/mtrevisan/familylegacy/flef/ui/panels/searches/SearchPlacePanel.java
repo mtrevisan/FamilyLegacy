@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -50,14 +50,14 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordLocalizedTextID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordText;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
 public class SearchPlacePanel extends CommonSearchPanel{
@@ -74,10 +74,6 @@ public class SearchPlacePanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_NAME = 150;
 	private static final int TABLE_PREFERRED_WIDTH_LOCALE = 43;
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
-
-	private static final String TABLE_NAME = "place";
-	private static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	private static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 
 
 	public static SearchPlacePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -102,7 +98,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_PLACE;
 	}
 
 	@Override
@@ -129,7 +125,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -141,7 +137,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			final String identifier = extractRecordIdentifier(container);
 			final String name = extractRecordName(container);
 			final String nameLocale = extractRecordLocale(container);
-			final List<Map<String, Object>> transcribedNames = extractReferences(TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final List<Map<String, Object>> transcribedNames = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
 				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final String type = extractRecordType(container);
 			final FilterString filter = FilterString.create()
@@ -160,7 +156,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			model.setValueAt(name, row, TABLE_INDEX_NAME);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, name));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_PLACE, filterData, name));
 
 			row ++;
 		}
@@ -170,11 +166,11 @@ public class SearchPlacePanel extends CommonSearchPanel{
 	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(TABLE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT);
 		final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
 		records.forEach((key, value) -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-					&& TABLE_NAME.equals(extractRecordReferenceTable(value))
+					&& EntityManager.TABLE_NAME_PLACE.equals(extractRecordReferenceTable(value))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(value)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(value));
 				matchedRecords.add(localizedText);

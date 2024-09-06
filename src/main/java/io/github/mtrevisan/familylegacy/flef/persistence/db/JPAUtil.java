@@ -22,55 +22,39 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.flef.db;
-
-import jakarta.persistence.EntityTransaction;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import org.hibernate.cfg.Environment;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
-public class TransactionHandler implements InvocationHandler{
+public class JPAUtil{
 
-	private final Object target;
-
-
-	public TransactionHandler(final Object target){
-		this.target = target;
-	}
+	private static EntityManagerFactory entityManagerFactory;
 
 
-	@Override
-	public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable{
-		final EntityManager em = JPAUtil.getEntityManager();
-		final EntityTransaction tx = em.getTransaction();
+	public static EntityManager getEntityManager(){
+		if(entityManagerFactory == null){
+			final Map<String, Object> settings = new HashMap<>();
+			//H2 driver and URL
+			settings.put("jakarta.persistence.jdbc.driver", "org.h2.Driver");
+			settings.put("jakarta.persistence.jdbc.url", "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1");
+			settings.put("jakarta.persistence.jdbc.user", "sa");
+			settings.put("jakarta.persistence.jdbc.password", "");
+			//Hibernate properties
+			settings.put(Environment.DIALECT, "org.hibernate.dialect.H2Dialect");
+			settings.put(Environment.HBM2DDL_AUTO, "update");
+			settings.put(Environment.SHOW_SQL, "true");
+			settings.put(Environment.FORMAT_SQL, "true");
 
-		if(method.isAnnotationPresent(Transactional.class)){
-			try{
-				tx.begin();
-				final Object result = method.invoke(target, args);
-				tx.commit();
-				return result;
-			}
-			catch(final Exception exc){
-				if(tx.isActive())
-					tx.rollback();
-				throw exc;
-			}
-			finally{
-				em.close();
-			}
+			entityManagerFactory = Persistence.createEntityManagerFactory("FamilyLegacy", settings);
 		}
-
-		return method.invoke(target, args);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T> T createProxy(final T target, final Class<T> interfaceType){
-		return (T)Proxy.newProxyInstance(interfaceType.getClassLoader(), new Class[]{interfaceType}, new TransactionHandler(target));
+		return entityManagerFactory.createEntityManager();
 	}
 
 }

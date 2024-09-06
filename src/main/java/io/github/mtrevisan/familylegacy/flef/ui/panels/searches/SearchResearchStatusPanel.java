@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -44,10 +45,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordStatus;
 
 
 public class SearchResearchStatusPanel extends CommonSearchPanel{
@@ -64,8 +65,6 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_DESCRIPTION = 250;
 	private static final int TABLE_PREFERRED_WIDTH_STATUS = 50;
 	private static final int TABLE_PREFERRED_WIDTH_PRIORITY = 43;
-
-	private static final String TABLE_NAME = "research_status";
 
 
 	public static SearchResearchStatusPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -90,7 +89,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -117,7 +116,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -145,7 +144,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(status, row, TABLE_INDEX_STATUS);
 			model.setValueAt((priority != null? String.valueOf(priority): null), row, TABLE_INDEX_PRIORITY);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
 
 			row ++;
 		}

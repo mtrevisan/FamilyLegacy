@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -56,11 +57,11 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordUpdateDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordUpdateDate;
 
 
 public class HistoryPanel extends CommonSearchPanel{
@@ -72,9 +73,6 @@ public class HistoryPanel extends CommonSearchPanel{
 	private static final int TABLE_INDEX_NOTE = 3;
 
 	private static final int TABLE_PREFERRED_WIDTH_DATE = 120;
-
-	private static final String TABLE_NAME_MODIFICATION = "modification";
-	private static final String TABLE_NAME_NOTE = "note";
 
 	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss", Locale.US)
 		.withZone(ZoneId.systemDefault());
@@ -120,7 +118,7 @@ public class HistoryPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME_MODIFICATION;
+		return EntityManager.TABLE_NAME_MODIFICATION;
 	}
 
 	@Override
@@ -147,14 +145,14 @@ public class HistoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> recordModifications = getRecords(TABLE_NAME_MODIFICATION)
+		final Map<Integer, Map<String, Object>> recordModifications = getRecords(EntityManager.TABLE_NAME_MODIFICATION)
 			.entrySet().stream()
 			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue()))
 				&& filterReferenceID == extractRecordReferenceID(entry.getValue()))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		final Map<Integer, Map<String, Object>> recordsNotes = getRecords(TABLE_NAME_NOTE)
+		final Map<Integer, Map<String, Object>> recordsNotes = getRecords(EntityManager.TABLE_NAME_NOTE)
 			.entrySet().stream()
-			.filter(entry -> TABLE_NAME_MODIFICATION.equals(extractRecordReferenceTable(entry.getValue())))
+			.filter(entry -> EntityManager.TABLE_NAME_MODIFICATION.equals(extractRecordReferenceTable(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -185,7 +183,7 @@ public class HistoryPanel extends CommonSearchPanel{
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_DATE);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_MODIFICATION, filterData, note));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_MODIFICATION, filterData, note));
 
 			row ++;
 		}
@@ -246,7 +244,7 @@ public class HistoryPanel extends CommonSearchPanel{
 
 		EventQueue.invokeLater(() -> {
 			final HistoryPanel panel = create(store)
-				.withReference("person_name", 1)
+				.withReference(EntityManager.TABLE_NAME_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -54,13 +55,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordPriority;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordStatus;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPriority;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordStatus;
 
 
 public class ResearchStatusPanel extends CommonSearchPanel{
@@ -76,8 +77,6 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_STATUS = 50;
 	private static final int TABLE_PREFERRED_WIDTH_PRIORITY = 52;
 	private static final int TABLE_PREFERRED_WIDTH_DATE = 120;
-
-	private static final String TABLE_NAME_RESEARCH_STATUS = "research_status";
 
 	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss", Locale.US)
 		.withZone(ZoneId.systemDefault());
@@ -125,7 +124,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME_RESEARCH_STATUS;
+		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -153,7 +152,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> recordResearchStatuses = getRecords(TABLE_NAME_RESEARCH_STATUS)
+		final Map<Integer, Map<String, Object>> recordResearchStatuses = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS)
 			.entrySet().stream()
 			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue()))
 				&& filterReferenceID == extractRecordReferenceID(entry.getValue()))
@@ -189,7 +188,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(priority, row, TABLE_INDEX_PRIORITY);
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_CREATION_DATE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
 
 			row ++;
 		}
@@ -244,7 +243,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 		EventQueue.invokeLater(() -> {
 			final ResearchStatusPanel panel = create(store)
-				.withReference("person_name", 1)
+				.withReference(EntityManager.TABLE_NAME_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

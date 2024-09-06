@@ -37,7 +37,7 @@ import jakarta.persistence.SequenceGenerator;
 
 //Where a source makes an assertion.
 @Entity(name = "citation")
-public class CitationEntity{
+public class CitationEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "citation_generator")
@@ -69,7 +69,8 @@ public class CitationEntity{
 	private String extractType;
 
 
-	public Long getID(){
+	@Override
+		public Long getID(){
 		return id;
 	}
 

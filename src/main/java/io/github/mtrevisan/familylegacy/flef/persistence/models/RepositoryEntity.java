@@ -40,7 +40,7 @@ import jakarta.persistence.UniqueConstraint;
 //A representation of where a source or set of sources is located
 @Entity(name = "repository")
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_identifier", columnNames = "identifier"))
-public class RepositoryEntity{
+public class RepositoryEntity extends AbstractEntity{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "repository_generator")
@@ -69,23 +69,9 @@ public class RepositoryEntity{
 	private PlaceEntity place;
 
 
+	@Override
 	public Long getID(){
 		return id;
-	}
-
-
-	@Override
-	public boolean equals(Object o){
-		if(this == o)
-			return true;
-		if(!(o instanceof final RepositoryEntity other))
-			return false;
-		return (id != null && id.equals(other.getID()));
-	}
-
-	@Override
-	public int hashCode(){
-		return 31;
 	}
 
 }

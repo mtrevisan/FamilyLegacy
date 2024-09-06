@@ -24,36 +24,36 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+
+public abstract class AbstractEntity{
+
+	public abstract Long getID();
 
 
-//https://en.wikipedia.org/wiki/List_of_calendars
-@Entity(name = "calendar")
-@Table(uniqueConstraints = @UniqueConstraint(name = "unique_type", columnNames = "type"))
-public class CalendarEntity extends AbstractEntity{
+	public String getReferenceTable(){
+		return null;
+	}
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "calendar_generator")
-	@SequenceGenerator(name = "calendar_generator", allocationSize = 1, sequenceName = "calendar_sequence")
-	@Column(name = "id")
-	private Long id;
+	public Long getReferenceID(){
+		return null;
+	}
 
-	//A calendar type (must be unique, ex. "gregorian", "julian", "venetan", "french republican", "hebrew", "muslim", "chinese", "indian",
-	// "buddhist", "coptic", "soviet eternal", "ethiopian", "mayan").
-	@Column(name = "type", nullable = false)
-	private String type;
+	public void setReferencedEntity(final AbstractEntity referencedEntity){}
 
 
 	@Override
-	public Long getID(){
-		return id;
+	public boolean equals(final Object o){
+		if(this == o)
+			return true;
+		if(!(o instanceof final AssertionEntity other))
+			return false;
+		final Long id = getID();
+		return (id != null && id.equals(other.getID()));
+	}
+
+	@Override
+	public int hashCode(){
+		return 31;
 	}
 
 }

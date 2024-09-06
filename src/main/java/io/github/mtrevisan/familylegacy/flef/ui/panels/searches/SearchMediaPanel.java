@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -44,9 +45,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordTitle;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTitle;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
 public class SearchMediaPanel extends CommonSearchPanel{
@@ -61,8 +62,6 @@ public class SearchMediaPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_IDENTIFIER = 250;
 	private static final int TABLE_PREFERRED_WIDTH_TITLE = 150;
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
-
-	private static final String TABLE_NAME = "media";
 
 
 	public static SearchMediaPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
@@ -86,7 +85,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return TABLE_NAME;
+		return EntityManager.TABLE_NAME_MEDIA;
 	}
 
 	@Override
@@ -112,7 +111,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(TABLE_NAME);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_MEDIA);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -137,7 +136,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 			model.setValueAt(title, row, TABLE_INDEX_TITLE);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(key, TABLE_NAME, filterData, title));
+			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_MEDIA, filterData, title));
 
 			row ++;
 		}

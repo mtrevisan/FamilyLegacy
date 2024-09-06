@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.repositories.AssertionRepository;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -91,8 +91,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
 
 
 public abstract class CommonListDialog extends CommonRecordDialog implements ValidDataListenerInterface{
@@ -698,16 +698,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		//remove data from records
 		getRecords(getTableName())
 			.remove(recordID);
-		final Map<Integer, Map<String, Object>> storeNotes = getRecords(TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(TABLE_NAME_NOTE);
+		final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);
+		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(EntityManager.TABLE_NAME_NOTE);
 		for(final Integer noteID : recordNotes.keySet())
 			storeNotes.remove(noteID);
-		final Map<Integer, Map<String, Object>> storeMediaJunction = getRecords(TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> storeMediaJunction = getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
+		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
 		for(final Integer mediaJunctionID : recordMediaJunction.keySet())
 			storeMediaJunction.remove(mediaJunctionID);
-		final Map<Integer, Map<String, Object>> storeRestriction = getRecords(TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(TABLE_NAME_RESTRICTION);
+		final Map<Integer, Map<String, Object>> storeRestriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
+		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(EntityManager.TABLE_NAME_RESTRICTION);
 		for(final Integer restrictionID : recordRestriction.keySet())
 			storeRestriction.remove(restrictionID);
 	}

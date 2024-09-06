@@ -24,12 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.flef;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
-import io.github.mtrevisan.familylegacy.flef.ui.dialogs.ProjectDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -51,42 +51,42 @@ import java.util.Map;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCitationID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCoordinateSystem;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCopyright;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordCulturalNormID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateEndID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDateStartID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtract;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordExtractType;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordGroupID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordMediaID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPhotoProjection;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolName;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordProtocolVersion;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRepositoryID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordSourceID;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordTitle;
-import static io.github.mtrevisan.familylegacy.flef.db.EntityManager.insertRecordType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordAuthor;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCitationID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinateSystem;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCulturalNormID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDateEndID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDateID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDateStartID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtract;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordGroupID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordMediaID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordNote;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoProjection;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolName;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolVersion;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRepositoryID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordSourceID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTitle;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class Main{
@@ -447,8 +447,8 @@ public final class Main{
 		final Map<String, Object> flefProject = new HashMap<>();
 		flefProjects.add(flefProject);
 		insertRecordID(flefProject, 1);
-		insertRecordProtocolName(flefProject, ProjectDialog.PROTOCOL_NAME_DEFAULT);
-		insertRecordProtocolVersion(flefProject, ProjectDialog.PROTOCOL_VERSION_DEFAULT);
+		insertRecordProtocolName(flefProject, EntityManager.PROTOCOL_NAME_DEFAULT);
+		insertRecordProtocolVersion(flefProject, EntityManager.PROTOCOL_VERSION_DEFAULT);
 		insertRecordCopyright(flefProject, "(c) 2024 Mauro Trevisan");
 		insertRecordCreationDate(flefProject, DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 	}

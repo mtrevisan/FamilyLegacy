@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -60,8 +60,6 @@ public final class PhotoCropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
-
-	private static final String TABLE_NAME_MEDIA = "media";
 
 
 	//record components:
@@ -144,7 +142,7 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	public void loadData(final int photoID, final String photoCrop) throws IOException{
-		final Map<String, Object> record = store.get(TABLE_NAME_MEDIA)
+		final Map<String, Object> record = store.get(EntityManager.TABLE_NAME_MEDIA)
 			.get(photoID);
 		selectedRecord = (record != null? new HashMap<>(record): null);
 		if(selectedRecord != null){
