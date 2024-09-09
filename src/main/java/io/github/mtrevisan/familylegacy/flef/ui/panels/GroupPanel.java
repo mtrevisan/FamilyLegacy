@@ -611,7 +611,6 @@ public class GroupPanel extends JPanel{
 		if(group.isEmpty()){
 			final List<Map<String, Object>> unions = extractUnions(partner1);
 			if(!unions.isEmpty())
-				//TODO choose the last shown union, if any
 				group = unions.getFirst();
 		}
 
@@ -640,14 +639,12 @@ public class GroupPanel extends JPanel{
 				if(!partner2.isEmpty())
 					personIDsInUnion.remove(extractRecordID(partner2));
 				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
-					//TODO choose the last shown person, if any
 					partner1ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner1ID))
 						partner1 = persons.get(partner1ID);
 					personIDsInUnion.remove(partner1ID);
 				}
 				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
-					//TODO choose the last shown person, if any
 					partner2ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner2ID))
 						partner2 = persons.get(partner2ID);

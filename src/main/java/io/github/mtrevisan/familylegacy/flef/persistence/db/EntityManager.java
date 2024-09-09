@@ -56,6 +56,9 @@ public class EntityManager{
 	public static final String TABLE_NAME_RESEARCH_STATUS = "research_status";
 	public static final String TABLE_NAME_PROJECT = "project";
 
+	public static final String SEX_MALE = "male";
+	public static final String SEX_FEMALE = "female";
+
 	public static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
 	public static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
 

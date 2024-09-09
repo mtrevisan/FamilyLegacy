@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;

@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CitationDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CommonListDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CulturalNormDialog;
@@ -83,9 +83,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -114,6 +116,8 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	private static final int GENERATION_SEPARATOR_SIZE = 36;
 
 	private static final Map<Integer, Integer> CHILDREN_SCROLLBAR_POSITION = new HashMap<>(0);
+	private static final List<Map.Entry<Set<Integer>, Map<String, Object>>> UNION_DEFAULT = new ArrayList<>(0);
+	private static final List<Map.Entry<Set<Integer>, Map<String, Object>>> LEFT_PARTNER_DEFAULT = new ArrayList<>(0);
 
 	private static final String ACTION_MAP_KEY_NAVIGATION_BACK = "navigationBack";
 	private static final String ACTION_MAP_KEY_NAVIGATION_FORWARD = "navigationForward";
@@ -218,7 +222,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		//trigger repaint in order to move the connections between children and home union
 		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> {
 			if(!homeUnion.isEmpty()){
-				//remember last scroll position, restore it if present
+				//remember last scroll position
 				final Integer homeUnionID = extractRecordID(homeUnion);
 				final int scrollBarPosition = childrenScrollPane.getHorizontalScrollBar().getValue();
 				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, scrollBarPosition);
@@ -270,7 +274,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		//trigger repaint in order to move the connections between children and home union
 		childrenScrollPane.getHorizontalScrollBar().addAdjustmentListener(e -> {
 			if(!homeUnion.isEmpty()){
-				//remember last scroll position, restore it if present
+				//remember last scroll position
 				final Integer homeUnionID = extractRecordID(homeUnion);
 				final int scrollBarPosition = childrenScrollPane.getHorizontalScrollBar().getValue();
 				CHILDREN_SCROLLBAR_POSITION.put(homeUnionID, scrollBarPosition);
@@ -476,17 +480,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	public void loadDataFromPerson(final Map<String, Object> partner){
-		//prefer left position (`partner1`) if male or unknown, right if female (`partner2`)
-		Map<String, Object> p1 = partner;
-		Map<String, Object> p2 = Collections.emptyMap();
-		final int partner1ID = extractRecordID(partner);
-		final String sex = extractEarliestSex(partner1ID);
-		if("female".equalsIgnoreCase(sex)){
-			p1 = Collections.emptyMap();
-			p2 = partner;
-		}
-
-		loadData(Collections.emptyMap(), p1, p2);
+		loadData(Collections.emptyMap(), partner, Collections.emptyMap());
 	}
 
 	private String extractEarliestSex(final Integer personID){
@@ -536,14 +530,37 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	private void prepareData(Map<String, Object> homeUnion, Map<String, Object> partner1, Map<String, Object> partner2){
 		if(homeUnion.isEmpty()){
-			final List<Map<String, Object>> unions = extractUnions(partner1);
-			if(!unions.isEmpty())
-				//TODO choose the last shown union, if any
-				homeUnion = unions.getFirst();
+			final Set<Map<String, Object>> unions = extractUnions(partner1);
+			if(!unions.isEmpty()){
+				//choose the last shown union, if any, otherwise choose the first
+				final Map<String, Object> currentUnionDefault = getDefaultUnion(unions.stream()
+					.map(EntityManager::extractRecordID)
+					.collect(Collectors.toSet()));
+				homeUnion = (currentUnionDefault != null? currentUnionDefault: unions.iterator().next());
+			}
 		}
 
+		Set<Integer> unionPartition = null;
 		if(!homeUnion.isEmpty()){
+			//search current default union record
 			final Integer homeUnionID = extractRecordID(homeUnion);
+			unionPartition = getDefaultUnionKey(homeUnionID);
+			if(unionPartition == null){
+				//fill union partition:
+				unionPartition = new HashSet<>();
+				//extract all persons from current union
+				final List<Integer> personIDsInGroup = getPersonIDsInGroup(homeUnionID);
+				//extract all unions for each person
+				for(final Integer personIDInGroup : personIDsInGroup)
+					//extract all unions for this particular person
+					getGroupIDs(personIDInGroup).stream()
+						.map(EntityManager::extractRecordID)
+						.forEach(unionPartition::add);
+			}
+			//save current union as default
+			UNION_DEFAULT.add(Map.entry(unionPartition, homeUnion));
+
+
 			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
 			Integer partner1ID = extractRecordID(partner1);
 			if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
@@ -567,14 +584,12 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				if(!partner2.isEmpty())
 					personIDsInUnion.remove(extractRecordID(partner2));
 				if(partner1.isEmpty() && !personIDsInUnion.isEmpty()){
-					//TODO choose the last shown person, if any
 					partner1ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner1ID))
 						partner1 = persons.get(partner1ID);
 					personIDsInUnion.remove(partner1ID);
 				}
 				if(partner2.isEmpty() && !personIDsInUnion.isEmpty()){
-					//TODO choose the last shown person, if any
 					partner2ID = personIDsInUnion.getFirst();
 					if(persons.containsKey(partner2ID))
 						partner2 = persons.get(partner2ID);
@@ -583,9 +598,64 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			}
 		}
 
+		if(!partner1.isEmpty() || !partner2.isEmpty()){
+			//switch partner1 with partner 2 if the last shown partner was `switched`
+			final Integer homeUnionID = extractRecordID(homeUnion);
+			final Map<String, Object> leftPartner = getDefaultLeftPartner(homeUnionID);
+			if(leftPartner != null){
+				final Integer leftPartnerID = extractRecordID(leftPartner);
+				//prefer left position (`partner1`) if male or unknown, right if female (`partner2`)
+				boolean switchPartner = false;
+				if(!partner1.isEmpty()){
+					final Integer partner1ID = extractRecordID(partner1);
+					switchPartner |= (!Objects.equals(leftPartnerID, partner1ID)
+						|| EntityManager.SEX_FEMALE.equalsIgnoreCase(extractEarliestSex(partner1ID)));
+				}
+				if(!partner2.isEmpty()){
+					final Integer partner2ID = extractRecordID(partner2);
+					switchPartner |= (Objects.equals(leftPartnerID, partner2ID)
+						|| EntityManager.SEX_MALE.equalsIgnoreCase(extractEarliestSex(partner2ID)));
+				}
+				if(switchPartner){
+					final Map<String, Object> tmp = partner1;
+					partner1 = partner2;
+					partner2 = tmp;
+				}
+			}
+			else if(unionPartition != null && !partner1.isEmpty())
+				//save current union as default
+				LEFT_PARTNER_DEFAULT.add(Map.entry(unionPartition, partner1));
+		}
+
 		this.homeUnion = homeUnion;
 		this.partner1 = partner1;
 		this.partner2 = partner2;
+	}
+
+	private static Set<Integer> getDefaultUnionKey(final Integer unionID){
+		if(unionID != null)
+			for(final Map.Entry<Set<Integer>, Map<String, Object>> unionDefault : UNION_DEFAULT){
+				final Set<Integer> key = unionDefault.getKey();
+				if(key.contains(unionID))
+					return key;
+			}
+		return null;
+	}
+
+	private static Map<String, Object> getDefaultUnion(final Set<Integer> unionIDs){
+		for(final Map.Entry<Set<Integer>, Map<String, Object>> unionDefault : UNION_DEFAULT)
+			if(!Collections.disjoint(unionDefault.getKey(), unionIDs))
+				//some IDs are in common, return default union
+				return unionDefault.getValue();
+		return null;
+	}
+
+	private static Map<String, Object> getDefaultLeftPartner(final Integer unionID){
+		if(unionID != null)
+			for(final Map.Entry<Set<Integer>, Map<String, Object>> unionDefault : LEFT_PARTNER_DEFAULT)
+				if(unionDefault.getKey().contains(unionID))
+					return unionDefault.getValue();
+		return null;
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
@@ -605,11 +675,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			final List<Integer> personIDsInGroup1 = getPartnerIDs(partner1ParentsID);
 			final int personInGroup1Count = personIDsInGroup1.size();
 			final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
-			//TODO choose the last shown person, if any
 			final Map<String, Object> partner1Partner1 = (personInGroup1Count > 0
 				? persons.get(personIDsInGroup1.get(0))
 				: Collections.emptyMap());
-			//TODO choose the last shown person, if any
 			final Map<String, Object> partner1Partner2 = (personInGroup1Count > 1
 				? persons.get(personIDsInGroup1.get(1))
 				: Collections.emptyMap());
@@ -618,11 +686,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 			final List<Integer> personIDsInGroup2 = getPartnerIDs(partner2ParentsID);
 			final int personInGroup2Count = personIDsInGroup2.size();
-			//TODO choose the last shown person, if any
 			final Map<String, Object> partner2Partner1 = (personInGroup2Count > 0
 				? persons.get(personIDsInGroup2.get(0))
 				: Collections.emptyMap());
-			//TODO choose the last shown person, if any
 			final Map<String, Object> partner2Partner2 = (personInGroup2Count > 1
 				? persons.get(personIDsInGroup2.get(1))
 				: Collections.emptyMap());
@@ -652,9 +718,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private void scrollChildrenToLastPosition(final Integer unionID){
-		//remember last scroll position, restore it if present
+		//restore last scroll position
 		final Integer childrenScrollbarPosition = CHILDREN_SCROLLBAR_POSITION.get(unionID);
-		//TODO if a child was selected, bring it to view
+		//if a child was selected, bring it to view
 		final JViewport childrenViewport = childrenScrollPane.getViewport();
 		final int scrollbarPositionX = (childrenScrollbarPosition == null?
 			//center halfway if it's the first time the children are painted
@@ -777,8 +843,8 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		return parentsGroupID;
 	}
 
-	private List<Map<String, Object>> extractUnions(final Map<String, Object> person){
-		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
+	private Set<Map<String, Object>> extractUnions(final Map<String, Object> person){
+		final Set<Map<String, Object>> unionGroups = new HashSet<>(0);
 		if(!person.isEmpty()){
 			final Integer personID = extractRecordID(person);
 			unionGroups.addAll(getGroupIDs(personID));

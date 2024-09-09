@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
 import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 import org.apache.commons.lang3.StringUtils;
