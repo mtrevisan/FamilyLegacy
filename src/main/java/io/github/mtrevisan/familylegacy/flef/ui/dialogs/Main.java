@@ -75,7 +75,7 @@ public class Main{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final RepositoryDialog dialog = RepositoryDialog.create(store, parent);
+			final RepositoryDialog dialog = RepositoryDialog.create(store, parent);
 //			final HistoricDateDialog dialog = HistoricDateDialog.create(store, parent);
 //			final PlaceDialog dialog = PlaceDialog.create(store, parent);
 //			final MediaDialog dialog = MediaDialog.create(store, parent);
@@ -83,8 +83,9 @@ public class Main{
 //			final GroupDialog dialog = GroupDialog.create(store, parent);
 //			final EventDialog dialog = EventDialog.create(store, parent);
 //			final CulturalNormDialog dialog = CulturalNormDialog.create(store, parent);
-			final ResearchStatusDialog dialog = ResearchStatusDialog.create(store, parent);
+//			final ResearchStatusDialog dialog = ResearchStatusDialog.create(store, parent);
 //			final ProjectDialog dialog = ProjectDialog.create(store, parent);
+//			final AssertionDialog dialog = AssertionDialog.create(store, parent);
 			dialog.loadData();
 
 			final Object listener = new Object(){

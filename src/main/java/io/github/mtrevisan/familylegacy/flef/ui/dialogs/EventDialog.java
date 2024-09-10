@@ -24,10 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -56,9 +53,7 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.io.Serial;
-import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -582,22 +577,8 @@ public final class EventDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final DependencyInjector injector = new DependencyInjector();
-			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
-			try{
-				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
-				dbManager.initialize(grammarFile);
-
-				dbManager.insertDatabase(store);
-			}
-			catch(final SQLException | IOException e){
-				throw new RuntimeException(e);
-			}
-			injector.register(DatabaseManagerInterface.class, dbManager);
-
 			final EventDialog dialog = create(store, parent);
 //			final EventDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(event)))
 				dialog.showNewRecord();

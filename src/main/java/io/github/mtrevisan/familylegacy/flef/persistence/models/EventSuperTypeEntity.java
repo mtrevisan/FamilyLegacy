@@ -35,7 +35,7 @@ import jakarta.persistence.UniqueConstraint;
 
 
 @Entity(name = "event_super_type")
-@Table(uniqueConstraints = @UniqueConstraint(name = "unique_type", columnNames = "super_type"))
+@Table(uniqueConstraints = @UniqueConstraint(name = "unique_super_type", columnNames = "super_type"))
 public class EventSuperTypeEntity extends AbstractEntity{
 
 	@Id

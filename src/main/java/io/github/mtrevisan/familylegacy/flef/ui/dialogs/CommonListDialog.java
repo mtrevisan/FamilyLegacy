@@ -24,7 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.helpers.Inject;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreException;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -151,6 +153,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	private HistoryPanel historyPanel;
 	private ResearchStatusPanel researchStatusPanel;
+
+
+	@Inject
+	private StoreManagerInterface storeManager;
 
 
 	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
@@ -690,26 +696,33 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		deleteRecordButton.setEnabled(false);
 		setMandatoryFieldsBackgroundColor(Color.WHITE);
 
-		//TODO check referential integrity
-		//FIXME use a database?
-		//TODO keep going only if no foreign references are marked with restrict and there is a record that points to the current one to be deleted
-		//remove row from table
-		model.removeRow(modelRowIndex);
-		//remove data from records
-		getRecords(getTableName())
-			.remove(recordID);
-		final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);
-		final Map<Integer, Map<String, Object>> recordNotes = extractReferences(EntityManager.TABLE_NAME_NOTE);
-		for(final Integer noteID : recordNotes.keySet())
-			storeNotes.remove(noteID);
-		final Map<Integer, Map<String, Object>> storeMediaJunction = getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
-		final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
-		for(final Integer mediaJunctionID : recordMediaJunction.keySet())
-			storeMediaJunction.remove(mediaJunctionID);
-		final Map<Integer, Map<String, Object>> storeRestriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
-		final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(EntityManager.TABLE_NAME_RESTRICTION);
-		for(final Integer restrictionID : recordRestriction.keySet())
-			storeRestriction.remove(restrictionID);
+		try{
+			//TODO check referential integrity
+			//FIXME use a database?
+			//TODO keep going only if no foreign references are marked with restrict and there is a record that points to the current one to be deleted
+			storeManager.delete(getTableName(), recordID);
+			//remove data from records
+//			getRecords(getTableName())
+//				.remove(recordID);
+//			final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);
+//			final Map<Integer, Map<String, Object>> recordNotes = extractReferences(EntityManager.TABLE_NAME_NOTE);
+//			for(final Integer noteID : recordNotes.keySet())
+//				storeNotes.remove(noteID);
+//			final Map<Integer, Map<String, Object>> storeMediaJunction = getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
+//			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
+//			for(final Integer mediaJunctionID : recordMediaJunction.keySet())
+//				storeMediaJunction.remove(mediaJunctionID);
+//			final Map<Integer, Map<String, Object>> storeRestriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
+//			final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(EntityManager.TABLE_NAME_RESTRICTION);
+//			for(final Integer restrictionID : recordRestriction.keySet())
+//				storeRestriction.remove(restrictionID);
+
+			//remove row from table
+			model.removeRow(modelRowIndex);
+		}
+		catch(final StoreException se){
+			LOGGER.error("Error while deleting record", se);
+		}
 	}
 
 	@Override

@@ -253,6 +253,10 @@ public class EntityManager{
 		return (String)record.get("title");
 	}
 
+	public static byte[] extractRecordPayload(final Map<String, Object> record){
+		return (byte[])record.get("payload");
+	}
+
 	public static String extractRecordPhotoProjection(final Map<String, Object> record){
 		return (String)record.get("photo_projection");
 	}
@@ -448,6 +452,10 @@ public class EntityManager{
 
 	public static void insertRecordTitle(final Map<String, Object> record, final String title){
 		record.put("title", title);
+	}
+
+	public static void insertRecordPayload(final Map<String, Object> record, final byte[] payload){
+		record.put("payload", payload);
 	}
 
 	public static void insertRecordPhotoProjection(final Map<String, Object> record, final String photoProjection){

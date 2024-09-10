@@ -97,6 +97,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoProjection;
@@ -718,6 +719,8 @@ public final class MediaDialog extends CommonListDialog{
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(fileField);
 		final String title = GUIHelper.getTextTrimmed(titleField);
+		//TODO extract payload (ask if payload should be included)
+		final byte[] payload = null;
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String photoProjection = GUIHelper.getTextTrimmed(photoProjectionComboBox);
 
@@ -739,6 +742,7 @@ public final class MediaDialog extends CommonListDialog{
 
 		insertRecordIdentifier(selectedRecord, FileHelper.getRelativePath(basePath, identifier));
 		insertRecordTitle(selectedRecord, title);
+		insertRecordPayload(selectedRecord, payload);
 		insertRecordType(selectedRecord, type);
 		insertRecordPhotoProjection(selectedRecord, photoProjection);
 

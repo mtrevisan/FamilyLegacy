@@ -325,7 +325,7 @@ CREATE TABLE RESEARCH_STATUS
  IDENTIFIER      text NOT NULL UNIQUE,	-- An identifier (must be unique).
  DESCRIPTION     text,						-- The description of the research status. Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  STATUS          text,						-- Research status (ex. "open": recorded but not started yet, "active": currently being searched, "ended": all the information has been found).
- PRIORITY        numeric CHECK (PRIO	RITY >= 0),
+ PRIORITY        numeric,
  CREATION_DATE   timestamp NOT NULL		-- The creation date.
 );
 

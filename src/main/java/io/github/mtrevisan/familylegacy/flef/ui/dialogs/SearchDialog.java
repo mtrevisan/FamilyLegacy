@@ -817,7 +817,6 @@ public final class SearchDialog extends JDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-
 			final RecordListenerInterface linkListener = new RecordListenerInterface(){
 				@Override
 				public void onRecordSelect(final String table, final Integer id){

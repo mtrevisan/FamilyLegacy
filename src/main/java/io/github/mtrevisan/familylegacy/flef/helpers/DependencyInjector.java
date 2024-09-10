@@ -25,7 +25,10 @@
 package io.github.mtrevisan.familylegacy.flef.helpers;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -50,10 +53,16 @@ public class DependencyInjector{
 	}
 
 	public final void injectDependencies(final Object target){
-		final Class<?> targetClass = target.getClass();
-		final Field[] fields = targetClass.getDeclaredFields();
-		for(int i = 0, length = fields.length; i < length; i ++){
-			final Field field = fields[i];
+		//extract fields of `target` and all its parent classes
+		final List<Field> fields = new ArrayList<>(0);
+   	Class<?> currentClass = target.getClass();
+   	while(currentClass != null){
+			fields.addAll(Arrays.asList(currentClass.getDeclaredFields()));
+   		currentClass = currentClass.getSuperclass();
+   	}
+
+		for(int i = 0, length = fields.size(); i < length; i ++){
+			final Field field = fields.get(i);
 
 			if(field.isAnnotationPresent(Inject.class)){
 				final Class<?> dependencyClass = field.getType();

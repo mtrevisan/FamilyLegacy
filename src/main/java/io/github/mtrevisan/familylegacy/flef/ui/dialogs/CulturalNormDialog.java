@@ -24,10 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
@@ -57,9 +54,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
-import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -593,23 +588,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final DependencyInjector injector = new DependencyInjector();
-			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
-			try{
-				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
-				dbManager.initialize(grammarFile);
-
-				dbManager.insertDatabase(store);
-			}
-			catch(final SQLException | IOException e){
-				throw new RuntimeException(e);
-			}
-			injector.register(DatabaseManagerInterface.class, dbManager);
-
 //			final CulturalNormDialog dialog = create(store, parent);
 			final CulturalNormDialog dialog = createShowOnly(store, parent)
 				.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, 1);
-			injector.injectDependencies(dialog);
 			dialog.loadData(1);
 //			if(!dialog.selectData(extractRecordID(culturalNorm)))
 //				dialog.showNewRecord();

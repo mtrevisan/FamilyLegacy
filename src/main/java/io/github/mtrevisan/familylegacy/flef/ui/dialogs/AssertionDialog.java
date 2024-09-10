@@ -26,9 +26,9 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -57,7 +57,6 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.IOException;
 import java.io.Serial;
-import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -586,20 +585,18 @@ public final class AssertionDialog extends CommonListDialog{
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		researchStatuses.put((Integer)researchStatus2.get("id"), researchStatus2);
 
+
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
-			final DependencyInjector injector = new DependencyInjector();
-			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
-			try{
-				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
-				dbManager.initialize(grammarFile);
-
-				dbManager.insertDatabase(store);
-			}
-			catch(final SQLException | IOException e){
-				throw new RuntimeException(e);
-			}
-			injector.register(DatabaseManagerInterface.class, dbManager);
-
 			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = create(store, parent);
 //			final AssertionDialog dialog = createRecordOnly(store, parent);

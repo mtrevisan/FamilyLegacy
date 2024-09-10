@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -250,6 +252,13 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 				throw new RuntimeException(e);
 			}
 			injector.register(DatabaseManagerInterface.class, dbManager);
+			try{
+				final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+				injector.register(StoreManagerInterface.class, storeManager);
+			}
+			catch(final IOException e){
+				throw new RuntimeException(e);
+			}
 
 			final ProjectDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);

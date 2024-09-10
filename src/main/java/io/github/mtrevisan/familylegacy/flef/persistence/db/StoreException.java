@@ -24,34 +24,40 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.TreeMap;
+import io.github.mtrevisan.familylegacy.flef.helpers.JavaHelper;
+
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serial;
 
 
-public interface DatabaseManagerInterface{
+public final class StoreException extends Exception{
 
-	Map<String, Integer> extractIdentifierToIDMap(String tableName);
-
-	Map<String, Integer> extractDateToIDMap(String tableName);
-
-	Map<String, Integer> extractTypeToIDMap(String tableName);
-
-	Map<String, Integer> extractPersonIdentifierToIDMap(String tableName);
-
-	Map<String, Integer> extractGroupIdentifierToIDMap(String tableName);
+	@Serial
+	private static final long serialVersionUID = -5956706708216574397L;
 
 
-	void insertDatabase(Map<String, TreeMap<Integer, Map<String, Object>>> database) throws SQLException;
+	public static StoreException create(final String message, final Object... parameters){
+		return new StoreException(JavaHelper.textFormat(message, parameters));
+	}
 
 
-	void insert(String tableName, Map<String, Object> record) throws SQLException;
+	private StoreException(final String message){
+		super(message);
+	}
 
-	void update(String tableName, Map<String, Object> record) throws SQLException;
 
-	void delete(String tableName, Integer recordID, Map<String, TreeMap<Integer, Map<String, Object>>> store)
-		throws IllegalArgumentException;
+	@Serial
+	@SuppressWarnings("unused")
+	private void writeObject(final ObjectOutputStream os) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
 
-	void delete(String tableName, Integer recordID) throws SQLException;
+	@Serial
+	@SuppressWarnings("unused")
+	private void readObject(final ObjectInputStream is) throws NotSerializableException{
+		throw new NotSerializableException(getClass().getName());
+	}
 
 }

@@ -24,34 +24,16 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
-import java.sql.SQLException;
-import java.util.Map;
-import java.util.TreeMap;
+
+public interface StoreManagerInterface{
+
+//	void insertDatabase(Map<String, TreeMap<Integer, Map<String, Object>>> database) throws StoreException;
 
 
-public interface DatabaseManagerInterface{
+//	void insert(String tableName, Map<String, Object> record) throws StoreException;
 
-	Map<String, Integer> extractIdentifierToIDMap(String tableName);
+//	void update(String tableName, Map<String, Object> record) throws StoreException;
 
-	Map<String, Integer> extractDateToIDMap(String tableName);
-
-	Map<String, Integer> extractTypeToIDMap(String tableName);
-
-	Map<String, Integer> extractPersonIdentifierToIDMap(String tableName);
-
-	Map<String, Integer> extractGroupIdentifierToIDMap(String tableName);
-
-
-	void insertDatabase(Map<String, TreeMap<Integer, Map<String, Object>>> database) throws SQLException;
-
-
-	void insert(String tableName, Map<String, Object> record) throws SQLException;
-
-	void update(String tableName, Map<String, Object> record) throws SQLException;
-
-	void delete(String tableName, Integer recordID, Map<String, TreeMap<Integer, Map<String, Object>>> store)
-		throws IllegalArgumentException;
-
-	void delete(String tableName, Integer recordID) throws SQLException;
+	void delete(String tableName, Integer recordID) throws StoreException;
 
 }
