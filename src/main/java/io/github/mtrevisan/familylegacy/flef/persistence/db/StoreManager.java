@@ -44,8 +44,9 @@ import java.util.regex.Pattern;
 
 public class StoreManager implements StoreManagerInterface{
 
-	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+(\"?[^\\s\\r\\n(]+\"?)[^;]*?;");
+	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("(?i)CREATE\\s+TABLE\\s+\"?([^\\s\\r\\n(\"]+)\"?[^;]*?;");
 	private static final Pattern ROW_DEFINITION_PATTERN = Pattern.compile("(?i)\\s+([^\\s\\r\\n,)]+).+?\\s+DEFAULT\\s+([^\\s\\r\\n,)]+)");
+	private static final Pattern PRIMARY_KEY_PATTERN = Pattern.compile("(?i)\"?([^\\s\\r\\n(\"]+)\"?\\s+[^\\s+]+\\s+PRIMARY\\s+KEY");
 	//https://stackoverflow.com/questions/6720050/foreign-key-constraints-when-to-use-on-update-and-on-delete
 	private static final String FOREIGN_KEY_TRUE_PATTERN = "FOREIGN\\s+KEY(\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\))?\\s+REFERENCES\\s+\"?([^\\s\"]+)\"?\\s+\\(\\s*\"?([^\\s\"]+)\"?\\s*\\)(\\s+ON\\s+(DELETE\\s+(CASCADE|SET\\s+(NULL|DEFAULT)|NO\\s+ACTION|RESTRICT)))?";
 	private static final Pattern FOREIGN_KEY_PATTERN = Pattern.compile("(?i)(" + FOREIGN_KEY_TRUE_PATTERN + "),?");
@@ -84,7 +85,7 @@ public class StoreManager implements StoreManagerInterface{
 	}
 
 
-	private final void initialize(final String sqlFile) throws IOException{
+	private void initialize(final String sqlFile) throws IOException{
 		final String sql = Files.readString(Paths.get(sqlFile));
 
 		//separate table creation and foreign key constraints
@@ -145,33 +146,35 @@ public class StoreManager implements StoreManagerInterface{
 	@Override
 	public void delete(final String tableName, final Integer recordID) throws StoreException{
 		final Deque<DeletionTask> queue = new ArrayDeque<>();
-		//TODO
-		final String primaryKeyColumn = "id";
-		queue.add(new DeletionTask(tableName, primaryKeyColumn, recordID));
+		queue.add(new DeletionTask(tableName, getPrimaryKeyColumn(tableName), recordID));
 		while(!queue.isEmpty()){
 			final DeletionTask task = queue.poll();
 
 			//propagate deletion to connected tables
-			final String currentTable = task.tableName;
+			final String currentTable = task.tableName
+				.toLowerCase(Locale.ROOT);
 			final List<ForeignKeyRule> connectedTables = extractForeignRecordsUponDelete(currentTable);
-			for(int i = 0, lengthI = connectedTables.size(); i < lengthI; i ++){
+			for(int i = 0, tableCount = connectedTables.size(); i < tableCount; i ++){
 				final ForeignKeyRule rule = connectedTables.get(i);
 
-				final String foreignKeyColumn = rule.foreignKeyColumn;
-				final String dependentTable = rule.referencedTable;
+				final String foreignKeyColumn = rule.foreignKeyColumn
+					.toLowerCase(Locale.ROOT);
+				final String dependentTable = rule.referencedTable
+					.toLowerCase(Locale.ROOT);
+				final String dependentTablePrimaryKeyColumn = getPrimaryKeyColumn(dependentTable);
 				switch(rule.onDelete){
 					case "CASCADE":
 						//delete any rows referencing the deleted row, or update the values of the referencing column(s) to the new values of the
 						// referenced columns, respectively.
-						final List<Integer> affectedIDs = deleteCascade(dependentTable, foreignKeyColumn, task.idValue);
-						for(int j = 0, lengthJ = affectedIDs.size(); j < lengthJ; j ++)
-							queue.add(new DeletionTask(dependentTable, foreignKeyColumn, affectedIDs.get(j)));
+						final List<Integer> affectedIDs = deleteCascade(dependentTable, dependentTablePrimaryKeyColumn, task.idValue);
+						for(int j = 0, length = affectedIDs.size(); j < length; j ++)
+							queue.add(new DeletionTask(dependentTable, dependentTablePrimaryKeyColumn, affectedIDs.get(j)));
 						break;
 
 					case "SET NULL":
 						//set all of the referencing columns, or a specified subset of the referencing columns, to `null`. A subset of columns
 						// can only be specified for ON DELETE actions.
-						setForeignKeyToNull(dependentTable, foreignKeyColumn, task.idValue);
+						setForeignKeyToNull(dependentTable, dependentTablePrimaryKeyColumn, task.idValue);
 						break;
 
 					case "SET DEFAULT":
@@ -179,26 +182,27 @@ public class StoreManager implements StoreManagerInterface{
 						// of columns can only be specified for ON DELETE actions. (There must be a row in the referenced table matching the
 						// default values, if they are not null, or the operation will fail.)
 						Object defaultValue = null;
-						for(int j = 0, lengthJ = tableCreations.size(); defaultValue == null && j < lengthJ; j++){
+						for(int j = 0, length = tableCreations.size(); defaultValue == null && j < length; j ++){
 							final String tableCreation = tableCreations.get(j);
 							final Matcher tableMatcher = CREATE_TABLE_PATTERN.matcher(tableCreation);
-							if(tableMatcher.find()){
-								final String tableCreationName = tableMatcher.group(1);
-								if(!tableCreationName.equalsIgnoreCase(dependentTable))
-									continue;
+							if(!tableMatcher.find())
+								continue;
+							final String tableCreationName = tableMatcher.group(1);
+							if(!tableCreationName.equalsIgnoreCase(dependentTable))
+								continue;
 
-								final Matcher columnMatcher = ROW_DEFINITION_PATTERN.matcher(tableCreation);
-								while(defaultValue == null && columnMatcher.find()){
-									final String columnName = columnMatcher.group(1);
-									final String columnDefault = columnMatcher.group(2);
-									if(columnName.equalsIgnoreCase(foreignKeyColumn))
-										defaultValue = columnDefault;
-								}
+							//TODO test
+							final Matcher columnMatcher = ROW_DEFINITION_PATTERN.matcher(tableCreation);
+							while(defaultValue == null && columnMatcher.find()){
+								final String columnName = columnMatcher.group(1);
+								final String columnDefault = columnMatcher.group(2);
+								if(columnName.equalsIgnoreCase(foreignKeyColumn))
+									defaultValue = columnDefault;
 							}
 						}
 						if(defaultValue == null)
 							defaultValue = VALUE_NULL;
-						setForeignKeyToDefault(dependentTable, foreignKeyColumn, defaultValue, task.idValue);
+						setForeignKeyToDefault(dependentTable, dependentTablePrimaryKeyColumn, defaultValue, task.idValue);
 						break;
 
 					case NO_ACTION:
@@ -223,13 +227,14 @@ public class StoreManager implements StoreManagerInterface{
 
 	private List<Integer> deleteCascade(final String tableName, final String foreignKeyColumn, final Integer recordID){
 		final List<Integer> deletedIDs = new ArrayList<>(0);
-		final Iterator<Map<String, Object>> itr = store.get(tableName).values().iterator();
+		final Iterator<Map<String, Object>> itr = store.get(tableName)
+			.values()
+			.iterator();
 		while(itr.hasNext()){
 			final Map<String, Object> record = itr.next();
 
 			if(record.get(foreignKeyColumn).equals(recordID)){
-				//TODO
-				final String primaryKeyColumn = "id";
+				final String primaryKeyColumn = getPrimaryKeyColumn(tableName);
 				deletedIDs.add((Integer)record.get(primaryKeyColumn));
 
 				itr.remove();
@@ -238,15 +243,39 @@ public class StoreManager implements StoreManagerInterface{
 		return deletedIDs;
 	}
 
+	private String getPrimaryKeyColumn(final String tableName){
+		String primaryKeyColumn = null;
+		for(int j = 0, length = tableCreations.size(); j < length; j ++){
+			final String tableCreation = tableCreations.get(j);
+			final Matcher tableMatcher = CREATE_TABLE_PATTERN.matcher(tableCreation);
+			if(!tableMatcher.find())
+				continue;
+
+			final String tableCreationName = tableMatcher.group(1);
+			if(!tableCreationName.equalsIgnoreCase(tableName))
+				continue;
+
+			final Matcher columnMatcher = PRIMARY_KEY_PATTERN.matcher(tableCreation);
+			columnMatcher.find();
+			primaryKeyColumn = columnMatcher.group(1)
+				.toLowerCase(Locale.ROOT);
+			break;
+		}
+
+		return primaryKeyColumn;
+	}
+
 	private void setForeignKeyToNull(final String tableName, final String foreignKeyColumn, final Integer recordID){
 		setForeignKeyToDefault(tableName, foreignKeyColumn, VALUE_NULL, recordID);
 	}
 
 	private void setForeignKeyToDefault(final String tableName, final String foreignKeyColumn, final Object defaultValue,
 			final int recordID){
-		for(final Map<String, Object> record : store.get(tableName).values())
-			if(record.get(foreignKeyColumn).equals(recordID))
-				record.put(foreignKeyColumn, defaultValue);
+		final TreeMap<Integer, Map<String, Object>> records = store.get(tableName);
+		if(records != null)
+			for(final Map<String, Object> record : records.values())
+				if(record.get(foreignKeyColumn).equals(recordID))
+					record.put(foreignKeyColumn, defaultValue);
 	}
 
 	private void deleteRecord(final String tableName, final String primaryKeyColumn, final Integer recordID){
@@ -257,6 +286,7 @@ public class StoreManager implements StoreManagerInterface{
 
 
 	/** NOTE: remember to appropriately manage on "CASCADE", "SET (NULL|DEFAULT)", on "RESTRICT". */
+	//TODO rigirare le associazioni
 	private List<ForeignKeyRule> extractForeignRecordsUponDelete(final String tableName){
 		final String keyStart = tableName.toUpperCase(Locale.ROOT) + ".";
 		final List<ForeignKeyRule> result = new ArrayList<>(0);
