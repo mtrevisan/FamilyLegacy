@@ -226,6 +226,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		project.put("update_date", now);
 		projects.put((Integer)project.get("id"), project);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){

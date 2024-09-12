@@ -474,6 +474,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchPersonPanel panel = create(store);
 			panel.setLinkListener(linkListener);

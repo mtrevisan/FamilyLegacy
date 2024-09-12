@@ -383,6 +383,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		localizedPersonName1.put("transcription_type", "romanized");
 		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedPersonNameDialog dialog = create(store, parent);

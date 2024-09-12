@@ -279,6 +279,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchCitationPanel panel = create(store);
 			panel.setLinkListener(linkListener);

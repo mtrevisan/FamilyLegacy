@@ -390,6 +390,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final NoteDialog dialog = create(store, parent);

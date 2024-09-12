@@ -258,6 +258,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchCulturalNormPanel panel = create(store);
 			panel.setLinkListener(linkListener);

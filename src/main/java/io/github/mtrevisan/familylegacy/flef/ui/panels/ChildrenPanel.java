@@ -462,6 +462,7 @@ public class ChildrenPanel extends JPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final ChildrenPanel panel = create(store);
 			panel.loadData(extractRecordID(group1));

@@ -185,6 +185,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchResearchStatusPanel panel = create(store);
 			panel.setLinkListener(linkListener);

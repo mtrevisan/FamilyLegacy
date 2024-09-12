@@ -525,6 +525,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		source2.put("location", "location 2");
 		sources.put((Integer)source2.get("id"), source2);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final RepositoryDialog dialog = create(store, parent);

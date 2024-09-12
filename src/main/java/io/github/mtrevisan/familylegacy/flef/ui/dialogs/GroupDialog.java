@@ -734,6 +734,7 @@ public final class GroupDialog extends CommonListDialog{
 		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		modifications.put((Integer)modification1.get("id"), modification1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final GroupDialog dialog = create(store, parent);

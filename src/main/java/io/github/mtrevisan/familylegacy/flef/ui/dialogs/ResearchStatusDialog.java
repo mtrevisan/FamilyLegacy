@@ -366,6 +366,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		researchStatus.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){

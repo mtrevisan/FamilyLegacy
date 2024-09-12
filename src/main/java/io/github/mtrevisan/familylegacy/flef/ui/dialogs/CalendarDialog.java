@@ -337,6 +337,7 @@ public final class CalendarDialog extends CommonListDialog{
 		note2.put("reference_id", 1);
 		notes.put((Integer)note2.get("id"), note2);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final CalendarDialog dialog = create(store, parent);

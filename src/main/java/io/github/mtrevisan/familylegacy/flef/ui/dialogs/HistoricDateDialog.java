@@ -418,6 +418,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final HistoricDateDialog dialog = create(store, parent);

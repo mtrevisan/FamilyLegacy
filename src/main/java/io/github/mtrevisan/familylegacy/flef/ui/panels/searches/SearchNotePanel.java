@@ -160,6 +160,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchNotePanel panel = create(store);
 			panel.setLinkListener(linkListener);

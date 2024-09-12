@@ -303,6 +303,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchEventPanel panel = create(store);
 			panel.setLinkListener(linkListener);

@@ -190,6 +190,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchMediaPanel panel = create(store);
 			panel.setLinkListener(linkListener);

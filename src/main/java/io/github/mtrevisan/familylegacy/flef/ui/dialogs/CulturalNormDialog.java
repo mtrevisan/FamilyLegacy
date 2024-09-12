@@ -586,6 +586,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		m1.put("identifier", "custom media");
 		media.put((Integer)m1.get("id"), m1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final CulturalNormDialog dialog = create(store, parent);

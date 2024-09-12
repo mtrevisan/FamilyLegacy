@@ -202,6 +202,7 @@ public final class PhotoCropDialog extends JDialog{
 		media1.put("photo_projection", "rectangular");
 		media.put((Integer)media1.get("id"), media1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final PhotoCropDialog dialog = create(store, parent);

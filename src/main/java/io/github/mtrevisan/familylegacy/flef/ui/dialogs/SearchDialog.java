@@ -815,6 +815,7 @@ public final class SearchDialog extends JDialog{
 		researchStatus3.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		researchStatuses.put((Integer)researchStatus3.get("id"), researchStatus3);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final RecordListenerInterface linkListener = new RecordListenerInterface(){

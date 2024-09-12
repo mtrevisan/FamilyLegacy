@@ -241,6 +241,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final ResearchStatusPanel panel = create(store)
 				.withReference(EntityManager.TABLE_NAME_PERSON_NAME, 1)

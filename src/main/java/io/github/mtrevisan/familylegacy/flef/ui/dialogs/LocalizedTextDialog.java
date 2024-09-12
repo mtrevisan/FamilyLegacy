@@ -444,6 +444,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		localizedTextJunction1.put("reference_type", "extract");
 		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedTextDialog dialog = createComplexText(store, parent)

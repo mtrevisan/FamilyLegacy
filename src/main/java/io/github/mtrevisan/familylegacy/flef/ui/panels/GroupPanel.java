@@ -1091,6 +1091,7 @@ public class GroupPanel extends JPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final GroupPanel panel = create(boxType, store);
 			panel.loadData(1);

@@ -588,6 +588,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchGroupPanel panel = create(store);
 			panel.setLinkListener(linkListener);

@@ -1108,6 +1108,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final TreePanel panel = create(4, store, null);
 			panel.loadDataFromUnion(group1);

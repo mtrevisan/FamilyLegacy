@@ -575,6 +575,7 @@ public final class EventDialog extends CommonListDialog{
 		m1.put("identifier", "custom media");
 		media.put((Integer)m1.get("id"), m1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final EventDialog dialog = create(store, parent);

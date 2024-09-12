@@ -586,21 +586,10 @@ public final class AssertionDialog extends CommonListDialog{
 		researchStatuses.put((Integer)researchStatus2.get("id"), researchStatus2);
 
 
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
-
-
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final AssertionDialog dialog = create(store, parent);
 //			final AssertionDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(assertion)))
 				dialog.showNewRecord();

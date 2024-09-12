@@ -361,6 +361,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		eventSuperType17.put("super_type", "Religious events");
 		eventSuperTypes.put((Integer)eventSuperType17.get("id"), eventSuperType17);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final EventTypeDialog dialog = create(store, parent);

@@ -876,6 +876,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final PersonPanel panel = create(boxType, store);
 			panel.loadData(1);

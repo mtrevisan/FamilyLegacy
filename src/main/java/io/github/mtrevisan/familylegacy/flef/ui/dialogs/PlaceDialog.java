@@ -544,6 +544,7 @@ public final class PlaceDialog extends CommonListDialog{
 		restriction1.put("reference_id", 1);
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Integer filterPlaceID = null;

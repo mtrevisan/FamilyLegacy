@@ -281,6 +281,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			}
 		};
 
+
 		EventQueue.invokeLater(() -> {
 			final SearchRepositoryPanel panel = create(store);
 			panel.setLinkListener(linkListener);
