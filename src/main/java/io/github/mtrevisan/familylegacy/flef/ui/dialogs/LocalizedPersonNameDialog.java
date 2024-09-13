@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -48,6 +51,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -384,10 +388,21 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedPersonNameDialog dialog = create(store, parent);
 //			final LocalizedPersonNameDialog dialog = createRecordOnly(store, parent);
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedPersonName1)))
 				dialog.showNewRecord();

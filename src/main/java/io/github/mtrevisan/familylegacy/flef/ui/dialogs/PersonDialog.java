@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -47,6 +50,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -505,11 +509,22 @@ public final class PersonDialog extends CommonListDialog{
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final PersonDialog dialog = create(store, parent);
 //			final PersonDialog dialog = createRecordOnly(store, parent);
 			final PersonDialog dialog = createSelectOnly(store, parent);
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(person1)))
 				dialog.showNewRecord();
@@ -532,6 +547,7 @@ public final class PersonDialog extends CommonListDialog{
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
 								.withReference(EntityManager.TABLE_NAME_PERSON, personID);
+							injector.injectDependencies(assertionDialog);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -547,6 +563,7 @@ public final class PersonDialog extends CommonListDialog{
 									//update table identifier
 									dialog.loadData();
 								});
+							injector.injectDependencies(personNameDialog);
 							personNameDialog.loadData();
 
 							personNameDialog.showDialog();

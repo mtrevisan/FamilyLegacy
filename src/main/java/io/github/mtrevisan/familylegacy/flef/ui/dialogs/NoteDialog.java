@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -51,6 +54,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -391,10 +395,21 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final NoteDialog dialog = create(store, parent);
 //			final NoteDialog dialog = createRecordOnly(store, parent);
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(note1)))
 				dialog.showNewRecord();
@@ -420,6 +435,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 										insertRecordReferenceID(record, noteID);
 									}
 								});
+							injector.injectDependencies(culturalNormDialog);
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
@@ -436,6 +452,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 										insertRecordReferenceID(record, noteID);
 									}
 								});
+							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -449,6 +466,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + noteID);
+							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(modificationNoteID);
 
@@ -463,6 +481,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 								: ResearchStatusDialog.createEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + noteID);
+							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

@@ -545,6 +545,7 @@ public final class SourceDialog extends CommonListDialog{
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
 								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
+							injector.injectDependencies(placeDialog);
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -554,6 +555,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							injector.injectDependencies(historicDateDialog);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -572,6 +574,7 @@ public final class SourceDialog extends CommonListDialog{
 										insertRecordReferenceID(record, sourceID);
 									}
 								});
+							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -588,6 +591,7 @@ public final class SourceDialog extends CommonListDialog{
 										insertRecordReferenceID(record, sourceID);
 									}
 								});
+							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -595,6 +599,7 @@ public final class SourceDialog extends CommonListDialog{
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(store, parent)
 								.withFilterOnSourceID(sourceID);
+							injector.injectDependencies(citationDialog);
 							citationDialog.loadData();
 
 							citationDialog.showDialog();
@@ -608,6 +613,7 @@ public final class SourceDialog extends CommonListDialog{
 								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + sourceID);
+							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -622,6 +628,7 @@ public final class SourceDialog extends CommonListDialog{
 								: ResearchStatusDialog.createEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + sourceID);
+							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

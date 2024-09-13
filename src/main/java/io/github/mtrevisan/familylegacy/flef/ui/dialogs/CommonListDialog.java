@@ -701,7 +701,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			//FIXME use a database?
 			//TODO keep going only if no foreign references are marked with restrict and there is a record that points to the current one to be deleted
 			storeManager.delete(getTableName(), recordID);
-			//remove data from records
+			//remove data from linked records
 //			getRecords(getTableName())
 //				.remove(recordID);
 //			final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);

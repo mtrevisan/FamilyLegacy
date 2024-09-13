@@ -24,7 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
@@ -48,6 +51,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
@@ -362,10 +366,21 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		eventSuperTypes.put((Integer)eventSuperType17.get("id"), eventSuperType17);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final EventTypeDialog dialog = create(store, parent);
 			dialog.setTitle("Event Type");
+			injector.injectDependencies(dialog);
 			dialog.loadData(1);
 
 			final Object listener = new Object(){

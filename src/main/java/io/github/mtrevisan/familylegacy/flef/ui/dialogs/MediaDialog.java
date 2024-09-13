@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -822,11 +825,22 @@ public final class MediaDialog extends CommonListDialog{
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final MediaDialog dialog = createForMedia(store, parent)
 //			final MediaDialog dialog = createRecordForPhoto(store, parent)
 				.withBasePath(FileHelper.documentsDirectory());
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(mediaJunction1)))
 				dialog.showNewRecord();
@@ -845,6 +859,7 @@ public final class MediaDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							injector.injectDependencies(historicDateDialog);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -863,6 +878,7 @@ public final class MediaDialog extends CommonListDialog{
 										insertRecordReferenceID(record, mediaID);
 									}
 								});
+							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -899,6 +915,7 @@ public final class MediaDialog extends CommonListDialog{
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
 								.withReference(EntityManager.TABLE_NAME_MEDIA, mediaID);
+							injector.injectDependencies(assertionDialog);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -908,6 +925,7 @@ public final class MediaDialog extends CommonListDialog{
 									? EventDialog.createSelectOnly(store, parent)
 									: EventDialog.create(store, parent))
 								.withReference(EntityManager.TABLE_NAME_MEDIA, mediaID);
+							injector.injectDependencies(eventDialog);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -921,6 +939,7 @@ public final class MediaDialog extends CommonListDialog{
 								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + mediaID);
+							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -935,6 +954,7 @@ public final class MediaDialog extends CommonListDialog{
 								: ResearchStatusDialog.createEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + mediaID);
+							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
