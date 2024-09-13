@@ -82,8 +82,8 @@
 		<hibernate.hibernate-core.version>6.6.0.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
-		<!-- https://mvnrepository.com/artifact/org.opencv/opencv -->
-		<opencv.version>4.10.0</opencv.version>
+		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
+		<bytedeco.opencv.version>4.9.0-1.5.10</bytedeco.opencv.version>
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
@@ -402,9 +402,9 @@
 
 		<!-- Image processing -->
 		<dependency>
-			<groupId>org.opencv</groupId>
+			<groupId>org.bytedeco</groupId>
 			<artifactId>opencv</artifactId>
-			<version>${opencv.version}</version>
+			<version>${bytedeco.opencv.version}</version>
 		</dependency>
 
 		<dependency>
