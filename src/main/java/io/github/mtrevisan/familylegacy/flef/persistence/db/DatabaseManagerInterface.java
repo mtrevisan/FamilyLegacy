@@ -49,9 +49,6 @@ public interface DatabaseManagerInterface{
 
 	void update(String tableName, Map<String, Object> record) throws SQLException;
 
-	void delete(String tableName, Integer recordID, Map<String, TreeMap<Integer, Map<String, Object>>> store)
-		throws IllegalArgumentException;
-
 	void delete(String tableName, Integer recordID) throws SQLException;
 
 }

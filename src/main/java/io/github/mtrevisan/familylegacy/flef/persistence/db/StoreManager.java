@@ -43,6 +43,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+// https://neo4j.com/docs/getting-started/get-started-with-neo4j/graph-database/
+// https://www.baeldung.com/java-neo4j
 public class StoreManager implements StoreManagerInterface{
 
 	private static final Pattern CREATE_TABLE_PATTERN = Pattern.compile("CREATE\\s+TABLE\\s+\"?([^\\s\\r\\n(\"]+)\"?[^;]*?;", Pattern.CASE_INSENSITIVE);
@@ -67,8 +69,9 @@ public class StoreManager implements StoreManagerInterface{
 		SQL_TO_JAVA_TYPE.put("INT", Integer.class);
 		SQL_TO_JAVA_TYPE.put("INTEGER", Integer.class);
 		SQL_TO_JAVA_TYPE.put("BIGINT", Long.class);
-		SQL_TO_JAVA_TYPE.put("VARCHAR", String.class);
 		SQL_TO_JAVA_TYPE.put("CHAR", String.class);
+		SQL_TO_JAVA_TYPE.put("VARCHAR", String.class);
+		SQL_TO_JAVA_TYPE.put("CHARACTER VARYING", String.class);
 		SQL_TO_JAVA_TYPE.put("TEXT", String.class);
 		SQL_TO_JAVA_TYPE.put("FLOAT", Float.class);
 		SQL_TO_JAVA_TYPE.put("DOUBLE", Double.class);
