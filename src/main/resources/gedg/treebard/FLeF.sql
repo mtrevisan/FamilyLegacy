@@ -71,7 +71,7 @@ CREATE TABLE HISTORIC_DATE
  CALENDAR_ORIGINAL_ID bigint,				-- An xref ID of a calendar type for the original date.
  CERTAINTY            text,				-- A status code that allows passing on the users opinion of whether the date is correct (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY          text,				-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE SET NULL
+ FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE RESTRICT
 );
 
 -- https://en.wikipedia.org/wiki/List_of_calendars
@@ -231,13 +231,13 @@ CREATE TABLE GROUP_JUNCTION
 CREATE TABLE EVENT
 (
  "ID"            bigint PRIMARY KEY,
- TYPE_ID         bigint NOT NULL,
+ "TYPE_ID"       bigint NOT NULL,
  DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        bigint,				-- The place this event happened.
  DATE_ID         bigint,				-- The date this event has happened.
  REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
  REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (TYPE_ID) REFERENCES EVENT_TYPE ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (TYPE_ID) REFERENCES EVENT_TYPE ( "ID" ) ON DELETE RESTRICT,
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
@@ -248,7 +248,7 @@ CREATE TABLE EVENT_TYPE
  SUPER_TYPE_ID bigint NOT NULL,
  "TYPE"        text NOT NULL,	-- (ex. Historical events: "historic fact", "natural disaster", "invention", "patent filing", "patent granted", Personal origins: "birth", "sex", "fosterage", "adoption", "guardianship", Physical description: "physical description", "eye color", "hair color", "height", "weight", "build", "complexion", "gender", "race", "ethnic origin", "marks/scars", "special talent", "disability", Citizenship and migration: "nationality", "emigration", "immigration", "naturalization", "caste", Real estate assets: "residence", "land grant", "land purchase", "land sale", "property", "deed", "escrow", Education: "education", "graduation", "able to read", "able to write", "learning", "enrollment", Work and Career: "employment", "occupation", "career", "retirement", "resignation", Legal Events and Documents: "coroner report", "will", "probate", "legal problem", "name change", "inquest", "jury duty", "draft registration", "pardon", Health problems and habits: "hospitalization", "illness", "tobacco use", "alcohol use", "drug problem", Marriage and family life: "engagement", "betrothal", "cohabitation", "union", "wedding", "marriage", "number of marriages", "marriage bann", "marriage license", "marriage contract", "marriage settlement", "filing for divorce", "divorce", "annulment", "separation", "number of children (total)", "number of children (living)", "marital status", "wedding anniversary", "anniversary celebration", Military: "military induction", "military enlistment", "military rank", "military award", "military promotion", "military service", "military release", "military discharge", "military resignation", "military retirement", "missing in action", Confinement: "imprisonment", "deportation", "internment", Transfers and travel: "travel", Accolades: "honor", "award", "membership", Death and burial: "death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation", "reburial", Others: "anecdote", "political affiliation", "hobby", "partnership", "celebration of life", "ran away from home", Religious events: "religion", "religious conversion", "bar mitzvah", "bas mitzvah", "baptism", "excommunication", "christening", "confirmation", "ordination", "blessing", "first communion")
  CATEGORY      text,				-- (ex. birth of a person: "birth", death of a person: "death", "execution", union between two persons: "betrothal", "cohabitation", "union", "wedding", "marriage", "marriage bann", "marriage license", "marriage contract", adoption of a person: "adoption", "fosterage")
- FOREIGN KEY (SUPER_TYPE_ID) REFERENCES EVENT_SUPER_TYPE ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (SUPER_TYPE_ID) REFERENCES EVENT_SUPER_TYPE ( "ID" ) ON DELETE RESTRICT
 );
 
 CREATE TABLE EVENT_SUPER_TYPE
