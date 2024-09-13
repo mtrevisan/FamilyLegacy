@@ -219,6 +219,7 @@ public class ChildrenPanel extends JPanel{
 				return eventTypesAdoptions.contains(recordType);
 			})
 			.map(EntityManager::extractRecordReferenceID)
+			.filter(Objects::nonNull)
 			.collect(Collectors.toSet());
 	}
 
@@ -239,6 +240,7 @@ public class ChildrenPanel extends JPanel{
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
+			.filter(Objects::nonNull)
 			.toArray(Map[]::new);
 	}
 

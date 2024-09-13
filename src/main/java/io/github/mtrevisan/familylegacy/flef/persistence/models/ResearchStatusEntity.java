@@ -73,7 +73,7 @@ public class ResearchStatusEntity extends AbstractEntity{
 	private String status;
 
 	@Column(name = "priority")
-	private Integer priority;
+	private Short priority;
 
 	@Column(name = "creation_date", columnDefinition= "TIMESTAMP WITH TIME ZONE", nullable = false)
 	private ZonedDateTime creationDate;

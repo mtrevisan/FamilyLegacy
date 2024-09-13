@@ -24,11 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -55,7 +52,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;

@@ -525,6 +525,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
