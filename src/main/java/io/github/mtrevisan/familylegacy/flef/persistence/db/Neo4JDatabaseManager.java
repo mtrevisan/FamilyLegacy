@@ -27,9 +27,11 @@ package io.github.mtrevisan.familylegacy.flef.persistence.db;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -48,6 +50,7 @@ import java.util.TreeMap;
 //https://neo4j.com/docs/java-manual/current/
 //https://neo4j.com/docs/getting-started/languages-guides/java/neo4j-ogm/
 //https://neo4j.com/docs/ogm-manual/current/tutorial/
+//https://neo4j.com/docs/java-reference/current/java-embedded/setup/
 public class Neo4JDatabaseManager implements DatabaseManagerInterface{
 
 	public Neo4JDatabaseManager(){
@@ -62,25 +65,41 @@ public static void main(String[] args) {
 			.toPath();
 		final DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(path)
 			.setConfig(GraphDatabaseSettings.transaction_timeout, Duration.ofSeconds(60))
-			.setConfig(GraphDatabaseSettings.preallocate_logical_logs, true).build();
-
+			.setConfig(GraphDatabaseSettings.preallocate_logical_logs, true)
+			.build();
+		Runtime.getRuntime().addShutdownHook(new Thread(){
+			@Override
+			public void run(){
+				managementService.shutdown();
+			}
+		});
 		final GraphDatabaseService graphDb = managementService.database("DEFAULT_DATABASE_NAME");
 
-		try(final Transaction transaction = graphDb.beginTx()){
-			Node car = transaction.createNode(Label.label("Car"));
+		try(final Transaction tx = graphDb.beginTx()){
+			final Node car = tx.createNode(Label.label("Car"));
 			car.setProperty("make", "tesla");
 			car.setProperty("model", "model3");
 
-			Node owner = transaction.createNode(Label.label("Person"));
+			final Node owner = tx.createNode(Label.label("Person"));
 			owner.setProperty("firstName", "baeldung");
 			owner.setProperty("lastName", "baeldung");
 
-			owner.createRelationshipTo(car, RelationshipType.withName("owner"));
+			final Relationship relationship = owner.createRelationshipTo(car, RelationshipType.withName("owner"));
+			relationship.setProperty("message", "brave Neo4j");
 
-			Result result = transaction.execute(
-			"MATCH (c:Car) <-[owner]- (p:Person) " +
-				"WHERE c.make = 'tesla'" +
-				"RETURN p.firstName, p.lastName");
+			Result result = tx.execute(
+				"MATCH (c:Car) <-[owner]- (p:Person) "
+					+ "WHERE c.make = 'tesla'"
+					+ "RETURN p.firstName, p.lastName");
+
+			final Node firstNode = tx.findNode(Label.label("Car"), "make", "tesla");
+			final Node secondNode = tx.findNode(Label.label("Person"), "firstName", "baeldung");
+			firstNode.getSingleRelationship(RelationshipType.withName("owner"), Direction.OUTGOING)
+				.delete();
+			firstNode.delete();
+			secondNode.delete();
+
+			tx.commit();
 		}
 
 //		System.out.println("Database initialized successfully.");

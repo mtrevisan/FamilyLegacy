@@ -92,6 +92,8 @@
 		<neo4j.version>5.23.0</neo4j.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
 		<neo4j.ogm-core.version>4.0.11</neo4j.ogm-core.version>
+		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-embedded-driver -->
+		<neo4j.ogm-embedded-driver.version>3.3.4</neo4j.ogm-embedded-driver.version>
 
 		<!-- Topological sorting -->
 		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
@@ -391,6 +393,11 @@
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j-ogm-core</artifactId>
 			<version>${neo4j.ogm-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-ogm-embedded-driver</artifactId>
+			<version>${neo4j.ogm-embedded-driver.version}</version>
 		</dependency>
 
 		<!-- Image processing -->
