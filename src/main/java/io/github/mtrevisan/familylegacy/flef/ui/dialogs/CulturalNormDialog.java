@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -54,6 +57,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -587,11 +591,22 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		media.put((Integer)m1.get("id"), m1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final CulturalNormDialog dialog = create(store, parent);
 			final CulturalNormDialog dialog = createShowOnly(store, parent)
 				.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, 1);
+			injector.injectDependencies(dialog);
 			dialog.loadData(1);
 //			if(!dialog.selectData(extractRecordID(culturalNorm)))
 //				dialog.showNewRecord();
@@ -613,12 +628,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? AssertionDialog.createSelectOnly(store, parent)
 									: AssertionDialog.create(store, parent))
 								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID);
+							injector.injectDependencies(assertionDialog);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
+							injector.injectDependencies(placeDialog);
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -628,6 +645,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							injector.injectDependencies(historicDateDialog);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -646,6 +664,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 										insertRecordReferenceID(record, culturalNormID);
 									}
 								});
+							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -662,6 +681,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 										insertRecordReferenceID(record, culturalNormID);
 									}
 								});
+							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -671,6 +691,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? EventDialog.createSelectOnly(store, parent)
 									: EventDialog.create(store, parent))
 								.withReference(EntityManager.TABLE_NAME_CULTURAL_NORM, culturalNormID);
+							injector.injectDependencies(eventDialog);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -684,6 +705,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + culturalNormID);
+							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -698,6 +720,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 								: ResearchStatusDialog.createEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + culturalNormID);
+							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

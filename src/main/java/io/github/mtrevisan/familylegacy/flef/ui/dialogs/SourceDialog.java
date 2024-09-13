@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -50,6 +53,7 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -447,6 +451,17 @@ public final class SourceDialog extends CommonListDialog{
 		repository1.put("type", "public library");
 		repositories.put((Integer)repository1.get("id"), repository1);
 
+		final TreeMap<Integer, Map<String, Object>> citations = new TreeMap<>();
+		store.put("citation", citations);
+		final Map<String, Object> citation = new HashMap<>();
+		citation.put("id", 1);
+		citation.put("source_id", 2);
+		citation.put("location", "here");
+		citation.put("extract", "text 2");
+		citation.put("extract_locale", "en-US");
+		citation.put("extract_type", "transcript");
+		citations.put((Integer)citation.get("id"), citation);
+
 		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
 		store.put("historic_date", historicDates);
 		final Map<String, Object> historicDate1 = new HashMap<>();
@@ -496,10 +511,21 @@ public final class SourceDialog extends CommonListDialog{
 		restrictions.put((Integer)restriction1.get("id"), restriction1);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final SourceDialog dialog = create(store, parent);
 //			final SourceDialog dialog = createRecordOnly(store, parent);
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(source1)))
 				dialog.showNewRecord();
@@ -519,6 +545,7 @@ public final class SourceDialog extends CommonListDialog{
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
 								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
+							injector.injectDependencies(placeDialog);
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -528,6 +555,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
+							injector.injectDependencies(historicDateDialog);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -546,6 +574,7 @@ public final class SourceDialog extends CommonListDialog{
 										insertRecordReferenceID(record, sourceID);
 									}
 								});
+							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -562,6 +591,7 @@ public final class SourceDialog extends CommonListDialog{
 										insertRecordReferenceID(record, sourceID);
 									}
 								});
+							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -569,6 +599,7 @@ public final class SourceDialog extends CommonListDialog{
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(store, parent)
 								.withFilterOnSourceID(sourceID);
+							injector.injectDependencies(citationDialog);
 							citationDialog.loadData();
 
 							citationDialog.showDialog();
@@ -582,6 +613,7 @@ public final class SourceDialog extends CommonListDialog{
 								: NoteDialog.createModificationNoteEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + sourceID);
+							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -596,6 +628,7 @@ public final class SourceDialog extends CommonListDialog{
 								: ResearchStatusDialog.createEditOnly(store, parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + sourceID);
+							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

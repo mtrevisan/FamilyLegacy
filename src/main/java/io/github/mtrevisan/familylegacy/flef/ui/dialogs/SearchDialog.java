@@ -24,8 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -816,6 +819,16 @@ public final class SearchDialog extends JDialog{
 		researchStatuses.put((Integer)researchStatus3.get("id"), researchStatus3);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final RecordListenerInterface linkListener = new RecordListenerInterface(){
@@ -839,6 +852,7 @@ public final class SearchDialog extends JDialog{
 						case "research_status" -> recordDialog = ResearchStatusDialog.createShowOnly(store, parent);
 					}
 					if(recordDialog != null){
+						injector.injectDependencies(recordDialog);
 						recordDialog.loadData(id);
 
 						recordDialog.showDialog();
@@ -873,6 +887,7 @@ public final class SearchDialog extends JDialog{
 			};
 			final SearchDialog dialog = create(store, parent)
 				.withLinkListener(linkListener);
+			injector.injectDependencies(dialog);
 			dialog.loadData();
 
 			final Object listener = new Object(){
@@ -903,6 +918,7 @@ public final class SearchDialog extends JDialog{
 							final Integer sourceID = extractRecordID(container);
 							final CitationDialog citationDialog = CitationDialog.createSelectOnly(store, parent)
 								.withFilterOnSourceID(sourceID);
+							injector.injectDependencies(dialog);
 							citationDialog.loadData();
 
 							citationDialog.showDialog();
@@ -933,6 +949,7 @@ public final class SearchDialog extends JDialog{
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.createRecordOnly(store, parent);
 							final Integer calendarID = extractRecordCalendarOriginalID(container);
+							injector.injectDependencies(dialog);
 							calendarDialog.loadData(calendarID);
 
 							calendarDialog.showDialog();
@@ -1090,6 +1107,7 @@ public final class SearchDialog extends JDialog{
 							final Integer recordID = extractRecordID(container);
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.createSelectOnly(store, parent)
 								.withReference(tableName, recordID);
+							injector.injectDependencies(dialog);
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();

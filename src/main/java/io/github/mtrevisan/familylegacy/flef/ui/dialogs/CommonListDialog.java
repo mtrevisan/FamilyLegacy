@@ -697,13 +697,16 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		setMandatoryFieldsBackgroundColor(Color.WHITE);
 
 		try{
-			//TODO check referential integrity
-			//FIXME use a database?
-			//TODO keep going only if no foreign references are marked with restrict and there is a record that points to the current one to be deleted
 			storeManager.delete(getTableName(), recordID);
-			//remove data from records
-//			getRecords(getTableName())
-//				.remove(recordID);
+			//TODO remove linked records
+			//remove data from linked records
+			//localized text through junction of type "extract" if citation is removed
+			//localized text through junction of type "name" if place is removed
+			//person name if person is removed
+			//localized person name if person name is removed
+			//through junction: media, group, cultural norm, contact
+			//notes, restriction, modification, research status
+
 //			final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);
 //			final Map<Integer, Map<String, Object>> recordNotes = extractReferences(EntityManager.TABLE_NAME_NOTE);
 //			for(final Integer noteID : recordNotes.keySet())

@@ -25,8 +25,6 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.DatabaseManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
@@ -50,7 +48,6 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.IOException;
 import java.io.Serial;
-import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -227,6 +224,16 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		projects.put((Integer)project.get("id"), project);
 
 
+		final DependencyInjector injector = new DependencyInjector();
+		try{
+			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
+			injector.register(StoreManagerInterface.class, storeManager);
+		}
+		catch(final IOException e){
+			throw new RuntimeException(e);
+		}
+
+
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final Object listener = new Object(){
@@ -240,26 +247,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 				public void refresh(final EditEvent editCommand){}
 			};
 			EventBusService.subscribe(listener);
-
-			final DependencyInjector injector = new DependencyInjector();
-			final DatabaseManager dbManager = new DatabaseManager("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1", "sa", "");
-			try{
-				final String grammarFile = "src/main/resources/gedg/treebard/FLeF.sql";
-				dbManager.initialize(grammarFile);
-
-				dbManager.insertDatabase(store);
-			}
-			catch(final SQLException | IOException e){
-				throw new RuntimeException(e);
-			}
-			injector.register(DatabaseManagerInterface.class, dbManager);
-			try{
-				final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-				injector.register(StoreManagerInterface.class, storeManager);
-			}
-			catch(final IOException e){
-				throw new RuntimeException(e);
-			}
 
 			final ProjectDialog dialog = create(store, parent);
 			injector.injectDependencies(dialog);

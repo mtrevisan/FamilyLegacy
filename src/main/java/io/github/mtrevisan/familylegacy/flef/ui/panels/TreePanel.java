@@ -342,7 +342,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
-			.map(entry -> persons.get(extractRecordReferenceID(entry)))
+			.map(EntityManager::extractRecordReferenceID)
+			.filter(Objects::nonNull)
+			.map(persons::get)
 			.toArray(Map[]::new);
 	}
 

@@ -116,6 +116,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
@@ -381,6 +382,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
@@ -392,6 +394,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
 				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
@@ -472,6 +475,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
+			.filter(Objects::nonNull)
 			.toList();
 	}
 
