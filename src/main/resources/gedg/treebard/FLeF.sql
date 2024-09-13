@@ -10,12 +10,12 @@ CREATE TABLE "ASSERTION"
 (
  "ID"            bigint PRIMARY KEY,
  CITATION_ID     bigint NOT NULL,	-- The citation from which this assertion is derived.
- REFERENCE_TABLE text,					-- The table name this record is attached to (ex. "place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name").
- REFERENCE_ID    bigint,				-- The ID of the referenced record in the table.
+ JUNCTION_ID     bigint,				-- The ID of the referenced record in the table (tables can be "place", "cultural norm", "historic date", "calendar", "person", "group", "media", "person name").
  ROLE            text,					-- What role the cited entity played in the event that is being cited in this context (ex. "child", "father", "mother", "partner", "midwife", "bridesmaid", "best man", "parent", "prisoner", "religious officer", "justice of the peace", "supervisor", "employer", "employee", "witness", "assistant", "roommate", "landlady", "landlord", "foster parent", "makeup artist", "financier", "florist", "usher", "photographer", "bartender", "bodyguard", "adoptive parent", "hairdresser", "chauffeur", "treasurer", "trainer", "secretary", "navigator", "neighbor", "maid", "pilot", "undertaker", "mining partner", "legal guardian", "interior decorator", "executioner", "driver", "host", "hostess", "farm hand", "ranch hand", "junior partner", "butler", "boarder", "chef", "patent attorney").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the assertion cause has really caused the assertion (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (CITATION_ID) REFERENCES CITATION ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (CITATION_ID) REFERENCES CITATION ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 -- Where a source makes an assertion.
@@ -118,19 +118,19 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
  "ID"              bigint PRIMARY KEY,
  LOCALIZED_TEXT_ID bigint NOT NULL,
- REFERENCE_TABLE   text NOT NULL,	-- The table name this record is attached to (ex. "citation", "place").
- REFERENCE_ID      bigint NOT NULL,	-- The ID of the referenced record in the table.
+ JUNCTION_ID       bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "citation", "place").
  REFERENCE_TYPE    text NOT NULL,	-- The column name this record is attached to (ex. "extract", "name").
- FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (LOCALIZED_TEXT_ID) REFERENCES LOCALIZED_TEXT ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE NOTE
 (
  "ID"            bigint PRIMARY KEY,
- NOTE            text NOT NULL,	-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
- LOCALE          text,				-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
- REFERENCE_TABLE text NOT NULL,	-- The table name this record is attached to (ex. "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "place", "person name", "person", "group", "research status", "media").
- REFERENCE_ID    bigint NOT NULL	-- The ID of the referenced record in the table.
+ NOTE            text NOT NULL,		-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
+ LOCALE          text,					-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "assertion", "citation", "source", "cultural norm", "historic date", "calendar", "event", "repository", "place", "person name", "person", "group", "research status", "media").
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -152,10 +152,10 @@ CREATE TABLE MEDIA_JUNCTION
 (
  "ID"            bigint PRIMARY KEY,
  MEDIA_ID        bigint NOT NULL,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person", "person name", "group", "research status").
- REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "cultural norm", "event", "repository", "source", "citation", "assertion", "place", "note", "person", "person name", "group", "research status").
  PHOTO_CROP      text,					-- Top-left coordinate and width-height length of the enclosing box inside an photo.
- FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (MEDIA_ID) REFERENCES MEDIA ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -212,12 +212,12 @@ CREATE TABLE GROUP_JUNCTION
 (
  "ID"            bigint PRIMARY KEY,
  GROUP_ID        bigint NOT NULL,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place").
- REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "person", "group", "place").
  ROLE            text,					-- What role the referenced entity played in the group that is being cited in this context (ex. "partner", "child", "adoptee", "president", "member", "resident" (in a neighborhood), "head of household", "tribal leader").
  CERTAINTY       text,					-- A status code that allows passing on the users opinion of whether the group exists (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY     text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (GROUP_ID) REFERENCES "GROUP" ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 
@@ -235,11 +235,11 @@ CREATE TABLE EVENT
  DESCRIPTION     text,				   -- The description of the event.
  PLACE_ID        bigint,				-- The place this event happened.
  DATE_ID         bigint,				-- The date this event has happened.
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to (ex. "person", "group", "place", "cultural norm", "calendar", "media", "person name").
- REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (TYPE_ID) REFERENCES EVENT_TYPE ( "ID" ) ON DELETE RESTRICT,
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "person", "group", "place", "cultural norm", "calendar", "media", "person name").
+ FOREIGN KEY ("TYPE_ID") REFERENCES EVENT_TYPE ( "ID" ) ON DELETE RESTRICT,
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL,
- FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
+ FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE EVENT_TYPE
@@ -289,44 +289,52 @@ CREATE TABLE CULTURAL_NORM_JUNCTION
 (
  "ID"             bigint PRIMARY KEY,
  CULTURAL_NORM_ID bigint NOT NULL,
- REFERENCE_TABLE  text NOT NULL,		-- The table name this record is attached to (ex. "assertion", "note", "person name", "group").
- REFERENCE_ID     bigint NOT NULL,	-- The ID of the referenced record in the table.
+ JUNCTION_ID      bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "assertion", "note", "person name", "group").
  CERTAINTY        text,					-- A status code that allows passing on the users opinion of whether the connection to the rule is true (ex. "impossible", "unlikely", "possible", "almost certain", "certain").
  CREDIBILITY      text,					-- A quantitative evaluation of the credibility of a piece of information, based upon its supporting evidence ("unreliable/estimated data", "questionable reliability of evidence", "secondary evidence, data officially recorded sometime after assertion", "direct and primary evidence used, or by dominance of the evidence").
- FOREIGN KEY (CULTURAL_NORM_ID) REFERENCES CULTURAL_NORM ( "ID" ) ON DELETE CASCADE
+ FOREIGN KEY (CULTURAL_NORM_ID) REFERENCES CULTURAL_NORM ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 
 -- Other application-related things
 
+-- tables that have a REFERENCE_TABLE/REFERENCE_ID: ASSERTION, NOTE, EVENT, plus all *_JUNCTION
+CREATE TABLE JUNCTION
+(
+ "ID"            bigint PRIMARY KEY,
+ REFERENCE_TABLE text NOT NULL,	-- The table name this record is attached to.
+ REFERENCE_ID    bigint NOT NULL	-- The ID of the referenced record in the table.
+);
+
 CREATE TABLE RESTRICTION
 (
  "ID"            bigint PRIMARY KEY,
- RESTRICTION     text NOT NULL,	-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "public" (can be freely distributed or exported).
- REFERENCE_TABLE text NOT NULL,	-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "historic date", "event", "place", "note", "person name", "person", "group", "media").
- REFERENCE_ID    bigint NOT NULL	-- The ID of the referenced record in the table.
+ RESTRICTION     text NOT NULL,		-- Specifies how the record should be treated. Known values and their meaning are: "confidential" (should not be distributed or exported), "public" (can be freely distributed or exported).
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table (tables can be "assertion", "citation", "source", "repository", "cultural norm", "historic date", "event", "place", "note", "person name", "person", "group", "media").
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 -- Notes can be attached through a note.
 CREATE TABLE MODIFICATION
 (
  "ID"            bigint PRIMARY KEY,
- REFERENCE_TABLE text NOT NULL,			-- The table name this record is attached to.
- REFERENCE_ID    bigint NOT NULL,		-- The ID of the referenced record in the table.
+ JUNCTION_ID     bigint NOT NULL,		-- The ID of the referenced record in the table.
  CREATION_DATE   timestamp NOT NULL,	-- The creation date of a record.
- UPDATE_DATE     timestamp					-- The changing date of a record.
+ UPDATE_DATE     timestamp,				-- The changing date of a record.
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE RESEARCH_STATUS
 (
  "ID"            bigint PRIMARY KEY,
- REFERENCE_TABLE text NOT NULL,			-- The table name this record is attached to.
- REFERENCE_ID    bigint NOT NULL,		-- The ID of the referenced record in the table.
+ JUNCTION_ID     bigint NOT NULL,		-- The ID of the referenced record in the table.
  IDENTIFIER      text NOT NULL UNIQUE,	-- An identifier (must be unique).
  DESCRIPTION     text,						-- The description of the research status. Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`.
  STATUS          text,						-- Research status (ex. "open": recorded but not started yet, "active": currently being searched, "ended": all the information has been found).
  PRIORITY        smallint,
- CREATION_DATE   timestamp NOT NULL		-- The creation date.
+ CREATION_DATE   timestamp NOT NULL,		-- The creation date.
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE CONTACT
@@ -340,9 +348,9 @@ CREATE TABLE CONTACT_JUNCTION
 (
  "ID"            bigint PRIMARY KEY,
  CONTACT_ID      bigint NOT NULL,
- REFERENCE_TABLE text NOT NULL,		-- The table name this record is attached to.
- REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
- FOREIGN KEY (CONTACT_ID) REFERENCES CONTACT ( "ID" )
+ JUNCTION_ID     bigint NOT NULL,	-- The ID of the referenced record in the table.
+ FOREIGN KEY (CONTACT_ID) REFERENCES CONTACT ( "ID" ) ON DELETE CASCADE,
+ FOREIGN KEY (JUNCTION_ID) REFERENCES JUNCTION ( "ID" ) ON DELETE CASCADE
 );
 
 CREATE TABLE PROJECT

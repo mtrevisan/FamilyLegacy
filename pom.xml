@@ -88,6 +88,10 @@
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
 		<h2.version>2.3.232</h2.version>
+		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->
+		<neo4j.version>5.23.0</neo4j.version>
+		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
+		<neo4j.ogm-core.version>4.0.11</neo4j.ogm-core.version>
 
 		<!-- Topological sorting -->
 		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
@@ -377,6 +381,16 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>${h2.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j</artifactId>
+			<version>${neo4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-ogm-core</artifactId>
+			<version>${neo4j.ogm-core.version}</version>
 		</dependency>
 
 		<!-- Image processing -->
