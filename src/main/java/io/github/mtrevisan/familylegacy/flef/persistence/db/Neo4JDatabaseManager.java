@@ -61,19 +61,15 @@ public static void main(String[] args) {
 		new Neo4JDatabaseManager();
 }
 	public final void initialize(){
-		final Path path = new File("data/genealogy")
+		final Path path = new File("genealogy_db")
 			.toPath();
 		final DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(path)
 			.setConfig(GraphDatabaseSettings.transaction_timeout, Duration.ofSeconds(60))
 			.setConfig(GraphDatabaseSettings.preallocate_logical_logs, true)
 			.build();
-		Runtime.getRuntime().addShutdownHook(new Thread(){
-			@Override
-			public void run(){
-				managementService.shutdown();
-			}
-		});
-		final GraphDatabaseService graphDb = managementService.database("DEFAULT_DATABASE_NAME");
+		Runtime.getRuntime()
+			.addShutdownHook(new Thread(managementService::shutdown));
+		final GraphDatabaseService graphDb = managementService.database("neo4j");
 
 		try(final Transaction tx = graphDb.beginTx()){
 			final Node car = tx.createNode(Label.label("Car"));
@@ -94,7 +90,7 @@ public static void main(String[] args) {
 
 			final Node firstNode = tx.findNode(Label.label("Car"), "make", "tesla");
 			final Node secondNode = tx.findNode(Label.label("Person"), "firstName", "baeldung");
-			firstNode.getSingleRelationship(RelationshipType.withName("owner"), Direction.OUTGOING)
+			firstNode.getSingleRelationship(RelationshipType.withName("owner"), Direction.INCOMING)
 				.delete();
 			firstNode.delete();
 			secondNode.delete();

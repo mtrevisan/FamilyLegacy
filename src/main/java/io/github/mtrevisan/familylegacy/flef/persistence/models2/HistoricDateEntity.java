@@ -46,7 +46,7 @@ public class HistoricDateEntity extends AbstractEntity{
 	private String dateOriginal;
 
 	//An xref ID of a calendar type for the original date.
-	@Relationship(type = "belongs_to", direction = Relationship.Direction.OUTCOMING)
+	@Relationship(type = "belongs_to", direction = Relationship.Direction.OUTGOING)
 	private CalendarEntity calendarOriginal;
 
 	private CertaintyEnum certainty;
