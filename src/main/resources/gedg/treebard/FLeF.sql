@@ -50,6 +50,7 @@ CREATE TABLE CITATION
  FOREIGN KEY (SOURCE_ID) REFERENCES SOURCE ( "ID" ) ON DELETE CASCADE
 );
 -- CREATE (c:Citation {id: $id, location: $location, extract: $extract, extractLocale: $extractLocale, extractType: $extractType});
+-- CREATE CONSTRAINT ON (c:Citation) ASSERT exists(c.extract);
 -- MATCH (c:Citation {id: $citationID}), (s:Source {id: $sourceID})
 -- CREATE (c)-[:CITED_IN]->(s);
 
@@ -69,6 +70,8 @@ CREATE TABLE "SOURCE"
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 -- CREATE (s:Source {id: $id, identifier: $identifier, type: $type, author: $author, location: $location});
+-- CREATE CONSTRAINT ON (s:Source) ASSERT exists(s.identifier);
+-- CREATE CONSTRAINT ON (s:Source) ASSERT s.identifier IS UNIQUE;
 -- MATCH (s:Source {id: $sourceID}), (r:Repository {id: $repositoryID})
 -- CREATE (s)-[:SOURCED_IN]->(r);
 -- MATCH (s:Source {id: $sourceID}), (p:Place {id: $placeID})
@@ -88,6 +91,8 @@ CREATE TABLE REPOSITORY
  FOREIGN KEY (PLACE_ID) REFERENCES PLACE ( "ID" ) ON DELETE SET NULL
 );
 -- CREATE (r:Repository {id: $id, identifier: $identifier, type: $type});
+-- CREATE CONSTRAINT ON (r:Repository) ASSERT exists(r.identifier);
+-- CREATE CONSTRAINT ON (r:Repository) ASSERT r.identifier IS UNIQUE;
 -- MATCH (prs:Person {id: $personID}), (r:Repository {id: $repositoryID})
 -- CREATE (prs)-[:OWNER_OF]->(r);
 -- MATCH (r:Repository {id: $repositoryID}), (p:Place {id: $placeID})
@@ -108,6 +113,7 @@ CREATE TABLE HISTORIC_DATE
  FOREIGN KEY (CALENDAR_ORIGINAL_ID) REFERENCES CALENDAR ( "ID" ) ON DELETE RESTRICT
 );
 -- CREATE (hd:HistoricDate {id: $id, date: $date, dateOriginal: $dateOriginal, certainty: $certainty, credibility: $credibility});
+-- CREATE CONSTRAINT ON (hd:HistoricDate) ASSERT exists(hd.date);
 -- MATCH (hd:HistoricDate {id: $historicDateID}), (cld:Calendar {id: $calendarOriginalID})
 -- CREATE (hd)-[:REPRESENTED_WITHIN]->(cld);
 
@@ -118,6 +124,8 @@ CREATE TABLE CALENDAR
  "TYPE" text NOT NULL UNIQUE	-- A calendar type (must be unique, ex. "gregorian", "julian", "venetan", "french republican", "hebrew", "muslim", "chinese", "indian", "buddhist", "coptic", "soviet eternal", "ethiopian", "mayan").
 );
 -- CREATE (cld:Calendar {id: $id, type: $type});
+-- CREATE CONSTRAINT ON (cld:Calendar) ASSERT exists(cld.type);
+-- CREATE CONSTRAINT ON (cld:Calendar) ASSERT cld.type IS UNIQUE;
 
 
 -- Place
@@ -139,6 +147,9 @@ CREATE TABLE PLACE
  FOREIGN KEY (PHOTO_ID) REFERENCES MEDIA ( "ID" ) ON DELETE SET NULL
 );
 -- CREATE (p:Place {id: $id, identifier: $identifier, name: $name, locale: $locale, type: $type, coordinate: $coordinate, coordinateSystem: $coordinateSystem, coordinateCredibility: $coordinateCredibility, photoCrop: $photoCrop});
+-- CREATE CONSTRAINT ON (p:Place) ASSERT exists(p.identifier);
+-- CREATE CONSTRAINT ON (p:Place) ASSERT exists(p.name);
+-- CREATE CONSTRAINT ON (p:Place) ASSERT p.identifier IS UNIQUE;
 -- MATCH (p:Place {id: $placeID}), (m:Media {id: $photoID})
 -- CREATE (p)-[:DEPICTED_WITH]->(m);
 
@@ -155,6 +166,7 @@ CREATE TABLE LOCALIZED_TEXT
  TRANSCRIPTION_TYPE text				-- Type of transcription (usually "romanized", but it can be "anglicized", "cyrillized", "francized", "gairaigized", "latinized", etc).
 );
 -- CREATE (lt:LocalizedText {id: $id, text: $text, locale: $locale, type: $type, transcription: $transcription, transcriptionType: $transcriptionType});
+-- CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT exists(lt.text);
 
 CREATE TABLE LOCALIZED_TEXT_JUNCTION
 (
@@ -167,8 +179,10 @@ CREATE TABLE LOCALIZED_TEXT_JUNCTION
 );
 -- MATCH (lt:LocalizedText {id: $localizedTextID}), (c:Citation {id: $citationID})
 -- CREATE (lt)-[:NAME_FOR {referenceType: "extract"}]->(c);
+-- CREATE CONSTRAINT ON (lt)-[rel:NAME_FOR]->(c) ASSERT exists(rel.referenceType);
 -- MATCH (lt:LocalizedText {id: $localizedTextID}), (p:Place {id: $placeID})
 -- CREATE (lt)-[:NAME_FOR {referenceType: "name"}]->(p);
+-- CREATE CONSTRAINT ON (lt)-[rel:NAME_FOR]->(p) ASSERT exists(rel.referenceType);
 
 CREATE TABLE NOTE
 (
@@ -179,6 +193,7 @@ CREATE TABLE NOTE
  REFERENCE_ID    bigint NOT NULL	-- The ID of the referenced record in the table.
 );
 -- CREATE (n:Note {id: $id, note: $note, locale: $locale});
+-- CREATE CONSTRAINT ON (n:Note) ASSERT exists(n.note);
 -- MATCH (n:Note {id: $noteID}), (a:Assertion {id: $assertionID})
 -- CREATE (n)-[:NOTE_FOR]->(a);
 -- MATCH (n:Note {id: $noteID}), (c:Citation {id: $citationID})
@@ -223,6 +238,8 @@ CREATE TABLE MEDIA
  FOREIGN KEY (DATE_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 -- CREATE (m:Media {id: $id, identifier: $identifier, title: $title, payload: $payload, type: $type, photoProjection: $photoProjection});
+-- CREATE CONSTRAINT ON (m:Media) ASSERT exists(m.identifier);
+-- CREATE CONSTRAINT ON (m:Media) ASSERT m.identifier IS UNIQUE;
 -- MATCH (m:Media {id: $mediaID}), (hd:HistoricDate {id: $historicDateID})
 -- CREATE (m)-[:RECORDED_ON]->(hd);
 
@@ -392,6 +409,7 @@ CREATE TABLE EVENT_TYPE
  FOREIGN KEY (SUPER_TYPE_ID) REFERENCES EVENT_SUPER_TYPE ( "ID" ) ON DELETE RESTRICT
 );
 -- CREATE (et:EventType {id: $id, type: $type, category: $category});
+-- CREATE CONSTRAINT ON (et:EventType) ASSERT exists(et.type);
 -- MATCH (et:EventType {id: $eventTypeID}), (est:EventSuperType {id: $eventSuperTypeID})
 -- CREATE (et)-[:OF]->(pn);
 
@@ -401,6 +419,8 @@ CREATE TABLE EVENT_SUPER_TYPE
  SUPER_TYPE text NOT NULL UNIQUE	-- (must be unique, ex. "Historical events", "Personal origins", "Physical description", "Citizenship and migration", "Real estate assets", "Education", "Work and Career", "Legal Events and Documents", "Health problems and habits", "Marriage and family life", "Military", "Confinement", "Transfers and travel", "Accolades", "Death and burial", "Others", "Religious events")
 );
 -- CREATE (est:EventSuperType {id: $id, superType: $superType});
+-- CREATE CONSTRAINT ON (est:EventSuperType) ASSERT exists(est.superType);
+-- CREATE CONSTRAINT ON (est:EventSuperType) ASSERT est.superType IS UNIQUE;
 
 
 -- Cultural norm
@@ -430,6 +450,8 @@ CREATE TABLE CULTURAL_NORM
  FOREIGN KEY (DATE_END_ID) REFERENCES HISTORIC_DATE ( "ID" ) ON DELETE SET NULL
 );
 -- CREATE (cn:CulturalNorm {id: $id, identifier: $identifier, description: $description, certainty: $certainty, credibility: $credibility});
+-- CREATE CONSTRAINT ON (cn:CulturalNorm) ASSERT exists(cn.identifier);
+-- CREATE CONSTRAINT ON (cn:CulturalNorm) ASSERT cn.identifier IS UNIQUE;
 -- MATCH (cn:CulturalNorm {id: $culturalNormID}), (p:Place {id: $placeID})
 -- CREATE (cn)-[:APPLY_IN]->(p);
 -- MATCH (cn:CulturalNorm {id: $culturalNormID}), (hds:HistoricDate {id: $historicDateID})
@@ -466,33 +488,34 @@ CREATE TABLE RESTRICTION
  REFERENCE_TABLE text NOT NULL,	-- The table name this record is attached to (ex. "assertion", "citation", "source", "repository", "cultural norm", "historic date", "event", "place", "note", "person name", "person", "group", "media").
  REFERENCE_ID    bigint NOT NULL	-- The ID of the referenced record in the table.
 );
--- CREATE (r:Restriction {id: $id, restriction: $restriction});
--- MATCH (r:Restriction {id: $restrictionID}), (a:Assertion {id: $assertionID})
--- CREATE (r)-[:FOR]->(a);
--- MATCH (r:Restriction {id: $restrictionID}), (c:Citation {id: $citationID})
--- CREATE (r)-[:FOR]->(c);
--- MATCH (r:Restriction {id: $restrictionID}), (s:Source {id: $sourceID})
--- CREATE (r)-[:FOR]->(s);
--- MATCH (r:Restriction {id: $restrictionID}), (r:Repository {id: $repositoryID})
--- CREATE (r)-[:FOR]->(r);
--- MATCH (r:Restriction {id: $restrictionID}), (cn:CulturalNorm {id: $culturalNormID})
--- CREATE (r)-[:FOR]->(cn);
--- MATCH (r:Restriction {id: $restrictionID}), (hd:HistoricDate {id: $historicDateID})
--- CREATE (r)-[:FOR]->(hd);
--- MATCH (r:Restriction {id: $restrictionID}), (e:Event {id: $eventID})
--- CREATE (r)-[:FOR]->(e);
--- MATCH (r:Restriction {id: $restrictionID}), (p:Place {id: $placeID})
--- CREATE (r)-[:FOR]->(p);
--- MATCH (r:Restriction {id: $restrictionID}), (n:Note {id: $noteID})
--- CREATE (r)-[:FOR]->(n);
--- MATCH (r:Restriction {id: $restrictionID}), (pn:PersonName {id: $personNameID})
--- CREATE (r)-[:FOR]->(pn);
--- MATCH (r:Restriction {id: $restrictionID}), (prs:Person {id: $personID})
--- CREATE (r)-[:FOR]->(prs);
--- MATCH (r:Restriction {id: $restrictionID}), (g:Group {id: $groupID})
--- CREATE (r)-[:FOR]->(g);
--- MATCH (r:Restriction {id: $restrictionID}), (m:Media {id: $mediaID})
--- CREATE (r)-[:FOR]->(m);
+-- CREATE (rst:Restriction {id: $id, restriction: $restriction});
+-- CREATE CONSTRAINT ON (rst:Restriction) ASSERT exists(rst.restriction);
+-- MATCH (rst:Restriction {id: $restrictionID}), (a:Assertion {id: $assertionID})
+-- CREATE (rst)-[:FOR]->(a);
+-- MATCH (rst:Restriction {id: $restrictionID}), (c:Citation {id: $citationID})
+-- CREATE (rst)-[:FOR]->(c);
+-- MATCH (rst:Restriction {id: $restrictionID}), (s:Source {id: $sourceID})
+-- CREATE (rst)-[:FOR]->(s);
+-- MATCH (rst:Restriction {id: $restrictionID}), (r:Repository {id: $repositoryID})
+-- CREATE (rst)-[:FOR]->(r);
+-- MATCH (rst:Restriction {id: $restrictionID}), (cn:CulturalNorm {id: $culturalNormID})
+-- CREATE (rst)-[:FOR]->(cn);
+-- MATCH (rst:Restriction {id: $restrictionID}), (hd:HistoricDate {id: $historicDateID})
+-- CREATE (rst)-[:FOR]->(hd);
+-- MATCH (rst:Restriction {id: $restrictionID}), (e:Event {id: $eventID})
+-- CREATE (rst)-[:FOR]->(e);
+-- MATCH (rst:Restriction {id: $restrictionID}), (p:Place {id: $placeID})
+-- CREATE (rst)-[:FOR]->(p);
+-- MATCH (rst:Restriction {id: $restrictionID}), (n:Note {id: $noteID})
+-- CREATE (rst)-[:FOR]->(n);
+-- MATCH (rst:Restriction {id: $restrictionID}), (pn:PersonName {id: $personNameID})
+-- CREATE (rst)-[:FOR]->(pn);
+-- MATCH (rst:Restriction {id: $restrictionID}), (prs:Person {id: $personID})
+-- CREATE (rst)-[:FOR]->(prs);
+-- MATCH (rst:Restriction {id: $restrictionID}), (g:Group {id: $groupID})
+-- CREATE (rst)-[:FOR]->(g);
+-- MATCH (rst:Restriction {id: $restrictionID}), (m:Media {id: $mediaID})
+-- CREATE (rst)-[:FOR]->(m);
 
 -- Notes can be attached through a note.
 CREATE TABLE MODIFICATION
@@ -503,10 +526,52 @@ CREATE TABLE MODIFICATION
  CREATION_DATE   timestamp NOT NULL,	-- The creation date of a record.
  UPDATE_DATE     timestamp					-- The changing date of a record.
 );
--- CREATE (m:Modification {id: $id, creationDate: $creationDate, updateDate: $updateDate});
--- TODO
--- MATCH (m:Modification {id: $modificationID}), (?:? {id: $?ID})
--- CREATE (m)-[:FOR]->(?);
+-- CREATE (mdf:Modification {id: $id, creationDate: $creationDate, updateDate: $updateDate});
+-- CREATE CONSTRAINT ON (mdf:Modification) ASSERT exists(mdf.creationDate);
+-- MATCH (mdf:Modification {id: $modificationID}), (a:Assertion {id: $assertionID})
+-- CREATE (mdf)-[:FOR]->(a);
+-- MATCH (mdf:Modification {id: $modificationID}), (c:Citation {id: $citationID})
+-- CREATE (mdf)-[:FOR]->(c);
+-- MATCH (mdf:Modification {id: $modificationID}), (s:Source {id: $sourceID})
+-- CREATE (mdf)-[:FOR]->(s);
+-- MATCH (mdf:Modification {id: $modificationID}), (r:Repository {id: $repositoryID})
+-- CREATE (mdf)-[:FOR]->(r);
+-- MATCH (mdf:Modification {id: $modificationID}), (hd:HistoricDate {id: $historicDateID})
+-- CREATE (mdf)-[:FOR]->(hd);
+-- MATCH (mdf:Modification {id: $modificationID}), (cld:Calendar {id: $calendarID})
+-- CREATE (mdf)-[:FOR]->(cld);
+-- MATCH (mdf:Modification {id: $modificationID}), (p:Place {id: $placeID})
+-- CREATE (mdf)-[:FOR]->(p);
+-- MATCH (mdf:Modification {id: $modificationID}), (lt:LocalizedText {id: $localizedTextID})
+-- CREATE (mdf)-[:FOR]->(lt);
+-- MATCH (mdf:Modification {id: $modificationID}), (n:Note {id: $noteID})
+-- CREATE (mdf)-[:FOR]->(n);
+-- MATCH (mdf:Modification {id: $modificationID}), (m:Media {id: $mediaID})
+-- CREATE (mdf)-[:FOR]->(m);
+-- MATCH (mdf:Modification {id: $modificationID}), (prs:Person {id: $personID})
+-- CREATE (mdf)-[:FOR]->(prs);
+-- MATCH (mdf:Modification {id: $modificationID}), (pn:PersonName {id: $personNameID})
+-- CREATE (mdf)-[:FOR]->(pn);
+-- MATCH (mdf:Modification {id: $modificationID}), (lpn:Assertion {id: $localizedPersonNameID})
+-- CREATE (mdf)-[:FOR]->(lpn);
+-- MATCH (mdf:Modification {id: $modificationID}), (g:Group {id: $groupID})
+-- CREATE (mdf)-[:FOR]->(g);
+-- MATCH (mdf:Modification {id: $modificationID}), (e:Event {id: $eventID})
+-- CREATE (mdf)-[:FOR]->(e);
+-- MATCH (mdf:Modification {id: $modificationID}), (et:EventType {id: $eventTypeID})
+-- CREATE (mdf)-[:FOR]->(et);
+-- MATCH (mdf:Modification {id: $modificationID}), (est:EventSuperType {id: $eventSuperTypeID})
+-- CREATE (mdf)-[:FOR]->(est);
+-- MATCH (mdf:Modification {id: $modificationID}), (cn:CulturalNorm {id: $culturalNormID})
+-- CREATE (mdf)-[:FOR]->(cn);
+-- MATCH (mdf:Modification {id: $modificationID}), (rst:Restriction {id: $restrictionID})
+-- CREATE (mdf)-[:FOR]->(rst);
+-- MATCH (mdf:Modification {id: $modificationID}), (rs:ResearchStatus {id: $researchStatusID})
+-- CREATE (mdf)-[:FOR]->(rs);
+-- MATCH (mdf:Modification {id: $modificationID}), (ctc:Contact {id: $contactID})
+-- CREATE (mdf)-[:FOR]->(ctc);
+-- MATCH (mdf:Modification {id: $modificationID}), (prj:Project {id: $projectID})
+-- CREATE (mdf)-[:FOR]->(prj);
 
 CREATE TABLE RESEARCH_STATUS
 (
@@ -520,9 +585,53 @@ CREATE TABLE RESEARCH_STATUS
  CREATION_DATE   timestamp NOT NULL		-- The creation date.
 );
 -- CREATE (rs:ResearchStatus {id: $id, identifier: $identifier, description: $description, status: $status, priority: $priority, creationDate: $creationDate});
--- TODO
--- MATCH (rs:ResearchStatus {id: $researchStatusID}), (?:? {id: $?ID})
--- CREATE (rs)-[:FOR]->(?);
+-- CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT exists(rs.identifier);
+-- CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT exists(rs.creationDate);
+-- CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT rs.identifier IS UNIQUE;
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (a:Assertion {id: $assertionID})
+-- CREATE (rs)-[:FOR]->(a);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (c:Citation {id: $citationID})
+-- CREATE (rs)-[:FOR]->(c);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (s:Source {id: $sourceID})
+-- CREATE (rs)-[:FOR]->(s);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (r:Repository {id: $repositoryID})
+-- CREATE (rs)-[:FOR]->(r);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (hd:HistoricDate {id: $historicDateID})
+-- CREATE (rs)-[:FOR]->(hd);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (cld:Calendar {id: $calendarID})
+-- CREATE (rs)-[:FOR]->(cld);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (p:Place {id: $placeID})
+-- CREATE (rs)-[:FOR]->(p);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (lt:LocalizedText {id: $localizedTextID})
+-- CREATE (rs)-[:FOR]->(lt);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (n:Note {id: $noteID})
+-- CREATE (rs)-[:FOR]->(n);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (m:Media {id: $mediaID})
+-- CREATE (rs)-[:FOR]->(m);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (prs:Person {id: $personID})
+-- CREATE (rs)-[:FOR]->(prs);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (pn:PersonName {id: $personNameID})
+-- CREATE (rs)-[:FOR]->(pn);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (lpn:Assertion {id: $localizedPersonNameID})
+-- CREATE (rs)-[:FOR]->(lpn);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (g:Group {id: $groupID})
+-- CREATE (rs)-[:FOR]->(g);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (e:Event {id: $eventID})
+-- CREATE (rs)-[:FOR]->(e);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (et:EventType {id: $eventTypeID})
+-- CREATE (rs)-[:FOR]->(et);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (est:EventSuperType {id: $eventSuperTypeID})
+-- CREATE (rs)-[:FOR]->(est);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (cn:CulturalNorm {id: $culturalNormID})
+-- CREATE (rs)-[:FOR]->(cn);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (rst:Restriction {id: $restrictionID})
+-- CREATE (rs)-[:FOR]->(rst);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (mdf:Modification {id: $modificationID})
+-- CREATE (rs)-[:FOR]->(mdf);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (ctc:Contact {id: $contactID})
+-- CREATE (rs)-[:FOR]->(ctc);
+-- MATCH (rs:ResearchStatus {id: $researchStatusID}), (prj:Project {id: $projectID})
+-- CREATE (rs)-[:FOR]->(prj);
 
 CREATE TABLE CONTACT
 (
@@ -531,6 +640,7 @@ CREATE TABLE CONTACT
  NOTE      text				-- Text following markdown language. Reference to an entry in a table can be written as `[text](<TABLE_NAME>@<XREF>)`. Usually it contains a phone number, languages spoken, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 1736 specifications, or any other type of contact address, or other things.
 );
 -- CREATE (ctc:Contact {id: $id, callerID: $callerID, note: $note});
+-- CREATE CONSTRAINT ON (ctc:Contact) ASSERT exists(ctc.callerID);
 
 CREATE TABLE CONTACT_JUNCTION
 (
@@ -540,9 +650,50 @@ CREATE TABLE CONTACT_JUNCTION
  REFERENCE_ID    bigint NOT NULL,	-- The ID of the referenced record in the table.
  FOREIGN KEY (CONTACT_ID) REFERENCES CONTACT ( "ID" )
 );
--- TODO
--- MATCH (ctc:Contact {id: $contactID}), (?:? {id: $?ID})
--- CREATE (ctc)-[:FOR]->(?);
+-- MATCH (ctc:Contact {id: $contactID}), (a:Assertion {id: $assertionID})
+-- CREATE (ctc)-[:FOR]->(a);
+-- MATCH (ctc:Contact {id: $contactID}), (c:Citation {id: $citationID})
+-- CREATE (ctc)-[:FOR]->(c);
+-- MATCH (ctc:Contact {id: $contactID}), (s:Source {id: $sourceID})
+-- CREATE (ctc)-[:FOR]->(s);
+-- MATCH (ctc:Contact {id: $contactID}), (r:Repository {id: $repositoryID})
+-- CREATE (ctc)-[:FOR]->(r);
+-- MATCH (ctc:Contact {id: $contactID}), (hd:HistoricDate {id: $historicDateID})
+-- CREATE (ctc)-[:FOR]->(hd);
+-- MATCH (ctc:Contact {id: $contactID}), (cld:Calendar {id: $calendarID})
+-- CREATE (ctc)-[:FOR]->(cld);
+-- MATCH (ctc:Contact {id: $contactID}), (p:Place {id: $placeID})
+-- CREATE (ctc)-[:FOR]->(p);
+-- MATCH (ctc:Contact {id: $contactID}), (lt:LocalizedText {id: $localizedTextID})
+-- CREATE (ctc)-[:FOR]->(lt);
+-- MATCH (ctc:Contact {id: $contactID}), (n:Note {id: $noteID})
+-- CREATE (ctc)-[:FOR]->(n);
+-- MATCH (ctc:Contact {id: $contactID}), (m:Media {id: $mediaID})
+-- CREATE (ctc)-[:FOR]->(m);
+-- MATCH (ctc:Contact {id: $contactID}), (prs:Person {id: $personID})
+-- CREATE (ctc)-[:FOR]->(prs);
+-- MATCH (ctc:Contact {id: $contactID}), (pn:PersonName {id: $personNameID})
+-- CREATE (ctc)-[:FOR]->(pn);
+-- MATCH (ctc:Contact {id: $contactID}), (lpn:Assertion {id: $localizedPersonNameID})
+-- CREATE (ctc)-[:FOR]->(lpn);
+-- MATCH (ctc:Contact {id: $contactID}), (g:Group {id: $groupID})
+-- CREATE (ctc)-[:FOR]->(g);
+-- MATCH (ctc:Contact {id: $contactID}), (e:Event {id: $eventID})
+-- CREATE (ctc)-[:FOR]->(e);
+-- MATCH (ctc:Contact {id: $contactID}), (et:EventType {id: $eventTypeID})
+-- CREATE (ctc)-[:FOR]->(et);
+-- MATCH (ctc:Contact {id: $contactID}), (est:EventSuperType {id: $eventSuperTypeID})
+-- CREATE (ctc)-[:FOR]->(est);
+-- MATCH (ctc:Contact {id: $contactID}), (cn:CulturalNorm {id: $culturalNormID})
+-- CREATE (ctc)-[:FOR]->(cn);
+-- MATCH (ctc:Contact {id: $contactID}), (rst:Restriction {id: $restrictionID})
+-- CREATE (ctc)-[:FOR]->(rst);
+-- MATCH (ctc:Contact {id: $contactID}), (mdf:Modification {id: $modificationID})
+-- CREATE (ctc)-[:FOR]->(mdf);
+-- MATCH (ctc:Contact {id: $contactID}), (rs:ResearchStatus {id: $researchStatusID})
+-- CREATE (ctc)-[:FOR]->(rs);
+-- MATCH (ctc:Contact {id: $contactID}), (prj:Project {id: $projectID})
+-- CREATE (ctc)-[:FOR]->(prj);
 
 CREATE TABLE PROJECT
 (
@@ -555,7 +706,10 @@ CREATE TABLE PROJECT
  CREATION_DATE    timestamp NOT NULL,	-- The creation date of the project.
  UPDATE_DATE      timestamp				-- The changing date of the project.
 );
--- CREATE (p:Project {id: $id, protocolName: $protocolName, protocolVersion: $protocolVersion, copyright: $copyright, note: $note, locale: $locale, creationDate: $creationDate, updateDate: $updateDate});
+-- CREATE (prj:Project {id: $id, protocolName: $protocolName, protocolVersion: $protocolVersion, copyright: $copyright, note: $note, locale: $locale, creationDate: $creationDate, updateDate: $updateDate});
+-- CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.protocolName);
+-- CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.protocolVersion);
+-- CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.creationDate);
 
 
 
