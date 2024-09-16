@@ -60,6 +60,7 @@ public class Neo4JDatabaseManager implements DatabaseManagerInterface{
 public static void main(String[] args) {
 		new Neo4JDatabaseManager();
 }
+
 	public final void initialize(){
 		final Path path = new File("genealogy_db")
 			.toPath();
@@ -83,10 +84,15 @@ public static void main(String[] args) {
 			final Relationship relationship = owner.createRelationshipTo(car, RelationshipType.withName("owner"));
 			relationship.setProperty("message", "brave Neo4j");
 
-			Result result = tx.execute(
+			final Result result = tx.execute(
 				"MATCH (c:Car) <-[owner]- (p:Person) "
 					+ "WHERE c.make = 'tesla'"
 					+ "RETURN p.firstName, p.lastName");
+			while(result.hasNext()){
+				final Map<String, Object> row = result.next();
+				System.out.println("First Name: " + row.get("p.firstName"));
+				System.out.println("Last Name: " + row.get("p.lastName"));
+			}
 
 			final Node firstNode = tx.findNode(Label.label("Car"), "make", "tesla");
 			final Node secondNode = tx.findNode(Label.label("Person"), "firstName", "baeldung");
