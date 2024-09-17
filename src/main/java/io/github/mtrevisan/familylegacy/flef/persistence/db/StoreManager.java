@@ -218,11 +218,9 @@ public class StoreManager implements StoreManagerInterface{
 					case "RESTRICT":
 						//produce an error indicating that the deletion or update would create a foreign key constraint violation. This is the
 						// same as NO ACTION except that the check is not deferrable.
+					default:
 						throw StoreException.create("Cannot remove record, there's a reference to it from table {}, foreign key column {} ",
 							dependentTable, foreignKeyColumn);
-
-					default:
-						throw new UnsupportedOperationException("Unsupported ON DELETE action: " + rule.onDelete);
 				}
 			}
 		}

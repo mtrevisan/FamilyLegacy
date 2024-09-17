@@ -70,7 +70,7 @@ public class CitationEntity extends AbstractEntity{
 
 
 	@Override
-		public Long getID(){
+	public Long getID(){
 		return id;
 	}
 
