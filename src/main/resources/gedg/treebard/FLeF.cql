@@ -1,5 +1,3 @@
--- Assertion - Citation - Source - Repository
-
 CREATE (a:Assertion {id: $id, role: $role, certainty: $certainty, credibility: $credibility});
 MATCH (a:Assertion {id: $assertionID}), (c:Citation {id: $citationID})
 CREATE (a)-[:ASSERTED_IN]->(c);
@@ -44,8 +42,6 @@ MATCH (r:Repository {id: $repositoryID}), (p:Place {id: $placeID})
 CREATE (r)-[:LOCATED_IN]->(p);
 
 
--- Date
-
 CREATE (hd:HistoricDate {id: $id, date: $date, dateOriginal: $dateOriginal, certainty: $certainty, credibility: $credibility});
 CREATE CONSTRAINT ON (hd:HistoricDate) ASSERT exists(hd.date);
 MATCH (hd:HistoricDate {id: $historicDateID}), (cld:Calendar {id: $calendarOriginalID})
@@ -56,8 +52,6 @@ CREATE CONSTRAINT ON (cld:Calendar) ASSERT exists(cld.type);
 CREATE CONSTRAINT ON (cld:Calendar) ASSERT cld.type IS UNIQUE;
 
 
--- Place
-
 CREATE (p:Place {id: $id, identifier: $identifier, name: $name, locale: $locale, type: $type, coordinate: $coordinate, coordinateSystem: $coordinateSystem, coordinateCredibility: $coordinateCredibility, photoCrop: $photoCrop});
 CREATE CONSTRAINT ON (p:Place) ASSERT exists(p.identifier);
 CREATE CONSTRAINT ON (p:Place) ASSERT exists(p.name);
@@ -65,8 +59,6 @@ CREATE CONSTRAINT ON (p:Place) ASSERT p.identifier IS UNIQUE;
 MATCH (p:Place {id: $placeID}), (m:Media {id: $photoID})
 CREATE (p)-[:DEPICTED_WITH]->(m);
 
-
---- Localized text - Note
 
 CREATE (lt:LocalizedText {id: $id, text: $text, locale: $locale, type: $type, transcription: $transcription, transcriptionType: $transcriptionType});
 CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT exists(lt.text);
@@ -110,8 +102,6 @@ MATCH (n:Note {id: $noteID}), (m:Media {id: $mediaID})
 CREATE (n)-[:NOTE_FOR]->(m);
 
 
--- Media
-
 CREATE (m:Media {id: $id, identifier: $identifier, title: $title, payload: $payload, type: $type, photoProjection: $photoProjection});
 CREATE CONSTRAINT ON (m:Media) ASSERT exists(m.identifier);
 CREATE CONSTRAINT ON (m:Media) ASSERT m.identifier IS UNIQUE;
@@ -144,8 +134,6 @@ MATCH (m:Media {id: $mediaID}), (rs:ResearchStatus {id: $researchStatusID})
 CREATE (m)-[:MEDIA_FOR]->(rs);
 
 
--- Person
-
 CREATE (prs:Person {id: $id, photoCrop: $photoCrop});
 MATCH (m:Media {id: $photoID}), (prs:Person {id: $personID})
 CREATE (m)-[:PHOTO_FOR]->(prs);
@@ -159,8 +147,6 @@ MATCH (lpn:LocalizedPersonName {id: $personNameID}), (pn:PersonName {id: $person
 CREATE (lpn)-[:TRANSCRIPTION_FOR]->(pn);
 
 
--- Group
-
 CREATE (g:Group {id: $id, type: $type, photoCrop: $photoCrop});
 MATCH (m:Media {id: $photoID}), (g:Group {id: $groupID})
 CREATE (m)-[:PHOTO_FOR]->(g);
@@ -172,8 +158,6 @@ CREATE (g1)-[:GROUP_FOR {role: $role, certainty: $certainty, credibility: $credi
 MATCH (g:Group {id: $groupID}), (p:Place {id: $placeID})
 CREATE (g)-[:GROUP_FOR {role: $role, certainty: $certainty, credibility: $credibility}]->(p);
 
-
--- Event
 
 CREATE (e:Event {id: $id, description: $description});
 MATCH (e:Event {id: $eventID}), (et:EventType {id: $eventTypeID})
@@ -207,8 +191,6 @@ CREATE CONSTRAINT ON (est:EventSuperType) ASSERT exists(est.superType);
 CREATE CONSTRAINT ON (est:EventSuperType) ASSERT est.superType IS UNIQUE;
 
 
--- Cultural norm
-
 CREATE (cn:CulturalNorm {id: $id, identifier: $identifier, description: $description, certainty: $certainty, credibility: $credibility});
 CREATE CONSTRAINT ON (cn:CulturalNorm) ASSERT exists(cn.identifier);
 CREATE CONSTRAINT ON (cn:CulturalNorm) ASSERT cn.identifier IS UNIQUE;
@@ -228,8 +210,6 @@ CREATE (cn)-[:END_ON {certainty: $certainty, credibility: $credibility}]->(pn);
 MATCH (cn:CulturalNorm {id: $culturalNormID}), (g:Group {id: $groupID})
 CREATE (cn)-[:END_ON {certainty: $certainty, credibility: $credibility}]->(g);
 
-
--- Other application-related things
 
 CREATE (rst:Restriction {id: $id, restriction: $restriction});
 CREATE CONSTRAINT ON (rst:Restriction) ASSERT exists(rst.restriction);
