@@ -698,7 +698,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		try{
 			storeManager.delete(getTableName(), recordID);
-			//TODO remove linked records
+			//TODO remove linked records from ASSERTION, NOTE, EVENT, plus all *_JUNCTION
 			//remove data from linked records
 			//localized text through junction of type "extract" if citation is removed
 			//localized text through junction of type "name" if place is removed
