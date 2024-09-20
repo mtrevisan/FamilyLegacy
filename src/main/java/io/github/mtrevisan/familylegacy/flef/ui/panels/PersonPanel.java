@@ -101,8 +101,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
@@ -772,13 +770,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("reference_type", "name");
+		localizedTextJunction1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_PERSON_NAME, extractRecordID(personName1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("reference_type", "name");
+		localizedTextJunction2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_NAME_PERSON_NAME, extractRecordID(personName1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,

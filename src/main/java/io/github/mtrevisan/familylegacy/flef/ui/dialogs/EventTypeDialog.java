@@ -200,9 +200,9 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 	@Override
 	protected void fillData(){
-		final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(EntityManager.NODE_NAME_EVENT_SUPER_TYPE);
 		final Integer superTypeID = extractRecordSuperTypeID(selectedRecord);
-		final String superType = (superTypeID != null? extractRecordSuperType(storeEventSuperTypes.get(superTypeID)): null);
+		final Map<String, Object> storeEventSuperType = Repository.findByID(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, superTypeID);
+		final String superType = (superTypeID != null? extractRecordSuperType(storeEventSuperType): null);
 		final String type = extractRecordType(selectedRecord);
 		final String category = extractRecordCategory(selectedRecord);
 
@@ -251,8 +251,8 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 		//read record panel:
 		final String superType = GUIHelper.getTextTrimmed(superTypeComboBox);
-		final Integer superTypeID = getRecords(EntityManager.NODE_NAME_EVENT_SUPER_TYPE)
-			.values().stream()
+		final Integer superTypeID = Repository.findAll(EntityManager.NODE_NAME_EVENT_SUPER_TYPE)
+			.stream()
 			.filter(entry -> Objects.equals(superType, extractRecordSuperType(entry)))
 			.findFirst()
 			.map(EntityManager::extractRecordID)

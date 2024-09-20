@@ -58,6 +58,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -68,15 +69,11 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateOriginal;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDateOriginal;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class HistoricDateDialog extends CommonListDialog{
@@ -224,24 +221,22 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_HISTORIC_DATE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String date = extractRecordDate(container);
-			final String dateOriginal = extractRecordDateOriginal(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String date = extractRecordDate(record);
+			final String dateOriginal = extractRecordDateOriginal(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(date)
 				.add(dateOriginal);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(date + (dateOriginal != null? " [" + dateOriginal + "]": StringUtils.EMPTY), row,
 				TABLE_INDEX_DATE);
@@ -267,20 +262,20 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()

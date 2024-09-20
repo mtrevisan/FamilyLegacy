@@ -56,6 +56,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -67,11 +68,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinateCredibility;
@@ -79,8 +76,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -281,35 +276,31 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected Map<String, Object> getSelectedRecord(){
-		if(filterPlaceID != null)
-			return getRecords(EntityManager.NODE_NAME_PLACE)
-				.get(filterPlaceID);
-		else
-			return super.getSelectedRecord();
+		return (filterPlaceID != null
+			? Repository.findByID(EntityManager.NODE_NAME_PLACE, filterPlaceID)
+			: super.getSelectedRecord());
 	}
 
 	@Override
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_PLACE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_PLACE);
 		if(filterPlaceID != null)
 			selectAction();
 		else{
 			final DefaultTableModel model = getRecordTableModel();
 			model.setRowCount(records.size());
 			int row = 0;
-			for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-				final Integer key = record.getKey();
-				final Map<String, Object> container = record.getValue();
-
-				final String identifier = extractRecordIdentifier(container);
+			for(final Map<String, Object> record : records){
+				final Integer recordID = extractRecordID(record);
+				final String identifier = extractRecordIdentifier(record);
 				final FilterString filter = FilterString.create()
-					.add(key)
+					.add(recordID)
 					.add(identifier);
 				final String filterData = filter.toString();
 
-				model.setValueAt(key, row, TABLE_INDEX_ID);
+				model.setValueAt(recordID, row, TABLE_INDEX_ID);
 				model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 				model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -338,46 +329,45 @@ public final class PlaceDialog extends CommonListDialog{
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
-		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasTranscribedNames = (getRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
-			.values().stream()
+		final boolean hasTranscribedNames = (Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_NAME, extractRecordReferenceType(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasGroups = (getRecords(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.values().stream()
+		final boolean hasGroups = (Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()

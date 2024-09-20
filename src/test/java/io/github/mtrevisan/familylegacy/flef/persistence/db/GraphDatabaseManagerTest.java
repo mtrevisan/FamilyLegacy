@@ -24,9 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.LZMAManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +36,27 @@ import java.util.Map;
 
 
 class GraphDatabaseManagerTest{
+
+	@Test
+	void restore() throws IOException{
+		final String text = """
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:0|citation|{"extract_type":"transcript","extract_locale":"en-US","extract":"text 1","location":"here","id":1,"source_id":1}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:1|assertion|{"role":"father","reference_id":1,"reference_table":"table","citation_id":1,"certainty":"certain","credibility":"direct and primary evidence used, or by dominance of the evidence","id":1}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:2|source|{"identifier":"source 1","repository_id":1,"id":1}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:3|repository|{"identifier":"repo 1","id":1,"type":"public library"}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:4|localized_text|{"transcription":"IPA","id":1,"text":"text 1","transcription_type":"romanized","type":"original","locale":"it"}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:5|localized_text|{"transcription":"kana","id":2,"text":"text 2","transcription_type":"romanized","type":"original","locale":"en"}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:6|note|{"note":"note 1","reference_id":1,"reference_table":"person","id":1}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:7|note|{"note":"note 2","reference_id":1,"reference_table":"citation","id":2}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:8|restriction|{"reference_id":1,"reference_table":"citation","restriction":"confidential","id":1}
+			4:77a497f9-86a1-49de-95ab-25ec5dfe090e:4|4:77a497f9-86a1-49de-95ab-25ec5dfe090e:0|for|{"onDeleteEnd":"CASCADE","type":"extract","onDeleteStart":"RELATIONSHIP_ONLY"}
+			""";
+
+		final byte[] compressed = LZMAManager.compress(text);
+
+		GraphDatabaseManager.restore(compressed);
+	}
+
 
 	@Test
 	void shouldInsertNode(){
@@ -100,10 +123,11 @@ class GraphDatabaseManagerTest{
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner", Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.CASCADE);
+			"owner", Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherRecord("Car", "id", 1,
+		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
 			"owner");
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.isEmpty());
@@ -129,10 +153,11 @@ class GraphDatabaseManagerTest{
 		relationshipRecord.put("licenseID", 12345);
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner", relationshipRecord, GraphDatabaseManager.OnDeleteType.CASCADE);
+			"owner", relationshipRecord,
+			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherRecord("Car", "id", 1,
+		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
 			"owner", "licenseID", 12345);
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.isEmpty());
@@ -156,7 +181,8 @@ class GraphDatabaseManagerTest{
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner", Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.CASCADE);
+			"owner", Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
@@ -164,7 +190,7 @@ class GraphDatabaseManagerTest{
 			"owner");
 		Assertions.assertTrue(deleted);
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherRecord("Car", "id", 1,
+		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
 			"owner");
 		Assertions.assertNull(carTesla);
 	}
@@ -187,7 +213,8 @@ class GraphDatabaseManagerTest{
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner", Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.CASCADE);
+			"owner", Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		GraphDatabaseManager.delete("Car", "id", 1);
 

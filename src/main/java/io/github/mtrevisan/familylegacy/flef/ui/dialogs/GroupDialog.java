@@ -63,15 +63,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
@@ -81,17 +77,12 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
@@ -315,26 +306,26 @@ public final class GroupDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final NavigableMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.NODE_NAME_GROUP);
-		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
+		final List<Map<String, Object>> groups = Repository.findAll(EntityManager.NODE_NAME_GROUP);
+		final List<Map<String, Object>> records = (filterReferenceTable == null
 			? groups
 			: getGroups(groups));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final String categoryIdentifier = extractIdentifier(extractRecordID(record.getValue()));
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String categoryIdentifier = extractIdentifier(extractRecordID(record));
 			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf(':'));
 			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf(':') + 1);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(category)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(category, row, TABLE_INDEX_CATEGORY);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
@@ -346,13 +337,13 @@ public final class GroupDialog extends CommonListDialog{
 			selectFirstData();
 	}
 
-	private Map<Integer, Map<String, Object>> getGroups(final Map<Integer, Map<String, Object>> groups){
-		return getRecords(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.values().stream()
+	private List<Map<String, Object>> getGroups(final List<Map<String, Object>> groups){
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
 			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordGroupID(entry)))
 			.map(entry -> groups.get(extractRecordGroupID(entry)))
-			.collect(Collectors.toMap(EntityManager::extractRecordID, entry -> entry, (a, b) -> a, TreeMap::new));
+			.toList();
 	}
 
 	@Override
@@ -366,45 +357,44 @@ public final class GroupDialog extends CommonListDialog{
 		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
-		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.values().stream()
+		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasGroups = (getRecords(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.values().stream()
+		final boolean hasGroups = (Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -426,14 +416,13 @@ public final class GroupDialog extends CommonListDialog{
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final Map<Integer, Map<String, Object>> recordGroupJunction = extractReferences(EntityManager.NODE_NAME_GROUP_JUNCTION,
+			final List<Map<String, Object>> recordGroupJunction = extractReferences(EntityManager.NODE_NAME_GROUP_JUNCTION,
 				EntityManager::extractRecordGroupID, groupID);
 			if(recordGroupJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			final Iterator<Map<String, Object>> itr = recordGroupJunction.values().iterator();
-			if(itr.hasNext()){
-				selectedRecordLink = itr.next();
+			if(!recordGroupJunction.isEmpty()){
+				selectedRecordLink = recordGroupJunction.getFirst();
 
 				final String linkRole = extractRecordRole(selectedRecordLink);
 				final String linkCertainty = extractRecordCertainty(selectedRecordLink);
@@ -503,16 +492,18 @@ public final class GroupDialog extends CommonListDialog{
 
 
 	private String extractIdentifier(final int selectedRecordID){
-		final NavigableMap<Integer, Map<String, Object>> storeGroupJunction = getRecords(EntityManager.NODE_NAME_GROUP_JUNCTION);
-		final NavigableMap<Integer, Map<String, Object>> storePersonNames = getRecords(EntityManager.NODE_NAME_PERSON_NAME);
-		final NavigableMap<Integer, Map<String, Object>> storeGroups = getRecords(EntityManager.NODE_NAME_GROUP);
+		final List<Map<String, Object>> storeGroupJunction = Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION);
+		final List<Map<String, Object>> storePersonNames = Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME);
+		final List<Map<String, Object>> storeGroups = Repository.findAll(EntityManager.NODE_NAME_GROUP);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
-		for(final Map<String, Object> groupElement : storeGroupJunction.values()){
+		for(final Map<String, Object> groupElement : storeGroupJunction){
 			final StringJoiner subIdentifier = new StringJoiner(" / ");
 			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
-				final String referenceTable = extractRecordReferenceTable(groupElement);
-				final Integer referenceID = extractRecordReferenceID(groupElement);
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
+					selectedRecordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
+				final String referenceTable = referencedNode.getKey();
+				final Integer referenceID = extractRecordID(referencedNode.getValue());
 				final List<Map<String, Object>> personNamesInGroup;
 				if(EntityManager.NODE_NAME_PERSON.equals(referenceTable))
 					personNamesInGroup = extractPersonNamesInGroup(storePersonNames, referenceID);
@@ -521,7 +512,7 @@ public final class GroupDialog extends CommonListDialog{
 
 					//extract the names of all the persons of all the groups
 					personNamesInGroup = new ArrayList<>();
-					for(final Map<String, Object> storeGroup : storeGroups.values())
+					for(final Map<String, Object> storeGroup : storeGroups)
 						if(referenceID.equals(extractRecordID(storeGroup)))
 							personNamesInGroup.addAll(extractPersonNamesInGroup(storePersonNames, referenceID));
 				}
@@ -549,10 +540,10 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
+		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		getRecords(EntityManager.NODE_NAME_PERSON_NAME)
-			.values().stream()
+		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+			.stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				names.add(extractName(record));
@@ -560,7 +551,7 @@ public final class GroupDialog extends CommonListDialog{
 				//extract transliterations
 				final Integer personNameID = extractRecordID(record);
 				localizedPersonNames
-					.values().stream()
+					.stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
 					.map(GroupDialog::extractName)
 					.filter(name -> !name.isEmpty())
@@ -581,10 +572,10 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	/** Extract the names of all the persons in this group. */
-	private static List<Map<String, Object>> extractPersonNamesInGroup(final Map<Integer, Map<String, Object>> storePersonNames,
+	private static List<Map<String, Object>> extractPersonNamesInGroup(final List<Map<String, Object>> storePersonNames,
 			final Integer personID){
 		final List<Map<String, Object>> personNamesInGroup = new ArrayList<>();
-		for(final Map<String, Object> storePersonName : storePersonNames.values())
+		for(final Map<String, Object> storePersonName : storePersonNames)
 			if(personID.equals(extractRecordPersonID(storePersonName)))
 				personNamesInGroup.add(storePersonName);
 		return personNamesInGroup;

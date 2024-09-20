@@ -55,6 +55,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -63,15 +64,11 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -228,22 +225,20 @@ public final class RepositoryDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_REPOSITORY);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_REPOSITORY);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String identifier = extractRecordIdentifier(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -267,27 +262,27 @@ public final class RepositoryDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasSources = (getRecords(EntityManager.NODE_NAME_SOURCE)
-			.values().stream()
+		final boolean hasSources = (Repository.findAll(EntityManager.NODE_NAME_SOURCE)
+			.stream()
 			.filter(record -> Objects.equals(repositoryID, extractRecordRepositoryID(record)))
 			.findFirst()
 			.orElse(null) != null);

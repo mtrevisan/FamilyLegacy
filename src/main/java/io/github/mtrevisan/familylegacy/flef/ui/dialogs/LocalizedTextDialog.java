@@ -54,6 +54,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -64,12 +65,10 @@ import java.util.stream.Collectors;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscriptionType;
@@ -260,38 +259,35 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT));
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_TEXT);
 		if(filterReferenceTable != null){
 			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable,
 					filterReferenceID)
-				.values().stream()
+				.stream()
 				.filter(record -> filterReferenceType.equals(extractRecordReferenceType(record)))
 				.map(EntityManager::extractRecordReferenceID)
 				.collect(Collectors.toSet());
-			records.keySet()
-				.removeIf(mediaID -> !filteredMedia.contains(mediaID));
+			records.removeIf(record -> !filteredMedia.contains(extractRecordID(record)));
 		}
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String primaryName = extractRecordText(container);
-			final String secondaryName = extractRecordFamilyName(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String primaryName = extractRecordText(record);
+			final String secondaryName = extractRecordFamilyName(record);
 			final StringJoiner identifier = new StringJoiner(", ");
 			if(primaryName != null)
 				identifier.add(primaryName);
 			if(secondaryName != null)
 				identifier.add(secondaryName);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier.toString(), row, TABLE_INDEX_TEXT);
 
@@ -327,7 +323,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceTable == null){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final List<Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
 				EntityManager::extractRecordLocalizedTextID, localizedTextID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
@@ -437,7 +433,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("id", 1);
-		localizedTextJunction1.put("reference_type", "extract");
+		localizedTextJunction1.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,

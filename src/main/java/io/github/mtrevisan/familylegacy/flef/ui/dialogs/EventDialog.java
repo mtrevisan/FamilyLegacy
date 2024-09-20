@@ -67,15 +67,11 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperTypeID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTypeID;
 
 
@@ -243,8 +239,8 @@ public final class EventDialog extends CommonListDialog{
 			final String type = GUIHelper.getTextTrimmed(typeComboBox);
 			if(type != null && (!type.startsWith(MENU_SEPARATOR_START) || !type.endsWith(MENU_SEPARATOR_END))){
 				//remove data from store
-				final List<Integer> ids = getRecords(EntityManager.NODE_NAME_EVENT_TYPE)
-					.values().stream()
+				final List<Integer> ids = Repository.findAll(EntityManager.NODE_NAME_EVENT_TYPE)
+					.stream()
 					.filter(entry -> Objects.equals(type, extractRecordType(entry)))
 					.map(EntityManager::extractRecordID)
 					.toList();
@@ -302,26 +298,24 @@ public final class EventDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(EntityManager.NODE_NAME_EVENT)
+		final List<Map<String, Object>> records = (filterReferenceTable == null
+			? Repository.findAll(EntityManager.NODE_NAME_EVENT)
 			: getFilteredRecords(EntityManager.NODE_NAME_EVENT, filterReferenceTable, filterReferenceID));
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.NODE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_NAME_EVENT_TYPE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final Integer typeID = extractRecordTypeID(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final Integer typeID = extractRecordTypeID(record);
 			final String type = extractRecordType(storeEventTypes.get(typeID));
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(type);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
@@ -340,28 +334,26 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.NODE_NAME_EVENT_TYPE);
-
 		final Integer eventID = extractRecordID(selectedRecord);
 		final Integer typeID = extractRecordTypeID(selectedRecord);
-		final String type = extractRecordType(storeEventTypes.get(typeID));
+		final String type = extractRecordType(Repository.findByID(EntityManager.NODE_NAME_EVENT_TYPE, typeID));
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -416,8 +408,8 @@ public final class EventDialog extends CommonListDialog{
 
 		//read record panel:
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
-		final Integer typeID = getRecords(EntityManager.NODE_NAME_EVENT_TYPE)
-			.values().stream()
+		final Integer typeID = Repository.findAll(EntityManager.NODE_NAME_EVENT_TYPE)
+			.stream()
 			.filter(entry -> Objects.equals(type, extractRecordType(entry)))
 			.findFirst()
 			.map(EntityManager::extractRecordID)

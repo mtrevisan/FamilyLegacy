@@ -52,16 +52,13 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -182,22 +179,20 @@ public final class CalendarDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_CALENDAR);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String type = extractRecordType(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String type = extractRecordType(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(type);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
@@ -218,20 +213,20 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
 			.findFirst()

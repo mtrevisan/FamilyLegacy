@@ -59,6 +59,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -68,14 +69,10 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
@@ -225,33 +222,33 @@ public final class AssertionDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(EntityManager.NODE_NAME_ASSERTION)
+		final List<Map<String, Object>> records = (filterReferenceTable == null
+			? Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
 			: getFilteredRecords(EntityManager.NODE_NAME_ASSERTION, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String sourceIdentifier = extractRecordSourceIdentifier(container);
-			final String location = extractRecordLocation(container);
-			final String referenceTable = extractRecordReferenceTable(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String sourceIdentifier = extractRecordSourceIdentifier(record);
+			final String location = extractRecordLocation(record);
+			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
+				recordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
+			final String referenceTable = referencedNode.getKey();
 			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 				+ (location != null? location: StringUtils.EMPTY)
 				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
 				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(sourceIdentifier)
 				.add(location)
 				.add(referenceTable);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_REFERENCE_TABLE);
 
@@ -274,26 +271,26 @@ public final class AssertionDialog extends CommonListDialog{
 		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.values().stream()
+		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -345,10 +342,12 @@ public final class AssertionDialog extends CommonListDialog{
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedAssertionRecord = getRecords(EntityManager.NODE_NAME_ASSERTION).get(recordID);
+				final Map<String, Object> updatedAssertionRecord = Repository.findByID(EntityManager.NODE_NAME_ASSERTION, recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
-				final String referenceTable = extractRecordReferenceTable(updatedAssertionRecord);
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
+					recordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
+				final String referenceTable = referencedNode.getKey();
 				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 					+ (location != null? location: StringUtils.EMPTY)
@@ -374,8 +373,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> citations = getRecords(EntityManager.NODE_NAME_CITATION);
-		final Map<String, Object> citation = citations.get(citationID);
+		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_NAME_CITATION, citationID);
 		if(citation == null)
 			return null;
 
@@ -387,8 +385,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> citations = getRecords(EntityManager.NODE_NAME_CITATION);
-		final Map<String, Object> citation = citations.get(citationID);
+		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_NAME_CITATION, citationID);
 		if(citation == null)
 			return null;
 
@@ -396,8 +393,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(sourceID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.NODE_NAME_SOURCE);
-		final Map<String, Object> source = sources.get(sourceID);
+		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_NAME_SOURCE, sourceID);
 		if(source == null)
 			return null;
 

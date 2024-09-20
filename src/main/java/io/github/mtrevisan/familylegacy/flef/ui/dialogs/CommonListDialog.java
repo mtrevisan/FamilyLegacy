@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -505,10 +504,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 
 		final String tableName = getTableName();
-		final Map<String, Object> record = getRecords(tableName)
-			.get(id);
+		final Map<String, Object> record = Repository.findByID(tableName, id);
 		final String capitalizedTableName = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-		setTitle((id != null? capitalizedTableName + " ID " + id: StringHelper.pluralize(capitalizedTableName)));
+		setTitle(capitalizedTableName + " ID " + id);
 
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 		selectedRecordID = extractRecordID(selectedRecord);
@@ -599,8 +597,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final TableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
 
-		return getRecords(getTableName())
-			.get(recordID);
+		return Repository.findByID(getTableName(), recordID);
 	}
 
 	public final void showNewRecord(){
@@ -687,9 +684,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 
 		//remove from database
-		//TODO test
-		final String tableName = getTableName();
-		if(Repository.deleteNode(tableName, recordID))
+		if(Repository.deleteNode(getTableName(), recordID))
 			//remove row from table
 			model.removeRow(modelRowIndex);
 	}

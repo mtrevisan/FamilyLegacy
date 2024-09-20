@@ -71,6 +71,14 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
 		<apache.tika-core.version>2.9.2</apache.tika-core.version>
 
+		<!-- JSON -->
+		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
+		<fasterxml.jackson-core.version>2.17.2</fasterxml.jackson-core.version>
+
+		<!-- LZMA compression -->
+		<!-- https://mvnrepository.com/artifact/org.tukaani/xz -->
+		<tukaani.xz.version>1.10</tukaani.xz.version>
+
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
 		<bytedeco.opencv.version>4.9.0-1.5.10</bytedeco.opencv.version>
@@ -374,6 +382,20 @@
 <!--			<artifactId>jgrapht-core</artifactId>-->
 <!--			<version>${org.jgrapht.version}</version>-->
 <!--		</dependency>-->
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${fasterxml.jackson-core.version}</version>
+		</dependency>
+
+		<!-- LZMA compression -->
+		<dependency>
+			<groupId>org.tukaani</groupId>
+			<artifactId>xz</artifactId>
+			<version>${tukaani.xz.version}</version>
+		</dependency>
 
 		<!-- Image processing -->
 		<dependency>

@@ -57,8 +57,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 
 
@@ -138,8 +136,14 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			final Integer placeID = extractRecordPlaceID(record);
 			final String placeName = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final String placeNameLocale = extractRecordLocale(record);
-			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
-			final FilterString filter = FilterString.create().add(recordID).add(identifier).add(description).add(placeName).add(placeNameLocale);
+			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
+				recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+			final FilterString filter = FilterString.create()
+				.add(recordID)
+				.add(identifier)
+				.add(description)
+				.add(placeName)
+				.add(placeNameLocale);
 			for(final Map<String, Object> transcribedPlaceName : transcribedPlaceNames)
 				filter.add(extractRecordText(transcribedPlaceName));
 			final String filterData = filter.toString();
@@ -218,13 +222,13 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("reference_type", "name");
+		localizedTextJunction1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("reference_type", "name");
+		localizedTextJunction2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,

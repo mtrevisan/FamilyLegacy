@@ -56,8 +56,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
@@ -224,7 +222,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
-		localizedTextJunction.put("reference_type", "extract");
+		localizedTextJunction.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction,

@@ -59,7 +59,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -73,14 +73,10 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class CulturalNormDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -301,22 +297,20 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_CULTURAL_NORM);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String identifier = extractRecordIdentifier(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -343,32 +337,32 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -392,14 +386,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final Map<Integer, Map<String, Object>> recordCulturalNormJunction = extractReferences(
+			final List<Map<String, Object>> recordCulturalNormJunction = extractReferences(
 				EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION, EntityManager::extractRecordCulturalNormID, culturalNormID);
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			final Iterator<Map<String, Object>> itr = recordCulturalNormJunction.values().iterator();
-			if(itr.hasNext()){
-				selectedRecordLink = itr.next();
+			if(!recordCulturalNormJunction.isEmpty()){
+				selectedRecordLink = recordCulturalNormJunction.getFirst();
 
 				final String linkCertainty = extractRecordCertainty(selectedRecordLink);
 				final String linkCredibility = extractRecordCredibility(selectedRecordLink);

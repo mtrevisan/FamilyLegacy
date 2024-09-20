@@ -53,12 +53,11 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -212,30 +211,28 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
-			? getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
+		final List<Map<String, Object>> records = (filterReferenceID <= 0
+			? Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
 			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String primaryName = extractRecordPersonalName(container);
-			final String secondaryName = extractRecordFamilyName(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String primaryName = extractRecordPersonalName(record);
+			final String secondaryName = extractRecordFamilyName(record);
 			final StringJoiner identifier = new StringJoiner(", ");
 			if(primaryName != null)
 				identifier.add(primaryName);
 			if(secondaryName != null)
 				identifier.add(secondaryName);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier.toString(), row, TABLE_INDEX_TEXT);
 
@@ -246,11 +243,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			selectFirstData();
 	}
 
-	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	private List<Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+		return Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
+			.stream()
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry)))
+			.toList();
 	}
 
 	@Override
@@ -277,7 +274,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceID <= 0){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final List<Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
 				EntityManager::extractRecordPersonNameID, localizedPersonNameID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");

@@ -24,11 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
-
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 
 public class EntityManager{
@@ -54,17 +50,14 @@ public class EntityManager{
 	public static final String RELATIONSHIP_NAME_DEPICTED_BY = "depicted_by";
 	public static final String NODE_NAME_LOCALIZED_TEXT = "localized_text";
 	public static final String RELATIONSHIP_NAME_FOR = "for";
-	public static final String NODE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
 	public static final String NODE_NAME_NOTE = "note";
 	public static final String NODE_NAME_MEDIA = "media";
-	public static final String NODE_NAME_MEDIA_JUNCTION = "media_junction";
 	public static final String NODE_NAME_PERSON = "person";
 	public static final String NODE_NAME_PERSON_NAME = "person_name";
 	public static final String NODE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
 	public static final String RELATIONSHIP_NAME_TRANSCRIPTION_FOR = "transcription_for";
 	public static final String NODE_NAME_GROUP = "group";
 	public static final String RELATIONSHIP_NAME_OF = "of";
-	public static final String NODE_NAME_GROUP_JUNCTION = "group_junction";
 	public static final String NODE_NAME_EVENT = "event";
 	public static final String RELATIONSHIP_NAME_OF_TYPE = "of_type";
 	public static final String RELATIONSHIP_NAME_HAPPENED_IN = "happened_in";
@@ -75,7 +68,6 @@ public class EntityManager{
 	public static final String RELATIONSHIP_NAME_APPLIES_IN = "applies_in";
 	public static final String RELATIONSHIP_NAME_STARTED_ON = "started_on";
 	public static final String RELATIONSHIP_NAME_ENDED_ON = "ended_on";
-	public static final String NODE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
 	public static final String RELATIONSHIP_NAME_ACCREDITED_FOR = "accredited_for";
 	public static final String NODE_NAME_RESTRICTION = "restriction";
 	public static final String NODE_NAME_MODIFICATION = "modification";
@@ -119,18 +111,6 @@ public class EntityManager{
 		return (String)record.get("credibility");
 	}
 
-	public static String extractRecordReferenceTable(final Map<String, Object> record){
-		return (String)record.get("reference_table");
-	}
-
-	public static Integer extractRecordReferenceID(final Map<String, Object> record){
-		return (Integer)record.get("reference_id");
-	}
-
-	public static String extractRecordReferenceType(final Map<String, Object> record){
-		return (String)record.get("reference_type");
-	}
-
 	public static String extractRecordRestriction(final Map<String, Object> record){
 		return (String)record.get("restriction");
 	}
@@ -152,7 +132,7 @@ public class EntityManager{
 	}
 
 	public static String extractRecordType(final Map<String, Object> record){
-		return (String)record.get("type");
+		return (record != null? (String)record.get("type"): null);
 	}
 
 	public static String extractRecordLocation(final Map<String, Object> record){
@@ -336,7 +316,7 @@ public class EntityManager{
 	}
 
 	public static int extractRecordIncludeMediaPayload(final Map<String, Object> record){
-		final Integer includeMediaPayload = (Integer)record.get("include_media_payload");
+		final Integer includeMediaPayload = (record != null? (Integer)record.get("include_media_payload"): null);
 		return (includeMediaPayload != null? includeMediaPayload: 0);
 	}
 
@@ -347,14 +327,6 @@ public class EntityManager{
 
 	public static void insertRecordRestriction(final Map<String, Object> record, final String restriction){
 		record.put("restriction", restriction);
-	}
-
-	public static void insertRecordReferenceTable(final Map<String, Object> record, final String referenceTable){
-		record.put("reference_table", referenceTable);
-	}
-
-	public static void insertRecordReferenceID(final Map<String, Object> record, final int referenceID){
-		record.put("reference_id", referenceID);
 	}
 
 	public static void insertRecordCreationDate(final Map<String, Object> record, final String creationDate){
@@ -473,10 +445,6 @@ public class EntityManager{
 		record.put("text", text);
 	}
 
-	public static void insertRecordReferenceType(final Map<String, Object> record, final String referenceType){
-		record.put("reference_type", referenceType);
-	}
-
 	public static void insertRecordLocalizedTextID(final Map<String, Object> record, final int localizedTextID){
 		record.put("localized_text_id", localizedTextID);
 	}
@@ -579,36 +547,6 @@ public class EntityManager{
 
 	public static void insertRecordIncludeMediaPayload(final Map<String, Object> record, final int includeMediaPayloadID){
 		record.put("include_media_payload", includeMediaPayloadID);
-	}
-
-
-	public static void addRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
-			final Map<String, Object> record){
-		//TODO remove
-		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
-		final Integer recordID = extractRecordID(record);
-		records.put(recordID, record);
-
-		Repository.save(tableName, record);
-	}
-
-	public static void removeRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
-			final int recordID){
-		//TODO remove
-		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
-		records.remove(recordID);
-
-		Repository.deleteNode(tableName, recordID);
-	}
-
-	public static void removeRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
-			final List<Integer> recordIDs){
-		//TODO remove
-		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
-		for(int i = 0, length = recordIDs.size(); i < length; i ++)
-			records.remove(recordIDs.get(i));
-
-		Repository.deleteNodes(tableName, recordIDs);
 	}
 
 }

@@ -76,12 +76,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
@@ -95,16 +95,12 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoProjection;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoProjection;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
@@ -479,41 +475,37 @@ public final class MediaDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.NODE_NAME_MEDIA));
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_MEDIA);
 		if(filterReferenceTable != null){
 			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION, filterReferenceTable,
 					filterReferenceID)
-				.values().stream()
+				.stream()
 				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
-			records.keySet()
-				.removeIf(mediaID -> !filteredMedia.contains(mediaID));
+			records.removeIf(record -> !filteredMedia.contains(extractRecordID(record)));
 		}
 		if(restrictToPhoto)
-			records.values()
-				.removeIf(entry -> {
-					String identifier = extractRecordIdentifier(entry);
-					if(identifier != null && (identifier.startsWith("../") || identifier.startsWith("..\\") || identifier.charAt(0) == '/'
-							|| identifier.charAt(0) == '\\'))
-						identifier = FileHelper.getTargetPath(basePath, identifier);
-					final File file = FileHelper.loadFile(identifier);
-					return (file != null && (!file.exists() || !FileHelper.isPhoto(file)));
-				});
+			records.removeIf(record -> {
+				String identifier = extractRecordIdentifier(record);
+				if(identifier != null && (identifier.startsWith("../") || identifier.startsWith("..\\") || identifier.charAt(0) == '/'
+						|| identifier.charAt(0) == '\\'))
+					identifier = FileHelper.getTargetPath(basePath, identifier);
+				final File file = FileHelper.loadFile(identifier);
+				return (file != null && (!file.exists() || !FileHelper.isPhoto(file)));
+			});
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String identifier = extractRecordIdentifier(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -536,7 +528,7 @@ public final class MediaDialog extends CommonListDialog{
 				return;
 		}
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_MEDIA);
+		final Map<Integer, Map<String, Object>> records = Repository.findAllNavigable(EntityManager.NODE_NAME_MEDIA);
 		if(records.containsKey(recordID)){
 			final int oldSize = model.getRowCount();
 			final String identifier = extractRecordIdentifier(record);
@@ -563,26 +555,26 @@ public final class MediaDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -614,16 +606,16 @@ public final class MediaDialog extends CommonListDialog{
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION,
+			final List<Map<String, Object>> recordMediaJunction = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION,
 					filterReferenceTable, filterReferenceID)
-				.entrySet().stream()
-				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
-				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+				.stream()
+				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry)))
+				.toList();
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
 			final Map<String, Object> mediaJunction = recordMediaJunction
-				.values().stream()
+				.stream()
 				.findFirst().orElse(null);
 			final String photoCrop = extractRecordPhotoCrop(mediaJunction);
 
@@ -715,8 +707,7 @@ public final class MediaDialog extends CommonListDialog{
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(fileField);
 		final String title = GUIHelper.getTextTrimmed(titleField);
-		final Map<String, Object> project = getRecords(EntityManager.NODE_NAME_PROJECT)
-			.get(1);
+		final Map<String, Object> project = Repository.findByID(EntityManager.NODE_NAME_PROJECT, 1);
 		final byte[] payload = (extractRecordIncludeMediaPayload(project) == 1
 			? extractPayload(identifier)
 			: null);

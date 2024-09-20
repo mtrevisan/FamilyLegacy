@@ -126,13 +126,4 @@ public final class StringHelper{
 		return result;
 	}
 
-	private static String[] createSplitResult(final byte[] bytes, final int fromIndex, final char separatorChar){
-		final int length = bytes.length;
-		int count = (bytes[fromIndex] == separatorChar? 0: 1);
-		for(int i = fromIndex; i < length; i ++)
-			if(bytes[i] == separatorChar)
-				count ++;
-		return new String[count];
-	}
-
 }

@@ -138,8 +138,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	public void loadData(){
-		final Map<String, Object> record = getRecords(EntityManager.NODE_NAME_PROJECT)
-			.get(1);
+		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_NAME_PROJECT, 1);
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
 		ignoreEvents = true;

@@ -55,12 +55,11 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -68,15 +67,11 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -250,24 +245,22 @@ public final class PersonNameDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
-			? getRecords(EntityManager.NODE_NAME_PERSON_NAME)
+		final List<Map<String, Object>> records = (filterReferenceID <= 0
+			? Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
 			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String identifier = extractIdentifier(extractRecordID(container));
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractIdentifier(extractRecordID(record));
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -278,11 +271,11 @@ public final class PersonNameDialog extends CommonListDialog{
 			selectFirstData();
 	}
 
-	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return getRecords(EntityManager.NODE_NAME_PERSON_NAME)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+	private List<Map<String, Object>> getFilteredRecords(final int filterReferenceID){
+		return Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+			.stream()
+			.filter(record -> Objects.equals(filterReferenceID, extractRecordPersonID(record)))
+			.toList();
 	}
 
 	@Override
@@ -298,41 +291,41 @@ public final class PersonNameDialog extends CommonListDialog{
 		final String personalName = extractRecordPersonalName(selectedRecord);
 		final String familyName = extractRecordFamilyName(selectedRecord);
 		final String nameLocale = extractRecordLocale(selectedRecord);
-		final boolean hasTransliterations = getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
-			.values().stream()
+		final boolean hasTransliterations = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
+			.stream()
 			.anyMatch(record -> Objects.equals(personNameID, extractRecordPersonNameID(record)));
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.values().stream()
+		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
-			.values().stream()
+		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON_NAME, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(personNameID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -422,7 +415,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	private String extractIdentifier(final int selectedRecordID){
-		final Map<String, Object> storePersonNames = getRecords(EntityManager.NODE_NAME_PERSON_NAME).get(selectedRecordID);
+		final Map<String, Object> storePersonNames = Repository.findByID(EntityManager.NODE_NAME_PERSON_NAME, selectedRecordID);
 		final String personalName = extractRecordPersonalName(storePersonNames);
 		final String familyName = extractRecordFamilyName(storePersonNames);
 		final StringJoiner name = new StringJoiner(", ");

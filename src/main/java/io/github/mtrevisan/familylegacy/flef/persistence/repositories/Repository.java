@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.repositories;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
 import org.slf4j.Logger;
@@ -33,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 
 
 public class Repository{
@@ -46,13 +46,28 @@ public class Repository{
 	private Repository(){}
 
 
-	public static boolean load(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		store.forEach((tableName, records) -> records.forEach((recordID, record) -> {
-			//TODO
-			save(tableName, record);
-		}));
+	public static byte[] store(){
+		try{
+			return GraphDatabaseManager.store();
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while storing database: {}", e.getMessage(), e);
 
-		return true;
+			return null;
+		}
+	}
+
+	public static boolean restore(final byte[] database){
+		try{
+			GraphDatabaseManager.restore(database);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while restoring database: {}", e.getMessage(), e);
+
+			return false;
+		}
 	}
 
 	public static int count(final String tableName){
@@ -234,10 +249,11 @@ public class Repository{
 	}
 
 
-	public static Map<String, Object> findReferencedRecord(final String tableNameStart, final Integer recordIDStart,
+	public static Map.Entry<String, Map<String, Object>> findReferencedNode(final String tableNameStart, final Integer recordIDStart,
 			final String relationshipName){
 		try{
-			return GraphDatabaseManager.findOtherRecord(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart, relationshipName);
+			return GraphDatabaseManager.findOtherNode(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				relationshipName);
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
@@ -246,11 +262,11 @@ public class Repository{
 		}
 	}
 
-	public static Map<String, Object> findReferencedRecord(final String tableNameStart, final Integer recordIDStart,
+	public static Map.Entry<String, Map<String, Object>> findReferencedNode(final String tableNameStart, final Integer recordIDStart,
 			final String relationshipName, final String propertyName, final Object propertyValue){
 		try{
-			return GraphDatabaseManager.findOtherRecord(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart, relationshipName,
-				propertyName, propertyValue);
+			return GraphDatabaseManager.findOtherNode(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				relationshipName, propertyName, propertyValue);
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
@@ -261,7 +277,14 @@ public class Repository{
 
 
 	public static String logDatabase(){
-		return GraphDatabaseManager.logDatabase();
+		try{
+			return GraphDatabaseManager.logDatabase();
+		}
+		catch(final JsonProcessingException jpe){
+			LOGGER.error("Error while printing database", jpe);
+
+			throw new RuntimeException(jpe);
+		}
 	}
 
 }

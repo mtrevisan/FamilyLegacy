@@ -56,6 +56,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -63,12 +64,8 @@ import java.util.function.BiConsumer;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordNote;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class NoteDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -232,24 +229,22 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(EntityManager.NODE_NAME_NOTE)
+		final List<Map<String, Object>> records = (filterReferenceTable == null
+			? Repository.findAll(EntityManager.NODE_NAME_NOTE)
 			: getFilteredRecords(EntityManager.NODE_NAME_NOTE, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String note = extractRecordNote(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String note = extractRecordNote(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(note);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
@@ -271,20 +266,20 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.values().stream()
+		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()

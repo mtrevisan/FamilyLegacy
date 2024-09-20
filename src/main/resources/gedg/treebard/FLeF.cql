@@ -72,11 +72,11 @@ CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT lt.id IS UNIQUE;
 CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT exists(lt.text);
 
 MATCH (lt:LocalizedText {id: $localizedTextID}), (c:Citation {id: $citationID})
-CREATE (lt)-[:FOR {referenceType: "extract", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(c);
-CREATE CONSTRAINT ON (lt)-[rel:FOR]->(c) ASSERT exists(rel.referenceType);
+CREATE (lt)-[:FOR {type: "extract", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(c);
+CREATE CONSTRAINT ON (lt)-[rel:FOR]->(c) ASSERT exists(rel.type);
 MATCH (lt:LocalizedText {id: $localizedTextID}), (p:Place {id: $placeID})
-CREATE (lt)-[:FOR {referenceType: "name", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(p);
-CREATE CONSTRAINT ON (lt)-[rel:FOR]->(p) ASSERT exists(rel.referenceType);
+CREATE (lt)-[:FOR {type: "name", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(p);
+CREATE CONSTRAINT ON (lt)-[rel:FOR]->(p) ASSERT exists(rel.type);
 
 CREATE (n:Note {id: $id, note: $note, locale: $locale});
 CREATE CONSTRAINT ON (n:Note) ASSERT n.id IS UNIQUE;

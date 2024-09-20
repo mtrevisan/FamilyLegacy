@@ -28,8 +28,6 @@ import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.sql.SQLDataException;
-import io.github.mtrevisan.familylegacy.flef.sql.SQLGrammarException;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -80,8 +78,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolVersion;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordSourceID;
@@ -128,8 +124,8 @@ public final class Main{
 
 
 
-	public static void main(final String[] args) throws URISyntaxException, SQLGrammarException, SQLDataException, GedcomGrammarException,
-			GedcomDataException, SQLException, IOException{
+	public static void main(final String[] args) throws URISyntaxException, GedcomGrammarException, GedcomDataException, SQLException,
+			IOException{
 //		final GedcomFileParser gedcomParser = new GedcomFileParser();
 //		gedcomParser.load("/gedg/gedcom_5.5.1.tcgb.gedg", "src/main/resources/ged/large.ged");
 

@@ -328,19 +328,19 @@ public final class SearchDialog extends JDialog{
 		Repository.save(EntityManager.NODE_NAME_PLACE, place2);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("reference_type", "name");
+		localizedTextJunction1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("reference_type", "name");
+		localizedTextJunction2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction3 = new HashMap<>();
-		localizedTextJunction3.put("reference_type", "extract");
+		localizedTextJunction3.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction3,

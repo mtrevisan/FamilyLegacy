@@ -51,26 +51,22 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRestriction;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordUpdateDate;
 
@@ -261,17 +257,13 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	public abstract void loadData();
 
-	protected final NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return Repository.findAllNavigable(tableName);
-	}
-
-	protected final NavigableMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
+	protected final List<Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final int filterReferenceID){
-		return getRecords(tableName)
-			.entrySet().stream()
-			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
+		return Repository.findAll(tableName)
+			.stream()
+			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry)))
+			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry)))
+			.toList();
 	}
 
 	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
@@ -313,34 +305,36 @@ public abstract class CommonRecordDialog extends JDialog{
 	 * @param fromTable	The table name to extract the references to this table from.
 	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
 	 */
-	protected final NavigableMap<Integer, Map<String, Object>> extractReferences(final String fromTable){
+	protected final List<Map<String, Object>> extractReferences(final String fromTable){
 		return extractReferences(fromTable, null, null);
 	}
 
-	protected final <T> NavigableMap<Integer, Map<String, Object>> extractReferences(final String fromTable,
+	protected final <T> List<Map<String, Object>> extractReferences(final String fromTable,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final NavigableMap<Integer, Map<String, Object>> matchedRecords = new TreeMap<>();
+		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
 		if(selectedRecord != null){
 			final Integer selectedRecordID = extractRecordID(selectedRecord);
 			final String tableName = getTableName();
-			final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
-			records.forEach((key, value) -> {
-				if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-						&& tableName.equals(extractRecordReferenceTable(value))
-						&& Objects.equals(selectedRecordID, extractRecordReferenceID(value))))
-					matchedRecords.put(key, value);
+			final List<Map<String, Object>> records = Repository.findAll(fromTable);
+			records.forEach(record -> {
+				if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
+						&& tableName.equals(extractRecordReferenceTable(record))
+						&& Objects.equals(selectedRecordID, extractRecordReferenceID(record))))
+					matchedRecords.add(record);
 			});
 		}
 		return matchedRecords;
 	}
 
-	private static Map<String, Object> getSingleElementOrNull(final NavigableMap<Integer, Map<String, Object>> store){
-		return (store.isEmpty()? null: store.firstEntry().getValue());
+	private static Map<String, Object> getSingleElementOrNull(final List<Map<String, Object>> store){
+		//FIXME first?
+		return (store.isEmpty()? null: store.getFirst());
 	}
 
 	protected Map<String, Object> getSelectedRecord(){
-		final NavigableMap<Integer, Map<String, Object>> records = getRecords(getTableName());
-		return (!records.isEmpty()? records.sequencedValues().getFirst(): null);
+		final List<Map<String, Object>> records = Repository.findAll(getTableName());
+		//FIXME first?
+		return (!records.isEmpty()? records.getFirst(): null);
 	}
 
 	protected abstract void clearData();
@@ -379,7 +373,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String recordTableName = getTableName();
-		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_NAME_MODIFICATION);
+		final List<Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_NAME_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
 			final Map<String, Object> newModification = new HashMap<>();
@@ -410,8 +404,7 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 			//update the record with `update_date`
-			final Map<String, Object> modification = recordModification.firstEntry()
-				.getValue();
+			final Map<String, Object> modification = recordModification.getFirst();
 			insertRecordUpdateDate(modification, now);
 		}
 	}

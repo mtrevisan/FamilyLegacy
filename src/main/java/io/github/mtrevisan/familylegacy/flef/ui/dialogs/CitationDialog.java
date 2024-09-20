@@ -68,16 +68,11 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 
 
 public final class CitationDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -250,9 +245,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.NODE_NAME_CITATION));
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CITATION);
 		if(filterSourceID != null){
-			final List<Integer> ids = records.values().stream()
+			final List<Integer> ids = records.stream()
 				.filter(entry -> !filterSourceID.equals(extractRecordSourceID(entry)))
 				.map(EntityManager::extractRecordID)
 				.toList();
@@ -262,26 +257,24 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String sourceIdentifier = extractRecordSourceIdentifier(container);
-			final String location = extractRecordLocation(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String sourceIdentifier = extractRecordSourceIdentifier(record);
+			final String location = extractRecordLocation(record);
 			final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 			identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 				+ (location != null? location: StringUtils.EMPTY));
-			final String extract = extractRecordExtract(container);
+			final String extract = extractRecordExtract(record);
 			if(extract != null && !extract.isEmpty())
 				identifier.add("[" + extract + "]");
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(sourceIdentifier)
 				.add(location);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 
@@ -305,34 +298,34 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final boolean hasTranscribedExtracts = (getRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
-			.values().stream()
+		final boolean hasTranscribedExtracts = (Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT, extractRecordReferenceType(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
-			.values().stream()
+		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.values().stream()
+		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
-			.values().stream()
+		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
-			.values().stream()
+		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
+			.stream()
 			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
@@ -400,7 +393,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedCitationRecord = getRecords(EntityManager.NODE_NAME_CITATION).get(recordID);
+				final Map<String, Object> updatedCitationRecord = Repository.findByID(EntityManager.NODE_NAME_CITATION, recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
@@ -434,8 +427,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		if(sourceID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.NODE_NAME_SOURCE);
-		final Map<String, Object> source = sources.get(sourceID);
+		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_NAME_SOURCE, sourceID);
 		if(source == null)
 			return null;
 
@@ -502,7 +494,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
-		localizedTextJunction.put("reference_type", "extract");
+		localizedTextJunction.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
 			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction,
